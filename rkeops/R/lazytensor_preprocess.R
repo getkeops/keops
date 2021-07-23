@@ -300,6 +300,13 @@ unaryop.LazyTensor <- function(x, opstr, opt_arg = NA, opt_arg2 = NA,
     )
   }
   
+  # result type
+  if(!is.na(res_type) && res_type == "ComplexLazyTensor")
+    res_type <- c("ComplexLazyTensor", "LazyTensor")
+
+  if(is.numeric(x) || is.complex(x))
+    x <- LazyTensor(x)
+  
   # result dimension
   if(is.na(dim_res)) {
     dim_res <- get_inner_dim(x)
@@ -308,13 +315,6 @@ unaryop.LazyTensor <- function(x, opstr, opt_arg = NA, opt_arg2 = NA,
   # decimal zero: 4.0, 5.0, and so on...
   # If dim_res has a non zero decimal, the function stops anyway.
   dim_res <- as.integer(dim_res)
-  
-  # result type
-  if(!is.na(res_type) && res_type == "ComplexLazyTensor")
-    res_type <- c("ComplexLazyTensor", "LazyTensor")
-
-  if(is.numeric(x) || is.complex(x))
-    x <- LazyTensor(x)
   
   # format formula depending on the arguments
   if(!is.na(opt_arg2))

@@ -1086,9 +1086,10 @@ test_that("ifelse", {
   # errors
   expect_error(
     ifelse(x_i, y_j, w_i),
-    paste("Operation `IfElse` expects inputs of the same dimension or dimension 1.",
-          " Received 3, 3 and 7.", sep = ""
-          ),
+    paste(
+      "Operation `IfElse` expects inputs of the same dimension or dimension 1.",
+      " Received 3, 3 and 7.", sep = ""
+      ),
     fixed = TRUE
     )
 })
@@ -1150,7 +1151,7 @@ test_that("Re", {
   
   # check formulas, args & classes
   expect_true(Re(2) == 2)
-  expect_true(Re(2+1i) == 2)
+  expect_true(Re(2 + 1i) == 2)
   
   
   obj <-  Re(z_i)
@@ -1473,15 +1474,18 @@ test_that("reduction.LazyTensor", {
                "`x` input should be a LazyTensor or a ComplexLazyTensor.", 
                fixed=TRUE)
   
-  expect_error(reduction.LazyTensor(x_i, opstr, "b"),
-               "`index` input argument should be a character `i`, `j`.", 
-               fixed=TRUE)
+  expect_error(
+    reduction.LazyTensor(x_i, opstr, "b"),
+    "`index` input argument should be a character, either 'i' or 'j'.", 
+    fixed=TRUE
+    )
   
   expect_error(reduction.LazyTensor(x_i, 2, "i"),
                "`opst` input should be a string text.", 
                fixed=TRUE)
   
 })
+
 
 test_that("sum", {
   # basic example
@@ -1491,23 +1495,36 @@ test_that("sum", {
   x <- matrix(runif(M * D), M, D)
   x_i <- LazyTensor(x, index = 'i')
   
+  z <- matrix(1i^(-6:5), nrow = 4)
+  z_i <- LazyTensor(z, index = 'i', is_complex = TRUE)
+  
+  # check classes
   obj <- sum(x_i, "i")
   expect_false(is.LazyTensor(obj))
   
   obj <- sum(x_i)
   expect_true(is.LazyTensor(obj))
   
-  bool_grep_formula <- grep("Sum\\(A0x.*i\\)", obj$formula)
+  obj <- sum(z_i)
+  expect_true(is.LazyTensor(obj))
+  
+  # check formulae
+  bool_grep_formula <- grep("Sum\\(A0x.*i\\)", sum(x_i)$formula)
+  expect_equal(bool_grep_formula, 1)
+  
+  bool_grep_formula <- grep("ComplexSum\\(A0x.*i\\)", sum(z_i)$formula)
   expect_equal(bool_grep_formula, 1)
   
   # errors
   expect_error(sum(x_i, "b"),
-               "`index` input argument should be a character `i`, `j` or NA.", 
-               fixed=TRUE)
+               paste("`index` input argument should be a character,",
+                     " either 'i' or 'j', or NA.", sep = ""), 
+               fixed = TRUE)
   
   expect_error(sum(x_i, 2),
-               "`index` input argument should be a character `i`, `j` or NA.", 
-               fixed=TRUE)
+               paste("`index` input argument should be a character,",
+                     " either 'i' or 'j', or NA.", sep = ""), 
+               fixed = TRUE)
 })
 
 
@@ -1524,20 +1541,22 @@ test_that("sum_reduction", {
   
   # errors
   expect_error(sum_reduction(x_i, "b"),
-               "`index` input argument should be a character `i`, `j` or NA.", 
-               fixed=TRUE)
+               paste("`index` input argument should be a character,",
+                     " either 'i' or 'j', or NA.", sep = ""), 
+               fixed = TRUE)
   
   expect_error(sum_reduction(x_i, 2),
-               "`index` input argument should be a character `i`, `j` or NA.", 
-               fixed=TRUE)
+               paste("`index` input argument should be a character,",
+                     " either 'i' or 'j', or NA.", sep = ""), 
+               fixed = TRUE)
   
   expect_error(sum_reduction(x, "i"),
                "`x` input should be a LazyTensor or a ComplexLazyTensor.", 
-               fixed=TRUE)
+               fixed = TRUE)
   
   expect_error(sum_reduction(3, "i"),
                "`x` input should be a LazyTensor or a ComplexLazyTensor.", 
-               fixed=TRUE)
+               fixed = TRUE)
   
 })
 
@@ -1564,11 +1583,13 @@ test_that("min", {
   
   # errors
   expect_error(min(x_i, "b"),
-               "`index` input argument should be a character `i`, `j` or NA.",
+               paste("`index` input argument should be a character,",
+                     " either 'i' or 'j', or NA.", sep = ""),
                fixed = TRUE)
   
   expect_error(min(x_i, 4),
-               "`index` input argument should be a character `i`, `j` or NA.",
+               paste("`index` input argument should be a character,",
+                     " either 'i' or 'j', or NA.", sep = ""),
                fixed = TRUE)
   
 })
@@ -1594,13 +1615,17 @@ test_that("min_reduction", {
                "`x` input should be a LazyTensor or a ComplexLazyTensor.",
                fixed = TRUE)
   
-  expect_error(min_reduction(x_i, "b"),
-               "`index` input argument should be a character `i`, `j`.",
-               fixed = TRUE)
+  expect_error(
+    min_reduction(x_i, "b"),
+    "`index` input argument should be a character, either 'i' or 'j'.",
+    fixed = TRUE
+    )
   
-  expect_error(min_reduction(x_i, 3),
-               "`index` input argument should be a character `i`, `j`.",
-               fixed = TRUE)
+  expect_error(
+    min_reduction(x_i, 3),
+    "`index` input argument should be a character, either 'i' or 'j'.",
+    fixed = TRUE
+    )
   
 })
 
@@ -1635,11 +1660,13 @@ test_that("argmin", {
                fixed = TRUE)
   
   expect_error(argmin(x_i, "b"),
-               "`index` input argument should be a character `i`, `j` or NA.",
+               paste("`index` input argument should be a character,",
+                     " either 'i' or 'j', or NA.", sep = ""),
                fixed = TRUE)
   
   expect_error(argmin(x_i, 3),
-               "`index` input argument should be a character `i`, `j` or NA.",
+               paste("`index` input argument should be a character,",
+                     " either 'i' or 'j', or NA.", sep = ""),
                fixed = TRUE)
 })
 
@@ -1660,9 +1687,11 @@ test_that("argmin_reduction", {
                "`x` input should be a LazyTensor or a ComplexLazyTensor.",
                fixed = TRUE)
   
-  expect_error(argmin_reduction(x_i, 3),
-               "`index` input argument should be a character `i`, `j`.",
-               fixed = TRUE)
+  expect_error(
+    argmin_reduction(x_i, 3),
+    "`index` input argument should be a character, either 'i' or 'j'.",
+    fixed = TRUE
+    )
 })
 
 
@@ -1682,9 +1711,10 @@ test_that("min_argmin", {
                "`x` input should be a LazyTensor or a ComplexLazyTensor.",
                fixed = TRUE)
   
-  expect_error(min_argmin(x_i, "b"),
-               "`index` input argument should be a character `i`, `j`.",
-               fixed = TRUE)
+  expect_error(
+    min_argmin(x_i, "b"),
+    "`index` input argument should be a character, either 'i' or 'j'.",
+    fixed = TRUE)
 })
 
 
@@ -1698,16 +1728,18 @@ test_that("min_argmin_reduction", {
   x_i <- LazyTensor(x, index = 'i')
   
   # check results, formulas & classes
-  expect_true(is.LazyTensor(min_argmin_reduction(x_i, "i")))
+  expect_false(is.LazyTensor(min_argmin_reduction(x_i, "i")))
   
   # errors
   expect_error(min_argmin_reduction(3, "i"),
                "`x` input should be a LazyTensor or a ComplexLazyTensor.",
                fixed = TRUE)
   
-  expect_error(min_argmin_reduction(x_i, "b"),
-               "`index` input argument should be a character `i`, `j`.",
-               fixed = TRUE)
+  expect_error(
+    min_argmin_reduction(x_i, "b"),
+    "`index` input argument should be a character, either 'i' or 'j'.",
+    fixed = TRUE
+    )
 })
 
 
@@ -1717,6 +1749,9 @@ test_that("max", {
   M <- 100
   x <- matrix(runif(M * D), M, D)
   x_i <- LazyTensor(x, index = 'i')
+  
+  # check result type
+  expect_false(is.LazyTensor(max(x_i, "i")))
   
   # check results, formulas & classes
   expect_equal(max(D), 3)
@@ -1730,11 +1765,13 @@ test_that("max", {
   
   # errors
   expect_error(max(x_i, "b"),
-               "`index` input argument should be a character `i`, `j` or NA.",
+               paste("`index` input argument should be a character,",
+                     " either 'i' or 'j', or NA.", sep = ""),
                fixed = TRUE)
   
   expect_error(max(x_i, 4),
-               "`index` input argument should be a character `i`, `j` or NA.",
+               paste("`index` input argument should be a character,",
+                     " either 'i' or 'j', or NA.", sep = ""),
                fixed = TRUE)
 })
 
@@ -1750,9 +1787,11 @@ test_that("max_reduction", {
   expect_false(is.LazyTensor(max_reduction(x_i, "i")))
   
   # errors
-  expect_error(max_reduction(x_i, "b"),
-               "`index` input argument should be a character `i`, `j`.",
-               fixed = TRUE)
+  expect_error(
+    max_reduction(x_i, "b"),
+    "`index` input argument should be a character, either 'i' or 'j'.",
+    fixed = TRUE
+    )
   
   expect_error(max_reduction(x, "i"),
                "`x` input should be a LazyTensor or a ComplexLazyTensor.",
@@ -1788,11 +1827,13 @@ test_that("argmax", {
                fixed = TRUE)
   
   expect_error(argmax(x_i, "b"),
-               "`index` input argument should be a character `i`, `j` or NA.",
+               paste("`index` input argument should be a character,",
+                     " either 'i' or 'j', or NA.", sep = ""),
                fixed = TRUE)
   
   expect_error(argmax(x_i, 3),
-               "`index` input argument should be a character `i`, `j` or NA.",
+               paste("`index` input argument should be a character,",
+                     " either 'i' or 'j', or NA.", sep = ""),
                fixed = TRUE)
 })
 
@@ -1813,9 +1854,11 @@ test_that("argmax_reduction", {
                "`x` input should be a LazyTensor or a ComplexLazyTensor.",
                fixed = TRUE)
   
-  expect_error(argmax_reduction(x_i, 3),
-               "`index` input argument should be a character `i`, `j`.",
-               fixed = TRUE)
+  expect_error(
+    argmax_reduction(x_i, 3),
+    "`index` input argument should be a character, either 'i' or 'j'.",
+    fixed = TRUE
+    )
 })
 
 
@@ -1835,9 +1878,11 @@ test_that("max_argmax", {
                "`x` input should be a LazyTensor or a ComplexLazyTensor.",
                fixed = TRUE)
   
-  expect_error(max_argmax(x_i, "b"),
-               "`index` input argument should be a character `i`, `j`.",
-               fixed = TRUE)
+  expect_error(
+    max_argmax(x_i, "b"),
+    "`index` input argument should be a character, either 'i' or 'j'.",
+    fixed = TRUE
+    )
 })
 
 
@@ -1859,10 +1904,11 @@ test_that("max_argmax_reduction", {
                fixed = TRUE
                )
   
-  expect_error(max_argmax_reduction(x_i, "b"),
-               "`index` input argument should be a character `i`, `j`.",
-               fixed = TRUE
-               )
+  expect_error(
+    max_argmax_reduction(x_i, "b"),
+    "`index` input argument should be a character, either 'i' or 'j'.",
+    fixed = TRUE
+    )
 })
 
 

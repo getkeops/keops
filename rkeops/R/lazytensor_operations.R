@@ -1841,12 +1841,12 @@ sum.default <- .Primitive("sum")
 #' Summation unary operation, or Sum reduction.
 #' @details If `x` is a `LazyTensor`, `sum(x, index)` will :
 #' \itemize{
-#'   \item if **index = "i"**, return the min reduction of **x** over the "i" 
+#'   \item if **index = "i"**, return the sum reduction of **x** over the "i" 
 #'   indexes.
-#'   \item if **index = "j"**, return the min reduction of **x** over the "j" 
+#'   \item if **index = "j"**, return the sum reduction of **x** over the "j" 
 #'   indexes.
 #'   \item if **index = NA** (default), return a new `LazyTensor` object 
-#'   representing the min of the values of the vector.
+#'   representing the sum of the values of the vector.
 #' }
 #' If `x` is not a `LazyTensor` it computes R default "sum" function with
 #' other specific arguments (see R default `sum()` function).
@@ -1873,12 +1873,19 @@ sum <- function(x, index) {
 }
 
 sum.LazyTensor <- function(x, index = NA) {
-    if(is.na(index))
-        res <- unaryop.LazyTensor(x, "Sum")
+    if(is.na(index)) {
+        if(is.ComplexLazyTensor(x)) {
+            res <- unaryop.LazyTensor(x, "ComplexSum")
+        }
+        else {
+            res <- unaryop.LazyTensor(x, "Sum")
+        }
+    }
     else if(check_index(index))
         res <- reduction.LazyTensor(x, "Sum", index)
     else
-        stop("`index` input argument should be a character `i`, `j` or NA.")
+        stop(paste("`index` input argument should be a character,",
+                   " either 'i' or 'j', or NA.", sep = ""))
     return(res)
 }
 
@@ -1906,11 +1913,14 @@ sum.LazyTensor <- function(x, index = NA) {
 #' sum_reduction(x_i, "i")
 #' }
 #' @export
-sum_reduction <- function(x, index){
-    if(check_index(index))
+sum_reduction <- function(x, index) {
+    if(check_index(index)) {
         res <- reduction.LazyTensor(x, "Sum", index)
-    else 
-        stop("`index` input argument should be a character `i`, `j` or NA.")
+    }
+    else {
+        stop(paste("`index` input argument should be a character,",
+                   " either 'i' or 'j', or NA.", sep = ""))
+    }
     return(res)
 }
 
@@ -1962,7 +1972,8 @@ min.LazyTensor <- function(x, index = NA) {
     else if(check_index(index))
         res <- reduction.LazyTensor(x, "Min", index)
     else 
-        stop("`index` input argument should be a character `i`, `j` or NA.")
+        stop(paste("`index` input argument should be a character,",
+                   " either 'i' or 'j', or NA.", sep = ""))
     return(res)
 }
 
@@ -1991,10 +2002,12 @@ min.LazyTensor <- function(x, index = NA) {
 #' }
 #' @export
 min_reduction <- function(x, index) {
-    if(check_index(index))
+    if(check_index(index)) {
         res <- reduction.LazyTensor(x, "Min", index)
-    else
+    }
+    else {
         stop("`index` input argument should be a character, either 'i' or 'j'.")
+    }
     return(res)
 }
 
@@ -2038,7 +2051,8 @@ argmin <- function(x, index = NA) {
     else if(check_index(index))
         res <- reduction.LazyTensor(x, "ArgMin", index)
     else
-        stop("`index` input argument should be a character `i`, `j` or NA.")
+        stop(paste("`index` input argument should be a character,",
+                   " either 'i' or 'j', or NA.", sep = ""))
     return(res)
 }
 
@@ -2188,7 +2202,8 @@ max.LazyTensor <- function(x, index = NA) {
     else if(check_index(index))
         res <- reduction.LazyTensor(x, "Max", index)
     else 
-        stop("`index` input argument should be a character `i`, `j` or NA.")
+        stop(paste("`index` input argument should be a character,",
+                   " either 'i' or 'j', or NA.", sep = ""))
     return(res)
 }
 
@@ -2268,7 +2283,8 @@ argmax <- function(x, index = NA) {
     else if(check_index(index))
         res <- reduction.LazyTensor(x, "ArgMax", index)
     else 
-        stop("`index` input argument should be a character `i`, `j` or NA.")
+        stop(paste("`index` input argument should be a character,",
+                   " either 'i' or 'j', or NA.", sep = ""))
     return(res)
 }
 

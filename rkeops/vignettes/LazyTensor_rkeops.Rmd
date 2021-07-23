@@ -140,22 +140,23 @@ Generic squared Euclidean norms support scalar weights, and diagonal or full (sy
 
 ### Symbolic gradients
 
-| operation                 | meaning                                                                                             |
-|:--------------------------|:----------------------------------------------------------------------------------------------------
-| `grad(x, v, g)` | gradient of `x` with respect to the variable `v`, with `g` as the “grad_input” to backpropagate (in C++) |
-| `gradmatrix(x, v)` | matrix of gradient ($i.e.$ transpose of the jacobian matrix) |
+| operation                 | meaning                                                                                                  |
+|:--------------------------|:---------------------------------------------------------------------------------------------------------|
+| `grad(x, v, g)`           | gradient of `x` with respect to the variable `v`, with `g` as the “grad_input” to backpropagate (in C++) |
+| `gradmatrix(x, v)`        | matrix of gradient ($i.e.$ transpose of the jacobian matrix)                                             |
+
 
 ### Reductions
 
-| operation                                           |     meaning                                            |     mathematical expression                                  |
-|:----------------------------------------------------|:-------------------------------------------------------|:--------------------------------------------------------------
-| `sum(x, "j")` $\qquad$ `sum_reduction(x, "j")`| sum reduction indexed by `j` of elements of vector `x` | $\sum_j x_{ij}$ |
-| `min(x, "j")` $\qquad$ `min_reduction(x, "j")` | min reduction indexed by `j` of elements of vector `x` | $\min_j x_{ij}$ |
-| `argmin(x, "j")` $\qquad$  `argmin_reduction(x, "j")`| argmin reduction indexed by `j` of elements of vector `x` | $\text{argmin}_jx_{ij}$ |
-| `min_argmin(x, "j")`  $\qquad$ `min_argmin_reduction(x, "j")` | min-argmin reduction indexed by `j` of elements of vector `x` | $\left(\min_j x_{ij} ,\text{argmin}_j x_{ij}\right)$ |
-| `max(x, "j")`  $\qquad$ `max_reduction(x, "j")` | max reduction indexed by `j` of elements of vector `x` | $\min_j x_{ij}$ |
-| `argmax(x, "j")` $\qquad$  `argmax_reduction(x, "j")`| argmax reduction indexed by `j` of elements of vector `x` | $\text{argmin}_jx_{ij}$ |
-| `max_argmax(x, "j")` $\qquad$  `max_argmax_reduction(x, "j")`| max-argmax reduction indexed by `j` of elements of vector `x` | $\left(\max_j x_{ij} ,\text{argmax}_j x_{ij}\right)$ |
+| operation                                                       |     meaning                                                |     mathematical expression                                  |
+|:----------------------------------------------------------------|:-----------------------------------------------------------|:-------------------------------------------------------------|
+| `sum(x, "j")` $\qquad$ `sum_reduction(x, "j")`                  | sum reduction indexed by `j` of the elements of `x`        | $\sum_j x_{ij}$                                              |
+| `min(x, "j")` $\qquad$ `min_reduction(x, "j")`                  | min reduction indexed by `j` of the elements of `x`        | $\min_j x_{ij}$                                              |
+| `argmin(x, "j")` $\qquad$  `argmin_reduction(x, "j")`           | argmin reduction indexed by `j` of the elements of `x`     | $\text{argmin}_jx_{ij}$                                      |
+| `min_argmin(x, "j")`  $\qquad$ `min_argmin_reduction(x, "j")`   | min-argmin reduction indexed by `j` of the elements of `x` | $\left(\min_j x_{ij} ,\text{argmin}_j x_{ij}\right)$         |
+| `max(x, "j")`  $\qquad$ `max_reduction(x, "j")`                 | max reduction indexed by `j` of the elements of `x`        | $\min_j x_{ij}$                                              |
+| `argmax(x, "j")` $\qquad$  `argmax_reduction(x, "j")`           | argmax reduction indexed by `j` of the elements of `x`     | $\text{argmin}_jx_{ij}$                                      |
+| `max_argmax(x, "j")` $\qquad$  `max_argmax_reduction(x, "j")`   | max-argmax reduction indexed by `j` of the elements of `x` | $\left(\max_j x_{ij} ,\text{argmax}_j x_{ij}\right)$         |
 
 
 
@@ -168,6 +169,9 @@ TODO:
 * ask if reformulation is correct in Generic squared Euclidean norms...
 
 
+```{r}
+
+```
 
 
 
