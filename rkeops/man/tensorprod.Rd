@@ -12,10 +12,13 @@ tensorprod(x, y)
 \item{y}{}
 }
 \value{
-
+TODO
 }
 \description{
 Tensor product of vectors - a binary operation.
+}
+\details{
+TODO
 }
 \examples{
 \dontrun{
