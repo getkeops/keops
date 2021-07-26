@@ -1966,10 +1966,10 @@ sum <- function(x, index) {
 sum.LazyTensor <- function(x, index = NA) {
     if(is.na(index)) {
         if(is.ComplexLazyTensor(x)) {
-            res <- unaryop.LazyTensor(x, "ComplexSum")
+            res <- unaryop.LazyTensor(x, "ComplexSum", dimres = 1) # dimres = 2 ??
         }
         else {
-            res <- unaryop.LazyTensor(x, "Sum")
+            res <- unaryop.LazyTensor(x, "Sum", dimres = 1)
         }
     }
     else if(check_index(index))
