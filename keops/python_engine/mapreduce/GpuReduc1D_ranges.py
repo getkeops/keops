@@ -73,7 +73,7 @@ class GpuReduc1D_ranges(MapReduce, Gpu_link_compile):
         self.code = f"""
                         {self.headers}
 
-                        extern "C" __global__ void GpuConv1DOnDevice_ranges_NoChunks(int nx, int ny, int nbatchdims,
+                        extern "C" __global__ void GpuConv1DOnDevice_ranges(int nx, int ny, int nbatchdims,
                                                     int *offsets_d, int *lookup_d, int *slices_x,
                                                     int *ranges_y, {dtype} *out, {dtype} **{arg.id}) {{
                                                         

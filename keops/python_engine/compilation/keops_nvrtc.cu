@@ -272,7 +272,7 @@ __host__ int launch_keops(const char* ptx_file_name, int tagHostDevice, int dimY
         
         gridSize.x = nblocks;
         
-        CUDA_SAFE_CALL(cuModuleGetFunction(&kernel, module, "GpuConv1DOnDevice_ranges_NoChunks"));
+        CUDA_SAFE_CALL(cuModuleGetFunction(&kernel, module, "GpuConv1DOnDevice_ranges"));
 
         void *kernel_params[9];
         kernel_params[0] = &nx;
