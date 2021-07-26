@@ -307,10 +307,16 @@ unaryop.LazyTensor <- function(x, opstr, opt_arg = NA, opt_arg2 = NA,
   if(is.numeric(x) || is.complex(x))
     x <- LazyTensor(x)
   
+  ## result dimension
+  #if(is.na(dim_res)) {
+  #  dim_res <- get_inner_dim(x)
+  #}
+  
   # result dimension
   if(is.na(dim_res)) {
-    dim_res <- get_inner_dim(x)
+    dim_res <- x$dimres
   }
+  
   # Set `as.integer(dim_res)` to avoid printing potential
   # decimal zero: 4.0, 5.0, and so on...
   # If dim_res has a non zero decimal, the function stops anyway.
@@ -325,10 +331,10 @@ unaryop.LazyTensor <- function(x, opstr, opt_arg = NA, opt_arg2 = NA,
   else 
     formula <- paste(opstr, "(", x$formula, ")", sep = "")
   
-  # result dimension
-  dimres <- dim_res
+  res <- list(formula = formula, args = x$args, vars = x$vars)
   
-  res <- list(formula = formula, args = x$args, vars = x$vars, dimres = dimres)
+  # result dimension
+  res$dimres <- dim_res
   
   # result type
   if(is.na(res_type[1]))
@@ -447,10 +453,16 @@ binaryop.LazyTensor <- function(x, y, opstr, is_operator = FALSE,
     }
   }
   
+  ## result dimension
+  #if(is.na(dim_res)) {
+  #  dim_res <- max(c(get_inner_dim(x), get_inner_dim(y)))
+  #}
+  
   # result dimension
   if(is.na(dim_res)) {
-    dim_res <- max(c(get_inner_dim(x), get_inner_dim(y)))
+    dim_res <- max(c(x$dimres, y$dimres))
   }
+  
   # Set `as.integer(dim_res)` to avoid printing potential
   # decimal zero: 4.0, 5.0, and so on...
   # If dim_res has a non zero decimal, the function stops anyway.
@@ -579,10 +591,16 @@ ternaryop.LazyTensor <- function(x, y, z, opstr, dim_check_type = "sameor1",
     }
   }
   
+  ## result dimension
+  #if(is.na(dim_res)) {
+  #  dim_res <- max(c(get_inner_dim(x), get_inner_dim(y), get_inner_dim(z)))
+  #}
+  
   # result dimension
   if(is.na(dim_res)) {
-    dim_res <- max(c(get_inner_dim(x), get_inner_dim(y), get_inner_dim(z)))
+    dim_res <- max(c(x$dimres, y$dimres, z$dimres))
   }
+  
   # Set `as.integer(dim_res)` to avoid printing potential
   # decimal zero: 4.0, 5.0, and so on...
   # If dim_res has a non zero decimal, the function stops anyway.
@@ -770,12 +788,23 @@ get_inner_dim <- function(x) {
   if(!is.LazyTensor(x))
     stop("`x` input argument should be a LazyTensor or a ComplexLazyTensor.")
   
-  end_x_inner_dim <- sub(".*\\(", "", x$args)
-  x_inner_dim <- substr(end_x_inner_dim, 1, nchar(end_x_inner_dim) - 1)
-  x_inner_dim <- as.integer(x_inner_dim)
+  #end_x_inner_dim <- sub(".*\\(", "", x$args)
+  #x_inner_dim <- substr(end_x_inner_dim, 1, nchar(end_x_inner_dim) - 1)
+  #x_inner_dim <- as.integer(x_inner_dim)
+  
+  if(length(x$args) == 1) {
+    end_x_inner_dim <- sub(".*\\(", "", x$args)
+    x_inner_dim <- substr(end_x_inner_dim, 1, nchar(end_x_inner_dim) - 1)
+    x_inner_dim <- as.integer(x_inner_dim)
+  }
+  
+  else {
+    x_inner_dim <- x$dimres
+  }
   
   if(is.ComplexLazyTensor(x))
     x_inner_dim <- (x_inner_dim / 2)
+  
   return(x_inner_dim)
 }
 

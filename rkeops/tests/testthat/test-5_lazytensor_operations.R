@@ -152,6 +152,7 @@ test_that("*", {
 test_that("/", {
   # basic example
   D <- 3
+  E <- 7
   M <- 100
   N <- 150
   x <- matrix(runif(M * D), M, D)
@@ -312,6 +313,7 @@ test_that("rsqrt", {
 test_that("|", {
   # basic example
   D <- 3
+  E <- 7
   M <- 100
   N <- 150
   x <- matrix(runif(M * D), M, D)
@@ -366,8 +368,8 @@ test_that("exp", {
   
   # check results, formulas & classes
   expect_equal(exp(0), 1)
-  expect_true(class(exp(x_i)) == "LazyTensor")
-  expect_true(class(exp(z_i)) == "ComplexLazyTensor")
+  expect_true(is.LazyTensor(x_i))
+  expect_true(is.ComplexLazyTensor(z_i))
   
   obj <- exp(x_i)
   bool_grep_formula <- grep("Exp\\(A0x.*i\\)", obj$formula)
