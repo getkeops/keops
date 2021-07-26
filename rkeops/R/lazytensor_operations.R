@@ -1,9 +1,18 @@
+<<<<<<< Updated upstream
 # library(rkeops)
 # library(stringr)
 # library(data.table)
 # 
 # set_rkeops_option("tagCpuGpu", 0)
 # set_rkeops_option("precision", "double")
+=======
+#library(rkeops)
+#library(stringr)
+#library(data.table)
+#
+#set_rkeops_option("tagCpuGpu", 0)
+#set_rkeops_option("precision", "double")
+>>>>>>> Stashed changes
 
 
 # OPERATIONS ===================================================================
@@ -3270,6 +3279,7 @@ grad <- function(x, v, gradin) {
 
 
 # Basic example
+<<<<<<< Updated upstream
 # 
 # D <- 3
 # M <- 100
@@ -3298,6 +3308,36 @@ grad <- function(x, v, gradin) {
 # 
 # # Symbolic Gaussian kernel matrix:
 # K_ij = exp( - SqDist_ij / (2 * s^2) )
+=======
+
+#D <- 3
+#M <- 100
+#N <- 150
+#E <- 4
+#x <- matrix(runif(M * D), M, D)
+#y <- matrix(runif(N * D), N, D)
+#z <- matrix(runif(N * E), N, E)
+#b <- matrix(runif(N * E), N, E)
+#
+#vect <- rep(1, 10)
+#s <- 0.25
+##
+### creating LazyTensor from matrices
+#x_i <- LazyTensor(x, index = 'i')
+#y_j <- LazyTensor(y, index = 'j')
+#z_j <- LazyTensor(z, index = 'j')
+#
+#z <- matrix(1i^ (-6:5), nrow = 4) # complex 4x3 matrix
+#z_i <- LazyTensor(z, index = 'i', is_complex = TRUE)
+#conj_z_i <- Conj(z_i)
+#b_j = b
+#
+## Symbolic matrix of squared distances:
+#SqDist_ij = sum( (x_i - y_j)^2 )
+
+# Symbolic Gaussian kernel matrix:
+#K_ij = exp( - SqDist_ij / (2 * s^2) )
+>>>>>>> Stashed changes
 #
 ## Genuine matrix:
 #v = K_ij %*% b_j

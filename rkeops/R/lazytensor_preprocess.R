@@ -1,9 +1,18 @@
+<<<<<<< Updated upstream
 # library(rkeops)
 # library(stringr)
 # library(data.table)
 # 
 # set_rkeops_option("tagCpuGpu", 0)
 # set_rkeops_option("precision", "double")
+=======
+#library(rkeops)
+#library(stringr)
+#library(data.table)
+#
+#set_rkeops_option("tagCpuGpu", 0)
+#set_rkeops_option("precision", "double")
+>>>>>>> Stashed changes
 
 
 
