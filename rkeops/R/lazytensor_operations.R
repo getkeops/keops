@@ -185,7 +185,7 @@ set_rkeops_option("precision", "double")
     }
     
     if(is.LazyScalar(y)) {
-        res <- binaryop.LazyTensor(x, y, "ComplexRealScal", dim_check_type = "same")
+        res <- binaryop.LazyTensor(x, y, "ComplexRealScal")
     }
     
     else if(!is.ComplexLazyTensor(y)) {
@@ -201,7 +201,7 @@ set_rkeops_option("precision", "double")
     }
     
     else {
-        res <- binaryop.LazyTensor(x, y, "ComplexMult", dim_check_type = "sameor1")
+        res <- binaryop.LazyTensor(x, y, "ComplexMult")
     }
     
     return(res)
@@ -1632,7 +1632,7 @@ Arg.ComplexLazyTensor <- function(z) {
 }
 
 
-# real to complex ------------------------------------------------------------------------
+# real to complex --------------------------------------------------------------
 
 #' Element-wise "real 2 complex" operation.
 #' @description
@@ -1656,8 +1656,7 @@ real2complex <- function(x) {
 }
 
 real2complex.LazyTensor <- function(x) {
-    res <- unaryop.LazyTensor(x, "Real2Complex", res_type = "ComplexLazyTensor",
-                              dim_res = 2 * x$dimres)
+    res <- unaryop.LazyTensor(x, "Real2Complex", res_type = "ComplexLazyTensor")
 }
 
 real2complex.ComplexLazyTensor <- function(x) {
@@ -3013,7 +3012,7 @@ extractT <- function(d) {
 }
 
 
-# Concatenation ---------------------------------------------------------------------
+# Concatenation ----------------------------------------------------------------
 
 #' Concatenation.
 #' @description
@@ -3140,63 +3139,6 @@ matvecmult <- function(x, y) {
 #' @export
 vecmatmult <- function(x, y) {
     res <- binaryop.LazyTensor(x, y, "VecMatMult", dim_check_type = NA)
-    return(res)
-}
-
-
-
-# TensorProd -------------------------------------------------------------------
-
-#' Tensor product of vectors.
-#' @description
-#' Tensor product of vectors - a binary operation.
-#' @details tensor cross product `x` x `y`^T: `x` and `y` are vectors of sizes `M` 
-#' and `N`, output is of size `MN`.
-#' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A `LazyTensor` or a `ComplexLazyTensor`.
-#' @param x D An `integer` corresponding to the output dimension.
-#' @return 
-#' @examples
-#' \dontrun{
-#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
-#' y <- matrix(runif(250 * 3), 250, 3) # arbitrary R matrix, 150 rows, 3 columns
-#' x_i <- LazyTensor(x, index = 'i')   # LazyTensor from matrix x, indexed by 'i'
-#' y_j <- LazyTensor(y, index = 'j')   # LazyTensor from matrix y, indexed by 'j'
-#' 
-#' tensorprod_xy <- tensorprod(x_i, y_j) # symbolic matrix
-#' }
-#' @export
-tensorprod <- function(x, y) {
-    res <- binaryop.LazyTensor(x, y, "TensorProd", dim_check_type = NA)
-    return(res)
-}
-
-
-
-# Tensor dot product -----------------------------------------------------------
-
-# TODO 
-#' Tensor dot product of vectors.
-#' @description
-#' Tensor dot product (on KeOps internal dimensions) - a binary operation.
-#' @details tensor cross product `x` x `y`^T: `x` and `y` are vectors of sizes
-#' `M` and `N`, output is of size `MN`.
-#' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A `LazyTensor` or a `ComplexLazyTensor`.
-#' @param x D An `integer` corresponding to the output dimension.
-#' @return 
-#' @examples
-#' \dontrun{
-#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
-#' y <- matrix(runif(250 * 3), 250, 3) # arbitrary R matrix, 150 rows, 3 columns
-#' x_i <- LazyTensor(x, index = 'i')   # LazyTensor from matrix x, indexed by 'i'
-#' y_j <- LazyTensor(y, index = 'j')   # LazyTensor from matrix y, indexed by 'j'
-#' 
-#' tensorprod_xy <- tensorprod(x_i, y_j) # symbolic matrix
-#' }
-#' @export
-tensordot <- function(x, y) {
-    res <- binaryop.LazyTensor(x, y, "TensorProd", dim_check_type = NA)
     return(res)
 }
 

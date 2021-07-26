@@ -31,6 +31,14 @@ test_that("+", {
   bool_grep_formula <- grep("A0x.*i\\+A0x.*j", obj$formula)
   expect_equal(bool_grep_formula, 1)
   
+  obj <- x_i + xc_i
+  bool_grep_formula <- grep("Add\\(A0x.*i,A0x.*i\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  
+  obj <- xc_i + x_i
+  bool_grep_formula <- grep("Add\\(A0x.*i,Real2Complex\\(A0x.*i\\)\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  
   obj <-  x_i + 3
   bool_grep_formula <- grep("A0x.*i\\+IntCst\\(3\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
@@ -106,6 +114,7 @@ test_that("-", {
 test_that("*", {
   # basic example
   D <- 3
+  E <- 7
   M <- 100
   N <- 150
   x <- matrix(runif(M * D), M, D)
@@ -127,6 +136,26 @@ test_that("*", {
   
   obj <- x_i * y_j
   bool_grep_formula <- grep("A0x.*i\\*A0x.*j", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  
+  obj <- x_i * xc_i
+  bool_grep_formula <- grep("ComplexMult\\(A0x.*i,A0x.*i\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  
+  obj <- xc_i * x_i
+  bool_grep_formula <- grep("ComplexMult\\(A0x.*i,Real2Complex\\(A0x.*i\\)\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  
+  obj <- xc_i * Pm(2i)
+  bool_grep_formula <- grep("ComplexScal\\(A0x.*NA,A0x.*i\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  
+  obj <- Pm(2i) * xc_i
+  bool_grep_formula <- grep("ComplexScal\\(A0x.*NA,A0x.*i\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  
+  obj <- xc_i * Pm(2)
+  bool_grep_formula <- grep("ComplexRealScal\\(A0x.*i,IntCst\\(2\\)\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
   
   obj <-  x_i * 3

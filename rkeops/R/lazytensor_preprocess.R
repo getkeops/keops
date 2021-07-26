@@ -335,7 +335,6 @@ unaryop.LazyTensor <- function(x, opstr, opt_arg = NA, opt_arg2 = NA,
   
   # result dimension
   res$dimres <- dim_res
-  
   # result type
   if(is.na(res_type[1]))
     class(res) <- class(x)
@@ -721,6 +720,12 @@ is.LazyScalar <- function(x) {
   return((length(x$args) == 1) && any(grep(".*=Pm\\(1\\)", x$args)))
 }
 
+# is.ComplexLazyScalar?
+is.ComplexLazyScalar <- function(x) {
+  res <- (is.ComplexLazyTensor(x) && length(x$args) == 1) && 
+    any(grep(".*=Pm\\(2\\)", x$args))
+  return(res)
+}
 
 #' Scalar integer test.
 #' @description
@@ -844,8 +849,8 @@ check_inner_dim <- function(x, y, z = NA, check_type = "sameor1") {
     }
   }
   
-  x_inner_dim <- get_inner_dim(x)
-  y_inner_dim <- get_inner_dim(y)
+  x_inner_dim <- x$dimres
+  y_inner_dim <- y$dimres
   
   if(is.na(z)[1]) {
     # Check whether if x and y inner dimensions are the same or if at least one 
