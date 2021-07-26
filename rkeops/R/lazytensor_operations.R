@@ -67,7 +67,12 @@ set_rkeops_option("precision", "double")
         return(res)
     }
     
-    res <- binaryop.LazyTensor(x, y, "Add", dim_check_type = "sameor1")
+    else if(!is.ComplexLazyTensor(x)) {
+        res <- real2complex(x) + y
+        return(res)
+    }
+    
+    res <- binaryop.LazyTensor(x, y, "Add")
     return(res)
     
 }
@@ -114,7 +119,7 @@ set_rkeops_option("precision", "double")
 #' }
 #' @export
 "-" <- function(x, y = NA) { 
-    if(!is.LazyTensor(x))
+    if(!is.na(y) && (!is.ComplexLazyTensor(x) && is.LazyTensor(y)))
         UseMethod("-", y)
     else
         UseMethod("-", x)
@@ -127,6 +132,31 @@ set_rkeops_option("precision", "double")
         res <- binaryop.LazyTensor(x, y, "-", is_operator = TRUE,
                                    dim_check_type = "sameor1")
     return(res)
+}
+
+"-.ComplexLazyTensor" <- function(x, y = NA) {
+    if((length(y) == 1) && is.na(y)) {
+        res <- unaryop.LazyTensor(x, "Minus")
+        return(res)
+    }
+    
+    if(!is.LazyTensor(y) && !is.matrix(y)) {
+        y <- LasyTensor(y)
+    }
+    
+    if(!is.ComplexLazyTensor(y)) {
+        res <- x - real2complex(y)
+        return(res)
+    }
+    
+    else if(!is.ComplexLazyTensor(x)) {
+        res <- real2complex(x) - y
+        return(res)
+    }
+    
+    res <- binaryop.LazyTensor(x, y, "Subtract")
+    return(res)
+    
 }
 
 
@@ -180,7 +210,7 @@ set_rkeops_option("precision", "double")
 }
 
 "*.ComplexLazyTensor" <- function(x, y) {
-    if(!is.LazyTensor(y)) {
+    if(!is.LazyTensor(y) && !is.matrix(y)) {
         y <- LasyTensor(y)
     }
     
@@ -190,6 +220,10 @@ set_rkeops_option("precision", "double")
     
     else if(!is.ComplexLazyTensor(y)) {
         res <- x * real2complex(y)
+    }
+    
+    else if(!is.ComplexLazyTensor(x)) {
+        res <- real2complex(x) * y
     }
     
     else if(is.ComplexLazyScalar(x) || is.ComplexLazyScalar(y)) {
@@ -241,7 +275,7 @@ set_rkeops_option("precision", "double")
 #' }
 #' @export
 "/" <- function(x, y) { 
-    if(!is.LazyTensor(x))
+    if(!is.ComplexLazyTensor(x) && is.LazyTensor(y))
         UseMethod("/", y)
     else
         UseMethod("/", x)
@@ -250,6 +284,25 @@ set_rkeops_option("precision", "double")
 "/.LazyTensor" <- function(x, y) {
     res <- binaryop.LazyTensor(x, y, "/", is_operator = TRUE,
                                dim_check_type = "sameor1")
+    return(res)
+}
+
+"/.ComplexLazyTensor" <- function(x, y) {
+    if(!is.LazyTensor(y) && !is.matrix(y)) {
+        y <- LasyTensor(y)
+    }
+    
+    if(!is.ComplexLazyTensor(y)) {
+        res <- x / real2complex(y)
+        return(res)
+    }
+    
+    else if(!is.ComplexLazyTensor(x)) {
+        res <- real2complex(x) / y
+        return(res)
+    }
+    
+    res <- binaryop.LazyTensor(x, y, "ComplexDivide")
     return(res)
 }
 

@@ -32,7 +32,7 @@ test_that("+", {
   expect_equal(bool_grep_formula, 1)
   
   obj <- x_i + xc_i
-  bool_grep_formula <- grep("Add\\(A0x.*i,A0x.*i\\)", obj$formula)
+  bool_grep_formula <- grep("Add\\(Real2Complex\\(A0x.*i\\),A0x.*i\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
   
   obj <- xc_i + x_i
@@ -87,6 +87,18 @@ test_that("-", {
   bool_grep_formula <- grep("A0x.*i-A0x.*j", obj$formula)
   expect_equal(bool_grep_formula, 1)
   
+  obj <- xc_i - yc_j
+  bool_grep_formula <- grep("Subtract\\(A0x.*i,A0x.*j\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  
+  obj <- xc_i - y_j
+  bool_grep_formula <- grep("Subtract\\(A0x.*i,Real2Complex\\(A0x.*j\\)\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  
+  obj <- x_i - yc_j
+  bool_grep_formula <- grep("Subtract\\(Real2Complex\\(A0x.*i\\),A0x.*j\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  
   obj <-  x_i - 3
   bool_grep_formula <- grep("A0x.*i-+IntCst\\(3\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
@@ -139,7 +151,7 @@ test_that("*", {
   expect_equal(bool_grep_formula, 1)
   
   obj <- x_i * xc_i
-  bool_grep_formula <- grep("ComplexMult\\(A0x.*i,A0x.*i\\)", obj$formula)
+  bool_grep_formula <- grep("ComplexMult\\(Real2Complex\\(A0x.*i\\),A0x.*i\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
   
   obj <- xc_i * x_i
@@ -204,6 +216,21 @@ test_that("/", {
   
   obj <- x_i / y_j
   bool_grep_formula <- grep("A0x.*i/A0x.*j", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  
+  obj <- xc_i / y_j
+  bool_grep_formula <- grep("ComplexDivide\\(A0x.*i,Real2Complex\\(A0x.*j\\)\\)", 
+                            obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  
+  obj <- y_j / xc_i
+  bool_grep_formula <- grep("ComplexDivide\\(Real2Complex\\(A0x.*j\\),A0x.*i\\)", 
+                            obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  
+  obj <- yc_j / xc_i
+  bool_grep_formula <- grep("ComplexDivide\\(A0x.*j,A0x.*i\\)", 
+                            obj$formula)
   expect_equal(bool_grep_formula, 1)
   
   obj <-  x_i / 3
