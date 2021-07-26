@@ -22,6 +22,27 @@ If \code{x} is a fixed parameter \code{ComplexLazyTensor} encoding a
 single complex value, \code{is.ComplexLazyScalar(x)}
 returns TRUE, else, returns FALSE.
 }
+\examples{
+\dontrun{
+# basic example
+scal <- 3.14
+cplx <- 2 + 3i
+v <- rep(3 + 7i, 10)
+z <- matrix(2 + 1i^ (-6:5), nrow = 4)
+
+# create LazyTensor and ComplexLazyTensor
+scal_LT <- LazyTensor(scal)
+cplx_LT <- LazyTensor(cplx)
+v_LT <- LazyTensor(v)
+z_i <- LazyTensor(z, index = 'i')
+
+# call is.ComplexLazyScalar
+is.ComplexLazyScalar(scal_LT) # returns FALSE
+is.ComplexLazyScalar(cplx_LT) # returns TRUE
+is.ComplexLazyScalar(v_LT) # returns FALSE
+is.ComplexLazyScalar(x_i) # returns FALSE
+}
+}
 \author{
 Chloe Serre-Combe, Amelie Vernay
 }

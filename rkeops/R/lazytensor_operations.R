@@ -1,9 +1,9 @@
-library(rkeops)
-library(stringr)
-library(data.table)
-
-set_rkeops_option("tagCpuGpu", 0)
-set_rkeops_option("precision", "double")
+# library(rkeops)
+# library(stringr)
+# library(data.table)
+# 
+# set_rkeops_option("tagCpuGpu", 0)
+# set_rkeops_option("precision", "double")
 
 
 # OPERATIONS ===================================================================
@@ -1647,7 +1647,7 @@ Im.ComplexLazyTensor <- function(z) {
 
 
 # angle ------------------------------------------------------------------------
-Arg.default <- .Primitive("Arg")
+Arg.default <- .Primitove("Arg")
 
 #' Element-wise angle (or argument) of complex.
 #' @description
@@ -3146,7 +3146,7 @@ one_hot <- function(x, D) {
 #' the matrix-vector product of `x` and `y` along their last dimension.
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `LazyTensor` or a `ComplexLazyTensor`.
-#' @param x D An `integer` corresponding to the output dimension.
+#' @param D An `integer` corresponding to the output dimension.
 #' @return 
 #' @examples
 #' \dontrun{
@@ -3175,7 +3175,7 @@ matvecmult <- function(x, y) {
 #' interpreted as matrix (column-major)
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `LazyTensor` or a `ComplexLazyTensor`.
-#' @param x D An `integer` corresponding to the output dimension.
+#' @param D An `integer` corresponding to the output dimension.
 #' @return 
 #' @examples
 #' \dontrun{
@@ -3187,10 +3187,47 @@ matvecmult <- function(x, y) {
 #' }
 #' @export
 vecmatmult <- function(x, y) {
-    res <- binaryop.LazyTensor(x, y, "VecMatMult", dim_check_type = NA)
+    if(is.LazyVector(x))
+        res <- binaryop.LazyTensor(x, y, "VecMatMult", dim_check_type = NA)
+    else
+        stop("`x` input should be a LazyTensor")
     return(res)
 }
 
+
+# Tensorprod -------------------------------------------------------------------
+
+
+
+#    If ``x._shape[-1] == A`` and ``y._shape[-1] == B``,
+# ``z = x.tensorprod(y)`` returns a :class:`GenericLazyTensor`
+# such that ``z._shape[-1] == A*B`` which encodes, symbolically,
+# the tensor product of ``x`` and ``y`` along their last dimension.
+# For details, please check the documentation of the KeOps operation ``"TensorProd"`` in
+# the :doc:`main reference page <../../../api/math-operations>`.
+#' Tensor product.
+#' @description
+#' Tensor product of vectors - a binary operation.
+#' @details 
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @param x 
+#' @param y 
+#' @return 
+#' @examples
+#' \dontrun{
+
+#' }
+#' @export
+tensorprod <- function(x, y) {
+    if(is.LazyVector(x) && is.LazyVector(y)) {
+        dim_res <- x$dimres * y$dimres
+        res <- binaryop.LazyTensor(x, y, "TensorProd", dim_check_type = NA, 
+                                   dimres = dim_res)
+    }
+    else
+        stop("`x` and `y` arguments should be vectors.")
+    return(res)
+}
 
 # SYMBOLIC GRADIENT ============================================================
 
@@ -3233,34 +3270,34 @@ grad <- function(x, v, gradin) {
 
 
 # Basic example
-
-D <- 3
-M <- 100
-N <- 150
-E <- 4
-x <- matrix(runif(M * D), M, D)
-y <- matrix(runif(N * D), N, D)
-z <- matrix(runif(N * E), N, E)
-b <- matrix(runif(N * E), N, E)
-
-vect <- rep(1, 10)
-s <- 0.25
-#
-## creating LazyTensor from matrices
-x_i <- LazyTensor(x, index = 'i')
-y_j <- LazyTensor(y, index = 'j')
-z_j <- LazyTensor(z, index = 'j')
-
-z <- matrix(1i^ (-6:5), nrow = 4) # complex 4x3 matrix
-z_i <- LazyTensor(z, index = 'i', is_complex = TRUE)
-conj_z_i <- Conj(z_i)
-b_j = b
-
-# Symbolic matrix of squared distances:
-SqDist_ij = sum( (x_i - y_j)^2 )
-
-# Symbolic Gaussian kernel matrix:
-K_ij = exp( - SqDist_ij / (2 * s^2) )
+# 
+# D <- 3
+# M <- 100
+# N <- 150
+# E <- 4
+# x <- matrix(runif(M * D), M, D)
+# y <- matrix(runif(N * D), N, D)
+# z <- matrix(runif(N * E), N, E)
+# b <- matrix(runif(N * E), N, E)
+# 
+# vect <- rep(1, 10)
+# s <- 0.25
+# #
+# ## creating LazyTensor from matrices
+# x_i <- LazyTensor(x, index = 'i')
+# y_j <- LazyTensor(y, index = 'j')
+# z_j <- LazyTensor(z, index = 'j')
+# 
+# z <- matrix(1i^ (-6:5), nrow = 4) # complex 4x3 matrix
+# z_i <- LazyTensor(z, index = 'i', is_complex = TRUE)
+# conj_z_i <- Conj(z_i)
+# b_j = b
+# 
+# # Symbolic matrix of squared distances:
+# SqDist_ij = sum( (x_i - y_j)^2 )
+# 
+# # Symbolic Gaussian kernel matrix:
+# K_ij = exp( - SqDist_ij / (2 * s^2) )
 #
 ## Genuine matrix:
 #v = K_ij %*% b_j

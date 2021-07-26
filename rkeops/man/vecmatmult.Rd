@@ -7,7 +7,9 @@
 vecmatmult(x, y)
 }
 \arguments{
-\item{x}{D An \code{integer} corresponding to the output dimension.}
+\item{x}{A \code{LazyTensor} or a \code{ComplexLazyTensor}.}
+
+\item{D}{An \code{integer} corresponding to the output dimension.}
 }
 \value{
 

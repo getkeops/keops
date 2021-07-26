@@ -19,6 +19,21 @@ Checks whether if the given input is a \code{LazyTensor} or not.
 If \code{x} is a \code{LazyTensor}, \code{is.LazyTensor(x)} returns TRUE, else,
 returns FALSE.
 }
+\examples{
+\dontrun{
+# basic example
+D <- 3
+M <- 100
+x <- matrix(runif(M * D), M, D)
+
+# create LazyTensor
+x_i <- LazyTensor(x, index = 'i')
+
+# call is.LazyTensor
+is.LazyTensor(x_i) # returns TRUE
+is.LazyTensor(x)   # returns FALSE
+}
+}
 \author{
 Chloe Serre-Combe, Amelie Vernay
 }

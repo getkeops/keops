@@ -1,9 +1,9 @@
-library(rkeops)
-library(stringr)
-library(data.table)
-
-set_rkeops_option("tagCpuGpu", 0)
-set_rkeops_option("precision", "double")
+# library(rkeops)
+# library(stringr)
+# library(data.table)
+# 
+# set_rkeops_option("tagCpuGpu", 0)
+# set_rkeops_option("precision", "double")
 
 
 
@@ -635,7 +635,7 @@ ternaryop.LazyTensor <- function(x, y, z, opstr, dim_check_type = "sameor1",
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x An object we want to know if it is a `LazyTensor`.
 #' @return A boolean, TRUE or FALSE.
-#' @example
+#' @examples
 #' \dontrun{
 #' # basic example
 #' D <- 3
@@ -663,7 +663,7 @@ is.LazyTensor <- function(x){
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x An object we want to know if it is a `ComplexLazyTensor`.
 #' @return A boolean, TRUE or FALSE.
-#' @example
+#' @examples
 #' \dontrun{
 #' # basic example
 #' D <- 3
@@ -695,7 +695,7 @@ is.ComplexLazyTensor <- function(x){
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x An object we want to know if it is a `LazyScalar`.
 #' @return A boolean, TRUE or FALSE.
-#' @example
+#' @examples
 #' \dontrun{
 #' # basic example
 #' scal <- 3.14
@@ -731,7 +731,7 @@ is.LazyScalar <- function(x) {
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x An object we want to know if it is a `ComplexLazyScalar`.
 #' @return A boolean, TRUE or FALSE.
-#' @example
+#' @examples
 #' \dontrun{
 #' # basic example
 #' scal <- 3.14
@@ -767,7 +767,7 @@ is.ComplexLazyScalar <- function(x) {
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x An object we want to know if it is a `integer`.
 #' @return A boolean, TRUE or FALSE.
-#' @example
+#' @examples
 #' \dontrun{
 #' # basic example
 #' A <- 3
@@ -786,9 +786,9 @@ is.int <- function(x) {
 
 
 # Function below not useful anymore ?
-#is.LazyVector <- function(x) {
-#  return(any(grep(".*=Pm\\(.*\\)", x$args)))
-#}
+is.LazyVector <- function(x) {
+ return(any(grep(".*=Pm\\(.*\\)", x$args)))
+}
 
 
 # GLOBAL CHECKS ================================================================
@@ -803,7 +803,7 @@ is.int <- function(x) {
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `LazyTensor`.
 #' @return An integer corresponding to the inner dimension of `x`.
-#' @example
+#' @examples
 #' \dontrun{
 #' # basic example
 #' D <- 3

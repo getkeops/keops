@@ -21,6 +21,27 @@ a single scalar value. That is, if the input is a fixed parameter
 If \code{x} is a fixed parameter \code{LazyTensor} with dimension 1,
 \code{is.LazyScalar(x)} returns TRUE, else, returns FALSE.
 }
+\examples{
+\dontrun{
+# basic example
+scal <- 3.14
+cplx <- 2 + 3i
+v <- rep(3, 10)
+x <- matrix(runif(100 * 3), 100, 3)
+
+# create LazyTensor and ComplexLazyTensor
+scal_LT <- LazyTensor(scal)
+cplx_LT <- LazyTensor(cplx)
+v_LT <- LazyTensor(v)
+x_i <- LazyTensor(x, index = 'i')
+
+# call is.LazyScalar
+is.LazyScalar(scal_LT) # returns TRUE
+is.LazyScalar(cplx_LT) # returns FALSE
+is.LazyScalar(v_LT) # returns FALSE
+is.LazyScalar(x_i) # returns FALSE
+}
+}
 \author{
 Chloe Serre-Combe, Amelie Vernay
 }

@@ -19,6 +19,23 @@ Checks whether if the given input is a \code{ComplexLazyTensor} or not.
 If \code{x} is a \code{ComplexLazyTensor}, \code{is.ComplexLazyTensor(x)}
 returns TRUE, else, returns FALSE.
 }
+\examples{
+\dontrun{
+# basic example
+D <- 3
+M <- 100
+x <- matrix(runif(M * D), M, D)
+z <- matrix(1i^(-6:5), nrow = 4) # complex 4x3 matrix
+
+# create LazyTensor and ComplexLazyTensor
+x_i <- LazyTensor(x, index = 'i')
+z_i <- LazyTensor(z, index = 'i', is_complex = TRUE) # ComplexLazyTensor
+
+# call is.ComplexLazyTensor
+is.ComplexLazyTensor(z_i) # returns TRUE
+is.ComplexLazyTensor(x_i) # returns FALSE
+}
+}
 \author{
 Chloe Serre-Combe, Amelie Vernay
 }
