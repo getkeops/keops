@@ -495,6 +495,26 @@ test_that("is.LazyScalar", {
 })
 
 
+test_that("is.ComplexLazyScalar", {
+  # basic example
+  scal <- 3.14
+  cplx <- 2 + 3i
+  v <- rep(3 + 7i, 10)
+  z <- matrix(2 + 1i^ (-6:5), nrow = 4)
+  
+  scal_LT <- LazyTensor(scal)
+  cplx_LT <- LazyTensor(cplx)
+  v_LT <- LazyTensor(v)
+  z_i <- LazyTensor(z, index = 'i')
+  
+  # check results
+  expect_false(is.ComplexLazyScalar(scal_LT))
+  expect_true(is.ComplexLazyScalar(cplx_LT))
+  expect_false(is.ComplexLazyScalar(v_LT))
+  expect_false(is.ComplexLazyScalar(x_i))
+})
+
+
 test_that("is.int", {
   # basic example
   A <- 3

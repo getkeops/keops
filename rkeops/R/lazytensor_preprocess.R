@@ -709,7 +709,7 @@ is.ComplexLazyTensor <- function(x){
 #' v_LT <- LazyTensor(v)
 #' x_i <- LazyTensor(x, index = 'i')
 #' 
-#' # call is.ComplexLazyTensor
+#' # call is.LazyScalar
 #' is.LazyScalar(scal_LT) # returns TRUE
 #' is.LazyScalar(cplx_LT) # returns FALSE
 #' is.LazyScalar(v_LT) # returns FALSE
@@ -720,12 +720,44 @@ is.LazyScalar <- function(x) {
   return((length(x$args) == 1) && any(grep(".*=Pm\\(1\\)", x$args)))
 }
 
-# is.ComplexLazyScalar?
+#' is.ComplexLazyScalar?
+#' @description
+#' Checks whether if the given input is a `ComplexLazyTensor`encoding
+#' a single complex value. That is, if the input is a fixed parameter
+#' `ComplexLazyTensor` of dimension 1.
+#' @details If `x` is a fixed parameter `ComplexLazyTensor` encoding a
+#' single complex value, `is.ComplexLazyScalar(x)`
+#' returns TRUE, else, returns FALSE.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @param x An object we want to know if it is a `ComplexLazyScalar`.
+#' @return A boolean, TRUE or FALSE.
+#' @example
+#' \dontrun{
+#' # basic example
+#' scal <- 3.14
+#' cplx <- 2 + 3i
+#' v <- rep(3 + 7i, 10)
+#' z <- matrix(2 + 1i^ (-6:5), nrow = 4)
+#' 
+#' # create LazyTensor and ComplexLazyTensor
+#' scal_LT <- LazyTensor(scal)
+#' cplx_LT <- LazyTensor(cplx)
+#' v_LT <- LazyTensor(v)
+#' z_i <- LazyTensor(z, index = 'i')
+#' 
+#' # call is.ComplexLazyScalar
+#' is.ComplexLazyScalar(scal_LT) # returns FALSE
+#' is.ComplexLazyScalar(cplx_LT) # returns TRUE
+#' is.ComplexLazyScalar(v_LT) # returns FALSE
+#' is.ComplexLazyScalar(x_i) # returns FALSE
+#' }
+#' @export
 is.ComplexLazyScalar <- function(x) {
   res <- (is.ComplexLazyTensor(x) && length(x$args) == 1) && 
     any(grep(".*=Pm\\(2\\)", x$args))
   return(res)
 }
+
 
 #' Scalar integer test.
 #' @description
