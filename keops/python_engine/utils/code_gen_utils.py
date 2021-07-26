@@ -555,7 +555,7 @@ def table4(nminargs, dimsx, dimsy, dimsp, dims_new, indsi, indsj, indsp, inds_ne
 
 
 
-def load_vars(dims, inds, xloc, args, row_index=c_zero_int, offsets=None):
+def load_vars(dims, inds, xloc, args, row_index=c_zero_int, offsets=None, indsref=None):
     # returns a c++ code used to create a local copy of slices of the input tensors, for evaluating a formula
     # - dims is a list of integers giving dimensions of variables
     # - dims is a list of integers giving indices of variables
@@ -563,6 +563,7 @@ def load_vars(dims, inds, xloc, args, row_index=c_zero_int, offsets=None):
     # - args is a list of c_variable, representing pointers to input tensors
     # - row_index is a c_variable (of dtype="int"), specifying which row of the matrix should be loaded
     # - offsets is an optional c_array (of dtype="int"), specifying variable-dependent offsets (used when broadcasting batch dimensions)
+    # - indsref is an optional list of integers, giving index mapping for offsets
     #
     # Example: assuming i=c_variable("int", "5"), xloc=c_variable("float", "xi") and px=c_variable("float**", "px"), then
     # if dims = [2,2,3] and inds = [7,9,8], the call to
@@ -589,17 +590,30 @@ def load_vars(dims, inds, xloc, args, row_index=c_zero_int, offsets=None):
     #   xi[4] = arg8[(5+offsets[2])*3+0];
     #   xi[5] = arg8[(5+offsets[2])*3+1];
     #   xi[6] = arg8[(5+offsets[2])*3+2];
-    if offsets and offsets.dim != len(dims):
-        raise ValueError(
-            "[KeOps] internal error: invalid dimension for offsets c_array argument"
-        )
+    #
+    # Example (with offsets and indsref): assuming i=c_variable("int", "5"), 
+    # xloc=c_variable("float", "xi"), px=c_variable("float**", "px"),
+    # offsets = c_array("int", 3, "offsets"), 
+    # if dims = [2,2,3] and inds = [7,9,8], 
+    # and indsref = [8,1,7,3,9,2], then since 7,8,9 are at positions 2,0,4 in indsref,
+    # the call to
+    #   load_vars (dims, inds, xi, [arg0, arg1,..., arg9], row_index=i, offsets=offsets, indsref=indsref)
+    # will output the following code:
+    #   xi[0] = arg7[(5+offsets[2])*2+0];
+    #   xi[1] = arg7[(5+offsets[2])*2+1];
+    #   xi[2] = arg9[(5+offsets[0])*2+0];
+    #   xi[3] = arg9[(5+offsets[0])*2+1];
+    #   xi[4] = arg8[(5+offsets[4])*3+0];
+    #   xi[5] = arg8[(5+offsets[4])*3+1];
+    #   xi[6] = arg8[(5+offsets[4])*3+2];
     string = ""
     if len(dims)>0:
         string += "{\n"
         string += "int a=0;\n"
         for u in range(len(dims)):
+            l = indsref.index(inds[u]) if indsref else u
             row_index_str = (
-                    f"({row_index.id}+{offsets.id}[{u}])" if offsets else row_index.id
+                    f"({row_index.id}+{offsets.id}[{l}])" if offsets else row_index.id
                 )
             string += "#pragma unroll\n"
             string += f"for(int v=0; v<{dims[u]}; v++) {{\n"
