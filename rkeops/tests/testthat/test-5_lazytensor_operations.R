@@ -147,7 +147,7 @@ test_that("*", {
   expect_equal(bool_grep_formula, 1)
   
   obj <- xc_i * Pm(2i)
-  bool_grep_formula <- grep("ComplexScal\\(A0x.*NA,A0x.*i\\)", obj$formula)
+  bool_grep_formula <- grep("ComplexScal\\(A0x.*i,A0x.*NA\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
   
   obj <- Pm(2i) * xc_i

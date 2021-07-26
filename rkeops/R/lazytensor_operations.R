@@ -192,12 +192,8 @@ set_rkeops_option("precision", "double")
         res <- x * real2complex(y)
     }
     
-    else if(is.ComplexLazyScalar(x)) {
+    else if(is.ComplexLazyScalar(x) || is.ComplexLazyScalar(y)) {
         res <- binaryop.LazyTensor(x, y, "ComplexScal", dim_check_type = NA)
-    }
-    
-    else if(is.ComplexLazyScalar(y)) {
-        res <- binaryop.LazyTensor(y, x, "ComplexScal", dim_check_type = NA)
     }
     
     else {
