@@ -169,7 +169,7 @@ keops_kernel <- function(formula, args) {
         if(sum(str_length(names(input)) > 0) == length(input)) {
             # expected order
             expected_order <- env$var_aliases$var_name
-            # check if names are consistant
+            # check if names are consistent
             if(all(names(input) %in% expected_order))
                 if(any(names(input) != expected_order))
                     input <- input[expected_order]
