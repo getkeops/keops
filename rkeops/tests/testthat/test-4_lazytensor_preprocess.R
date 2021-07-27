@@ -528,8 +528,8 @@ test_that("is.LazyVector", {
   
   # check results
   expect_true(is.LazyVector(scal_LT))
-  expect_false(is.LazyVector(cplx_LT))
-  expect_false(is.LazyVector(v_LT))
+  expect_true(is.LazyVector(cplx_LT))
+  expect_true(is.LazyVector(v_LT))
   expect_false(is.LazyVector(x_i))
 })
 
@@ -546,10 +546,10 @@ test_that("is.LazyMatrix", {
   x_i <- LazyTensor(x, index = 'i')
   
   # check results
-  expect_true(is.LazyScalar(scal_LT))
-  expect_false(is.LazyScalar(cplx_LT))
-  expect_false(is.LazyScalar(v_LT))
-  expect_false(is.LazyScalar(x_i))
+  expect_false(is.LazyMatrix(scal_LT))
+  expect_false(is.LazyMatrix(cplx_LT))
+  expect_false(is.LazyMatrix(v_LT))
+  expect_true(is.LazyMatrix(x_i))
 })
 
 test_that("is.int", {
