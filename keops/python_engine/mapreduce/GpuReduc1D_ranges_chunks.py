@@ -8,10 +8,12 @@ from keops.python_engine.utils.code_gen_utils import (
     call_list,
     load_vars,
     load_vars_chunks,
+    load_vars_chunks_offsets,
     sizeof,
     pointer,
     table,
-    table4
+    table4,
+    Var_loader
 )
 from keops.python_engine.formulas.reductions.sum_schemes import *
 from keops.python_engine.compilation import Gpu_link_compile
@@ -135,7 +137,7 @@ class GpuReduc1D_ranges_chunks(MapReduce, Gpu_link_compile):
         
         
         
-        yjrel = c_array(dtype, varloader.dimy, "yjrel")
+        yjrel = c_array(dtype, varloader_global.dimy, "yjrel")
         
         jreltile = c_variable("int", "(jrel + tile * blockDim.x)")
         
@@ -161,6 +163,8 @@ class GpuReduc1D_ranges_chunks(MapReduce, Gpu_link_compile):
         
         end_x = c_variable("int", "end_x")
         end_y = c_variable("int", "end_y")
+        
+        starty = c_variable("int", "start_y")
         
         nbatchdims = c_variable("int", "nbatchdims")
         
@@ -311,8 +315,13 @@ class GpuReduc1D_ranges_chunks(MapReduce, Gpu_link_compile):
                                   __syncthreads();
                               }}
                               
-                              if (i < end_x) {{
-                                  {red_formula.FinalizeOutput(acc, outi, i)} 
-                              }}
+                              if(index+1 < end_slice) {{
+                                  start_y = ranges_y[2*index+2] ;
+                  			  }}
                           }}
+                      }}
+                      if (i < end_x) {{
+                          {red_formula.FinalizeOutput(acc, outi, i)} 
+                      }}
+                  }}
                     """
