@@ -16,13 +16,3 @@ check_args <- function(args, arg_order = NULL) {
                           "decltype(Pm(3,1)) lambda;")[arg_order],
                         collapse = ""))
 }
-
-# function to repeat check of keops_kernel
-run_op <- function(op, input, expected_res, inner_dim) {
-    # run
-    res <- tryCatch(op(input, inner_dim),
-                    error = function(e) {print(e); return(NULL)})
-    expect_false(is.null(res))
-    # check result
-    expect_true(sum(abs(res - expected_res)) < 1E-4)
-}

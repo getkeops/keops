@@ -44,7 +44,7 @@ to compile a new operator corresponding to the partial derivative of the
 input operator.
 
 To decide regarding which variable the input operator should be derived,
-you can specify its name or its position starting as 0 with the input
+you can specify its name or its position starting at 0 with the input
 parameter \code{var}.
 }
 \examples{
