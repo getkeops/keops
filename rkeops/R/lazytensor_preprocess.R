@@ -1,12 +1,3 @@
-library(rkeops)
-library(stringr)
-library(data.table)
-
-set_rkeops_option("tagCpuGpu", 0)
-set_rkeops_option("precision", "double")
-
-
-
 
 # LAZYTENSOR CONFIGURATION =====================================================
 
@@ -19,7 +10,7 @@ set_rkeops_option("precision", "double")
 #' @details
 #' The use of the function `LazyTensor` is detailed in the vignettes. 
 #' Run `browseVignettes("rkeops")` to access the vignettes.
-#' @author Ghislain Durif
+#' @author Joan Glaunes, Chloe Serre-Combe, Amelie Vernay
 #' @param x A matrix or a vector of numeric values, or a scalar value
 #' @param index A text string that should be either **i** or **j**, or an **NA** 
 #' value (the default), to specify whether if the **x** variable is indexed 
@@ -688,7 +679,7 @@ is.ComplexLazyTensor <- function(x){
 
 #' is.LazyScalar?
 #' @description
-#' Checks whether if the given input is a `LazyTensor`encoding
+#' Checks whether if the given input is a `LazyTensor` encoding
 #' a single scalar value. That is, if the input is a fixed parameter
 #' `LazyTensor` of dimension 1.
 #' @details If `x` is a fixed parameter `LazyTensor` with dimension 1,
@@ -723,7 +714,7 @@ is.LazyScalar <- function(x) {
 
 #' is.ComplexLazyScalar?
 #' @description
-#' Checks whether if the given input is a `ComplexLazyTensor`encoding
+#' Checks whether if the given input is a `ComplexLazyTensor` encoding
 #' a single complex value. That is, if the input is a fixed parameter
 #' `ComplexLazyTensor` of dimension 1.
 #' @details If `x` is a fixed parameter `ComplexLazyTensor` encoding a
@@ -760,12 +751,71 @@ is.ComplexLazyScalar <- function(x) {
 }
 
 
-# Function below not useful anymore ?
+#' is.LazyVector?
+#' @description
+#' Checks whether if the given input is a `LazyTensor` encoding
+#' a vector or a single value.
+#' @details If `x` is a vector parameter `LazyTensor`,
+#' `is.LazyVector(x)` returns TRUE, else, returns FALSE.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @param x An object we want to know if it is a `LazyVector`.
+#' @return A boolean, TRUE or FALSE.
+#' @examples
+#' \dontrun{
+#' # basic example
+#' scal <- 3.14
+#' cplx <- 2 + 3i
+#' v <- rep(3, 10)
+#' x <- matrix(runif(100 * 3), 100, 3)
+#' 
+#' # create LazyTensor and ComplexLazyTensor
+#' scal_LT <- LazyTensor(scal)
+#' cplx_LT <- LazyTensor(cplx)
+#' v_LT <- LazyTensor(v)
+#' x_i <- LazyTensor(x, index = 'i')
+#' 
+#' # call is.LazyVector
+#' is.LazyVector(scal_LT) # returns TRUE
+#' is.LazyVector(cplx_LT) # returns TRUE
+#' is.LazyVector(v_LT) # returns TRUE
+#' is.LazyVector(x_i) # returns FALSE
+#' }
+#' @export
 is.LazyVector <- function(x) {
   return(any(grep(".*=Pm\\(.*\\)", x$args)))
 }
 
 
+#' is.LazyMatrix?
+#' @description
+#' Checks whether if the given input is a `LazyTensor` encoding
+#' a matrix. 
+#' @details If `x` is a matrix `LazyTensor`,
+#' `is.LazyMatrix(x)` returns TRUE, else, returns FALSE.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @param x An object we want to know if it is a `LazyMatrix`.
+#' @return A boolean, TRUE or FALSE.
+#' @examples
+#' \dontrun{
+#' # basic example
+#' scal <- 3.14
+#' cplx <- 2 + 3i
+#' v <- rep(3, 10)
+#' x <- matrix(runif(100 * 3), 100, 3)
+#' 
+#' # create LazyTensor and ComplexLazyTensor
+#' scal_LT <- LazyTensor(scal)
+#' cplx_LT <- LazyTensor(cplx)
+#' v_LT <- LazyTensor(v)
+#' x_i <- LazyTensor(x, index = 'i')
+#' 
+#' # call is.LazyMatrix
+#' is.LazyMatrix(scal_LT) # returns FALSE
+#' is.LazyMatrix(cplx_LT) # returns FALSE
+#' is.LazyMatrix(v_LT) # returns FALSE
+#' is.LazyMatrix(x_i) # returns TRUE
+#' }
+#' @export
 is.LazyMatrix <- function(x) {
   return(any(grep(".*=V.\\(.*\\)", x$args)))
 }

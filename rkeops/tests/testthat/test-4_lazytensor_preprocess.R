@@ -514,6 +514,43 @@ test_that("is.ComplexLazyScalar", {
   expect_false(is.ComplexLazyScalar(x_i))
 })
 
+test_that("is.LazyVector", {
+  # basic example
+  scal <- 3.14
+  cplx <- 2 + 3i
+  v <- rep(3, 10)
+  x <- matrix(runif(100 * 3), 100, 3)
+  
+  scal_LT <- LazyTensor(scal)
+  cplx_LT <- LazyTensor(cplx)
+  v_LT <- LazyTensor(v)
+  x_i <- LazyTensor(x, index = 'i')
+  
+  # check results
+  expect_true(is.LazyVector(scal_LT))
+  expect_false(is.LazyVector(cplx_LT))
+  expect_false(is.LazyVector(v_LT))
+  expect_false(is.LazyVector(x_i))
+})
+
+test_that("is.LazyMatrix", {
+  # basic example
+  scal <- 3.14
+  cplx <- 2 + 3i
+  v <- rep(3, 10)
+  x <- matrix(runif(100 * 3), 100, 3)
+  
+  scal_LT <- LazyTensor(scal)
+  cplx_LT <- LazyTensor(cplx)
+  v_LT <- LazyTensor(v)
+  x_i <- LazyTensor(x, index = 'i')
+  
+  # check results
+  expect_true(is.LazyScalar(scal_LT))
+  expect_false(is.LazyScalar(cplx_LT))
+  expect_false(is.LazyScalar(v_LT))
+  expect_false(is.LazyScalar(x_i))
+})
 
 test_that("is.int", {
   # basic example
