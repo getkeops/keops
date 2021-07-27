@@ -25,15 +25,17 @@
 #' argument passing is done by copy in R, it is better to copy a list of 
 #' reference than the actual input data, especially for big matrices.
 #' 
-#' You should be careful with the input dimension of your data, to correspond 
-#' to the input dimension specified in `args` (see inner ou outer dimension in 
-#' `browseVignettes("rkeops")`.
+#' You should be careful with the input dimension of your data, so that
+#' it correspond to the input dimension specified in `args` 
+#' (see inner ou outer dimension in `browseVignettes("rkeops")`.
 #' 
 #' It is possible to compute partial derivatives of user defined operators 
 #' with the function [rkeops::keops_grad()]. 
 #' @author Ghislain Durif
 #' @param formula text string, an operator formula (see Details).
 #' @param args vector of text string, formula arguments (see Details).
+#' @param keops_grad_call boolean, for internal use only, do not modify this 
+#' input value.
 #' @return a function that can be used to compute the value of the formula 
 #' on actual data. This function takes as input a list of data corresponding 
 #' to the formula arguments and return the computed values (generally a 
@@ -41,7 +43,7 @@
 #' input parameter `inner_dim` indicating if the inner dimension 
 #' (c.f. `browseVignettes("rkeops")`) corresponds to columns, i.e. 
 #' `inner_dim=1` (default), or rows, i.e. `inner_dim=0`, in the data.
-#' @importFrom stringr str_length
+#' @importFrom stringr str_length str_count
 #' @seealso [rkeops::keops_grad()]
 #' @examples
 #' \dontrun{
@@ -86,9 +88,9 @@
 #' # Defining a function that computes the convolution with a Gaussian kernel 
 #' # i.e. the sum over i of `e^(lambda * ||x_i - y_j||^2) * beta_j` where `x_i`, 
 #' # `y_j` and `beta_j` are 3d vectors, and `lambda` is a scalar parameter.
-#' op = keops_kernel(formula = "Sum_Reduction(Exp(lambda*SqNorm2(x-y))*beta, 1)",
-#'                  args = c("x=Vi(3)", "y=Vj(3)", 
-#'                           "beta=Vj(3)", "lambda=Pm(1)"))
+#' op = keops_kernel(
+#'     formula = "Sum_Reduction(Exp(lambda*SqNorm2(x-y))*beta, 1)",
+#'     args = c("x=Vi(3)", "y=Vj(3)", "beta=Vj(3)", "lambda=Pm(1)"))
 #' 
 #' # data
 #' nx <- 10
@@ -108,7 +110,7 @@
 #' res <- op(list(X, Y, beta, lambda))
 #' }
 #' @export
-keops_kernel <- function(formula, args) {
+keops_kernel <- function(formula, args, keops_grad_call = FALSE) {
 
     # check input
     if(!is.character(formula))
@@ -160,9 +162,27 @@ keops_kernel <- function(formula, args) {
         env <- list(formula=formula,
                     args=args,
                     var_aliases=var_aliases,
-                    inner_dim=inner_dim)
+                    inner_dim=inner_dim,
+                    keops_grad_call = keops_grad_call)
+        
         if(missing(input) | is.null(input))
             return(env)
+        
+        # check input type
+        if(!is.list(input))
+            stop(paste(
+                "The 'input' argument should be a list of data",
+                "corresponding to the formula input arguments."
+            ))
+        
+        # check input length
+        add_var_length <- ifelse(env$keops_grad_call, 1, 0)
+        if(length(input) != (length(env$args) + add_var_length))
+            stop(paste(
+                "The number of elements in the 'input' argument",
+                "does not correspond to the number input arguments",
+                "in the formula."
+            ))
         
         ## reorder input if names are supplied (if not list order is used)
         # check that all input args are named
@@ -175,14 +195,20 @@ keops_kernel <- function(formula, args) {
                     input <- input[expected_order]
         }
         
-        ## transform scalar to matrix (generally parameters)
-        check_scalar <- sapply(1:length(input), 
-                               function(ind) return(is.null(dim(input[[ind]]))))
-        if(any(check_scalar)) {
+        ## transform non-matrix args (scalar/vectors) to matrix
+        # (generally parameters)
+        check_not_matrix <- sapply(
+            1:length(input), 
+            function(ind) return(!is.matrix(input[[ind]]))
+        )
+        if(any(check_not_matrix)) {
             tmp_names <- names(input)
-            input[check_scalar] <- lapply(which(check_scalar),
-                                          function(ind) 
-                                              return(as.matrix(input[[ind]])))
+            input[check_not_matrix] <- lapply(
+                which(check_not_matrix),
+                function(ind) {
+                    return(t(as.matrix(input[[ind]])))
+                }
+            )
             names(input) <- tmp_names
         }
         
