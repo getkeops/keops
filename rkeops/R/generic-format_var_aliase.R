@@ -72,7 +72,7 @@ format_var_aliases <- function(args) {
     
     # potential values
     possible_var_type <- c("Vi", "Vj", "Pm")
-    possible_args <- paste0("[a-zA-Z0-9_-]+=", 
+    possible_args <- paste0("[a-zA-Z0-9_()-]+=", 
                             paste0(possible_var_type, 
                             "\\([0-9]+(,[0-9]+)?\\)"))
     
