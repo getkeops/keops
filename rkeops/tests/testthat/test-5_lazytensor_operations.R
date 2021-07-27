@@ -1,7 +1,7 @@
 context("LazyTensor operations")
 
 
-# TEST OPERATIONS ==============================================================
+# TEST ARITHMETIC OPERATIONS ===================================================
 
 
 test_that("+", {

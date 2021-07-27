@@ -1,9 +1,9 @@
-# library(rkeops)
-# library(stringr)
-# library(data.table)
-# 
-# set_rkeops_option("tagCpuGpu", 0)
-# set_rkeops_option("precision", "double")
+library(rkeops)
+library(stringr)
+library(data.table)
+
+set_rkeops_option("tagCpuGpu", 0)
+set_rkeops_option("precision", "double")
 
 
 
@@ -760,6 +760,17 @@ is.ComplexLazyScalar <- function(x) {
 }
 
 
+# Function below not useful anymore ?
+is.LazyVector <- function(x) {
+  return(any(grep(".*=Pm\\(.*\\)", x$args)))
+}
+
+
+is.LazyMatrix <- function(x) {
+  return(any(grep(".*=V.\\(.*\\)", x$args)))
+}
+
+
 #' Scalar integer test.
 #' @description
 #' Checks whether if the given input is a scalar `integer` or not.
@@ -786,10 +797,6 @@ is.int <- function(x) {
 }
 
 
-# Function below not useful anymore ?
-is.LazyVector <- function(x) {
- return(any(grep(".*=Pm\\(.*\\)", x$args)))
-}
 
 
 # GLOBAL CHECKS ================================================================
