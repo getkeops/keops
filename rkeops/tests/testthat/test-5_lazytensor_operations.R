@@ -1415,7 +1415,59 @@ test_that("elem", {
                "`m` input argument should be an integer.",
                fixed = TRUE)
   expect_error(elem(x_i, 4),
-               "Index `m` is out of bounds. Should be in [1, 3].",
+               "Index `m` is out of bounds. Should be in [0, 3).",
+               fixed = TRUE)
+  expect_error(elem(x_i, -1),
+               "Index `m` is out of bounds. Should be in [0, 3).",
+               fixed = TRUE)
+  
+})
+
+
+test_that("elemT", {
+  # basic example
+  x <- 3.14              # arbitrary value
+  Pm_x <- LazyTensor(x)  # creating scalar parameter LazyTensor from x
+  
+  m <- 2
+  n <- 3
+  
+  # Complex single-value LazyTensor just for test purposes
+  z <- 2 + 3i # arbitrary complex value
+  Pm_z <- LazyTensor(z)
+  
+  # Matrix LazyTensor just for error purposes
+  y <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
+  y_i <- LazyTensor(y, index = 'i')   # LazyTensor from matrix x, indexed by 'i'
+  
+  # check formulas, args & classes
+  obj <- elemT(Pm_x, m, n)
+  expect_true(is.LazyTensor(obj))
+  bool_grep_formula <- grep("ElemT\\(A0x.*NA,2,3\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  
+  obj <- elemT(Pm_z, m, n)
+  expect_true(is.LazyTensor(obj))
+  expect_true(is.ComplexLazyTensor(obj))
+  bool_grep_formula <- grep("ElemT\\(A0x.*NA,2,3\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  
+  # errors
+  expect_error(elemT(x_i, m, n),
+               paste("`x` input argument should be an `LazyTensor`", 
+                     " encoding a single value.", sep = ""),
+               fixed = TRUE)
+  expect_error(elemT(Pm_x, 3.14, 12),
+               "`m` input argument should be an integer.",
+               fixed = TRUE)
+  expect_error(elemT(Pm_x, m, 3.14),
+               "`n` input argument should be an integer.",
+               fixed = TRUE)
+  expect_error(elemT(Pm_x, -1, n),
+               "Index `m` is out of bounds. Should be in [0, 3).",
+               fixed = TRUE)
+  expect_error(elemT(Pm_x, 3, n),
+               "Index `m` is out of bounds. Should be in [0, 3).",
                fixed = TRUE)
   
 })

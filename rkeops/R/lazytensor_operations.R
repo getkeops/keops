@@ -2915,61 +2915,70 @@ sumsoftmaxweight_reduction <- function(x, index, weight) {
 #' @description
 #' Symbolic element extraction. A unary operation.
 #' @details  
-#' Extracts the m-th element of a given vector `x`.
+#' Extracts the `m`-th element of a `LazyTensor` `x`, that is, `elem(x, m)`
+#' encodes, symbolically, symbolically, the `m`-th element `x[m]`
+#' of the given `LazyTensor` `x`.
+#' 
+#' **IMPORTANT**
+#' 
+#' IN THIS CASE, INDICES START AT ZERO, THEREFORE, `m` SHOULD BE IN `[0, n)`,
+#' where `n` is the inner dimension of `x`.
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `LazyTensor` or a `ComplexLazyTensor`.
 #' @param m An `integer` corresponding to the index of the element of `x` we
 #' want to extract (`x[m]`).
-#' @return A `LazyTensor` that encodes, symbolically, the m-th element `x[m]`
-#' of the vector `x`.
+#' @return A `LazyTensor` or a `ComplexLazyTensor`.
 #' @examples
 #' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # LazyTensor from matrix x, indexed by 'i'
 #' m <- 2
 #' 
-#' elem_x <- elem(x_i, m)  # symbolic matrix
+#' elem_x <- elem(x_i, m)  # symbolic `m`-th element of `x_i`.
 #' }
 #' @export
 elem <- function(x, m) {
     if(!is.int(m)) {
         stop("`m` input argument should be an integer.")
     }
-    D <- get_inner_dim(x) # TODO check that this is, indeed, inner_dim that we want
-    if(m < 0 || m > D) {
-        stop(paste("Index `m` is out of bounds. Should be in [1, ",
-                   D, "].", sep = ""))
+    D <- x$dimres
+    if(m < 0 || m >= D) {
+        stop(paste("Index `m` is out of bounds. Should be in [0, ",
+                   D, ").", sep = ""))
     }
     res <- unaryop.LazyTensor(x, "Elem", m, dim_res = 1)
     return(res)
 }
 
 
-# Elem -------------------------------------------------------------------------
+# ElemT ------------------------------------------------------------------------
 
 #' ElemT.
 #' @description
-#' ElemT.
+#' Insert a given value in a symbolic vector of zeros - a unary operation.
 #' @details 
 #' `elemT(x, m, n)` insert scalar value `x` (encoded as a `LazyTensor`) at
 #' position `m` in a vector of zeros of length `n`.
 #' 
 #' **Note**
 #' 
-#' Input `x` should be a `LazyTensor` encoding a single parameter value,
-#' and `m` should be less than `n`.
+#' Input `x` should be a `LazyTensor` encoding a single parameter value.
+#' 
+#' **IMPORTANT**
+#' 
+#' IN THIS CASE, INDICES START AT ZERO, THEREFORE, `m` SHOULD BE IN `[0, n)`.
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `LazyTensor` or a `ComplexLazyTensor` encoding a single
 #' parameter value.
 #' @param m An `integer` corresponding to the position `m` of the created
 #' vector of zeros at which we want to insert the value `x`.
 #' @param n An `integer` corresponding to the length of the vector of zeros.
-#' @return 
+#' @return A `LazyTensor` or a `ComplexLazyTensor`.
 #' @examples
 #' \dontrun{
 #' # basic example
 #' x <- 3.14              # arbitrary value
-#' Pm_x <- LazyTensor(x)  # creating scalar parameter LazyTensor from x 
+#' Pm_x <- LazyTensor(x)  # creating scalar parameter LazyTensor from x
 #' 
 #' m <- 2
 #' n <- 3
@@ -2978,7 +2987,7 @@ elem <- function(x, m) {
 #' }
 #' @export
 elemT <- function(x, m, n) {
-    if(!is.LazyScalar(x) || !is.ComplexLazyScalar(x)) {
+    if(!is.LazyScalar(x) && !is.ComplexLazyScalar(x)) {
         stop(paste("`x` input argument should be an `LazyTensor`",
                    " encoding a single value.", sep = ""))
     }
@@ -2988,9 +2997,9 @@ elemT <- function(x, m, n) {
     if(!is.int(n)) {
         stop("`n` input argument should be an integer.")
     }
-    if(m > n) {
-        stop(paste("Index `m` is out of bounds. Should be in [1, ",
-                   n, "].", sep = ""))
+    if(m < 0 || m >= n) {
+        stop(paste("Index `m` is out of bounds. Should be in [0, ",
+                   n, ").", sep = ""))
     }
     
     res <- unaryop.LazyTensor(x, "ElemT", m, n)
