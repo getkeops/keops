@@ -1454,7 +1454,7 @@ test_that("elemT", {
   
   # errors
   expect_error(elemT(x_i, m, n),
-               paste("`x` input argument should be an `LazyTensor`", 
+               paste("`x` input argument should be a `LazyTensor`", 
                      " encoding a single value.", sep = ""),
                fixed = TRUE)
   expect_error(elemT(Pm_x, 3.14, 12),
@@ -1552,6 +1552,36 @@ test_that("one_hot", {
                paste("`one_hot` operation can only be applied to `LazyTensor`,",
                " not `ComplexLazyTensor`", sep = ""),
                fixed = TRUE)
+})
+
+
+
+# TEST ELEMENTARY DOT PRODUCT OPERATIONS =======================================
+
+# TODO finish this test when problem solved
+test_that("matvecmult", {
+  # basic example
+  m <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
+  v <- runif(250, 0, 1)               # arbitrary R vector of length 250
+  m_i <- LazyTensor(m, index = 'i')   # LazyTensor from matrix m, indexed by 'i'
+  Pm_v <- LazyTensor(v)               # parameter vector LazyTensor from v
+  
+  # check formulas, args & classes
+  obj <- matvecmult(m_i, Pm_v)
+  expect_true(is.LazyTensor(obj))
+  bool_grep_formula <- grep("MatVecMult\\(A0x.*i,A0x.*NA\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  
+  # errors
+  expect_error(matvecmult(Pm_v, Pm_v),
+               paste("`m` input argument should be a `LazyTensor` encoding", 
+                     " a matrix defined with `Vi()` or `Vj()`.", sep = ""),
+               fixed = TRUE)
+  expect_error(matvecmult(m_i, m_i),
+               paste("`v` input argument should be a `LazyTensor` encoding", 
+                     " a vector defined with `Pm()`.", sep = ""),
+               fixed = TRUE)
+  
 })
 
 

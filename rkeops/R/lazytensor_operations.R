@@ -2988,7 +2988,7 @@ elem <- function(x, m) {
 #' @export
 elemT <- function(x, m, n) {
     if(!is.LazyScalar(x) && !is.ComplexLazyScalar(x)) {
-        stop(paste("`x` input argument should be an `LazyTensor`",
+        stop(paste("`x` input argument should be a `LazyTensor`",
                    " encoding a single value.", sep = ""))
     }
     if(!is.int(m)) {
