@@ -22,7 +22,7 @@ prebuild <- function() {
     # update Version
     command <- paste0("sed -i -e ",
                       "\"s/Version: .*/Version: $(cat ", 
-                      file.path(projdir, "version"), ")/\" ",
+                      file.path(projdir, "rkeops", "version"), ")/\" ",
                       filename)
     tmp <- system(command)
     # update Date
