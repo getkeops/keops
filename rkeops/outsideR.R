@@ -294,20 +294,93 @@ b <- sum(extract(g_i, 1, 3), index = 'j')
 b <- sum(extract(LazyTensor(c(1, 2, 3, 1, 5)), 2, 3), index = 'j')
 b <- sum(extract(LazyTensor(c(1, 2, 3, 1, 5)), 2, 3), index = 'i')
 
+# REDO extractT ================================================================
+
+# ExtractT ---------------------------------------------------------------------
+
+#' ExtractT.
+#' @description
+#' Insert a given value, vector of values or matrix of values in a symbolic
+#' vector or matrix of zeros -
+#' a unary operation.
+#' @details If `x` is a `LazyTensor` encoding a vector (resp. a matrix),
+#' `extractT(x, m, d)` encodes, symbolically, a `d`-inner-dimensional
+#' vector (resp. matrix) of zeros in which is inserted `x`,
+#' at starting position `m`.
+#' 
+#' **Note 1**
+#' 
+#' `x` can also encode a single value, in which case the operation works
+#' the same way as in the case of a vector of values.
+#' 
+#' **Note 2**
+#' 
+#' See @examples for a more concrete explanation of the use of `extractT()`.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @param x A `LazyTensor` or a `ComplexLazyTensor`.
+#' @param m An `integer` corresponding to the starting index.
+#' @param d An `integer` corresponding to the output inner dimension.
+#' @return A `LazyTensor`.
+#' @examples
+#' \dontrun{
+#' # Three very rudimentary examples
+#' # -------------------------------
+#' 
+#' # Let's say that you have a matrix `g` looking like this:
+#' #      [,1] [,2]
+#' # [1,]    1    4
+#' # [2,]    2    5
+#' # [3,]    3    6
+#' 
+#' # Convert it to LazyTensor:
+#' g_i <- LazyTensor(g, index = 'i') # indexed by 'i' (for example)
+#' 
+#' # Then insert it in a matrix of inner dimension equal to 5,
+#' # starting at index 1:
+#' extT_g <- extractT(g_i, 1, 5)
+#' 
+#' # In this case, `extT_g` is a LazyTensor encoding, symbolically,
+#' # the following matrix:
+#' #      [,1] [,2] [,3] [,4] [,5]
+#' # [1,]    0    1    4    0    0
+#' # [2,]    0    2    5    0    0
+#' # [3,]    0    3    6    0    0
+#' 
+#' 
+#' # TODO add second example with Pm(n) and third with Pm(1)
+#' 
+#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
+#' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
+#'                                     # indexed by 'i'
+#' 
+#' m <- 2
+#' d <- 7
+#' 
+#' extractT_x <- extractT(x_i, m, d)      # symbolic matrix
+#' }
+#' @export
+extractT <- function(x, m, d) {
+    if(!is.int(m)) 
+        stop("`m` input argument should be an integer.")
+    if(!is.int(d)) 
+        stop("`d` input argument should be an integer.")
+    res <- unaryop.LazyTensor(x, "ExtractT", opt_arg = m, opt_arg2 = d)
+    return(res)
+}
 
 # Sum_Reduction ExtractT =======================================================
 
-x <- matrix(c(1, 2, 3), nrow = 3, ncol = 1)
+x <- matrix(c(1, 2, 3, 4, 5, 6), nrow = 3, ncol = 2)
 
 formula = "Sum_Reduction(ExtractT(x, 1, 5),0)"
-args = c("x=Vi(3)")
-op19 <- keops_kernel(formula, args)
+args = c("x=Vi(2)")
+op20 <- keops_kernel(formula, args)
 
-op19(list(x))
-#       [,1] [,2] [,3]
-# [1,]    0    1    0
-# [2,]    0    2    0
-# [3,]    0    3    0
+op20(list(x))
+#      [,1] [,2] [,3] [,4] [,5]
+# [1,]    0    1    4    0    0
+# [2,]    0    2    5    0    0
+# [3,]    0    3    6    0    0
 
 # --------------------------
 
@@ -324,11 +397,10 @@ op19(list(3.14))
 formula = "Sum_Reduction(ExtractT(x, 1, 10),1)"
 args = c("x=Pm(5)")
 op19 <- keops_kernel(formula, args)
-# Error in compile_formula(formula, var_aliases$var_aliases, dllname) : 
-#     Error during cmake call. 
 
-
-# op19(list(c(1, 2, 3, 4, 5)))
+op19(list(c(1, 2, 3, 4, 5)))
+#       [,1] [,2] [,3] [,4] [,5] [,6] [,7] [,8] [,9] [,10]
+# [1,]    0    1    2    3    4    5    0    0    0     0
 
 # ---------------------------
 
