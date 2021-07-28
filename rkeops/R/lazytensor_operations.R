@@ -3705,7 +3705,6 @@ tensorprod <- function(v1, v2) {
 
 # Gradient ---------------------------------------------------------------------
 
-# TODO ask for (real) explanations :@
 #' Symbolic gradient operation.
 #' @description
 #' Symbolic gradient operation - a binary operation.
