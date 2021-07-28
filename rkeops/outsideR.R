@@ -1,82 +1,11 @@
-# Basic example
-
- 
-D <- 3
-M <- 100
-N <- 150
-E <- 4
-x <- matrix(runif(M * D), M, D)
-y <- matrix(runif(N * D), N, D)
-z <- matrix(runif(N * E), N, E)
-b <- matrix(runif(N * E), N, E)
-
-vect <- rep(1, 10)
-vect_LT <- LazyTensor(vect)
-
-s <- 0.25
-#
-## creating LazyTensor from matrices
-x_i <- LazyTensor(x, index = 'i')
-y_j <- LazyTensor(y, index = 'j')
-z_j <- LazyTensor(z, index = 'j')
-
-z <- matrix(1i^ (-6:5), nrow = 4) # complex 4x3 matrix
-z_i <- LazyTensor(z, index = 'i', is_complex = TRUE)
-conj_z_i <- Conj(z_i)
-b_j = b
-
-# Symbolic matrix of squared distances:
-SqDist_ij = sum( (x_i - y_j)^2 )
-
-# Symbolic Gaussian kernel matrix:
-K_ij = exp( - SqDist_ij / (2 * s^2) )
-
-# Genuine matrix:
-v = K_ij %*% b_j
-# equivalent
-# v = "%*%.LazyTensor"(K_ij, b_j)
-
-s2 = (2 * s^2)
-# equivalent
-op <- keops_kernel(
-    formula = "Sum_Reduction(Exp(Minus(Sum(Square(x-y)))/s)*b,0)",
-    args = c("x=Vi(3)", "y=Vj(3)", "s=Pm(1)", "b=Vj(4)")
-)
-
-v2 <- op(list(x, y, s2, b))
-
-sum((v2-v)^2)
-
-
-
-# we compare to standard R computation
-SqDist = 0
-onesM = matrix(1, 1, 2)
-onesN = matrix(1, 1, 2)
-
-for(k in 1:D) {
-    print(SqDist)
-    SqDist = SqDist + (x[, k] %*% onesN - t(y[, k] %*% onesM))^2
-    print(SqDist)
-}
-    
-
-K = exp(-SqDist/(2*s^2))
-
-v2 = K %*% b
-
-print(mean(abs(v-v2)))
-
-# ==============================================================================
-
 nx <- 100
 ny <- 150
 x <- matrix(runif(nx * 3), nrow = nx, ncol = 3) # arbitrary R matrix representing
-# 100 data points in R^3
+                                                # 100 data points in R^3
 y <- matrix(runif(ny * 3), nrow = ny, ncol = 3) # arbitrary R matrix representing
-# 150 data points in R^3
+                                                # 150 data points in R^3
 s <- 0.1                                        # scale parameter  
-
+                 
 x_i = LazyTensor(x,"i")
 y_j = LazyTensor(y,"j")
 D_ij = sum((x_i-y_j)^2)
@@ -84,7 +13,6 @@ K_ij = exp(-D_ij/s^2)
 res = sum(K_ij,index="i")
 
 # ===================
-
 x <- matrix(1:15, nrow = 1, ncol = 5)
 y <- matrix(1:10, nrow = 1, ncol = 5)
 
@@ -167,9 +95,6 @@ formula = "Sum_Reduction(MatVecMult(x, y), 0)"
 args = c("x=Vi(2)", "y=Pm(2)")
 op1 <- keops_kernel(formula, args)
 
-op1(list(x, vect))
-
-
 # Sum_Reduction Extract ========================================================
 
 fl <- c(1, 2, 3, 1, 5, 8, 1, 7, 3, 4)
@@ -247,6 +172,100 @@ op11(list(c(1, 2, 3, 4)))
 #       [,1] [,2] [,3]
 # [1,]    2    3    4
 
+# ------------------------------
+
+z <- matrix(1i^(-6:5), nrow = 4)
+formula = "Sum_Reduction(Extract(z, 1, 2),0)"
+args = c("z=Vi(3)")
+op14 <- keops_kernel(formula, args)
+
+op14(list(z))
+#       [,1] [,2]
+# [1,]   -1   -1
+# [2,]    0    0
+# [3,]    1    1
+# [4,]    0    0
+# Warning message:
+#     In r_genred(input, param) : imaginary parts discarded in coercion
+
+
+# Sum_Reduction x + y with different nrow ======================================
+
+x <- matrix(c(1, 2, 3, 4), nrow = 4, ncol = 3)
+y <- matrix(c(1, 2, 3), nrow = 3, ncol = 3)
+
+formula = "Sum_Reduction(x + y,1)"
+args = c("x=Vi(3)", "y=Vi(3)")
+op15 <- keops_kernel(formula, args)
+
+op15(list(x, y))
+# Error in r_genred(input, param) : 
+#     [KeOps] Wrong value of the 'i' dimension 0for arg at position 1 : is 3 but was 4 in previous 'i' arguments. 
+
+
+# Sum_Reduction x + y with Complexes ===========================================
+
+z <- matrix(2 + 3i, nrow = 4, ncol = 3)
+#      [,1] [,2] [,3]
+# [1,] 2+3i 2+3i 2+3i
+# [2,] 2+3i 2+3i 2+3i
+# [3,] 2+3i 2+3i 2+3i
+# [4,] 2+3i 2+3i 2+3i
+z2 <- matrix(1 + 1i, nrow = 4, ncol = 3)
+#      [,1] [,2] [,3]
+# [1,] 1+1i 1+1i 1+1i
+# [2,] 1+1i 1+1i 1+1i
+# [3,] 1+1i 1+1i 1+1i
+# [4,] 1+1i 1+1i 1+1i
+x <- matrix(c(1, 2, 3, 4), nrow = 4, ncol = 3)
+#      [,1] [,2] [,3]
+# [1,]    1    1    1
+# [2,]    2    2    2
+# [3,]    3    3    3
+# [4,]    4    4    4
+
+# -----------------------
+
+formula = "Sum_Reduction(x + z,1)"
+args = c("x=Vi(3)", "z=Vi(3)")
+op17 <- keops_kernel(formula, args)
+
+op17(list(x, z))
+#       [,1] [,2] [,3]
+# [1,]   18   18   18
+# Warning message:
+#     In r_genred(input, param) : imaginary parts discarded in coercion
+
+# -----------------------
+
+formula = "Sum_Reduction(z + z2,1)"
+args = c("z=Vi(3)", "z2=Vi(3)")
+op18 <- keops_kernel(formula, args)
+
+op18(list(z, z2))
+#      [,1] [,2] [,3]
+# [1,]   12   12   12
+# Warning messages:
+# 1: In r_genred(input, param) : imaginary parts discarded in coercion
+# 2: In r_genred(input, param) : imaginary parts discarded in coercion
+
+# Sum_Reduction Extract with Complex ===========================================
+
+z <- matrix(2 + 3i, nrow = 4, ncol = 3)
+formula = "Sum_Reduction(Extract(z, 1, 2),0)"
+args = c("z=Vi(3)")
+op14 <- keops_kernel(formula, args)
+
+op14(list(z))
+#       [,1] [,2]
+# [1,]   -1   -1
+# [2,]    0    0
+# [3,]    1    1
+# [4,]    0    0
+# Warning message:
+#     In r_genred(input, param) : imaginary parts discarded in coercion
+
+
 # Sum_Reduction Extract with LazyTensor ========================================
 
 gl <- c(1, 2, 3, 1, 5, 8, 1, 7, 3, 4,
@@ -274,6 +293,57 @@ b <- sum(extract(g_i, 1, 3), index = 'j')
 
 b <- sum(extract(LazyTensor(c(1, 2, 3, 1, 5)), 2, 3), index = 'j')
 b <- sum(extract(LazyTensor(c(1, 2, 3, 1, 5)), 2, 3), index = 'i')
+
+
+# Sum_Reduction ExtractT =======================================================
+
+x <- matrix(c(1, 2, 3), nrow = 3, ncol = 1)
+
+formula = "Sum_Reduction(ExtractT(x, 1, 5),0)"
+args = c("x=Vi(3)")
+op19 <- keops_kernel(formula, args)
+
+op19(list(x))
+#       [,1] [,2] [,3]
+# [1,]    0    1    0
+# [2,]    0    2    0
+# [3,]    0    3    0
+
+# --------------------------
+
+formula = "Sum_Reduction(ExtractT(x, 1, 3),0)"
+args = c("x=Pm(1)")
+op19 <- keops_kernel(formula, args)
+
+op19(list(3.14))
+#       [,1] [,2] [,3]
+# [1,]    0 3.14    0
+
+# --------------------------
+
+formula = "Sum_Reduction(ExtractT(x, 1, 10),1)"
+args = c("x=Pm(5)")
+op19 <- keops_kernel(formula, args)
+# Error in compile_formula(formula, var_aliases$var_aliases, dllname) : 
+#     Error during cmake call. 
+
+
+# op19(list(c(1, 2, 3, 4, 5)))
+
+# ---------------------------
+
+x <- matrix(c(1, 2, 3), nrow = 3, ncol = 2)
+#       [,1] [,2]
+# [1,]    1    1
+# [2,]    2    2
+# [3,]    3    3
+x_i <- LazyTensor(x, index = 'i')
+
+sum(extractT(x_i, 1, 8), index = 'i')
+#       [,1] [,2] [,3] [,4] [,5] [,6] [,7] [,8]
+# [1,]    0    6    6    0    0    0    0    0
+
+
 
 # Sum_Reduction Elem with LazyTensor ===========================================
 
@@ -314,6 +384,10 @@ d <- sum(elem(x_j, 1), index = 'i')
 # [3,]    6
 
 aT <- sum(elemT(scal_Pm, 1, 7), index = 'i')
+
+formula = "Sum_Reduction(x + ElemT(y, 5, 1), 1)"
+args = c("x=Vi(5)", "y=Pm(1)")
+op1 <- keops_kernel(formula, args)
 
 
 # Sum_Reduction Concat =========================================================
@@ -447,5 +521,4 @@ op2(list(x, y))
 #      [,1] [,2] [,3] [,4] [,5] [,6] [,7] [,8] [,9]
 # [1,]    3    9   15   21   27    6   15   24   33
 # [2,]    6   12   18   24   30    6   15   24   33
-
 
