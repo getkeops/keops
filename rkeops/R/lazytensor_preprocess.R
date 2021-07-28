@@ -20,7 +20,6 @@
 #' `ComplexLazyTensor` (is_complex = TRUE) or a `LazyTensor` (is_complex = FALSE).
 #' @return An object of class "LazyTensor" or "ComplexLazyTensor", which is a 
 #' list with the following elements:
-#' @return
 #' \itemize{
 #'     \item{**formula**:}{ A string defining the mathematical operation to 
 #'     be computed by the KeOps routine}
@@ -80,6 +79,7 @@
 #'                                                       # indexed by 'i'
 #'
 #' }
+#' @importFrom data.table address
 #' @export
 LazyTensor <- function(x, index = NA, is_complex = FALSE) {
   
