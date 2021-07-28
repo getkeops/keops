@@ -1,16 +1,13 @@
-#library(rkeops)
-#library(stringr)
-#library(data.table)
-#
-#set_rkeops_option("tagCpuGpu", 0)
-#set_rkeops_option("precision", "double")
-
-
 
 # ARITHMETIC OPERATIONS ========================================================
 
 
 # addition ---------------------------------------------------------------------
+
+#' Addition.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 "+.default" <- .Primitive("+") # assign default as current definition
 
 #' Addition.
@@ -52,8 +49,8 @@
         UseMethod("+", x)
 }
 
-#' Addition
-#' @author 
+#' Addition.
+#' @author Chloe Serre-Combe, Amelie Vernay
 #' @keywords internal
 #' @export
 "+.LazyTensor" <- function(x, y) {
@@ -62,6 +59,10 @@
     return(res)
 }
 
+#' Addition.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 "+.ComplexLazyTensor" <- function(x, y) {
     if(!is.LazyTensor(y)) {
         y <- LasyTensor(y)
@@ -83,6 +84,11 @@
 }
 
 # subtraction  ----------------------------------------------------------------
+
+#' Subtraction.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 "-.default" <- .Primitive("-") # assign default as current definition
 
 #' Subtraction or minus sign.
@@ -130,6 +136,10 @@
         UseMethod("-", x)
 }
 
+#' Subtraction or minus sign.
+#' @author 
+#' @keywords internal
+#' @export
 "-.LazyTensor" <- function(x, y = NA) {
     if((length(y) == 1) && is.na(y))
         res <- unaryop.LazyTensor(x, "Minus")
@@ -139,6 +149,10 @@
     return(res)
 }
 
+#' Subtraction or minus sign.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 "-.ComplexLazyTensor" <- function(x, y = NA) {
     if((length(y) == 1) && is.na(y)) {
         res <- unaryop.LazyTensor(x, "Minus")
@@ -166,6 +180,11 @@
 
 
 # multiplication  --------------------------------------------------------------
+
+#' Multiplication.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 "*.default" <- .Primitive("*") # assign default as current definition
 
 #' Multiplication.
@@ -208,12 +227,20 @@
         UseMethod("*", x)
 }
 
+#' Multiplication.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 "*.LazyTensor" <- function(x, y) {
     res <- binaryop.LazyTensor(x, y, "*", is_operator = TRUE,
                                dim_check_type = "sameor1")
     return(res)
 }
 
+#' Multiplication.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 "*.ComplexLazyTensor" <- function(x, y) {
     if(!is.LazyTensor(y) && !is.matrix(y)) {
         y <- LasyTensor(y)
@@ -244,6 +271,11 @@
 
 
 # division ---------------------------------------------------------------------
+
+#' Division.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 "/.default" <- .Primitive("/")
 
 #' Division.
@@ -286,12 +318,20 @@
         UseMethod("/", x)
 }
 
+#' Division.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 "/.LazyTensor" <- function(x, y) {
     res <- binaryop.LazyTensor(x, y, "/", is_operator = TRUE,
                                dim_check_type = "sameor1")
     return(res)
 }
 
+#' Division.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 "/.ComplexLazyTensor" <- function(x, y) {
     if(!is.LazyTensor(y) && !is.matrix(y)) {
         y <- LasyTensor(y)
@@ -313,6 +353,11 @@
 
 
 # square -----------------------------------------------------------------------
+
+#' Square
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export 
 square.default <- function(x) {
     res <- x^2
     return(res)
@@ -343,6 +388,10 @@ square <- function(x) {
     UseMethod("square", x)
 }
 
+#' Element-wise square.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 square.LazyTensor <- function(x) {
     res <- unaryop.LazyTensor(x, "Square")
     return(res)
@@ -351,6 +400,11 @@ square.LazyTensor <- function(x) {
 
 
 # square root ------------------------------------------------------------------
+
+#' Square root.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 sqrt.default <- .Primitive("sqrt") # assign default as current definition
 
 #' Element-wise square root.
@@ -377,6 +431,10 @@ sqrt <- function(x) {
     UseMethod("sqrt", x)
 }
 
+#' Element-wise square root.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 sqrt.LazyTensor <- function(x) {
     res <- unaryop.LazyTensor(x, "Sqrt")
     return(res)
@@ -384,6 +442,11 @@ sqrt.LazyTensor <- function(x) {
 
 
 # Rsqrt ------------------------------------------------------------------------
+
+#' Inverse square root.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 rsqrt.default <- function(x) {
     res <- 1 / sqrt(x)
     return(res)
@@ -414,6 +477,10 @@ rsqrt <- function(x) {
     UseMethod("rsqrt", x)
 }
 
+#' Element-wise inverse square root.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 rsqrt.LazyTensor <- function(x) {
     res <- unaryop.LazyTensor(x, "Rsqrt")
     return(res)
@@ -421,6 +488,11 @@ rsqrt.LazyTensor <- function(x) {
 
 
 # power ------------------------------------------------------------------------
+
+#' Power.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 "^.default" <- .Primitive("^") # assign default as current definition
 
 #' Power.
@@ -467,6 +539,10 @@ rsqrt.LazyTensor <- function(x) {
         UseMethod("^", x)
 }
 
+#' Power.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 "^.LazyTensor" <- function(x, y) {   
     if(is.numeric(y) && length(y) == 1){
         if(is.int(y)){
@@ -492,6 +568,11 @@ rsqrt.LazyTensor <- function(x) {
 
 
 # Euclidean scalar product -----------------------------------------------------
+
+#' Logical "or"
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 "|.default" <- .Primitive("|")
 
 # TODO finish the doc with dimensions
@@ -534,6 +615,10 @@ rsqrt.LazyTensor <- function(x) {
         UseMethod("|", x)
 }
 
+#' Euclidean scalar product
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 "|.LazyTensor" <- function(x, y) {
     res <- binaryop.LazyTensor(x, y, "|", is_operator = TRUE,
                                dim_check_type = "same", dim_res = 1)
@@ -544,6 +629,10 @@ rsqrt.LazyTensor <- function(x) {
 
 # Matrix product ---------------------------------------------------------------
 
+#' Matrix product
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 "%*%.default" <- .Primitive("%*%") # assign default as current definition
 
 #' Matrix multiplication.
@@ -577,6 +666,10 @@ rsqrt.LazyTensor <- function(x) {
         UseMethod("%*%", x)
 }
 
+#' Matrix multiplication
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 "%*%.LazyTensor" <- function(x, y) {
     if(is.matrix(y))
         y <- LazyTensor(y, "j")
@@ -585,6 +678,11 @@ rsqrt.LazyTensor <- function(x) {
 
 
 # exponential ------------------------------------------------------------------
+
+#' Exponential
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 exp.default <- .Primitive("exp")
 
 #' Element-wise exponential.
@@ -625,17 +723,30 @@ exp <- function(x) {
     UseMethod("exp")
 }
 
+#' Element-wise exponential.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 exp.LazyTensor <- function(x) {
     res <- unaryop.LazyTensor(x, "Exp")
     return(res)
 }
 
+#' Element-wise exponential.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 exp.ComplexLazyTensor <- function(x) {
     res <- unaryop.LazyTensor(x, "ComplexExp")
 }
 
 
 # logarithm --------------------------------------------------------------------
+
+#' Logarithm.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 log.default <- .Primitive("log")
 
 #' Element-wise natural logarithm.
@@ -662,6 +773,10 @@ log <- function(x) {
     UseMethod("log")
 }
 
+#' Element-wise natural logarithm.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 log.LazyTensor <- function(x) {
     res <- unaryop.LazyTensor(x, "Log")
     return(res)
@@ -669,6 +784,11 @@ log.LazyTensor <- function(x) {
 
 
 # inverse ----------------------------------------------------------------------
+
+#' Inverse.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 inv.default <- function(x) {
     res <- 1 / x
     return(res)
@@ -698,6 +818,10 @@ inv <- function(x) {
     UseMethod("inv")
 }
 
+#' Element-wise 1/x inverse.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 inv.LazyTensor <- function(x) {
     res <- unaryop.LazyTensor(x, "Inv")
     return(res)
@@ -705,6 +829,11 @@ inv.LazyTensor <- function(x) {
 
 
 # cosine -----------------------------------------------------------------------
+
+#' Cosine.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 cos.default <- .Primitive("cos")
 
 #' Element-wise cosine.
@@ -731,6 +860,10 @@ cos <- function(x) {
     UseMethod("cos")
 }
 
+#' Element-wise cosine.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 cos.LazyTensor <- function(x) {
     res <- unaryop.LazyTensor(x, "Cos")
     return(res)
@@ -738,6 +871,11 @@ cos.LazyTensor <- function(x) {
 
 
 # sine -------------------------------------------------------------------------
+
+#' Sine.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 sin.default <- .Primitive("sin")
 
 #' Element-wise sine.
@@ -764,6 +902,10 @@ sin <- function(x) {
     UseMethod("sin")
 }
 
+#' Element-wise sine.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 sin.LazyTensor  <- function(x){
     res <- unaryop.LazyTensor(x, "Sin")
     return(res)
@@ -771,6 +913,11 @@ sin.LazyTensor  <- function(x){
 
 
 # arc-cosine --------------------------------------------------------------------
+
+#' Arc-cosine.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 acos.default <- .Primitive("acos")
 
 #' Element-wise arc-cosine.
@@ -798,6 +945,10 @@ acos <- function(x) {
     UseMethod("acos")
 }
 
+#' Element-wise arc-cosine.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 acos.LazyTensor <- function(x) {
     res <- unaryop.LazyTensor(x, "Acos")
     return(res)
@@ -805,6 +956,11 @@ acos.LazyTensor <- function(x) {
 
 
 # arc-sine ----------------------------------------------------------------------
+
+#' Arc-sine.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 asin.default <- .Primitive("asin")
 
 #' Element-wise arc-sine.
@@ -832,6 +988,10 @@ asin <- function(x) {
     UseMethod("asin")
 }
 
+#' Element-wise arc-sine.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 asin.LazyTensor <- function(x) {
     res <- unaryop.LazyTensor(x, "Asin")
     return(res)
@@ -839,6 +999,11 @@ asin.LazyTensor <- function(x) {
 
 
 # arc-tangent -------------------------------------------------------------------
+
+#' Arc-tangent.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 atan.default <- .Primitive("atan")
 
 #' Element-wise arc-tangent.
@@ -866,6 +1031,10 @@ atan <- function(x) {
     UseMethod("atan")
 }
 
+#' Element-wise arc-tangent.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 atan.LazyTensor <- function(x) {
     res <- unaryop.LazyTensor(x, "Atan")
     return(res)
@@ -873,6 +1042,11 @@ atan.LazyTensor <- function(x) {
 
 
 # arc-tan2 ---------------------------------------------------------------------
+
+#' 2-argument arc-tangent.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 atan2.default <- function(x, y) {
     .Internal(atan2(x, y))
 }
@@ -916,6 +1090,10 @@ atan2 <- function(x, y) {
         UseMethod("atan2", x)
 }
 
+#' Element-wise 2-argument arc-tangent.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 atan2.LazyTensor <- function(x, y) {
     res <- binaryop.LazyTensor(x, y, "Atan2", dim_check_type = "same")
     return(res)
@@ -923,6 +1101,11 @@ atan2.LazyTensor <- function(x, y) {
 
 
 # absolute value ---------------------------------------------------------------
+
+#' Absolute value.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 abs.default <- .Primitive("abs")
 
 #' Element-wise absolute value.
@@ -952,11 +1135,19 @@ abs <- function(x) {
     UseMethod("abs")
 }
 
+#' Element-wise absolute value.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 abs.LazyTensor <- function(x) {
     res <- unaryop.LazyTensor(x, "Abs")
     return(res)
 }
 
+#' Element-wise absolute value.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 abs.ComplexLazyTensor <- function(x) {
     res <- unaryop.LazyTensor(x, "ComplexAbs", res_type = "LazyTensor")
     return(res)
@@ -964,6 +1155,11 @@ abs.ComplexLazyTensor <- function(x) {
 
 
 # sign function ----------------------------------------------------------------
+
+#' Sign.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 sign.default <- .Primitive("sign")
 
 #' Element-wise sign.
@@ -991,6 +1187,10 @@ sign <- function(x) {
     UseMethod("sign")
 }
 
+#' Element-wise sign.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 sign.LazyTensor <- function(x) {
     res <- unaryop.LazyTensor(x, "Sign")
     return(res)
@@ -998,6 +1198,11 @@ sign.LazyTensor <- function(x) {
 
 
 # round function ---------------------------------------------------------------
+
+#' Rounding function.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 round.default <- .Primitive("round")
 
 #' Element-wise rounding function.
@@ -1026,6 +1231,10 @@ round <- function(x, ...) {
     UseMethod("round", x)
 }
 
+#' Element-wise rounding function.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 round.LazyTensor <- function(x, d) {
     if(is.numeric(d) && length(d) == 1)
         res <- unaryop.LazyTensor(x, "Round", d)
@@ -1036,6 +1245,11 @@ round.LazyTensor <- function(x, d) {
 
 
 # xlogx function ---------------------------------------------------------------
+
+#' x*log(x) function.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 xlogx.default <- function(x) {
     if(x == 0)
         res <- 0
@@ -1069,6 +1283,10 @@ xlogx <- function(x) {
     UseMethod("xlogx", x)
 }
 
+#' Element-wise x*log(x) function.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 xlogx.LazyTensor <- function(x) {
     res <- unaryop.LazyTensor(x, "XLogX")
     return(res)
@@ -1076,6 +1294,11 @@ xlogx.LazyTensor <- function(x) {
 
 
 # sinxdivx function ------------------------------------------------------------
+
+#' sin(x)/x.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 sinxdivx.default <- function(x) {
     if(x == 0)
         res <- 1
@@ -1109,6 +1332,10 @@ sinxdivx <- function(x) {
     UseMethod("sinxdivx", x)
 }
 
+#' Element-wise sin(x)/x function.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 sinxdivx.LazyTensor <- function(x) {
     res <- unaryop.LazyTensor(x, "SinXDivX")
     return(res)
@@ -1116,6 +1343,11 @@ sinxdivx.LazyTensor <- function(x) {
 
 
 # step function ----------------------------------------------------------------
+
+#' Step.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 step.default <- function(x, ...){
     res <- stats::step(x, ...)
 }
@@ -1146,6 +1378,10 @@ step <- function(x, ...){
     UseMethod("step", x)
 }
 
+#' Element-wise step function.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 step.LazyTensor <- function(x) {
     res <- unaryop.LazyTensor(x, "Step")
     return(res)
@@ -1268,7 +1504,12 @@ clampint <- function(x, y, z) {
 }
 
 
-# ifelse function --------------------------------------------------------------
+# if-else function -------------------------------------------------------------
+
+#' if-else function.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 ifelse.default <- function(x, a, b) {
     res <- base::ifelse(x, a, b)
     return(res)
@@ -1321,6 +1562,10 @@ ifelse <- function(x, a, b) {
     UseMethod("ifelse", x)
 }
 
+#' Element-wise if-else function.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 ifelse.LazyTensor <- function(x, a, b) {
     res <- ternaryop.LazyTensor(x, a, b, "IfElse")
 }
@@ -1378,6 +1623,10 @@ mod <- function(x, ...) {
     UseMethod("mod", x)
 }
 
+#' Element-wise modulo with offset function.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 mod.LazyTensor <- function(x, a, b = 0) {
     res <- ternaryop.LazyTensor(x, a, b, "Mod")
 }
@@ -1582,6 +1831,11 @@ weightedsqdist <- function(x, y, z) {
 
 
 # real -------------------------------------------------------------------------
+
+#' Real part of complex.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 Re.default <- .Primitive("Re")
 
 #' Element-wise real part of complex.
@@ -1607,16 +1861,29 @@ Re <- function(z) {
     UseMethod("Re", z)
 }
 
+#' Element-wise real part of complex.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 Re.LazyTensor <- function(z) {
     stop("`Re` cannot be applied to a LazyTensor. See `?Re` for compatible types.")
 }
 
+#' Element-wise real part of complex.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 Re.ComplexLazyTensor <- function(z) {
     res <- unaryop.LazyTensor(z, "ComplexReal")
 }
 
 
 # imaginary --------------------------------------------------------------------
+
+#' Imaginary part of complex.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 Im.default <- .Primitive("Im")
 
 #' Element-wise imaginary part of complex.
@@ -1642,16 +1909,29 @@ Im <- function(z) {
     UseMethod("Im", z)
 }
 
+#' Element-wise imaginary part of complex.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 Im.LazyTensor <- function(z) {
     stop("`Im` cannot be applied to a LazyTensor. See `?Im` for compatible types.")
 }
 
+#' Element-wise imaginary part of complex.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 Im.ComplexLazyTensor <- function(z) {
     res <- unaryop.LazyTensor(z, "ComplexImag")
 }
 
 
 # angle ------------------------------------------------------------------------
+
+#' Angle (or argument) of complex.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 Arg.default <- .Primitive("Arg")
 
 #' Element-wise angle (or argument) of complex.
@@ -1677,10 +1957,18 @@ Arg <- function(z) {
     UseMethod("Arg", z)
 }
 
+#' Element-wise angle (or argument) of complex.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 Arg.LazyTensor <- function(z) {
     stop("`Arg` cannot be applied to a LazyTensor. See `?Arg` for compatible types.")
 }
 
+#' Element-wise angle (or argument) of complex.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 Arg.ComplexLazyTensor <- function(z) {
     res <- unaryop.LazyTensor(z, "ComplexAngle")
 }
@@ -1709,10 +1997,18 @@ real2complex <- function(x) {
     UseMethod("real2complex", x)
 }
 
+#' Element-wise "real 2 complex" operation.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 real2complex.LazyTensor <- function(x) {
     res <- unaryop.LazyTensor(x, "Real2Complex", res_type = "ComplexLazyTensor")
 }
 
+#' Element-wise "real 2 complex" operation.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 real2complex.ComplexLazyTensor <- function(x) {
     stop("`real2complex` cannot be applied to a complex LazyTensor.")
 }
@@ -1741,11 +2037,19 @@ imag2complex <- function(x) {
     UseMethod("imag2complex", x)
 }
 
+#' Element-wise "imag 2 complex" operation.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 imag2complex.LazyTensor <- function(x) {
     res <- unaryop.LazyTensor(x, "Imag2Complex", res_type = "ComplexLazyTensor",
                               dim_res = 2 * x$dimres)
 }
 
+#' Element-wise "imag 2 complex" operation.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 imag2complex.ComplexLazyTensor <- function(x) {
     stop("`imag2complex` cannot be applied to a complex LazyTensor.")
 }
@@ -1774,16 +2078,29 @@ exp1j <- function(x) {
     UseMethod("exp1j", x)
 }
 
+#' Element-wise "complex exponential of 1j x" operation.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 exp1j.LazyTensor <- function(x) {
     res <- unaryop.LazyTensor(x, "ComplexExp1j", res_type = "ComplexLazyTensor")
 }
 
+#' Element-wise "complex exponential of 1j x" operation.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 exp1j.ComplexLazyTensor <- function(x) {
     stop("`exp1j` cannot be applied to a complex LazyTensor.")
 }
 
 
 # complex conjugate ------------------------------------------------------------
+
+#' Complex conjugate.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 Conj.default <- .Primitive("Conj") # assign default as current definition
 
 #' Element-wise complex conjugate.
@@ -1808,16 +2125,29 @@ Conj <- function(z) {
     UseMethod("Conj", z)
 }
 
+#' Element-wise complex conjugate.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 Conj.LazyTensor <- function(z) {
     stop("`Conj` cannot be applied to a LazyTensor. See `?Conj` for compatible types.")
 }
 
+#' Element-wise complex conjugate.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 Conj.ComplexLazyTensor <- function(z) {
     res <- unaryop.LazyTensor(z, "Conj")
 }
 
 
 # complex modulus --------------------------------------------------------------
+
+#' Absolute value (or modulus).
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 Mod.default <- .Primitive("Mod") # assign default as current definition
 
 #' Element-wise absolute value (or modulus).
@@ -1842,10 +2172,18 @@ Mod <- function(z) {
     UseMethod("Mod", z)
 }
 
+#' Element-wise absolute value (or modulus).
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 Mod.LazyTensor <- function(z) {
     stop("`Mod` cannot be applied to a LazyTensor. See `?Mod` for compatible types.")
 }
 
+#' Element-wise absolute value (or modulus).
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 Mod.ComplexLazyTensor <- function(z) {
     res <- unaryop.LazyTensor(z, "ComplexAbs", res_type = "LazyTensor")
 }
@@ -1930,6 +2268,11 @@ reduction.LazyTensor <- function(x, opstr, index, opt_arg = NA) {
 
 
 # sum function -----------------------------------------------------------------
+
+#' Summation operation.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 sum.default <- .Primitive("sum")
 
 #' Summation operation or Sum reduction.
@@ -1968,6 +2311,10 @@ sum <- function(x, index) {
     UseMethod("sum")
 }
 
+#' Summation operation or Sum reduction.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 sum.LazyTensor <- function(x, index = NA) {
     if(is.na(index)) {
         if(is.ComplexLazyTensor(x)) {
@@ -2022,6 +2369,11 @@ sum_reduction <- function(x, index) {
 
 
 # min function -----------------------------------------------------------------
+
+#' Minimum.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 min.default <- .Primitive("min")
 
 #' Minimum.
@@ -2062,6 +2414,10 @@ min <- function(x, ...) {
     UseMethod("min")
 }
 
+#' Minimum.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 min.LazyTensor <- function(x, index = NA) {
     if(is.na(index))
         res <- unaryop.LazyTensor(x, "Min")
@@ -2252,6 +2608,11 @@ min_argmin_reduction <- function(x, index) {
 
 
 # max function -----------------------------------------------------------------
+
+#' Maximum.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 max.default <- .Primitive("max")
 
 #' Maximum.
@@ -2292,6 +2653,10 @@ max <- function(x, ...) {
     UseMethod("max", x)
 }
 
+#' Maximum.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
 max.LazyTensor <- function(x, index = NA) {
     if(is.na(index))
         res <- unaryop.LazyTensor(x, "Max")
