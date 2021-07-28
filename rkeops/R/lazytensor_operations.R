@@ -2921,7 +2921,7 @@ sumsoftmaxweight_reduction <- function(x, index, weight) {
 #' 
 #' **IMPORTANT**
 #' 
-#' IN THIS CASE, INDICES START AT ZERO, THEREFORE, `m` SHOULD BE IN `[0, n)`,
+#' IN THIS CASE, INDICES START AT ZERO, therefore, `m` should be in `[0, n)`,
 #' where `n` is the inner dimension of `x`.
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `LazyTensor` or a `ComplexLazyTensor`.
@@ -2966,7 +2966,7 @@ elem <- function(x, m) {
 #' 
 #' **IMPORTANT**
 #' 
-#' IN THIS CASE, INDICES START AT ZERO, THEREFORE, `m` SHOULD BE IN `[0, n)`.
+#' IN THIS CASE, INDICES START AT ZERO, therefore, `m` should be in `[0, n)`.
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `LazyTensor` or a `ComplexLazyTensor` encoding a single
 #' parameter value.
@@ -3011,24 +3011,74 @@ elemT <- function(x, m, n) {
 
 #' Extract.
 #' @description
-#' Symbolic sub-vector extraction. A unary operation.
-#' @details `extract(x_i, m, d)` extracts a sub-vector from vector `x`
-#' (`m` is the starting index, and `d` is dimension of the extracted sub-vector).
+#' Symbolic sub-element extraction. A unary operation.
+#' @details `extract(x_i, m, d)` encodes, symbolically, the extraction
+#' of a range of values `x[m:m+d]` in the `LazyTensor` `x`; (`m` is the 
+#' starting index, and `d` is the dimension of the extracted sub-vector).
+#'
+#' **IMPORTANT**
+#' 
+#' IN THIS CASE, INDICES START AT ZERO, therefore, `m` should be in `[0, n)`,
+#' where `n` is the inner dimension of `x`. And `d` should be in `[0, n-m]`.
+#' 
+#' **Note**
+#' 
+#' See @example for a more concrete explanation of the use of `extract()`.^
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `LazyTensor` or a `ComplexLazyTensor`.
 #' @param m An `integer` corresponding to the starting index.
 #' @param d An `integer` corresponding to the output dimension.
-# TODO ci-dessous écrire autre chose que "vector" ??
-#' @return A `LazyTensor` that encodes, symbolically, the sub-vector `x[m:m+d]`
-#' of the vector `x`.
+#' @return A `LazyTensor`.
 #' @examples
 #' \dontrun{
+#' # Two very rudimentary examples
+#' # -----------------------------
+#' 
+#' # Let's say that you have a matrix looking like this:
+#' #      [,1] [,2] [,3] [,4]
+#' # [1,]    1    8    1    3
+#' # [2,]    2    1    2    7
+#' # [3,]    3    7    4    5
+#' # [4,]    1    3    3    0
+#' # [5,]    5    4    9    4
+#' 
+#' # Convert it to LazyTensor:
+#' g_i <- LazyTensor(g, index = 'i')
+#' 
+#' # Then extract some elements:
+#' ext_g <- extract(g_i, 1, 3)
+#' 
+#' # In this case, `ext_g` is a LazyTensor encoding, symbolically,
+#' # the following part of g:
+#' #       [,1] [,2] [,3]
+#' # [1,]    8    1    3
+#' # [2,]    1    2    7
+#' # [3,]    7    4    5
+#' # [4,]    3    3    0
+#' # [5,]    4    9    4
+#' 
+#' 
+#' # Same principle with a LazyTensor encoding a vector:
+#' v <- c(1, 2, 3, 1, 5)
+#' Pm_v <- LazyTensor(v)
+#' 
+#' ext_Pm_v <- extract(Pm_v, 2, 3)
+#' 
+#' # In this case, `ext_Pm_v` is a LazyTensor encoding, symbolically,
+#' # the following part of v:
+#' #       [,1] [,2] [,3]
+#' # [1,]    3    1    5
+#' 
+#' 
+#' # A more general example
+#' # ----------------------
+#' 
 #' x <- matrix(runif(150 * 5), 150, 5) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # LazyTensor from matrix x, indexed by 'i'
 #' m <- 2
 #' d <- 2
 #' 
-#' extract_x <- extract(x_i, m, d)      # symbolic matrix
+#' extract_x <- extract(x_i, m, d) # symbolic matrix
 #' }
 #' @export
 extract <- function(x, m, d) {
@@ -3038,16 +3088,16 @@ extract <- function(x, m, d) {
     if(!is.int(d)) 
         stop("`d` input argument should be an integer.")
     # dim check
-    D <- get_inner_dim(x) # TODO check that this is, indeed, inner_dim that we want
-    if(m < 0 || m > D) {
-        stop(paste("Index `m` is out of bounds. Should be in [1, ",
-                   D, "].", sep = ""))
+    D <- x$dimres
+    if(m < 0 || m >= D) {
+        stop(paste("Index `m` is out of bounds. Should be in [0, ",
+                   D, ").", sep = ""))
     }
-    if(d < 1 || (D < (m + d))) {
+    if(d < 0 || (D < (m + d))) {
         stop(
-            paste("Slice dimension is out of bounds. Input `d` should be in [1, ",
-                   D, "-m] where `m` is the starting index.", sep = "")
-            )
+            paste("Slice dimension is out of bounds. Input `d` should be in [0, ",
+                  D, "-m] where `m` is the starting index.", sep = "")
+        )
     }
     res <- unaryop.LazyTensor(x, "Extract",
                               opt_arg = m, opt_arg2 = d,
