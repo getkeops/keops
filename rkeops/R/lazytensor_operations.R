@@ -1,9 +1,9 @@
-library(rkeops)
-library(stringr)
-library(data.table)
-
-set_rkeops_option("tagCpuGpu", 0)
-set_rkeops_option("precision", "double")
+#library(rkeops)
+#library(stringr)
+#library(data.table)
+#
+#set_rkeops_option("tagCpuGpu", 0)
+#set_rkeops_option("precision", "double")
 
 
 
@@ -52,6 +52,10 @@ set_rkeops_option("precision", "double")
         UseMethod("+", x)
 }
 
+#' Addition
+#' @author 
+#' @keywords internal
+#' @export
 "+.LazyTensor" <- function(x, y) {
     res <- binaryop.LazyTensor(x, y, "+", is_operator = TRUE,
                                dim_check_type = "sameor1")
@@ -3073,7 +3077,7 @@ elemT <- function(x, m, n) {
 #' # A more general example
 #' # ----------------------
 #' 
-#' x <- matrix(runif(150 * 5), 150, 5) # arbitrary R matrix, 150 rows, 3 columns
+#' x <- matrix(runif(150 * 5), 150, 5) # arbitrary R matrix, 150 rows, 5 columns
 #' x_i <- LazyTensor(x, index = 'i')   # LazyTensor from matrix x, indexed by 'i'
 #' m <- 2
 #' d <- 2
@@ -3110,8 +3114,11 @@ extract <- function(x, m, d) {
 
 #' ExtractT.
 #' @description
-#' ExtractT.
-#' @details insert vector f in a larger vector of zeros (M is starting index,
+#' Insert a given range of values in a symbolic vector of zeros -
+#' a unary operation.
+#' @details If `x` is a `LazyTensor` encoding some values, `extractT(x, m, d)`
+#' encodes, symbolically, `x` in a vector of zeros, starting at position `m`.
+#' The output is a symbolic vector of TODO TODO TODO (M is starting index,
 #' D is dimension of output)
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `LazyTensor` or a `ComplexLazyTensor`.
@@ -3130,7 +3137,7 @@ extract <- function(x, m, d) {
 #' extractT_x <- extractT(x_i, m, d)      # symbolic matrix
 #' }
 #' @export
-extractT <- function(d) {
+extractT <- function(x, m, d) {
     if(!is.int(m)) 
         stop("`m` input argument should be an integer.")
     if(!is.int(d)) 
