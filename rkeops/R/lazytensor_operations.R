@@ -1,9 +1,9 @@
-# library(rkeops)
-# library(stringr)
-# library(data.table)
-# 
-# set_rkeops_option("tagCpuGpu", 0)
-# set_rkeops_option("precision", "double")
+library(rkeops)
+library(stringr)
+library(data.table)
+
+set_rkeops_option("tagCpuGpu", 0)
+set_rkeops_option("precision", "double")
 
 
 
@@ -3314,8 +3314,8 @@ grad <- function(x, v, gradin) {
                    " class `LazyTensor`.", sep = ""))
     }
     dim_res <- v$dimres
-    res <- binaryop.LazyTensor(x, gradin, "Grad", opt_arg = v, 
-                               dim_check_type = "same",
+    res <- ternaryop.LazyTensor(x, gradin, v, "Grad",
+                               dim_check_type = "sameor1",
                                dim_res = dim_res)
     return(res)
 }
