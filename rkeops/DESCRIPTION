@@ -39,7 +39,8 @@ Imports:
     RhpcBLASctl, 
     openssl (>= 1.3), 
     stringr (>= 1.4.0),
-    Rdpack
+    Rdpack,
+    data.table
 Suggests: 
     testthat (>= 2.1.0),
     knitr,
