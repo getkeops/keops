@@ -4,24 +4,33 @@
 \alias{tensorprod}
 \title{Tensor product.}
 \usage{
-tensorprod(x, y)
+tensorprod(v1, v2)
 }
 \arguments{
-\item{x}{}
+\item{v1}{A \code{LazyTensor} or a \code{ComplexLazyTensor} encoding a parameter vector.}
 
-\item{y}{}
+\item{v2}{A \code{LazyTensor} or a \code{ComplexLazyTensor} encoding a parameter vector.}
 }
 \value{
-TODO
+A \code{LazyTensor} or a \code{ComplexLazyTensor}.
 }
 \description{
 Tensor product of vectors - a binary operation.
 }
 \details{
-TODO
+If \code{v1} and \code{v2} are \code{LazyTensor}s encoding parameter vectors,
+respectively of length \code{l1} and \code{l2}, then \code{tensorprod(v1, v2)} encodes,
+symbolically, the tensor product between vectors \code{v1} and \code{v2}, which is
+a symbolic matrix of dimension (\code{l1}, \code{l2}).
 }
 \examples{
 \dontrun{
+v1 <- runif(100, 0, 1)   # arbitrary R vector of length 100
+v2 <- runif(250, 0, 1)   # arbitrary R vector of length 250
+Pm_v1 <- LazyTensor(v1)  # parameter vector LazyTensor from v1
+Pm_v2 <- LazyTensor(v2)  # parameter vector LazyTensor from v2
+
+tp_v1v2 <- tensorprod(v1, v2) # symbolic (100, 250) matrix. 
 }
 }
 \author{

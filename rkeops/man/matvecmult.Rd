@@ -4,29 +4,31 @@
 \alias{matvecmult}
 \title{Matrix-vector product.}
 \usage{
-matvecmult(x, y)
+matvecmult(m, v)
 }
 \arguments{
-\item{x}{A \code{LazyTensor} or a \code{ComplexLazyTensor}.}
+\item{m}{A \code{LazyTensor} or a \code{ComplexLazyTensor} encoding a matrix.}
 
-\item{D}{An \code{integer} corresponding to the output dimension.}
+\item{v}{A \code{LazyTensor} or a \code{ComplexLazyTensor} encoding a parameter vector.}
 }
 \value{
-
+A \code{LazyTensor} or a \code{ComplexLazyTensor}.
 }
 \description{
 Matrix-vector product - a binary operation.
 }
 \details{
-\code{matvecmult(x, y)} encodes, symbolically,
-the matrix-vector product of \code{x} and \code{y} along their last dimension.
+\code{matvecmult(m, v)} encodes, symbolically,
+the matrix-vector product of \code{m} and \code{v}.
 }
 \examples{
 \dontrun{
-x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
-x_i <- LazyTensor(x, index = 'i')   # LazyTensor from matrix x, indexed by 'i'
+m <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
+v <- runif(250, 0, 1)               # arbitrary R vector of length 250
+m_i <- LazyTensor(m, index = 'i')   # LazyTensor from matrix m, indexed by 'i'
+Pm_v <- LazyTensor(v)               # parameter vector LazyTensor from v
 
-mv_mult_xy <- matvecmult(x_i, y_j) # symbolic matrix
+mv_mult <- matvecmult(m_i, Pm_v)    # symbolic matrix
 }
 }
 \author{

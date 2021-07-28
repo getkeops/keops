@@ -7,31 +7,42 @@
 elemT(x, m, n)
 }
 \arguments{
-\item{x}{A \code{LazyTensor} or a \code{ComplexLazyTensor}.}
+\item{x}{A \code{LazyTensor} or a \code{ComplexLazyTensor} encoding a single
+parameter value.}
 
-\item{m}{An \code{integer} corresponding at position M of a vector of zeros.}
+\item{m}{An \code{integer} corresponding to the position \code{m} of the created
+vector of zeros at which we want to insert the value \code{x}.}
 
 \item{n}{An \code{integer} corresponding to the length of the vector of zeros.}
 }
 \value{
-
+A \code{LazyTensor} or a \code{ComplexLazyTensor}.
 }
 \description{
-ElemT.
+Insert a given value in a symbolic vector of zeros - a unary operation.
 }
 \details{
-\code{elemT(x, m, n)} insert ??? TODO
+\code{elemT(x, m, n)} insert scalar value \code{x} (encoded as a \code{LazyTensor}) at
+position \code{m} in a vector of zeros of length \code{n}.
+
+\strong{Note}
+
+Input \code{x} should be a \code{LazyTensor} encoding a single parameter value.
+
+\strong{IMPORTANT}
+
+IN THIS CASE, INDICES START AT ZERO, therefore, \code{m} should be in \verb{[0, n)}.
 }
 \examples{
 \dontrun{
-x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
-x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
-                                    # indexed by 'i'
+# basic example
+x <- 3.14              # arbitrary value
+Pm_x <- LazyTensor(x)  # creating scalar parameter LazyTensor from x
 
 m <- 2
 n <- 3
 
-elemT_x <- elemT(x_i, m, n)  # symbolic matrix
+elemT_x <- elemT(Pm_x, m, n)  # symbolic vector
 }
 }
 \author{

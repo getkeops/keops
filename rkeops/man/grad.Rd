@@ -12,31 +12,29 @@ grad(x, v, gradin)
 \item{v}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric values,
 or a scalar value.}
 
-\item{gradin}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric values,
-or a scalar value.}
+\item{gradin}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric
+values, or a scalar value.}
 }
 \value{
 A \code{LazyTensor} or a \code{ComplexLazyTensor}.
 }
 \description{
-Symbolic gradient operation.
+Symbolic gradient operation - a binary operation.
 }
 \details{
-\code{grad(x, v, e)} returns a \code{LazyTensor} which encodes,
+\code{grad(x, v, gradin)} returns a \code{LazyTensor} which encodes,
 symbolically, the gradient (more precisely, the adjoint of the differential
-operator) of \code{x}, with respect to variable \code{v}, and applied to \code{e}.
+operator) of \code{x}, with respect to variable \code{v}, and applied to \code{gradin}.
 }
 \examples{
 \dontrun{
-x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows and 3 columns
-g <- matrix(runif(100 * 3), 100, 3) # arbitrary R matrix, 100 rows and 3 columns
-x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
-                                    # indexed by 'i'
-g_j <- LazyTensor(y, index = 'j')   # creating LazyTensor from matrix g, 
-                                    # indexed by 'j'
+x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
+g <- matrix(runif(100 * 3), 100, 3) # arbitrary R matrix, 100 rows, 3 columns
+x_i <- LazyTensor(x, index = 'i')   # LazyTensor from matrix x, indexed by 'i'
+g_j <- LazyTensor(y, index = 'j')   # LazyTensor from matrix g, indexed by 'j'
 v_i <- LazyTensor(c(3,2))           # parameter LazyTensor
 
-grad_xy <- weightedsqnorm(x_i, v_i, g_j) # symbolic matrix
+grad_xy <- grad(x_i, v_i, g_j)      # symbolic matrix
 }
 }
 \author{

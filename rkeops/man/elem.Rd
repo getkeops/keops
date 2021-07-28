@@ -13,14 +13,20 @@ elem(x, m)
 want to extract (\code{x[m]}).}
 }
 \value{
-A \code{LazyTensor} that encodes, symbolically, the m-th element \code{x[m]}
-of the vector \code{x}.
+A \code{LazyTensor} or a \code{ComplexLazyTensor}.
 }
 \description{
 Symbolic element extraction. A unary operation.
 }
 \details{
-Extracts the m-th element of a given vector \code{x}.
+Extracts the \code{m}-th element of a \code{LazyTensor} \code{x}, that is, \code{elem(x, m)}
+encodes, symbolically, symbolically, the \code{m}-th element \code{x[m]}
+of the given \code{LazyTensor} \code{x}.
+
+\strong{IMPORTANT}
+
+IN THIS CASE, INDICES START AT ZERO, therefore, \code{m} should be in \verb{[0, n)},
+where \code{n} is the inner dimension of \code{x}.
 }
 \examples{
 \dontrun{
@@ -28,7 +34,7 @@ x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 x_i <- LazyTensor(x, index = 'i')   # LazyTensor from matrix x, indexed by 'i'
 m <- 2
 
-elem_x <- elem(x_i, m)  # symbolic matrix
+elem_x <- elem(x_i, m)  # symbolic `m`-th element of `x_i`.
 }
 }
 \author{

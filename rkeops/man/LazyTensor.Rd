@@ -20,7 +20,6 @@ If \strong{x} is a matrix, \strong{index} must be \strong{i} or \strong{j}.}
 \value{
 An object of class "LazyTensor" or "ComplexLazyTensor", which is a
 list with the following elements:
-
 \itemize{
 \item{\strong{formula}:}{ A string defining the mathematical operation to
 be computed by the KeOps routine}
@@ -90,5 +89,5 @@ z_i <- LazyTensor(z, index = 'i', is_complex = TRUE)  # create a ComplexLazyTens
 }
 }
 \author{
-Ghislain Durif
+Joan Glaunes, Chloe Serre-Combe, Amelie Vernay
 }

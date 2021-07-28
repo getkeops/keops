@@ -14,8 +14,8 @@ or a scalar value.}
 or a scalar value.}
 }
 \value{
-An object of class "LazyTensor" if the function is called with a \code{LazyTensor},
-and an object of class "numeric", otherwise.
+An object of class "LazyTensor" if the function is called with a
+\code{LazyTensor}, and an object of class "numeric", otherwise.
 }
 \description{
 Symbolic binary operation for addition.

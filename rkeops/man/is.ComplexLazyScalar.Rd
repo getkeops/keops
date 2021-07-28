@@ -13,7 +13,7 @@ is.ComplexLazyScalar(x)
 A boolean, TRUE or FALSE.
 }
 \description{
-Checks whether if the given input is a \code{ComplexLazyTensor}encoding
+Checks whether if the given input is a \code{ComplexLazyTensor} encoding
 a single complex value. That is, if the input is a fixed parameter
 \code{ComplexLazyTensor} of dimension 1.
 }

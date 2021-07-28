@@ -14,24 +14,75 @@ extract(x, m, d)
 \item{d}{An \code{integer} corresponding to the output dimension.}
 }
 \value{
-A \code{LazyTensor} that encodes, symbolically, the sub-vector \code{x[m:m+d]}
-of the vector \code{x}.
+A \code{LazyTensor}.
 }
 \description{
-Symbolic sub-vector extraction. A unary operation.
+Symbolic sub-element extraction. A unary operation.
 }
 \details{
-\code{extract(x_i, m, d)} extracts a sub-vector from vector \code{x}
-(\code{m} is the starting index, and \code{d} is dimension of the extracted sub-vector).
+\code{extract(x_i, m, d)} encodes, symbolically, the extraction
+of a range of values \code{x[m:m+d]} in the \code{LazyTensor} \code{x}; (\code{m} is the
+starting index, and \code{d} is the dimension of the extracted sub-vector).
+
+\strong{IMPORTANT}
+
+IN THIS CASE, INDICES START AT ZERO, therefore, \code{m} should be in \verb{[0, n)},
+where \code{n} is the inner dimension of \code{x}. And \code{d} should be in \verb{[0, n-m]}.
+
+\strong{Note}
+
+See @example for a more concrete explanation of the use of \code{extract()}.^
 }
 \examples{
 \dontrun{
-x <- matrix(runif(150 * 5), 150, 5) # arbitrary R matrix, 150 rows, 3 columns
+# Two very rudimentary examples
+# -----------------------------
+
+# Let's say that you have a matrix looking like this:
+#      [,1] [,2] [,3] [,4]
+# [1,]    1    8    1    3
+# [2,]    2    1    2    7
+# [3,]    3    7    4    5
+# [4,]    1    3    3    0
+# [5,]    5    4    9    4
+
+# Convert it to LazyTensor:
+g_i <- LazyTensor(g, index = 'i')
+
+# Then extract some elements:
+ext_g <- extract(g_i, 1, 3)
+
+# In this case, `ext_g` is a LazyTensor encoding, symbolically,
+# the following part of g:
+#       [,1] [,2] [,3]
+# [1,]    8    1    3
+# [2,]    1    2    7
+# [3,]    7    4    5
+# [4,]    3    3    0
+# [5,]    4    9    4
+
+
+# Same principle with a LazyTensor encoding a vector:
+v <- c(1, 2, 3, 1, 5)
+Pm_v <- LazyTensor(v)
+
+ext_Pm_v <- extract(Pm_v, 2, 3)
+
+# In this case, `ext_Pm_v` is a LazyTensor encoding, symbolically,
+# the following part of v:
+#       [,1] [,2] [,3]
+# [1,]    3    1    5
+
+
+# A more general example
+# ----------------------
+
+x <- matrix(runif(150 * 5), 150, 5) # arbitrary R matrix, 150 rows, 5 columns
 x_i <- LazyTensor(x, index = 'i')   # LazyTensor from matrix x, indexed by 'i'
 m <- 2
 d <- 2
 
-extract_x <- extract(x_i, m, d)      # symbolic matrix
+extract_x <- extract(x_i, m, d) # symbolic matrix
 }
 }
 \author{

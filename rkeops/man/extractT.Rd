@@ -4,23 +4,26 @@
 \alias{extractT}
 \title{ExtractT.}
 \usage{
-extractT(d)
+extractT(x, m, d)
 }
 \arguments{
-\item{d}{An \code{integer} corresponding to the output dimension.}
-
 \item{x}{A \code{LazyTensor} or a \code{ComplexLazyTensor}.}
 
 \item{m}{An \code{integer} corresponding to the starting index.}
+
+\item{d}{An \code{integer} corresponding to the output dimension.}
 }
 \value{
 
 }
 \description{
-ExtractT.
+Insert a given range of values in a symbolic vector of zeros -
+a unary operation.
 }
 \details{
-insert vector f in a larger vector of zeros (M is starting index,
+If \code{x} is a \code{LazyTensor} encoding some values, \code{extractT(x, m, d)}
+encodes, symbolically, \code{x} in a vector of zeros, starting at position \code{m}.
+The output is a symbolic vector of TODO TODO TODO (M is starting index,
 D is dimension of output)
 }
 \examples{
