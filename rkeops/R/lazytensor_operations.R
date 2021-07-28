@@ -2576,7 +2576,7 @@ min_argmin <- function(x, index) {
 }
 
 
-# min_argmin reduction -------------------------------------------------------------
+# min_argmin reduction ---------------------------------------------------------
 
 #' Min-ArgMin reduction.
 #' @description
@@ -3392,7 +3392,7 @@ elemT <- function(x, m, n) {
 #' 
 #' **Note**
 #' 
-#' See @example for a more concrete explanation of the use of `extract()`.^
+#' See @examples for a more concrete explanation of the use of `extract()`.
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `LazyTensor` or a `ComplexLazyTensor`.
 #' @param m An `integer` corresponding to the starting index.
@@ -3403,7 +3403,7 @@ elemT <- function(x, m, n) {
 #' # Two very rudimentary examples
 #' # -----------------------------
 #' 
-#' # Let's say that you have a matrix looking like this:
+#' # Let's say that you have a matrix `g` looking like this:
 #' #      [,1] [,2] [,3] [,4]
 #' # [1,]    1    8    1    3
 #' # [2,]    2    1    2    7
@@ -3712,8 +3712,8 @@ tensorprod <- function(v1, v2) {
 #' symbolically, the gradient (more precisely, the adjoint of the differential 
 #' operator) of `x`, with respect to variable `v`, and applied to `gradin`.
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A `LazyTensor` or a `ComplexLazyTensor`.
-#' @param v A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, 
+#' @param red A `LazyTensor` or a `ComplexLazyTensor`. ?
+#' @param var A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, 
 #' or a scalar value.
 #' @param gradin A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric
 #' values, or a scalar value.
@@ -3729,11 +3729,14 @@ tensorprod <- function(v1, v2) {
 #' grad_xy <- grad(x_i, v_i, g_j)      # symbolic matrix
 #' }
 #' @export
-grad <- function(x, v, gradin) {
-    if((!is.LazyTensor(x) || !is.LazyTensor(v)) || !is.LazyTensor(gradin)) {
-        stop(paste("`x`, `v`, and `gradin` input arguments should be of",
-                   " class `LazyTensor`.", sep = ""))
-    }
+grad <- function(red, var, gradin) {
+    # if((!is.LazyTensor(x) || !is.LazyTensor(v)) || !is.LazyTensor(gradin)) {
+    #     stop(paste("`x`, `v`, and `gradin` input arguments should be of",
+    #                " class `LazyTensor`.", sep = ""))
+    # }
+    if(!is.matrix(red))
+        stop(paste0("`red` inout argument should be a matrix",
+                    " corresponding to a reduction."))
     dim_res <- v$dimres
     res <- ternaryop.LazyTensor(x, gradin, v, "Grad",
                                dim_check_type = "sameor1",
@@ -3741,5 +3744,11 @@ grad <- function(x, v, gradin) {
     return(res)
 }
 
+#' # defining an operator (reduction on squared distance)
+#' formula <- "Sum_Reduction(SqNorm2(x-y), 0)"
+#' args <- c("x=Vi(0,3)", "y=Vj(1,3)")
+#' op <- keops_kernel(formula, args)
+#' # defining its gradient regarding x
+#' grad_op <- keops_grad(op, var="x")
 
 
