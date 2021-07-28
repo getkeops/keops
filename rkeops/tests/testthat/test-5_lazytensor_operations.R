@@ -1477,6 +1477,10 @@ test_that("extract", {
   # basic example
   x <- matrix(runif(150 * 5), 150, 5) # arbitrary R matrix, 150 rows, 5 columns
   x_i <- LazyTensor(x, index = 'i')   # LazyTensor from matrix x, indexed by 'i'
+  
+  v <- c(1, 2, 3, 1, 5)
+  Pm_v <- LazyTensor(v)
+  
   m <- 1
   d <- 3
   
@@ -1484,6 +1488,11 @@ test_that("extract", {
   obj <- extract(x_i, m, d)
   expect_true(is.LazyTensor(obj))
   bool_grep_formula <- grep("Extract\\(A0x.*i,1,3\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  
+  obj <- extract(Pm_v, 0, d)
+  expect_true(is.LazyTensor(obj))
+  bool_grep_formula <- grep("Extract\\(A0x.*NA,0,3\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
   
   # errors
@@ -1494,11 +1503,18 @@ test_that("extract", {
                "`d` input argument should be an integer.",
                fixed = TRUE)
   expect_error(extract(x_i, 7, d),
-               "Index `m` is out of bounds. Should be in [1, 5].",
+               "Index `m` is out of bounds. Should be in [0, 5).",
+               fixed = TRUE)
+  expect_error(extract(x_i, -1, d),
+               "Index `m` is out of bounds. Should be in [0, 5).",
                fixed = TRUE)
   expect_error(extract(x_i, 4, d),
                paste("Slice dimension is out of bounds. Input `d` should be ",
-                     "in [1, 5-m] where `m` is the starting index.", sep = ""),
+                     "in [0, 5-m] where `m` is the starting index.", sep = ""),
+               fixed = TRUE)
+  expect_error(extract(x_i, 2, -1),
+               paste("Slice dimension is out of bounds. Input `d` should be ",
+                     "in [0, 5-m] where `m` is the starting index.", sep = ""),
                fixed = TRUE)
 })
 
