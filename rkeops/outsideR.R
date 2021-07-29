@@ -294,79 +294,142 @@ b <- sum(extract(g_i, 1, 3), index = 'j')
 b <- sum(extract(LazyTensor(c(1, 2, 3, 1, 5)), 2, 3), index = 'j')
 b <- sum(extract(LazyTensor(c(1, 2, 3, 1, 5)), 2, 3), index = 'i')
 
-# REDO extractT ================================================================
+# Sum_Reduction with new ComplexLazyensor ======================================
 
-# ExtractT ---------------------------------------------------------------------
+x <- matrix(c(1, 2, 3, 4), nrow = 4, ncol = 3)
+#      [,1] [,2] [,3]
+# [1,]    1    1    1
+# [2,]    2    2    2
+# [3,]    3    3    3
+# [4,]    4    4    4
+x_i <- LazyTensor(x, index = 'i')
 
-#' ExtractT.
-#' @description
-#' Insert a given value, vector of values or matrix of values in a symbolic
-#' vector or matrix of zeros -
-#' a unary operation.
-#' @details If `x` is a `LazyTensor` encoding a vector (resp. a matrix),
-#' `extractT(x, m, d)` encodes, symbolically, a `d`-inner-dimensional
-#' vector (resp. matrix) of zeros in which is inserted `x`,
-#' at starting position `m`.
-#' 
-#' **Note 1**
-#' 
-#' `x` can also encode a single value, in which case the operation works
-#' the same way as in the case of a vector of values.
-#' 
-#' **Note 2**
-#' 
-#' See @examples for a more concrete explanation of the use of `extractT()`.
-#' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A `LazyTensor` or a `ComplexLazyTensor`.
-#' @param m An `integer` corresponding to the starting index.
-#' @param d An `integer` corresponding to the output inner dimension.
-#' @return A `LazyTensor`.
-#' @examples
-#' \dontrun{
-#' # Three very rudimentary examples
-#' # -------------------------------
-#' 
-#' # Let's say that you have a matrix `g` looking like this:
-#' #      [,1] [,2]
-#' # [1,]    1    4
-#' # [2,]    2    5
-#' # [3,]    3    6
-#' 
-#' # Convert it to LazyTensor:
-#' g_i <- LazyTensor(g, index = 'i') # indexed by 'i' (for example)
-#' 
-#' # Then insert it in a matrix of inner dimension equal to 5,
-#' # starting at index 1:
-#' extT_g <- extractT(g_i, 1, 5)
-#' 
-#' # In this case, `extT_g` is a LazyTensor encoding, symbolically,
-#' # the following matrix:
-#' #      [,1] [,2] [,3] [,4] [,5]
-#' # [1,]    0    1    4    0    0
-#' # [2,]    0    2    5    0    0
-#' # [3,]    0    3    6    0    0
-#' 
-#' 
-#' # TODO add second example with Pm(n) and third with Pm(1)
-#' 
-#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
-#' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
-#'                                     # indexed by 'i'
-#' 
-#' m <- 2
-#' d <- 7
-#' 
-#' extractT_x <- extractT(x_i, m, d)      # symbolic matrix
-#' }
-#' @export
-extractT <- function(x, m, d) {
-    if(!is.int(m)) 
-        stop("`m` input argument should be an integer.")
-    if(!is.int(d)) 
-        stop("`d` input argument should be an integer.")
-    res <- unaryop.LazyTensor(x, "ExtractT", opt_arg = m, opt_arg2 = d)
-    return(res)
-}
+z <- matrix(2 + 1i^(-6:5), nrow = 4)
+#      [,1] [,2] [,3]
+# [1,] 1+0i 1+0i 1+0i
+# [2,] 2-1i 2-1i 2-1i
+# [3,] 3+0i 3+0i 3+0i
+# [4,] 2+1i 2+1i 2+1i
+z_i <- LazyTensor(z, index = 'i', is_complex = TRUE)
+# > z_i$vars
+# [[1]]
+#       [,1] [,2] [,3] [,4] [,5] [,6]
+# [1,]    1    0    1    0    1    0
+# [2,]    2   -1    2   -1    2   -1
+# [3,]    3    0    3    0    3    0
+# [4,]    2    1    2    1    2    1
+
+
+Sum_xz <- x_i + z_i
+# > Sum_xz$formula
+# [1] "Add(Real2Complex(A0x55ec34f7e7f8i),A0x7f5e90004440i)"
+
+A <- sum(Sum_xz, index = 'i')
+#      [,1] [,2] [,3] [,4] [,5] [,6]
+# [1,]   18    0   18    0   18    0
+
+B <- sum(Sum_xz, index = 'j') # No sum is done because nothing is indexed by 'j'
+#       [,1] [,2] [,3] [,4] [,5] [,6]
+# [1,]    2    0    2    0    2    0
+# [2,]    4   -1    4   -1    4   -1
+# [3,]    6    0    6    0    6    0
+# [4,]    6    1    6    1    6    1
+
+C <- sum(real2complex(x_i), index = 'j')
+# No sum is done because nothing is indexed by 'j', but this is
+# just to see the result:
+
+#       [,1] [,2] [,3] [,4] [,5] [,6]
+# [1,]    1    0    1    0    1    0
+# [2,]    2    0    2    0    2    0
+# [3,]    3    0    3    0    3    0
+# [4,]    4    0    4    0    4    0
+
+
+# Try with vectors of complex instead of matrices --------
+
+Z <- c(2 + 3i, 1 + 1i, 4 + 9i)
+Pm_Z <- LazyTensor(Z)
+
+V <- c(5, 6, 7)
+Pm_V <- LazyTensor(V)
+
+# Vector/vector addition ---
+Sum_ZV <- Pm_Z + Pm_V
+
+# Below, no sum is done because there are no index but this is just
+# for verification purpose.
+D <- sum(Sum_ZV, index = 'i')
+#       [,1] [,2] [,3] [,4] [,5] [,6]
+# [1,]    7    3    7    1   11    9
+
+E <- sum(Sum_ZV, index = 'j')
+#       [,1] [,2] [,3] [,4] [,5] [,6]
+# [1,]    7    3    7    1   11    9
+
+# Vector/matrix addition ---
+Mat_z <- matrix(2 + 1i^(-6:5), nrow = 4) # innner dim = 3
+#      [,1] [,2] [,3]
+# [1,] 1+0i 1+0i 1+0i
+# [2,] 2-1i 2-1i 2-1i
+# [3,] 3+0i 3+0i 3+0i
+# [4,] 2+1i 2+1i 2+1i
+Mat_z_i <- LazyTensor(Mat_z, index = 'i', is_complex = TRUE)
+#       [,1] [,2] [,3] [,4] [,5] [,6]
+# [1,]    1    0    1    0    1    0
+# [2,]    2   -1    2   -1    2   -1
+# [3,]    3    0    3    0    3    0
+# [4,]    2    1    2    1    2    1
+
+Vect_z <- c(2 + 3i, 1 + 1i, 4 + 9i)
+Pm_Vect_z <- LazyTensor(Vect_z) # innner dim = 3
+# > Pm_Vect_z$vars[[1]]
+#       [,1] [,2] [,3] [,4] [,5] [,6]
+# [1,]    2    3    1    1    4    9
+
+
+Sum_Mat_z_Vect_z <- Mat_z_i + Pm_Vect_z
+# > Sum_Mat_z_Vect_z$formula
+# [1] "Add(A0x55ec346a77c0i,A0x55ec375728a8NA)"
+
+H <- sum(Sum_Mat_z_Vect_z, index = 'j')
+# No sum is done because nothing is 'j' indexed:
+
+#       [,1] [,2] [,3] [,4] [,5] [,6]
+# [1,]    3    3    2    1    5    9
+# [2,]    4    2    3    0    6    8
+# [3,]    5    3    4    1    7    9
+# [4,]    4    4    3    2    6   10
+
+G <- sum(Sum_Mat_z_Vect_z, index = 'i')
+#       [,1] [,2] [,3] [,4] [,5] [,6]
+# [1,]   16   12   12    4   24   36
+
+# Vector/complex value addition ---
+Cplx <- LazyTensor(2 + 9i)
+Scal <- LazyTensor(2)
+
+Sum_Vect_z_Cplx <- Vect_z + Cplx # FIX ME
+
+Sum_Mat_z_Cplx <- Mat_z_i + Cplx
+Sum_Cplx_Mat_z <- Cplx + Mat_z_i
+
+O1 <- sum(Vect_z + Scal, index = 'j') # WORKS
+O2 <- sum(Cplx + Vect_z, index = 'j') # TODO: FIX ME
+O3 <- sum(Mat_z_i + Cplx, index = 'j') # TODO: FIX ME
+O4 <- sum(Vect_z + Cplx, index = 'j') # TODO: FIX ME (error different from above)
+
+L <- sum(Scal + Mat_z_i, index = 'j')
+
+Scal_plus_Mat_x <- Scal + x_i
+M <- sum(Scal_plus_Mat_x, index = 'j')
+
+
+formula = "Sum_Reduction(x + IntCst(3),1)"
+args = c("x=Vi(3)", "IntCst(3)=Pm(1)")
+op21 <- keops_kernel(formula, args)
+
+op21(list(x, 3))
 
 # Sum_Reduction ExtractT =======================================================
 
@@ -384,7 +447,7 @@ op20(list(x))
 
 # --------------------------
 
-formula = "Sum_Reduction(ExtractT(x, 1, 3),0)"
+formula = "Sum_Reduction(ExtractT(x, 2, 4),0)"
 args = c("x=Pm(1)")
 op19 <- keops_kernel(formula, args)
 
@@ -394,13 +457,13 @@ op19(list(3.14))
 
 # --------------------------
 
-formula = "Sum_Reduction(ExtractT(x, 1, 10),1)"
+formula = "Sum_Reduction(ExtractT(x, 1, 8),1)"
 args = c("x=Pm(5)")
 op19 <- keops_kernel(formula, args)
 
-op19(list(c(1, 2, 3, 4, 5)))
-#       [,1] [,2] [,3] [,4] [,5] [,6] [,7] [,8] [,9] [,10]
-# [1,]    0    1    2    3    4    5    0    0    0     0
+op19(list(c(1, 2, 3, 1, 5)))
+#       [,1] [,2] [,3] [,4] [,5] [,6] [,7] [,8]
+# [1,]    0    1    2    3    1    5    0    0
 
 # ---------------------------
 

@@ -55,19 +55,38 @@ test_that("LazyTensor", {
   expect_equal(D, out_j$dimres)
   expect_equal(M, out_u$dimres)
   expect_equal(1, out_D$dimres)
+  expect_equal(3, z_i$dimres)
+  expect_equal(3, still_good_z_Vi$dimres)
   
+  # check complex vars
+  Z <- z_i$vars[[1]]
+  # The number of column of Z is twice the number of column of z.
+  expect_equal(ncol(Z), ncol(z) * 2)
+  
+  # The first column of Z is the real part of the first column of z;
+  # the second column of Z is the imaginary part of the first column of z;
+  # the third column of Z is the real part of the second column of z;
+  # and so on.
+  expect_equal(Z[, 1], Re(z[, 1]))
+  expect_equal(Z[, 2], Im(z[, 1]))
+  expect_equal(Z[, 3], Re(z[, 2]))
   # errors
+  expect_error(LazyTensor(out_i), 
+               "Input `x` is already a LazyTensor.", 
+               fixed = TRUE)
   expect_error(LazyTensor("x"), 
-               "`x` input argument should be a matrix, a vector or a scalar.", 
+               paste("`x` input argument should be a matrix, a vector",
+                     "a scalar or a complex value.",
+                     sep = ""),
                fixed = TRUE)
   expect_error(LazyTensor(x), 
                "missing `index` argument.", 
                fixed = TRUE)
   expect_error(LazyTensor(u, index = "i"), 
-               "`index` must be NA with a vector or a scalar value.", 
+               "`index` must be NA with a vector or a single value.", 
                fixed = TRUE)
   expect_error(LazyTensor(D, index = "i"), 
-               "`index` must be NA with a vector or a scalar value.", 
+               "`index` must be NA with a vector or a single value.", 
                fixed = TRUE)
 })
 
@@ -225,10 +244,10 @@ test_that("Pm", {
                "`x` input is already a LazyTensor.", 
                fixed = TRUE)
   expect_error(Pm(x), 
-               "`x` input must be a scalar or a vector.", 
+               "`x` input must be a vector or a single value.", 
                fixed = TRUE)
   expect_error(Pm("a"), 
-               "`x` input must be a scalar or a vector.", 
+               "`x` input must be a vector or a single value.", 
                fixed = TRUE)
   
 })
