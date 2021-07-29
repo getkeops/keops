@@ -1519,6 +1519,55 @@ test_that("extract", {
 })
 
 
+test_that("extractT", {
+  # basic example
+  x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
+  x_i <- LazyTensor(x, index = 'i')   # LazyTensor from matrix x, indexed by 'i'
+  
+  v <- c(1, 2, 3, 1, 5)
+  Pm_v <- LazyTensor(v)
+  
+  m <- 1
+  d <- 8
+  
+  # check formulas, args & classes
+  obj <- extractT(x_i, m, d)
+  expect_true(is.LazyTensor(obj))
+  bool_grep_formula <- grep("ExtractT\\(A0x.*i,1,8\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  
+  obj <- extractT(Pm_v, 0, d)
+  expect_true(is.LazyTensor(obj))
+  bool_grep_formula <- grep("ExtractT\\(A0x.*NA,0,8\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  
+  # errors
+  expect_error(extractT(x_i, 3.14, d),
+               "`m` input argument should be an integer.",
+               fixed = TRUE)
+  expect_error(extractT(x_i, m, 3.14),
+               "`d` input argument should be an integer.",
+               fixed = TRUE)
+  expect_error(extractT(x_i, m, -1),
+               paste("Input `d` is out of bounds. Should be at least equal",
+                     " to `x` inner dimension, which is 3.",
+                     sep = ""),
+               fixed = TRUE)
+  expect_error(extractT(x_i, -2, d),
+               "Index `m` is out of bounds. Should be in [0, `d`).",
+               fixed = TRUE)
+  expect_error(extractT(x_i, 8, 8),
+               "Index `m` is out of bounds. Should be in [0, `d`).",
+               fixed = TRUE)
+  expect_error(extractT(x_i, 7, d),
+               paste("Slice dimension is out of bounds: `d` - `m`",
+                     " should be strictly greater than `x`", 
+                     " inner dimension, which is 3.",
+                     sep = ""),
+               fixed = TRUE)
+})
+
+
 test_that("concat", {
   # basic example
   x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
