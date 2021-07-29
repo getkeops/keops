@@ -38,6 +38,6 @@ struct ElemT : UnaryOp< ElemT, F, N, M > {
   using DiffT = DiffTF< V, Elem< GRADIN, M > >;
 };
 
-#define ElemT(p,k) KeopsNS<ElemT<decltype(InvKeopsNS(p)),k>>()
+#define ElemT(p,n,m) KeopsNS<ElemT<decltype(InvKeopsNS(p)),n,m>>()
 
 }
