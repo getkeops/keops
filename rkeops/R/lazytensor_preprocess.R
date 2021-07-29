@@ -83,6 +83,10 @@
 #' @export
 LazyTensor <- function(x, index = NA, is_complex = FALSE) {
   
+  if(is.LazyTensor(x)) {
+    stop("Input `x` is already a LazyTensor.")
+  }
+  
   if(!is_complex && is.complex(x)) {
     is_complex = TRUE
   }
@@ -92,11 +96,13 @@ LazyTensor <- function(x, index = NA, is_complex = FALSE) {
   cat <- NULL
   
   if(is.character(x))
-    stop("`x` input argument should be a matrix, a vector or a scalar.")
+    stop(paste("`x` input argument should be a matrix, a vector",
+               "a scalar or a complex value.",
+               sep = ""))
   if(is.matrix(x) && is.na(index))
     stop("missing `index` argument.")
   if(!is.matrix(x) && !is.na(index))
-    stop("`index` must be NA with a vector or a scalar value.")
+    stop("`index` must be NA with a vector or a single value.")
   
   # 1) input is a matrix, treated as indexed variable, so index must be "i" or "j"
   if(is.matrix(x)) {
@@ -114,12 +120,12 @@ LazyTensor <- function(x, index = NA, is_complex = FALSE) {
   }
   
   # Now we define "formula", a string specifying the variable for KeOps C++ codes.
-  if(is.int(x)) {
-    var_name <- paste("IntCst(", as.character(x), ")", sep = "")
-  }
-  else {
-    var_name <- paste("A", address(x), index, sep = "")
-  }
+  #if(is.int(x)) {
+  #  var_name <- paste("IntCst(", as.character(x), ")", sep = "")
+  #}
+  #else {
+  var_name <- paste("A", address(x), index, sep = "")
+  #}
   formula <- var_name
   vars <- list(x)  # vars lists all actual matrices necessary to evaluate 
                    # the current formula, here only one.
@@ -131,17 +137,40 @@ LazyTensor <- function(x, index = NA, is_complex = FALSE) {
     res <- list(formula = formula, args = args, vars = vars)
     
     # format vars in a "complex" way
-    Z <- x
-    ReZ <- Re(Z)
-    ImZ <- Im(Z)
-    ReImZ <- Reduce("cbind",
-                    lapply(1:ncol(z),
-                           function(ind) return(cbind(ReZ[, ind],
-                                                      ImZ[, ind]
-                                                      )
-                                                )
-                           )
-                    )
+    ReZ <- Re(x)
+    ImZ <- Im(x)
+    
+    # If input x is a matrix (index != NA), ReImZ will be a matrix such that:
+    # The first column of ReImZ is the real part of the first column of x;
+    # the second column of ReImZ is the imaginary part of the first column of x;
+    # the third column of ReImZ is the real part of the second column of x;
+    # and so on.
+    # The number of column of Z is twice the number of column of x.
+    if(!is.na(index)) {
+      ReImZ <- Reduce("cbind",
+                      lapply(1:ncol(x),
+                             function(ind) return(cbind(ReZ[, ind],
+                                                        ImZ[, ind]
+                             )
+                             )
+                      )
+      )
+    }
+    # If input x is a vector or a single complex value, ReImZ will be a vector.
+    else {
+      ReImZ <- Reduce("cbind",
+                      lapply(1:length(x),
+                             function(ind) return(cbind(ReZ[ind],
+                                                        ImZ[ind]
+                             )
+                             )
+                      )
+      )
+      # Parameter LazyTensors have vector as vars (but apparently it
+      # doesn't matter is we leave it as a matrix...)
+      # Uncomment below if needed.
+      #ReImZ <- as.vector(ReImZ)
+    }
     res$vars[[1]] <- ReImZ
     
     # add ComplexLazyTensor class
@@ -242,7 +271,7 @@ Pm <- function(x, is_complex = FALSE){
   
   if((is.character(x) || is.matrix(x))) {
     # Should not be a character string, neither a matrix, nor a complex matrix.
-    stop("`x` input must be a scalar or a vector.")
+    stop("`x` input must be a vector or a single value.")
   }
   
   res <- LazyTensor(x, is_complex = is_complex)
