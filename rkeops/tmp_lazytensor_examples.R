@@ -313,7 +313,7 @@ d <- sum(elem(x_j, 1), index = 'i')
 # [2,]    5
 # [3,]    6
 
-aT <- sum(elemT(scal_Pm, 1, 7), index = 'i')
+aT <- sum(elemT(scal_Pm, 7, 1), index = 'i')
 
 
 # Sum_Reduction Concat =========================================================

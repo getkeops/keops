@@ -455,11 +455,19 @@ d <- sum(elem(x_j, 1), index = 'i')
 # [2,]    5
 # [3,]    6
 
-aT <- sum(elemT(scal_Pm, 1, 7), index = 'i')
+aT <- sum(elemT(scal_Pm, 7, 1), index = 'i')
+# > aT
+#       [,1] [,2] [,3] [,4] [,5] [,6] [,7]
+# [1,]    0 3.14    0    0    0    0    0
 
-formula = "Sum_Reduction(x + ElemT(y, 5, 1), 1)"
+x = c(1,2,3,4,5)
+scal = 3.14
+aformula = "Sum_Reduction(x + ElemT(y, 5, 1), 1)"
 args = c("x=Vi(5)", "y=Pm(1)")
 op1 <- keops_kernel(formula, args)
+# > op1(list(x, scal))
+#      [,1] [,2] [,3] [,4] [,5]
+# [1,]    1 5.14    3    4    5
 
 
 # Sum_Reduction Concat =========================================================
