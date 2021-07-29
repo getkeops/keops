@@ -106,26 +106,45 @@ LazyTensor <- function(x, index = NA, is_complex = FALSE) {
     else
       cat = "Vj"
   }
-  # 2) else we assume x is a numeric vector, treated as parameter, then converted 
-  # to matrix
+  # 2) else we assume x is a numeric vector, treated as parameter,
+  # then converted to matrix
   else {
     d <- length(x)
     cat <- "Pm"
   }
   
   # Now we define "formula", a string specifying the variable for KeOps C++ codes.
-  if(is.int(x))
-    var_name <- paste("IntCst(", as.character(x), ")", sep = "") 
-  else
-    var_name <- paste("A", address(x), index, sep = "") 
+  if(is.int(x)) {
+    var_name <- paste("IntCst(", as.character(x), ")", sep = "")
+  }
+  else {
+    var_name <- paste("A", address(x), index, sep = "")
+  }
   formula <- var_name
   vars <- list(x)  # vars lists all actual matrices necessary to evaluate 
                    # the current formula, here only one.
   
   if(is_complex) {
     args <- str_c(var_name, "=", cat, "(", 2 * d, ")")
-    # finally we build and return the LazyTensor object
+    
+    # build ComplexLazyTensor
     res <- list(formula = formula, args = args, vars = vars)
+    
+    # format vars in a "complex" way
+    Z <- x
+    ReZ <- Re(Z)
+    ImZ <- Im(Z)
+    ReImZ <- Reduce("cbind",
+                    lapply(1:ncol(z),
+                           function(ind) return(cbind(ReZ[, ind],
+                                                      ImZ[, ind]
+                                                      )
+                                                )
+                           )
+                    )
+    res$vars[[1]] <- ReImZ
+    
+    # add ComplexLazyTensor class
     class(res) <- c("ComplexLazyTensor", "LazyTensor")
   }
   else {
