@@ -414,10 +414,19 @@ Sum_Vect_z_Cplx <- Vect_z + Cplx # FIX ME
 Sum_Mat_z_Cplx <- Mat_z_i + Cplx
 Sum_Cplx_Mat_z <- Cplx + Mat_z_i
 
-O1 <- sum(Vect_z + Scal, index = 'j') # WORKS
-O2 <- sum(Cplx + Vect_z, index = 'j') # TODO: FIX ME
-O3 <- sum(Mat_z_i + Cplx, index = 'j') # TODO: FIX ME
+O1 <- sum(Pm_Vect_z + Scal, index = 'j') # DOESN'T WORKS
+O <- sum(Scal + Pm_Vect_z, index = 'j')
+O2 <- sum(Scal + Vect_z, index = 'j') # WORKS
+O21 <- sum(Scal + Pm_Vect_z, index = 'j') # WORKS
+O3 <- sum(Cplx + Vect_z, index = 'j') # TODO: FIX ME
 O4 <- sum(Vect_z + Cplx, index = 'j') # TODO: FIX ME (error different from above)
+O5 <- sum(Mat_z_i + Cplx, index = 'j') # TODO: FIX ME
+O6 <- sum(Cplx + Mat_z_i, index = 'j') # TODO: FIX ME
+O7 <- sum(Scal + Mat_z_i, index = 'j') # TODO: FIX ME
+O8 <- sum(Mat_z_i + Scal, index = 'j') # TODO: FIX ME
+O9 <- sum(Mat_z_i + Mat_z_i, index = 'j') # TODO: FIX ME (error different from above)
+
+O5 <- sum()
 
 L <- sum(Scal + Mat_z_i, index = 'j')
 
