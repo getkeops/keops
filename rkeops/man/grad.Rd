@@ -4,16 +4,16 @@
 \alias{grad}
 \title{Symbolic gradient operation.}
 \usage{
-grad(x, v, gradin)
+grad(op_red, x, var, index, gradin)
 }
 \arguments{
-\item{x}{A \code{LazyTensor} or a \code{ComplexLazyTensor}.}
-
-\item{v}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric values,
+\item{var}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric values,
 or a scalar value.}
 
 \item{gradin}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric
 values, or a scalar value.}
+
+\item{red}{A \code{LazyTensor} or a \code{ComplexLazyTensor}. ?}
 }
 \value{
 A \code{LazyTensor} or a \code{ComplexLazyTensor}.

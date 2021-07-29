@@ -31,6 +31,11 @@ indexes.
 \item if \strong{index = NA} (default), return a new \code{LazyTensor} object
 representing the sum of the values of the vector.
 }
+
+\strong{Note}
+
+If \strong{index = NA}, \code{x} input argument should be a \code{LazyTensor} encoding a
+parameter vector.
 If \code{x} is not a \code{LazyTensor} it computes R default "sum" function with
 other specific arguments (see R default \code{sum()} function).
 }

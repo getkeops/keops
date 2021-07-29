@@ -31,14 +31,14 @@ where \code{n} is the inner dimension of \code{x}. And \code{d} should be in \ve
 
 \strong{Note}
 
-See @example for a more concrete explanation of the use of \code{extract()}.^
+See @examples for a more concrete explanation of the use of \code{extract()}.
 }
 \examples{
 \dontrun{
 # Two very rudimentary examples
 # -----------------------------
 
-# Let's say that you have a matrix looking like this:
+# Let's say that you have a matrix `g` looking like this:
 #      [,1] [,2] [,3] [,4]
 # [1,]    1    8    1    3
 # [2,]    2    1    2    7
