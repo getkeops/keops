@@ -65,7 +65,7 @@
 #' @export
 "+.ComplexLazyTensor" <- function(x, y) {
     if(!is.LazyTensor(y)) {
-        y <- LasyTensor(y)
+        y <- LazyTensor(y)
     }
     
     if(!is.ComplexLazyTensor(y)) {
@@ -160,7 +160,7 @@
     }
     
     if(!is.LazyTensor(y) && !is.matrix(y)) {
-        y <- LasyTensor(y)
+        y <- LazyTensor(y)
     }
     
     if(!is.ComplexLazyTensor(y)) {
@@ -243,7 +243,7 @@
 #' @export
 "*.ComplexLazyTensor" <- function(x, y) {
     if(!is.LazyTensor(y) && !is.matrix(y)) {
-        y <- LasyTensor(y)
+        y <- LazyTensor(y)
     }
     
     if(is.LazyScalar(y)) {
@@ -334,7 +334,7 @@
 #' @export
 "/.ComplexLazyTensor" <- function(x, y) {
     if(!is.LazyTensor(y) && !is.matrix(y)) {
-        y <- LasyTensor(y)
+        y <- LazyTensor(y)
     }
     
     if(!is.ComplexLazyTensor(y)) {
@@ -2226,7 +2226,7 @@ reduction.LazyTensor <- function(x, opstr, index, opt_arg = NA) {
         stop("`x` input should be a LazyTensor or a ComplexLazyTensor.")
     
     if(!is.character(opstr))
-        stop("`opst` input should be a string text.")
+        stop("`opstr` input should be a string text.")
     
     if(check_index(index)) {
         op <- preprocess_reduction(x, opstr, index, opt_arg)
@@ -2242,18 +2242,13 @@ reduction.LazyTensor <- function(x, opstr, index, opt_arg = NA) {
     return(res)
 }
 
-# In progress
-
+# TODO : doc
 #' Reduction preprocess.
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @keywords internal
 #' @export
 preprocess_reduction <- function(x, opstr, index, opt_arg = NA) {
-    if(index == "i") 
-        tag <- 1
-    else 
-        tag <- 0
-    
+    tag <- index_to_int(index)
     args <- x$args
     
     if(!any(is.na(opt_arg))) {
@@ -3811,7 +3806,7 @@ tensorprod <- function(v1, v2) {
 }
 
 
-# SYMBOLIC GRADIENT ============================================================
+# GRADIENT =====================================================================
 
 # Gradient ---------------------------------------------------------------------
 
@@ -3822,48 +3817,83 @@ tensorprod <- function(v1, v2) {
 #' symbolically, the gradient (more precisely, the adjoint of the differential 
 #' operator) of `x`, with respect to variable `v`, and applied to `gradin`.
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param red A `LazyTensor` or a `ComplexLazyTensor`. ?
-#' @param var A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, 
-#' or a scalar value.
-#' @param gradin A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric
-#' values, or a scalar value.
+#' @param x A `LazyTensor` or a `ComplexLazyTensor`.
+#' @param gradin A `LazyTensor`, a `ComplexLazyTensor` encodimg a matrix of ones
+#' with an inner dimension equal to 1 and with number of rows equal to 
+#' the number of rows of the first `x` variable (in `x$vars`).
+#' @param opstr A `string` formula corresponding to a reduction 
+#' (like "Sum" or "Max").
+#' @param index A `character` that should be either **i** or **j** to specify 
+#' whether if the reduction is indexed by **i** (rows), or **j** (columns).
 #' @return A `LazyTensor` or a `ComplexLazyTensor`.
 #' @examples
 #' \dontrun{
-#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
-#' g <- matrix(runif(100 * 3), 100, 3) # arbitrary R matrix, 100 rows, 3 columns
-#' x_i <- LazyTensor(x, index = 'i')   # LazyTensor from matrix x, indexed by 'i'
-#' g_j <- LazyTensor(y, index = 'j')   # LazyTensor from matrix g, indexed by 'j'
-#' v_i <- LazyTensor(c(3,2))           # parameter LazyTensor
-#' 
-#' grad_xy <- grad(x_i, v_i, g_j)      # symbolic matrix
-#' }
-#' @export
-grad <- function(op_red, x, var, index, gradin) {
-    # if((!is.LazyTensor(x) || !is.LazyTensor(v)) || !is.LazyTensor(gradin)) {
-    #     stop(paste("`x`, `v`, and `gradin` input arguments should be of",
-    #                " class `LazyTensor`.", sep = ""))
-    # }
-    op <- preprocess_reduction(x, op_red, index)
-    grad_op <- keops_grad(op, 0)
-    res <- grad_op(list(x$vars, var$vars, gradin$vars))
-    return(res)
-}
-
-#' # defining an operator (reduction on squared distance)
-#' formula <- "Sum_Reduction(SqNorm2(x-y), 0)"
-#' args <- c("x=Vi(0,3)", "y=Vj(1,3)")
-#' op <- keops_kernel(formula, args)
-#' # defining its gradient regarding x
-#' grad_op <- keops_grad(op, var="x")
 #' nx <- 100
 #' ny <- 150
 #' x <- matrix(runif(nx*3), nrow=nx, ncol=3)     # matrix 100 x 3
 #' y <- matrix(runif(ny*3), nrow=ny, ncol=3)     # matrix 150 x 3
-#' eta <- matrix(runif(nx*1), nrow=nx, ncol=1)   # matrix 100 x 1
+#' eta <- matrix(runif(nx*1), nrow=nx, ncol=1)   # matrix 100 x 1 
+#' # nrow(x) == nrow(eta)
 #' 
-#' # computation
-#' input <- list(x, y, eta)
-#' res <- grad_op(input)
+#' x_i <- LazyTensor(x, index = 'i')
+#' y_j <- LazyTensor(y, index = 'j')
+#' eta_i <- LazyTensor(eta, index = 'i')
+#' 
+#' # gradient with the formula : 
+#' # Grad(Sum_Reduction(SqNorm2(x_i-y_j), 0), x_i, eta_i)
+#' grad_xy <- grad(sqnorm2(x_i-y_j), eta_i, "Sum", "j")     
+#' }
+#' @export
+grad <- function(x, gradin, opstr, index) {
+    if(!is.LazyTensor(x) || !is.LazyTensor(gradin)) {
+        stop(paste0("`x` and `gradin` input arguments should be LazyTensor."))
+    }
+    
+    if(!is.character(opstr)) {
+        stop(
+            paste0("`opstr` input should be a string text corresponding to", 
+                   " a reduction formula.")
+        )
+    }
+    
+    # Verification for gradin shape
+    if(gradin$dimres != 1 || (nrow(gradin$vars[[1]]) != nrow(x$vars[[1]]))) {
+        stop(paste0("`gradin` input argument should be a LazyTensor encoding", 
+                    " a matrix of shape (", nrow(x$vars[[1]]), ",1)."))
+    }
+    
+    if(!check_index(index)) {
+        stop(paste0("`index` input argument should be a character,",
+                    " either 'i' or 'j'."))
+    }
+    
+    op <- preprocess_reduction(x, opstr, index)
+    tag <- index_to_int(index)
+    grad_op <- keops_grad(op, tag)
+    res <- grad_op(c(x$vars, gradin$vars))
+    return(res)
+}
+
+#' Index to int.
+#' @description
+#' Transform `string` index input in `int`.
+#' @details `index_to_int(index)` returns an `integer`: **1** if 
+#' **index == "i"** and **0** if **index == "j"**.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @param index A `character` that should be either **i** or **j**.
+#' @return An `integer`.
+#' @export
+index_to_int <- function(index) {
+    if(!check_index(index)) {
+        stop(paste0("`index` input argument should be a character,",
+                    " either 'i' or 'j'."))
+    }
+    if(index == "i")
+        res <- 1
+    else
+        res <- 0
+    return(res)
+}
+
 
 

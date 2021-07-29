@@ -4,16 +4,20 @@
 \alias{grad}
 \title{Symbolic gradient operation.}
 \usage{
-grad(op_red, x, var, index, gradin)
+grad(x, gradin, opstr, index)
 }
 \arguments{
-\item{var}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric values,
-or a scalar value.}
+\item{x}{A \code{LazyTensor} or a \code{ComplexLazyTensor}.}
 
-\item{gradin}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric
-values, or a scalar value.}
+\item{gradin}{A \code{LazyTensor}, a \code{ComplexLazyTensor} encodimg a matrix of ones
+with an inner dimension equal to 1 and with number of rows equal to
+the number of rows of the first \code{x} variable (in \code{x$vars}).}
 
-\item{red}{A \code{LazyTensor} or a \code{ComplexLazyTensor}. ?}
+\item{opstr}{A \code{string} formula corresponding to a reduction
+(like "Sum" or "Max").}
+
+\item{index}{A \code{character} that should be either \strong{i} or \strong{j} to specify
+whether if the reduction is indexed by \strong{i} (rows), or \strong{j} (columns).}
 }
 \value{
 A \code{LazyTensor} or a \code{ComplexLazyTensor}.
@@ -28,13 +32,20 @@ operator) of \code{x}, with respect to variable \code{v}, and applied to \code{g
 }
 \examples{
 \dontrun{
-x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
-g <- matrix(runif(100 * 3), 100, 3) # arbitrary R matrix, 100 rows, 3 columns
-x_i <- LazyTensor(x, index = 'i')   # LazyTensor from matrix x, indexed by 'i'
-g_j <- LazyTensor(y, index = 'j')   # LazyTensor from matrix g, indexed by 'j'
-v_i <- LazyTensor(c(3,2))           # parameter LazyTensor
+nx <- 100
+ny <- 150
+x <- matrix(runif(nx*3), nrow=nx, ncol=3)     # matrix 100 x 3
+y <- matrix(runif(ny*3), nrow=ny, ncol=3)     # matrix 150 x 3
+eta <- matrix(runif(nx*1), nrow=nx, ncol=1)   # matrix 100 x 1 
+# nrow(x) == nrow(eta)
 
-grad_xy <- grad(x_i, v_i, g_j)      # symbolic matrix
+x_i <- LazyTensor(x, index = 'i')
+y_j <- LazyTensor(y, index = 'j')
+eta_i <- LazyTensor(eta, index = 'i')
+
+# gradient with the formula : 
+# Grad(Sum_Reduction(SqNorm2(x_i-y_j), 0), x_i, eta_i)
+grad_xy <- grad(sqnorm2(x_i-y_j), eta_i, "Sum", "j")     
 }
 }
 \author{
