@@ -1036,3 +1036,25 @@ check_index <- function(index){
   res <- is.character(index) && (index %in% c("i", "j"))
   return(res)
 }
+
+
+#' Index to int.
+#' @description
+#' Transform `string` index input into integer.
+#' @details `index_to_int(index)` returns an `integer`: **1** if 
+#' **index == "i"** and **0** if **index == "j"**.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @param index A `character` that should be either **i** or **j**.
+#' @return An `integer`.
+#' @export
+index_to_int <- function(index) {
+  if(!check_index(index)) {
+    stop(paste0("`index` input argument should be a character,",
+                " either 'i' or 'j'."))
+  }
+  if(index == "i")
+    res <- 1
+  else
+    res <- 0
+  return(res)
+}
