@@ -3810,22 +3810,29 @@ tensorprod <- function(v1, v2) {
 
 # Gradient ---------------------------------------------------------------------
 
-#' Symbolic gradient operation.
+# TODO : doc description
+#' Gradient operation.
 #' @description
-#' Symbolic gradient operation - a binary operation.
-#' @details `grad(x, v, gradin)` returns a `LazyTensor` which encodes, 
-#' symbolically, the gradient (more precisely, the adjoint of the differential 
-#' operator) of `x`, with respect to variable `v`, and applied to `gradin`.
+#' Gradient operation.
+#' @details `grad(x, gradin, opstr, index)` returns a `matrix` which 
+#' corresponding to the gradient (more precisely, the adjoint of the differential 
+#' operator) of `x` and applied to `gradin` with compiling the corresponding 
+#' reduction operator of `opstr`. It has an additional integer input parameter 
+#' `index` indicating if the inner dimension corresponds to columns, i.e. 
+#' `index = 'j'` or rows, i.e. `index = 'i'`.
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `LazyTensor` or a `ComplexLazyTensor`.
-#' @param gradin A `LazyTensor`, a `ComplexLazyTensor` encodimg a matrix of ones
+#' @param gradin A `LazyTensor`, a `ComplexLazyTensor` encoding a matrix of ones
 #' with an inner dimension equal to 1 and with number of rows equal to 
 #' the number of rows of the first `x` variable (in `x$vars`).
 #' @param opstr A `string` formula corresponding to a reduction 
 #' (like "Sum" or "Max").
+#' @param var A text `string` or an `integer` number indicating regarding to which 
+#' variable/parameter (given by name or by position starting at 0) the 
+#' gradient of the formula should be computed.
 #' @param index A `character` that should be either **i** or **j** to specify 
 #' whether if the reduction is indexed by **i** (rows), or **j** (columns).
-#' @return A `LazyTensor` or a `ComplexLazyTensor`.
+#' @return A `matrix`.
 #' @examples
 #' \dontrun{
 #' nx <- 100
@@ -3835,16 +3842,17 @@ tensorprod <- function(v1, v2) {
 #' eta <- matrix(runif(nx*1), nrow=nx, ncol=1)   # matrix 100 x 1 
 #' # nrow(x) == nrow(eta)
 #' 
-#' x_i <- LazyTensor(x, index = 'i')
-#' y_j <- LazyTensor(y, index = 'j')
-#' eta_i <- LazyTensor(eta, index = 'i')
+#' x_i <- LazyTensor(x, index = 'i')  # LazyTensor from matrix x, indexed by 'i'
+#' y_j <- LazyTensor(y, index = 'j')  # LazyTensor from matrix y, indexed by 'j'
+#' eta_i <- LazyTensor(eta, index = 'i')   # LazyTensor from matrix eta, 
+#'                                         # indexed by 'i'
 #' 
 #' # gradient with the formula : 
 #' # Grad(Sum_Reduction(SqNorm2(x_i-y_j), 0), x_i, eta_i)
-#' grad_xy <- grad(sqnorm2(x_i-y_j), eta_i, "Sum", "j")     
+#' grad_xy <- grad(sqnorm2(x_i-y_j), eta_i, "Sum", var = y_j$formula, "j")     
 #' }
 #' @export
-grad <- function(x, gradin, opstr, index) {
+grad <- function(x, gradin, opstr, var, index) {
     if(!is.LazyTensor(x) || !is.LazyTensor(gradin)) {
         stop(paste0("`x` and `gradin` input arguments should be LazyTensor."))
     }
@@ -3868,8 +3876,7 @@ grad <- function(x, gradin, opstr, index) {
     }
     
     op <- preprocess_reduction(x, opstr, index)
-    tag <- index_to_int(index)
-    grad_op <- keops_grad(op, tag)
+    grad_op <- keops_grad(op, var)
     res <- grad_op(c(x$vars, gradin$vars))
     return(res)
 }

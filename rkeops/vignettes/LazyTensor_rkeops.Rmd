@@ -189,8 +189,8 @@ Generic squared Euclidean norms support scalar weights, and diagonal or full (sy
 
 | operation                 | meaning                                                                                                  |
 |:--------------------------|:---------------------------------------------------------------------------------------------------------|
-| `grad(x, v, g)`           | gradient of `x` with respect to the variable `v`, with `g` as the “grad_input” to backpropagate (in C++) |
-| `gradmatrix(x, v)`        | matrix of gradient ($i.e.$ transpose of the jacobian matrix)                                             |
+| `grad(x, g, red, var, "i")`           |  ...  |
+
 
 
 ### Reductions
