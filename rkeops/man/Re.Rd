@@ -25,7 +25,7 @@ else, computes R default \code{Re()} function.
 \examples{
 \dontrun{
 z <- matrix(2 + 1i^ (-6:5), nrow = 4)        # complex matrix
-z_i <- LazyTensor(x, "i", is_complex = TRUE) # creating ComplexLazyTensor
+z_i <- LazyTensor(z, "i", is_complex = TRUE) # creating ComplexLazyTensor
 
 Re_z <- Re(z_i)                              # symbolic matrix
 }

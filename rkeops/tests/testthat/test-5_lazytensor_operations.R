@@ -2412,7 +2412,62 @@ test_that("sumsoftmaxweight_reduction", {
 })
 
 
+test_that("grad", {
+  # data
+  nx <- 10
+  ny <- 15
+  x <- matrix(runif(nx*3), nrow=nx, ncol=3)
+  y <- matrix(runif(ny*3), nrow=ny, ncol=3)
+  eta <- matrix(1, nrow=nx, ncol=1)
+  
+  # LazyTensors
+  x_i <- Vi(x)
+  y_j <- Vj(y)
+  eta_i <- Vi(eta)
+  
+  res <- grad(sqnorm2(x_i-y_j), eta_i, "Sum", "j") 
+  expect_true(is.matrix(res))
+  expect_equal(dim(res), c(nx, 3))
+  
+  res <- grad(sqnorm2(x_i-y_j), eta_i, "Sum", "j")
+  expect_true(is.matrix(res))
+  expect_equal(dim(res), c(nx, 3))
+  
+  # data
+  nx <- 10
+  ny <- 15
+  x <- matrix(runif(nx*3), nrow=nx, ncol=3)
+  y <- matrix(runif(ny*3), nrow=ny, ncol=3)
+  eta <- matrix(1, nrow=ny, ncol=1)
+  
+  # LazyTensors
+  x_i <- Vi(x)
+  y_j <- Vj(y)
+  eta_j <- Vj(eta)
+  
+  # errors
+  expect_error(
+    grad(sqnorm2(x_i-y_j), eta_j, "Sum", "j"),
+    paste0("`gradin` input argument should be a LazyTensor encoding", 
+           " a matrix of shape (10,1)."), 
+    fixed = TRUE
+  )
+  
+  expect_error(
+    grad(sqnorm2(x_i - y_j), eta_j, 2, "j"),
+    paste0("`opstr` input should be a string text corresponding", 
+           " to a reduction formula."), 
+    fixed = TRUE
+  )
+  
+  expect_error(
+    grad(sqnorm2(x_i - y_j), eta_i, "Sum", 1),
+    paste0("`index` input argument should be a character, either 'i' or 'j'."), 
+    fixed = TRUE
+  )
 
+  
+})
 
 
 
