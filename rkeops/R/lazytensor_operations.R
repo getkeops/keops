@@ -2229,35 +2229,11 @@ reduction.LazyTensor <- function(x, opstr, index, opt_arg = NA) {
         stop("`opst` input should be a string text.")
     
     if(check_index(index)) {
-        if(index == "i") 
-            tag <- 1
+        op <- preprocess_reduction(x, opstr, index, opt_arg)
+        if(!any(is.na(opt_arg)) && is.LazyTensor(opt_arg))
+            res <- op(list(x$vars, opt_arg$vars))
         else 
-            tag <- 0
-        if(!any(is.na(opt_arg))) {
-            if(is.LazyTensor(opt_arg)) {
-                formula <- paste( opstr,  "_Reduction(",  x$formula, 
-                                  ",",  tag, ",", opt_arg$formula, ")", sep = "")
-            }
-            
-            else if(is.int(opt_arg)) {
-                formula <- paste( opstr,  "_Reduction(",  x$formula, 
-                                  ",",  opt_arg, ",", tag, ")", sep = "")
-            }
-            
-            else if(is.character(opt_arg)) {
-                formula <- paste( opstr,  "_Reduction(",  x$formula, 
-                                  ",",  tag, ",", opt_arg, ")", sep = "")
-            }
-            
-        }
-        else {
-            formula <- paste(opstr, "_Reduction(", x$formula, ",", 
-                             tag, ")", sep = "")
-        }
-        
-        args <- x$args
-        op <- keops_kernel(formula, args)
-        res <- op(x$vars)
+            res <- op(x$vars)
     }
     
     else
@@ -2265,6 +2241,48 @@ reduction.LazyTensor <- function(x, opstr, index, opt_arg = NA) {
     
     return(res)
 }
+
+# In progress
+
+#' Reduction preprocess.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
+preprocess_reduction <- function(x, opstr, index, opt_arg = NA) {
+    if(index == "i") 
+        tag <- 1
+    else 
+        tag <- 0
+    
+    args <- x$args
+    
+    if(!any(is.na(opt_arg))) {
+        if(is.LazyTensor(opt_arg)) {
+            formula <- paste( opstr,  "_Reduction(",  x$formula, 
+                              ",",  tag, ",", opt_arg$formula, ")", sep = "")
+            args <- c(x$args, opt_arg$args)
+        }
+        
+        else if(is.int(opt_arg)) {
+            formula <- paste( opstr,  "_Reduction(",  x$formula, 
+                              ",",  opt_arg, ",", tag, ")", sep = "")
+        }
+        
+        else if(is.character(opt_arg)) {
+            formula <- paste( opstr,  "_Reduction(",  x$formula, 
+                              ",",  tag, ",", opt_arg, ")", sep = "")
+        }
+        
+    }
+    else {
+        formula <- paste(opstr, "_Reduction(", x$formula, ",", 
+                         tag, ")", sep = "")
+    }
+    
+    op <- keops_kernel(formula, args)
+    return(op)
+}
+
 
 
 # sum function -----------------------------------------------------------------
@@ -2287,6 +2305,11 @@ sum.default <- .Primitive("sum")
 #'   \item if **index = NA** (default), return a new `LazyTensor` object 
 #'   representing the sum of the values of the vector.
 #' }
+#' 
+#' **Note**
+#' 
+#' If **index = NA**, `x` input argument should be a `LazyTensor` encoding a 
+#' parameter vector.
 #' If `x` is not a `LazyTensor` it computes R default "sum" function with
 #' other specific arguments (see R default `sum()` function).
 #' @author Chloe Serre-Combe, Amelie Vernay
@@ -2316,19 +2339,25 @@ sum <- function(x, index) {
 #' @keywords internal
 #' @export
 sum.LazyTensor <- function(x, index = NA) {
-    if(is.na(index)) {
+    if(!check_index(index)) {
+        stop(paste0("`index` input argument should be a character,",
+                    " either 'i' or 'j', or NA."))
+    }
+    else if(is.na(index) && !is.LazyVector(x)) {
+        stop(paste0("If `index = NA`, `x` input argument should be a ", 
+                    "LazyTensor encoding a parameter vector."))
+    }
+    
+    if(is.na(index) && is.LazyVector(x)) {
         if(is.ComplexLazyTensor(x)) {
-            res <- unaryop.LazyTensor(x, "ComplexSum", dimres = 1) # dimres = 2 ??
+            res <- unaryop.LazyTensor(x, "ComplexSum", dim_res = 2) 
         }
         else {
-            res <- unaryop.LazyTensor(x, "Sum", dimres = 1)
+            res <- unaryop.LazyTensor(x, "Sum", dim_res = 1)
         }
     }
     else if(check_index(index))
         res <- reduction.LazyTensor(x, "Sum", index)
-    else
-        stop(paste("`index` input argument should be a character,",
-                   " either 'i' or 'j', or NA.", sep = ""))
     return(res)
 }
 
@@ -3729,18 +3758,14 @@ tensorprod <- function(v1, v2) {
 #' grad_xy <- grad(x_i, v_i, g_j)      # symbolic matrix
 #' }
 #' @export
-grad <- function(red, var, gradin) {
+grad <- function(op_red, x, var, index, gradin) {
     # if((!is.LazyTensor(x) || !is.LazyTensor(v)) || !is.LazyTensor(gradin)) {
     #     stop(paste("`x`, `v`, and `gradin` input arguments should be of",
     #                " class `LazyTensor`.", sep = ""))
     # }
-    if(!is.matrix(red))
-        stop(paste0("`red` inout argument should be a matrix",
-                    " corresponding to a reduction."))
-    dim_res <- v$dimres
-    res <- ternaryop.LazyTensor(x, gradin, v, "Grad",
-                               dim_check_type = "sameor1",
-                               dim_res = dim_res)
+    op <- preprocess_reduction(x, op_red, index)
+    grad_op <- keops_grad(op, 0)
+    res <- grad_op(list(x$vars, var$vars, gradin$vars))
     return(res)
 }
 
@@ -3750,5 +3775,14 @@ grad <- function(red, var, gradin) {
 #' op <- keops_kernel(formula, args)
 #' # defining its gradient regarding x
 #' grad_op <- keops_grad(op, var="x")
+#' nx <- 100
+#' ny <- 150
+#' x <- matrix(runif(nx*3), nrow=nx, ncol=3)     # matrix 100 x 3
+#' y <- matrix(runif(ny*3), nrow=ny, ncol=3)     # matrix 150 x 3
+#' eta <- matrix(runif(nx*1), nrow=nx, ncol=1)   # matrix 100 x 1
+#' 
+#' # computation
+#' input <- list(x, y, eta)
+#' res <- grad_op(input)
 
 
