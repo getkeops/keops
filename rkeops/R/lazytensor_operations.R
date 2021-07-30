@@ -2302,10 +2302,6 @@ sum.LazyTensor <- function(x, index = NA) {
         stop(paste0("`index` input argument should be a character,",
                     " either 'i' or 'j', or NA."))
     }
-    else if(is.na(index) && !is.LazyVector(x)) {
-        stop(paste0("If `index = NA`, `x` input argument should be a ", 
-                    "LazyTensor encoding a parameter vector."))
-    }
     
     if(is.na(index) && is.LazyVector(x)) {
         if(is.ComplexLazyTensor(x)) {
