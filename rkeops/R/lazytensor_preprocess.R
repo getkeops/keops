@@ -518,12 +518,18 @@ binaryop.LazyTensor <- function(x, y, opstr, is_operator = FALSE,
     formula <- paste(opstr, "(", x$formula, ",", opt_arg$formula, ",",
                      y$formula, ")", sep = "")
   
+  #vars <- c(x$vars, y$vars)
+  #print("vars")
+  #print(vars)
+
   vars <- c(x$vars, y$vars)
-  vars[!duplicated(names(vars))]
+  #vars <- vars[!duplicated(vars)]
+ 
   args <- unique(c(x$args, y$args))
   dimres <- dim_res
   
   res <- list(formula = formula, args = args, vars = vars, dimres = dimres)
+  res$vars <- res$vars[!duplicated(res$vars)]
   
   if(!is.na(res_type[1]))
     class(res) <- res_type
@@ -1057,4 +1063,44 @@ index_to_int <- function(index) {
   else
     res <- 0
   return(res)
+}
+
+
+# Reduction---------------------------------------------------------------------
+
+
+# TODO : doc
+#' Reduction preprocess.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @keywords internal
+#' @export
+preprocess_reduction <- function(x, opstr, index, opt_arg = NA) {
+  tag <- index_to_int(index)
+  args <- x$args
+  
+  if(!any(is.na(opt_arg))) {
+    if(is.LazyTensor(opt_arg)) {
+      formula <- paste( opstr,  "_Reduction(",  x$formula, 
+                        ",",  tag, ",", opt_arg$formula, ")", sep = "")
+      args <- c(x$args, opt_arg$args)
+    }
+    
+    else if(is.int(opt_arg)) {
+      formula <- paste( opstr,  "_Reduction(",  x$formula, 
+                        ",",  opt_arg, ",", tag, ")", sep = "")
+    }
+    
+    else if(is.character(opt_arg)) {
+      formula <- paste( opstr,  "_Reduction(",  x$formula, 
+                        ",",  tag, ",", opt_arg, ")", sep = "")
+    }
+    
+  }
+  else {
+    formula <- paste(opstr, "_Reduction(", x$formula, ",", 
+                     tag, ")", sep = "")
+  }
+  
+  op <- keops_kernel(formula, args)
+  return(op)
 }
