@@ -3356,7 +3356,7 @@ elemT <- function(x, m, n) {
                    n, ").", sep = ""))
     }
     
-    res <- unaryop.LazyTensor(x, "ElemT", m, n)
+    res <- unaryop.LazyTensor(x, "ElemT", opt_arg = n, opt_arg2 = m)
     return(res)
 }
 

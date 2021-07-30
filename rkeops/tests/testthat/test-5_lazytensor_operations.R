@@ -1443,13 +1443,13 @@ test_that("elemT", {
   # check formulas, args & classes
   obj <- elemT(Pm_x, m, n)
   expect_true(is.LazyTensor(obj))
-  bool_grep_formula <- grep("ElemT\\(A0x.*NA,2,3\\)", obj$formula)
+  bool_grep_formula <- grep("ElemT\\(A0x.*NA,3,2\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
   
   obj <- elemT(Pm_z, m, n)
   expect_true(is.LazyTensor(obj))
   expect_true(is.ComplexLazyTensor(obj))
-  bool_grep_formula <- grep("ElemT\\(A0x.*NA,2,3\\)", obj$formula)
+  bool_grep_formula <- grep("ElemT\\(A0x.*NA,3,2\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
   
   # errors
