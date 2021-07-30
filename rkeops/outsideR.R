@@ -304,6 +304,14 @@ x <- matrix(c(1, 2, 3, 4), nrow = 4, ncol = 3)
 # [4,]    4    4    4
 x_i <- LazyTensor(x, index = 'i')
 
+y <- matrix(c(1, 7, 3, 4), nrow = 4, ncol = 3)
+#      [,1] [,2] [,3]
+# [1,]    1    1    1
+# [2,]    7    7    7
+# [3,]    3    3    3
+# [4,]    4    4    4
+y_i <- LazyTensor(y, index = 'i')
+
 z <- matrix(2 + 1i^(-6:5), nrow = 4)
 #      [,1] [,2] [,3]
 # [1,] 1+0i 1+0i 1+0i
@@ -319,6 +327,14 @@ z_i <- LazyTensor(z, index = 'i', is_complex = TRUE)
 # [3,]    3    0    3    0    3    0
 # [4,]    2    1    2    1    2    1
 
+z2 <- matrix(2 + 5i^(-6:5), nrow = 4)
+#                   [,1]      [,2]      [,3]
+# [1,] 1.999936+0.00000i 1.96+0.0i -23+   0i
+# [2,] 2.000000-0.00032i 2.00-0.2i   2- 125i
+# [3,] 2.001600+0.00000i 3.00+0.0i 627+   0i
+# [4,] 2.000000+0.00800i 2.00+5.0i   2+3125i
+z2_i <- LazyTensor(z2, index = 'i', is_complex = TRUE)
+
 
 Sum_xz <- x_i + z_i
 # > Sum_xz$formula
@@ -327,6 +343,10 @@ Sum_xz <- x_i + z_i
 A <- sum(Sum_xz, index = 'i')
 #      [,1] [,2] [,3] [,4] [,5] [,6]
 # [1,]   18    0   18    0   18    0
+A2 <- sum(z_i + x_i, index = 'i')
+#      [,1] [,2] [,3] [,4] [,5] [,6]
+# [1,]   18    0   18    0   18    0
+
 
 B <- sum(Sum_xz, index = 'j') # No sum is done because nothing is indexed by 'j'
 #       [,1] [,2] [,3] [,4] [,5] [,6]
@@ -334,6 +354,8 @@ B <- sum(Sum_xz, index = 'j') # No sum is done because nothing is indexed by 'j'
 # [2,]    4   -1    4   -1    4   -1
 # [3,]    6    0    6    0    6    0
 # [4,]    6    1    6    1    6    1
+
+B2 <- sum(x_i + z_i, index = 'j')
 
 C <- sum(real2complex(x_i), index = 'j')
 # No sum is done because nothing is indexed by 'j', but this is
@@ -350,6 +372,9 @@ C <- sum(real2complex(x_i), index = 'j')
 
 Z <- c(2 + 3i, 1 + 1i, 4 + 9i)
 Pm_Z <- LazyTensor(Z)
+
+Z2 <- c(3 + 3i, 1 + 1i, 4 + 9i)
+Pm_Z2 <- LazyTensor(Z2)
 
 V <- c(5, 6, 7)
 Pm_V <- LazyTensor(V)
@@ -368,31 +393,9 @@ E <- sum(Sum_ZV, index = 'j')
 # [1,]    7    3    7    1   11    9
 
 # Vector/matrix addition ---
-Mat_z <- matrix(2 + 1i^(-6:5), nrow = 4) # innner dim = 3
-#      [,1] [,2] [,3]
-# [1,] 1+0i 1+0i 1+0i
-# [2,] 2-1i 2-1i 2-1i
-# [3,] 3+0i 3+0i 3+0i
-# [4,] 2+1i 2+1i 2+1i
-Mat_z_i <- LazyTensor(Mat_z, index = 'i', is_complex = TRUE)
-#       [,1] [,2] [,3] [,4] [,5] [,6]
-# [1,]    1    0    1    0    1    0
-# [2,]    2   -1    2   -1    2   -1
-# [3,]    3    0    3    0    3    0
-# [4,]    2    1    2    1    2    1
 
-Vect_z <- c(2 + 3i, 1 + 1i, 4 + 9i)
-Pm_Vect_z <- LazyTensor(Vect_z) # innner dim = 3
-# > Pm_Vect_z$vars[[1]]
-#       [,1] [,2] [,3] [,4] [,5] [,6]
-# [1,]    2    3    1    1    4    9
-
-
-Sum_Mat_z_Vect_z <- Mat_z_i + Pm_Vect_z
-# > Sum_Mat_z_Vect_z$formula
-# [1] "Add(A0x55ec346a77c0i,A0x55ec375728a8NA)"
-
-H <- sum(Sum_Mat_z_Vect_z, index = 'j')
+H <- sum(z_i + Pm_Z, index = 'j')
+# ("Add(A0x5575749b46b0i,A0x5575774e9328NA)")
 # No sum is done because nothing is 'j' indexed:
 
 #       [,1] [,2] [,3] [,4] [,5] [,6]
@@ -401,7 +404,7 @@ H <- sum(Sum_Mat_z_Vect_z, index = 'j')
 # [3,]    5    3    4    1    7    9
 # [4,]    4    4    3    2    6   10
 
-G <- sum(Sum_Mat_z_Vect_z, index = 'i')
+G <- sum(z_i + Pm_Z, index = 'i')
 #       [,1] [,2] [,3] [,4] [,5] [,6]
 # [1,]   16   12   12    4   24   36
 
@@ -409,36 +412,152 @@ G <- sum(Sum_Mat_z_Vect_z, index = 'i')
 Cplx <- LazyTensor(2 + 9i)
 Scal <- LazyTensor(2)
 
-Sum_Vect_z_Cplx <- Vect_z + Cplx # FIX ME
 
-Sum_Mat_z_Cplx <- Mat_z_i + Cplx
-Sum_Cplx_Mat_z <- Cplx + Mat_z_i
+O1 <- sum(Pm_Z * Scal, index = 'j') # WORKS
+#       [,1] [,2] [,3] [,4] [,5] [,6]
+# [1,]    4    6    2    2    8   18
 
-O1 <- sum(Pm_Vect_z + Scal, index = 'j') # DOESN'T WORKS
-O <- sum(Scal + Pm_Vect_z, index = 'j')
-O2 <- sum(Scal + Vect_z, index = 'j') # WORKS
+O12 <- sum(Pm_Z + Scal, index = 'j') # TODO: FIX ME
+# Error in compile_formula(formula, var_aliases$var_aliases, dllname) : 
+#     Error during cmake call.
+
+
+formula <- "Sum_Reduction(Add(z,Real2Complex(s)),1)"
+args <- c("z=Pm(6)", "s=Pm(1)")
+op21 <- keops_kernel(formula, args)
+
+#op21(list(x, s))
+
+formula <- "Sum_Reduction(v+s,1)"
+args <- c("v=Pm(3)", "s=Pm(1)")
+op22 <- keops_kernel(formula, args)
+
+op22(list(V, 2))
+#       [,1] [,2] [,3]
+# [1,]    7    8    9
+
+formula <- "Sum_Reduction(Add(v,s),1)"
+args <- c("v=Pm(6)", "s=Pm(2)")
+op23 <- keops_kernel(formula, args)
+
+
+
+O13 <- sum(Pm_Z + Pm_Z2, index = 'j')
+#       [,1] [,2] [,3] [,4] [,5] [,6]
+# [1,]    5    6    2    2    8   18
+
+
+formula <- "Sum_Reduction(Powf(x, y),1)"
+args <- c("x=Pm(3)", "y=Pm(3)")
+op24 <- keops_kernel(formula, args)
+
+
+
+
+O <- sum(Scal * Pm_Z, index = 'j') # TODO: FIX ME
+O2 <- sum(Scal + Pm_Z, index = 'j') # TODO: FIX ME
+
+R0 <- sum(Pm_Z + Pm_Z, index = 'j')
+#       [,1] [,2] [,3] [,4] [,5] [,6]
+# [1,]    4    6    2    2    8   18
+R1 <- sum(Cplx + Cplx, index = 'j')
+#       [,1] [,2]
+# [1,]    4   18
+R2 <- sum(Scal + Pm_V, index = 'j')
+#       [,1] [,2] [,3]
+# [1,]    7    8    9
+
 O21 <- sum(Scal + Pm_Vect_z, index = 'j') # WORKS
-O3 <- sum(Cplx + Vect_z, index = 'j') # TODO: FIX ME
-O4 <- sum(Vect_z + Cplx, index = 'j') # TODO: FIX ME (error different from above)
-O5 <- sum(Mat_z_i + Cplx, index = 'j') # TODO: FIX ME
-O6 <- sum(Cplx + Mat_z_i, index = 'j') # TODO: FIX ME
-O7 <- sum(Scal + Mat_z_i, index = 'j') # TODO: FIX ME
-O8 <- sum(Mat_z_i + Scal, index = 'j') # TODO: FIX ME
-O9 <- sum(Mat_z_i + Mat_z_i, index = 'j') # TODO: FIX ME (error different from above)
+O3 <- sum(Cplx * Vect_z, index = 'j') # TODO: FIX ME # works with "*"
+O4 <- sum(Pm_Vect_z * Cplx, index = 'j') # TODO: FIX ME (error different from above)
+O5 <- sum(Mat_z_i * Cplx, index = 'j') # TODO: FIX ME # works with "*"
+
+
+
+P13 <- sum(x_i + y_i, index = 'i')
+#       [,1] [,2] [,3]
+# [1,]   25   25   25
+P12 <- sum(x_i + x_i, index = 'i')
+#       [,1] [,2] [,3]
+# [1,]   20   20   20
+
+P14 <- sum(x_i ^ x_i, index = 'i')
+
+O6 <- sum(Scal * z_i, index = 'j') # TODO: FIX ME
+# Error in compile_formula(formula, var_aliases$var_aliases, dllname) : 
+#     Error during cmake call. 
+
+
+O7 <- sum(Scal + z_i, index = 'j') # TODO: FIX ME
+# ("Add(Real2Complex(A0x56491d949b40NA),A0x7f9dd8003c60i)")
+# Error in op(x$vars) : 
+#     The number of elements in the 'input' argument does not correspond to the number input arguments in the formula. 
+
+O8 <- sum(z_i + Scal, index = 'j') # TODO: FIX ME
+# ("Add(A0x7f9dd8003c60i,Real2Complex(A0x56491d949b40NA))")
+# Error in op(x$vars) : 
+#     The number of elements in the 'input' argument does not correspond to the number input arguments in the formula. 
+
+P1 <- sum(x_i + Scal, index = 'j')
+#       [,1] [,2] [,3]
+# [1,]    3    3    3
+# [2,]    4    4    4
+# [3,]    5    5    5
+# [4,]    6    6    6
+
+O9 <- sum(z_i + z_i, index = 'j')
+#       [,1] [,2] [,3] [,4] [,5] [,6]
+# [1,]    2    0    2    0    2    0
+# [2,]    4   -2    4   -2    4   -2
+# [3,]    6    0    6    0    6    0
+# [4,]    4    2    4    2    4    2 
+
+O10 <- sum(z_i + z2_i, index = 'j')
+#           [,1]     [,2] [,3] [,4] [,5] [,6]
+# [1,] 2.999936  0.00000 2.96  0.0  -22    0
+# [2,] 4.000000 -1.00032 4.00 -1.2    4 -126
+# [3,] 5.001600  0.00000 6.00  0.0  630    0
+# [4,] 4.000000  1.00800 4.00  6.0    4 3126
+
+
+P2 <- sum(Scal^Scal, index = 'i') # TODO: FIX ME
+#       [,1]
+# [1,]    4
+
+P3 <- sum(square(x_i), index = 'i')
+#       [,1] [,2] [,3]
+# [1,]   30   30   30
+
+
+Sum_yz <- y_i + z_i
+O10 <- sum(y_i + z_i, index = 'i')
+
+O11 <- sum(Sum_yz, index = 'i')
 
 O5 <- sum()
 
-L <- sum(Scal + Mat_z_i, index = 'j')
+L0 <- sum(Scal + x_i, index = 'j')
+L1 <- sum(x_i + Scal, index = 'i')
+L2 <- sum(x_i + Pm_V, index = 'i')
+L3 <- sum(Pm_V + x_i, index = 'i')
+L4 <- sum(Pm_V + Scal, index = 'i')
+L5 <- sum(Scal + Pm_V, index = 'i')
 
-Scal_plus_Mat_x <- Scal + x_i
-M <- sum(Scal_plus_Mat_x, index = 'j')
+M0 <- sum(Cplx * x_i, index = 'i')
+M1 <- sum(x_i + Cplx, index = 'i')
 
+N0 <- sum(Cplx + Cplx, index = 'i')
+N1 <- sum(Cplx + Vect_z, index = 'i')
+N1 <- sum(Pm_Vect_z + Pm_Vect_z, index = 'j')
 
-formula = "Sum_Reduction(x + IntCst(3),1)"
-args = c("x=Vi(3)", "IntCst(3)=Pm(1)")
+formula = "Sum_Reduction(x + y,1)"
+args = c("x=Vi(3)", "y=Vi(3)")
 op21 <- keops_kernel(formula, args)
 
-op21(list(x, 3))
+op21(list(x, y))
+
+sum_reduction(x_i * y_i, index = 'i')
+
 
 # Sum_Reduction ExtractT =======================================================
 
