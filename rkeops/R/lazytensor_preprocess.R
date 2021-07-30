@@ -1064,10 +1064,37 @@ index_to_int <- function(index) {
 # Reduction---------------------------------------------------------------------
 
 
-# TODO : doc
-#' Reduction preprocess.
-#' @author Chloe Serre-Combe, Amelie Vernay
+
+
+#' Preprocess reduction operation.
 #' @keywords internal
+#' @description
+#' Returns a `function` for a reduction to a `LazyTensor` and it is called in 
+#' `rkeops::reduction.LazyTensor()`.
+#' @details `preprocess_reduction(x, opstr, index)` will :
+#' \itemize{
+#'   \item{ if **index = "i"**, return a `function` corresponding to the **opstr** 
+#'   reduction of **x** over the "i" indexes;}
+#'   \item{ if **index = "j"**, return a `function` corresponding to the **opstr** 
+#'   reduction of **x** over the "j" indexes.}
+#' }
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @param x A `LazyTensor` or a `ComplexLazyTensor`.
+#' @param opstr A `string` formula (like "Sum" or "Max").
+#' @param index A `character` that should be either **i** or **j** to specify 
+#' whether if the reduction is indexed by **i** (rows), or **j** (columns).
+#' @param opt_arg An optional argument : an `interger` (for "Kmin" reduction),
+#' a `character`, `LazyTensor` or a `ComplexLazyTensor`.
+#' @return A `function`.
+#' @seealso [rkeops::reduction.LazyTensor()]
+#' @examples
+#' \dontrun{
+#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
+#' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
+#'                                     # indexed by 'i'
+#' 
+#' op <- preprocess_reduction(x_i, "Sum", "i")
+#' }
 #' @export
 preprocess_reduction <- function(x, opstr, index, opt_arg = NA) {
   tag <- index_to_int(index)
@@ -1075,17 +1102,20 @@ preprocess_reduction <- function(x, opstr, index, opt_arg = NA) {
   
   if(!any(is.na(opt_arg))) {
     if(is.LazyTensor(opt_arg)) {
+      # put `opt_arg$formula` at the end of the formula
       formula <- paste( opstr,  "_Reduction(",  x$formula, 
                         ",",  tag, ",", opt_arg$formula, ")", sep = "")
       args <- c(x$args, opt_arg$args)
     }
     
     else if(is.int(opt_arg)) {
+      # put `opt_arg` in the middle of the formula
       formula <- paste( opstr,  "_Reduction(",  x$formula, 
                         ",",  opt_arg, ",", tag, ")", sep = "")
     }
     
     else if(is.character(opt_arg)) {
+      # put `opt_arg` at the end of the formula
       formula <- paste( opstr,  "_Reduction(",  x$formula, 
                         ",",  tag, ",", opt_arg, ")", sep = "")
     }

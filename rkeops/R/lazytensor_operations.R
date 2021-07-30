@@ -2210,8 +2210,9 @@ Mod.ComplexLazyTensor <- function(z) {
 #' @param opstr A `string` formula (like "Sum" or "Max").
 #' @param index A `character` that should be either **i** or **j** to specify 
 #' whether if the reduction is indexed by **i** (rows), or **j** (columns).
-#' @param opt_arg An optional argument # TODO
-#' @return A matrix corresponding to the reduction.
+#' @param opt_arg An optional argument : an `interger` (for "Kmin" reduction),
+#' a `character`, `LazyTensor` or a `ComplexLazyTensor`.
+#' @return A matrix corresponding to the reduction wanted.
 #' @examples
 #' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
@@ -3770,16 +3771,16 @@ tensorprod <- function(v1, v2) {
 
 # Gradient ---------------------------------------------------------------------
 
-# TODO : doc description
 #' Gradient operation.
 #' @description
 #' Gradient operation.
-#' @details `grad(x, gradin, opstr, index)` returns a `matrix` which 
-#' corresponding to the gradient (more precisely, the adjoint of the differential 
-#' operator) of `x` and applied to `gradin` with compiling the corresponding 
-#' reduction operator of `opstr`. It has an additional integer input parameter 
-#' `index` indicating if the inner dimension corresponds to columns, i.e. 
-#' `index = 'j'` or rows, i.e. `index = 'i'`.
+#' @details `grad(x, gradin, opstr, var, index)` returns a `matrix` which 
+#' corresponds to the gradient (more precisely, the adjoint of the differential 
+#' operator) of `x` with respect to the variable `var` and applied to `gradin` 
+#' with compiling the corresponding reduction operator of `opstr`.
+#' It has an additional integer input parameter `index` indicating if the inner 
+#' dimension corresponds to columns, i.e. `index = 'j'` or rows, i.e. 
+#' `index = 'i'`.
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `LazyTensor` or a `ComplexLazyTensor`.
 #' @param gradin A `LazyTensor`, a `ComplexLazyTensor` encoding a matrix of ones
@@ -3788,7 +3789,7 @@ tensorprod <- function(v1, v2) {
 #' @param opstr A `string` formula corresponding to a reduction 
 #' (like "Sum" or "Max").
 #' @param var A text `string` or an `integer` number indicating regarding to which 
-#' variable/parameter (given by name or by position starting at 0) the 
+#' variable/parameter (given by name or by position index starting at 0) the 
 #' gradient of the formula should be computed.
 #' @param index A `character` that should be either **i** or **j** to specify 
 #' whether if the reduction is indexed by **i** (rows), or **j** (columns).
@@ -3807,9 +3808,11 @@ tensorprod <- function(v1, v2) {
 #' eta_i <- LazyTensor(eta, index = 'i')   # LazyTensor from matrix eta, 
 #'                                         # indexed by 'i'
 #' 
-#' # gradient with the formula : 
-#' # Grad(Sum_Reduction(SqNorm2(x_i-y_j), 0), x_i, eta_i)
-#' grad_xy <- grad(sqnorm2(x_i-y_j), eta_i, "Sum", var = y_j$formula, "j")     
+#' # gradient with the formula from position
+#' grad_xy <- grad(sqnorm2(x_i-y_j), eta_i, "Sum", var = y_j$formula, "j")  
+#' 
+#' # gradient with the formula from index
+#' grad_xy <- grad(sqnorm2(x_i-y_j), eta_i, "Sum", var = 0, "j")     
 #' }
 #' @export
 grad <- function(x, gradin, opstr, var, index) {
