@@ -2334,7 +2334,7 @@ sum <- function(x, index) {
 #' @keywords internal
 #' @export
 sum.LazyTensor <- function(x, index = NA) {
-    if(!check_index(index)) {
+    if(!is.na(index) && !check_index(index)) {
         stop(paste0("`index` input argument should be a character,",
                     " either 'i' or 'j', or NA."))
     }
