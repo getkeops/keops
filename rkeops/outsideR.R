@@ -174,31 +174,54 @@ op11(list(c(1, 2, 3, 4)))
 
 # ------------------------------
 
-z <- matrix(1i^(-6:5), nrow = 4)
-formula = "Sum_Reduction(Extract(z, 1, 2),0)"
-args = c("z=Vi(3)")
+z <- matrix(2 + 1i^(-6:5), nrow = 4)
+#      [,1] [,2] [,3]
+# [1,] 1+0i 1+0i 1+0i
+# [2,] 2-1i 2-1i 2-1i
+# [3,] 3+0i 3+0i 3+0i
+# [4,] 2+1i 2+1i 2+1i
+z_i <- LazyTensor(z, index = 'i', is_complex = TRUE)
+#      [,1] [,2] [,3] [,4] [,5] [,6]
+# [1,]    1    0    1    0    1    0
+# [2,]    2   -1    2   -1    2   -1
+# [3,]    3    0    3    0    3    0
+# [4,]    2    1    2    1    2    1
+
+formula <- "Sum_Reduction(Extract(z, 1, 2),0)"
+args <- c("z=Vi(3)")
 op14 <- keops_kernel(formula, args)
 
 op14(list(z))
-#       [,1] [,2]
-# [1,]   -1   -1
-# [2,]    0    0
-# [3,]    1    1
-# [4,]    0    0
+#      [,1] [,2]
+# [1,]    1    1
+# [2,]    2    2
+# [3,]    3    3
+# [4,]    2    2
 # Warning message:
 #     In r_genred(input, param) : imaginary parts discarded in coercion
 
+
+OP_i <- sum(extract(z_i, 1, 2), index = 'i')
+#       [,1] [,2]
+# [1,]    0    8
+
+OP_j <- sum(extract(z_i, 1, 2), index = 'j')
+#       [,1] [,2]
+# [1,]    0    1
+# [2,]   -1    2
+# [3,]    0    3
+# [4,]    1    2
 
 # Sum_Reduction x + y with different nrow ======================================
 
 x <- matrix(c(1, 2, 3, 4), nrow = 4, ncol = 3)
 y <- matrix(c(1, 2, 3), nrow = 3, ncol = 3)
 
-formula = "Sum_Reduction(x + y,1)"
-args = c("x=Vi(3)", "y=Vi(3)")
+formula <- "Sum_Reduction(x + y,1)"
+args <- c("x=Vi(3)", "y=Vi(3)")
 op15 <- keops_kernel(formula, args)
 
-op15(list(x, y))
+op15(list(x, y)) # Consistent error (nothing to fix: you don't add together two matrices with different nrows)
 # Error in r_genred(input, param) : 
 #     [KeOps] Wrong value of the 'i' dimension 0for arg at position 1 : is 3 but was 4 in previous 'i' arguments. 
 
@@ -562,9 +585,13 @@ sum_reduction(x_i * y_i, index = 'i')
 # Sum_Reduction ExtractT =======================================================
 
 x <- matrix(c(1, 2, 3, 4, 5, 6), nrow = 3, ncol = 2)
+#       [,1] [,2]
+# [1,]    1    4
+# [2,]    2    5
+# [3,]    3    6
 
-formula = "Sum_Reduction(ExtractT(x, 1, 5),0)"
-args = c("x=Vi(2)")
+formula <- "Sum_Reduction(ExtractT(x, 1, 5),0)"
+args <- c("x=Vi(2)")
 op20 <- keops_kernel(formula, args)
 
 op20(list(x))
@@ -572,6 +599,17 @@ op20(list(x))
 # [1,]    0    1    4    0    0
 # [2,]    0    2    5    0    0
 # [3,]    0    3    6    0    0
+
+# A test with "Min_Reduction"
+formula <- "Min_Reduction(ExtractT(x, 1, 5),1)"
+args <- c("x=Vi(2)")
+op21 <- keops_kernel(formula, args)
+
+op21(list(x)) # consistent result
+#       [,1] [,2] [,3] [,4] [,5]
+# [1,]    0    1    4    0    0
+
+
 
 # --------------------------
 
@@ -646,35 +684,42 @@ d <- sum(elem(x_j, 1), index = 'i')
 # [2,]    5
 # [3,]    6
 
-aT <- sum(elemT(scal_Pm, 7, 1), index = 'i')
+aT <- sum(elemT(scal_Pm, 1, 7), index = 'i')
 # > aT
 #       [,1] [,2] [,3] [,4] [,5] [,6] [,7]
 # [1,]    0 3.14    0    0    0    0    0
 
-x = c(1,2,3,4,5)
-scal = 3.14
-aformula = "Sum_Reduction(x + ElemT(y, 5, 1), 1)"
-args = c("x=Vi(5)", "y=Pm(1)")
+x <- c(1, 2, 3, 4, 5)
+scal <- 3.14
+aformula <- "Sum_Reduction(x + ElemT(y, 5, 1), 1)"
+args <- c("x=Vi(5)", "y=Pm(1)")
 op1 <- keops_kernel(formula, args)
 # > op1(list(x, scal))
 #      [,1] [,2] [,3] [,4] [,5]
 # [1,]    1 5.14    3    4    5
 
+OH <- sum(one_hot(Pm(1.1), 3), index = 'i')
+#       [,1] [,2] [,3]
+# [1,]    0    1    0
+OH_LT <- one_hot(Pm(1.1), 3)
+
+PH <- sum(Pm(1) + Pm(1), index = 'i')
 
 # Sum_Reduction Concat =========================================================
 
-formula = "Sum_Reduction(Concat(x, y), 1)"
-args = c("x=Vi(5)", "y=Vj(4)")
+formula <- "Sum_Reduction(Concat(x, y), 1)"
+args <- c("x=Vi(5)", "y=Vj(4)")
 op1 <- keops_kernel(formula, args)
 
-formula = "Sum_Reduction(Concat(x, y), 0)"
-args = c("x=Vi(5)", "y=Vj(4)")
+formula <- "Sum_Reduction(Concat(x, y), 0)"
+args <- c("x=Vi(5)", "y=Vj(4)")
 op2 <- keops_kernel(formula, args)
 
-d1 = 5
-d2 = 4
-nx = 1
-ny = 1
+d1 <- 5
+d2 <- 4
+nx <- 1
+ny <- 1
+
 x = matrix(1:(nx * d1), nrow = nx, ncol = d1)
 #      [,1] [,2] [,3] [,4] [,5]
 # [1,]    1    2    3    4    5
@@ -692,6 +737,7 @@ d1 = 5
 d2 = 4
 nx = 2
 ny = 2
+
 x = matrix(1:(nx * d1), nrow = nx, ncol = d1)
 #      [,1] [,2] [,3] [,4] [,5]
 # [1,]    1    2    3    4    5
@@ -713,6 +759,7 @@ d1 = 5
 d2 = 4
 nx = 2
 ny = 1
+
 x = matrix(1:(nx * d1), nrow = nx, ncol = d1)
 #      [,1] [,2] [,3] [,4] [,5]
 # [1,]    1    2    3    4    5
@@ -732,6 +779,7 @@ d1 = 5
 d2 = 4
 nx = 1
 ny = 2
+
 x = matrix(1:(nx * d1), nrow = nx, ncol = d1)
 #      [,1] [,2] [,3] [,4] [,5]
 # [1,]    1    2    3    4    5
@@ -751,6 +799,7 @@ d1 = 5
 d2 = 4
 nx = 3
 ny = 2
+
 x = matrix(1:(nx * d1), nrow = nx, ncol = d1)
 #      [,1] [,2] [,3] [,4] [,5]
 # [1,]    1    4    7   10   13
@@ -774,6 +823,7 @@ d1 = 5
 d2 = 4
 nx = 2
 ny = 3
+
 x = matrix(1:(nx * d1), nrow = nx, ncol = d1)
 #      [,1] [,2] [,3] [,4] [,5]
 # [1,]    1    3    5    7    9
