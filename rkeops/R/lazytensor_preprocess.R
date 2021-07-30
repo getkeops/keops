@@ -120,12 +120,12 @@ LazyTensor <- function(x, index = NA, is_complex = FALSE) {
   }
   
   # Now we define "formula", a string specifying the variable for KeOps C++ codes.
-  #if(is.int(x)) {
-  #  var_name <- paste("IntCst(", as.character(x), ")", sep = "")
-  #}
-  #else {
-  var_name <- paste("A", address(x), index, sep = "")
-  #}
+  if(is.int(x)) {
+    var_name <- paste("IntCst(", as.character(x), ")", sep = "")
+  }
+  else {
+    var_name <- paste("A", address(x), index, sep = "")
+  }
   formula <- var_name
   vars <- list(x)  # vars lists all actual matrices necessary to evaluate 
                    # the current formula, here only one.
