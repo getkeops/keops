@@ -518,18 +518,12 @@ binaryop.LazyTensor <- function(x, y, opstr, is_operator = FALSE,
     formula <- paste(opstr, "(", x$formula, ",", opt_arg$formula, ",",
                      y$formula, ")", sep = "")
   
-  #vars <- c(x$vars, y$vars)
-  #print("vars")
-  #print(vars)
-
   vars <- c(x$vars, y$vars)
-  #vars <- vars[!duplicated(vars)]
- 
   args <- unique(c(x$args, y$args))
   dimres <- dim_res
   
   res <- list(formula = formula, args = args, vars = vars, dimres = dimres)
-  res$vars <- res$vars[!duplicated(res$vars)]
+  res$vars <- res$vars[!duplicated(res$vars)] # remove doublon
   
   if(!is.na(res_type[1]))
     class(res) <- res_type
@@ -654,18 +648,19 @@ ternaryop.LazyTensor <- function(x, y, z, opstr, dim_check_type = "sameor1",
   # format formula
   formula <- paste(opstr, "(", x$formula, ",", y$formula, ",", 
                    z$formula, ")", sep = "")
+  
   vars <- c(x$vars, y$vars, z$vars)
-  vars[!duplicated(names(vars))]
   args <- unique(c(x$args, y$args, z$args))
   dimres <- dim_res
   
   res <- list(formula = formula, args = args, vars = vars, dimres = dimres)
+  res$vars <- res$vars[!duplicated(res$vars)] # remove doublon
   
   if(is.ComplexLazyTensor(x) || is.ComplexLazyTensor(y))
     class(res) <- c("ComplexLazyTensor", "LazyTensor")
   else
     class(res) <- class(x)
-
+  
   return(res)
 }
 
