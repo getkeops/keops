@@ -2231,9 +2231,10 @@ reduction.LazyTensor <- function(x, opstr, index, opt_arg = NA) {
     if(check_index(index)) {
         op <- preprocess_reduction(x, opstr, index, opt_arg)
         if(!any(is.na(opt_arg)) && is.LazyTensor(opt_arg))
-            res <- op(list(x$vars, opt_arg$vars))
-        else 
-            res <- op(x$vars)
+            res <- op(c(x$vars, opt_arg$vars))
+        else {
+            res <- op(c(x$vars))
+        }
     }
     
     else
@@ -2241,43 +2242,6 @@ reduction.LazyTensor <- function(x, opstr, index, opt_arg = NA) {
     
     return(res)
 }
-
-# TODO : doc
-#' Reduction preprocess.
-#' @author Chloe Serre-Combe, Amelie Vernay
-#' @keywords internal
-#' @export
-preprocess_reduction <- function(x, opstr, index, opt_arg = NA) {
-    tag <- index_to_int(index)
-    args <- x$args
-    
-    if(!any(is.na(opt_arg))) {
-        if(is.LazyTensor(opt_arg)) {
-            formula <- paste( opstr,  "_Reduction(",  x$formula, 
-                              ",",  tag, ",", opt_arg$formula, ")", sep = "")
-            args <- c(x$args, opt_arg$args)
-        }
-        
-        else if(is.int(opt_arg)) {
-            formula <- paste( opstr,  "_Reduction(",  x$formula, 
-                              ",",  opt_arg, ",", tag, ")", sep = "")
-        }
-        
-        else if(is.character(opt_arg)) {
-            formula <- paste( opstr,  "_Reduction(",  x$formula, 
-                              ",",  tag, ",", opt_arg, ")", sep = "")
-        }
-        
-    }
-    else {
-        formula <- paste(opstr, "_Reduction(", x$formula, ",", 
-                         tag, ")", sep = "")
-    }
-    
-    op <- keops_kernel(formula, args)
-    return(op)
-}
-
 
 
 # sum function -----------------------------------------------------------------
