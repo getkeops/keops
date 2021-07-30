@@ -83,6 +83,8 @@ Please refer to the help page of each function for type compatibility, dimension
 
 ### Simple arithmetics
 
+Here, `x` and `y` are `LazyTensor`s, and the result as well.
+
 | operation | meaning                                       |
 |:----------|:----------------------------------------------|
 | `x + y`   | element-wise addition of `x` and `y`          |
@@ -95,6 +97,8 @@ Please refer to the help page of each function for type compatibility, dimension
 
 
 ### Elementary functions
+
+Here, `x` and `y` are `LazyTensor`s, and the result as well.
 
 | function            | meaning                                                                                              |
 |:--------------------|:-----------------------------------------------------------------------------------------------------|
@@ -126,7 +130,7 @@ Please refer to the help page of each function for type compatibility, dimension
 
 ### Operations involving complex numbers
 
-Here, `z` is assumed to be a `ComplexLazyTensor`, and `x` a `LazyTensor`.
+Here, `z` is a `ComplexLazyTensor`, and `x` is a `LazyTensor`.
 
 | operation         | meaning                                                                        |
 |:------------------|:-------------------------------------------------------------------------------|
@@ -141,6 +145,8 @@ Here, `z` is assumed to be a `ComplexLazyTensor`, and `x` a `LazyTensor`.
 
 
 ### Simple vector operations
+
+Here, `x`, `y` and `s` are `LazyTensor`s, and the result as well.
 
 | operation                 | meaning                                                                                             |
 |:--------------------------|:----------------------------------------------------------------------------------------------------|
@@ -161,62 +167,71 @@ Generic squared Euclidean norms support scalar weights, and diagonal or full (sy
 
 ### Elementary dot products
 
-| operation                 | meaning                                                                                             |
-|:--------------------------|:----------------------------------------------------------------------------------------------------
-| `x %*% y` |  |
+Here, `x` and `y` are `LazyTensor`s, and the result as well.
+
+| operation           | meaning                                                                                                       |
+|:--------------------|:--------------------------------------------------------------------------------------------------------------|
+| `x %*% y`           | TODO                                                                                                          |
 | `matvecmultt(x, y)` | matrix-vector product `x` $\times$ `y`: `x` is a vector interpreted as matrix (column-major), `y` is a vector |
 | `vecmatmultt(x, y)` | vector-matrix product `x` $\times$ `y`: `x` is a vector, `y` is a vector interpreted as matrix (column-major) |
 
 
 ### Constants and padding/concatenation operations
 
-| operation                 | meaning                                                                                             |
-|:--------------------------|:----------------------------------------------------------------------------------------------------
-| `sum(x)` | sum of elements of vector `x` |
-| `max(x)` | max of elements of vector `x` |
-| `min(x)` | min of elements of vector `x` |
-| `argmax(x)` | argmax of elements of vector `x` |
-| `argmin(x)` | argmin of elements of vector `x` |
-| `elem(x, m)` | extract `m`-th element of vector `x` |
-| `elemT(x, m, n)` | ... |
-| `extract(x, m, d)` | extract sub-vector from vector `x` (`m` is starting index, `d` is dimension of sub-vector) |
-| `extractT(x, m, d)` | ... |
-| `concat(x, y)` | concatenation of vectors `x` and `y` |
-| `one_hot(x, d)` | encodes a (rounded) scalar value as a one-hot vector of dimension `d` |
+Here, `x` and `y` are `LazyTensor`s, and `s` is a `LazyTensor` encoding a single value. In each case, the output is a `LazyTensor`.
+
+| operation           | meaning                                                                                                                                     |
+|:--------------------|:--------------------------------------------------------------------------------------------------------------------------------------------|
+| `sum(x)`            | sum of the elements of `x`                                                                                                                  |
+| `max(x)`            | max of the elements of `x`                                                                                                                  |
+| `min(x)`            | min of the elements of `x`                                                                                                                  |
+| `argmax(x)`         | argmax of the elements of `x`                                                                                                               |
+| `argmin(x)`         | argmin of the elements of `x`                                                                                                               |
+| `elem(x, m)`        | extract the `m`-th element `x`                                                                                                              |
+| `elemT(s, m, n)`    | insert `s` at position `m` in a `LazyTensor` encoding a vector of zeros of dimension `n`                                                    |
+| `extract(x, m, d)`  | extract sub-vector or sub-matrix from `x` (`m` is the starting index, `d` is the inner dimension of the extracted sub-vector or sub-matrix) |
+| `extractT(x, m, d)` | insert `x` in a vector or a matrix of zeros, at starting position `m` - output has an inner dimension equal to `d`                          |
+| `concat(x, y)`      | concatenation of `x` and `y`                                                                                                                |
+| `one_hot(x, d)`     | encodes a (rounded) scalar value as a one-hot vector of dimension `d`                                                                       |
 
 
-### Symbolic gradients
+### Gradient
 
-| operation                 | meaning                                                                                                  |
-|:--------------------------|:---------------------------------------------------------------------------------------------------------|
-| `grad(x, g, red, var, "i")`           |  ...  |
+Here, `x` and `gradin` are `LazyTensor`s.
+
+| operation                        | meaning                                                                                                                                   |
+|:---------------------------------|:----------------------------------------------------------------------------------------------------------------------------------------- |
+| `grad(x, gradin, red, var, "i")` | gradient of `x` with respect to the variable `var` and applied to `gradin` with compiling the corresponding reduction operator of `opstr` |
 
 
 
 ### Reductions
 
-| operation                                                                |     meaning                                                |     mathematical expression                                  |
-|:-------------------------------------------------------------------------|:-----------------------------------------------------------|:-------------------------------------------------------------|
-| `sum(x, "j")` $\qquad$ `sum_reduction(x, "j")`                           | sum reduction indexed by `j` of the elements of `x`        | $\sum_j x_{ij}$                                              |
-| `min(x, "j")` $\qquad$ `min_reduction(x, "j")`                           | min reduction indexed by `j` of the elements of `x`        | $\min_j x_{ij}$                                              |
-| `argmin(x, "j")` $\qquad$  `argmin_reduction(x, "j")`                    | argmin reduction indexed by `j` of the elements of `x`     | $\text{argmin}_jx_{ij}$                                      |
-| `min_argmin(x, "j")`  $\qquad$ `min_argmin_reduction(x, "j")`            | min-argmin reduction indexed by `j` of the elements of `x` | $\left(\min_j x_{ij} ,\text{argmin}_j x_{ij}\right)$         |
-| `max(x, "j")`  $\qquad$ `max_reduction(x, "j")`                          | max reduction indexed by `j` of the elements of `x`        | $\min_j x_{ij}$                                              |
-| `argmax(x, "j")` $\qquad$  `argmax_reduction(x, "j")`                    | argmax reduction indexed by `j` of the elements of `x`     | $\text{argmin}_jx_{ij}$                                      |
-| `max_argmax(x, "j")` $\qquad$  `max_argmax_reduction(x, "j")`            | max-argmax reduction indexed by `j` of the elements of `x` | $\left(\max_j x_{ij} ,\text{argmax}_j x_{ij}\right)$         |
-| `logsumexp(x, "j", w)` $\qquad$  `logsumexp_reduction(x, "j", w)`        | [LogSumExp reduction](https://en.wikipedia.org/wiki/LogSumExp), indexed by `j` of the elements of `x`, with weight stored in `w` | $\log\left(\sum_j\exp(x_{ij})\right)$         |
+Here, `x` is a `LazyTensor`. The operations `sum()`, `min()`, `argmin()`, `max()` and `argmax()` can be called with `NA` index (default), in which case no reduction is done and the result is a `LazyTensor`. Otherwise, the result is not a `LazyTensor`. 
+
+
+| operation                                                                       |     meaning                                                |     mathematical expression                                  |
+|:--------------------------------------------------------------------------------|:-----------------------------------------------------------|:-------------------------------------------------------------|
+| `sum(x, "j")` $\qquad$ `sum_reduction(x, "j")`                                  | sum reduction indexed by `j` of the elements of `x`        | $\sum_j x_{ij}$                                              |
+| `min(x, "j")` $\qquad$ `min_reduction(x, "j")`                                  | min reduction indexed by `j` of the elements of `x`        | $\min_j x_{ij}$                                              |
+| `argmin(x, "j")` $\qquad$  `argmin_reduction(x, "j")`                           | argmin reduction indexed by `j` of the elements of `x`     | $\text{argmin}_jx_{ij}$                                      |
+| `min_argmin(x, "j")`  $\qquad$ `min_argmin_reduction(x, "j")`                   | min-argmin reduction indexed by `j` of the elements of `x` | $\left(\min_j x_{ij} ,\text{argmin}_j x_{ij}\right)$         |
+| `max(x, "j")`  $\qquad$ `max_reduction(x, "j")`                                 | max reduction indexed by `j` of the elements of `x`        | $\min_j x_{ij}$                                              |
+| `argmax(x, "j")` $\qquad$  `argmax_reduction(x, "j")`                           | argmax reduction indexed by `j` of the elements of `x`     | $\text{argmin}_jx_{ij}$                                      |
+| `max_argmax(x, "j")` $\qquad$  `max_argmax_reduction(x, "j")`                   | max-argmax reduction indexed by `j` of the elements of `x` | $\left(\max_j x_{ij} ,\text{argmax}_j x_{ij}\right)$         |
+| `logsumexp(x, "j", w)` $\qquad$  `logsumexp_reduction(x, "j", w)`               | [LogSumExp reduction](https://en.wikipedia.org/wiki/LogSumExp), indexed by `j` of the elements of `x`, with weight stored in `w` | $\log\left(\sum_j\exp(x_{ij})\right)$         |
 | `sumsoftmaxweight(x, "j", w)` $\qquad$  `sumsoftmaxweight_reduction(x, "j", w)` | "Sum of weighted Soft-Max" reduction indexed by `j` of the elements of `x` | $\left(\sum_j\exp(x_{ij})w_{ij}\right)/\left(\sum_j\exp(x_{ij})\right)$         |
 
 
 
 TODO:
 
-
 * add introduction and many many other things
 * add precision word about dimension compatibility (or link to other vignette) ?
 * add precision word about type compatibility ?
 * ask if reformulation is correct in Generic squared Euclidean norms...
-
+* a (big) note on `ComplexLazyTensor`, and maybe on how they are encodes (real column/imaginary column) ?
+* add "or `ComplexLazyTensor`" each (almost) time we write "Here, `x` is a `LazyTensor`..." ?
 
 ```{r}
 
