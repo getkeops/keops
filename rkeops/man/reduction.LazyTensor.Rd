@@ -14,10 +14,11 @@ reduction.LazyTensor(x, opstr, index, opt_arg = NA)
 \item{index}{A \code{character} that should be either \strong{i} or \strong{j} to specify
 whether if the reduction is indexed by \strong{i} (rows), or \strong{j} (columns).}
 
-\item{opt_arg}{An optional argument # TODO}
+\item{opt_arg}{An optional argument : an \code{interger} (for "Kmin" reduction),
+a \code{character}, \code{LazyTensor} or a \code{ComplexLazyTensor}.}
 }
 \value{
-A matrix corresponding to the reduction.
+A matrix corresponding to the reduction wanted.
 }
 \description{
 Applies a reduction to a \code{LazyTensor}.

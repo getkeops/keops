@@ -39,10 +39,10 @@ x <- matrix(runif(150 * 3), 150, 3)
 x_i <- LazyTensor(x, index = 'i') 
 y <- matrix(runif(100 * 3), 100, 3)
 y_j <- LazyTensor(y, index = 'j')
-w <- matrix(runif(150 * 3), 150, 3) # weight LazyTensor
-w_j <- LazyTensor(y, index = 'j')
+w <- matrix(runif(100 * 3), 100, 3) # weight LazyTensor
+w_j <- LazyTensor(w, index = 'j')
 
-S_ij = sum( (x_i - y_j)^2 )                                           
+S_ij = sum((x_i - y_j)^2)                                           
 logsumexp_xw <- logsumexp(S_ij, 'i', w_j) # logsumexp reduction 
                                           # over the 'i' indices
                                          

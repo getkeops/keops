@@ -41,7 +41,7 @@ y <- matrix(runif(100 * 3), 100, 3)
 y_j <- LazyTensor(y, index = 'j')
 
 V_ij <- x_i - y_j   # weight matrix
-S_ij = sum(V-ij^2)     
+S_ij = sum(V_ij^2)     
 
 ssmaxweight <- sumsoftmaxweight(S_ij, 'i', V_ij) # sumsoftmaxweight reduction 
                                                    # over the 'i' indices

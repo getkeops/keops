@@ -2,33 +2,41 @@
 % Please edit documentation in R/lazytensor_operations.R
 \name{grad}
 \alias{grad}
-\title{Symbolic gradient operation.}
+\title{Gradient operation.}
 \usage{
-grad(x, gradin, opstr, index)
+grad(x, gradin, opstr, var, index)
 }
 \arguments{
 \item{x}{A \code{LazyTensor} or a \code{ComplexLazyTensor}.}
 
-\item{gradin}{A \code{LazyTensor}, a \code{ComplexLazyTensor} encodimg a matrix of ones
+\item{gradin}{A \code{LazyTensor}, a \code{ComplexLazyTensor} encoding a matrix of ones
 with an inner dimension equal to 1 and with number of rows equal to
 the number of rows of the first \code{x} variable (in \code{x$vars}).}
 
 \item{opstr}{A \code{string} formula corresponding to a reduction
 (like "Sum" or "Max").}
 
+\item{var}{A text \code{string} or an \code{integer} number indicating regarding to which
+variable/parameter (given by name or by position index starting at 0) the
+gradient of the formula should be computed.}
+
 \item{index}{A \code{character} that should be either \strong{i} or \strong{j} to specify
 whether if the reduction is indexed by \strong{i} (rows), or \strong{j} (columns).}
 }
 \value{
-A \code{LazyTensor} or a \code{ComplexLazyTensor}.
+A \code{matrix}.
 }
 \description{
-Symbolic gradient operation - a binary operation.
+Gradient operation.
 }
 \details{
-\code{grad(x, v, gradin)} returns a \code{LazyTensor} which encodes,
-symbolically, the gradient (more precisely, the adjoint of the differential
-operator) of \code{x}, with respect to variable \code{v}, and applied to \code{gradin}.
+\code{grad(x, gradin, opstr, var, index)} returns a \code{matrix} which
+corresponds to the gradient (more precisely, the adjoint of the differential
+operator) of \code{x} with respect to the variable \code{var} and applied to \code{gradin}
+with compiling the corresponding reduction operator of \code{opstr}.
+It has an additional integer input parameter \code{index} indicating if the inner
+dimension corresponds to columns, i.e. \code{index = 'j'} or rows, i.e.
+\code{index = 'i'}.
 }
 \examples{
 \dontrun{
@@ -39,13 +47,16 @@ y <- matrix(runif(ny*3), nrow=ny, ncol=3)     # matrix 150 x 3
 eta <- matrix(runif(nx*1), nrow=nx, ncol=1)   # matrix 100 x 1 
 # nrow(x) == nrow(eta)
 
-x_i <- LazyTensor(x, index = 'i')
-y_j <- LazyTensor(y, index = 'j')
-eta_i <- LazyTensor(eta, index = 'i')
+x_i <- LazyTensor(x, index = 'i')  # LazyTensor from matrix x, indexed by 'i'
+y_j <- LazyTensor(y, index = 'j')  # LazyTensor from matrix y, indexed by 'j'
+eta_i <- LazyTensor(eta, index = 'i')   # LazyTensor from matrix eta, 
+                                        # indexed by 'i'
 
-# gradient with the formula : 
-# Grad(Sum_Reduction(SqNorm2(x_i-y_j), 0), x_i, eta_i)
-grad_xy <- grad(sqnorm2(x_i-y_j), eta_i, "Sum", "j")     
+# gradient with the formula from position
+grad_xy <- grad(sqnorm2(x_i-y_j), eta_i, "Sum", var = y_j$formula, "j")  
+
+# gradient with the formula from index
+grad_xy <- grad(sqnorm2(x_i-y_j), eta_i, "Sum", var = 0, "j")     
 }
 }
 \author{
