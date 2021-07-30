@@ -2303,7 +2303,7 @@ sum.LazyTensor <- function(x, index = NA) {
                     " either 'i' or 'j', or NA."))
     }
     
-    if(is.na(index) && is.LazyVector(x)) {
+    if(is.na(index)) {
         if(is.ComplexLazyTensor(x)) {
             res <- unaryop.LazyTensor(x, "ComplexSum", dim_res = 2) 
         }
@@ -3102,10 +3102,10 @@ Kmin_argKmin_reduction <- function(x, K, index) {
 #' x_i <- LazyTensor(x, index = 'i') 
 #' y <- matrix(runif(100 * 3), 100, 3)
 #' y_j <- LazyTensor(y, index = 'j')
-#' w <- matrix(runif(150 * 3), 150, 3) # weight LazyTensor
-#' w_j <- LazyTensor(y, index = 'j')
+#' w <- matrix(runif(100 * 3), 100, 3) # weight LazyTensor
+#' w_j <- LazyTensor(w, index = 'j')
 #' 
-#' S_ij = sum( (x_i - y_j)^2 )                                           
+#' S_ij = sum((x_i - y_j)^2)                                           
 #' logsumexp_xw <- logsumexp(S_ij, 'i', w_j) # logsumexp reduction 
 #'                                           # over the 'i' indices
 #'                                          
@@ -3199,14 +3199,14 @@ logsumexp_reduction <- function(x, index, weight = NA) {
 #' y_j <- LazyTensor(y, index = 'j')
 #' 
 #' V_ij <- x_i - y_j   # weight matrix
-#' S_ij = sum(V-ij^2)     
+#' S_ij = sum(V_ij^2)     
 #' 
 #' ssmaxweight <- sumsoftmaxweight(S_ij, 'i', V_ij) # sumsoftmaxweight reduction 
 #'                                                    # over the 'i' indices
 #' }
 #' @export
 sumsoftmaxweight <- function(x, index, weight) {
-    formula2 = paste("Concat(IntCst(1),", weight$formula, ")", sep = "")
+    formula2 <- paste("Concat(IntCst(1),", weight$formula, ")", sep = "")
     if(check_index(index))
         res <- reduction.LazyTensor(x, "Max_SumShiftExpWeight", 
                                     index, opt_arg = formula2)

@@ -956,7 +956,7 @@ test_that("normalize", {
   # check results, formulas & classes
   expect_true(is.LazyTensor(normalize(2)))
   expect_true(is.LazyTensor(normalize(x_i)))
-  expect_true(is.ComplexLazyTensor(normalize(x_i)))
+  expect_true(is.ComplexLazyTensor(normalize(xc_i)))
   
   obj <- normalize(x_i)
   bool_grep_formula <- grep("Normalize\\(A0x.*i\\)", obj$formula)
@@ -1607,7 +1607,7 @@ test_that("one_hot", {
   expect_error(one_hot(x_i, D),
                "One-hot encoding is only supported for scalar formulas.",
                fixed = TRUE)
-  expect_error(one_hot(y_i, D),
+  expect_error(one_hot(y_j, D),
                "One-hot encoding is only supported for scalar formulas.",
                fixed = TRUE)
   expect_error(one_hot(LT_v, D),
@@ -1738,11 +1738,6 @@ test_that("sum", {
   expect_equal(bool_grep_formula, 1)
   
   # errors
-  expect_error(sum(x_i),
-               paste("If `index = NA`, `x` input argument should be a LazyTensor",
-                    " encoding a parameter vector.", sep = ""), 
-               fixed = TRUE)
-  
   expect_error(sum(x_i, "b"),
                paste("`index` input argument should be a character,",
                      " either 'i' or 'j', or NA.", sep = ""), 
@@ -2355,17 +2350,17 @@ test_that("Kmin_argKmin_reduction", {
 
 test_that("logsumexp", {
   # basic example
-  x <- matrix(runif(150 * 3), 150, 3) 
-  x_i <- LazyTensor(x, index = 'i') 
+  x <- matrix(runif(150 * 3), 150, 3)
+  x_i <- LazyTensor(x, index = 'i')
   y <- matrix(runif(100 * 3), 100, 3)
   y_j <- LazyTensor(y, index = 'j')
-  w <- matrix(runif(150 * 3), 150, 3) # weight LazyTensor
-  w_j <- LazyTensor(y, index = 'j')
+  w <- matrix(runif(100 * 3), 100, 3) # weight LazyTensor
+  w_j <- LazyTensor(w, index = 'j')
   
   V_ij <- x_i - y_j
   S_ij <- sum(V_ij^2)
   # check formulas, args & classes
-  res <- logsumexp(S_ij, 'i', V_ij)
+  res <- logsumexp(S_ij, 'i', w_j)
   expect_false(is.LazyTensor(res))
   expect_true(is.matrix(res))
   
@@ -2389,8 +2384,8 @@ test_that("logsumexp_reduction", {
   x_i <- LazyTensor(x, index = 'i') 
   y <- matrix(runif(100 * 3), 100, 3)
   y_j <- LazyTensor(y, index = 'j')
-  w <- matrix(runif(150 * 3), 150, 3) # weight LazyTensor
-  w_j <- LazyTensor(y, index = 'j')
+  w <- matrix(runif(100 * 3), 100, 3) # weight LazyTensor
+  w_j <- LazyTensor(w, index = 'j')
   
   S_ij = sum( (x_i - y_j)^2 )
   # check formulas, args & classes
@@ -2441,7 +2436,7 @@ test_that("sumsoftmaxweight_reduction", {
   # basic example
   x <- matrix(runif(150 * 3), 150, 3) 
   x_i <- LazyTensor(x, index = 'i') 
-  y <- matrix(runif(100 * 3), 100, 3)
+  y <- matrix(runif(150 * 3), 150, 3)
   y_j <- LazyTensor(y, index = 'j')
   
   V_ij <- x_i - y_j
@@ -2449,10 +2444,6 @@ test_that("sumsoftmaxweight_reduction", {
   
   # check formulas, args & classes
   res <- sumsoftmaxweight_reduction(S_ij, 'i', V_ij)
-  expect_false(is.LazyTensor(res))
-  expect_true(is.matrix(res))
-  
-  res <- logsumexp(S_ij, 'i')
   expect_false(is.LazyTensor(res))
   expect_true(is.matrix(res))
   
@@ -2470,52 +2461,43 @@ test_that("grad", {
   # data
   nx <- 10
   ny <- 15
-  x <- matrix(runif(nx*3), nrow=nx, ncol=3)
-  y <- matrix(runif(ny*3), nrow=ny, ncol=3)
-  eta <- matrix(1, nrow=nx, ncol=1)
+  x <- matrix(runif(nx * 3), nrow = nx, ncol = 3)
+  y <- matrix(runif(ny * 3), nrow = ny, ncol = 3)
+  eta <- matrix(1, nrow = nx, ncol = 1)
   
   # LazyTensors
   x_i <- Vi(x)
   y_j <- Vj(y)
   eta_i <- Vi(eta)
   
-  res <- grad(sqnorm2(x_i-y_j), eta_i, "Sum", "j") 
+  res <- grad(sqnorm2(x_i - y_j), eta_i, "Sum", var = x_i$formula, "j") 
   expect_true(is.matrix(res))
   expect_equal(dim(res), c(nx, 3))
   
-  res <- grad(sqnorm2(x_i-y_j), eta_i, "Sum", "j")
+  res <- grad(sqnorm2(x_i - y_j), eta_i, "Sum", var = 0, "j")
   expect_true(is.matrix(res))
   expect_equal(dim(res), c(nx, 3))
   
-  # data
-  nx <- 10
-  ny <- 15
-  x <- matrix(runif(nx*3), nrow=nx, ncol=3)
-  y <- matrix(runif(ny*3), nrow=ny, ncol=3)
-  eta <- matrix(1, nrow=ny, ncol=1)
-  
-  # LazyTensors
-  x_i <- Vi(x)
-  y_j <- Vj(y)
+  eta <- matrix(1, nrow = ny, ncol = 1)
   eta_j <- Vj(eta)
   
   # errors
   expect_error(
-    grad(sqnorm2(x_i-y_j), eta_j, "Sum", "j"),
+    grad(sqnorm2(x_i - y_j), eta_j, "Sum", var = 0, "j"),
     paste0("`gradin` input argument should be a LazyTensor encoding", 
            " a matrix of shape (10,1)."), 
     fixed = TRUE
   )
   
   expect_error(
-    grad(sqnorm2(x_i - y_j), eta_j, 2, "j"),
+    grad(sqnorm2(x_i - y_j), eta_j, 2, var = 0, "j"),
     paste0("`opstr` input should be a string text corresponding", 
            " to a reduction formula."), 
     fixed = TRUE
   )
   
   expect_error(
-    grad(sqnorm2(x_i - y_j), eta_i, "Sum", 1),
+    grad(sqnorm2(x_i - y_j), eta_i, "Sum", var = 0,  1),
     paste0("`index` input argument should be a character, either 'i' or 'j'."), 
     fixed = TRUE
   )
