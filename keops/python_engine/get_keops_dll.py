@@ -24,6 +24,7 @@
 #       - cuda_block_size : integer, prefered block size for Gpu kernel
 #       - use_chunk_mode : 0, 1 or 2, if 1 or 2, enables special routines for high dimensions,
 #       - tag1D2D : same as input
+#       - dimred : integer, dimension of the inner reduction operation.
 #       - dim : integer, dimension of the output tensor.
 #       - dimy : integer, total dimension of the j indexed variables.
 #       - indsi : list of integers, indices of i indexed variables.
@@ -35,9 +36,9 @@
 
 # It can be used as a Python function or as a standalone Python script (in which case it prints the outputs):
 #   - example (as Python function) :
-#       get_keops_dll("CpuReduc", "Sum_Reduction((Exp(Minus(Sum(Square((Var(0,3,0) / Var(1,3,1)))))) * Var(2,1,1)),0)", [], 3, "float", "float", "block_sum")
+#       get_keops_dll("CpuReduc", "Sum_Reduction((Exp(Minus(Sum(Square((Var(0,3,0) / Var(1,3,1)))))) * Var(2,1,1)),0)", 0, 0, 0, [], 3, "float", "float", "block_sum", 0, 0, 0, 0, 0)
 #   - example (as Python script) :
-#       python get_keops_dll.py CpuReduc "Sum_Reduction((Exp(Minus(Sum(Square((Var(0,3,0) / Var(1,3,1)))))) * Var(2,1,1)),0)" "[]" 3 float float block_sum
+#       python get_keops_dll.py CpuReduc "Sum_Reduction((Exp(Minus(Sum(Square((Var(0,3,0) / Var(1,3,1)))))) * Var(2,1,1)),0)" 0 0 0 "[]" 3 float float block_sum 0 0 0 0 0
 
 import sys
 from keops.python_engine.formulas import *
@@ -65,6 +66,7 @@ def get_keops_dll(map_reduce_id, red_formula_string, enable_chunks, enable_final
                 map_reduce_id += '_chunks'
     
     map_reduce_class = eval(map_reduce_id)
+    
     map_reduce_obj = map_reduce_class(red_formula_string, aliases, *args)
 
     # detecting the case of formula being equal to zero, to bypass reduction.
@@ -106,11 +108,19 @@ if __name__ == "__main__":
     argdict = {
         "map_reduce_id": str,
         "red_formula_string": str,
+        "enable_chunks": int,
+        "enable_finalchunks": int,
+        "mul_var_highdim": int,
         "aliases": list,
         "nargs": int,
         "dtype": str,
         "dtypeacc": str,
         "sum_scheme_string": str,
+        "tagHostDevice": int,
+        "tagCPUGPU": int,
+        "tag1D2D": int,
+        "use_half": int,
+        "device_id": int
     }
 
     if len(argv) != len(argdict):
@@ -126,7 +136,7 @@ if __name__ == "__main__":
                 f"Invalid call to Python script {sys.argv[0]}. Argument number {k+1} ({key}) should be of type {argtype} but is of type {type(argval)}"
             )
         argdict[key] = argval
-
-    res = get_keops_dll(argdict["map_reduce_id"], *list(argdict.values())[2:])
+    
+    res = get_keops_dll(argdict["map_reduce_id"], *list(argdict.values())[1:])
     for item in res:
         print(item)
