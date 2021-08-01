@@ -7,7 +7,7 @@ from keops.python_engine.utils.code_gen_utils import (
 
 
 class Sum_Scheme:
-    def __init__(self, red_formula, dtype, dimred):
+    def __init__(self, red_formula, dtype, dimred=None):
         self.red_formula = red_formula
         if dimred is None:
             self.dimred = red_formula.dimred
