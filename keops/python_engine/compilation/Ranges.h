@@ -31,9 +31,9 @@ public:
         
         // get the pointers to data to avoid a copy
         castedranges = (__INDEX__**) malloc(sizeof(__INDEX__*)*6);
-        for (int i = 0; i < 6; i++)
+        for (int i = 0; i < 6; i++) {
           castedranges[i] = ranges[i];
-
+        }
       }
 
     } else if (ranges[6][0] == -1) {
