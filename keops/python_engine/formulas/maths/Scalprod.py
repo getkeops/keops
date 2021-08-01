@@ -30,7 +30,7 @@ class Scalprod_Impl(Chunkable_Op):
         return out.assign(c_zero_float) + VectApply(self.ScalarOp, out, arga, argb)
 
     def ScalarOp(self, out, arga, argb):
-        return out.add_assign(keops_fma(arga, argb, out))
+        return out.assign(keops_fma(arga, argb, out))
 
     def DiffT(self, v, gradin):
         fa, fb = self.children
