@@ -123,17 +123,20 @@ class Operation(Tree):
     def __neg__(self):
         """-f redirects to Minus(f)"""
         from keops.python_engine.formulas.maths.Minus import Minus
-
         return Minus(self)
 
     def __pow__(self, other):
-        """f**2 redirects to Square(f)"""
-        from keops.python_engine.formulas.maths.Square import Square
-
         if other == 2:
+            """f**2 redirects to Square(f)"""
+            from keops.python_engine.formulas.maths.Square import Square
             return Square(self)
+        elif isinstance(other, int):
+            """f**m with m integer redirects to Pow(f,m)"""
+            from keops.python_engine.formulas.maths.Pow import Pow
+            return Pow(self, other)
         else:
-            raise ValueError("not implemented")
+            from keops.python_engine.formulas.maths.Powf import Powf
+            raise Powf(self, other)
 
     def __or__(self, other):
         """f|g redirects to Scalprod(f,g)"""
