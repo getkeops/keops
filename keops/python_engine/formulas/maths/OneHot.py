@@ -1,5 +1,5 @@
 from keops.python_engine.formulas.Operation import Operation
-from keops.python_engine.utils.code_gen_utils import c_array, VectCopy
+from keops.python_engine.utils.code_gen_utils import c_zero_float
 
 
 # //////////////////////////////////////////////////////////////
@@ -8,7 +8,6 @@ from keops.python_engine.utils.code_gen_utils import c_array, VectCopy
 
 
 class OneHot(Operation):
-    raise ValueError("One-hot is not yet implemented.")
 
     string_id = "OneHot"
 
@@ -24,43 +23,22 @@ class OneHot(Operation):
         self.params = (dim,)
 
     def Op(self, out, table, arg0):
-        # returns the atomic piece of c++ code to evaluate the function on arg and return
-        # the result in out
-        v = c_array(arg0.dtype, out.dim, f"({arg0.id}+{self.start})")
-        return VectCopy(out, v)
+        if out.dtype == "half2" and arg0.dtype == "half2":
+            return f"""
+                        #pragma unroll
+                        for (int k = 0; k < {self.dim{}; k++)
+                            {out.id}[k] = __heq2(h2rint(*{arg0.id}),__float2half2_rn(k));
+                    """
+        else:
+            string = out.assign(c_zero_float)
+            string += f"""
+                           {out.id}[(int)(*{arg0.id}+.5)] = 1.0;
+                       """
+            return string
 
     def DiffT(self, v, gradin):
-        from keops.python_engine.formulas.maths.ExtractT import ExtractT
-
-        f = self.children[0]
-        return f.DiffT(v, ExtractT(gradin, self.start, f.dim))
+        from keops.python_engine.formulas.variables.Zero import Zero
+        return Zero(v.dim)
 
 
-"""
 
-TO DO....
-
-
-  template < typename TYPE >
-  static HOST_DEVICE INLINE void Operation(TYPE *out, TYPE *outF) {
-    VectAssign<DIM>(out, 0.0f);
-    out[(int)(*outF+.5)] = 1.0;
-  }
-
-#if USE_HALF && GPU_ON
-  static HOST_DEVICE INLINE void Operation(half2 *out, half2 *outF) {
-    #pragma unroll
-    for (int k = 0; k < DIM; k++)
-      out[k] = __heq2(h2rint(*outF),__float2half2_rn(k));
-  }
-#endif
-
-  // There is no gradient to accumulate on V, whatever V.
-  template < class V, class GRADIN >
-  using DiffT = Zero<V::DIM>;
-};
-
-#define OneHot(f,n) KeopsNS<OneHot<decltype(InvKeopsNS(f)),n>>()
-
-}
-"""
