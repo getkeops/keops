@@ -172,17 +172,17 @@ __host__ int launch_keops(const char* ptx_file_name, int tagHostDevice, int dimY
         ny = nx;
         nx = tmp;
     }
-
     
     __INDEX__ *lookup_d = NULL, *slices_x_d = NULL, *ranges_y_d = NULL;
     int *offsets_d = NULL;
     
     if (RR.tagRanges==1) {
-        range_preprocess(nblocks, tagI, RR.nranges_x, RR.nranges_y, RR.castedranges,
+        range_preprocess(tagHostDevice, nblocks, tagI, RR.nranges_x, RR.nranges_y, RR.castedranges,
                          SS.nbatchdims, slices_x_d, ranges_y_d, lookup_d,
                          offsets_d,
                          blockSize.x, indsi, indsj, indsp, SS.shapes);
     }
+
     
     void *p_data;
     TYPE *out_d;

@@ -158,17 +158,12 @@ class LoadKeOps_new:
             else:
                 device_id_request = device_id_args
 
-        if ranges and tagCPUGPU == 1:
-            raise ValueError(
-                "[KeOps] ranges are not yet implemented in Gpu mode in new KeOps engine"
-            )
-
         # detect the need for using "ranges" method
         # N.B. we assume here that there is a least a cat=0 or cat=1 variable in the formula...
         nbatchdims = max(len(arg.shape) for arg in args) - 2
         if nbatchdims > 0 or ranges:
             map_reduce_id += "_ranges"
-
+        
         myfun = get_keops_routine(
             map_reduce_id,
             self.red_formula_string,
