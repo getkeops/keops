@@ -225,9 +225,8 @@ class CpuReduc_ranges(MapReduce, Cpu_link_compile):
 
                         Sizes SS(nargs, arg, argshape, nx, ny);
                         
-                        #if USE_HALF
+                        if (use_half)
                           SS.switch_to_half2_indexing();
-                        #endif
 
                         Ranges RR(SS, ranges);
                         
