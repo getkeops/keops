@@ -5,26 +5,16 @@
 # LazyTensor -------------------------------------------------------------------
 #' Build and return a LazyTensor object.
 #' @description
-#' LazyTensors objects are wrappers around R matrices or vectors that are used 
+#' `LazyTensor`s objects are wrappers around R matrices or vectors that are used 
 #' to create symbolic formulas for the KeOps reduction operations.
 #' @details
-#' The use of the function `LazyTensor` is detailed in the vignettes. 
-#' Run `browseVignettes("rkeops")` to access the vignettes.
-#' @author Joan Glaunes, Chloe Serre-Combe, Amelie Vernay
-#' @param x A matrix or a vector of numeric values, or a scalar value
-#' @param index A text string that should be either **i** or **j**, or an **NA** 
-#' value (the default), to specify whether if the **x** variable is indexed 
-#' by **i**, by **j**, or is a fixed parameter across indices.
-#' If **x** is a matrix, **index** must be **i** or **j**.
-#' @param is_complex A boolean (default is FALSE). Whether if we want to create a
-#' `ComplexLazyTensor` (is_complex = TRUE) or a `LazyTensor` (is_complex = FALSE).
-#' @return An object of class "LazyTensor" or "ComplexLazyTensor", which is a 
-#' list with the following elements:
+#' The `LazyTensor()` function builds a `LazyTensor`, which is a 
+#' list containing the following elements:
 #' \itemize{
 #'     \item{**formula**:}{ A string defining the mathematical operation to 
 #'     be computed by the KeOps routine}
 #'     \item{**args**:}{ A vector of arguments containing a unique identifier 
-#'     associated to type of the argument :
+#'     associated to the type of the argument :
 #'     \itemize{
 #'         \item{**Vi(n)**:}{ vector indexed by **i** of dim **n**}
 #'         \item{**Vj(n)**:}{ vector indexed by **j** of dim **n**}
@@ -38,13 +28,34 @@
 #'                        to keep track of the dimension.}
 #' }
 #' 
+#' 
+#' **Note**
+#' 
+#' Setting the argument `is_complex` to `TRUE` will build a `ComplexLazyTensor`,
+#' which is also a `LazyTensor`. Run `browseVignettes("rkeops")` and see 
+#' "RKeOps LazyTensor" vignette for further details on how `ComplexLazyTensor`s
+#' are build.
+#' 
+#' 
 #' **Alternatives**
+#' 
 #' \itemize{
 #'    \item LazyTensor(x, "i") is equivalent to Vi(x) (see **Vi()** function)
 #'    \item LazyTensor(x, "j") is equivalent to Vi(x) (see **Vj()** function)
 #'    \item LazyTensor(x) is equivalent to Pm(x) (see **Pm()** function)
 #' }
 #'
+#' Run `browseVignettes("rkeops")` to access the vignettes and see how to use
+#' `LazyTensor`s.
+#' @author Joan Glaunes, Chloe Serre-Combe, Amelie Vernay
+#' @param x A matrix or a vector of numeric values, or a scalar value
+#' @param index A text string that should be either **i** or **j**, or an **NA** 
+#' value (the default), to specify whether if the **x** variable is indexed 
+#' by **i** (rows), by **j** (columns), or is a fixed parameter across indices.
+#' If **x** is a matrix, **index** must be **i** or **j**.
+#' @param is_complex A boolean (default is FALSE). Whether if we want to create a
+#' `ComplexLazyTensor` (is_complex = TRUE) or a `LazyTensor` (is_complex = FALSE).
+#' @return An object of class "LazyTensor" or "ComplexLazyTensor".
 #' @examples
 #' \dontrun{
 #' # Data
