@@ -2704,8 +2704,8 @@ vecmatmult <- function(v, m) {
 #' }
 #' @export
 tensorprod <- function(x, y) {
-    dim_res <- v1$dimres * v2$dimres
-    res <- binaryop.LazyTensor(v1, v2, "TensorProd", dim_check_type = NA, 
+    dim_res <- x$dimres * y$dimres
+    res <- binaryop.LazyTensor(x, y, "TensorProd", dim_check_type = NA, 
                                    dim_res = dim_res)
     
     return(res)
