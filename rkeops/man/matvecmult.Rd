@@ -20,11 +20,16 @@ Matrix-vector product - a binary operation.
 \details{
 \code{matvecmult(m, v)} encodes, symbolically,
 the matrix-vector product of \code{m} and \code{v}.
+
+\strong{Note}
+
+\code{m} and \code{v} should have the same inner dimension or \code{v} should be of
+dimension 1.
 }
 \examples{
 \dontrun{
 m <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
-v <- runif(250, 0, 1)               # arbitrary R vector of length 250
+v <- c(1,2,3)                       # arbitrary R vector of length 3
 m_i <- LazyTensor(m, index = 'i')   # LazyTensor from matrix m, indexed by 'i'
 Pm_v <- LazyTensor(v)               # parameter vector LazyTensor from v
 

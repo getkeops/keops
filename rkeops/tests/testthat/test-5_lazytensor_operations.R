@@ -1760,6 +1760,7 @@ test_that("tensorprod", {
   expect_equal(bool_grep_formula, 1)
 })
 
+
 # TEST REDUCTIONS ==============================================================
 
 
