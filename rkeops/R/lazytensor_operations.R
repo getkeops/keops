@@ -1757,7 +1757,7 @@ sqdist <- function(x, y) {
 #' Generic squared Euclidean norm.
 #' @description
 #' Symbolic binary operation for weighted squared norm of a LazyTensor.
-#' @details `weightedsqnorm(x)` returns a `LazyTensor` that encodes, symbolically,
+#' @details `weightedsqnorm(x, s)` returns a `LazyTensor` that encodes, symbolically,
 #' the weighted squared norm of a vector `x` with weights stored in the LazyTensor 
 #' `s`.
 #' Run `browseVignettes("rkeops")` to access the vignettes and find details
@@ -1766,10 +1766,15 @@ sqdist <- function(x, y) {
 #' @param x A `vector` of numeric values or a scalar value.
 #' @param s A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, 
 #' or a scalar value.
+#' 
+#' **Note**
+#' 
+#' `x`, and `s` should have the same inner dimension.
+#' 
 #' @return An object of class "LazyTensor".
 #' @examples
 #' \dontrun{
-#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
+#' x <- matrix(runif(100 * 3), 100, 3) # arbitrary R matrix, 100 rows, 3 columns
 #' s <- matrix(runif(100 * 3), 100, 3) # arbitrary R matrix, 100 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
@@ -1794,23 +1799,28 @@ weightedsqnorm <- function(x, s) {
 #' Generic squared distance.
 #' @description
 #' Symbolic binary operation for weighted squared distance of a LazyTensor.
-#' @details `weightedsqdist(x)` returns a `LazyTensor` that encodes, symbolically,
-#' the weighted squared distance of a vector `x` with weights stored in the 
-#' LazyTensor `s`, same as `weightedsqnorm(x - y, s)`.
+#' @details `weightedsqdist(x, y, s)` returns a `LazyTensor` that encodes, 
+#' symbolically, the weighted squared distance of a vector `x` with weights 
+#' stored in the LazyTensor `s`, same as `weightedsqnorm(x - y, s)`.
 #' Run `browseVignettes("rkeops")` to access the vignettes and find details
 #' about the function in "RKeOps LazyTensor".
+#' 
+#' **Note**
+#' 
+#' `x`, `y` and `s` should all have the same inner dimension.
+#' 
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `vector` of numeric values or a scalar value.
 #' @param y A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, 
 #' or a scalar value.
-#' @param z A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, 
+#' @param s A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, 
 #' or a scalar value.
 #' @return An object of class "LazyTensor".
 #' @examples
 #' \dontrun{
-#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
+#' x <- matrix(runif(100 * 3), 100, 3) # arbitrary R matrix, 100 rows, 3 columns
 #' y <- matrix(runif(100 * 3), 100, 3) # arbitrary R matrix, 100 rows, 3 columns
-#' s <- matrix(runif(200 * 3), 100, 3) # arbitrary R matrix, 200 rows, 3 columns
+#' s <- matrix(runif(100 * 3), 100, 3) # arbitrary R matrix, 100 rows, 3 columns
 #' 
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
@@ -2190,6 +2200,517 @@ Mod.ComplexLazyTensor <- function(z) {
 }
 
 
+# CONSTANT AND PADDING/CONCATENATION OPERATIONS ================================
+
+# Elem -------------------------------------------------------------------------
+
+# TODO doc
+#' Elem.
+#' @description
+#' Symbolic element extraction. A unary operation.
+#' @details  
+#' Extracts the `m`-th element of a `LazyTensor` `x`, that is, `elem(x, m)`
+#' encodes, symbolically, symbolically, the `m`-th element `x[m]`
+#' of the given `LazyTensor` `x`.
+#' 
+#' **IMPORTANT**
+#' 
+#' IN THIS CASE, INDICES START AT ZERO, therefore, `m` should be in `[0, n)`,
+#' where `n` is the inner dimension of `x`.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @param x A `LazyTensor` or a `ComplexLazyTensor`.
+#' @param m An `integer` corresponding to the index of the element of `x` we
+#' want to extract (`x[m]`).
+#' @return A `LazyTensor` or a `ComplexLazyTensor`.
+#' @examples
+#' \dontrun{
+#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
+#' x_i <- LazyTensor(x, index = 'i')   # LazyTensor from matrix x, indexed by 'i'
+#' m <- 2
+#' 
+#' elem_x <- elem(x_i, m)  # symbolic `m`-th element of `x_i`.
+#' }
+#' @export
+elem <- function(x, m) {
+    if(!is.int(m)) {
+        stop("`m` input argument should be an integer.")
+    }
+    D <- x$dimres
+    if(m < 0 || m >= D) {
+        stop(paste("Index `m` is out of bounds. Should be in [0, ",
+                   D, ").", sep = ""))
+    }
+    res <- unaryop.LazyTensor(x, "Elem", m, dim_res = 1)
+    return(res)
+}
+
+
+# ElemT ------------------------------------------------------------------------
+
+#' ElemT.
+#' @description
+#' Insert a given value in a symbolic vector of zeros - a unary operation.
+#' @details 
+#' `elemT(x, m, n)` insert scalar value `x` (encoded as a `LazyTensor`) at
+#' position `m` in a vector of zeros of length `n`.
+#' 
+#' **Note**
+#' 
+#' Input `x` should be a `LazyTensor` encoding a single parameter value.
+#' 
+#' **IMPORTANT**
+#' 
+#' IN THIS CASE, INDICES START AT ZERO, therefore, `m` should be in `[0, n)`.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @param x A `LazyTensor` or a `ComplexLazyTensor` encoding a single
+#' parameter value.
+#' @param m An `integer` corresponding to the position `m` of the created
+#' vector of zeros at which we want to insert the value `x`.
+#' @param n An `integer` corresponding to the length of the vector of zeros.
+#' @return A `LazyTensor` or a `ComplexLazyTensor`.
+#' @examples
+#' \dontrun{
+#' # basic example
+#' x <- 3.14              # arbitrary value
+#' Pm_x <- LazyTensor(x)  # creating scalar parameter LazyTensor from x
+#' 
+#' m <- 2
+#' n <- 3
+#' 
+#' elemT_x <- elemT(Pm_x, m, n)  # symbolic vector
+#' }
+#' @export
+elemT <- function(x, m, n) {
+    if(!is.LazyScalar(x) && !is.ComplexLazyScalar(x)) {
+        stop(paste("`x` input argument should be a `LazyTensor`",
+                   " encoding a single value.", sep = ""))
+    }
+    if(!is.int(m)) {
+        stop("`m` input argument should be an integer.")
+    }
+    if(!is.int(n)) {
+        stop("`n` input argument should be an integer.")
+    }
+    if(m < 0 || m >= n) {
+        stop(paste("Index `m` is out of bounds. Should be in [0, ",
+                   n, ").", sep = ""))
+    }
+    
+    res <- unaryop.LazyTensor(x, "ElemT", opt_arg = n, opt_arg2 = m)
+    return(res)
+}
+
+
+# Extract ----------------------------------------------------------------------
+
+#' Extract.
+#' @description
+#' Symbolic sub-element extraction. A unary operation.
+#' @details `extract(x_i, m, d)` encodes, symbolically, the extraction
+#' of a range of values `x[m:m+d]` in the `LazyTensor` `x`; (`m` is the 
+#' starting index, and `d` is the dimension of the extracted sub-vector).
+#'
+#' **IMPORTANT**
+#' 
+#' IN THIS CASE, INDICES START AT ZERO, therefore, `m` should be in `[0, n)`,
+#' where `n` is the inner dimension of `x`. And `d` should be in `[0, n-m]`.
+#' 
+#' **Note**
+#' 
+#' See @examples for a more concrete explanation of the use of `extract()`.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @param x A `LazyTensor` or a `ComplexLazyTensor`.
+#' @param m An `integer` corresponding to the starting index.
+#' @param d An `integer` corresponding to the output dimension.
+#' @return A `LazyTensor`.
+#' @examples
+#' \dontrun{
+#' # Two very rudimentary examples
+#' # -----------------------------
+#' 
+#' # Let's say that you have a matrix `g` looking like this:
+#' #      [,1] [,2] [,3] [,4]
+#' # [1,]    1    8    1    3
+#' # [2,]    2    1    2    7
+#' # [3,]    3    7    4    5
+#' # [4,]    1    3    3    0
+#' # [5,]    5    4    9    4
+#' 
+#' # Convert it to LazyTensor:
+#' g_i <- LazyTensor(g, index = 'i')
+#' 
+#' # Then extract some elements:
+#' ext_g <- extract(g_i, 1, 3)
+#' 
+#' # In this case, `ext_g` is a LazyTensor encoding, symbolically,
+#' # the following part of g:
+#' #       [,1] [,2] [,3]
+#' # [1,]    8    1    3
+#' # [2,]    1    2    7
+#' # [3,]    7    4    5
+#' # [4,]    3    3    0
+#' # [5,]    4    9    4
+#' 
+#' 
+#' # Same principle with a LazyTensor encoding a vector:
+#' v <- c(1, 2, 3, 1, 5)
+#' Pm_v <- LazyTensor(v)
+#' 
+#' ext_Pm_v <- extract(Pm_v, 2, 3)
+#' 
+#' # In this case, `ext_Pm_v` is a LazyTensor encoding, symbolically,
+#' # the following part of v:
+#' #       [,1] [,2] [,3]
+#' # [1,]    3    1    5
+#' 
+#' 
+#' # A more general example
+#' # ----------------------
+#' 
+#' x <- matrix(runif(150 * 5), 150, 5) # arbitrary R matrix, 150 rows, 5 columns
+#' x_i <- LazyTensor(x, index = 'i')   # LazyTensor from matrix x, indexed by 'i'
+#' m <- 2
+#' d <- 2
+#' 
+#' extract_x <- extract(x_i, m, d) # symbolic matrix
+#' }
+#' @export
+extract <- function(x, m, d) {
+    # type check
+    if(!is.int(m))
+        stop("`m` input argument should be an integer.")
+    if(!is.int(d)) 
+        stop("`d` input argument should be an integer.")
+    # dim check
+    D <- x$dimres
+    if(m < 0 || m >= D) {
+        stop(paste("Index `m` is out of bounds. Should be in [0, ",
+                   D, ").", sep = ""))
+    }
+    if(d < 0 || (D < (m + d))) {
+        stop(
+            paste("Slice dimension is out of bounds. Input `d` should be in [0, ",
+                  D, "-m] where `m` is the starting index.", sep = "")
+        )
+    }
+    res <- unaryop.LazyTensor(x, "Extract",
+                              opt_arg = m, opt_arg2 = d,
+                              dim_res = d)
+    return(res)
+}
+
+
+# ExtractT ---------------------------------------------------------------------
+
+#' ExtractT.
+#' @description
+#' Insert a given value, vector of values or matrix of values in a symbolic
+#' vector or matrix of zeros -
+#' a unary operation.
+#' @details If `x` is a `LazyTensor` encoding a vector (resp. a matrix),
+#' `extractT(x, m, d)` encodes, symbolically, a `d`-inner-dimensional
+#' vector (resp. matrix) of zeros in which is inserted `x`,
+#' at starting position `m`.
+#' 
+#' **Note 1**
+#' 
+#' `x` can also encode a single value, in which case the operation works
+#' the same way as in the case of a vector of values.
+#' 
+#' **Note 2**
+#' 
+#' See @examples for a more concrete explanation of the use of `extractT()`.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @param x A `LazyTensor` or a `ComplexLazyTensor`.
+#' @param m An `integer` corresponding to the starting index.
+#' @param d An `integer` corresponding to the output inner dimension.
+#' @return A `LazyTensor`.
+#' @examples
+#' \dontrun{
+#' # I - Three very rudimentary examples
+#' # -----------------------------------
+#' 
+#' # 1) Let's say that you have a matrix `g` looking like this:
+#' #      [,1] [,2]
+#' # [1,]    1    4
+#' # [2,]    2    5
+#' # [3,]    3    6
+#' 
+#' # Convert it to LazyTensor:
+#' g_i <- LazyTensor(g, index = 'i') # indexed by 'i' (for example)
+#' 
+#' # Then insert it in a matrix of inner dimension equal to 5,
+#' # starting at index 1:
+#' extT_g <- extractT(g_i, 1, 5)
+#' 
+#' # In this case, `extT_g` is a LazyTensor encoding, symbolically,
+#' # the following matrix:
+#' #      [,1] [,2] [,3] [,4] [,5]
+#' # [1,]    0    1    4    0    0
+#' # [2,]    0    2    5    0    0
+#' # [3,]    0    3    6    0    0
+#' 
+#' 
+#' # 2) Same principle with a LazyTensor encoding a vector:
+#' v <- c(1, 2, 3, 1, 5)
+#' Pm_v <- LazyTensor(v)
+#' 
+#' extT_Pm_v <- extract(Pm_v, 2, 3)
+#' 
+#' # In this case, `extT_Pm_v` is a LazyTensor encoding, symbolically,
+#' # the following vector:
+#' #       [,1] [,2] [,3] [,4] [,5] [,6] [,7] [,8]
+#' # [1,]    0    1    2    3    1    5    0    0
+#' 
+#' 
+#' 3) Same again with a scalar value:
+#' scal <- 3.14
+#' Pm_scal <- Pm(scal) # `Pm(x)` is an aliases for `LazyTensor(x, index = NA)`
+#' 
+#' extT_Pm_scal <- extractT(Pm_scal, 2, 4)
+#' 
+#' # In this case, `extT_Pm_scal` is a LazyTensor encoding, symbolically,
+#' # the following vector:
+#' #       [,1] [,2] [,3] [,4]
+#' # [1,]    0    0 3.14    0
+#' 
+#' 
+#' # II - A more general example
+#' # --------------------------- 
+#' 
+#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
+#' x_i <- LazyTensor(x, index = 'i')   # LazyTensor from matrix x, 'i' indexed
+#' 
+#' m <- 2
+#' d <- 7
+#' 
+#' extractT_x <- extractT(x_i, m, d)   # symbolic matrix
+#' }
+#' @export
+extractT <- function(x, m, d) {
+    # type checking
+    if(!is.int(m)) 
+        stop("`m` input argument should be an integer.")
+    if(!is.int(d)) 
+        stop("`d` input argument should be an integer.")
+    # dim checking
+    D <- x$dimres
+    if(d < D) {
+        stop(
+            paste("Input `d` is out of bounds. Should be at least equal",
+                  " to `x` inner dimension, which is ",
+                  D, ".", sep = "")
+        )
+    }
+    if(m < 0 || m >= d) {
+        stop(paste("Index `m` is out of bounds. Should be in [0, ",
+                   "`d`).", sep = ""))
+    }
+    if((m + D - 1) > d) {
+        stop(
+            paste("Slice dimension is out of bounds: `d` - `m` should be", 
+                  " strictly greater than `x` inner dimension, which is ",
+                  D, ".", sep = "")
+        )
+    }
+    res <- unaryop.LazyTensor(x, "ExtractT", opt_arg = m, opt_arg2 = d)
+    return(res)
+}
+
+
+# Concatenation ----------------------------------------------------------------
+
+#' Concatenation.
+#' @description
+#' Concatenation of two `LazyTensor` or `ComplexLazyTensor`. A binary operation.
+#' @details If `x` and `y` are two `LazyTensor` or `ComplexLazyTensor`,
+#' `concat(x, y)` encodes, symbolically, the concatenation of `x` and `y` along
+#' their inner dimension. TODO check if this is, indeed, along the inner dimension !
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @param x A `LazyTensor` or a `ComplexLazyTensor`.
+#' @param x A `LazyTensor` or a `ComplexLazyTensor`.
+#' @return A `LazyTensor` or a `ComplexLazyTensor` that encodes, symbolically,
+#' the concatenation of `x` and `y` along their inner dimension.
+#' @examples
+#' \dontrun{
+#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
+#' y <- matrix(runif(250 * 3), 250, 3) # arbitrary R matrix, 250 rows, 3 columns
+#' x_i <- LazyTensor(x, index = 'i')   # LazyTensor from matrix x, indexed by 'i'
+#' y_j <- LazyTensor(y, index = 'j')   # LazyTensor from matrix x, indexed by 'j'                                     
+#' 
+#' concat_xy <- concat(x_i, y_j)
+#' }
+#' @export
+concat <- function(x, y) {
+    dim_res <- get_inner_dim(x) + get_inner_dim(y)
+    res <- binaryop.LazyTensor(x, y, "Concat",
+                               dim_check_type = NA,
+                               dim_res = dim_res)
+    return(res)
+}
+
+
+# One-hot ----------------------------------------------------------------------
+
+#' One-hot.
+#' @description
+#' One-hot 
+#' @details If `x` is a scalar value encoded as a `LazyTensor`,
+#' `one_hot(x, D)` encodes, symbolically, a vector of length **D**
+#' whose round(`x`)-th coordinate is equal to 1, and the other ones to 0.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @param x A `LazyTensor` encoding a scalar value.
+#' @param D An `integer` corresponding to the output dimension.
+#' @return A `LazyTensor`.
+#' @examples
+#' \dontrun{
+#' A <- 7
+#' A_LT <- LazyTensor(A) # LazyTensor from scalar A
+#' D <- 7
+#' 
+#' onehot_x <- one_hot(A_LT, D) # symbolic vector of length D
+#' }
+#' @export
+one_hot <- function(x, D) {
+    if((!is.LazyTensor(x)) || (is.ComplexLazyTensor(x))) {
+        stop(paste("`one_hot` operation can only be applied to ",
+                   "`LazyTensor`, not `ComplexLazyTensor`.",
+                   sep = ""))
+    }
+    
+    if(x$dimres != 1 || !is.LazyScalar(x)) {
+        stop("One-hot encoding is only supported for scalar formulas.")
+    }
+    
+    if(!is.int(D)) {
+        stop("`D` input argument should be an integer.")
+    }
+    
+    res <- unaryop.LazyTensor(x, "OneHot", opt_arg = D, dim_res = D)
+    return(res)
+}
+
+
+
+# ELEMENTARY DOT PRODUCT =======================================================
+
+
+# MatVecMult -------------------------------------------------------------------
+
+#' Matrix-vector product.
+#' @description
+#' Matrix-vector product - a binary operation.
+#' @details `matvecmult(m, v)` encodes, symbolically,
+#' the matrix-vector product of `m` and `v`.
+#' 
+#' **Note**
+#' 
+#' `m` and `v` should have the same inner dimension.
+#' 
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @param m A `LazyTensor` or a `ComplexLazyTensor` encoding a matrix.
+#' @param v A `LazyTensor` or a `ComplexLazyTensor` encoding a parameter vector.
+#' @return A `LazyTensor` or a `ComplexLazyTensor`. 
+#' @examples
+#' \dontrun{
+#' m <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
+#' v <- c(1,2,3)                       # arbitrary R vector of length 3
+#' m_i <- LazyTensor(m, index = 'i')   # LazyTensor from matrix m, indexed by 'i'
+#' Pm_v <- LazyTensor(v)               # parameter vector LazyTensor from v
+#' 
+#' mv_mult <- matvecmult(m_i, Pm_v)    # symbolic matrix
+#' }
+#' @export
+matvecmult <- function(m, v) {
+    if(!is.LazyMatrix(m)) {
+        stop(paste("`m` input argument should be a `LazyTensor` encoding",
+                   " a matrix defined with `Vi()` or `Vj()`.", sep = ""))
+    }
+    if(!is.LazyVector(v)) {
+        stop(paste("`v` input argument should be a `LazyTensor` encoding",
+                   " a vector defined with `Pm()`.", sep = ""))
+    }
+    
+    dim_res <- get_inner_dim(m) / get_inner_dim(v)
+    res <- binaryop.LazyTensor(m, v, "MatVecMult",
+                               dim_check_type = NA,
+                               dim_res = dim_res)
+    return(res)
+}
+
+
+# VecMatMult -------------------------------------------------------------------
+
+#' Vector-matrix product.
+#' @description
+#' Vector-matrix product - a binary operation.
+#' @details `vecmatmult(v, m)` encodes, symbolically,
+#' the vector-matrix product of `v` and `m`.
+#' 
+#' **Note**
+#' 
+#' `m` and `v` should have the same inner dimension.
+#' 
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @param v A `LazyTensor` or a `ComplexLazyTensor` encoding a parameter vector.
+#' @param m A `LazyTensor` or a `ComplexLazyTensor` encoding a matrix.
+#' @return A `LazyTensor` or a `ComplexLazyTensor`.
+#' @examples
+#' \dontrun{
+#' v <- c(1,2,3)                        # arbitrary R vector of length 3
+#' m <- matrix(runif(150 * 3), 150, 3)  # arbitrary R matrix, 150 rows, 3 columns
+#' Pm_v <- LazyTensor(v)                # parameter vector LazyTensor from v
+#' m_i <- LazyTensor(m, index = 'i')    # LazyTensor from matrix m, indexed by 'i'
+#' 
+#' vm_mult <- vecmatmult(Pm_v, m_i)     # symbolic matrix
+#' }
+#' @export
+vecmatmult <- function(v, m) {
+    if(!is.LazyVector(v)) {
+        stop(paste("`v` input argument should be a `LazyTensor` encoding",
+                   " a vector defined with `Pm()`.", sep = ""))
+    }
+    if(!is.LazyMatrix(m)) {
+        stop(paste("`m` input argument should be a `LazyTensor` encoding",
+                   " a matrix defined with `Vi()` or `Vj()`.", sep = ""))
+    }
+    res <- binaryop.LazyTensor(v, m, "VecMatMult", dim_check_type = NA)
+    return(res)
+}
+
+
+# Tensorprod -------------------------------------------------------------------
+
+#' Tensor product.
+#' @description
+#' Tensor product of vectors - a binary operation.
+#' @details If `x` and `y` are `LazyTensor`s encoding matrix,
+#' respectively of length `nx*px` and `ny*py`, then `tensorprod(x, y)` encodes,
+#' symbolically, the tensor product between matrix `x` and `y`, which is
+#' a symbolic matrix of dimension (`nx*ny`, `px*py`).
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @param x A `LazyTensor` or a `ComplexLazyTensor`.
+#' @param y A `LazyTensor` or a `ComplexLazyTensor`. 
+#' @return A `LazyTensor` or a `ComplexLazyTensor`.
+#' @examples
+#' \dontrun{
+#' x <- matrix(c(1,2,3),2,3)            # arbitrary R matrix, 150 rows, 3 columns
+#' x_i <- LazyTensor(x, index = 'i')    # LazyTensor from matrix x, indexed by 'i'
+#' y <- matrix(c(1,1,1),2,3)            # arbitrary R matrix, 200 rows, 3 columns
+#' y_i <- LazyTensor(y, index = 'i')    # LazyTensor from matrix y, indexed by 'i'
+#' 
+#' tp_xy <- tensorprod(x_i, y_i) # symbolic (4, 9) matrix. 
+#' 
+#' }
+#' @export
+tensorprod <- function(x, y) {
+    dim_res <- v1$dimres * v2$dimres
+    res <- binaryop.LazyTensor(v1, v2, "TensorProd", dim_check_type = NA, 
+                                   dim_res = dim_res)
+    
+    return(res)
+}
+
 
 # REDUCTIONS ===================================================================
 
@@ -2485,7 +3006,7 @@ min_reduction <- function(x, index) {
 #' @export
 argmin <- function(x, index = NA) {
     if(is.na(index))
-            res <- unaryop.LazyTensor(x, "ArgMin")
+        res <- unaryop.LazyTensor(x, "ArgMin")
     else if(check_index(index))
         res <- reduction.LazyTensor(x, "ArgMin", index)
     else
@@ -3257,513 +3778,6 @@ sumsoftmaxweight <- function(x, index, weight) {
 #' @export
 sumsoftmaxweight_reduction <- function(x, index, weight) {
     res <- sumsoftmaxweight(x, index, weight)
-    return(res)
-}
-
-
-# CONSTANT AND PADDING/CONCATENATION OPERATIONS ================================
-
-# Elem -------------------------------------------------------------------------
-
-# TODO doc
-#' Elem.
-#' @description
-#' Symbolic element extraction. A unary operation.
-#' @details  
-#' Extracts the `m`-th element of a `LazyTensor` `x`, that is, `elem(x, m)`
-#' encodes, symbolically, symbolically, the `m`-th element `x[m]`
-#' of the given `LazyTensor` `x`.
-#' 
-#' **IMPORTANT**
-#' 
-#' IN THIS CASE, INDICES START AT ZERO, therefore, `m` should be in `[0, n)`,
-#' where `n` is the inner dimension of `x`.
-#' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A `LazyTensor` or a `ComplexLazyTensor`.
-#' @param m An `integer` corresponding to the index of the element of `x` we
-#' want to extract (`x[m]`).
-#' @return A `LazyTensor` or a `ComplexLazyTensor`.
-#' @examples
-#' \dontrun{
-#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
-#' x_i <- LazyTensor(x, index = 'i')   # LazyTensor from matrix x, indexed by 'i'
-#' m <- 2
-#' 
-#' elem_x <- elem(x_i, m)  # symbolic `m`-th element of `x_i`.
-#' }
-#' @export
-elem <- function(x, m) {
-    if(!is.int(m)) {
-        stop("`m` input argument should be an integer.")
-    }
-    D <- x$dimres
-    if(m < 0 || m >= D) {
-        stop(paste("Index `m` is out of bounds. Should be in [0, ",
-                   D, ").", sep = ""))
-    }
-    res <- unaryop.LazyTensor(x, "Elem", m, dim_res = 1)
-    return(res)
-}
-
-
-# ElemT ------------------------------------------------------------------------
-
-#' ElemT.
-#' @description
-#' Insert a given value in a symbolic vector of zeros - a unary operation.
-#' @details 
-#' `elemT(x, m, n)` insert scalar value `x` (encoded as a `LazyTensor`) at
-#' position `m` in a vector of zeros of length `n`.
-#' 
-#' **Note**
-#' 
-#' Input `x` should be a `LazyTensor` encoding a single parameter value.
-#' 
-#' **IMPORTANT**
-#' 
-#' IN THIS CASE, INDICES START AT ZERO, therefore, `m` should be in `[0, n)`.
-#' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A `LazyTensor` or a `ComplexLazyTensor` encoding a single
-#' parameter value.
-#' @param m An `integer` corresponding to the position `m` of the created
-#' vector of zeros at which we want to insert the value `x`.
-#' @param n An `integer` corresponding to the length of the vector of zeros.
-#' @return A `LazyTensor` or a `ComplexLazyTensor`.
-#' @examples
-#' \dontrun{
-#' # basic example
-#' x <- 3.14              # arbitrary value
-#' Pm_x <- LazyTensor(x)  # creating scalar parameter LazyTensor from x
-#' 
-#' m <- 2
-#' n <- 3
-#' 
-#' elemT_x <- elemT(Pm_x, m, n)  # symbolic vector
-#' }
-#' @export
-elemT <- function(x, m, n) {
-    if(!is.LazyScalar(x) && !is.ComplexLazyScalar(x)) {
-        stop(paste("`x` input argument should be a `LazyTensor`",
-                   " encoding a single value.", sep = ""))
-    }
-    if(!is.int(m)) {
-        stop("`m` input argument should be an integer.")
-    }
-    if(!is.int(n)) {
-        stop("`n` input argument should be an integer.")
-    }
-    if(m < 0 || m >= n) {
-        stop(paste("Index `m` is out of bounds. Should be in [0, ",
-                   n, ").", sep = ""))
-    }
-    
-    res <- unaryop.LazyTensor(x, "ElemT", opt_arg = n, opt_arg2 = m)
-    return(res)
-}
-
-
-# Extract ----------------------------------------------------------------------
-
-#' Extract.
-#' @description
-#' Symbolic sub-element extraction. A unary operation.
-#' @details `extract(x_i, m, d)` encodes, symbolically, the extraction
-#' of a range of values `x[m:m+d]` in the `LazyTensor` `x`; (`m` is the 
-#' starting index, and `d` is the dimension of the extracted sub-vector).
-#'
-#' **IMPORTANT**
-#' 
-#' IN THIS CASE, INDICES START AT ZERO, therefore, `m` should be in `[0, n)`,
-#' where `n` is the inner dimension of `x`. And `d` should be in `[0, n-m]`.
-#' 
-#' **Note**
-#' 
-#' See @examples for a more concrete explanation of the use of `extract()`.
-#' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A `LazyTensor` or a `ComplexLazyTensor`.
-#' @param m An `integer` corresponding to the starting index.
-#' @param d An `integer` corresponding to the output dimension.
-#' @return A `LazyTensor`.
-#' @examples
-#' \dontrun{
-#' # Two very rudimentary examples
-#' # -----------------------------
-#' 
-#' # Let's say that you have a matrix `g` looking like this:
-#' #      [,1] [,2] [,3] [,4]
-#' # [1,]    1    8    1    3
-#' # [2,]    2    1    2    7
-#' # [3,]    3    7    4    5
-#' # [4,]    1    3    3    0
-#' # [5,]    5    4    9    4
-#' 
-#' # Convert it to LazyTensor:
-#' g_i <- LazyTensor(g, index = 'i')
-#' 
-#' # Then extract some elements:
-#' ext_g <- extract(g_i, 1, 3)
-#' 
-#' # In this case, `ext_g` is a LazyTensor encoding, symbolically,
-#' # the following part of g:
-#' #       [,1] [,2] [,3]
-#' # [1,]    8    1    3
-#' # [2,]    1    2    7
-#' # [3,]    7    4    5
-#' # [4,]    3    3    0
-#' # [5,]    4    9    4
-#' 
-#' 
-#' # Same principle with a LazyTensor encoding a vector:
-#' v <- c(1, 2, 3, 1, 5)
-#' Pm_v <- LazyTensor(v)
-#' 
-#' ext_Pm_v <- extract(Pm_v, 2, 3)
-#' 
-#' # In this case, `ext_Pm_v` is a LazyTensor encoding, symbolically,
-#' # the following part of v:
-#' #       [,1] [,2] [,3]
-#' # [1,]    3    1    5
-#' 
-#' 
-#' # A more general example
-#' # ----------------------
-#' 
-#' x <- matrix(runif(150 * 5), 150, 5) # arbitrary R matrix, 150 rows, 5 columns
-#' x_i <- LazyTensor(x, index = 'i')   # LazyTensor from matrix x, indexed by 'i'
-#' m <- 2
-#' d <- 2
-#' 
-#' extract_x <- extract(x_i, m, d) # symbolic matrix
-#' }
-#' @export
-extract <- function(x, m, d) {
-    # type check
-    if(!is.int(m))
-        stop("`m` input argument should be an integer.")
-    if(!is.int(d)) 
-        stop("`d` input argument should be an integer.")
-    # dim check
-    D <- x$dimres
-    if(m < 0 || m >= D) {
-        stop(paste("Index `m` is out of bounds. Should be in [0, ",
-                   D, ").", sep = ""))
-    }
-    if(d < 0 || (D < (m + d))) {
-        stop(
-            paste("Slice dimension is out of bounds. Input `d` should be in [0, ",
-                  D, "-m] where `m` is the starting index.", sep = "")
-        )
-    }
-    res <- unaryop.LazyTensor(x, "Extract",
-                              opt_arg = m, opt_arg2 = d,
-                              dim_res = d)
-    return(res)
-}
-
-
-# ExtractT ---------------------------------------------------------------------
-
-#' ExtractT.
-#' @description
-#' Insert a given value, vector of values or matrix of values in a symbolic
-#' vector or matrix of zeros -
-#' a unary operation.
-#' @details If `x` is a `LazyTensor` encoding a vector (resp. a matrix),
-#' `extractT(x, m, d)` encodes, symbolically, a `d`-inner-dimensional
-#' vector (resp. matrix) of zeros in which is inserted `x`,
-#' at starting position `m`.
-#' 
-#' **Note 1**
-#' 
-#' `x` can also encode a single value, in which case the operation works
-#' the same way as in the case of a vector of values.
-#' 
-#' **Note 2**
-#' 
-#' See @examples for a more concrete explanation of the use of `extractT()`.
-#' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A `LazyTensor` or a `ComplexLazyTensor`.
-#' @param m An `integer` corresponding to the starting index.
-#' @param d An `integer` corresponding to the output inner dimension.
-#' @return A `LazyTensor`.
-#' @examples
-#' \dontrun{
-#' # I - Three very rudimentary examples
-#' # -----------------------------------
-#' 
-#' # 1) Let's say that you have a matrix `g` looking like this:
-#' #      [,1] [,2]
-#' # [1,]    1    4
-#' # [2,]    2    5
-#' # [3,]    3    6
-#' 
-#' # Convert it to LazyTensor:
-#' g_i <- LazyTensor(g, index = 'i') # indexed by 'i' (for example)
-#' 
-#' # Then insert it in a matrix of inner dimension equal to 5,
-#' # starting at index 1:
-#' extT_g <- extractT(g_i, 1, 5)
-#' 
-#' # In this case, `extT_g` is a LazyTensor encoding, symbolically,
-#' # the following matrix:
-#' #      [,1] [,2] [,3] [,4] [,5]
-#' # [1,]    0    1    4    0    0
-#' # [2,]    0    2    5    0    0
-#' # [3,]    0    3    6    0    0
-#' 
-#' 
-#' # 2) Same principle with a LazyTensor encoding a vector:
-#' v <- c(1, 2, 3, 1, 5)
-#' Pm_v <- LazyTensor(v)
-#' 
-#' extT_Pm_v <- extract(Pm_v, 2, 3)
-#' 
-#' # In this case, `extT_Pm_v` is a LazyTensor encoding, symbolically,
-#' # the following vector:
-#' #       [,1] [,2] [,3] [,4] [,5] [,6] [,7] [,8]
-#' # [1,]    0    1    2    3    1    5    0    0
-#' 
-#' 
-#' 3) Same again with a scalar value:
-#' scal <- 3.14
-#' Pm_scal <- Pm(scal) # `Pm(x)` is an aliases for `LazyTensor(x, index = NA)`
-#' 
-#' extT_Pm_scal <- extractT(Pm_scal, 2, 4)
-#' 
-#' # In this case, `extT_Pm_scal` is a LazyTensor encoding, symbolically,
-#' # the following vector:
-#' #       [,1] [,2] [,3] [,4]
-#' # [1,]    0    0 3.14    0
-#' 
-#' 
-#' # II - A more general example
-#' # --------------------------- 
-#' 
-#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
-#' x_i <- LazyTensor(x, index = 'i')   # LazyTensor from matrix x, 'i' indexed
-#' 
-#' m <- 2
-#' d <- 7
-#' 
-#' extractT_x <- extractT(x_i, m, d)   # symbolic matrix
-#' }
-#' @export
-extractT <- function(x, m, d) {
-    # type checking
-    if(!is.int(m)) 
-        stop("`m` input argument should be an integer.")
-    if(!is.int(d)) 
-        stop("`d` input argument should be an integer.")
-    # dim checking
-    D <- x$dimres
-    if(d < D) {
-        stop(
-            paste("Input `d` is out of bounds. Should be at least equal",
-                  " to `x` inner dimension, which is ",
-                  D, ".", sep = "")
-        )
-    }
-    if(m < 0 || m >= d) {
-        stop(paste("Index `m` is out of bounds. Should be in [0, ",
-                   "`d`).", sep = ""))
-    }
-    if((m + D - 1) > d) {
-        stop(
-            paste("Slice dimension is out of bounds: `d` - `m` should be", 
-                  " strictly greater than `x` inner dimension, which is ",
-                  D, ".", sep = "")
-        )
-    }
-    res <- unaryop.LazyTensor(x, "ExtractT", opt_arg = m, opt_arg2 = d)
-    return(res)
-}
-
-
-# Concatenation ----------------------------------------------------------------
-
-#' Concatenation.
-#' @description
-#' Concatenation of two `LazyTensor` or `ComplexLazyTensor`. A binary operation.
-#' @details If `x` and `y` are two `LazyTensor` or `ComplexLazyTensor`,
-#' `concat(x, y)` encodes, symbolically, the concatenation of `x` and `y` along
-#' their inner dimension. TODO check if this is, indeed, along the inner dimension !
-#' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A `LazyTensor` or a `ComplexLazyTensor`.
-#' @param x A `LazyTensor` or a `ComplexLazyTensor`.
-#' @return A `LazyTensor` or a `ComplexLazyTensor` that encodes, symbolically,
-#' the concatenation of `x` and `y` along their inner dimension.
-#' @examples
-#' \dontrun{
-#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
-#' y <- matrix(runif(250 * 3), 250, 3) # arbitrary R matrix, 250 rows, 3 columns
-#' x_i <- LazyTensor(x, index = 'i')   # LazyTensor from matrix x, indexed by 'i'
-#' y_j <- LazyTensor(y, index = 'j')   # LazyTensor from matrix x, indexed by 'j'                                     
-#' 
-#' concat_xy <- concat(x_i, y_j)
-#' }
-#' @export
-concat <- function(x, y) {
-    dim_res <- get_inner_dim(x) + get_inner_dim(y)
-    res <- binaryop.LazyTensor(x, y, "Concat",
-                               dim_check_type = NA,
-                               dim_res = dim_res)
-    return(res)
-}
-
-
-# One-hot ----------------------------------------------------------------------
-
-#' One-hot.
-#' @description
-#' One-hot 
-#' @details If `x` is a scalar value encoded as a `LazyTensor`,
-#' `one_hot(x, D)` encodes, symbolically, a vector of length **D**
-#' whose round(`x`)-th coordinate is equal to 1, and the other ones to 0.
-#' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A `LazyTensor` encoding a scalar value.
-#' @param D An `integer` corresponding to the output dimension.
-#' @return A `LazyTensor`.
-#' @examples
-#' \dontrun{
-#' A <- 7
-#' A_LT <- LazyTensor(A) # LazyTensor from scalar A
-#' D <- 7
-#' 
-#' onehot_x <- one_hot(A_LT, D) # symbolic vector of length D
-#' }
-#' @export
-one_hot <- function(x, D) {
-    if((!is.LazyTensor(x)) || (is.ComplexLazyTensor(x))) {
-        stop(paste("`one_hot` operation can only be applied to ",
-                   "`LazyTensor`, not `ComplexLazyTensor`.",
-                   sep = ""))
-    }
-    
-    if(x$dimres != 1 || !is.LazyScalar(x)) {
-        stop("One-hot encoding is only supported for scalar formulas.")
-    }
-    
-    if(!is.int(D)) {
-        stop("`D` input argument should be an integer.")
-    }
-    
-    res <- unaryop.LazyTensor(x, "OneHot", opt_arg = D, dim_res = D)
-    return(res)
-}
-
-
-
-# ELEMENTARY DOT PRODUCT =======================================================
-
-
-# MatVecMult -------------------------------------------------------------------
-
-#' Matrix-vector product.
-#' @description
-#' Matrix-vector product - a binary operation.
-#' @details `matvecmult(m, v)` encodes, symbolically,
-#' the matrix-vector product of `m` and `v`.
-#' @author Chloe Serre-Combe, Amelie Vernay
-#' @param m A `LazyTensor` or a `ComplexLazyTensor` encoding a matrix.
-#' @param v A `LazyTensor` or a `ComplexLazyTensor` encoding a parameter vector.
-#' @return A `LazyTensor` or a `ComplexLazyTensor`. 
-#' @examples
-#' \dontrun{
-#' m <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
-#' v <- runif(250, 0, 1)               # arbitrary R vector of length 250
-#' m_i <- LazyTensor(m, index = 'i')   # LazyTensor from matrix m, indexed by 'i'
-#' Pm_v <- LazyTensor(v)               # parameter vector LazyTensor from v
-#' 
-#' mv_mult <- matvecmult(m_i, Pm_v)    # symbolic matrix
-#' }
-#' @export
-matvecmult <- function(m, v) {
-    # TODO dim_res ??
-    if(!is.LazyMatrix(m)) {
-        stop(paste("`m` input argument should be a `LazyTensor` encoding",
-                   " a matrix defined with `Vi()` or `Vj()`.", sep = ""))
-    }
-    if(!is.LazyVector(v)) {
-        stop(paste("`v` input argument should be a `LazyTensor` encoding",
-                   " a vector defined with `Pm()`.", sep = ""))
-    }
-    
-    #dim_res <- get_inner_dim(m) / get_inner_dim(v)
-    res <- binaryop.LazyTensor(m, v, "MatVecMult",
-                               dim_check_type = NA,
-                               dim_res = dim_res)
-    return(res)
-}
-
-
-# VecMatMult -------------------------------------------------------------------
-
-#' Vector-matrix product.
-#' @description
-#' Vector-matrix product - a binary operation.
-#' @details `vecmatmult(v, m)` encodes, symbolically,
-#' the vector-matrix product of `v` and `m`.
-#' @author Chloe Serre-Combe, Amelie Vernay
-#' @param v A `LazyTensor` or a `ComplexLazyTensor` encoding a parameter vector.
-#' @param m A `LazyTensor` or a `ComplexLazyTensor` encoding a matrix.
-#' @return A `LazyTensor` or a `ComplexLazyTensor`.
-#' @examples
-#' \dontrun{
-#' v <- runif(250, 0, 1)                # arbitrary R vector of length 250
-#' m <- matrix(runif(150 * 3), 150, 3)  # arbitrary R matrix, 150 rows, 3 columns
-#' Pm_v <- LazyTensor(v)                # parameter vector LazyTensor from v
-#' m_i <- LazyTensor(m, index = 'i')    # LazyTensor from matrix m, indexed by 'i'
-#' 
-#' vm_mult <- vecmatmult(Pm_v, m_i)     # symbolic matrix
-#' }
-#' @export
-vecmatmult <- function(v, m) {
-    if(!is.LazyVector(v)) {
-        stop(paste("`v` input argument should be a `LazyTensor` encoding",
-                   " a vector defined with `Pm()`.", sep = ""))
-    }
-    if(!is.LazyMatrix(m)) {
-        stop(paste("`m` input argument should be a `LazyTensor` encoding",
-                   " a matrix defined with `Vi()` or `Vj()`.", sep = ""))
-    }
-    res <- binaryop.LazyTensor(v, m, "VecMatMult", dim_check_type = NA)
-    return(res)
-}
-
-
-# Tensorprod -------------------------------------------------------------------
-
-#' Tensor product.
-#' @description
-#' Tensor product of vectors - a binary operation.
-#' @details If `v1` and `v2` are `LazyTensor`s encoding parameter vectors,
-#' respectively of length `l1` and `l2`, then `tensorprod(v1, v2)` encodes,
-#' symbolically, the tensor product between vectors `v1` and `v2`, which is
-#' a symbolic matrix of dimension (`l1`, `l2`).
-#' @author Chloe Serre-Combe, Amelie Vernay
-#' @param v1 A `LazyTensor` or a `ComplexLazyTensor` encoding a parameter vector.
-#' @param v2 A `LazyTensor` or a `ComplexLazyTensor` encoding a parameter vector. 
-#' @return A `LazyTensor` or a `ComplexLazyTensor`.
-#' @examples
-#' \dontrun{
-#' v1 <- runif(100, 0, 1)   # arbitrary R vector of length 100
-#' v2 <- runif(250, 0, 1)   # arbitrary R vector of length 250
-#' Pm_v1 <- LazyTensor(v1)  # parameter vector LazyTensor from v1
-#' Pm_v2 <- LazyTensor(v2)  # parameter vector LazyTensor from v2
-#' 
-#' tp_v1v2 <- tensorprod(v1, v2) # symbolic (100, 250) matrix. 
-#' }
-#' @export
-tensorprod <- function(v1, v2) {
-    if(!is.LazyVector(v1) || !is.LazyVector(v2)) {
-        stop(paste("`v1` and `v2` input arguments should of class `LazyTensor`",
-                   " encoding vectors defined with `Pm()`.", sep = ""))
-    }
-    
-    dim_res <- x$dimres * y$dimres
-    res <- binaryop.LazyTensor(x, y, "TensorProd", dim_check_type = NA, 
-                                   dim_res = dim_res)
-    
     return(res)
 }
 
