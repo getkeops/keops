@@ -2605,7 +2605,8 @@ one_hot <- function(x, D) {
 #' 
 #' **Note**
 #' 
-#' `m` and `v` should have the same inner dimension.
+#' `m` and `v` should have the same inner dimension or `v` should be of
+#' dimension 1.
 #' 
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param m A `LazyTensor` or a `ComplexLazyTensor` encoding a matrix.
@@ -2631,10 +2632,18 @@ matvecmult <- function(m, v) {
                    " a vector defined with `Pm()`.", sep = ""))
     }
     
-    dim_res <- get_inner_dim(m) / get_inner_dim(v)
-    res <- binaryop.LazyTensor(m, v, "MatVecMult",
-                               dim_check_type = NA,
-                               dim_res = dim_res)
+    if((m$dimres != v$dimres) && (v$dimres != 1)) {
+        stop(paste("`m` and `v` should have the same inner dimension or",
+                   " `v` should be of dimension 1.", sep = ""))
+    }
+    
+    dim_res <- 1
+    
+    if(v$dimres == 1) {
+        dim_res <- m$dimres
+    }
+    
+    res <- binaryop.LazyTensor(m, v, "MatVecMult", dim_res = dim_res)
     return(res)
 }
 
@@ -2649,7 +2658,8 @@ matvecmult <- function(m, v) {
 #' 
 #' **Note**
 #' 
-#' `m` and `v` should have the same inner dimension.
+#' `v` and `m` should have the same inner dimension or `v` should be of
+#' dimension 1.
 #' 
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param v A `LazyTensor` or a `ComplexLazyTensor` encoding a parameter vector.
@@ -2674,7 +2684,19 @@ vecmatmult <- function(v, m) {
         stop(paste("`m` input argument should be a `LazyTensor` encoding",
                    " a matrix defined with `Vi()` or `Vj()`.", sep = ""))
     }
-    res <- binaryop.LazyTensor(v, m, "VecMatMult", dim_check_type = NA)
+    
+    if((m$dimres != v$dimres) && (v$dimres != 1)) {
+        stop(paste("`v` and `m` should have the same inner dimension or",
+                   " `v` should be of dimension 1.", sep = ""))
+    }
+    
+    dim_res <- 1
+    
+    if(v$dimres == 1) {
+        dim_res <- m$dimres
+    }
+    
+    res <- binaryop.LazyTensor(v, m, "VecMatMult", dim_res = dim_res)
     return(res)
 }
 
