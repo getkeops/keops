@@ -846,21 +846,21 @@ test_that("sinxdivx", {
 })
 
 
-test_that("inv", {
+test_that("step", {
   # basic example
   D <- 3
   M <- 100
   N <- 150
   x <- matrix(runif(M * D), M, D)
   x_i <- LazyTensor(x, index = 'i')
+  xc_i <- LazyTensor(x, index = 'i', is_complex = TRUE)
   
   # check results, formulas & classes
-  expect_equal(inv(2), 0.5)
-  expect_false(is.LazyTensor(inv(x))[1])
-  expect_true(is.LazyTensor(inv(x_i)))
+  expect_true(is.LazyTensor(step(x_i)))
+  expect_true(is.ComplexLazyTensor(step(xc_i)))
   
-  obj <- inv(x_i)
-  bool_grep_formula <- grep("Inv\\(A0x.*i\\)", obj$formula)
+  obj <- step.LazyTensor(x_i)
+  bool_grep_formula <- grep("Step\\(A0x.*i\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
 })
 
@@ -883,23 +883,160 @@ test_that("relu", {
 })
 
 
-test_that("step", {
+test_that("clamp", {
   # basic example
   D <- 3
   M <- 100
   N <- 150
+  P <- 200
+  w <- matrix(runif(P * 7), P, 7)
   x <- matrix(runif(M * D), M, D)
+  y <- matrix(runif(N * D), N, D)
+  z <- matrix(runif(P * D), P, D)
+  w_i <- LazyTensor(w, index = 'i')
   x_i <- LazyTensor(x, index = 'i')
-  xc_i <- LazyTensor(x, index = 'i', is_complex = TRUE)
+  y_j <- LazyTensor(y, index = 'j')
+  z_i <- LazyTensor(z, index = 'i')
   
-  # check results, formulas & classes
-  expect_true(is.LazyTensor(step(x_i)))
-  expect_true(is.ComplexLazyTensor(step(xc_i)))
-  
-  obj <- step.LazyTensor(x_i)
-  bool_grep_formula <- grep("Step\\(A0x.*i\\)", obj$formula)
+  # check formulas, args & classes
+  obj <-  clamp(x_i, y_j, z_i)
+  bool_grep_formula <- grep("Clamp\\(A0x.*i,A0x.*j,A0x.*i\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
+  expect_is(obj, "LazyTensor")
+  
+  obj <-  clamp(x_i, y_j, 3)
+  bool_grep_formula <- grep("Clamp\\(A0x.*i,A0x.*j,IntCst\\(3\\)\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  
+  obj <-  clamp(x_i, 2, 3)
+  bool_grep_formula <- grep("ClampInt\\(A0x.*i,2,3\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  
+  # errors
+  expect_error(
+    clamp(x_i, y_j, w_i),
+    paste("Operation `Clamp` expects inputs of the same dimension or dimension 1.",
+          " Received 3, 3 and 7.", sep = ""
+    ),
+    fixed = TRUE
+  )
+  
 })
+
+
+test_that("clampint", {
+  # basic example
+  D <- 3
+  M <- 100
+  N <- 150
+  P <- 200
+  x <- matrix(runif(M * D), M, D)
+  y <- matrix(runif(N * D), N, D)
+  z <- matrix(runif(P * D), P, D)
+  x_i <- LazyTensor(x, index = 'i')
+  y_j <- LazyTensor(y, index = 'j')
+  z_i <- LazyTensor(z, index = 'i')
+  
+  # check formulas, args & classes
+  obj <-  clampint(x_i, 6, 8)
+  bool_grep_formula <- grep("ClampInt\\(A0x.*i,6,8\\)", obj$formula) 
+  expect_equal(bool_grep_formula, 1)
+  expect_is(obj, "LazyTensor")
+  
+  # errors
+  expect_error(
+    clampint(x_i, y_j, 8),
+    paste("`clampint(x, y, z)` expects integer arguments for `y` and `z`.",
+          " Use clamp(x, y, z) for different `y` and `z` types.", sep = ""
+    ),
+    fixed = TRUE
+  )
+  
+  expect_error(
+    clampint(x_i, y_j, z_i),
+    paste("`clampint(x, y, z)` expects integer arguments for `y` and `z`.",
+          " Use clamp(x, y, z) for different `y` and `z` types.", sep = ""
+    ),
+    fixed = TRUE
+  )
+  
+})
+
+
+test_that("ifelse", {
+  # basic example
+  D <- 3
+  M <- 100
+  N <- 150
+  P <- 200
+  w <- matrix(runif(P * 7), P, 7)
+  x <- matrix(runif(M * D), M, D)
+  y <- matrix(runif(N * D), N, D)
+  z <- matrix(runif(P * D), P, D)
+  w_i <- LazyTensor(w, index = 'i')
+  x_i <- LazyTensor(x, index = 'i')
+  y_j <- LazyTensor(y, index = 'j')
+  z_i <- LazyTensor(z, index = 'i')
+  
+  # check formulas, args & classes
+  obj <-  ifelse(x_i, y_j, z_i)
+  bool_grep_formula <- grep("IfElse\\(A0x.*i,A0x.*j,A0x.*i\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  expect_is(obj, "LazyTensor")
+  
+  # errors
+  expect_error(
+    ifelse(x_i, y_j, w_i),
+    paste(
+      "Operation `IfElse` expects inputs of the same dimension or dimension 1.",
+      " Received 3, 3 and 7.", sep = ""
+    ),
+    fixed = TRUE
+  )
+})
+
+
+test_that("mod", {
+  # basic example
+  D <- 3
+  M <- 100
+  N <- 150
+  P <- 200
+  w <- matrix(runif(P * 7), P, 7)
+  x <- matrix(runif(M * D), M, D)
+  y <- matrix(runif(N * D), N, D)
+  z <- matrix(runif(P * D), P, D)
+  w_i <- LazyTensor(w, index = 'i')
+  x_i <- LazyTensor(x, index = 'i')
+  y_j <- LazyTensor(y, index = 'j')
+  z_i <- LazyTensor(z, index = 'i')
+  
+  # check formulas, args & classes
+  obj <-  mod(x_i, y_j, z_i)
+  bool_grep_formula <- grep("Mod\\(A0x.*i,A0x.*j,A0x.*i\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  expect_is(obj, "LazyTensor")
+  
+  obj <-  mod(x_i, 2)
+  bool_grep_formula <- grep("Mod\\(A0x.*i,IntCst\\(2\\),IntCst\\(0\\)\\)",
+                            obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  expect_is(obj, "LazyTensor")
+  
+  # errors
+  expect_error(
+    mod(x_i, y_j, w_i),
+    paste(
+      "Operation `Mod` expects inputs of the same dimension or dimension 1.",
+      " Received 3, 3 and 7.", sep = ""
+    ),
+    fixed = TRUE
+  )
+  
+})
+
+
+# TEST SIMPLE NORM AND DISTANCE OPERATIONS =====================================
 
 
 test_that("sqnorm2", {
@@ -1015,182 +1152,59 @@ test_that("weightedsqnorm", {
   # basic example
   D <- 3
   M <- 100
-  N <- 150
   x <- matrix(runif(M * D), M, D)
-  y <- matrix(runif(N * D), N, D)
+  s <- matrix(runif(M * D), M, D)
   x_i <- LazyTensor(x, index = 'i')
-  y_j <- LazyTensor(y, index = 'j')
+  s_j <- LazyTensor(s, index = 'j')
   xc_i <- LazyTensor(x, index = 'i', is_complex = TRUE)
-  yc_j <- LazyTensor(y, index = 'j', is_complex = TRUE)
+  sc_j <- LazyTensor(s, index = 'j', is_complex = TRUE)
   
   # check results, formulas & classes
   expect_true(is.LazyTensor(weightedsqnorm(2, 3)))
-  expect_true(is.LazyTensor(weightedsqnorm(x_i, y_j)))
-  expect_false(is.ComplexLazyTensor(weightedsqnorm(xc_i, yc_j)))
-  expect_true(is.LazyTensor(weightedsqnorm(xc_i, yc_j)))
-  expect_false(is.ComplexLazyTensor(weightedsqnorm(x_i, yc_j)))
-  expect_true(is.LazyTensor(weightedsqnorm(x_i, yc_j)))
-  expect_false(is.ComplexLazyTensor(weightedsqnorm(xc_i, y_j)))
-  expect_true(is.LazyTensor(weightedsqnorm(xc_i, y_j)))
+  expect_true(is.LazyTensor(weightedsqnorm(x_i, s_j)))
+  expect_false(is.ComplexLazyTensor(weightedsqnorm(xc_i, sc_j)))
+  expect_true(is.LazyTensor(weightedsqnorm(xc_i, sc_j)))
+  expect_false(is.ComplexLazyTensor(weightedsqnorm(x_i, sc_j)))
+  expect_true(is.LazyTensor(weightedsqnorm(x_i, sc_j)))
+  expect_false(is.ComplexLazyTensor(weightedsqnorm(xc_i, s_j)))
+  expect_true(is.LazyTensor(weightedsqnorm(xc_i, s_j)))
   
-  obj <- weightedsqnorm(x_i, y_j)
-  bool_grep_formula <- grep("WeightedSqNorm\\(A0x.*i,A0x.*j\\)", obj$formula)
+  obj <- weightedsqnorm(x_i, s_j)
+  bool_grep_formula <- grep("WeightedSqNorm\\(A0x.*j,A0x.*i\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
 })
 
 
-test_that("clamp", {
+test_that("weightedsqdist", {
   # basic example
   D <- 3
   M <- 100
-  N <- 150
-  P <- 200
-  w <- matrix(runif(P * 7), P, 7)
   x <- matrix(runif(M * D), M, D)
-  y <- matrix(runif(N * D), N, D)
-  z <- matrix(runif(P * D), P, D)
-  w_i <- LazyTensor(w, index = 'i')
+  y <- matrix(runif(M * D), M, D)
+  s <- matrix(runif(M * D), M, D)
   x_i <- LazyTensor(x, index = 'i')
   y_j <- LazyTensor(y, index = 'j')
-  z_i <- LazyTensor(z, index = 'i')
+  s_i <- LazyTensor(s, index = 'i')
+  xc_i <- LazyTensor(x, index = 'i', is_complex = TRUE)
+  yc_j <- LazyTensor(y, index = 'j', is_complex = TRUE)
+  sc_i <- LazyTensor(s, index = 'i', is_complex = TRUE)
   
-  # check formulas, args & classes
-  obj <-  clamp(x_i, y_j, z_i)
-  bool_grep_formula <- grep("Clamp\\(A0x.*i,A0x.*j,A0x.*i\\)", obj$formula)
-  expect_equal(bool_grep_formula, 1)
-  expect_is(obj, "LazyTensor")
+  # check results, formulas & classes
+  expect_true(is.LazyTensor(weightedsqdist(2, 3, 1)))
+  expect_true(is.LazyTensor(weightedsqdist(x_i, y_j, s_i)))
+  expect_false(is.ComplexLazyTensor(weightedsqdist(xc_i, yc_j, sc_i)))
+  expect_true(is.LazyTensor(weightedsqdist(xc_i, yc_j, sc_i)))
+  expect_false(is.ComplexLazyTensor(weightedsqdist(x_i, yc_j, sc_i)))
+  expect_true(is.LazyTensor(weightedsqdist(x_i, yc_j, sc_i)))
+  expect_false(is.ComplexLazyTensor(weightedsqdist(xc_i, y_j, s_i)))
+  expect_true(is.LazyTensor(weightedsqdist(xc_i, y_j, s_i)))
   
-  obj <-  clamp(x_i, y_j, 3)
-  bool_grep_formula <- grep("Clamp\\(A0x.*i,A0x.*j,IntCst\\(3\\)\\)", obj$formula)
-  expect_equal(bool_grep_formula, 1)
-  
-  obj <-  clamp(x_i, 2, 3)
-  bool_grep_formula <- grep("ClampInt\\(A0x.*i,2,3\\)", obj$formula)
-  expect_equal(bool_grep_formula, 1)
-  
-  # errors
-  expect_error(
-    clamp(x_i, y_j, w_i),
-    paste("Operation `Clamp` expects inputs of the same dimension or dimension 1.",
-          " Received 3, 3 and 7.", sep = ""
-          ),
-    fixed = TRUE
-    )
-  
-})
-
-
-
-test_that("clampint", {
-  # basic example
-  D <- 3
-  M <- 100
-  N <- 150
-  P <- 200
-  x <- matrix(runif(M * D), M, D)
-  y <- matrix(runif(N * D), N, D)
-  z <- matrix(runif(P * D), P, D)
-  x_i <- LazyTensor(x, index = 'i')
-  y_j <- LazyTensor(y, index = 'j')
-  z_i <- LazyTensor(z, index = 'i')
-  
-  # check formulas, args & classes
-  obj <-  clampint(x_i, 6, 8)
-  bool_grep_formula <- grep("ClampInt\\(A0x.*i,6,8\\)", obj$formula) 
-  expect_equal(bool_grep_formula, 1)
-  expect_is(obj, "LazyTensor")
-  
-  # errors
-  expect_error(
-    clampint(x_i, y_j, 8),
-    paste("`clampint(x, y, z)` expects integer arguments for `y` and `z`.",
-          " Use clamp(x, y, z) for different `y` and `z` types.", sep = ""
-          ),
-    fixed = TRUE
-    )
-  
-  expect_error(
-    clampint(x_i, y_j, z_i),
-    paste("`clampint(x, y, z)` expects integer arguments for `y` and `z`.",
-          " Use clamp(x, y, z) for different `y` and `z` types.", sep = ""
-          ),
-    fixed = TRUE
-    )
-  
-})
-
-
-test_that("ifelse", {
-  # basic example
-  D <- 3
-  M <- 100
-  N <- 150
-  P <- 200
-  w <- matrix(runif(P * 7), P, 7)
-  x <- matrix(runif(M * D), M, D)
-  y <- matrix(runif(N * D), N, D)
-  z <- matrix(runif(P * D), P, D)
-  w_i <- LazyTensor(w, index = 'i')
-  x_i <- LazyTensor(x, index = 'i')
-  y_j <- LazyTensor(y, index = 'j')
-  z_i <- LazyTensor(z, index = 'i')
-  
-  # check formulas, args & classes
-  obj <-  ifelse(x_i, y_j, z_i)
-  bool_grep_formula <- grep("IfElse\\(A0x.*i,A0x.*j,A0x.*i\\)", obj$formula)
-  expect_equal(bool_grep_formula, 1)
-  expect_is(obj, "LazyTensor")
-  
-  # errors
-  expect_error(
-    ifelse(x_i, y_j, w_i),
-    paste(
-      "Operation `IfElse` expects inputs of the same dimension or dimension 1.",
-      " Received 3, 3 and 7.", sep = ""
-      ),
-    fixed = TRUE
-    )
-})
-
-
-test_that("mod", {
-  # basic example
-  D <- 3
-  M <- 100
-  N <- 150
-  P <- 200
-  w <- matrix(runif(P * 7), P, 7)
-  x <- matrix(runif(M * D), M, D)
-  y <- matrix(runif(N * D), N, D)
-  z <- matrix(runif(P * D), P, D)
-  w_i <- LazyTensor(w, index = 'i')
-  x_i <- LazyTensor(x, index = 'i')
-  y_j <- LazyTensor(y, index = 'j')
-  z_i <- LazyTensor(z, index = 'i')
-  
-  # check formulas, args & classes
-  obj <-  mod(x_i, y_j, z_i)
-  bool_grep_formula <- grep("Mod\\(A0x.*i,A0x.*j,A0x.*i\\)", obj$formula)
-  expect_equal(bool_grep_formula, 1)
-  expect_is(obj, "LazyTensor")
-  
-  obj <-  mod(x_i, 2)
-  bool_grep_formula <- grep("Mod\\(A0x.*i,IntCst\\(2\\),IntCst\\(0\\)\\)",
+  obj <- weightedsqdist(x_i, y_j, s_i)
+  bool_grep_formula <- grep("WeightedSqNorm\\(A0x.*i,A0x.*i-A0x.*j\\)", 
                             obj$formula)
   expect_equal(bool_grep_formula, 1)
-  expect_is(obj, "LazyTensor")
-  
-  # errors
-  expect_error(
-    mod(x_i, y_j, w_i),
-    paste(
-      "Operation `Mod` expects inputs of the same dimension or dimension 1.",
-      " Received 3, 3 and 7.", sep = ""
-    ),
-    fixed = TRUE
-  )
-  
 })
+
 
 
 
@@ -1393,6 +1407,7 @@ test_that("Mod", {
   bool_grep_formula <- grep("ComplexAbs\\(A0x.*i\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
 })
+
 
 
 # TEST CONSTANT AND PADDING/CONCATENATION OPERATIONS ===========================
@@ -1623,21 +1638,41 @@ test_that("one_hot", {
 
 # TEST ELEMENTARY DOT PRODUCT OPERATIONS =======================================
 
-# TODO finish this test when problem solved
+
 test_that("matvecmult", {
   # basic example
   m <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
-  v <- runif(250, 0, 1)               # arbitrary R vector of length 250
+  bad_m <- matrix(c(4, 3), ncol = 1)  # arbitrary R matrix, 2 rows, 1 column
+  v <- runif(3, 0, 1)                 # arbitrary R vector of length 3
+  bad_v <- runif(150, 0, 1)           # arbitrary R vector of length 150
   m_i <- LazyTensor(m, index = 'i')   # LazyTensor from matrix m, indexed by 'i'
+  bad_m_i <- LazyTensor(bad_m, 'i')
   Pm_v <- LazyTensor(v)               # parameter vector LazyTensor from v
+  Pm_bad_v <- LazyTensor(bad_v)       # parameter vector LazyTensor from bad_v
+  Pm_one <- LazyTensor(c(3.14))       # parameter vector of length 1
   
   # check formulas, args & classes
   obj <- matvecmult(m_i, Pm_v)
   expect_true(is.LazyTensor(obj))
-  bool_grep_formula <- grep("MatVecMult\\(A0x.*i,A0x.*NA\\)", obj$formula)
+  bool_grep_formula <- grep("MatVecMult\\(A0x.*i,A0x.*NA\\)",
+                            obj$formula)
   expect_equal(bool_grep_formula, 1)
   
+  obj_Pm_one <- matvecmult(m_i, Pm_one)
+  expect_true(is.LazyTensor(obj_Pm_one))
+  bool_grep_formula <- grep("MatVecMult\\(A0x.*i,A0x.*NA\\)",
+                            obj_Pm_one$formula)
+  expect_equal(bool_grep_formula, 1)
+  
+  # check dimres
+  expect_equal(obj$dimres, 1)
+  expect_equal(obj_Pm_one$dimres, 3)
+  
   # errors
+  expect_error(matvecmult(m_i, Pm_bad_v),
+               paste("`m` and `v` should have the same inner dimension or",
+                     " `v` should be of dimension 1.", sep = ""),
+               fixed = TRUE)
   expect_error(matvecmult(Pm_v, Pm_v),
                paste("`m` input argument should be a `LazyTensor` encoding", 
                      " a matrix defined with `Vi()` or `Vj()`.", sep = ""),
@@ -1646,9 +1681,66 @@ test_that("matvecmult", {
                paste("`v` input argument should be a `LazyTensor` encoding", 
                      " a vector defined with `Pm()`.", sep = ""),
                fixed = TRUE)
+  expect_error(matvecmult(bad_m_i, Pm_v),
+               paste("`m` and `v` should have the same inner dimension or",
+                     " `v` should be of dimension 1.", sep = ""),
+               fixed = TRUE)
   
 })
 
+
+test_that("vecmatmult", {
+  # basic example
+  m <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
+  bad_m <- matrix(c(4, 3), ncol = 1)  # arbitrary R matrix, 2 rows, 1 column
+  v <- runif(3, 0, 1)                 # arbitrary R vector of length 3
+  bad_v <- runif(150, 0, 1)           # arbitrary R vector of length 150
+  m_i <- LazyTensor(m, index = 'i')   # LazyTensor from matrix m, indexed by 'i'
+  bad_m_i <- LazyTensor(bad_m, 'i')
+  Pm_v <- LazyTensor(v)               # parameter vector LazyTensor from v
+  Pm_bad_v <- LazyTensor(bad_v)       # parameter vector LazyTensor from bad_v
+  Pm_one <- LazyTensor(c(3.14))       # parameter vector of length 1
+  
+  # check formulas, args & classes
+  obj <- vecmatmult(Pm_v, m_i)
+  expect_true(is.LazyTensor(obj))
+  bool_grep_formula <- grep("VecMatMult\\(A0x.*NA,A0x.*i\\)",
+                            obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  
+  obj_Pm_one <- vecmatmult(Pm_one, m_i)
+  expect_true(is.LazyTensor(obj_Pm_one))
+  bool_grep_formula <- grep("VecMatMult\\(A0x.*NA,A0x.*i\\)",
+                            obj_Pm_one$formula)
+  expect_equal(bool_grep_formula, 1)
+  
+  # check dimres
+  expect_equal(obj$dimres, 1)
+  expect_equal(obj_Pm_one$dimres, 3)
+  
+  # errors
+  expect_error(vecmatmult(Pm_bad_v, m_i),
+               paste("`v` and `m` should have the same inner dimension or",
+                     " `v` should be of dimension 1.", sep = ""),
+               fixed = TRUE)
+  expect_error(vecmatmult(m_i, m_i),
+               paste("`v` input argument should be a `LazyTensor` encoding", 
+                     " a vector defined with `Pm()`.", sep = ""),
+               fixed = TRUE)
+  
+  expect_error(vecmatmult(Pm_v, Pm_v),
+               paste("`m` input argument should be a `LazyTensor` encoding", 
+                     " a matrix defined with `Vi()` or `Vj()`.", sep = ""),
+               fixed = TRUE)
+  expect_error(vecmatmult(Pm_v, bad_m_i),
+               paste("`v` and `m` should have the same inner dimension or",
+                     " `v` should be of dimension 1.", sep = ""),
+               fixed = TRUE)
+  
+})
+
+
+# TODO: tensorprod
 
 
 # TEST REDUCTIONS ==============================================================
@@ -2198,7 +2290,7 @@ test_that("Kmin_reduction", {
   y <- matrix(runif(100 * 3), 100, 3)
   y_j <- LazyTensor(y, index = 'j')
   
-  S_ij = sum( (x_i - y_j)^2 )
+  S_ij = sum((x_i - y_j)^2)
   
   K <- 2
   
@@ -2229,7 +2321,7 @@ test_that("argKmin", {
   y <- matrix(runif(100 * 3), 100, 3)
   y_j <- LazyTensor(y, index = 'j')
   
-  S_ij = sum( (x_i - y_j)^2 )
+  S_ij = sum((x_i - y_j)^2)
   
   K <- 2
   
@@ -2260,7 +2352,7 @@ test_that("argKmin_reduction", {
   y <- matrix(runif(100 * 3), 100, 3)
   y_j <- LazyTensor(y, index = 'j')
   
-  S_ij = sum( (x_i - y_j)^2 )
+  S_ij = sum((x_i - y_j)^2)
   
   K <- 2
   
@@ -2291,7 +2383,7 @@ test_that("Kmin_argKmin", {
   y <- matrix(runif(100 * 3), 100, 3)
   y_j <- LazyTensor(y, index = 'j')
   
-  S_ij = sum( (x_i - y_j)^2 )
+  S_ij = sum((x_i - y_j)^2)
   
   K <- 2
   
@@ -2322,7 +2414,7 @@ test_that("Kmin_argKmin_reduction", {
   y <- matrix(runif(100 * 3), 100, 3)
   y_j <- LazyTensor(y, index = 'j')
   
-  S_ij = sum( (x_i - y_j)^2 )
+  S_ij = sum((x_i - y_j)^2)
   
   K <- 2
   
@@ -2504,8 +2596,4 @@ test_that("grad", {
 
   
 })
-
-
-
-
 
