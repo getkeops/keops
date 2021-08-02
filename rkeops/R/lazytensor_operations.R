@@ -83,7 +83,7 @@
     
 }
 
-# subtraction  ----------------------------------------------------------------
+# subtraction ------------------------------------------------------------------
 
 #' Subtraction.
 #' @author Chloe Serre-Combe, Amelie Vernay
@@ -575,7 +575,7 @@ rsqrt.LazyTensor <- function(x) {
 #' @export
 "|.default" <- .Primitive("|")
 
-# TODO finish the doc with dimensions
+
 #' Euclidean scalar product.
 #' @description
 #' Symbolic binary operation for Euclidean scalar product.
@@ -1463,7 +1463,7 @@ clamp <- function(x, a, b) {
 }
 
 
-# clampint function ---------------------------------------------------------------
+# clampint function ------------------------------------------------------------
 
 #' Element-wise clampint function.
 #' @description
@@ -1632,6 +1632,7 @@ mod.LazyTensor <- function(x, a, b = 0) {
 }
 
 
+# SIMPLE NORM AND DISTANCE OPERATIONS ==========================================
 
 # Squared Euclidean norm -------------------------------------------------------
 
@@ -1769,17 +1770,17 @@ sqdist <- function(x, y) {
 #' @examples
 #' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
-#' y <- matrix(runif(100 * 3), 100, 3) # arbitrary R matrix, 100 rows, 3 columns
+#' s <- matrix(runif(100 * 3), 100, 3) # arbitrary R matrix, 100 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
-#' y_j <- LazyTensor(y, index = 'j')   # creating LazyTensor from matrix y, 
+#' s_j <- LazyTensor(s, index = 'j')   # creating LazyTensor from matrix s, 
 #'                                     # indexed by 'j'
 #' 
-#' wsqn_xy <- weightedsqnorm(x_i, y_j)
+#' wsqn_xy <- weightedsqnorm(x_i, s_j)
 #' }
 #' @export
 weightedsqnorm <- function(x, s) {
-    res <- binaryop.LazyTensor(x, s, "WeightedSqNorm",
+    res <- binaryop.LazyTensor(s, x, "WeightedSqNorm",
                                dim_check_type = NA,
                                res_type = "LazyTensor",
                                dim_res = 1)
@@ -1809,20 +1810,20 @@ weightedsqnorm <- function(x, s) {
 #' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' y <- matrix(runif(100 * 3), 100, 3) # arbitrary R matrix, 100 rows, 3 columns
-#' z <- matrix(runif(200 * 3), 100, 3) # arbitrary R matrix, 200 rows, 3 columns
+#' s <- matrix(runif(200 * 3), 100, 3) # arbitrary R matrix, 200 rows, 3 columns
 #' 
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
 #' y_j <- LazyTensor(y, index = 'j')   # creating LazyTensor from matrix y, 
 #'                                     # indexed by 'j'
-#' z_i <- LazyTensor(z, index = 'i')   # creating LazyTensor from matrix z, 
+#' s_i <- LazyTensor(s, index = 'i')   # creating LazyTensor from matrix s, 
 #'                                     # indexed by 'i'                                                                        
 #' 
-#' wsqd_xy <- weightedsqdist(x_i, y_j, z_i)    # symbolic matrix
+#' wsqd_xy <- weightedsqdist(x_i, y_j, s_i)    # symbolic matrix
 #' }
 #' @export
-weightedsqdist <- function(x, y, z) {
-    res <- weightedsqnorm(x - y, z)
+weightedsqdist <- function(x, y, s) {
+    res <- weightedsqnorm(x - y, s)
     return(res)
 }
 

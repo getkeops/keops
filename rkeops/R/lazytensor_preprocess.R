@@ -1075,8 +1075,6 @@ index_to_int <- function(index) {
 # Reduction---------------------------------------------------------------------
 
 
-
-
 #' Preprocess reduction operation.
 #' @keywords internal
 #' @description
