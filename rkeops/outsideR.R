@@ -84,6 +84,277 @@ op4(list(x, vect))
 op0(list(x, y))
 op5(list(x, y))
 
+# matvecmult  ==================================================================
+
+xl <- c(1, 2, 3)
+X <- matrix(xl, 3, 3)
+#       [,1] [,2] [,3]
+# [1,]    1    1    1
+# [2,]    2    2    2
+# [3,]    3    3    3
+
+v_Pm_1 <- c(2)
+v_Pm_n <- c(3, 4, 5)
+
+# With Pm(1) (vector of length 1)
+formula = "Sum_Reduction(MatVecMult(x, y), 1)"
+args = c("x=Vi(3)", "y=Pm(1)")
+op1_Pm_1 <- keops_kernel(formula, args)
+
+formula = "Sum_Reduction(MatVecMult(x, y), 0)"
+args = c("x=Vi(3)", "y=Pm(1)")
+op2_Pm_1 <- keops_kernel(formula, args)
+
+# With Pm(n) (vector of length n)
+formula = "Sum_Reduction(MatVecMult(x, y), 1)"
+args = c("x=Vi(3)", "y=Pm(3)")
+op1_Pm_n <- keops_kernel(formula, args)
+
+formula = "Sum_Reduction(MatVecMult(x, y), 0)"
+args = c("x=Vi(3)", "y=Pm(3)")
+op2_Pm_n <- keops_kernel(formula, args)
+
+# With Vi(1) (matrix of inner dim 1)
+formula <- "Sum_Reduction(MatVecMult(x, y), 1)"
+args <- c("x=Vi(1)", "y=Pm(1)")
+op1_Vi_1 <- keops_kernel(formula, args)
+
+formula <- "Sum_Reduction(MatVecMult(x, y), 1)"
+args <- c("x=Vi(1)", "y=Pm(3)")
+op2_Vi_1 <- keops_kernel(formula, args)
+# Error in compile_formula(formula, var_aliases$var_aliases, dllname) : 
+#     Error during cmake call. 
+
+# reductions:
+
+op1_Pm_1(list(X, v_Pm_1))
+#       [,1] [,2] [,3]
+# [1,]   12   12   12
+
+op2_Pm_1(list(X, v_Pm_1))
+#       [,1] [,2] [,3]
+# [1,]    2    2    2
+# [2,]    4    4    4
+# [3,]    6    6    6
+
+op1_Pm_n(list(X, v_Pm_n))
+#       [,1]
+# [1,]   72
+
+op2_Pm_n(list(X, v_Pm_n))
+#       [,1]
+# [1,]   12
+# [2,]   24
+# [3,]   36
+
+
+# vecmatmult  ==================================================================
+
+xl <- c(1, 2, 3)
+X <- matrix(xl, 3, 3)
+#       [,1] [,2] [,3]
+# [1,]    1    1    1
+# [2,]    2    2    2
+# [3,]    3    3    3
+
+v_Pm_1 <- c(2)
+v_Pm_n <- c(3, 4, 5)
+
+# With Pm(1) (vector of length 1)
+formula <- "Sum_Reduction(VecMatMult(x, y), 1)"
+args <- c("x=Pm(1)", "y=Vi(3)")
+op1_Pm_1 <- keops_kernel(formula, args)
+
+formula <- "Sum_Reduction(VecMatMult(x, y), 0)"
+args <- c("x=Pm(1)", "y=Vi(3)")
+op2_Pm_1 <- keops_kernel(formula, args)
+
+# With Pm(n) (vector of length n)
+formula <- "Sum_Reduction(VecMatMult(x, y), 1)"
+args <- c("x=Pm(3)", "y=Vi(3)")
+op1_Pm_n <- keops_kernel(formula, args)
+
+formula <- "Sum_Reduction(VecMatMult(x, y), 0)"
+args <- c("x=Pm(3)", "y=Vi(3)")
+op2_Pm_n <- keops_kernel(formula, args)
+
+# With Vi(1) (matrix of inner dim 1)
+formula <- "Sum_Reduction(VecMatMult(x, y), 1)"
+args <- c("x=Pm(1)", "y=Vi(1)")
+op1_Vi_1 <- keops_kernel(formula, args)
+
+formula <- "Sum_Reduction(VecMatMult(x, y), 1)"
+args <- c("x=Pm(3)", "y=Vi(1)")
+op2_Vi_1 <- keops_kernel(formula, args)
+# Error in compile_formula(formula, var_aliases$var_aliases, dllname) : 
+#     Error during cmake call. 
+
+# reductions:
+
+op1_Pm_1(list(v_Pm_1, X))
+#       [,1] [,2] [,3]
+# [1,]   12   12   12
+
+op2_Pm_1(list(v_Pm_1, X))
+#       [,1] [,2] [,3]
+# [1,]    2    2    2
+# [2,]    4    4    4
+# [3,]    6    6    6
+
+op1_Pm_n(list(v_Pm_n, X))
+#       [,1]
+# [1,]   72
+
+op2_Pm_n(list(v_Pm_n, X))
+#       [,1]
+# [1,]   12
+# [2,]   24
+# [3,]   36
+
+
+# Tensorprod ===================================================================
+
+xl <- c(1, 2, 3)
+xl2 <- c(1, 2, 3, 4)
+X <- matrix(xl, 3, 3)
+#       [,1] [,2] [,3]
+# [1,]    1    1    1
+# [2,]    2    2    2
+# [3,]    3    3    3
+
+X2 <- matrix(xl2, 4, 3)
+#       [,1] [,2] [,3]
+# [1,]    1    1    1
+# [2,]    2    2    2
+# [3,]    3    3    3
+# [4,]    4    4    4
+
+X3 <- matrix(xl2, 4, 4)
+#       [,1] [,2] [,3] [,4]
+# [1,]    1    1    1    1
+# [2,]    2    2    2    2
+# [3,]    3    3    3    3
+# [4,]    4    4    4    4
+
+v_Pm_1 <- c(2)
+v_Pm_n <- c(3, 4, 5)
+
+formula <- "Sum_Reduction(TensorProd(x, y), 1)"
+args <- c("x=Pm(1)", "y=Vi(3)")
+op1_Pm_1 <- keops_kernel(formula, args)
+
+formula <- "Sum_Reduction(TensorProd(x, y), 1)"
+args <- c("x=Pm(3)", "y=Vi(3)")
+op1_Pm_n <- keops_kernel(formula, args)
+
+formula <- "Sum_Reduction(TensorProd(x, y), 1)"
+args <- c("x=Vi(3)", "y=Vi(3)")
+op1_ViVi_n <- keops_kernel(formula, args)
+
+formula <- "Sum_Reduction(TensorProd(x, y), 1)"
+args <- c("x=Vi(3)", "y=Vj(3)")
+op1_ViVj_n <- keops_kernel(formula, args)
+
+formula <- "Sum_Reduction(TensorProd(x, y), 1)"
+args <- c("x=Vi(3)", "y=Vj(4)")
+op1_ViVj_nm <- keops_kernel(formula, args)
+
+op1_Pm_1(list(v_Pm_1, X))
+#       [,1] [,2] [,3]
+# [1,]   12   12   12
+
+op1_Pm_n(list(v_Pm_n, X))
+#       [,1] [,2] [,3] [,4] [,5] [,6] [,7] [,8] [,9]
+# [1,]   18   24   30   18   24   30   18   24   30
+
+op1_Pm_n(list(v_Pm_n, X2))
+#       [,1] [,2] [,3] [,4] [,5] [,6] [,7] [,8] [,9]
+# [1,]   30   40   50   30   40   50   30   40   50
+
+op1_ViVi_n(list(X, X2))
+# Error in r_genred(input, param) : 
+#     [KeOps] Wrong value of the 'i' dimension 0for arg at position 1 : is 4 but was 3 in previous 'i' arguments. 
+
+op1_ViVj_n(list(X, X2)) # different indexing, different nrow but same ncol, 
+#       [,1] [,2] [,3] [,4] [,5] [,6] [,7] [,8] [,9]
+# [1,]    6    6    6    6    6    6    6    6    6
+# [2,]   12   12   12   12   12   12   12   12   12
+# [3,]   18   18   18   18   18   18   18   18   18
+# [4,]   24   24   24   24   24   24   24   24   24
+
+op1_ViVj_nm(list(X2, X3))
+#       [,1] [,2] [,3] [,4] [,5] [,6] [,7] [,8] [,9] [,10] [,11] [,12]
+# [1,]   10   10   10   10   10   10   10   10   10    10    10    10
+# [2,]   20   20   20   20   20   20   20   20   20    20    20    20
+# [3,]   30   30   30   30   30   30   30   30   30    30    30    30
+# [4,]   40   40   40   40   40   40   40   40   40    40    40    40
+
+
+# Addition & sum reduction =====================================================
+
+X <- matrix(xl, 3, 3)
+#       [,1] [,2] [,3]
+# [1,]    1    1    1
+# [2,]    2    2    2
+# [3,]    3    3    3
+
+formula = "Sum_Reduction(x+y, 1)"
+args = c("x=Vi(3)", "y=Vj(3)")
+op2 <- keops_kernel(formula, args)
+
+op2(list(X, X))
+#       [,1] [,2] [,3]
+# [1,]    9    9    9
+# [2,]   12   12   12
+# [3,]   15   15   15
+
+formula = "Sum_Reduction(x+y, 0)"
+args = c("x=Vi(3)", "y=Vj(3)")
+op3 <- keops_kernel(formula, args)
+
+op3(list(X, X))
+#       [,1] [,2] [,3]
+# [1,]    9    9    9
+# [2,]   12   12   12
+# [3,]   15   15   15
+
+formula = "Sum_Reduction(x+y, 0)"
+args = c("x=Vi(3)", "y=Vi(3)")
+op4 <- keops_kernel(formula, args)
+
+
+op4(list(X, X))
+#       [,1] [,2] [,3]
+# [1,]    2    2    2
+# [2,]    4    4    4
+# [3,]    6    6    6
+
+formula = "Sum_Reduction(x+y, 1)"
+args = c("x=Vi(3)", "y=Vi(3)")
+op5 <- keops_kernel(formula, args)
+
+op5(list(X, X))
+#       [,1] [,2] [,3]
+# [1,]   12   12   12
+
+# Unweighted/Weighted squared norm and distance ================================
+
+x <- matrix(c(1, 2, 3, 4), nrow = 4, ncol = 3)
+#      [,1] [,2] [,3]
+# [1,]    1    1    1
+# [2,]    2    2    2
+# [3,]    3    3    3
+# [4,]    4    4    4
+x_i <- LazyTensor(x, index = 'i')
+
+y <- matrix(c(1, 1, 1, 1), nrow = 4, ncol = 3)
+#      [,1] [,2] [,3]
+# [1,]    1    1    1
+# [2,]    1    1    1
+# [3,]    1    1    1
+# [4,]    1    1    1
+y_i <- LazyTensor(y, index = 'i')
+
 # ==============================================================================
 
 formula = "Sum_Reduction(Elem(f,3),0)"
