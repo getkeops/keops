@@ -2716,9 +2716,9 @@ vecmatmult <- function(v, m) {
 #' @return A `LazyTensor` or a `ComplexLazyTensor`.
 #' @examples
 #' \dontrun{
-#' x <- matrix(c(1,2,3),2,3)            # arbitrary R matrix, 150 rows, 3 columns
+#' x <- matrix(c(1, 2, 3), 2, 3)            # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')    # LazyTensor from matrix x, indexed by 'i'
-#' y <- matrix(c(1,1,1),2,3)            # arbitrary R matrix, 200 rows, 3 columns
+#' y <- matrix(c(1, 1, 1), 2, 3)            # arbitrary R matrix, 200 rows, 3 columns
 #' y_i <- LazyTensor(y, index = 'i')    # LazyTensor from matrix y, indexed by 'i'
 #' 
 #' tp_xy <- tensorprod(x_i, y_i) # symbolic (4, 9) matrix. 
