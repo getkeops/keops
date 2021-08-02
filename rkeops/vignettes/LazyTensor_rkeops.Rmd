@@ -22,18 +22,11 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r setup, message=FALSE}
-library(rkeops)
+## Lazy evaluation
 
-set_rkeops_options()
-set_rkeops_option("tagCpuGpu", 0)
-set_rkeops_option("precision", "double")
-```
+Lazy evaluation allows to write intermediate computations as symbolic operations that are not directly evaluated. The real evaluation is only made on final computation.
 
-
-## TODO title
-
-LazyTensors objects are wrappers around R matrices or vectors that are used to create symbolic formulas for the KeOps reduction operations. A typical use case is the following: 
+To do so, you can use `LazyTensor`s, that are objects wrapped around R matrices or vectors and used to create symbolic formulas for the KeOps reduction operations. A typical use case is the following: 
 
 Let us say that we want to compute
 
@@ -73,6 +66,58 @@ a_j <- sum(K_ij, index = "i") # actual R matrix (in fact a row vector of
 
 ```
 
+You can see that the code is very "R and math friendly". All the available operations are listed in the [section operation](#operations).
+
+## LazyTensor
+
+To encode symbolically a matrix, a vector, or a single value as a `LazyTensor`, you can use the function `LazyTensor()`. Run `?LazyTensor` to display the complete documentation.
+
+### ComplexLazyTensor
+
+The `LazyTensor` function also allows to encode complex mathematical objects. These new objects are called `ComplexLazyTensor`s, but note that these are also `LazyTensor`s, however, they are not encoded quite the same way: the real and complex parts are dissociated and stored in two contiguous columns. Below is a simple example of what complex objects becomes once encoded as `ComplexLazyTensor`s:
+
+```{r, cplx_example, eval=FALSE}
+# Arbitrary complex R matrix
+z <- matrix(2 + 1i^(-6:-1), nrow = 2, ncol = 2)
+# > z
+#      [,1] [,2]
+# [1,] 1+0i 3+0i
+# [2,] 2-1i 2+1i
+
+# Encode as a `ComplexLazyTensor`, indexed by 'i'
+z_i <- LazyTensor(z, index = 'i', is_complex = TRUE)
+# > z_i$vars
+# [[1]]
+#       [,1] [,2] [,3] [,4]
+# [1,]    1    0    3    0
+# [2,]    2   -1    2    1
+
+
+# Same idea with a vector of complex
+v_z <- c(4 + 5i, 2 + 3i, 7 + 1i)
+# > v_z
+# [1] 4+5i 2+3i 7+1i
+
+# Encode as a vector parameter `ComplexLazyTensor`
+Pm_v_z <- LazyTensor(v_z, is_complex = TRUE)
+# > Pm_v_z$vars
+# [[1]]
+#      [,1] [,2] [,3] [,4] [,5] [,6]
+# [1,]    4    5    2    3    7    1
+
+# Of course if you create a vector or a matrix of real values, and
+# encode it as a `ComplexLazyTensor`, a zero imaginary part is added to it:
+
+# Real R vector
+v <- c(5, 4, 7, 9)
+
+Pm_v <- LazyTensor(v, is_complex = TRUE)
+# > Pm_v$vars
+# [[1]]
+#      [,1] [,2] [,3] [,4] [,5] [,6] [,7] [,8]
+# [1,]    5    0    4    0    7    0    9    0
+
+```
 
 
 ## Operations
