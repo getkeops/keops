@@ -131,12 +131,11 @@ LazyTensor <- function(x, index = NA, is_complex = FALSE) {
   }
   
   # Now we define "formula", a string specifying the variable for KeOps C++ codes.
-  if(is.int(x)) {
-    var_name <- paste("IntCst(", as.character(x), ")", sep = "")
-  }
-  else {
-    var_name <- paste("A", address(x), index, sep = "")
-  }
+  # if(is.int(x)) {
+  #   var_name <- paste("IntCst(", as.character(x), ")", sep = "")
+  # }
+  
+  var_name <- paste("A", address(x), index, sep = "")
   formula <- var_name
   vars <- list(x)  # vars lists all actual matrices necessary to evaluate 
                    # the current formula, here only one.
@@ -459,6 +458,41 @@ binaryop.LazyTensor <- function(x, y, opstr, is_operator = FALSE,
       )
     )
   
+
+  if(is.int(x)) {
+    formula_x <-  paste("IntCst(", as.character(x), ")", sep = "")
+    formula_y <- y$formula
+    vars <- c(y$vars)
+    args <- unique(c(y$args))
+    dimres_x <- 1
+    dimres_y <- y$dimres
+    class_res <- class(y)
+  }
+  else if(is.int(y)) {
+    formula_x <- x$formula
+    formula_y <-  paste("IntCst(", as.character(y), ")", sep = "")
+    vars <- c(x$vars)
+    args <- unique(c(x$args))
+    dimres_x <- x$dimres
+    dimres_y <- 1
+    class_res <- class(x)
+  }
+  else {
+    if(is.numeric(x) || is.complex(x))
+      x <- LazyTensor(x)
+    
+    if(is.numeric(y) || is.complex(y))
+      y <- LazyTensor(y)
+    
+    formula_x <- x$formula
+    formula_y <- y$formula
+    vars <- c(x$vars, y$vars)
+    args <- unique(c(x$args, y$args))
+    dimres_x <- x$dimres
+    dimres_y <- y$dimres
+    class_res <- class(x)
+  }
+
   if(!is.na(dim_res) && !is.int(dim_res)){
     stop(
       paste(
@@ -467,41 +501,35 @@ binaryop.LazyTensor <- function(x, y, opstr, is_operator = FALSE,
       )
     )
   }
-  
+
   if(!is.na(res_type) && res_type == "ComplexLazyTensor")
     res_type <- c("ComplexLazyTensor", "LazyTensor")
   
-  if(is.numeric(x) || is.complex(x))
-    x <- LazyTensor(x)
-  
-  if(is.numeric(y) || is.complex(y))
-    y <- LazyTensor(y)
-  
   # check dimensions
-  if (!is.na(dim_check_type)) {
-    if(dim_check_type == "sameor1") {
-      if (!check_inner_dim(x, y, check_type = dim_check_type)) {
-        stop(
-          paste(
-            "Operation `", opstr, 
-            "` expects inputs of the same dimension or dimension 1. Received ",
-            get_inner_dim(x), " and ", get_inner_dim(y), ".", sep = ""
-          )
-        )
-      }
-    }
-    else if(dim_check_type == "same") {
-      if (!check_inner_dim(x, y, check_type = dim_check_type)) {
-        stop(
-          paste(
-            "Operation `", opstr,
-            "` expects inputs of the same dimension. Received ",
-            get_inner_dim(x), " and ", get_inner_dim(y), ".", sep = ""
-          )
-        )
-      }
-    }
-  }
+  # if (!is.na(dim_check_type)) {
+  #   if(dim_check_type == "sameor1") {
+  #     if (!check_inner_dim(x, y, check_type = dim_check_type)) {
+  #       stop(
+  #         paste(
+  #           "Operation `", opstr, 
+  #           "` expects inputs of the same dimension or dimension 1. Received ",
+  #           get_inner_dim(x), " and ", get_inner_dim(y), ".", sep = ""
+  #         )
+  #       )
+  #     }
+  #   }
+  #   else if(dim_check_type == "same") {
+  #     if (!check_inner_dim(x, y, check_type = dim_check_type)) {
+  #       stop(
+  #         paste(
+  #           "Operation `", opstr,
+  #           "` expects inputs of the same dimension. Received ",
+  #           get_inner_dim(x), " and ", get_inner_dim(y), ".", sep = ""
+  #         )
+  #       )
+  #     }
+  #   }
+  # }
   
   ## result dimension
   #if(is.na(dim_res)) {
@@ -510,7 +538,7 @@ binaryop.LazyTensor <- function(x, y, opstr, is_operator = FALSE,
   
   # result dimension
   if(is.na(dim_res)) {
-    dim_res <- max(c(x$dimres, y$dimres))
+    dim_res <- max(c(dimres_x, dimres_y))
   }
   
   # Set `as.integer(dim_res)` to avoid printing potential
@@ -519,22 +547,20 @@ binaryop.LazyTensor <- function(x, y, opstr, is_operator = FALSE,
   dim_res <- as.integer(dim_res)
   
   # special formula for operator
+  
   if(is_operator)
-    formula <- paste(x$formula, opstr, y$formula, sep = "")
+    formula <- paste(formula_x, opstr, formula_y, sep = "")
   
   else if(!is_operator && is.na(opt_arg))
-    formula <- paste(opstr, "(", x$formula, ",", y$formula, ")", sep = "")
+    formula <- paste(opstr, "(", formula_x, ",", formula_y, ")", sep = "")
   
   else if(!is_operator && !is.na(opt_arg))
-    formula <- paste(opstr, "(", x$formula, ",", opt_arg$formula, ",",
-                     y$formula, ")", sep = "")
+    formula <- paste(opstr, "(", formula_x, ",", opt_arg$formula, ",",
+                     formula_y, ")", sep = "")
   
-  vars <- c(x$vars, y$vars)
-  args <- unique(c(x$args, y$args))
-  dimres <- dim_res
   
-  res <- list(formula = formula, args = args, vars = vars, dimres = dimres)
-  res$vars <- res$vars[!duplicated(res$vars)] # remove doublon
+  res <- list(formula = formula, args = args, vars = vars, dimres = dim_res)
+  res$vars <- res$vars[!duplicated(res$vars)] # remove duplicates
   
   if(!is.na(res_type[1]))
     class(res) <- res_type
@@ -543,7 +569,7 @@ binaryop.LazyTensor <- function(x, y, opstr, is_operator = FALSE,
     class(res) <- c("ComplexLazyTensor", "LazyTensor")
   }
   else
-    class(res) <- class(x)
+    class(res) <- class_res
   
   return(res)
 }
