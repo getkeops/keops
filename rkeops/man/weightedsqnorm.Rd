@@ -10,7 +10,11 @@ weightedsqnorm(x, s)
 \item{x}{A \code{vector} of numeric values or a scalar value.}
 
 \item{s}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric values,
-or a scalar value.}
+or a scalar value.
+
+\strong{Note}
+
+\code{x}, and \code{s} should have the same inner dimension.}
 }
 \value{
 An object of class "LazyTensor".
@@ -19,7 +23,7 @@ An object of class "LazyTensor".
 Symbolic binary operation for weighted squared norm of a LazyTensor.
 }
 \details{
-\code{weightedsqnorm(x)} returns a \code{LazyTensor} that encodes, symbolically,
+\code{weightedsqnorm(x, s)} returns a \code{LazyTensor} that encodes, symbolically,
 the weighted squared norm of a vector \code{x} with weights stored in the LazyTensor
 \code{s}.
 Run \code{browseVignettes("rkeops")} to access the vignettes and find details
@@ -27,14 +31,14 @@ about the function in "RKeOps LazyTensor".
 }
 \examples{
 \dontrun{
-x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
-y <- matrix(runif(100 * 3), 100, 3) # arbitrary R matrix, 100 rows, 3 columns
+x <- matrix(runif(100 * 3), 100, 3) # arbitrary R matrix, 100 rows, 3 columns
+s <- matrix(runif(100 * 3), 100, 3) # arbitrary R matrix, 100 rows, 3 columns
 x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
                                     # indexed by 'i'
-y_j <- LazyTensor(y, index = 'j')   # creating LazyTensor from matrix y, 
+s_j <- LazyTensor(s, index = 'j')   # creating LazyTensor from matrix s, 
                                     # indexed by 'j'
 
-wsqn_xy <- weightedsqnorm(x_i, y_j)
+wsqn_xy <- weightedsqnorm(x_i, s_j)
 }
 }
 \author{

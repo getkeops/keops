@@ -28,7 +28,7 @@ A <- 7
 A_LT <- LazyTensor(A) # LazyTensor from scalar A
 D <- 7
 
-onehot_x <- one_hot(A, D) # symbolic vector of length D
+onehot_x <- one_hot(A_LT, D) # symbolic vector of length D
 }
 }
 \author{

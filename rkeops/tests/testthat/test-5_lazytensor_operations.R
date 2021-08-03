@@ -1740,7 +1740,25 @@ test_that("vecmatmult", {
 })
 
 
-# TODO: tensorprod
+test_that("tensorprod", {
+  x <- matrix(c(1, 2, 3), 2, 3)
+  x_i <- LazyTensor(x, index = 'i')  
+  xc_i <- LazyTensor(x, index = 'i', is_complex = TRUE)  
+  y <- matrix(c(1, 1, 1), 2, 3)
+  y_i <- LazyTensor(y, index = 'i')
+  yc_i <- LazyTensor(y, index = 'i', is_complex = TRUE) 
+  
+  expect_true(is.ComplexLazyTensor(tensorprod(xc_i, yc_i)))
+  expect_true(is.ComplexLazyTensor(tensorprod(xc_i, y_i)))
+  expect_true(is.ComplexLazyTensor(tensorprod(xc_i, y_i)))
+  
+  obj <- tensorprod(x_i, y_i)    # symbolic (4, 9) matrix. 
+  expect_true(is.LazyTensor(obj))
+  expect_false(is.ComplexLazyTensor(obj))
+  expect_equal(obj$dimres, 9)
+  bool_grep_formula <- grep("TensorProd\\(A0x.*i,A0x.*i\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+})
 
 
 # TEST REDUCTIONS ==============================================================

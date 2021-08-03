@@ -11,20 +11,27 @@ LazyTensor(x, index = NA, is_complex = FALSE)
 
 \item{index}{A text string that should be either \strong{i} or \strong{j}, or an \strong{NA}
 value (the default), to specify whether if the \strong{x} variable is indexed
-by \strong{i}, by \strong{j}, or is a fixed parameter across indices.
+by \strong{i} (rows), by \strong{j} (columns), or is a fixed parameter across indices.
 If \strong{x} is a matrix, \strong{index} must be \strong{i} or \strong{j}.}
 
 \item{is_complex}{A boolean (default is FALSE). Whether if we want to create a
 \code{ComplexLazyTensor} (is_complex = TRUE) or a \code{LazyTensor} (is_complex = FALSE).}
 }
 \value{
-An object of class "LazyTensor" or "ComplexLazyTensor", which is a
-list with the following elements:
+An object of class "LazyTensor" or "ComplexLazyTensor".
+}
+\description{
+\code{LazyTensor}s objects are wrappers around R matrices or vectors that are used
+to create symbolic formulas for the KeOps reduction operations.
+}
+\details{
+The \code{LazyTensor()} function builds a \code{LazyTensor}, which is a
+list containing the following elements:
 \itemize{
 \item{\strong{formula}:}{ A string defining the mathematical operation to
 be computed by the KeOps routine}
 \item{\strong{args}:}{ A vector of arguments containing a unique identifier
-associated to type of the argument :
+associated to the type of the argument :
 \itemize{
 \item{\strong{Vi(n)}:}{ vector indexed by \strong{i} of dim \strong{n}}
 \item{\strong{Vj(n)}:}{ vector indexed by \strong{j} of dim \strong{n}}
@@ -38,20 +45,23 @@ LazyTensors that result from operations,
 to keep track of the dimension.}
 }
 
+\strong{Note}
+
+Setting the argument \code{is_complex} to \code{TRUE} will build a \code{ComplexLazyTensor},
+which is also a \code{LazyTensor}. Run \code{browseVignettes("rkeops")} and see
+"RKeOps LazyTensor" vignette for further details on how \code{ComplexLazyTensor}s
+are build.
+
 \strong{Alternatives}
+
 \itemize{
 \item LazyTensor(x, "i") is equivalent to Vi(x) (see \strong{Vi()} function)
 \item LazyTensor(x, "j") is equivalent to Vi(x) (see \strong{Vj()} function)
 \item LazyTensor(x) is equivalent to Pm(x) (see \strong{Pm()} function)
 }
-}
-\description{
-LazyTensors objects are wrappers around R matrices or vectors that are used
-to create symbolic formulas for the KeOps reduction operations.
-}
-\details{
-The use of the function \code{LazyTensor} is detailed in the vignettes.
-Run \code{browseVignettes("rkeops")} to access the vignettes.
+
+Run \code{browseVignettes("rkeops")} to access the vignettes and see how to use
+\code{LazyTensor}s.
 }
 \examples{
 \dontrun{

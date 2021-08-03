@@ -4,12 +4,12 @@
 \alias{tensorprod}
 \title{Tensor product.}
 \usage{
-tensorprod(v1, v2)
+tensorprod(x, y)
 }
 \arguments{
-\item{v1}{A \code{LazyTensor} or a \code{ComplexLazyTensor} encoding a parameter vector.}
+\item{x}{A \code{LazyTensor} or a \code{ComplexLazyTensor}.}
 
-\item{v2}{A \code{LazyTensor} or a \code{ComplexLazyTensor} encoding a parameter vector.}
+\item{y}{A \code{LazyTensor} or a \code{ComplexLazyTensor}.}
 }
 \value{
 A \code{LazyTensor} or a \code{ComplexLazyTensor}.
@@ -18,19 +18,20 @@ A \code{LazyTensor} or a \code{ComplexLazyTensor}.
 Tensor product of vectors - a binary operation.
 }
 \details{
-If \code{v1} and \code{v2} are \code{LazyTensor}s encoding parameter vectors,
-respectively of length \code{l1} and \code{l2}, then \code{tensorprod(v1, v2)} encodes,
-symbolically, the tensor product between vectors \code{v1} and \code{v2}, which is
-a symbolic matrix of dimension (\code{l1}, \code{l2}).
+If \code{x} and \code{y} are \code{LazyTensor}s encoding matrix,
+respectively of length \code{nx*px} and \code{ny*py}, then \code{tensorprod(x, y)} encodes,
+symbolically, the tensor product between matrix \code{x} and \code{y}, which is
+a symbolic matrix of dimension (\code{nx*ny}, \code{px*py}).
 }
 \examples{
 \dontrun{
-v1 <- runif(100, 0, 1)   # arbitrary R vector of length 100
-v2 <- runif(250, 0, 1)   # arbitrary R vector of length 250
-Pm_v1 <- LazyTensor(v1)  # parameter vector LazyTensor from v1
-Pm_v2 <- LazyTensor(v2)  # parameter vector LazyTensor from v2
+x <- matrix(c(1, 2, 3), 2, 3)            # arbitrary R matrix, 150 rows, 3 columns
+x_i <- LazyTensor(x, index = 'i')    # LazyTensor from matrix x, indexed by 'i'
+y <- matrix(c(1, 1, 1), 2, 3)            # arbitrary R matrix, 200 rows, 3 columns
+y_i <- LazyTensor(y, index = 'i')    # LazyTensor from matrix y, indexed by 'i'
 
-tp_v1v2 <- tensorprod(v1, v2) # symbolic (100, 250) matrix. 
+tp_xy <- tensorprod(x_i, y_i) # symbolic (4, 9) matrix. 
+
 }
 }
 \author{
