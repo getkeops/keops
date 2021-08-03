@@ -43,7 +43,11 @@ vect_LT <- LazyTensor(vect)
 
 formula = "Sum_Reduction(x+y, 0)"
 args = c("x=Vi(2)", "y=Vj(2)")
-op0 <- keops_kernel(formula, args)
+op_ij <- keops_kernel(formula, args)
+
+formula = "Sum_Reduction(x+y, 0)"
+args = c("x=Vi(2)", "y=Vi(2)")
+op_ii <- keops_kernel(formula, args)
 
 formula = "Sum_Reduction(x+y, 1)"
 args = c("x=Vi(2)", "y=Vj(2)")
@@ -64,6 +68,18 @@ op3 <- keops_kernel(formula, args)
 formula = "Sum_Reduction(x+y, 0)"
 args = c("x=Vj(2)", "y=Pm(2)")
 op4 <- keops_kernel(formula, args)
+
+
+op_ij(list(x, f))
+#       [,1] [,2]
+# [1,]   11   11
+# [2,]   15   15
+# [3,]   19   19
+
+op_ii(list(x, f))
+# Error in r_genred(input, param) : 
+#     [KeOps] Wrong value of the 'i' dimension 0for arg at position 1 : is 4 but was 3 in previous 'i' arguments. 
+
 
 op1(list(x, vect))
 #       [,1] [,2]
@@ -289,6 +305,116 @@ op1_ViVj_nm(list(X2, X3))
 # [3,]   30   30   30   30   30   30   30   30   30    30    30    30
 # [4,]   40   40   40   40   40   40   40   40   40    40    40    40
 
+
+# %*% ==========================================================================
+
+xl <- c(1, 2, 3)
+xl2 <- c(1, 2, 3, 4)
+X <- matrix(xl, 3, 3)
+#       [,1] [,2] [,3]
+# [1,]    1    1    1 
+# [2,]    2    2    2 
+# [3,]    3    3    3 
+
+Y <- matrix(c(3, 1, 4, 5, 1, 1), nrow = 3, ncol = 3)
+#       [,1] [,2] [,3]
+# [1,]    3    5    3
+# [2,]    1    1    1
+# [3,]    4    1    4
+
+X2 <- matrix(xl2, 4, 3)
+#       [,1] [,2] [,3]
+# [1,]    1    1    1
+# [2,]    2    2    2
+# [3,]    3    3    3
+# [4,]    4    4    4
+
+X3 <- matrix(xl2, 4, 4)
+#       [,1] [,2] [,3] [,4]
+# [1,]    1    1    1    1
+# [2,]    2    2    2    2
+# [3,]    3    3    3    3
+# [4,]    4    4    4    4
+
+
+formula <- "Sum_Reduction(x*y, 1)"
+args <- c("x=Vi(3)", "y=Vi(3)")
+op2 <- keops_kernel(formula, args)
+
+formula <- "Sum_Reduction(x*y, 0)"
+args <- c("x=Vi(3)", "y=Vi(3)")
+op3_ii <- keops_kernel(formula, args)
+
+formula <- "Sum_Reduction(x*y, 0)"
+args <- c("x=Vi(3)", "y=Vj(3)")
+op3_ij <- keops_kernel(formula, args)
+
+formula <- "Sum_Reduction(x*y, 0)"
+args <- c("x=Vi(3)", "y=Pm(3)")
+op3_iPm <- keops_kernel(formula, args)
+
+formula <- "Sum_Reduction(x*y, 0)"
+args <- c("x=Vj(3)", "y=Pm(3)")
+op3_jPm <- keops_kernel(formula, args)
+
+formula <- "Sum_Reduction(x*y, 0)"
+args <- c("x=Vi(3)", "y=Pm(1)")
+op3_Pm_one <- keops_kernel(formula, args)
+
+op3_iPm(list(X2, xl))
+#       [,1] [,2] [,3]
+# [1,]    1    2    3
+# [2,]    2    4    6
+# [3,]    3    6    9
+# [4,]    4    8   12
+
+op3_jPm(list(X2, xl))
+#       [,1] [,2] [,3]
+# [1,]   10   20   30
+
+op3_ij(list(X, X2))
+
+op2(list(X, X))
+#       [,1] [,2] [,3]
+# [1,]   14   14   14
+
+op3_ii(list(X, X))
+#       [,1] [,2] [,3]
+# [1,]    1    1    1
+# [2,]    4    4    4
+# [3,]    9    9    9
+
+op3_ii(list(X, Y))
+#       [,1] [,2] [,3]
+# [1,]    3    5    3
+# [2,]    2    2    2
+# [3,]   12    3   12
+
+op3_ij(list(X, Y))
+#       [,1] [,2] [,3]
+# [1,]    8    7    8
+# [2,]   16   14   16
+# [3,]   24   21   24
+
+op3_ij(list(X2, X2))
+#       [,1] [,2] [,3]
+# [1,]   10   10   10
+# [2,]   20   20   20
+# [3,]   30   30   30
+# [4,]   40   40   40
+
+op3_ii(list(X2, X2))
+#       [,1] [,2] [,3]
+# [1,]    1    1    1
+# [2,]    4    4    4
+# [3,]    9    9    9
+# [4,]   16   16   16
+
+op3_ij(list(X, X2))
+#       [,1] [,2] [,3]
+# [1,]   10   10   10
+# [2,]   20   20   20
+# [3,]   30   30   30
 
 # Addition & sum reduction =====================================================
 
@@ -543,6 +669,30 @@ op18(list(z, z2))
 # 1: In r_genred(input, param) : imaginary parts discarded in coercion
 # 2: In r_genred(input, param) : imaginary parts discarded in coercion
 
+
+
+
+
+# IntCst ==============
+
+Scal <- 2
+LT_Scal <- Pm(Scal)
+z <- matrix(2 + 3i, nrow = 4, ncol = 3)
+
+
+formula = "Sum_Reduction(z+p,0)"
+args = c("z=Vi(6)", "p=Pm(1)")
+op <- keops_kernel(formula, args)
+
+formula = "Sum_Reduction(z+IntCst(4),0)"
+args = c("z=Vi(6)")
+op <- keops_kernel(formula, args)
+
+op(list(z, 4))
+
+a <- list()
+
+
 # Sum_Reduction Extract with Complex ===========================================
 
 z <- matrix(2 + 3i, nrow = 4, ncol = 3)
@@ -590,6 +740,7 @@ b <- sum(extract(LazyTensor(c(1, 2, 3, 1, 5)), 2, 3), index = 'i')
 
 # Sum_Reduction with new ComplexLazyensor ======================================
 
+# Matrices
 x <- matrix(c(1, 2, 3, 4), nrow = 4, ncol = 3)
 #      [,1] [,2] [,3]
 # [1,]    1    1    1
@@ -597,6 +748,7 @@ x <- matrix(c(1, 2, 3, 4), nrow = 4, ncol = 3)
 # [3,]    3    3    3
 # [4,]    4    4    4
 x_i <- LazyTensor(x, index = 'i')
+x_j <- LazyTensor(x, index = 'j')
 
 y <- matrix(c(1, 7, 3, 4), nrow = 4, ncol = 3)
 #      [,1] [,2] [,3]
@@ -620,38 +772,24 @@ z_i <- LazyTensor(z, index = 'i', is_complex = TRUE)
 # [2,]    2   -1    2   -1    2   -1
 # [3,]    3    0    3    0    3    0
 # [4,]    2    1    2    1    2    1
+z_j <- LazyTensor(z, index = 'j', is_complex = TRUE)
 
-z2 <- matrix(2 + 5i^(-6:5), nrow = 4)
-#                   [,1]      [,2]      [,3]
-# [1,] 1.999936+0.00000i 1.96+0.0i -23+   0i
-# [2,] 2.000000-0.00032i 2.00-0.2i   2- 125i
-# [3,] 2.001600+0.00000i 3.00+0.0i 627+   0i
-# [4,] 2.000000+0.00800i 2.00+5.0i   2+3125i
+z2 <- matrix(3 + 1i^(-6:5), nrow = 4)
+#      [,1] [,2] [,3]
+# [1,] 2+0i 2+0i 2+0i
+# [2,] 3-1i 3-1i 3-1i
+# [3,] 4+0i 4+0i 4+0i
+# [4,] 3+1i 3+1i 3+1i
 z2_i <- LazyTensor(z2, index = 'i', is_complex = TRUE)
+z2_j <- LazyTensor(z2, index = 'j', is_complex = TRUE)
 
+# Matrix/matrix sums -----------------------------------------------------------
 
 Sum_xz <- x_i + z_i
 # > Sum_xz$formula
 # [1] "Add(Real2Complex(A0x55ec34f7e7f8i),A0x7f5e90004440i)"
 
-A <- sum(Sum_xz, index = 'i')
-#      [,1] [,2] [,3] [,4] [,5] [,6]
-# [1,]   18    0   18    0   18    0
-A2 <- sum(z_i + x_i, index = 'i')
-#      [,1] [,2] [,3] [,4] [,5] [,6]
-# [1,]   18    0   18    0   18    0
-
-
-B <- sum(Sum_xz, index = 'j') # No sum is done because nothing is indexed by 'j'
-#       [,1] [,2] [,3] [,4] [,5] [,6]
-# [1,]    2    0    2    0    2    0
-# [2,]    4   -1    4   -1    4   -1
-# [3,]    6    0    6    0    6    0
-# [4,]    6    1    6    1    6    1
-
-B2 <- sum(x_i + z_i, index = 'j')
-
-C <- sum(real2complex(x_i), index = 'j')
+R2C <- sum(real2complex(x_i), index = 'j')
 # No sum is done because nothing is indexed by 'j', but this is
 # just to see the result:
 
@@ -661,9 +799,50 @@ C <- sum(real2complex(x_i), index = 'j')
 # [3,]    3    0    3    0    3    0
 # [4,]    4    0    4    0    4    0
 
+sum_z_i_z_j <- sum(z_i + z_j, index = 'i')
+# Error in op(c(x$vars)) : 
+#     The number of elements in the 'input' argument does not correspond to the number input arguments in the formula. 
 
-# Try with vectors of complex instead of matrices --------
+sum_z_i_z_i <- sum(z_i + z_i, index = 'i')
+#       [,1] [,2] [,3] [,4] [,5] [,6]
+# [1,]   16    0   16    0   16    0
 
+sum_z_i_z2_i <- sum(z_i + z2_i, index = 'i')
+#       [,1] [,2] [,3] [,4] [,5] [,6]
+# [1,]   20    0   20    0   20    0
+
+sum_z_i_z2_j <- sum(z_i + z2_j, index = 'i')
+#       [,1] [,2] [,3] [,4] [,5] [,6]
+# [1,]   16    0   16    0   16    0
+# [2,]   20   -4   20   -4   20   -4
+# [3,]   24    0   24    0   24    0
+# [4,]   20    4   20    4   20    4
+
+sum_x_i_z_i <- sum(x_i + z_i, index = 'j') # j-indexed to see
+#       [,1] [,2] [,3] [,4] [,5] [,6]
+# [1,]    2    0    2    0    2    0
+# [2,]    4   -1    4   -1    4   -1
+# [3,]    6    0    6    0    6    0
+# [4,]    6    1    6    1    6    1
+
+sum_x_i_z_j_on_i <- sum(x_i + z_j, index = 'i')
+#       [,1] [,2] [,3] [,4] [,5] [,6]
+# [1,]   14    0   14    0   14    0
+# [2,]   18   -4   18   -4   18   -4
+# [3,]   22    0   22    0   22    0
+# [4,]   18    4   18    4   18    4
+
+sum_x_i_z_j_on_j <- sum(x_i + z_j, index = 'j') # j-indexed to see
+#      [,1] [,2] [,3] [,4] [,5] [,6]
+# [1,]   12    0   12    0   12    0
+# [2,]   16    0   16    0   16    0
+# [3,]   20    0   20    0   20    0
+# [4,]   24    0   24    0   24    0
+
+
+# Vectors/vector sums ----------------------------------------------------------
+
+# Vectors
 Z <- c(2 + 3i, 1 + 1i, 4 + 9i)
 Pm_Z <- LazyTensor(Z)
 
@@ -675,52 +854,108 @@ Pm_V <- LazyTensor(V)
 
 # Vector/vector addition ---
 Sum_ZV <- Pm_Z + Pm_V
+# > Sum_ZV$formula
+# [1] "Add(A0x55c7cff96a28NA,Real2Complex(A0x55c7d0124dc8NA))"
 
-# Below, no sum is done because there are no index but this is just
-# for verification purpose.
-D <- sum(Sum_ZV, index = 'i')
+
+sum_Pm_Z_Pm_V_on_i <- sum(Pm_Z + Pm_V, index = 'i')
 #       [,1] [,2] [,3] [,4] [,5] [,6]
 # [1,]    7    3    7    1   11    9
 
-E <- sum(Sum_ZV, index = 'j')
+sum_Pm_Z_Pm_V_on_j <- sum(Pm_Z + Pm_V, index = 'j')
 #       [,1] [,2] [,3] [,4] [,5] [,6]
 # [1,]    7    3    7    1   11    9
 
-# Vector/matrix addition ---
-
-H <- sum(z_i + Pm_Z, index = 'j')
-# ("Add(A0x5575749b46b0i,A0x5575774e9328NA)")
-# No sum is done because nothing is 'j' indexed:
-
+sum_Pm_Z_Pm_Z2 <- sum(Pm_Z + Pm_Z2, index = 'i')
 #       [,1] [,2] [,3] [,4] [,5] [,6]
-# [1,]    3    3    2    1    5    9
-# [2,]    4    2    3    0    6    8
-# [3,]    5    3    4    1    7    9
-# [4,]    4    4    3    2    6   10
+# [1,]    5    6    2    2    8   18
 
-G <- sum(z_i + Pm_Z, index = 'i')
-#       [,1] [,2] [,3] [,4] [,5] [,6]
-# [1,]   16   12   12    4   24   36
 
-# Vector/complex value addition ---
+# Single value/Single value sums -----------------------------------------------
+
+# Single Values
 Cplx <- LazyTensor(2 + 9i)
-Scal <- LazyTensor(2)
+Cplx2 <- LazyTensor(3 + 7i)
+Scal <- LazyTensor(2.4)
+
+A <- Cplx + Scal
+# > A$formula
+# [1] "Add(A0x55c7cfeb3408NA,Real2Complex(A0x55c7d34eca68NA))"
+
+sum_Cplx_Cplx2 <- sum(Cplx + Cplx2, index = 'j')
+#       [,1] [,2]
+# [1,]    5   16
+
+sum_Cplx_Scal <- sum(Cplx + Scal, index = 'j')
+#       [,1] [,2]
+# [1,]  4.4    9 
 
 
-O1 <- sum(Pm_Z * Scal, index = 'j') # WORKS
-#       [,1] [,2] [,3] [,4] [,5] [,6]
-# [1,]    4    6    2    2    8   18
+# Matrix/single value sums -----------------------------------------------------
 
-O12 <- sum(Pm_Z + Scal, index = 'j') # TODO: FIX ME
+sum_z_i_Cplx <- sum(z_i + Cplx, index = 'i')
+# Error in compile_formula(formula, var_aliases$var_aliases, dllname) : 
+#     Error during cmake call.
+
+sum_z_i_Scal <- sum(z_i + Scal, index = 'i')
+# Error in compile_formula(formula, var_aliases$var_aliases, dllname) : 
+#     Error during cmake call.
+
+sum_x_i_Scal <- sum(x_i + Scal, index = 'i')
+#       [,1] [,2] [,3]
+# [1,] 19.6 19.6 19.6
+
+sum_x_i_Cplx <- sum(x_i + Cplx, index = 'i')
+# Error in compile_formula(formula, var_aliases$var_aliases, dllname) : 
+#     Error during cmake call.
+
+A <- x_i + Cplx
+# > A$formula
+# [1] "Add(Real2Complex(A0x55c7d001c3c8i),A0x55c7cfeb3408NA)"
+
+
+# --- attempt with "formula-args" syntax ---
+
+# formula <- "Sum_Reduction(Add(Real2Complex(s), z),1)"
+# args <- c("Real2Complex(s)=Pm(1)", "z=Pm(1)") # idem with  c("z=Pm(2)", "s=Pm(1)")
+# op_Scal_Cplx <- keops_kernel(formula, args)
+
+formula <- "Sum_Reduction(Add(Real2Complex(s), z),1)"
+args <- c("s=Pm(1)", "z=Pm(1)") # idem with  c("z=Pm(2)", "s=Pm(1)")
+sum_Scal_Cplx <- keops_kernel(formula, args)
+
+sum_Scal_Cplx(list(Cplx, Scal))
+# Error in r_genred(input, param) : 
+#     Not compatible with requested type: [type=list; target=double]. 
+
+formula <- "Sum_Reduction(Add(z1,z2),1)"
+args <- c("z1=Pm(2)", "z2=Pm(2)") # error with c("z1=Pm(1)", "z2=Pm(1)")
+sum_Cplx_Cplx <- keops_kernel(formula, args)
+
+sum_Cplx_Cplx(list(Cplx, Cplx2))
+# Error in r_genred(input, param) : 
+#     Not compatible with requested type: [type=list; target=double]. 
+
+sum_Pm_Z_Scal <- sum(Pm_Z + Scal, index = 'j')
 # Error in compile_formula(formula, var_aliases$var_aliases, dllname) : 
 #     Error during cmake call.
 
 
-formula <- "Sum_Reduction(Add(z,Real2Complex(s)),1)"
+formula <- "Sum_Reduction(Add(z,s),1)"
 args <- c("z=Pm(6)", "s=Pm(1)")
-op21 <- keops_kernel(formula, args)
+sum_Pm_6_Pm_1 <- keops_kernel(formula, args)
 
-#op21(list(x, s))
+sum_Pm_6_Pm_1(list(Pm_Z, Scal))
+# Error in r_genred(input, param) : 
+#     Not compatible with requested type: [type=list; target=double]. 
+
+
+formula <- "Sum_Reduction(Add(z,s),1)"
+args <- c("z=Pm(6)", "s=Pm(2)")
+sum_Pm_6_Pm_2 <- keops_kernel(formula, args)
+# Error in compile_formula(formula, var_aliases$var_aliases, dllname) : 
+#     Error during cmake call.
+
 
 formula <- "Sum_Reduction(v+s,1)"
 args <- c("v=Pm(3)", "s=Pm(1)")
@@ -731,9 +966,47 @@ op22(list(V, 2))
 # [1,]    7    8    9
 
 formula <- "Sum_Reduction(Add(v,s),1)"
-args <- c("v=Pm(6)", "s=Pm(2)")
+args <- c("v=Pm(6)", "s=Pm(1)")
 op23 <- keops_kernel(formula, args)
 
+op23(list(Pm_Z$vars[[1]], 3))
+#       [,1] [,2] [,3] [,4] [,5] [,6]
+# [1,]    5    6    4    4    7   12
+
+
+formula <- "Sum_Reduction(Add(v,Real2Complex(s)),1)"
+args <- c("v=Pm(6)", "s=Pm(3)")
+op23 <- keops_kernel(formula, args)
+
+op23(list(Pm_Z$vars[[1]], V))
+#       [,1] [,2] [,3] [,4] [,5] [,6]
+# [1,]    5    6    4    4    7   12
+
+# for issue
+
+# works
+formula <- "Sum_Reduction(Add(v,s),1)"
+args <- c("v=Pm(6)", "s=Pm(1)")
+op1 <- keops_kernel(formula, args)
+
+# doesn't work
+formula <- "Sum_Reduction(Add(v,Real2Complex(s)),1)"
+args <- c("v=Pm(6)", "s=Pm(1)")
+op2 <- keops_kernel(formula, args)
+# Error in compile_formula(formula, var_aliases$var_aliases, dllname) : 
+#     Error during cmake call. 
+
+# works
+formula <- "Sum_Reduction(Add(v,Real2Complex(s)),1)"
+args <- c("v=Pm(6)", "s=Pm(3)")
+op3 <- keops_kernel(formula, args)
+
+
+
+# --------------
+formula <- "Sum_Reduction(Add(z,s)),1)"
+args <- c("z=Pm(6)", "s=Pm(1)")
+op21 <- keops_kernel(formula, args)
 
 
 O13 <- sum(Pm_Z + Pm_Z2, index = 'j')
@@ -764,7 +1037,7 @@ R2 <- sum(Scal + Pm_V, index = 'j')
 O21 <- sum(Scal + Pm_Vect_z, index = 'j') # WORKS
 O3 <- sum(Cplx * Vect_z, index = 'j') # TODO: FIX ME # works with "*"
 O4 <- sum(Pm_Vect_z * Cplx, index = 'j') # TODO: FIX ME (error different from above)
-O5 <- sum(Mat_z_i * Cplx, index = 'j') # TODO: FIX ME # works with "*"
+O5 <- sum(z_i + Cplx, index = 'j') # TODO: FIX ME # works with "*" but not with "+"
 
 
 
@@ -777,7 +1050,7 @@ P12 <- sum(x_i + x_i, index = 'i')
 
 P14 <- sum(x_i ^ x_i, index = 'i')
 
-O6 <- sum(Scal * z_i, index = 'j') # TODO: FIX ME
+O6 <- sum(Scal + z_i, index = 'i') # TODO: FIX ME
 # Error in compile_formula(formula, var_aliases$var_aliases, dllname) : 
 #     Error during cmake call. 
 
@@ -805,6 +1078,18 @@ O9 <- sum(z_i + z_i, index = 'j')
 # [2,]    4   -2    4   -2    4   -2
 # [3,]    6    0    6    0    6    0
 # [4,]    4    2    4    2    4    2 
+
+O9_ij <- sum(z_i + z_j, index = 'i')
+#Error in op(c(x$vars)) : 
+#    The number of elements in the 'input' argument does not correspond to the number input arguments in the formula. 
+
+formula <- "Sum_Reduction(Add(zi,zj),1)"
+args <- c("zi=Vi(6)", "zj=Vj(6)")
+op_z_i_z_j <- keops_kernel(formula, args)
+
+op_z_i_z_j(list(z_i, z_j))
+# Error in r_genred(input, param) : 
+#     Not compatible with requested type: [type=list; target=double]. 
 
 O10 <- sum(z_i + z2_i, index = 'j')
 #           [,1]     [,2] [,3] [,4] [,5] [,6]
