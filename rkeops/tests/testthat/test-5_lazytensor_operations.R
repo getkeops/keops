@@ -1137,13 +1137,13 @@ test_that("clamp", {
   
   expect_error(
     clamp(x_i, yc_j, z_i),
-    paste0("`x`, `a` and `b` input arguments can't be ComplexLazyTensors."),
+    paste0("`x`, `a` and `b` input arguments cannot be ComplexLazyTensors."),
     fixed = TRUE
   )
   
   expect_error(
     clamp(x_i, y_j, zc_i),
-    paste0("`x`, `a` and `b` input arguments can't be ComplexLazyTensors."),
+    paste0("`x`, `a` and `b` input arguments cannot be ComplexLazyTensors."),
     fixed = TRUE
   )
   
@@ -1199,7 +1199,7 @@ test_that("clampint", {
   
   expect_error(
     clampint(xc_i, 2, 8),
-    paste0("`x` can't be a ComplexLazyTensor."),
+    paste0("`x` cannot be a ComplexLazyTensor."),
     fixed = TRUE
   )
   
@@ -1264,13 +1264,13 @@ test_that("ifelse", {
   
   expect_error(
     ifelse(xc_i, y_j, z_i),
-    paste0("`x`, `a` and `b` input arguments can't be ComplexLazyTensors."),
+    paste0("`x`, `a` and `b` input arguments cannot be ComplexLazyTensors."),
     fixed = TRUE
   )
   
   expect_error(
     ifelse(x_i, yc_j, zc_i),
-    paste0("`x`, `a` and `b` input arguments can't be ComplexLazyTensors."),
+    paste0("`x`, `a` and `b` input arguments cannot be ComplexLazyTensors."),
     fixed = TRUE
   )
   
@@ -1704,7 +1704,7 @@ test_that("real2complex", {
   obj <-  real2complex(x_i)
   expect_equal(length(obj$args), 1)
   expect_equal(length(obj$vars), 1)
-  expect_equal(obj$dimres, 2 * x_i$dimres)
+  expect_equal(obj$dimres, x_i$dimres)
   bool_grep_formula <- grep("Real2Complex\\(A0x.*i\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
   expect_is(obj, "ComplexLazyTensor")
@@ -1712,7 +1712,7 @@ test_that("real2complex", {
   obj <-  real2complex(Pm(2))
   expect_null(obj$args)
   expect_null(obj$vars)
-  expect_equal(obj$dimres, 2)
+  expect_equal(obj$dimres, 1)
   bool_grep_formula <- grep("Real2Complex\\(IntCst\\(2\\)\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
   expect_is(obj, "ComplexLazyTensor")
@@ -1736,7 +1736,7 @@ test_that("imag2complex", {
   obj <-  imag2complex(x_i)
   expect_equal(length(obj$args), 1)
   expect_equal(length(obj$vars), 1)
-  expect_equal(obj$dimres, 2 * x_i$dimres)
+  expect_equal(obj$dimres, x_i$dimres)
   bool_grep_formula <- grep("Imag2Complex\\(A0x.*i\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
   expect_is(obj, "ComplexLazyTensor")
@@ -1744,7 +1744,7 @@ test_that("imag2complex", {
   obj <-  imag2complex(Pm(2))
   expect_null(obj$args)
   expect_null(obj$vars)
-  expect_equal(obj$dimres, 2)
+  expect_equal(obj$dimres, 1)
   bool_grep_formula <- grep("Imag2Complex\\(IntCst\\(2\\)\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
   expect_is(obj, "ComplexLazyTensor")
@@ -1769,7 +1769,7 @@ test_that("exp1j", {
   obj <-  exp1j(x_i)
   expect_equal(length(obj$args), 1)
   expect_equal(length(obj$vars), 1)
-  expect_equal(obj$dimres, 2 * x_i$dimres)
+  expect_equal(obj$dimres, x_i$dimres)
   bool_grep_formula <- grep("ComplexExp1j\\(A0x.*i\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
   expect_is(obj, "ComplexLazyTensor")
@@ -1793,11 +1793,16 @@ test_that("Conj", {
   z_i <- LazyTensor(z, index = 'i', is_complex = TRUE)  # ComplexLazyTensor
   
   # check results, formulas & classes
-  expect_true(is.ComplexLazyTensor(Conj(z_i)))
-  
   obj <- Conj(z_i)
+  expect_is(obj, "ComplexLazyTensor")
+  expect_equal(length(obj$args), 1)
+  expect_equal(length(obj$vars), 1)
   bool_grep_formula <- grep("Conj\\(A0x.*i\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
+  
+  obj <- Conj(1 + 2i)
+  expect_equal(obj, 1 - 2i)
+  expect_is(obj, "complex")
   
   # errors
   expect_error(
@@ -1812,7 +1817,6 @@ test_that("Mod", {
   # basic example
   D <- 3
   M <- 100
-  N <- 150
   x <- matrix(runif(M * D), M, D)
   x_i <- LazyTensor(x, index = 'i')
   
@@ -1820,10 +1824,12 @@ test_that("Mod", {
   z_i <- LazyTensor(z, index = 'i', is_complex = TRUE)  # ComplexLazyTensor
   
   # check results, formulas & classes
-  expect_true(is.LazyTensor(Mod(z_i)))
-  expect_false(is.ComplexLazyTensor(Mod(z_i)))
-  
   obj <- Mod(z_i)
+  expect_equal(length(obj$args), 1)
+  expect_equal(length(obj$vars), 1)
+  expect_equal(obj$dimres, 3)
+  expect_true(is.LazyTensor(obj))
+  expect_false(is.ComplexLazyTensor(obj))
   bool_grep_formula <- grep("ComplexAbs\\(A0x.*i\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
 })
@@ -2199,10 +2205,9 @@ test_that("reduction.LazyTensor", {
   expect_false(is.LazyTensor(res))
   expect_true(is.matrix(res))
   
-  # TODO : reduction with optional arg with Kmin or not ?
+  # with an optional argument
   opstr <- "KMin"
   K <- 2
-  
   res <- reduction.LazyTensor(x_i, opstr, "i", opt_arg = K)
   expect_true(is.matrix(res))
   
@@ -2233,10 +2238,11 @@ test_that("sum", {
   D <- 3
   M <- 100
   N <- 150
-  x <- matrix(runif(M * D), M, D)
+  x <- matrix(c(1, 2, 3), 2, 3)
   x_i <- LazyTensor(x, index = 'i')
+  x_j <- LazyTensor(x, index = 'j')
   
-  z <- matrix(1i^(-6:5), nrow = 4)
+  z <- matrix((1+2i)^(-6:5), nrow = 4)
   z_i <- LazyTensor(z, index = 'i', is_complex = TRUE)
   
   v <- c(1, 2, 3)
@@ -2245,14 +2251,43 @@ test_that("sum", {
   complex_vect <- c(1 + 2i, 1 + 2i, 1 + 2i)
   Pm_complex <- Pm(complex_vect)
   
-  # check classes
+  # check classes and results
   res <- sum(x_i, "i")
   expect_false(is.LazyTensor(res))
+  expect_equal(dim(res), c(1, 3))
   expect_true(is.matrix(res))
+  expected_res <- c(sum(x[, 1]), sum(x[, 2]), sum(x[, 3]))
+  expect_true(sum(abs(res - expected_res)) < 1E-5)
+  
+  res <- sum(x_i, "j")
+  expect_false(is.LazyTensor(res))
+  expect_true(is.matrix(res))
+  expect_equal(dim(res), c(2, 3))
+  expected_res <- x
+  expect_true(sum(abs(res - expected_res)) < 1E-5)
+  
+  res <- sum(x_j, "j")
+  expect_false(is.LazyTensor(res))
+  expect_equal(dim(res), c(1, 3))
+  expect_true(is.matrix(res))
+  expected_res <- c(sum(x[, 1]), sum(x[, 2]), sum(x[, 3]))
+  expect_true(sum(abs(res - expected_res)) < 1E-5)
+  
+  res <- sum(x_j, "i")
+  expect_false(is.LazyTensor(res))
+  expect_true(is.matrix(res))
+  expect_equal(dim(res), c(2, 3))
+  expected_res <- x
+  expect_true(sum(abs(res - expected_res)) < 1E-5)
   
   res <- sum(z_i, "i")
   expect_false(is.LazyTensor(res))
   expect_true(is.matrix(res))
+  expect_equal(dim(res), c(1, 6))
+  z_var <- z_i$vars[[1]]
+  expected_res <- c(sum(z_var[, 1]), sum(z_var[, 2]), sum(z_var[, 3]), 
+                    sum(z_var[, 4]), sum(z_var[, 5]), sum(z_var[, 6]))
+  expect_true(sum(abs(res - expected_res)) < 1E-5)
   
   res <- sum(Pm_v)
   expect_true(is.LazyTensor(res))
@@ -2319,18 +2354,35 @@ test_that("min", {
   D <- 3
   M <- 100
   N <- 150
-  x <- matrix(runif(M * D), M, D)
-  x_i <- LazyTensor(x, index = "i")
-  xc_i <- LazyTensor(x, index = "i", is_complex = TRUE)
+  x <- matrix(c(1, 2, 3), 2, 3)
+  x_i <- LazyTensor(x, index = 'i')
+  x_j <- LazyTensor(x, index = 'j')
+  
+  z <- matrix((1+2i)^(-6:5), nrow = 4)
+  z_i <- LazyTensor(z, index = 'i', is_complex = TRUE)
+  
+  v <- c(1, 2, 3)
+  Pm_v <- Pm(v)
+  
+  complex_vect <- c(1 + 2i, 1 + 2i, 1 + 2i)
+  Pm_complex <- Pm(complex_vect)
   
   # check results, formulas & classes
   expect_equal(min(D), 3)
   expect_false(is.LazyTensor(min(x)))
-  expect_true(is.ComplexLazyTensor(min(xc_i)))
+  expect_true(is.ComplexLazyTensor(min(z_i)))
   
   res <- min(x_i, "i")
   expect_false(is.LazyTensor(res))
+  expect_equal(dim(res), c(1, 3))
   expect_true(is.matrix(res))
+  
+  # res <- sum(x_i, "i")
+  # expect_false(is.LazyTensor(res))
+  # expect_equal(dim(res), c(1, 3))
+  # expect_true(is.matrix(res))
+  # expected_res <- c(sum(x[, 1]), sum(x[, 2]), sum(x[, 3]))
+  # expect_true(sum(abs(res - expected_res)) < 1E-5)
   
   obj <- min(x_i)
   expect_true(is.LazyTensor(obj))
@@ -3031,7 +3083,6 @@ test_that("grad", {
     paste0("`index` input argument should be a character, either 'i' or 'j'."), 
     fixed = TRUE
   )
-
   
 })
 

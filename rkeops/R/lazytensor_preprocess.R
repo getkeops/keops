@@ -525,11 +525,6 @@ binaryop.LazyTensor <- function(x, y, opstr, is_operator = FALSE,
   
   # result dimension
   if(is.na(dim_res)) {
-    dim_res <- max(c(get_inner_dim(x), get_inner_dim(y)))
-  }
-  
-  # result dimension
-  if(is.na(dim_res)) {
     dim_res <- max(c(dimres_x, dimres_y))
   }
   

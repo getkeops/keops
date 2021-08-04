@@ -1580,7 +1580,7 @@ ifelse.LazyTensor <- function(x, a, b) {
     if((is.ComplexLazyTensor(x) || is.ComplexLazyTensor(a)) 
        || (is.ComplexLazyTensor(b))) {
         stop(paste0("`x`, `a` and `b` input arguments ", 
-                    "can't be ComplexLazyTensors."))
+                    "cannot be ComplexLazyTensors."))
     }
     res <- ternaryop.LazyTensor(x, a, b, "IfElse")
 }
@@ -2030,8 +2030,7 @@ real2complex <- function(x) {
 #' @keywords internal
 #' @export
 real2complex.LazyTensor <- function(x) {
-    res <- unaryop.LazyTensor(x, "Real2Complex", res_type = "ComplexLazyTensor",
-                              dim_res = 2 * x$dimres)
+    res <- unaryop.LazyTensor(x, "Real2Complex", res_type = "ComplexLazyTensor")
 }
 
 #' Element-wise "real 2 complex" operation.
@@ -2071,8 +2070,7 @@ imag2complex <- function(x) {
 #' @keywords internal
 #' @export
 imag2complex.LazyTensor <- function(x) {
-    res <- unaryop.LazyTensor(x, "Imag2Complex", res_type = "ComplexLazyTensor",
-                              dim_res = 2 * x$dimres)
+    res <- unaryop.LazyTensor(x, "Imag2Complex", res_type = "ComplexLazyTensor")
 }
 
 #' Element-wise "imag 2 complex" operation.
@@ -2112,8 +2110,7 @@ exp1j <- function(x) {
 #' @keywords internal
 #' @export
 exp1j.LazyTensor <- function(x) {
-    res <- unaryop.LazyTensor(x, "ComplexExp1j", res_type = "ComplexLazyTensor",
-                              dim_res = 2 * x$dimres)
+    res <- unaryop.LazyTensor(x, "ComplexExp1j", res_type = "ComplexLazyTensor")
 }
 
 #' Element-wise "complex exponential of 1j x" operation.
