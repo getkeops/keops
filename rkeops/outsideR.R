@@ -1399,3 +1399,30 @@ op2(list(x, y))
 # [1,]    3    9   15   21   27    6   15   24   33
 # [2,]    6   12   18   24   30    6   15   24   33
 
+# mod ==========================================================================
+
+# Sum_Reduction(Mod(Var(0,2,0), IntCst(1), IntCst(2)),1)
+
+x <- matrix(c(1, 2, 3, 4, 5, 6), nrow = 3, ncol = 2)
+#       [,1] [,2]
+# [1,]    1    4
+# [2,]    2    5
+# [3,]    3    6
+
+# works
+formula <- "Sum_Reduction(Mod(x, IntCst(7), IntCst(2)),0)"
+args <- c("x=Vi(2)")
+op <- keops_kernel(formula, args)
+op(list(x))
+
+# works
+formula <- "Sum_Reduction(Mod(x, y, IntCst(2)),0)"
+args <- c("x=Vi(2)", "y=Vi(2)")
+op <- keops_kernel(formula, args)
+op(list(x, y))
+
+# works
+formula <- "Sum_Reduction(Mod(x, y, z),0)"
+args <- c("x=Vi(2)", "y=Vi(2)", "z=Vi(2)")
+op <- keops_kernel(formula, args)
+op(list(x, y, z))
