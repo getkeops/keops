@@ -16,47 +16,77 @@ test_that("LazyTensor", {
   M <- 100
   x <- matrix(runif(M * D), M, D)
   u <- runif(M, min = 0, max = 3.14)
-  out_i <- LazyTensor(x, index = 'i')
-  out_j <- LazyTensor(x, index = 'j')
-  out_u <- LazyTensor(u) # parameter vector
-  out_D <- LazyTensor(D) # parameter scalar
+  x_i <- LazyTensor(x, index = 'i')
+  x_j <- LazyTensor(x, index = 'j')
+  Pm_u <- LazyTensor(u) # parameter vector
+  Pm_int <- LazyTensor(D) # parameter scalar
+  Pm_dec <- LazyTensor(3.14)
   
   z <- matrix(1i^ (-6:5), nrow = 4)                     # complex 4x3 matrix
   z_i <- LazyTensor(z, index = 'i', is_complex = TRUE)  # ComplexLazyTensor
   still_good_z_Vi <- LazyTensor(z, index = 'i') # without specifying 
   # "is_complex = TRUE": should work as well.
+  cplx <- 3 + 2i
+  Pm_cplx <- LazyTensor(cplx)
   
   # check classes
-  classes <- c(class(out_i), class(out_j), class(out_u), class(out_D))
+  classes <- c(class(x_i), class(x_j), class(Pm_u),
+               class(Pm_int), class(Pm_dec))
   k <- length(classes)
   expect_equal(classes, rep("LazyTensor", k))
   
   expect_true(is.ComplexLazyTensor(z_i))
   expect_true(is.ComplexLazyTensor(still_good_z_Vi))
+  expect_true(is.ComplexLazyTensor(Pm_cplx))
   
   # check formulae
-  bool_grep_i <- grep("A0x.*i", out_i$formula)
-  expect_equal(bool_grep_i, 1)
-  bool_grep_j <- grep("A0x.*j", out_j$formula)
-  expect_equal(bool_grep_j, 1)
-  bool_grep_NA <- grep("A0x.*NA", out_u$formula)
-  expect_equal(bool_grep_NA, 1)
-  bool_grep_zi <- grep("A0x.*i", z_i$formula)
-  expect_equal(bool_grep_zi, 1)
+  bool_grep_x_i <- grep("A0x.*i", x_i$formula)
+  expect_equal(bool_grep_x_i, 1)
+  bool_grep_x_j <- grep("A0x.*j", x_j$formula)
+  expect_equal(bool_grep_x_j, 1)
+  bool_grep_Pm_u <- grep("A0x.*NA", Pm_u$formula)
+  expect_equal(bool_grep_Pm_u, 1)
+  bool_grep_Pm_int <- grep("IntCst\\(3\\)", Pm_int$formula)
+  expect_equal(bool_grep_Pm_int, 1)
+  bool_grep_Pm_dec <- grep("A0x.*NA", Pm_dec$formula)
+  expect_equal(bool_grep_Pm_dec, 1)
+  bool_grep_z_i <- grep("A0x.*i", z_i$formula)
+  expect_equal(bool_grep_z_i, 1)
+  bool_grep_Pm_cplx <- grep("A0x.*NA", Pm_cplx$formula)
+  expect_equal(bool_grep_Pm_cplx, 1)
   
   # check args
-  bool_grep_Pm <- grep("IntCst\\(3\\)=Pm\\(1\\)", out_D$args)
-  expect_equal(bool_grep_Pm, 1)
-  bool_grep_zi_args <- grep("A0x.*i=Vi\\(6\\)", z_i$args)
-  expect_equal(bool_grep_zi_args, 1)
+  bool_grep_x_i <- grep("A0x.*i=Vi\\(3\\)", x_i$args)
+  expect_equal(bool_grep_x_i, 1)
+  bool_grep_x_j <- grep("A0x.*j=Vj\\(3\\)", x_j$args)
+  expect_equal(bool_grep_x_j, 1)
+  bool_grep_Pm_u <- grep("A0x.*NA=Pm\\(100\\)", Pm_u$args)
+  expect_equal(bool_grep_Pm_u, 1)
+  expect_null(Pm_int$args)
+  bool_grep_Pm_dec <- grep("A0x.*NA=Pm\\(1\\)", Pm_dec$args)
+  expect_equal(bool_grep_Pm_dec, 1)
+  bool_grep_z_i <- grep("A0x.*i=Vi\\(6\\)", z_i$args)
+  expect_equal(bool_grep_z_i, 1)
+  bool_grep_Pm_cplx <- grep("A0x.*NA=Pm\\(2\\)", Pm_cplx$args)
+  expect_equal(bool_grep_Pm_cplx, 1)
+  
+  # check vars
+  expect_true(is.matrix(x_i$vars[[1]]))
+  expect_true(is.matrix(x_j$vars[[1]]))
+  expect_true(is.vector(Pm_u$vars[[1]]))
+  expect_null(Pm_int$vars)
+  expect_equal(Pm_dec$vars[[1]], 3.14)
+  expect_true(is.matrix(z_i$vars[[1]]))
+  expect_true(is.matrix(Pm_cplx$vars[[1]]))
   
   # check dimres
-  expect_equal(D, out_i$dimres)
-  expect_equal(D, out_j$dimres)
-  expect_equal(M, out_u$dimres)
-  expect_equal(1, out_D$dimres)
+  expect_equal(D, x_i$dimres)
+  expect_equal(D, x_j$dimres)
+  expect_equal(M, Pm_u$dimres)
+  expect_equal(1, Pm_int$dimres)
   expect_equal(3, z_i$dimres)
   expect_equal(3, still_good_z_Vi$dimres)
+  expect_equal(1, Pm_cplx$dimres)
   
   # check complex vars
   Z <- z_i$vars[[1]]
@@ -70,8 +100,16 @@ test_that("LazyTensor", {
   expect_equal(Z[, 1], Re(z[, 1]))
   expect_equal(Z[, 2], Im(z[, 1]))
   expect_equal(Z[, 3], Re(z[, 2]))
+  
+  # same principle with a single parameter complex value
+  vars_Pm_cplx <- Pm_cplx$vars[[1]]
+  expect_equal(ncol(vars_Pm_cplx), 2)
+  
+  expect_equal(vars_Pm_cplx[, 1], Re(cplx))
+  expect_equal(vars_Pm_cplx[, 2], Im(cplx))
+  
   # errors
-  expect_error(LazyTensor(out_i), 
+  expect_error(LazyTensor(x_i), 
                "Input `x` is already a LazyTensor.", 
                fixed = TRUE)
   expect_error(LazyTensor("x"), 
@@ -120,9 +158,9 @@ test_that("Vi", {
   expect_equal(bool_grep_zi, 1)
   
   # check args
-  expect_true(x_i$args == x_Vi$args)
-  expect_true(z_i$args == z_Vi$args)
-  expect_true(z_i$args == still_good_z_Vi$args)
+  expect_equal(x_i$args, x_Vi$args)
+  expect_equal(z_i$args, z_Vi$args)
+  expect_equal(z_i$args, still_good_z_Vi$args)
   
   # check dimres
   expect_equal(D, x_Vi$dimres)
@@ -173,9 +211,9 @@ test_that("Vj", {
   expect_equal(bool_grep_zj, 1)
   
   # check arguments 
-  expect_true(x_j$args == x_Vj$args)
-  expect_true(z_j$args == z_Vj$args)
-  expect_true(z_j$args == still_good_z_Vj$args)
+  expect_equal(x_j$args, x_Vj$args)
+  expect_equal(z_j$args, z_Vj$args)
+  expect_equal(z_j$args, still_good_z_Vj$args)
   expect_true(is.LazyTensor(x_Vj))
   expect_true(is.ComplexLazyTensor(z_Vj))
   expect_true(is.ComplexLazyTensor(still_good_z_Vj))
@@ -205,11 +243,14 @@ test_that("Pm", {
   D <- 3
   M <- 100
   x <- matrix(runif(M * D), M, D)
-  u <- runif(M, min = 0, max = 3.14)
+  u <- c(2, 3, 5, 7, 11, 13)
   z <- rep(1i^(-6:5), 4) # complex vector
   
-  D_LT <- LazyTensor(D)
-  D_Pm <- Pm(D)
+  int_LT <- LazyTensor(D)
+  int_Pm <- Pm(D)
+  dec <- 7.2
+  dec_LT <- LazyTensor(dec)
+  dec_Pm <- Pm(dec)
   u_LT <- LazyTensor(u)
   u_Pm <- Pm(u)
   z_LT <- LazyTensor(z)
@@ -217,26 +258,37 @@ test_that("Pm", {
   x_i <- LazyTensor(x, index = 'i')
   
   # check classes
-  expect_true(is.LazyTensor(D_Pm))
+  expect_true(is.LazyTensor(int_Pm))
+  expect_true(is.LazyTensor(dec_Pm))
   expect_true(is.LazyTensor(u_Pm))
   expect_true(is.ComplexLazyTensor(z_Pm))
   
   # check formulae
-  bool_grep_D_Pm <- grep("IntCst\\(3\\)", D_Pm$formula)
-  expect_equal(bool_grep_D_Pm, 1)
+  bool_grep_int_Pm <- grep("IntCst\\(3\\)", int_Pm$formula)
+  expect_equal(bool_grep_int_Pm, 1)
+  bool_grep_dec_Pm <- grep("A0x.*NA", dec_Pm$formula)
+  expect_equal(bool_grep_dec_Pm, 1)
   bool_grep_u_Pm <- grep("A0x.*NA", u_Pm$formula)
   expect_equal(bool_grep_u_Pm, 1)
   bool_grep_Z_LT <- grep("A0x.*NA", z_LT$formula)
   expect_equal(bool_grep_Z_LT, 1)
   
   # check arguments
-  expect_true(D_LT$args == D_Pm$args)
+  expect_null(int_Pm$args)
+  expect_true(dec_LT$args == dec_Pm$args)
   expect_true(u_LT$args == u_Pm$args)
   expect_true(z_LT$args == z_Pm$args)
   
+  # check vars
+  expect_null(int_Pm$vars[[1]])
+  expect_equal(dec_LT$vars[[1]], dec_Pm$vars[[1]])
+  expect_equal(u_LT$vars[[1]], u_Pm$vars[[1]])
+  expect_equal(z_LT$vars[[1]], z_Pm$vars[[1]])
+  
   # check dimres
-  expect_equal(1, D_Pm$dimres)
-  expect_equal(M, u_Pm$dimres)
+  expect_equal(1, int_Pm$dimres)
+  expect_equal(1, dec_Pm$dimres)
+  expect_equal(6, u_Pm$dimres)
   expect_equal(length(z), z_Pm$dimres)
   
   # errors
@@ -266,12 +318,17 @@ test_that("unaryop.LazyTensor", {
   # ComplexLazyTensor
   z_j <- LazyTensor(z, index = 'j', is_complex = TRUE)
   
-  # check formulas, args & classes
+  Pm_int <- LazyTensor(D)
+  Pm_dec <- LazyTensor(3.14)
+  Pm_v <- LazyTensor(c(2, 3, 5, 7, 11, 13))
+  
+  # check formulas, args, dimres and classes for several unary operations
   obj <- unaryop.LazyTensor(x_i, "Square")
   bool_grep_formula <- grep("Square\\(A0x.*i\\)", obj$formula)
-  bool_grep_args <- grep("A0x.*i=Vi\\(3\\)", obj$args[1])
   expect_equal(bool_grep_formula, 1)
+  bool_grep_args <- grep("A0x.*i=Vi\\(3\\)", obj$args[1])
   expect_equal(bool_grep_args, 1)
+  expect_equal(obj$dimres, x_i$dimres)
   expect_true(is.LazyTensor(obj))
   
   obj <- unaryop.LazyTensor(z_j, "Square")
@@ -281,7 +338,23 @@ test_that("unaryop.LazyTensor", {
   expect_false(is.ComplexLazyTensor(obj))
   expect_true(is.LazyTensor(obj))
   
-  # check dimres
+  obj <- exp(Pm_int)
+  bool_grep_formula <- grep("Exp\\(IntCst\\(3\\)\\)", obj$formula)
+  expect_null <- obj$args
+  expect_null <- obj$vars
+  expect_equal(obj$dimres, 1)
+  expect_true(is.LazyTensor(obj))
+  
+  obj <- log(Pm_dec)
+  bool_grep_formula <- grep("Log\\(A0x.*NA\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  bool_grep_args <- grep("A0x.*NA=Pm\\(1\\)", obj$args[1])
+  expect_equal(bool_grep_args, 1)
+  expect_equal(obj$vars[[1]], 3.14)
+  expect_equal(obj$dimres, 1)
+  expect_true(is.LazyTensor(obj))
+  
+  # check dimres for some special cases
   una_x <- unaryop.LazyTensor(x_i, "Minus")   # symbolic matrix
   expect_equal(D, una_x$dimres)
   una2_x <- unaryop.LazyTensor(x_i, "Norm2",
@@ -325,14 +398,14 @@ test_that("binaryop.LazyTensor", {
   # ComplexLazyTensor
   xc_i <- LazyTensor(x, index = 'i', is_complex = TRUE)
   
-  # check formulas, args & classes
+  # check formulas, args, dimres and classes for several binary operations
   obj <-  binaryop.LazyTensor(x_i, y_j, "Sum")
   bool_grep_formula <- grep("Sum\\(A0x.*i,A0x.*j\\)", obj$formula)
-  bool_grep_args1 <- grep("A0x.*i=Vi\\(3\\)", obj$args[1])
-  bool_grep_args2 <- grep("A0x.*j=Vj\\(3\\)", obj$args[2])
   expect_equal(bool_grep_formula, 1)
   expect_equal(length(obj$args), 2)
+  bool_grep_args1 <- grep("A0x.*i=Vi\\(3\\)", obj$args[1])
   expect_equal(bool_grep_args1, 1)
+  bool_grep_args2 <- grep("A0x.*j=Vj\\(3\\)", obj$args[2])
   expect_equal(bool_grep_args2, 1)
   expect_is(obj, "LazyTensor")
   
@@ -353,19 +426,26 @@ test_that("binaryop.LazyTensor", {
   expect_equal(length(obj$args), 2)
   expect_is(obj, "LazyTensor")
   
+  obj <-  binaryop.LazyTensor(x_i, 3, "+", is_operator = TRUE)
+  bool_grep_formula <- grep("A0x.*i\\+IntCst\\(3\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  expect_equal(length(obj$args), 1) # no args added for IntCst
+  bool_grep_args <- grep("A0x.*i=Vi\\(3\\)", obj$args)
+  expect_equal(length(obj$vars), 1) # no vars added for IntCst
+  expect_equal(obj$dimres, 3)
+  expect_is(obj, "LazyTensor")
+  
   obj <-  binaryop.LazyTensor(x_i, x_i, "+", is_operator = TRUE)
   expect_equal(length(obj$args), 1)
   expect_equal(length(obj$vars), 1)
   expect_true(is.LazyTensor(obj))
-  
-  
   
   obj <-  binaryop.LazyTensor(xc_i, x_i, "+", is_operator = TRUE)
   expect_equal(length(obj$args), 2)
   expect_equal(length(obj$vars), 2)
   expect_true(is.ComplexLazyTensor(obj))
   
-  # check dimres
+  # check dimres for some special cases
   bin1 <- binaryop.LazyTensor(xc_i, x_i, "Add", is_operator = TRUE)
   expect_equal(D, bin1$dimres)
   
@@ -408,17 +488,19 @@ test_that("binaryop.LazyTensor", {
 test_that("ternaryop.LazyTensor", {
   # basic example
   D <- 3
-  M <- 100
-  N <- 150
-  P <- 200
+  M <- 10
+  N <- 15
+  P <- 20
+  w <- matrix(runif(M * D), M, D)
   x <- matrix(runif(M * D), M, D)
   y <- matrix(runif(N * D), N, D)
   z <- matrix(runif(P * D), P, D)
+  w_j <- LazyTensor(w, index = 'j')
   x_i <- LazyTensor(x, index = 'i')
   y_j <- LazyTensor(y, index = 'j')
   z_i <- LazyTensor(z, index = 'i')
   
-  # check formulas, args & classes
+  # check formulas, args, dimres and classes for several ternary operations
   obj <-  ternaryop.LazyTensor(x_i, y_j, z_i, "Clamp")
   bool_grep_formula <- grep("Clamp\\(A0x.*i,A0x.*j,A0x.*i\\)", obj$formula)
   bool_grep_args1 <- grep("A0x.*i=Vi\\(3\\)", obj$args[1])
@@ -431,12 +513,28 @@ test_that("ternaryop.LazyTensor", {
   expect_equal(bool_grep_args3, 1)
   expect_is(obj, "LazyTensor")
   
+  # with an IntCst
+  obj <-  ternaryop.LazyTensor(x_i, w_j, 7, "IfElse")
+  bool_grep_formula <- grep("IfElse\\(A0x.*i,A0x.*j,IntCst\\(7\\)\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  expect_equal(length(obj$args), 2) # no args added for IntCst input
+  bool_grep_args1 <- grep("A0x.*i=Vi\\(3\\)", obj$args[1])
+  bool_grep_args2 <- grep("A0x.*j=Vj\\(3\\)", obj$args[2])
+  expect_equal(bool_grep_args1, 1)
+  expect_equal(bool_grep_args2, 1)
+  expect_equal(length(obj$vars), 2) # no vars added for IntCst input
+  expect_is(obj, "LazyTensor")
+  
   obj <-  ternaryop.LazyTensor(4, y_j, z_i, "Clamp")
-  expect_equal(length(obj$args), 3)
-  expect_equal(length(obj$vars), 3)
+  bool_grep_formula <- grep("Clamp\\(IntCst\\(4\\),A0x.*j,A0x.*i\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  expect_equal(length(obj$args), 2) # no args added for IntCst input
+  bool_grep_args1 <- grep("A0x.*j=Vj\\(3\\)", obj$args[1])
+  bool_grep_args2 <- grep("A0x.*i=Vi\\(3\\)", obj$args[2])
+  expect_equal(bool_grep_args1, 1)
+  expect_equal(bool_grep_args2, 1)
+  expect_equal(length(obj$vars), 2) # no vars added for IntCst input
   expect_true(is.LazyTensor(obj))
-  bool_grep_args <- grep("IntCst\\(4\\)=Pm\\(1\\)", obj$args[1])
-  expect_equal(bool_grep_args, 1)
   
   obj <-  ternaryop.LazyTensor(x_i, x_i, x_i, "Clamp")
   expect_equal(length(obj$args), 1)
@@ -551,6 +649,16 @@ test_that("is.LazyScalar", {
   expect_false(is.LazyScalar(cplx_LT))
   expect_false(is.LazyScalar(v_LT))
   expect_false(is.LazyScalar(x_i))
+  
+  # errors
+  expect_error(is.LazyScalar(x), 
+               "`x` input must be a LazyTensor.",
+               fixed = TRUE
+               )
+  expect_error(is.LazyScalar(7), 
+               "`x` input must be a LazyTensor.",
+               fixed = TRUE
+               )
 })
 
 
@@ -573,7 +681,19 @@ test_that("is.ComplexLazyScalar", {
   expect_true(is.ComplexLazyScalar(cplx_LT))
   expect_false(is.ComplexLazyScalar(v_LT))
   expect_false(is.ComplexLazyScalar(x_i))
+  
+  # errors
+  expect_error(is.ComplexLazyScalar(x), 
+               "`x` input must be a LazyTensor or a ComplexLazyTensor.",
+               fixed = TRUE
+               )
+  expect_error(is.ComplexLazyScalar(7), 
+               "`x` input must be a LazyTensor or a ComplexLazyTensor.",
+               fixed = TRUE
+  )
+  
 })
+
 
 test_that("is.LazyVector", {
   # basic example
@@ -592,7 +712,18 @@ test_that("is.LazyVector", {
   expect_true(is.LazyVector(cplx_LT))
   expect_true(is.LazyVector(v_LT))
   expect_false(is.LazyVector(x_i))
+  
+  # errors
+  expect_error(is.LazyVector(v), 
+               "`x` input must be a LazyTensor or a ComplexLazyTensor.",
+               fixed = TRUE
+  )
+  expect_error(is.LazyVector(7), 
+               "`x` input must be a LazyTensor or a ComplexLazyTensor.",
+               fixed = TRUE
+  )
 })
+
 
 test_that("is.LazyMatrix", {
   # basic example
@@ -611,6 +742,16 @@ test_that("is.LazyMatrix", {
   expect_false(is.LazyMatrix(cplx_LT))
   expect_false(is.LazyMatrix(v_LT))
   expect_true(is.LazyMatrix(x_i))
+  
+  # errors
+  expect_error(is.LazyMatrix(x), 
+               "`x` input must be a LazyTensor or a ComplexLazyTensor.",
+               fixed = TRUE
+  )
+  expect_error(is.LazyMatrix(7), 
+               "`x` input must be a LazyTensor or a ComplexLazyTensor.",
+               fixed = TRUE
+  )
 })
 
 test_that("is.int", {
@@ -627,6 +768,7 @@ test_that("is.int", {
   expect_false(is.int(C))
   expect_false(is.int(D))
   expect_false(is.int(E))
+  expect_false(is.int(LazyTensor(4)))
 })
 
 
