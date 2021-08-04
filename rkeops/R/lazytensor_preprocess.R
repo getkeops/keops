@@ -36,6 +36,11 @@
 #' "RKeOps LazyTensor" vignette for further details on how `ComplexLazyTensor`s
 #' are build.
 #' 
+#' **Note**
+#' 
+#' If `x` is an integer, `LazyTensor(x)` builds a `LazyTensor` whose
+#' formula is simply `IntCst(x)` and contains all the necessary information;
+#' `args` and `vars` remains empty, to avoid useless storage.
 #' 
 #' **Alternatives**
 #' 
@@ -102,16 +107,6 @@ LazyTensor <- function(x, index = NA, is_complex = FALSE) {
     is_complex = TRUE
   }
   
-  # integer case
-  if(is.int(x)) {
-    formula <- paste("IntCst(", as.character(x), ")", sep = "")
-    dimres <- 1
-    # build "constant integer LazyTensor"
-    res <- list(formula = formula, dimres = dimres)
-    class(res) <- "LazyTensor"
-    return(res)
-  }
-  
   # init
   d <- NULL
   cat <- NULL
@@ -124,6 +119,16 @@ LazyTensor <- function(x, index = NA, is_complex = FALSE) {
     stop("missing `index` argument.")
   if(!is.matrix(x) && !is.na(index))
     stop("`index` must be NA with a vector or a single value.")
+  
+  # integer case
+  if(is.int(x)) {
+    formula <- paste("IntCst(", as.character(x), ")", sep = "")
+    dimres <- 1
+    # build "constant integer LazyTensor"
+    res <- list(formula = formula, dimres = dimres)
+    class(res) <- "LazyTensor"
+    return(res)
+  }
   
   # 1) input is a matrix, treated as indexed variable, so index must be "i" or "j"
   if(is.matrix(x)) {
@@ -140,11 +145,9 @@ LazyTensor <- function(x, index = NA, is_complex = FALSE) {
     cat <- "Pm"
   }
   
-  # Now we define "formula", a string specifying the variable for KeOps C++ codes.
-  # if(is.int(x)) {
-  #   var_name <- paste("IntCst(", as.character(x), ")", sep = "")
-  # }
-  
+  # Prefix with a letter because starting with a digit causes problems.
+  # Suffix with 'i', 'j', or 'NA' to differentiate addresses of LazyTensor
+  # created from same variables, and keep track of there index.
   var_name <- paste("A", address(x), index, sep = "")
   formula <- var_name
   vars <- list(x)  # vars lists all actual matrices necessary to evaluate 
@@ -785,7 +788,7 @@ is.ComplexLazyTensor <- function(x){
 #' @export
 is.LazyScalar <- function(x) {
   if(!is.LazyTensor(x)) {
-    stop("`x` input should be a LazyTensor.")
+    stop("`x` input must be a LazyTensor.")
   }
   
   bool_grep_int <- grep("IntCst\\(.*\\)", x$formula)
@@ -831,7 +834,7 @@ is.LazyScalar <- function(x) {
 #' @export
 is.ComplexLazyScalar <- function(x) {
   if(!is.LazyTensor(x)) {
-    stop("`x` input should be a LazyTensor or a ComplexLazyTensor.")
+    stop("`x` input must be a LazyTensor or a ComplexLazyTensor.")
   }
   
   res <- (is.ComplexLazyTensor(x) && length(x$args) == 1) && 
@@ -873,7 +876,7 @@ is.ComplexLazyScalar <- function(x) {
 #' @export
 is.LazyVector <- function(x) {
   if(!is.LazyTensor(x)) {
-    stop("`x` input should be a LazyTensor or a ComplexLazyTensor.")
+    stop("`x` input must be a LazyTensor or a ComplexLazyTensor.")
   }
   return(any(grep(".*=Pm\\(.*\\)", x$args)))
 }
@@ -911,7 +914,7 @@ is.LazyVector <- function(x) {
 #' @export
 is.LazyMatrix <- function(x) {
   if(!is.LazyTensor(x)) {
-    stop("`x` input should be a LazyTensor or a ComplexLazyTensor.")
+    stop("`x` input must be a LazyTensor or a ComplexLazyTensor.")
   }
   return(any(grep(".*=V.\\(.*\\)", x$args)))
 }
