@@ -1125,13 +1125,13 @@ test_that("clamp", {
   
   expect_error(
     clamp(xc_i, yc_j, zc_i),
-    paste0("`x`, `a` and `b` input arguments can't be ComplexLazyTensors."),
+    paste0("`x`, `a` and `b` input arguments cannot be ComplexLazyTensors."),
     fixed = TRUE
   )
   
   expect_error(
     clamp(xc_i, y_j, z_i),
-    paste0("`x`, `a` and `b` input arguments can't be ComplexLazyTensors."),
+    paste0("`x`, `a` and `b` input arguments cannot be ComplexLazyTensors."),
     fixed = TRUE
   )
   

@@ -1458,7 +1458,7 @@ clamp <- function(x, a, b) {
     if((is.ComplexLazyTensor(x) || is.ComplexLazyTensor(a)) 
        || (is.ComplexLazyTensor(b))) {
         stop(paste0("`x`, `a` and `b` input arguments ", 
-                    "can't be ComplexLazyTensors."))
+                    "cannot be ComplexLazyTensors."))
     }
     
     if(is.int(a) && is.int(b))
@@ -1498,7 +1498,7 @@ clamp <- function(x, a, b) {
 #' @export
 clampint <- function(x, y, z) {
     if(is.ComplexLazyTensor(x)) {
-        stop(paste0("`x` can't be a ComplexLazyTensor."))
+        stop(paste0("`x` cannot be a ComplexLazyTensor."))
     }
     
     if((!is.int(y) || !is.int(z))) {
