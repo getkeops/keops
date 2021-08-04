@@ -102,6 +102,16 @@ LazyTensor <- function(x, index = NA, is_complex = FALSE) {
     is_complex = TRUE
   }
   
+  # integer case
+  if(is.int(x)) {
+    formula <- paste("IntCst(", as.character(x), ")", sep = "")
+    dimres <- 1
+    # build "constant integer LazyTensor"
+    res <- list(formula = formula, dimres = dimres)
+    class(res) <- "LazyTensor"
+    return(res)
+  }
+  
   # init
   d <- NULL
   cat <- NULL
@@ -458,40 +468,19 @@ binaryop.LazyTensor <- function(x, y, opstr, is_operator = FALSE,
       )
     )
   
-
-  if(is.int(x)) {
-    formula_x <-  paste("IntCst(", as.character(x), ")", sep = "")
-    formula_y <- y$formula
-    vars <- c(y$vars)
-    args <- unique(c(y$args))
-    dimres_x <- 1
-    dimres_y <- y$dimres
-    class_res <- class(y)
-  }
-  else if(is.int(y)) {
-    formula_x <- x$formula
-    formula_y <-  paste("IntCst(", as.character(y), ")", sep = "")
-    vars <- c(x$vars)
-    args <- unique(c(x$args))
-    dimres_x <- x$dimres
-    dimres_y <- 1
-    class_res <- class(x)
-  }
-  else {
-    if(is.numeric(x) || is.complex(x))
-      x <- LazyTensor(x)
-    
-    if(is.numeric(y) || is.complex(y))
-      y <- LazyTensor(y)
-    
-    formula_x <- x$formula
-    formula_y <- y$formula
-    vars <- c(x$vars, y$vars)
-    args <- unique(c(x$args, y$args))
-    dimres_x <- x$dimres
-    dimres_y <- y$dimres
-    class_res <- class(x)
-  }
+  if(is.numeric(x) || is.complex(x))
+    x <- LazyTensor(x)
+  
+  if(is.numeric(y) || is.complex(y))
+    y <- LazyTensor(y)
+  
+  formula_x <- x$formula
+  formula_y <- y$formula
+  vars <- c(x$vars, y$vars)
+  args <- unique(c(x$args, y$args))
+  dimres_x <- x$dimres
+  dimres_y <- y$dimres
+  class_res <- class(x)
 
   if(!is.na(dim_res) && !is.int(dim_res)){
     stop(
@@ -506,35 +495,35 @@ binaryop.LazyTensor <- function(x, y, opstr, is_operator = FALSE,
     res_type <- c("ComplexLazyTensor", "LazyTensor")
   
   # check dimensions
-  # if (!is.na(dim_check_type)) {
-  #   if(dim_check_type == "sameor1") {
-  #     if (!check_inner_dim(x, y, check_type = dim_check_type)) {
-  #       stop(
-  #         paste(
-  #           "Operation `", opstr, 
-  #           "` expects inputs of the same dimension or dimension 1. Received ",
-  #           get_inner_dim(x), " and ", get_inner_dim(y), ".", sep = ""
-  #         )
-  #       )
-  #     }
-  #   }
-  #   else if(dim_check_type == "same") {
-  #     if (!check_inner_dim(x, y, check_type = dim_check_type)) {
-  #       stop(
-  #         paste(
-  #           "Operation `", opstr,
-  #           "` expects inputs of the same dimension. Received ",
-  #           get_inner_dim(x), " and ", get_inner_dim(y), ".", sep = ""
-  #         )
-  #       )
-  #     }
-  #   }
-  # }
+  if (!is.na(dim_check_type)) {
+   if(dim_check_type == "sameor1") {
+     if (!check_inner_dim(x, y, check_type = dim_check_type)) {
+       stop(
+         paste(
+           "Operation `", opstr, 
+           "` expects inputs of the same dimension or dimension 1. Received ",
+           get_inner_dim(x), " and ", get_inner_dim(y), ".", sep = ""
+         )
+       )
+     }
+   }
+   else if(dim_check_type == "same") {
+     if (!check_inner_dim(x, y, check_type = dim_check_type)) {
+       stop(
+         paste(
+           "Operation `", opstr,
+           "` expects inputs of the same dimension. Received ",
+           get_inner_dim(x), " and ", get_inner_dim(y), ".", sep = ""
+         )
+       )
+     }
+   }
+  }
   
-  ## result dimension
-  #if(is.na(dim_res)) {
-  #  dim_res <- max(c(get_inner_dim(x), get_inner_dim(y)))
-  #}
+  # result dimension
+  if(is.na(dim_res)) {
+    dim_res <- max(c(get_inner_dim(x), get_inner_dim(y)))
+  }
   
   # result dimension
   if(is.na(dim_res)) {
@@ -966,6 +955,10 @@ is.int <- function(x) {
 get_inner_dim <- function(x) {
   # Grab `x` inner dimension.
   # `x` must be a LazyTensor or a ComplexLazyTensor.
+  if(is.int(x)) {
+    return(1)
+  }
+  
   if(!is.LazyTensor(x))
     stop("`x` input argument should be a LazyTensor or a ComplexLazyTensor.")
   
@@ -1011,6 +1004,28 @@ get_inner_dim <- function(x) {
 #' (see @details section).
 #' @return A boolean TRUE or FALSE.
 check_inner_dim <- function(x, y, z = NA, check_type = "sameor1") {
+  ## init
+  #x_inner_dim <- 1
+  #y_inner_dim <- 1
+  #z_inner_dim <- 1
+  #
+  ### ==========
+  ##if(is.na(z)) {
+  ##  if(is.int(x)) {
+  ##    if(!is.LazyTensor(y)) {
+  ##      stop(
+  ##        "Input arguments should be of class 'LazyTensor' or 'ComplexLazyTensor'."
+  ##      )
+  ##    }
+  ##    if(check_type == "sameor1") {
+  ##      return(TRUE)
+  ##    }
+  ##  }
+  ##  
+  ##}
+  ### ==========
+  ##
+  
   # Inputs must be LazyTensors or ComplexLazyTensors.
   if(!is.LazyTensor(x) || !is.LazyTensor(y)) {
     stop(
@@ -1040,7 +1055,7 @@ check_inner_dim <- function(x, y, z = NA, check_type = "sameor1") {
     }
   }
   else {
-    z_inner_dim <- get_inner_dim(z)
+    z_inner_dim <- z$dimres
     # Check whether if x, y and z inner dimensions are the same or if at least 
     # one of these equals 1.
     if(check_type == "sameor1") {
