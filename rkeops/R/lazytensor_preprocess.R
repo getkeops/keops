@@ -760,7 +760,7 @@ is.ComplexLazyTensor <- function(x){
 #' @details If `x` is a fixed parameter `LazyTensor` with dimension 1,
 #' `is.LazyScalar(x)` returns TRUE, else, returns FALSE.
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x An object we want to know if it is a `LazyScalar`.
+#' @param x A `LazyTensor` object that we want to know if it is a `LazyScalar`.
 #' @return A boolean, TRUE or FALSE.
 #' @examples
 #' \dontrun{
@@ -784,6 +784,15 @@ is.ComplexLazyTensor <- function(x){
 #' }
 #' @export
 is.LazyScalar <- function(x) {
+  if(!is.LazyTensor(x)) {
+    stop("`x` input should be a LazyTensor.")
+  }
+  
+  bool_grep_int <- grep("IntCst\\(.*\\)", x$formula)
+  if(any(bool_grep_int)) {
+    return(TRUE)
+  }
+  
   return((length(x$args) == 1) && any(grep(".*=Pm\\(1\\)", x$args)))
 }
 
@@ -796,7 +805,8 @@ is.LazyScalar <- function(x) {
 #' single complex value, `is.ComplexLazyScalar(x)`
 #' returns TRUE, else, returns FALSE.
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x An object we want to know if it is a `ComplexLazyScalar`.
+#' @param x A `LazyTensor` object that we want to know if
+#' it is a `ComplexLazyScalar`.
 #' @return A boolean, TRUE or FALSE.
 #' @examples
 #' \dontrun{
@@ -820,8 +830,13 @@ is.LazyScalar <- function(x) {
 #' }
 #' @export
 is.ComplexLazyScalar <- function(x) {
+  if(!is.LazyTensor(x)) {
+    stop("`x` input should be a LazyTensor or a ComplexLazyTensor.")
+  }
+  
   res <- (is.ComplexLazyTensor(x) && length(x$args) == 1) && 
     any(grep(".*=Pm\\(2\\)", x$args))
+  
   return(res)
 }
 
@@ -833,7 +848,7 @@ is.ComplexLazyScalar <- function(x) {
 #' @details If `x` is a vector parameter `LazyTensor`,
 #' `is.LazyVector(x)` returns TRUE, else, returns FALSE.
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x An object we want to know if it is a `LazyVector`.
+#' @param x A `LazyTensor` object that we want to know if it is a `LazyVector`.
 #' @return A boolean, TRUE or FALSE.
 #' @examples
 #' \dontrun{
@@ -857,6 +872,9 @@ is.ComplexLazyScalar <- function(x) {
 #' }
 #' @export
 is.LazyVector <- function(x) {
+  if(!is.LazyTensor(x)) {
+    stop("`x` input should be a LazyTensor or a ComplexLazyTensor.")
+  }
   return(any(grep(".*=Pm\\(.*\\)", x$args)))
 }
 
@@ -868,7 +886,7 @@ is.LazyVector <- function(x) {
 #' @details If `x` is a matrix `LazyTensor`,
 #' `is.LazyMatrix(x)` returns TRUE, else, returns FALSE.
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x An object we want to know if it is a `LazyMatrix`.
+#' @param x A `LazyTensor` object that we want to know if it is a `LazyMatrix`.
 #' @return A boolean, TRUE or FALSE.
 #' @examples
 #' \dontrun{
@@ -892,6 +910,9 @@ is.LazyVector <- function(x) {
 #' }
 #' @export
 is.LazyMatrix <- function(x) {
+  if(!is.LazyTensor(x)) {
+    stop("`x` input should be a LazyTensor or a ComplexLazyTensor.")
+  }
   return(any(grep(".*=V.\\(.*\\)", x$args)))
 }
 
