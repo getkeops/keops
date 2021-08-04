@@ -1429,13 +1429,13 @@ relu <- function(x) {
 #' If `a` and `b` are not scalar values, these should have the same inner 
 #' dimension as `x`.
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, 
+#' @param x A `LazyTensor`, a vector of numeric values, 
 #' or a scalar value.
-#' @param a A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, 
+#' @param a A `LazyTensor`, a vector of numeric values, 
 #' or a scalar value.
-#' @param b A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, 
+#' @param b A `LazyTensor`, a vector of numeric values, 
 #' or a scalar value.
-#' @return An object of class "LazyTensor".
+#' @return An object of class `LazyTensor`.
 #' @examples
 #' \dontrun{
 #' # basic example
@@ -1455,6 +1455,12 @@ relu <- function(x) {
 #' }
 #' @export
 clamp <- function(x, a, b) {
+    if((is.ComplexLazyTensor(x) || is.ComplexLazyTensor(a)) 
+       || (is.ComplexLazyTensor(b))) {
+        stop(paste0("`x`, `a` and `b` input arguments ", 
+                    "can't be ComplexLazyTensors."))
+    }
+    
     if(is.int(a) && is.int(b))
         res <- unaryop.LazyTensor(x, "ClampInt", a, b)
     else
@@ -1473,11 +1479,11 @@ clamp <- function(x, a, b) {
 #' for more details.
 #' Broadcasting rules apply.
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, 
+#' @param x A `LazyTensor`, a vector of numeric values, 
 #' or a scalar value.
 #' @param y An `integer`.
 #' @param z An `integer`.
-#' @return An object of class "LazyTensor".
+#' @return An object of class `LazyTensor`.
 #' @examples
 #' \dontrun{
 #' # basic example
@@ -1491,6 +1497,10 @@ clamp <- function(x, a, b) {
 #' }
 #' @export
 clampint <- function(x, y, z) {
+    if(is.ComplexLazyTensor(x)) {
+        stop(paste0("`x` can't be a ComplexLazyTensor."))
+    }
+    
     if((!is.int(y) || !is.int(z))) {
         stop(
             paste(
@@ -1531,11 +1541,11 @@ ifelse.default <- function(x, a, b) {
 #' If `a` and `b` are not scalar values, these should have the same inner 
 #' dimension as `x`.
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, 
+#' @param x A `LazyTensor`, a vector of numeric values, 
 #' or a scalar value.
-#' @param a A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, 
+#' @param a A `LazyTensor`, a vector of numeric values, 
 #' or a scalar value.
-#' @param b A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, 
+#' @param b A `LazyTensor`, a vector of numeric values, 
 #' or a scalar value.
 #' @return An object of class "LazyTensor" if the function is called with a 
 #' `LazyTensor`, and an object of class "numeric", "matrix", or "array" otherwise, 
@@ -1567,6 +1577,11 @@ ifelse <- function(x, a, b) {
 #' @keywords internal
 #' @export
 ifelse.LazyTensor <- function(x, a, b) {
+    if((is.ComplexLazyTensor(x) || is.ComplexLazyTensor(a)) 
+       || (is.ComplexLazyTensor(b))) {
+        stop(paste0("`x`, `a` and `b` input arguments ", 
+                    "can't be ComplexLazyTensors."))
+    }
     res <- ternaryop.LazyTensor(x, a, b, "IfElse")
 }
 
@@ -1595,9 +1610,11 @@ ifelse.LazyTensor <- function(x, a, b) {
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, 
 #' or a scalar value.
-#' @param a A `LazyTensor`, a vector of numeric values, or a scalar value.
-#' @param b A `LazyTensor`, a vector of numeric values, or a scalar value.
-#' @return An object of class "LazyTensor".
+#' @param a A `LazyTensor`, a `ComplexLazyTensor` a vector of numeric values, 
+#' or a scalar value.
+#' @param b A `LazyTensor`, a `ComplexLazyTensor` a vector of numeric values, 
+#' or a scalar value.
+#' @return An object of class `LazyTensor`.
 #' @examples
 #' \dontrun{
 #' # basic example
@@ -2013,7 +2030,8 @@ real2complex <- function(x) {
 #' @keywords internal
 #' @export
 real2complex.LazyTensor <- function(x) {
-    res <- unaryop.LazyTensor(x, "Real2Complex", res_type = "ComplexLazyTensor")
+    res <- unaryop.LazyTensor(x, "Real2Complex", res_type = "ComplexLazyTensor",
+                              dim_res = 2 * x$dimres)
 }
 
 #' Element-wise "real 2 complex" operation.
@@ -2021,7 +2039,7 @@ real2complex.LazyTensor <- function(x) {
 #' @keywords internal
 #' @export
 real2complex.ComplexLazyTensor <- function(x) {
-    stop("`real2complex` cannot be applied to a complex LazyTensor.")
+    stop("`real2complex` cannot be applied to a ComplexLazyTensor.")
 }
 
 
@@ -2062,7 +2080,7 @@ imag2complex.LazyTensor <- function(x) {
 #' @keywords internal
 #' @export
 imag2complex.ComplexLazyTensor <- function(x) {
-    stop("`imag2complex` cannot be applied to a complex LazyTensor.")
+    stop("`imag2complex` cannot be applied to a ComplexLazyTensor.")
 }
 
 
@@ -2094,7 +2112,8 @@ exp1j <- function(x) {
 #' @keywords internal
 #' @export
 exp1j.LazyTensor <- function(x) {
-    res <- unaryop.LazyTensor(x, "ComplexExp1j", res_type = "ComplexLazyTensor")
+    res <- unaryop.LazyTensor(x, "ComplexExp1j", res_type = "ComplexLazyTensor",
+                              dim_res = 2 * x$dimres)
 }
 
 #' Element-wise "complex exponential of 1j x" operation.
@@ -2102,7 +2121,7 @@ exp1j.LazyTensor <- function(x) {
 #' @keywords internal
 #' @export
 exp1j.ComplexLazyTensor <- function(x) {
-    stop("`exp1j` cannot be applied to a complex LazyTensor.")
+    stop("`exp1j` cannot be applied to a ComplexLazyTensor.")
 }
 
 
