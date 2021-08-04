@@ -2351,12 +2351,10 @@ test_that("sum_reduction", {
 
 test_that("min", {
   # basic example
-  D <- 3
-  M <- 100
-  N <- 150
   x <- matrix(c(1, 2, 3), 2, 3)
+  y <- matrix(c(3, 4, 5), 2, 3)
   x_i <- LazyTensor(x, index = 'i')
-  x_j <- LazyTensor(x, index = 'j')
+  y_j <- LazyTensor(y, index = 'j')
   
   z <- matrix((1+2i)^(-6:5), nrow = 4)
   z_i <- LazyTensor(z, index = 'i', is_complex = TRUE)
@@ -2364,25 +2362,34 @@ test_that("min", {
   v <- c(1, 2, 3)
   Pm_v <- Pm(v)
   
-  complex_vect <- c(1 + 2i, 1 + 2i, 1 + 2i)
-  Pm_complex <- Pm(complex_vect)
-  
   # check results, formulas & classes
-  expect_equal(min(D), 3)
+  expect_equal(min(3), 3)
   expect_false(is.LazyTensor(min(x)))
+  expect_true(is.LazyTensor(min(x_i)))
+  expect_true(is.ComplexLazyTensor(min(z_i)))
+  expect_true(is.LazyTensor(min(Pm_v)))
   expect_true(is.ComplexLazyTensor(min(z_i)))
   
   res <- min(x_i, "i")
   expect_false(is.LazyTensor(res))
   expect_equal(dim(res), c(1, 3))
   expect_true(is.matrix(res))
+  expected_res <- c(min(x[, 1]), min(x[, 2]), min(x[, 3]))
+  expect_true(sum(abs(res - expected_res)) < 1E-5)
   
-  # res <- sum(x_i, "i")
-  # expect_false(is.LazyTensor(res))
-  # expect_equal(dim(res), c(1, 3))
-  # expect_true(is.matrix(res))
-  # expected_res <- c(sum(x[, 1]), sum(x[, 2]), sum(x[, 3]))
-  # expect_true(sum(abs(res - expected_res)) < 1E-5)
+  res <- min(x_i, "j")
+  expect_false(is.LazyTensor(res))
+  expect_equal(dim(res), c(2, 3))
+  expect_true(is.matrix(res))
+  expected_res <- x
+  expect_true(sum(abs(res - expected_res)) < 1E-5)
+  
+  res <- min(Pm_v, "j")
+  expect_false(is.LazyTensor(res))
+  expect_equal(dim(res), c(1, 3))
+  expect_true(is.matrix(res))
+  expected_res <- v
+  expect_true(sum(abs(res - expected_res)) < 1E-5)
   
   obj <- min(x_i)
   expect_true(is.LazyTensor(obj))
