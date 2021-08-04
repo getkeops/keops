@@ -1841,8 +1841,12 @@ test_that("Mod", {
 
 test_that("elem", {
   # basic example
+  int <- 5
+  Pm_int <- LazyTensor(int)
+  
   x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
   x_i <- LazyTensor(x, index = 'i')   # LazyTensor from matrix x, indexed by 'i'
+  
   m <- 2
   
   # check formulas, args & classes
@@ -1850,6 +1854,14 @@ test_that("elem", {
   expect_true(is.LazyTensor(obj))
   bool_grep_formula <- grep("Elem\\(A0x.*i,2\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
+  
+  obj <- elem(Pm_int, 0)
+  expect_true(is.LazyTensor(obj))
+  bool_grep_formula <- grep("Elem\\(IntCst\\(5\\),0\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  expect_null <- obj$args
+  expect_null <- obj$vars
+  expect_equal(obj$dimres, 1)
   
   # errors
   expect_error(elem(x_i, 3.14),
@@ -1869,6 +1881,9 @@ test_that("elemT", {
   # basic example
   x <- 3.14              # arbitrary value
   Pm_x <- LazyTensor(x)  # creating scalar parameter LazyTensor from x
+  
+  int <- 4
+  Pm_int <- LazyTensor(int)
   
   m <- 2
   n <- 3
@@ -1892,6 +1907,14 @@ test_that("elemT", {
   expect_true(is.ComplexLazyTensor(obj))
   bool_grep_formula <- grep("ElemT\\(A0x.*NA,3,2\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
+  
+  obj <- elemT(Pm_int, 5, 7)
+  expect_true(is.LazyTensor(obj))
+  bool_grep_formula <- grep("ElemT\\(IntCst\\(4\\),7,5\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  expect_null <- obj$args
+  expect_null <- obj$vars
+  expect_equal(obj$dimres, 1)
   
   # errors
   expect_error(elemT(x_i, m, n),
@@ -1919,6 +1942,9 @@ test_that("extract", {
   x <- matrix(runif(150 * 5), 150, 5) # arbitrary R matrix, 150 rows, 5 columns
   x_i <- LazyTensor(x, index = 'i')   # LazyTensor from matrix x, indexed by 'i'
   
+  int <- 2
+  Pm_int <- LazyTensor(int)
+  
   v <- c(1, 2, 3, 1, 5)
   Pm_v <- LazyTensor(v)
   
@@ -1935,6 +1961,14 @@ test_that("extract", {
   expect_true(is.LazyTensor(obj))
   bool_grep_formula <- grep("Extract\\(A0x.*NA,0,3\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
+  
+  obj <- extract(Pm_int, 0, 1)
+  expect_true(is.LazyTensor(obj))
+  bool_grep_formula <- grep("Extract\\(IntCst\\(2\\),0,1\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  expect_null <- obj$args
+  expect_null <- obj$vars
+  expect_equal(obj$dimres, 1)
   
   # errors
   expect_error(extract(x_i, 3.14, d),
@@ -1968,6 +2002,9 @@ test_that("extractT", {
   v <- c(1, 2, 3, 1, 5)
   Pm_v <- LazyTensor(v)
   
+  int <- 2
+  Pm_int <- LazyTensor(int)
+  
   m <- 1
   d <- 8
   
@@ -1981,6 +2018,14 @@ test_that("extractT", {
   expect_true(is.LazyTensor(obj))
   bool_grep_formula <- grep("ExtractT\\(A0x.*NA,0,8\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
+  
+  obj <- extractT(Pm_int, 0, d)
+  expect_true(is.LazyTensor(obj))
+  bool_grep_formula <- grep("ExtractT\\(IntCst\\(2\\),0,8\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  expect_null <- obj$args
+  expect_null <- obj$vars
+  expect_equal(obj$dimres, 1)
   
   # errors
   expect_error(extractT(x_i, 3.14, d),
@@ -2016,11 +2061,22 @@ test_that("concat", {
   x_i <- LazyTensor(x, index = 'i')   # LazyTensor from matrix x, indexed by 'i'
   y_j <- LazyTensor(y, index = 'j')   # LazyTensor from matrix x, indexed by 'j'
   
+  int <- 5
+  Pm_int <- LazyTensor(int)
+  
   # check formulas, args & classes
   obj <- concat(x_i, y_j)
   expect_true(is.LazyTensor(obj))
   bool_grep_formula <- grep("Concat\\(A0x.*i,A0x.*j\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
+  
+  obj <- concat(x_i, Pm_int)
+  expect_true(is.LazyTensor(obj))
+  bool_grep_formula <- grep("Concat\\(A0x.*i,IntCst\\(5\\)\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  expect_equal(length(obj$args), 1)
+  expect_equal(length(obj$vars), 1)
+  expect_equal(obj$dimres, 4)
 })
 
 
@@ -2033,6 +2089,7 @@ test_that("one_hot", {
   v <- runif(150, min = 0, max = 3.14)
   LT_v <- LazyTensor(v) # parameter vector
   LT_s <- LazyTensor(13) # parameter scalar
+  LT_dec <- LazyTensor(7.14) # parameter decimal scalar
   
   z <- matrix(1i^ (-6:5), nrow = 4)                     # complex 4x3 matrix
   z_i <- LazyTensor(z, index = 'i', is_complex = TRUE)  # ComplexLazyTensor
@@ -2043,6 +2100,17 @@ test_that("one_hot", {
   expect_true(is.LazyTensor(obj))
   bool_grep_formula <- grep("OneHot\\(IntCst\\(13\\),7\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
+  expect_null <- obj$args
+  expect_null <- obj$vars
+  expect_equal(obj$dimres, 7)
+  
+  obj <- one_hot(LT_dec, D)
+  expect_true(is.LazyTensor(obj))
+  bool_grep_formula <- grep("OneHot\\(A0x.*NA,7\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  expect_equal(length(obj$args), 1)
+  expect_equal(length(obj$vars), 1)
+  expect_equal(obj$dimres, 7)
   
   # errors
   expect_error(one_hot(x_i, D),
@@ -2450,9 +2518,7 @@ test_that("min_reduction", {
 test_that("argmin", {
   # basic example
   D <- 3
-  M <- 100
-  N <- 150
-  x <- matrix(runif(M * D), M, D)
+  x <- matrix(c(1, 2, 3), 2, 3)
   x_i <- LazyTensor(x, index = 'i')
   xc_i <- LazyTensor(x, index = "i", is_complex = TRUE)
   
@@ -2463,6 +2529,10 @@ test_that("argmin", {
   res <- argmin(x_i, "i")
   expect_false(is.LazyTensor(res))
   expect_true(is.matrix(res))
+  expected_res <- c(which.min(x[, 1]) - 1, # substract 1 because
+                    which.min(x[, 2]) - 1, # indices start at zero
+                    which.min(x[, 3]) - 1) # in KeOps...
+  expect_true(sum(abs(res - expected_res)) < 1E-5)
   
   obj <- argmin(x_i)
   expect_true(is.LazyTensor(obj))
@@ -2632,13 +2702,18 @@ test_that("max_reduction", {
 test_that("argmax", {
   # basic example
   D <- 3
-  M <- 100
-  N <- 150
-  x <- matrix(runif(M * D), M, D)
+  x <- matrix(c(1, 2, 3), 2, 3)
   x_i <- LazyTensor(x, index = 'i')
   
-  res <- argmax(x_i, "i")
   # check results, formulas & classes
+  res <- argmax(x_i, "i")
+  expect_false(is.LazyTensor(res))
+  expect_true(is.matrix(res))
+  expected_res <- c(which.max(x[, 1]) - 1, # add 1 because
+                    which.max(x[, 2]) - 1, # indices start at zero
+                    which.max(x[, 3]) - 1) # in KeOps...
+  expect_true(sum(abs(res - expected_res)) < 1E-5)
+  
   expect_true(is.LazyTensor(argmax(3)))
   expect_false(is.LazyTensor(res))
   expect_true(is.matrix(res))
