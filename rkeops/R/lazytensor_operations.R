@@ -1777,8 +1777,10 @@ sqdist <- function(x, y) {
 #' @details `weightedsqnorm(x, s)` returns a `LazyTensor` that encodes, symbolically,
 #' the weighted squared norm of a vector `x` with weights stored in the LazyTensor 
 #' `s`.
+#' 
 #' Run `browseVignettes("rkeops")` to access the vignettes and find details
-#' about the function in "RKeOps LazyTensor".
+#' about the function in "RKeOps LazyTensor",
+#' at section #Simple vector operations.
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `vector` of numeric values or a scalar value.
 #' @param s A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, 
@@ -1819,8 +1821,10 @@ weightedsqnorm <- function(x, s) {
 #' @details `weightedsqdist(x, y, s)` returns a `LazyTensor` that encodes, 
 #' symbolically, the weighted squared distance of a vector `x` with weights 
 #' stored in the LazyTensor `s`, same as `weightedsqnorm(x - y, s)`.
+#' 
 #' Run `browseVignettes("rkeops")` to access the vignettes and find details
-#' about the function in "RKeOps LazyTensor".
+#' about the function in "RKeOps LazyTensor",
+#' at section #Simple vector operations.
 #' 
 #' **Note**
 #' 
@@ -2008,7 +2012,8 @@ Arg.ComplexLazyTensor <- function(z) {
 #' @description
 #' Symbolic unary operation for element-wise "real 2 complex".
 #' @details `real2complex(x)` returns a `ComplexLazyTensor` that encodes, 
-#' symbolically, the element-wise "real 2 complex" of `x`.
+#' symbolically, the element-wise "real 2 complex" of `x` (i.e. with
+#' additional zero imaginary part: `x + 0*i`).
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `LazyTensor`.
 #' @return An object of class "ComplexLazyTensor".
@@ -2048,7 +2053,8 @@ real2complex.ComplexLazyTensor <- function(x) {
 #' @description
 #' Symbolic unary operation for element-wise "imaginary 2 complex".
 #' @details `imag2complex(x)` returns a `ComplexLazyTensor` that encodes,
-#' symbolically, the element-wise "imaginary 2 complex" of `x`.
+#' symbolically, the element-wise "imaginary 2 complex" of `x` (i.e. with
+#' additional zero real part: `0 + x*i`).
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `LazyTensor`.
 #' @return An object of class "ComplexLazyTensor".
@@ -2721,7 +2727,7 @@ vecmatmult <- function(v, m) {
 
 #' Tensor product.
 #' @description
-#' Tensor product of vectors - a binary operation.
+#' Tensor product of `LazyTensor`s - a binary operation.
 #' @details If `x` and `y` are `LazyTensor`s encoding matrix,
 #' respectively of length `nx*px` and `ny*py`, then `tensorprod(x, y)` encodes,
 #' symbolically, the tensor product between matrix `x` and `y`, which is
@@ -2826,12 +2832,17 @@ sum.default <- .Primitive("sum")
 #'   representing the sum of the values of the vector.
 #' }
 #' 
-#' **Note**
+#' **Notes**
 #' 
 #' If **index = NA**, `x` input argument should be a `LazyTensor` encoding a 
 #' parameter vector.
+#' 
 #' If `x` is not a `LazyTensor` it computes R default "sum" function with
 #' other specific arguments (see R default `sum()` function).
+#' 
+#' Run `browseVignettes("rkeops")` to access the vignettes and find details
+#' about the function in "RKeOps LazyTensor",
+#' at section #Reductions.
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `LazyTensor`, a `ComplexLazyTensor`, a vector or a matrix of numeric 
 #' values, or a scalar value.
@@ -2933,8 +2944,15 @@ min.default <- .Primitive("min")
 #'   \item if **index = NA** (default), return a new `LazyTensor` object 
 #'   representing the min of the values of the vector.
 #' }
+#' 
+#' **Notes**
+#' 
 #' If `x` is not a `LazyTensor` it computes R default "min" function with
 #' other specific arguments (see R default `min()` function).
+#' 
+#' Run `browseVignettes("rkeops")` to access the vignettes and find details
+#' about the function in "RKeOps LazyTensor",
+#' at section #Reductions.
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `LazyTensor`, a `ComplexLazyTensor`, a vector or a matrix of numeric 
 #' values, or a scalar value.
@@ -3023,6 +3041,12 @@ min_reduction <- function(x, index) {
 #'   \item if **index = NA** (default), return a new `LazyTensor` object 
 #'   representing the argmin  of the values of the vector.
 #' }
+#' 
+#' **Note**
+#' 
+#' Run `browseVignettes("rkeops")` to access the vignettes and find details
+#' about the function in "RKeOps LazyTensor",
+#' at section #Reductions.
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `LazyTensor`, a `ComplexLazyTensor`, a vector or a matrix of numeric 
 #' values, or a scalar value.
@@ -3097,6 +3121,12 @@ argmin_reduction <- function(x, index) {
 #'   \item{ if **index = "j"**, return the minimal values and its indices
 #'   of **x** over the "j" indexes.}
 #' }
+#' 
+#' **Note**
+#' 
+#' Run `browseVignettes("rkeops")` to access the vignettes and find details
+#' about the function in "RKeOps LazyTensor",
+#' at section #Reductions.
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `LazyTensor` or a `ComplexLazyTensor`.
 #' @param index A `character` corresponding to the reduction dimension that should 
@@ -3172,8 +3202,15 @@ max.default <- .Primitive("max")
 #'   \item if **index = NA** (default), return a new `LazyTensor` object
 #'   representing the max of the values of the vector.
 #' }
+#' 
+#' **Notes**
+#' 
 #' If `x` is not a `LazyTensor` it computes R default "max" function with
 #' other specific arguments (see R default `max()` function).
+#' 
+#' Run `browseVignettes("rkeops")` to access the vignettes and find details
+#' about the function in "RKeOps LazyTensor",
+#' at section #Reductions.
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `LazyTensor`, a `ComplexLazyTensor`, a vector or a matrix of numeric
 #' values, or a scalar value.
@@ -3263,6 +3300,12 @@ max_reduction <- function(x, index) {
 #'     \item{if **index = j**,}{ return the argmax reduction of **x** over the
 #'     **i** indices (columns).}
 #' }
+#' 
+#' **Note**
+#' 
+#' Run `browseVignettes("rkeops")` to access the vignettes and find details
+#' about the function in "RKeOps LazyTensor",
+#' at section #Reductions.
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `LazyTensor`, a `ComplexLazyTensor`, a vector or a matrix of numeric 
 #' values, or a scalar value.
@@ -3338,6 +3381,12 @@ argmax_reduction <- function(x, index) {
 #'   \item if **index = "j"**, return the maximal values of **x** and its
 #'   indices over the **j** indices.
 #' }
+#' 
+#' **Note**
+#' 
+#' Run `browseVignettes("rkeops")` to access the vignettes and find details
+#' about the function in "RKeOps LazyTensor",
+#' at section #Reductions.
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `LazyTensor` or a `ComplexLazyTensor`.
 #' @param index A `character` corresponding to the reduction dimension that should 
@@ -3413,6 +3462,12 @@ max_argmax_reduction <- function(x, index) {
 #'     \item{if **index = j**,}{ return the **K** minimal values of **x**
 #'     over the **j** indices (columns).}
 #' }
+#' 
+#' **Note**
+#' 
+#' Run `browseVignettes("rkeops")` to access the vignettes and find details
+#' about the function in "RKeOps LazyTensor",
+#' at section #Reductions.
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `LazyTensor` or a `ComplexLazyTensor`.
 #' @param index A `character` corresponding to the reduction dimension that should 
@@ -3489,6 +3544,12 @@ Kmin_reduction <- function(x, K, index) {
 #'     values of **x**
 #'     over the **j** indexes (columns).}
 #' }
+#' 
+#' **Note**
+#' 
+#' Run `browseVignettes("rkeops")` to access the vignettes and find details
+#' about the function in "RKeOps LazyTensor",
+#' at section #Reductions.
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `LazyTensor` or a `ComplexLazyTensor`.
 #' @param index A `character` corresponding to the reduction dimension that should 
@@ -3569,6 +3630,12 @@ argKmin_reduction <- function(x, K, index) {
 #'     \item{if **index = j**,}{ return the **K** minimal values of **x**
 #'     and its indices over the **j** indices (columns).}
 #' }
+#' 
+#' **Note**
+#' 
+#' Run `browseVignettes("rkeops")` to access the vignettes and find details
+#' about the function in "RKeOps LazyTensor",
+#' at section #Reductions.
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `LazyTensor` or a `ComplexLazyTensor`.
 #' @param index A `character` corresponding to the reduction dimension that should 
@@ -3647,8 +3714,13 @@ Kmin_argKmin_reduction <- function(x, K, index) {
 #'     over the **i** indices (rows);}
 #'     \item{if **index = j**,}{ return the Log-Sum-Exp reduction of **x** 
 #'     over the **j** indices (columns).}
-#' } 
-#' @details  
+#' }
+#' 
+#' **Note**
+#' 
+#' Run `browseVignettes("rkeops")` to access the vignettes and find details
+#' about the function in "RKeOps LazyTensor",
+#' at section #Reductions.
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `LazyTensor` or a `ComplexLazyTensor` indexed by 'i' and 'j'.
 #' @param index A `character` corresponding to the reduction dimension that
@@ -3697,8 +3769,7 @@ logsumexp <- function(x, index, weight = NA) {
 #'     over the **i** indices (rows);}
 #'     \item{if **index = j**,}{ return the Log-Sum-Exp reduction of **x** 
 #'     over the **j** indices (columns).}
-#' } 
-#' @details  
+#' }
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `LazyTensor` or a `ComplexLazyTensor`.
 #' @param index A `character` corresponding to the reduction dimension that should 
@@ -3742,8 +3813,13 @@ logsumexp_reduction <- function(x, index, weight = NA) {
 #'     over the **i** indices (rows);}
 #'     \item{if **index = j**,}{ return the Log-Sum-Exp reduction of **x** 
 #'     over the **j** indices (columns).}
-#' } 
-#' @details  
+#' }
+#' 
+#' **Note**
+#' 
+#' Run `browseVignettes("rkeops")` to access the vignettes and find details
+#' about the function in "RKeOps LazyTensor",
+#' at section #Reductions.
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `LazyTensor` or a `ComplexLazyTensor` indexed by 'i' and 'j'.
 #' @param index A `character` corresponding to the reduction dimension that should 
@@ -3789,8 +3865,13 @@ sumsoftmaxweight <- function(x, index, weight) {
 #'     over the **i** indices (rows);}
 #'     \item{if **index = j**,}{ return the Log-Sum-Exp reduction of **x** 
 #'     over the **j** indices (columns).}
-#' } 
-#' @details  
+#' }
+#' 
+#' **Note**
+#' 
+#' Run `browseVignettes("rkeops")` to access the vignettes and find details
+#' about the function in "RKeOps LazyTensor",
+#' at section #Reductions.
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `LazyTensor` or a `ComplexLazyTensor` indexed by 'i' and 'j'.
 #' @param index A `character` corresponding to the reduction dimension that should 
