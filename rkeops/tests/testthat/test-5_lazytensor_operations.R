@@ -2418,7 +2418,6 @@ test_that("sum_reduction", {
 
 
 test_that("min", {
-  # basic example
   x <- matrix(c(1, 2, 3), 2, 3)
   y <- matrix(c(3, 4, 5), 2, 3)
   x_i <- LazyTensor(x, index = 'i')
@@ -2438,6 +2437,7 @@ test_that("min", {
   expect_true(is.LazyTensor(min(Pm_v)))
   expect_true(is.ComplexLazyTensor(min(z_i)))
   
+  # reduction
   res <- min(x_i, "i")
   expect_false(is.LazyTensor(res))
   expect_equal(dim(res), c(1, 3))
@@ -2459,6 +2459,7 @@ test_that("min", {
   expected_res <- v
   expect_true(sum(abs(res - expected_res)) < 1E-5)
   
+  # checks when there is no reduction
   obj <- min(x_i)
   expect_true(is.LazyTensor(obj))
   bool_grep_formula <- grep("Min\\(A0x.*i\\)", obj$formula)
@@ -2479,11 +2480,7 @@ test_that("min", {
 
 
 test_that("min_reduction", {
-  # basic example
-  D <- 3
-  M <- 100
-  N <- 150
-  x <- matrix(runif(M * D), M, D)
+  x <- matrix(c(1, 2, 3), 2, 3)
   x_i <- LazyTensor(x, index = 'i')
   
   res <- min_reduction(x_i, "i")
@@ -2516,8 +2513,6 @@ test_that("min_reduction", {
 
 
 test_that("argmin", {
-  # basic example
-  D <- 3
   x <- matrix(c(1, 2, 3), 2, 3)
   x_i <- LazyTensor(x, index = 'i')
   xc_i <- LazyTensor(x, index = "i", is_complex = TRUE)
@@ -2529,7 +2524,7 @@ test_that("argmin", {
   res <- argmin(x_i, "i")
   expect_false(is.LazyTensor(res))
   expect_true(is.matrix(res))
-  expected_res <- c(which.min(x[, 1]) - 1, # substract 1 because
+  expected_res <- c(which.min(x[, 1]) - 1, # subtract 1 because
                     which.min(x[, 2]) - 1, # indices start at zero
                     which.min(x[, 3]) - 1) # in KeOps...
   expect_true(sum(abs(res - expected_res)) < 1E-5)
@@ -2561,11 +2556,7 @@ test_that("argmin", {
 
 
 test_that("argmin_reduction", {
-  # basic example
-  D <- 3
-  M <- 100
-  N <- 150
-  x <- matrix(runif(M * D), M, D)
+  x <- matrix(c(1, 2, 3), 2, 3)
   x_i <- LazyTensor(x, index = 'i')
   
   res <- argmin_reduction(x_i, "i")
@@ -2587,18 +2578,27 @@ test_that("argmin_reduction", {
 
 
 test_that("min_argmin", {
-  # basic example
-  D <- 3
-  M <- 100
-  N <- 150
-  x <- matrix(runif(M * D), M, D)
+  x <- matrix(c(1, 2, 3), 2, 3)  
   x_i <- LazyTensor(x, index = 'i')
   
   res <- min_argmin(x_i, "i")
-  
-  # check results, formulas & classes
   expect_false(is.LazyTensor(res))
+  expect_equal(dim(res), c(1, 6))
   expect_true(is.matrix(res))
+  expected_res <- c(min(x[, 1]), 
+                    min(x[, 2]), 
+                    min(x[, 3]),
+                    which.min(x[, 1]) - 1, 
+                    which.min(x[, 2]) - 1, 
+                    which.min(x[, 3]) - 1)
+  expect_true(sum(abs(res - expected_res)) < 1E-5)
+  
+  res <- min(x_i, "j")
+  expect_false(is.LazyTensor(res))
+  expect_equal(dim(res), c(2, 3))
+  expect_true(is.matrix(res))
+  expected_res <- x
+  expect_true(sum(abs(res - expected_res)) < 1E-5)
   
   # errors
   expect_error(min_argmin(3, "i"),
@@ -2614,11 +2614,7 @@ test_that("min_argmin", {
 
 
 test_that("min_argmin_reduction", {
-  # basic example
-  D <- 3
-  M <- 100
-  N <- 150
-  x <- matrix(runif(M * D), M, D)
+  x <- matrix(c(1, 2, 3), 2, 3)
   x_i <- LazyTensor(x, index = 'i')
   
   res <- min_argmin_reduction(x_i, "i")
@@ -2641,21 +2637,48 @@ test_that("min_argmin_reduction", {
 
 
 test_that("max", {
-  # basic example
-  D <- 3
-  M <- 100
-  x <- matrix(runif(M * D), M, D)
+  x <- matrix(c(1, 2, 3), 2, 3)
+  y <- matrix(c(3, 4, 5), 2, 3)
   x_i <- LazyTensor(x, index = 'i')
+  y_j <- LazyTensor(y, index = 'j')
   
-  res <- max(x_i, "i")
-  # check result type
-  expect_false(is.LazyTensor(res))
-  expect_true(is.matrix(res))
+  z <- matrix((1+2i)^(-6:5), nrow = 4)
+  z_i <- LazyTensor(z, index = 'i', is_complex = TRUE)
+  
+  v <- c(1, 2, 3)
+  Pm_v <- Pm(v)
   
   # check results, formulas & classes
-  expect_equal(max(D), 3)
+  expect_equal(max(1, 2, 3), 3)
   expect_false(is.LazyTensor(max(x)))
+  expect_true(is.LazyTensor(max(x_i)))
+  expect_true(is.ComplexLazyTensor(max(z_i)))
+  expect_true(is.LazyTensor(max(Pm_v)))
+  expect_true(is.ComplexLazyTensor(max(z_i)))
   
+  # reduction
+  res <- max(x_i, "i")
+  expect_false(is.LazyTensor(res))
+  expect_equal(dim(res), c(1, 3))
+  expect_true(is.matrix(res))
+  expected_res <- c(max(x[, 1]), max(x[, 2]), max(x[, 3]))
+  expect_true(sum(abs(res - expected_res)) < 1E-5)
+  
+  res <- max(x_i, "j")
+  expect_false(is.LazyTensor(res))
+  expect_equal(dim(res), c(2, 3))
+  expect_true(is.matrix(res))
+  expected_res <- x
+  expect_true(sum(abs(res - expected_res)) < 1E-5)
+  
+  res <- max(Pm_v, "j")
+  expect_false(is.LazyTensor(res))
+  expect_equal(dim(res), c(1, 3))
+  expect_true(is.matrix(res))
+  expected_res <- v
+  expect_true(sum(abs(res - expected_res)) < 1E-5)
+  
+  # when there is no reduction
   obj <- max(x_i)
   expect_true(is.LazyTensor(obj))
   bool_grep_formula <- grep("Max\\(A0x.*i\\)", obj$formula)
@@ -2675,10 +2698,7 @@ test_that("max", {
 
 
 test_that("max_reduction", {
-  # basic example
-  D <- 3
-  M <- 100
-  x <- matrix(runif(M * D), M, D)
+  x <- matrix(c(1, 2, 3), 2, 3)
   x_i <- LazyTensor(x, index = 'i')
   
   res <- max_reduction(x_i, "i")
@@ -2700,8 +2720,6 @@ test_that("max_reduction", {
 
 
 test_that("argmax", {
-  # basic example
-  D <- 3
   x <- matrix(c(1, 2, 3), 2, 3)
   x_i <- LazyTensor(x, index = 'i')
   
@@ -2746,10 +2764,7 @@ test_that("argmax", {
 
 test_that("argmax_reduction", {
   # basic example
-  D <- 3
-  M <- 100
-  N <- 150
-  x <- matrix(runif(M * D), M, D)
+  x <- matrix(c(1, 2, 3), 2, 3)
   x_i <- LazyTensor(x, index = 'i')
   
   res <- argmax_reduction(x_i, "i")
@@ -2771,17 +2786,27 @@ test_that("argmax_reduction", {
 
 
 test_that("max_argmax", {
-  # basic example
-  D <- 3
-  M <- 100
-  N <- 150
-  x <- matrix(runif(M * D), M, D)
+  x <- matrix(c(1, 2, 3), 2, 3)
   x_i <- LazyTensor(x, index = 'i')
   
   res <- max_argmax(x_i, "i")
-  # check results, formulas & classes
   expect_false(is.LazyTensor(res))
+  expect_equal(dim(res), c(1, 6))
   expect_true(is.matrix(res))
+  expected_res <- c(max(x[, 1]), 
+                    max(x[, 2]), 
+                    max(x[, 3]),
+                    which.max(x[, 1]) - 1, 
+                    which.max(x[, 2]) - 1, 
+                    which.max(x[, 3]) - 1)
+  expect_true(sum(abs(res - expected_res)) < 1E-5)
+  
+  res <- max(x_i, "j")
+  expect_false(is.LazyTensor(res))
+  expect_equal(dim(res), c(2, 3))
+  expect_true(is.matrix(res))
+  expected_res <- x
+  expect_true(sum(abs(res - expected_res)) < 1E-5)
   
   # errors
   expect_error(max_argmax(3, "i"),
@@ -2798,11 +2823,7 @@ test_that("max_argmax", {
 
 
 test_that("max_argmax_reduction", {
-  # basic example
-  D <- 3
-  M <- 100
-  N <- 150
-  x <- matrix(runif(M * D), M, D)
+  x <- matrix(c(1, 2, 3), 2, 3)
   x_i <- LazyTensor(x, index = 'i')
   
   res <- max_argmax_reduction(x_i, "i")
@@ -2811,16 +2832,18 @@ test_that("max_argmax_reduction", {
   expect_true(is.matrix(res))
   
   # errors
-  expect_error(max_argmax_reduction(3, "i"),
-               "`x` input should be a LazyTensor or a ComplexLazyTensor.",
-               fixed = TRUE
-               )
+  expect_error(
+    max_argmax_reduction(3, "i"),
+    "`x` input should be a LazyTensor or a ComplexLazyTensor.",
+    fixed = TRUE
+  )
   
   expect_error(
     max_argmax_reduction(x_i, "b"),
     "`index` input argument should be a character, either 'i' or 'j'.",
     fixed = TRUE
-    )
+  )
+  
 })
 
 
@@ -3021,16 +3044,57 @@ test_that("logsumexp", {
   w <- matrix(runif(100 * 3), 100, 3) # weight LazyTensor
   w_j <- LazyTensor(w, index = 'j')
   
+  x <- matrix(c(1, 2, 3), 2, 3)
+  y <- matrix(c(3, 4, 5), 2, 3)
+  w <- matrix(c(1, 1, 1), 2, 3)
+  x_i <- LazyTensor(x, index = 'i')
+  y_j <- LazyTensor(y, index = 'j')
+  w_j <- LazyTensor(w, index = 'j')
+  
   V_ij <- x_i - y_j
   S_ij <- sum(V_ij^2)
   # check formulas, args & classes
-  res <- logsumexp(S_ij, 'i', w_j)
+  res <- logsumexp(sum(V_ij), 'i', w_j)
   expect_false(is.LazyTensor(res))
   expect_true(is.matrix(res))
+  
+  res <- logsumexp(S_ij, 'j', w_j)
   
   res <- logsumexp(S_ij, 'i')
   expect_false(is.LazyTensor(res))
   expect_true(is.matrix(res))
+  expect_equal(dim(res), c(1, 3))
+  expect_true(is.matrix(res))
+  expected_res <- c(max(x[, 1]), max(x[, 2]), max(x[, 3]))
+  expect_true(sum(abs(res - expected_res)) < 1E-5)
+  
+  
+  x <- matrix(c(1, 2, 3), 2, 3)
+  y <- matrix(c(3, 4, 5), 2, 3)
+  x_i <- LazyTensor(x, index = 'i')
+  y_j <- LazyTensor(y, index = 'j')
+  
+  z <- matrix((1+2i)^(-6:5), nrow = 4)
+  z_i <- LazyTensor(z, index = 'i', is_complex = TRUE)
+  
+  v <- c(1, 2, 3)
+  Pm_v <- Pm(v)
+  
+  res <- max(x_i, "j")
+  expect_false(is.LazyTensor(res))
+  expect_equal(dim(res), c(2, 3))
+  expect_true(is.matrix(res))
+  expected_res <- x
+  expect_true(sum(abs(res - expected_res)) < 1E-5)
+  
+  res <- max(Pm_v, "j")
+  expect_false(is.LazyTensor(res))
+  expect_equal(dim(res), c(1, 3))
+  expect_true(is.matrix(res))
+  expected_res <- v
+  expect_true(sum(abs(res - expected_res)) < 1E-5)
+  
+  
   
   # errors
   expect_error(
@@ -3134,22 +3198,52 @@ test_that("grad", {
   y_j <- Vj(y)
   eta_i <- Vi(eta)
   
-  res <- grad(sqnorm2(x_i - y_j), eta_i, "Sum", var = x_i$formula, "j") 
-  expect_true(is.matrix(res))
-  expect_equal(dim(res), c(nx, 3))
+  res1 <- grad(sqnorm2(x_i - y_j), eta_i, "Sum", var = x_i$formula, "j") 
+  expect_true(is.matrix(res1))
+  expect_equal(dim(res1), c(nx, 3))
+  expected_res <- expected_res <- sapply(1:nx, function(i) {
+    tmp <- sapply(1:ny, function(j) {
+      return(2 * (x[i, ] - y[j, ]))
+    })
+    return(apply(tmp,1,sum))
+  })
+  expect_true(sum(abs(res1 - t(expected_res))) < 1E-4)
   
-  res <- grad(sqnorm2(x_i - y_j), eta_i, "Sum", var = 0, "j")
-  expect_true(is.matrix(res))
-  expect_equal(dim(res), c(nx, 3))
-  
+  res2 <- grad(sqnorm2(x_i - y_j), eta_i, "Sum", var = 0, "j")
+  expect_true(is.matrix(res2))
+  expect_equal(dim(res2), c(nx, 3))
+  expect_true(sum(abs(res1 - res2)) < 1E-4)
+
   eta <- matrix(1, nrow = ny, ncol = 1)
   eta_j <- Vj(eta)
+  
+  res3 <- grad(sqnorm2(y_j - x_i), eta_j, "Sum", var = x_i$formula, "i") 
+  expect_true(is.matrix(res3))
+  expect_equal(dim(res3), c(nx, 3))
+  expected_res <- expected_res <- sapply(1:nx, function(i) {
+    tmp <- sapply(1:ny, function(j) {
+      return(2 * (x[i, ] - y[j, ]))
+    })
+    return(apply(tmp, 1, sum))
+  })
+  expect_true(sum(abs(res3 - t(expected_res))) < 1E-4)
   
   # errors
   expect_error(
     grad(sqnorm2(x_i - y_j), eta_j, "Sum", var = 0, "j"),
-    paste0("`gradin` input argument should be a LazyTensor encoding", 
-           " a matrix of shape (10,1)."), 
+    paste0("`gradin` input argument should be indexed by 'i'"), 
+    fixed = TRUE
+  )
+  
+  bad_eta <- matrix(1, nrow = nx + 2, ncol = 1)
+  bad_eta_i <- Vi(bad_eta)
+  
+  expect_error(
+    grad(sqnorm2(x_i - y_j), bad_eta_i, "Sum", var = 0, "j"),
+    paste0(
+      "`gradin` input argument should be a LazyTensor encoding a matrix ",
+      "of shape (10,1)."
+    ), 
     fixed = TRUE
   )
   
@@ -3166,5 +3260,10 @@ test_that("grad", {
     fixed = TRUE
   )
   
+  expect_error(
+    grad(sqnorm2(x_i - y_j), eta_i, "Sum", var = 0,  "i"),
+    paste0("`index` input argument should be 'j'."), 
+    fixed = TRUE
+  )
 })
 
