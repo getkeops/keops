@@ -2800,7 +2800,7 @@ reduction.LazyTensor <- function(x, opstr, index, opt_arg = NA) {
         if(!any(is.na(opt_arg)) && is.LazyTensor(opt_arg))
             res <- op(c(x$vars, opt_arg$vars))
         else {
-            res <- op(c(x$vars))
+            res <- op(x$vars)
         }
     }
     

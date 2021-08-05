@@ -477,10 +477,12 @@ binaryop.LazyTensor <- function(x, y, opstr, is_operator = FALSE,
   if(is.numeric(y) || is.complex(y))
     y <- LazyTensor(y)
   
+  # init
   formula_x <- x$formula
   formula_y <- y$formula
   vars <- c(x$vars, y$vars)
-  args <- unique(c(x$args, y$args))
+  args <- c(x$args, y$args)
+  
   dimres_x <- x$dimres
   dimres_y <- y$dimres
   class_res <- class(x)
@@ -545,9 +547,19 @@ binaryop.LazyTensor <- function(x, y, opstr, is_operator = FALSE,
     formula <- paste(opstr, "(", formula_x, ",", opt_arg$formula, ",",
                      formula_y, ")", sep = "")
   
-  
   res <- list(formula = formula, args = args, vars = vars, dimres = dim_res)
-  res$vars <- res$vars[!duplicated(res$vars)] # remove duplicates
+  
+  # only remove duplicate vars if they have same index
+  pos_args <- c()
+  for(k in 1:(length(res$args)-1)) {
+    for(l in (k + 1):length(res$args))
+      if(res$args[k] == res$args[l]) {
+        pos_args <- append(pos_args, l)
+      }
+  }
+
+  res$vars[pos_args] <- NULL
+  res$args <- unique(res$args)
   
   if(!is.na(res_type[1]))
     class(res) <- res_type
@@ -674,11 +686,22 @@ ternaryop.LazyTensor <- function(x, y, z, opstr, dim_check_type = "sameor1",
                    z$formula, ")", sep = "")
   
   vars <- c(x$vars, y$vars, z$vars)
-  args <- unique(c(x$args, y$args, z$args))
+  args <- c(x$args, y$args, z$args)
   dimres <- dim_res
   
   res <- list(formula = formula, args = args, vars = vars, dimres = dimres)
-  res$vars <- res$vars[!duplicated(res$vars)] # remove doublon
+  
+  # only remove duplicate vars if they have same index
+  pos_args <- c()
+  for(k in 1:(length(res$args)-1)) {
+    for(l in (k + 1):length(res$args))
+      if(res$args[k] == res$args[l]) {
+        pos_args <- append(pos_args, l)
+      }
+  }
+  
+  res$vars[pos_args] <- NULL
+  res$args <- unique(res$args)
   
   if(is.ComplexLazyTensor(x) || is.ComplexLazyTensor(y))
     class(res) <- c("ComplexLazyTensor", "LazyTensor")
@@ -1174,6 +1197,23 @@ preprocess_reduction <- function(x, opstr, index, opt_arg = NA) {
       # put `opt_arg$formula` at the end of the formula
       formula <- paste( opstr,  "_Reduction(",  x$formula, 
                         ",",  tag, ",", opt_arg$formula, ")", sep = "")
+      # list_index <- list()
+      # count <- 0
+      # if(length(x$args) != length(x$vars)){
+      #  for(k in 1:(length(x$vars))) {
+      #    for(l in 1:(length(x$args))) {
+      #      bool_grep <- grep(address(x$vars[[k]]), x$args[[l]])
+      #      if(any(bool_grep)) {
+      #        list_index <- append(list_index, l)
+      #      }
+      #     }
+      #   }
+      #   
+      #   nb_occur <- length(list_index)
+      #   
+      #   
+      # }
+      # else
       args <- c(x$args, opt_arg$args)
     }
     
