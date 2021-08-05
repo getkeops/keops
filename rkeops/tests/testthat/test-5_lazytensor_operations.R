@@ -3096,9 +3096,9 @@ test_that("Kmin_argKmin_reduction", {
 
 test_that("logsumexp", {
   # basic example
-  x <- matrix(c(1, 2, 3), 2, 3)
-  y <- matrix(c(3, 4, 5), 2, 3)
-  w <- matrix(c(1, 1, 1), 2, 3)
+  x <- matrix(c(1., 2., 3.), 2, 3)
+  y <- matrix(c(3., 4., 5.), 2, 3)
+  w <- matrix(c(1., 1., 1.), 2, 3)
   x_i <- LazyTensor(x, index = 'i')
   y_j <- LazyTensor(y, index = 'j')
   w_j <- LazyTensor(w, index = 'j')
@@ -3120,32 +3120,6 @@ test_that("logsumexp", {
   expected_res <- c(max(x[, 1]), max(x[, 2]), max(x[, 3]))
   expect_true(sum(abs(res - expected_res)) < 1E-5)
   
-  
-  x <- matrix(c(1, 2, 3), 2, 3)
-  y <- matrix(c(3, 4, 5), 2, 3)
-  x_i <- LazyTensor(x, index = 'i')
-  y_j <- LazyTensor(y, index = 'j')
-  
-  z <- matrix((1+2i)^(-6:5), nrow = 4)
-  z_i <- LazyTensor(z, index = 'i', is_complex = TRUE)
-  
-  v <- c(1, 2, 3)
-  Pm_v <- Pm(v)
-  
-  res <- max(x_i, "j")
-  expect_false(is.LazyTensor(res))
-  expect_equal(dim(res), c(2, 3))
-  expect_true(is.matrix(res))
-  expected_res <- x
-  expect_true(sum(abs(res - expected_res)) < 1E-5)
-  
-  res <- max(Pm_v, "j")
-  expect_false(is.LazyTensor(res))
-  expect_equal(dim(res), c(1, 3))
-  expect_true(is.matrix(res))
-  expected_res <- v
-  expect_true(sum(abs(res - expected_res)) < 1E-5)
-  
   # errors
   expect_error(
     logsumexp(S_ij, '9'),
@@ -3165,7 +3139,7 @@ test_that("logsumexp_reduction", {
   w <- matrix(runif(100 * 3), 100, 3) # weight LazyTensor
   w_j <- LazyTensor(w, index = 'j')
   
-  S_ij = sum( (x_i - y_j)^2 )
+  S_ij <- sum( (x_i - y_j)^2 )
   # check formulas, args & classes
   res <- logsumexp_reduction(S_ij, 'i', w_j)
   expect_false(is.LazyTensor(res))
@@ -3187,7 +3161,7 @@ test_that("logsumexp_reduction", {
 
 test_that("sumsoftmaxweight", {
   # basic example
-  x <- matrix(runif(150 * 3), 150, 3) 
+  x <- matrix(runif(150 * 3), 150, 3)
   x_i <- LazyTensor(x, index = 'i') 
   y <- matrix(runif(100 * 3), 100, 3)
   y_j <- LazyTensor(y, index = 'j')
