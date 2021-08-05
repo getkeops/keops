@@ -393,6 +393,8 @@ test_that("binaryop.LazyTensor", {
   y <- matrix(runif(N * D), N, D)
   z <- matrix(runif(N * E), N, E)
   x_i <- LazyTensor(x, index = 'i')
+  x_j <- LazyTensor(x, index = 'j')
+  y_i <- LazyTensor(y, index = 'i')
   y_j <- LazyTensor(y, index = 'j')
   z_j <- LazyTensor(z, index = 'j')
   # ComplexLazyTensor
@@ -454,6 +456,19 @@ test_that("binaryop.LazyTensor", {
                               dim_res = 1)
   expect_equal(1, bin2$dimres)
   
+  # check particular cases with duplicate inputs
+  v <- c(2, 7, 8)
+  Pm_v <- Pm(v)
+  
+  obj <- x_i + y_j + Pm_v + x_j + y_j + x_i + Pm_v
+  expect_equal(length(obj$args), 4)
+  expect_equal(length(obj$vars), 4)
+  expect_equal(obj$vars[[1]], obj$vars[[4]])
+  
+  obj <- x_i + 3 + Pm_v + x_j + 7 + x_i + Pm_v
+  expect_equal(length(obj$args), 3)
+  expect_equal(length(obj$vars), 3)
+  
   # errors
   expect_error(
     binaryop.LazyTensor(x, y_j, "+"), 
@@ -497,6 +512,8 @@ test_that("ternaryop.LazyTensor", {
   z <- matrix(runif(P * D), P, D)
   w_j <- LazyTensor(w, index = 'j')
   x_i <- LazyTensor(x, index = 'i')
+  x_j <- LazyTensor(x, index = 'j')
+  y_i <- LazyTensor(y, index = 'i')
   y_j <- LazyTensor(y, index = 'j')
   z_i <- LazyTensor(z, index = 'i')
   
@@ -549,6 +566,16 @@ test_that("ternaryop.LazyTensor", {
   # check dimres
   tern1 <- ternaryop.LazyTensor(4, y_j, z_i, "Clamp")
   expect_equal(D, tern1$dimres)
+  
+  # check particular cases with duplicate inputs
+  obj <- clamp(x_i, x_j, x_i)
+  expect_equal(length(obj$args), 2)
+  expect_equal(length(obj$vars), 2)
+  expect_equal(obj$vars[[1]], obj$vars[[2]])
+  
+  obj <- ifelse(x_i, 3, x_j)
+  expect_equal(length(obj$args), 2)
+  expect_equal(length(obj$vars), 2)
   
   # errors
   expect_error(
