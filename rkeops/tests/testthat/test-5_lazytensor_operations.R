@@ -2796,9 +2796,9 @@ test_that("max_argmax", {
   expected_res <- c(max(x[, 1]), 
                     max(x[, 2]), 
                     max(x[, 3]),
-                    which.max(x[, 1]) - 1, 
-                    which.max(x[, 2]) - 1, 
-                    which.max(x[, 3]) - 1)
+                    which.max(x[, 1]) - 1, # subtract 1 because
+                    which.max(x[, 2]) - 1, # indices start at zero
+                    which.max(x[, 3]) - 1) # in KeOps...
   expect_true(sum(abs(res - expected_res)) < 1E-5)
   
   res <- max(x_i, "j")
@@ -2849,31 +2849,49 @@ test_that("max_argmax_reduction", {
 
 test_that("Kmin", {
   # basic example
-  x <- matrix(runif(150 * 3), 150, 3) 
-  x_i <- LazyTensor(x, index = 'i') 
-  y <- matrix(runif(100 * 3), 100, 3)
+  w <- matrix(c(2, 4, 6, 3, 2, 8, 9, 1, 3), 3, 3)
+  w_i <- LazyTensor(w, index = 'i')
+  x <- matrix(c(1, 2, 3), 2, 3)
+  x_i <- LazyTensor(x, index = 'i')
+  y <- matrix(c(5, 1, 3), 2, 3)
   y_j <- LazyTensor(y, index = 'j')
-  
-  S_ij = sum( (x_i - y_j)^2 )
   
   K <- 2
   
   # check formulas, args & classes
+  S_ij <- sum((x_i - y_j)^2)
   res <- Kmin(S_ij, K, "i")
   expect_false(is.LazyTensor(res))
   expect_true(is.matrix(res))
+  
+  # check very simple results
+  res <- Kmin(x_i, 1, 'j')
+  expect_equal(res, x)
+  # ---
+  res <- Kmin(x_i, 1, 'i')
+  expect_equal(as.vector(res), c(min(x[, 1]), min(x[, 2]), min(x[, 3])))
+  # ---
+  res_Kmin <- Kmin(w_i, K, 'i')
+  K_1 <- c(min(w[, 1]),
+           min(w[, 2]),
+           min(w[, 3]))
+  K_2 <- c(min(w[, 1][-which.min(w[, 1])]),
+           min(w[, 2][-which.min(w[, 2])]),
+           min(w[, 3][-which.min(w[, 3])]))
+  expected_vect_res <- c(K_1, K_2)
+  expect_equal(as.vector(res_Kmin), expected_vect_res)
   
   # errors
   expect_error(
     Kmin(x_i, 3.14, "i"),
     "`K` input argument should be an integer.",
     fixed = TRUE
-    )
+  )
   expect_error(
     Kmin(x_i, K, "k"),
     "`index` input argument should be a character, either 'i' or 'j'.",
     fixed = TRUE
-    )
+  )
   
 })
 
@@ -2885,11 +2903,10 @@ test_that("Kmin_reduction", {
   y <- matrix(runif(100 * 3), 100, 3)
   y_j <- LazyTensor(y, index = 'j')
   
-  S_ij = sum((x_i - y_j)^2)
-  
   K <- 2
   
   # check formulas, args & classes
+  S_ij <- sum((x_i - y_j)^2)
   res <- Kmin_reduction(S_ij, K, "i")
   expect_false(is.LazyTensor(res))
   expect_true(is.matrix(res))
@@ -2911,31 +2928,50 @@ test_that("Kmin_reduction", {
 
 test_that("argKmin", {
   # basic example
+  w <- matrix(c(2, 4, 6, 3, 2, 8, 9, 1, 3), 3, 3)
+  w_i <- LazyTensor(w, index = 'i')
   x <- matrix(runif(150 * 3), 150, 3) 
   x_i <- LazyTensor(x, index = 'i') 
   y <- matrix(runif(100 * 3), 100, 3)
   y_j <- LazyTensor(y, index = 'j')
   
-  S_ij = sum((x_i - y_j)^2)
-  
   K <- 2
   
   # check formulas, args & classes
+  S_ij <- sum((x_i - y_j)^2)
   res <- argKmin(S_ij, K, "i")
   expect_false(is.LazyTensor(res))
   expect_true(is.matrix(res))
+  
+  # check result for simple example
+  res_argKmin <- argKmin(w_i, K, 'i')
+  # grab index of min values
+  K_1 <- c(which.min(w[, 1]) - 1,
+           which.min(w[, 2]) - 1,
+           which.min(w[, 3]) - 1)
+  # replace min values by huge ones
+  w[, 1][which.min(w[, 1])] <- 100
+  w[, 2][which.min(w[, 2])] <- 100
+  w[, 3][which.min(w[, 3])] <- 100
+  # grab index of (second) min values
+  K_2 <- c(which.min(w[, 1]) - 1,
+           which.min(w[, 2]) - 1,
+           which.min(w[, 3]) - 1)
+  
+  expected_vect_res <- c(K_1, K_2)
+  expect_equal(as.vector(res_argKmin), expected_vect_res)
   
   # errors
   expect_error(
     argKmin(x_i, 3.14, "i"),
     "`K` input argument should be an integer.",
     fixed = TRUE
-    )
+  )
   expect_error(
     argKmin(x_i, K, "k"),
     "`index` input argument should be a character, either 'i' or 'j'.",
     fixed = TRUE
-    )
+  )
   
 })
 
@@ -2947,11 +2983,10 @@ test_that("argKmin_reduction", {
   y <- matrix(runif(100 * 3), 100, 3)
   y_j <- LazyTensor(y, index = 'j')
   
-  S_ij = sum((x_i - y_j)^2)
-  
   K <- 2
   
   # check formulas, args & classes
+  S_ij <- sum((x_i - y_j)^2)
   res <- argKmin_reduction(S_ij, K, "i")
   expect_false(is.LazyTensor(res))
   expect_true(is.matrix(res))
@@ -2973,19 +3008,45 @@ test_that("argKmin_reduction", {
 
 test_that("Kmin_argKmin", {
   # basic example
+  w <- matrix(c(2, 4, 6, 3, 2, 8, 9, 1, 3), 3, 3)
+  w_i <- LazyTensor(w, index = 'i')
   x <- matrix(runif(150 * 3), 150, 3) 
   x_i <- LazyTensor(x, index = 'i') 
   y <- matrix(runif(100 * 3), 100, 3)
   y_j <- LazyTensor(y, index = 'j')
   
-  S_ij = sum((x_i - y_j)^2)
-  
   K <- 2
   
   # check formulas, args & classes
+  S_ij <- sum((x_i - y_j)^2)
   res <- Kmin_argKmin(S_ij, K, "i")
   expect_false(is.LazyTensor(res))
   expect_true(is.matrix(res))
+  
+  # check results for simple example
+  res <- Kmin_argKmin(w_i, K, 'i')
+  # grab min values for K = 1, 2
+  Kmin_K_1 <- c(min(w[, 1]),
+                min(w[, 2]),
+                min(w[, 3]))
+  Kmin_K_2 <- c(min(w[, 1][-which.min(w[, 1])]),
+                min(w[, 2][-which.min(w[, 2])]),
+                min(w[, 3][-which.min(w[, 3])]))
+  # grab index of min values
+  argKmin_K_1 <- c(which.min(w[, 1]) - 1,
+                   which.min(w[, 2]) - 1,
+                   which.min(w[, 3]) - 1)
+  # replace min values by huge ones
+  w[, 1][which.min(w[, 1])] <- 100
+  w[, 2][which.min(w[, 2])] <- 100
+  w[, 3][which.min(w[, 3])] <- 100
+  # grab index of (second) min values
+  argKmin_K_2 <- c(which.min(w[, 1]) - 1,
+                   which.min(w[, 2]) - 1,
+                   which.min(w[, 3]) - 1)
+  # expected result
+  expected_vect_res <- c(Kmin_K_1, argKmin_K_1, Kmin_K_2, argKmin_K_2)
+  expect_equal(as.vector(res), expected_vect_res)
   
   # errors
   expect_error(
@@ -3009,11 +3070,10 @@ test_that("Kmin_argKmin_reduction", {
   y <- matrix(runif(100 * 3), 100, 3)
   y_j <- LazyTensor(y, index = 'j')
   
-  S_ij = sum((x_i - y_j)^2)
-  
   K <- 2
   
   # check formulas, args & classes
+  S_ij <- sum((x_i - y_j)^2)
   res <- Kmin_argKmin_reduction(S_ij, K, "i")
   expect_false(is.LazyTensor(res))
   expect_true(is.matrix(res))
@@ -3034,16 +3094,8 @@ test_that("Kmin_argKmin_reduction", {
 })
 
 
-
 test_that("logsumexp", {
   # basic example
-  x <- matrix(runif(150 * 3), 150, 3)
-  x_i <- LazyTensor(x, index = 'i')
-  y <- matrix(runif(100 * 3), 100, 3)
-  y_j <- LazyTensor(y, index = 'j')
-  w <- matrix(runif(100 * 3), 100, 3) # weight LazyTensor
-  w_j <- LazyTensor(w, index = 'j')
-  
   x <- matrix(c(1, 2, 3), 2, 3)
   y <- matrix(c(3, 4, 5), 2, 3)
   w <- matrix(c(1, 1, 1), 2, 3)
@@ -3093,8 +3145,6 @@ test_that("logsumexp", {
   expect_true(is.matrix(res))
   expected_res <- v
   expect_true(sum(abs(res - expected_res)) < 1E-5)
-  
-  
   
   # errors
   expect_error(
