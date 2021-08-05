@@ -551,14 +551,16 @@ binaryop.LazyTensor <- function(x, y, opstr, is_operator = FALSE,
   
   # only remove duplicate vars if they have same index
   pos_args <- c()
-  for(k in 1:(length(res$args)-1)) {
-    for(l in (k + 1):length(res$args))
-      if(res$args[k] == res$args[l]) {
-        pos_args <- append(pos_args, l)
-      }
+  if(length(res$args) > 1) {
+    for(k in 1:(length(res$args)-1)) {
+      for(l in (k + 1):length(res$args))
+        if(res$args[k] == res$args[l]) {
+          pos_args <- append(pos_args, l)
+        }
+    }
+    
+    res$vars[pos_args] <- NULL
   }
-
-  res$vars[pos_args] <- NULL
   res$args <- unique(res$args)
   
   if(!is.na(res_type[1]))
@@ -693,14 +695,16 @@ ternaryop.LazyTensor <- function(x, y, z, opstr, dim_check_type = "sameor1",
   
   # only remove duplicate vars if they have same index
   pos_args <- c()
-  for(k in 1:(length(res$args)-1)) {
-    for(l in (k + 1):length(res$args))
-      if(res$args[k] == res$args[l]) {
-        pos_args <- append(pos_args, l)
-      }
+  if(length(res$args) > 1) {
+    for(k in 1:(length(res$args)-1)) {
+      for(l in (k + 1):length(res$args))
+        if(res$args[k] == res$args[l]) {
+          pos_args <- append(pos_args, l)
+        }
+    }
+    
+    res$vars[pos_args] <- NULL
   }
-  
-  res$vars[pos_args] <- NULL
   res$args <- unique(res$args)
   
   if(is.ComplexLazyTensor(x) || is.ComplexLazyTensor(y))
