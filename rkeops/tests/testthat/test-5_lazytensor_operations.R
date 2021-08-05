@@ -2269,7 +2269,6 @@ test_that("tensorprod", {
 
 
 test_that("reduction.LazyTensor", {
-  # basic example
   D <- 3
   M <- 100
   N <- 150
@@ -2312,10 +2311,7 @@ test_that("reduction.LazyTensor", {
 
 
 test_that("sum", {
-  # basic example
-  D <- 3
-  M <- 100
-  N <- 150
+
   x <- matrix(c(1, 2, 3), 2, 3)
   x_i <- LazyTensor(x, index = 'i')
   x_j <- LazyTensor(x, index = 'j')
@@ -2394,7 +2390,6 @@ test_that("sum", {
 
 
 test_that("sum_reduction", {
-  # basic example
   D <- 3
   M <- 100
   N <- 150
@@ -2773,7 +2768,6 @@ test_that("argmax", {
 
 
 test_that("argmax_reduction", {
-  # basic example
   x <- matrix(c(1, 2, 3), 2, 3)
   x_i <- LazyTensor(x, index = 'i')
   
@@ -2907,7 +2901,6 @@ test_that("Kmin", {
 
 
 test_that("Kmin_reduction", {
-  # basic example
   x <- matrix(runif(150 * 3), 150, 3) 
   x_i <- LazyTensor(x, index = 'i') 
   y <- matrix(runif(100 * 3), 100, 3)
@@ -2937,7 +2930,6 @@ test_that("Kmin_reduction", {
 
 
 test_that("argKmin", {
-  # basic example
   w <- matrix(c(2, 4, 6, 3, 2, 8, 9, 1, 3), 3, 3)
   w_i <- LazyTensor(w, index = 'i')
   x <- matrix(runif(150 * 3), 150, 3) 
@@ -2987,7 +2979,6 @@ test_that("argKmin", {
 
 
 test_that("argKmin_reduction", {
-  # basic example
   x <- matrix(runif(150 * 3), 150, 3) 
   x_i <- LazyTensor(x, index = 'i') 
   y <- matrix(runif(100 * 3), 100, 3)
@@ -3017,7 +3008,6 @@ test_that("argKmin_reduction", {
 
 
 test_that("Kmin_argKmin", {
-  # basic example
   w <- matrix(c(2, 4, 6, 3, 2, 8, 9, 1, 3), 3, 3)
   w_i <- LazyTensor(w, index = 'i')
   x <- matrix(runif(150 * 3), 150, 3) 
@@ -3074,7 +3064,6 @@ test_that("Kmin_argKmin", {
 
 
 test_that("Kmin_argKmin_reduction", {
-  # basic example
   x <- matrix(runif(150 * 3), 150, 3) 
   x_i <- LazyTensor(x, index = 'i') 
   y <- matrix(runif(100 * 3), 100, 3)
@@ -3105,7 +3094,6 @@ test_that("Kmin_argKmin_reduction", {
 
 
 test_that("logsumexp", {
-  # basic example
   x <- matrix(c(1., 2., 3.), 2, 3)
   y <- matrix(c(3., 4., 5.), 2, 3)
   w <- matrix(c(1., 1., 1.), 2, 3)
@@ -3141,7 +3129,6 @@ test_that("logsumexp", {
 
 
 test_that("logsumexp_reduction", {
-  # basic example
   x <- matrix(runif(150 * 3), 150, 3) 
   x_i <- LazyTensor(x, index = 'i') 
   y <- matrix(runif(100 * 3), 100, 3)
@@ -3170,7 +3157,6 @@ test_that("logsumexp_reduction", {
 
 
 test_that("sumsoftmaxweight", {
-  # basic example
   x <- matrix(runif(150 * 3), 150, 3)
   x_i <- LazyTensor(x, index = 'i') 
   y <- matrix(runif(100 * 3), 100, 3)
@@ -3195,7 +3181,6 @@ test_that("sumsoftmaxweight", {
 
 
 test_that("sumsoftmaxweight_reduction", {
-  # basic example
   x <- matrix(runif(150 * 3), 150, 3) 
   x_i <- LazyTensor(x, index = 'i') 
   y <- matrix(runif(150 * 3), 150, 3)
