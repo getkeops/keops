@@ -806,30 +806,40 @@ test_that("atan2", {
 
 test_that("%*%", {
   # basic example
-  D <- 3
-  M <- 100
-  N <- 150
-  x <- matrix(runif(M * D), M, D)
-  y <- matrix(runif(N * D), N, D)
+  x <- matrix(c(1, 2, 3), 2, 3)
+  y <- matrix(c(3, 4, 5), 2, 3)
   x_i <- LazyTensor(x, index = 'i')
   y_j <- LazyTensor(y, index = 'j')
   
-  # check results & formulas
-  DM <- D %*% M
-  expect_equal(DM[1], 300)
+  # check results
+  a <- 3 %*% 100
+  expect_equal(a[1], 300)
   
   res <- x_i %*% y_j
-  expect_equal(dim(res)[1], 100)
-  expect_equal(dim(res)[2], 3)
+  expect_false(is.LazyTensor(res))
+  expect_equal(dim(res), c(2, 3))
+  expect_true(is.matrix(res))
+  expected_res <- matrix(0, nrow = 2, ncol = 3)
+  for(k in 1:3) {
+    expected_res[[1, k]] <- x[[1, k]]*(y[[1, k]]+y[[2, k]])
+    expected_res[[2, k]] <- x[[2, k]]*(y[[1, k]]+y[[2, k]])
+  }
+  expect_true(sum(abs(res - expected_res)) < 1E-5)
+  
   
   res <-  x_i %*% y
-  expect_equal(dim(res)[1], 100)
-  expect_equal(dim(res)[2], 3)
+  expect_false(is.LazyTensor(res))
+  expect_equal(dim(res), c(2, 3))
+  expect_true(is.matrix(res))
+  expect_true(sum(abs(res - expected_res)) < 1E-5)
   
-  # TODO add an error in the %*% function when bad dimensions are used
-  # TODO add test for `scalar %*% LazyTensor` and `matrix %*% LazyTensor` 
-  # when problem will be fixed
-  # TODO test reduction.LazyTensor and sum before
+  res <-  x_i %*% 2
+  expect_false(is.LazyTensor(res))
+  expect_equal(dim(res), c(2, 3))
+  expect_true(is.matrix(res))
+  expected_res <- x * 2
+  expect_true(sum(abs(res - expected_res)) < 1E-5)
+  
 })
 
 
