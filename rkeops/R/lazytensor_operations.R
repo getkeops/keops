@@ -637,7 +637,7 @@ rsqrt.LazyTensor <- function(x) {
 
 #' Matrix multiplication.
 #' @description
-#' Symbolic binary operation for element-wise matrix multiplication operator.
+#' Sum reduction of the multiplication operator "*".
 #' @usage x %*% y
 #' @details If `x` or `y` is a `LazyTensor`, `x %*% y` returns the sum reduction 
 #' of the product `x * y`.
