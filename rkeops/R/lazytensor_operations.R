@@ -3837,7 +3837,8 @@ sumsoftmaxweight_reduction <- function(x, index, weight) {
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `LazyTensor` or a `ComplexLazyTensor`.
 #' @param gradin A `LazyTensor`, a `ComplexLazyTensor` encoding a matrix of ones
-#' with an inner dimension equal to 1 and with number of rows equal to 
+#' with an inner dimension equal to 1 and indexed by the 
+#' same index and with number of rows equal to 
 #' the number of rows of the first `x` variable (in `x$vars`).
 #' @param opstr A `string` formula corresponding to a reduction 
 #' (like "Sum" or "Max").
@@ -3845,7 +3846,9 @@ sumsoftmaxweight_reduction <- function(x, index, weight) {
 #' variable/parameter (given by name or by position index starting at 0) the 
 #' gradient of the formula should be computed.
 #' @param index A `character` that should be either **i** or **j** to specify 
-#' whether if the reduction is indexed by **i** (rows), or **j** (columns).
+#' whether if the reduction is indexed by **i** (rows), or **j** (columns). 
+#' When the first `x` variable is indexed by **i** (resp. **j**), index cannot 
+#' be **i** (resp. **j**). 
 #' @return A `matrix`.
 #' @examples
 #' \dontrun{
@@ -3859,7 +3862,7 @@ sumsoftmaxweight_reduction <- function(x, index, weight) {
 #' x_i <- LazyTensor(x, index = 'i')  # LazyTensor from matrix x, indexed by 'i'
 #' y_j <- LazyTensor(y, index = 'j')  # LazyTensor from matrix y, indexed by 'j'
 #' eta_i <- LazyTensor(eta, index = 'i')   # LazyTensor from matrix eta, 
-#'                                         # indexed by 'i'
+#'                                         # indexed by 'i' (like x_i)
 #' 
 #' # gradient with the formula from position
 #' grad_xy <- grad(sqnorm2(x_i-y_j), eta_i, "Sum", var = y_j$formula, "j")  
@@ -3877,6 +3880,39 @@ grad <- function(x, gradin, opstr, var, index) {
         stop(
             paste0("`opstr` input should be a string text corresponding to", 
                    " a reduction formula.")
+        )
+    }
+    
+    first_x_index_i <- grep("A0x.*i", x$args[[1]])
+    first_x_index_j <- grep("A0x.*j", x$args[[1]])
+    gradin_index_i <- grep("A0x.*i", gradin$args[[1]])
+    gradin_index_j <- grep("A0x.*j", gradin$args[[1]])
+    
+    # errors when `x` first argument and `gradin` are not indexed in 
+    # the same way
+    if(any(first_x_index_i) && any(gradin_index_j)) {
+        stop(
+            paste0("`gradin` input argument should be indexed by 'i'.")
+        )
+    }
+    
+    if(any(first_x_index_j) && any(gradin_index_i)) {
+        stop(
+            paste0("`gradin` input argument should be indexed by 'j'.")
+        )
+    }
+    
+    # errors to avoid "R aborting session" when the first argument of `x` is
+    # indexed by `index`. To change in the future ?
+    if(any(first_x_index_i) && index == "i") {
+        stop(
+            paste0("`index` input argument should be 'j'.")
+        )
+    }
+    
+    if(any(first_x_index_j) && index == "j") {
+        stop(
+            paste0("`index` input argument should be 'i'.")
         )
     }
     
