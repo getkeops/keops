@@ -1,45 +1,46 @@
-# This is the main entry point for all binders. It takes as inputs :
-#   - map_reduce_id : string naming the type of map-reduce scheme to be used : either "CpuReduc", "GpuReduc1D_FromDevice", ...
-#   - red_formula_string : string expressing the formula, such as "Sum_Reduction((Exp(Minus(Sum(Square((Var(0,3,0) / Var(1,3,1)))))) * Var(2,1,1)),0)",
-#   - enable_chunks : -1, 0 or 1, for Gpu mode only, enable special routines for high dimensions (-1 means automatic setting)
-#   - enable_finalchunks : -1, 0 or 1, for Gpu mode only, enable special routines for final operation in high dimensions (-1 means automatic setting)
-#   - mul_var_highdim : -1, 0 or 1, for Gpu mode only, another option for special routines of final operation in high dimensions (-1 means automatic setting)
-#   - aliases : list of strings expressing the aliases list, which may be empty,
-#   - nargs : integer specifying the number of arguments for the call to the routine,
-#   - dtype : string specifying the float type of the arguments  "float", "double" or "half")
-#   - dtypeacc : string specifying the float type of the accumulator of the reduction ("float", "double" or "half")
-#   - sum_scheme_string : string specifying the type of accumulation for summation reductions : either "direct_sum", "block_sum" or "kahan_scheme".
-#   - tagHostDevice : 0 or 1, for Gpu mode only, use Host (0) or Device (1) routines
-#   - tagCPUGPU : 0 or 1, use Cpu (0) or Gpu (1) mode
-#   - tag1D2D : 0 or 1, for Gpu mode only, use 1D (0) or 2D (1) computation map-reduce scheme 
-#   - use_half : 0 or 1, for Gpu mode only, enable special routines for half-precision data type
-#   - device_id : integer, for Gpu mode only, id of Gpu device to build the code for
-#
-# It returns :
-#       - dllname : string, file name of the dll to be called for performing the reduction
-#       - low_level_code_file : string, file name of the low level code file to be passed to the dll if JIT is enabled, or "none" otherwise
-#       - tagI : integer, 0 or 1, specifying if reduction must be performed over i or j indices,
-#       - tagZero : integer, 0 or 1, specifying if reduction just consists in filling output with zeros,
-#       - use_half : 0 or 1, enable special routines for half-precision data type,
-#       - cuda_block_size : integer, prefered block size for Gpu kernel
-#       - use_chunk_mode : 0, 1 or 2, if 1 or 2, enables special routines for high dimensions,
-#       - tag1D2D : same as input
-#       - dimred : integer, dimension of the inner reduction operation.
-#       - dim : integer, dimension of the output tensor.
-#       - dimy : integer, total dimension of the j indexed variables.
-#       - indsi : list of integers, indices of i indexed variables.
-#       - indsj : list of integers, indices of j indexed variables.
-#       - indsp : list of integers, indices of parameter variables.
-#       - dimsx : list of integers, dimensions of i indexed variables.
-#       - dimsy : list of integers, dimensions of j indexed variables.
-#       - indsp : list of integers, dimensions of parameter variables.
+"""
+This is the main entry point for all binders. It takes as inputs :
+  - map_reduce_id : string naming the type of map-reduce scheme to be used : either "CpuReduc", "GpuReduc1D_FromDevice", ...
+  - red_formula_string : string expressing the formula, such as "Sum_Reduction((Exp(Minus(Sum(Square((Var(0,3,0) / Var(1,3,1)))))) * Var(2,1,1)),0)",
+  - enable_chunks : -1, 0 or 1, for Gpu mode only, enable special routines for high dimensions (-1 means automatic setting)
+  - enable_finalchunks : -1, 0 or 1, for Gpu mode only, enable special routines for final operation in high dimensions (-1 means automatic setting)
+  - mul_var_highdim : -1, 0 or 1, for Gpu mode only, another option for special routines of final operation in high dimensions (-1 means automatic setting)
+  - aliases : list of strings expressing the aliases list, which may be empty,
+  - nargs : integer specifying the number of arguments for the call to the routine,
+  - dtype : string specifying the float type of the arguments  "float", "double" or "half")
+  - dtypeacc : string specifying the float type of the accumulator of the reduction ("float", "double" or "half")
+  - sum_scheme_string : string specifying the type of accumulation for summation reductions : either "direct_sum", "block_sum" or "kahan_scheme".
+  - tagHostDevice : 0 or 1, for Gpu mode only, use Host (0) or Device (1) routines
+  - tagCPUGPU : 0 or 1, use Cpu (0) or Gpu (1) mode
+  - tag1D2D : 0 or 1, for Gpu mode only, use 1D (0) or 2D (1) computation map-reduce scheme
+  - use_half : 0 or 1, for Gpu mode only, enable special routines for half-precision data type
+  - device_id : integer, for Gpu mode only, id of Gpu device to build the code for
 
-# It can be used as a Python function or as a standalone Python script (in which case it prints the outputs):
-#   - example (as Python function) :
-#       get_keops_dll("CpuReduc", "Sum_Reduction((Exp(Minus(Sum(Square((Var(0,3,0) / Var(1,3,1)))))) * Var(2,1,1)),0)", 0, 0, 0, [], 3, "float", "float", "block_sum", 0, 0, 0, 0, 0)
-#   - example (as Python script) :
-#       python get_keops_dll.py CpuReduc "Sum_Reduction((Exp(Minus(Sum(Square((Var(0,3,0) / Var(1,3,1)))))) * Var(2,1,1)),0)" 0 0 0 "[]" 3 float float block_sum 0 0 0 0 0
+It returns :
+      - dllname : string, file name of the dll to be called for performing the reduction
+      - low_level_code_file : string, file name of the low level code file to be passed to the dll if JIT is enabled, or "none" otherwise
+      - tagI : integer, 0 or 1, specifying if reduction must be performed over i or j indices,
+      - tagZero : integer, 0 or 1, specifying if reduction just consists in filling output with zeros,
+      - use_half : 0 or 1, enable special routines for half-precision data type,
+      - cuda_block_size : integer, prefered block size for Gpu kernel
+      - use_chunk_mode : 0, 1 or 2, if 1 or 2, enables special routines for high dimensions,
+      - tag1D2D : same as input
+      - dimred : integer, dimension of the inner reduction operation.
+      - dim : integer, dimension of the output tensor.
+      - dimy : integer, total dimension of the j indexed variables.
+      - indsi : list of integers, indices of i indexed variables.
+      - indsj : list of integers, indices of j indexed variables.
+      - indsp : list of integers, indices of parameter variables.
+      - dimsx : list of integers, dimensions of i indexed variables.
+      - dimsy : list of integers, dimensions of j indexed variables.
+      - indsp : list of integers, dimensions of parameter variables.
 
+It can be used as a Python function or as a standalone Python script (in which case it prints the outputs):
+  - example (as Python function) :
+      get_keops_dll("CpuReduc", "Sum_Reduction((Exp(Minus(Sum(Square((Var(0,3,0) / Var(1,3,1)))))) * Var(2,1,1)),0)", 0, 0, 0, [], 3, "float", "float", "block_sum", 0, 0, 0, 0, 0)
+  - example (as Python script) :
+      python get_keops_dll.py CpuReduc "Sum_Reduction((Exp(Minus(Sum(Square((Var(0,3,0) / Var(1,3,1)))))) * Var(2,1,1)),0)" 0 0 0 "[]" 3 float float block_sum 0 0 0 0 0
+"""
 import sys
 from keops.python_engine.formulas import *
 from keops.python_engine.reductions import getReduction

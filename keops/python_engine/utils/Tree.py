@@ -24,9 +24,9 @@ class Tree:
         string = pre_string
         for k, child in enumerate(self.children):
             test = (
-                hasattr(child, "print_spec")
-                and hasattr(self, "print_spec")
-                and child.print_spec[2] >= level
+                    hasattr(child, "print_spec")
+                    and hasattr(self, "print_spec")
+                    and child.print_spec[2] >= level
             )
             string += "(" if test else ""
             string += child.recursive_str()
@@ -44,7 +44,7 @@ class Tree:
         string = self.string_id
         for child in self.children:
             string += (
-                "\n" + depth * 4 * " " + "{}".format(child.recursive_str(depth=depth))
+                    "\n" + depth * 4 * " " + "{}".format(child.recursive_str(depth=depth))
             )
         for param in self.params:
             string += "\n" + depth * 4 * " " + str(param)
@@ -59,7 +59,7 @@ class Tree:
     # custom __eq__ method
     def __eq__(self, other):
         return (
-            type(self) == type(other)
-            and len(self.children) == len(other.children)
-            and all([x == y for x, y in zip(self.children, other.children)])
+                type(self) == type(other)
+                and len(self.children) == len(other.children)
+                and all([x == y for x, y in zip(self.children, other.children)])
         )
