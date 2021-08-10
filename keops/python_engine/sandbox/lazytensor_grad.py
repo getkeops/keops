@@ -12,7 +12,7 @@ dtype = torch.float32
 
 test_grad = True
 test_grad2 = False
-device_id = "cuda:1" if torch.cuda.is_available() else "cpu"
+device_id = "cuda:0" if torch.cuda.is_available() else "cpu"
 
 x = torch.rand(M, 1, D, requires_grad=test_grad, device=device_id, dtype=dtype)
 y = torch.rand(1, N, 1, device=device_id, dtype=dtype)
@@ -24,7 +24,7 @@ def fun(x, y, b, backend):
         x = LazyTensor(x)
         y = LazyTensor(y)
     # Kxy = ((x - 0.5).mod(1, 0.2) - y).sum(dim=2)
-    Kxy = (x.log() - y).sum(dim=2)
+    Kxy = (x.cos() - y).sum(dim=2)
     out = Kxy @ b
     if device_id != "cpu":
         torch.cuda.synchronize()

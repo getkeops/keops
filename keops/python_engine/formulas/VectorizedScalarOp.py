@@ -35,6 +35,8 @@ class VectorizedScalarOp(Operation):
             derivatives = (derivatives,)
         return sum(f.DiffT(v, gradin * df) for f, df in zip(self.children, derivatives))
 
+    def Derivative(self):
+        pass
     
     @property
     def is_chunkable(self):
