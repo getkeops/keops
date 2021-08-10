@@ -161,11 +161,27 @@ class TensorDot(Operation):
         # the result in out
 
         str_code = ""
-        for i in range(len(out_indices)):
-            str_code += (
-                f"                            "
-                + f"{out.id}[{out_indices[i]}] += {arg0.id}[{a_indices[i]}] * {arg1.id}[{b_indices[i]}];\n"
-            )
+
+        for i in range(len(self.loopdim)):
+            str_code += f"for(int TD_var_{chr(70 + i)}=0; TD_var_{chr(70 + i)}<{self.loopdim[i]}; ++TD_var_{chr(70 + i)})" + "{\n" + i * "    "
+
+        list_indices_keepdim = self.permutation(self.permute, np.arange(len(self.keepdims)))
+        str_out_indices = ""
+        for i, v in enumerate(list_indices_keepdim):
+            str_out_indices += f"TD_var_{chr(70 + v)} * {self.list_strides_keepdim[i]} + "
+
+        str_a_indices = ""
+        for i, v in enumerate(self.list_indices_a_intot):
+            str_a_indices += f"TD_var_{chr(70 + v)} * {self.list_strides_dimsfa[i]} + "
+
+        str_b_indices = ""
+        for i, v in enumerate(self.list_indices_b_intot):
+            str_b_indices += f"TD_var_{chr(70 + v)} * {self.list_strides_dimsfb[i]} + "
+
+        str_code += len(
+            self.loopdim) * "    " + f"{out.id}[{str_out_indices[:-2]}] += {arg0.id}[{str_a_indices[:-2]}] * {arg1.id}[{str_b_indices[:-2]}];\n"
+
+        str_code += len(self.loopdim) * "}\n"
 
         return f"""
                     #if C_CONTIGUOUS     // row major
