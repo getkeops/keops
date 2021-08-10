@@ -1,6 +1,6 @@
 local({
     r <- getOption("repos")
-    r["CRAN"] <- "http://cran.r-project.org"
+    r["CRAN"] <- "https://cran.r-project.org"
     options(repos=r)
 })
 
@@ -9,6 +9,8 @@ local({
 # install package list
 install_pkg <- function(pkg_list) {
     
+    message("-------------------------------------")
+    message(paste("Installing pkgs to", .libPaths()[1]))
     message("-------------------------------------")
     
     # current installed packages
