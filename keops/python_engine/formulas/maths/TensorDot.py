@@ -130,7 +130,7 @@ class TensorDot(Operation):
         str_code = ""
 
         for i in range(len(self.loopdim)):
-            str_code += f"for(auto TD_var_{chr(70 + i)}=0; TD_var_{chr(70 + i)}<{self.loopdim[i]}; ++TD_var_{chr(70 + i)})" + "{\n" + i * "    "
+            str_code += f"for(int TD_var_{chr(70 + i)}=0; TD_var_{chr(70 + i)}<{self.loopdim[i]}; ++TD_var_{chr(70 + i)})" + "{\n" + i * "    "
 
         list_indices_keepdim = self.permutation(self.permute, np.arange(len(self.keepdims)))
         str_out_indices = ""
