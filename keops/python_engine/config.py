@@ -16,16 +16,18 @@ def get_jit_binary(gpu_props_compile_flags, check_compile=True):
         + os.path.sep
         + "compilation"
         + os.path.sep
-        + "keops_nvrtc.cu"
+        + "keops_nvrtc.cpp"
     )
     jit_binary = build_path + "keops_nvrtc.so"
+
     if check_compile and not os.path.exists(jit_binary):
         print("[KeOps] Compiling main dll...", flush=True, end="")
         bindings_source_dir = base_dir_path + "binders"
-        flags = "-shared -Xcompiler -fPIC -lnvrtc -lcuda "
+        flags = "-L/opt/cuda/lib64 -L/opt/cuda/targets/x86_64-linux/lib/ -I/opt/cuda/targets/x86_64-linux/include/ -shared -fPIC -lcuda -lnvrtc -fpermissive "
         flags += gpu_props_compile_flags
         # jit_compile_command = f"nvcc -I {bindings_source_dir} {flags} {jit_source_file} -o {jit_binary}"
-        jit_compile_command = f"nvcc {flags} {jit_source_file} -o {jit_binary}"
+        jit_compile_command = f"g++ --verbose {flags} {jit_source_file} -o {jit_binary}"
+        print(jit_compile_command)
         os.system(jit_compile_command)
         print("Done.", flush=True)
     return jit_binary
