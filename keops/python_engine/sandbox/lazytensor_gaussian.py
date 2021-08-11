@@ -11,7 +11,7 @@ M, N, D, DV = 2000, 3000, 3, 1
 dtype = torch.float64
 sum_scheme = "block_sum"
 
-device_id = "cuda:1" if torch.cuda.is_available() else "cpu"
+device_id = "cuda:0" if torch.cuda.is_available() else "cpu"
 do_warmup = False
 
 x = torch.rand(M, 1, D, device=device_id, dtype=dtype) / math.sqrt(D)

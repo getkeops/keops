@@ -125,8 +125,8 @@ int* build_offset_tables( int nbatchdims, int *shapes, int nblocks, __INDEX__ *l
             vect_broadcast_index(range_id, nbatchdims, sizep, shapes, shapes_p, offsets_h + k*sizevars + sizei + sizej);
         }
 
-        cudaMalloc((int**)&offsets_d, sizeof(int)*nblocks*sizevars);
-        cudaMemcpy(offsets_d, offsets_h, sizeof(int)*nblocks*sizevars, cudaMemcpyHostToDevice);
+        cuMemAlloc((CUdeviceptr*) &offsets_d, sizeof(int)*nblocks*sizevars);
+        cuMemcpyHtoD((CUdeviceptr) offsets_d, offsets_h, sizeof(int)*nblocks*sizevars);
     
         delete [] offsets_h;
         return offsets_d;
@@ -167,7 +167,7 @@ void range_preprocess(int tagHostDevice, int& nblocks, int tagI, int nranges_x, 
         if ( ranges_on_device ) {  // The ranges are on the device
             ranges_x_h = new __INDEX__[2*nranges] ;
             // Send data from device to host.
-            cudaMemcpy(ranges_x_h, ranges_x, sizeof(__INDEX__)*2*nranges, cudaMemcpyDeviceToHost);
+            cuMemcpyDtoH(ranges_x_h, (CUdeviceptr) ranges_x, sizeof(__INDEX__)*2*nranges);
             slices_x_d = slices_x;
             ranges_y_d = ranges_y;
         } else {  // The ranges are on host memory; this is typically what happens with **batch processing**,
@@ -175,12 +175,12 @@ void range_preprocess(int tagHostDevice, int& nblocks, int tagI, int nranges_x, 
             ranges_x_h = ranges_x;   
             // Copy "slices_x" to the device:
            
-            cudaMalloc((__INDEX__**)&slices_x_d, sizeof(__INDEX__)*nranges);
-            cudaMemcpy(slices_x_d, slices_x, sizeof(__INDEX__)*nranges, cudaMemcpyHostToDevice);
+            cuMemAlloc((CUdeviceptr*) &slices_x_d, sizeof(__INDEX__)*nranges);
+            cuMemcpyHtoD((CUdeviceptr) slices_x_d, slices_x, sizeof(__INDEX__)*nranges);
     
             // Copy "redranges_y" to the device: with batch processing, we KNOW that they have the same shape as ranges_x
-            cudaMalloc((__INDEX__**)&ranges_y_d, sizeof(__INDEX__)*2*nranges);
-            cudaMemcpy(ranges_y_d, ranges_y, sizeof(__INDEX__)*2*nranges, cudaMemcpyHostToDevice);
+            cuMemAlloc((CUdeviceptr*) &ranges_y_d, sizeof(__INDEX__)*2*nranges);
+            cuMemcpyHtoD((CUdeviceptr) ranges_y_d, ranges_y, sizeof(__INDEX__)*2*nranges);
         }
     
         // Computes the number of blocks needed ---------------------------------------------
@@ -206,8 +206,8 @@ void range_preprocess(int tagHostDevice, int& nblocks, int tagI, int nranges_x, 
         }
     
         // Load the table on the device -----------------------------------------------------
-        cudaMalloc((__INDEX__**)&lookup_d, sizeof(__INDEX__)*3*nblocks);
-        cudaMemcpy(lookup_d, lookup_h, sizeof(__INDEX__)*3*nblocks, cudaMemcpyHostToDevice);
+        cuMemAlloc((CUdeviceptr*) &lookup_d, sizeof(__INDEX__)*3*nblocks);
+        cuMemcpyHtoD((CUdeviceptr) lookup_d, lookup_h, sizeof(__INDEX__)*3*nblocks);
 
     
         // Support for broadcasting over batch dimensions =============================================
