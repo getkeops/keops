@@ -8,7 +8,6 @@ default_dtype = "float64"  # float32' or 'float64'
 
 from .generic.generic_red import Genred
 from .operations import KernelSolve
-from .convolutions.radial_kernel import RadialKernelConv, RadialKernelGrad1conv
 from .generic.generic_ops import (
     generic_sum,
     generic_logsumexp,

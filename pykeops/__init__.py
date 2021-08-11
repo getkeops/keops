@@ -23,4 +23,5 @@ if pykeops.config.numpy_found:
 if pykeops.config.torch_found:
     from .test.install import test_torch_bindings
 
+# TODO : remove this
 use_python_engine = True

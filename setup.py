@@ -26,45 +26,6 @@ def import_files(dirname, ext=["h", "hpp"]):
     return res
 
 
-# List file from Pybind11 sources
-pybind11_files = [
-    "pybind11/include/pybind11/detail/class.h",
-    "pybind11/include/pybind11/detail/common.h",
-    "pybind11/include/pybind11/detail/descr.h",
-    "pybind11/include/pybind11/detail/init.h",
-    "pybind11/include/pybind11/detail/internals.h",
-    "pybind11/include/pybind11/detail/typeid.h",
-    "pybind11/include/pybind11/attr.h",
-    "pybind11/include/pybind11/buffer_info.h",
-    "pybind11/include/pybind11/cast.h",
-    "pybind11/include/pybind11/chrono.h",
-    "pybind11/include/pybind11/common.h",
-    "pybind11/include/pybind11/complex.h",
-    "pybind11/include/pybind11/eigen.h",
-    "pybind11/include/pybind11/embed.h",
-    "pybind11/include/pybind11/eval.h",
-    "pybind11/include/pybind11/functional.h",
-    "pybind11/include/pybind11/iostream.h",
-    "pybind11/include/pybind11/numpy.h",
-    "pybind11/include/pybind11/operators.h",
-    "pybind11/include/pybind11/options.h",
-    "pybind11/include/pybind11/pybind11.h",
-    "pybind11/include/pybind11/pytypes.h",
-    "pybind11/include/pybind11/stl.h",
-    "pybind11/include/pybind11/stl_bind.h",
-    "pybind11/CMakeLists.txt",
-    "pybind11/tools/cmake_uninstall.cmake.in",
-    "pybind11/tools/FindCatch.cmake",
-    "pybind11/tools/FindEigen3.cmake",
-    "pybind11/tools/FindPythonLibsNew.cmake",
-    "pybind11/tools/pybind11Common.cmake",
-    "pybind11/tools/pybind11Config.cmake.in",
-    "pybind11/tools/pybind11NewTools.cmake",
-    "pybind11/tools/pybind11Tools.cmake",
-    "pybind11/tools/setup_global.py.in",
-    "pybind11/tools/setup_main.py.in",
-]
-
 tao_seq_files = import_files("keops/lib/sequences/include/tao/seq/") + import_files(
     "keops/lib/sequences/include/tao/seq/contrib/"
 )
@@ -99,10 +60,8 @@ setup(
         "pykeops.common",
         "pykeops.numpy",
         "pykeops.numpy.cluster",
-        "pykeops.numpy.convolutions",
         "pykeops.numpy.generic",
         "pykeops.numpy.lazytensor",
-        "pykeops.numpy.shape_distance",
         "pykeops.test",
         "pykeops.torch",
         "pykeops.torch.cluster",
@@ -114,24 +73,10 @@ setup(
         "pykeops": [
             "readme.md",
             "licence.txt",
-            "CMakeLists.txt",
-            "torch_headers.h.in",
-            "numpy/convolutions/radial_kernel_conv.cpp",
-            "numpy/convolutions/radial_kernel_grad1conv.cpp",
             "numpy/generic/generic_red.cpp",
-            "numpy/shape_distance/fshape_scp.cpp",
             "torch/generic/generic_red.cpp",
             "torch/generic/generic_red.cpp",
-            "common/keops_io.h",
-            "keops/cuda.cmake",
-            "keops/formula.h.in",
-            "keops/headers.cmake",
-            "keops/keops_includes.h",
-            "keops_version",
-            "cmake_scripts/*",
-            "cmake_scripts/script_keops_formula/*",
-            "cmake_scripts/script_specific/*",
-            "cmake_scripts/script_template/*",
+            "version",
         ]
         + import_files(path.join("keops", "binders"))
         + import_files(path.join("keops", "core", "autodiff"))
@@ -158,7 +103,6 @@ setup(
             "keops/specific/shape_distance/fshape_gpu.cx",
             "keops/specific/shape_distance/kernels.cx",
         ]
-        + pybind11_files
         + tao_seq_files
     },
     install_requires=[

@@ -67,7 +67,7 @@ def get_sizes(aliases, *args):
     # At this point, we know that our formula is degenerate,
     # with no "x" or no "y" variable. The sensible behavior is to assume that
     # the corresponding "empty" dimension is equal to 1,
-    # in accordance with the dimcheck of keops_io.h:
+    # in accordance with the dimcheck of keops_io.h: TODO: check the new Size !
     if nx is None:
         nx = 1
     if ny is None:
