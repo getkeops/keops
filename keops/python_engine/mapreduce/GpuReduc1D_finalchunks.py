@@ -12,7 +12,8 @@ from keops.python_engine.utils.code_gen_utils import (
     pointer,
     table,
     table4,
-    Var_loader
+    Var_loader,
+    use_pragma_unroll
 )
 from keops.python_engine.formulas.reductions.sum_schemes import *
 from keops.python_engine.formulas.reductions.Sum_Reduction import Sum_Reduction
@@ -39,7 +40,7 @@ def do_finalchunk_sub(dtype, varfinal, dimfinalchunk_curr,
                 __syncthreads();
                 for (int jrel = 0; (jrel < blockDim.x) && (jrel < {ny.id} - {jstart.id}); jrel++, yjrel += {dimfinalchunk}) {{          
                     if ({i.id} < {nx.id}) {{ // we compute only if needed
-                        #pragma unroll
+                        {use_pragma_unroll()}
                         for (int k=0; k<{dimfinalchunk_curr}; k++) {{
                             {acc.id}[k] += yjrel[k] * fout[jrel];
                         }}
@@ -47,7 +48,7 @@ def do_finalchunk_sub(dtype, varfinal, dimfinalchunk_curr,
                     __syncthreads();
                 }}
                 if ({i.id} < {nx.id}) {{
-                    #pragma unroll
+                    {use_pragma_unroll()}
                     for (int k=0; k<{dimfinalchunk_curr}; k++)
                         {out.id}[i*{dimout}+{chunk.id}*{dimfinalchunk}+k] += {acc.id}[k];
                 }}
@@ -145,7 +146,7 @@ class GpuReduc1D_finalchunks(MapReduce, Gpu_link_compile):
                           {xi.declare()}
                           if (i < nx) {{
                               {load_vars(dimsx, indsi, xi, args, row_index=i)} // load xi variables from global memory to local thread memory
-                              #pragma unroll
+                              {use_pragma_unroll()}
                               for (int k=0; k<{dimout}; k++) {{
                                   out[i*{dimout}+k] = 0.0f;
                               }}

@@ -6,7 +6,8 @@ from keops.python_engine.utils.code_gen_utils import (
     c_include,
     signature_list,
     call_list,
-    pointer
+    pointer,
+    use_pragma_unroll
 )
 from keops.python_engine.compilation import Gpu_link_compile
 from keops.python_engine.formulas.reductions.sum_schemes import block_sum, kahan_scheme
@@ -188,7 +189,7 @@ class GpuReduc2D(MapReduce, Gpu_link_compile):
                             // lines of size DIMRED. The final reduction, which "sums over the block lines",
                             // shall be done in a later step.
                             if(i<nx) {{
-                                #pragma unroll
+                                {use_pragma_unroll()}
                                 for(int k=0; k<{dimred}; k++) {{
                                     out[blockIdx.y*{dimred}*nx+i*{dimred}+k] = acc[k];
                                 }}

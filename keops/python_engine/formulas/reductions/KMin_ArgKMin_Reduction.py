@@ -7,6 +7,7 @@ from keops.python_engine.utils.code_gen_utils import (
     new_c_varname,
     c_if,
     c_array,
+    use_pragma_unroll
 )
 from keops.python_engine.formulas.reductions.Reduction import Reduction
 
@@ -79,10 +80,10 @@ class KMin_ArgKMin_Reduction(Reduction):
                     {{
                         {xik.declare()}
                         {l.declare()}
-                        #pragma unroll
+                        {use_pragma_unroll()}
                         for(int {k.id}=0; {k.id}<{fdim}; {k.id}++) {{
                             {xik.assign(xi[k])}
-                            #pragma unroll                     
+                            {use_pragma_unroll()}                 
                             for({l.id}={(k+(K-1)*2*fdim).id}; {l.id}>={k.id} && {(xik<acc[l]).id}; {l.id}-={2*fdim}) {{
                                 {tmpl.declare_assign(acc[l])}
                                 {indtmpl.declare_assign(acc[l+fdim])}
