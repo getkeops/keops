@@ -1,9 +1,7 @@
 import numpy as np
 
 from pykeops.common.get_options import get_tag_backend
-import pykeops
 from pykeops.common.keops_io_new import LoadKeOps_new
-from pykeops.common.keops_io import LoadKeOps
 from pykeops.common.operations import preprocess, postprocess
 from pykeops.common.parse_type import get_sizes, complete_aliases, get_optional_flags
 from pykeops.common.utils import axis2cat
@@ -181,7 +179,7 @@ class Genred:
         )
         self.aliases = complete_aliases(self.formula, aliases)
         self.dtype = dtype
-        my_LoadKeOps = LoadKeOps_new if pykeops.use_python_engine else LoadKeOps
+        my_LoadKeOps = LoadKeOps_new  # TODO: clean pykeops.use_python_engine
         self.myconv = my_LoadKeOps(
             self.formula, self.aliases, self.dtype, "numpy", self.optional_flags
         ).import_module()

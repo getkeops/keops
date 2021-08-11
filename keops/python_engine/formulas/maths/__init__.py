@@ -26,6 +26,7 @@ from .Mod import Mod
 from .Mult import Mult
 from .Norm2 import Norm2
 from .Normalize import Normalize
+from .Pow import Pow
 from .Powf import Powf
 from .ReLU import ReLU
 from .Round import Round

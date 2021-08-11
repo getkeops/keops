@@ -13,7 +13,7 @@ from pykeops.torch import LazyTensor
 
 import pykeops.config
 
-pykeops.config.gpu_available = False
+# pykeops.config.gpu_available = False
 
 M, N = 2, 10
 
@@ -22,8 +22,8 @@ M, N = 2, 10
 # A Fourth example
 # ^^^^^^^^^^^^^^^^
 
-x = torch.randn(M, 20, 30, 4, 2, 20, requires_grad=True, dtype=torch.float64)
-y = torch.randn(N, 20, 4, 5, 30, 20, requires_grad=True, dtype=torch.float64)
+x = torch.randn(M, 2, 3, 4, 2, 20, requires_grad=True, dtype=torch.float64)
+y = torch.randn(N, 2, 4, 5, 3, 20, requires_grad=True, dtype=torch.float64)
 
 xshape, yshape = x.shape[1:], y.shape[1:]
 f_keops = LazyTensor(x.reshape(M, 1, int(np.array((xshape)).prod()))).keops_tensordot(
@@ -37,7 +37,6 @@ sum_f_keops = f_keops.sum_reduction(dim=1)
 sum_f_torch2 = torch.tensordot(x, y, dims=([1, 2, 5], [1, 4, 5])).sum(3)
 # sum_f_torch2 = torch.tensordot(x, y, dims=([3], [1])).sum(3)
 
-print(sum_f_keops.flatten(), sum_f_torch2.flatten())
 print(
     "Compare the two tensordot implementation. All good ????!",
     torch.allclose(sum_f_keops.flatten(), sum_f_torch2.flatten()),
