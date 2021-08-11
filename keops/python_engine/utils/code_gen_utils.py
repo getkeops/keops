@@ -190,6 +190,11 @@ class c_variable:
         else:
             raise ValueError("not implemented")
 
+def use_pragma_unroll(n=64):
+    if n is None:
+        return f"\n#pragma unroll\n"
+    else:
+        return f"\n#pragma unroll({n})\n"
 
 def c_for_loop(start, end, incr, pragma_unroll=False):
     def to_string(x):
@@ -208,7 +213,7 @@ def c_for_loop(start, end, incr, pragma_unroll=False):
     def print(body_code):
         string = ""
         if pragma_unroll:
-            string += "\n#pragma unroll\n"
+            string += use_pragma_unroll()
         string += f""" for(int {k.id}={start}; {k.id}<{end}; {k.id}+=({incr})) {{
                             {body_code}
                         }}
@@ -615,7 +620,7 @@ def load_vars(dims, inds, xloc, args, row_index=c_zero_int, offsets=None, indsre
             row_index_str = (
                     f"({row_index.id}+{offsets.id}[{l}])" if offsets else row_index.id
                 )
-            string += "#pragma unroll\n"
+            string += use_pragma_unroll()
             string += f"for(int v=0; v<{dims[u]}; v++) {{\n"
             string += f"    {xloc.id}[a] = {args[inds[u]].id}[{row_index_str}*{dims[u]}+v];\n"
             string += "     a++;\n"
@@ -657,7 +662,7 @@ def load_vars_chunks(inds, dim_chunk, dim_chunk_load, dim_org,
         string += "{"
         string += "int a=0;\n"
         for u in range(len(inds)):
-            string += "#pragma unroll\n"
+            string += use_pragma_unroll()
             string += f"for(int v=0; v<{dim_chunk_load}; v++) {{\n"
             string += f"    {xloc.id}[a] = {args[inds[u]].id}[{row_index.id}*{dim_org}+{k.id}*{dim_chunk}+v];\n"
             string += "     a++;\n"
@@ -686,7 +691,7 @@ def load_vars_chunks_offsets(inds, indsref, dim_chunk, dim_chunk_load, dim_org,
         string += "int a=0;\n"
         for u in range(len(inds)):
             l = indsref.index(inds[u])
-            string += "#pragma unroll\n"
+            string += {use_pragma_unroll()}
             string += f"for(int v=0; v<{dim_chunk_load}; v++) {{\n"
             string += f"    {xloc.id}[a] = {args[inds[u]].id}[({row_index.id}+{offsets.id}[{l}])*{dim_org}+{k.id}*{dim_chunk}+v];\n"
             string += "     a++;\n"

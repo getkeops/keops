@@ -11,7 +11,8 @@ from keops.python_engine.utils.code_gen_utils import (
     sizeof,
     pointer,
     table,
-    table4
+    table4,
+    use_pragma_unroll
 )
 from keops.python_engine.formulas.reductions.sum_schemes import *
 from keops.python_engine.compilation import Gpu_link_compile
@@ -186,7 +187,7 @@ class GpuReduc1D_chunks(MapReduce, Gpu_link_compile):
                             }}
                             
                             // looping on chunks (except the last)
-                    		#pragma unroll
+                    		{use_pragma_unroll()}
                     		for (int chunk=0; chunk<{chk.nchunks}-1; chunk++) {{
                               {chunk_sub_routine}
                             }}

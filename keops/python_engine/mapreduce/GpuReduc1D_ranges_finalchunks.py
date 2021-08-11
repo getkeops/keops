@@ -13,7 +13,8 @@ from keops.python_engine.utils.code_gen_utils import (
     pointer,
     table,
     table4,
-    Var_loader
+    Var_loader,
+    use_pragma_unroll
 )
 from keops.python_engine.formulas.reductions.sum_schemes import *
 from keops.python_engine.formulas.reductions.Sum_Reduction import Sum_Reduction
@@ -48,7 +49,7 @@ def do_finalchunk_sub_ranges(dtype, fun_global, varfinal, dimfinalchunk_curr,
                 __syncthreads();
                 for (int jrel = 0; (jrel < blockDim.x) && (jrel < {end_y.id} - {jstart.id}); jrel++, yjrel += {dimfinalchunk}) {{          
                     if ({i.id} < {end_x.id}) {{ // we compute only if needed
-                        #pragma unroll
+                        {use_pragma_unroll()}
                         for (int k=0; k<{dimfinalchunk_curr}; k++) {{
                             {acc.id}[k] += yjrel[k] * fout[jrel];
                         }}
@@ -56,7 +57,7 @@ def do_finalchunk_sub_ranges(dtype, fun_global, varfinal, dimfinalchunk_curr,
                     __syncthreads();
                 }}
                 if ({i.id} < {end_x.id}) {{
-                    #pragma unroll
+                    {use_pragma_unroll()}
                     for (int k=0; k<{dimfinalchunk_curr}; k++)
                         {out.id}[i*{dimout}+{chunk.id}*{dimfinalchunk}+k] += {acc.id}[k];
                 }}
@@ -219,7 +220,7 @@ class GpuReduc1D_ranges_finalchunks(MapReduce, Gpu_link_compile):
                                   {varloader.load_vars("i", xi, args, row_index=threadIdx_x, offsets=indices_i, indsref=indsi_global)} // Possibly, with offsets as we support broadcasting over batch dimensions
                               }}
                               
-                              #pragma unroll
+                              {use_pragma_unroll()}
                               for (int k=0; k<{dimout}; k++) {{
                                   out[i*{dimout}+k] = 0.0f;
                               }}

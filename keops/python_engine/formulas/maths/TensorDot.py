@@ -1,7 +1,7 @@
 import numpy as np
 
 from keops.python_engine.formulas.Operation import Operation
-
+from keops.python_engine.utils.code_gen_utils import use_pragma_unroll
 
 ####################################
 ######  Tensor Dot Product     #####
@@ -185,11 +185,11 @@ class TensorDot(Operation):
 
         return f"""
                     #if C_CONTIGUOUS     // row major
-                        #pragma unroll
+                        {use_pragma_unroll()}
                         for (int i = 0; i < {out.dim}; i++)
                             {out.id}[i] = ({out.dtype})(0.0f);
                         
-                        #pragma unroll                        
+                        {use_pragma_unroll()}                       
                         {str_code}
                     #else               // column major
                         
