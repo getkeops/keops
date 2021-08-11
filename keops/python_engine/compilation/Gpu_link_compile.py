@@ -1,7 +1,8 @@
 import os
 from keops.python_engine.compilation import link_compile
 from keops.python_engine.config import build_path
-from ctypes import create_string_buffer, CDLL, c_int
+from ctypes import create_string_buffer, CDLL, c_int, RTLD_GLOBAL
+from os import RTLD_LAZY
 from keops.python_engine import jit_binary, use_cuda
 
 
@@ -32,7 +33,10 @@ class Gpu_link_compile(link_compile):
             + self.low_level_code_extension
         ).encode("utf-8")
         # we load the main dll that must be run in order to compile the code
-        self.my_c_dll = CDLL(jit_binary)
+        CDLL("libnvrtc.so", mode=RTLD_GLOBAL)
+        CDLL("libcuda.so", mode=RTLD_GLOBAL)
+        CDLL("libcudart.so", mode=RTLD_GLOBAL)
+        self.my_c_dll = CDLL(jit_binary, mode=RTLD_LAZY)
         # actual dll to be called is the jit binary
         self.true_dllname = jit_binary
         # file to check for existence to detect compilation is needed
