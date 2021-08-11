@@ -40,6 +40,9 @@
 *.coverage*
 htmlcov
 
+# pytest
+.pytest_cache
+
 # Setuptools distribution folder.
 /dist/
 
