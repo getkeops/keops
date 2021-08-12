@@ -157,7 +157,7 @@ int launch_keops(const char* ptx_file_name, int tagHostDevice, int dimY, int nx,
     }
 
 
-    int blockSize_x =0, blockSize_y =0, blockSize_z =0;
+    int blockSize_x = 1, blockSize_y = 1, blockSize_z = 1;
 
 	if (use_chunk_mode==0) {
 		// warning : blockSize.x was previously set to CUDA_BLOCK_SIZE; currently CUDA_BLOCK_SIZE value is used as a bound.
@@ -216,7 +216,7 @@ int launch_keops(const char* ptx_file_name, int tagHostDevice, int dimY, int nx,
 
     CUDA_SAFE_CALL(cuModuleLoadDataEx(&module, ptx, 0, NULL, NULL));
 
-	int gridSize_x = 0, gridSize_y = 0, gridSize_z = 0;
+	int gridSize_x = 1, gridSize_y = 1, gridSize_z = 1;
 
 	if (tag1D2D==1) { // 2D scheme
 
@@ -224,9 +224,9 @@ int launch_keops(const char* ptx_file_name, int tagHostDevice, int dimY, int nx,
 	    gridSize_y =  ny / blockSize_x + (ny%blockSize_x==0 ? 0 : 1);
 
 	    // Reduce : grid and block are both 1d
-	    int blockSize2_x = 0, blockSize2_y = 0, blockSize2_z = 0;
+	    int blockSize2_x = 1, blockSize2_y = 1, blockSize2_z = 1;
 	    blockSize2_x = blockSize_x; // number of threads in each block
-	    int gridSize2_x = 0, gridSize2_y = 0, gridSize2_z = 0;
+	    int gridSize2_x = 1, gridSize2_y = 1, gridSize2_z = 1;
 	    gridSize2_x =  (nx*dimred) / blockSize2_x + ((nx*dimred)%blockSize2_x==0 ? 0 : 1);
 
         // Data on the device. We need an "inflated" outB, which contains gridSize.y "copies" of out
@@ -312,7 +312,9 @@ int launch_keops(const char* ptx_file_name, int tagHostDevice, int dimY, int nx,
         kernel_params[3] = &arg_d;
 
 
-        printf("ddfsdfsdf.3");
+        printf("ddfsdfsdf.3\n");
+        printf("%d %d %d %d %d %d", gridSize_x, gridSize_y, gridSize_z,        // grid dim
+               blockSize_x, blockSize_y, blockSize_z);
 
         CUDA_SAFE_CALL(cuLaunchKernel(kernel,
                    gridSize_x, gridSize_y, gridSize_z,        // grid dim
