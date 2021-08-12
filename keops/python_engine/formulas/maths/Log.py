@@ -12,3 +12,8 @@ class Log(VectorizedScalarOp):
     @staticmethod
     def Derivative(f):
         return 1 / f
+    
+    
+    
+    # parameters for testing the operation (optional)
+    test_ranges = [(0,2)]           # range of argument

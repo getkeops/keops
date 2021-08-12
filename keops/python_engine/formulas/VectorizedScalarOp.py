@@ -60,4 +60,8 @@ class VectorizedScalarOp(Operation):
             else:
                 res = set.union(res, set(child.notchunked_vars(cat)))
         return list(res)
+        
+    
+    
+    enable_test = True
 

@@ -179,6 +179,9 @@ class Operation(Tree):
         return type(self)(*args, *self.params)
 
 
+    enable_test = False
+    
+    
 def int2Op(x):
     if isinstance(x, int):
         from keops.python_engine.formulas.variables.IntCst import IntCst

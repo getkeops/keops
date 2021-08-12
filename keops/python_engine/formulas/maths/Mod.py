@@ -19,6 +19,11 @@ class Mod(VectorizedScalarOp):
         Mod_alt = x - n * Floor((x - d) / n)
         return Mod_alt.DiffT(v, gradin)
 
+    
+    # parameters for testing the operation (optional)
+    nargs = 3                # number of arguments
+    
+    
 
 """
 # N.B. below is alternative definition as a simple alias.
