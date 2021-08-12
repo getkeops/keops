@@ -24,6 +24,11 @@ class Add_Impl(VectorizedScalarOp):
     def DiffT(self, v, gradin):
         fa, fb = self.children
         return fa.DiffT(v, gradin) + fb.DiffT(v, gradin)
+        
+        
+    # parameters for testing the operation (optional)
+    nargs = 2           # number of arguments
+    
 
 
 # N.B. The following separate function could theoretically be implemented

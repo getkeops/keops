@@ -14,3 +14,8 @@ class IfElse(VectorizedScalarOp):
     def DiffT(self, v, gradin):
         f, a, b = self.children
         return IfElse(f, a.DiffT(v, gradin), b.DiffT(v, gradin))
+    
+    
+    
+    # parameters for testing the operation (optional)
+    nargs = 3                # number of arguments
