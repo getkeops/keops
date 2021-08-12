@@ -1,6 +1,6 @@
 #pragma once
 
-/*
+
 int broadcast_index(int i, int nbatchdims, int *full_shape, int *shape) {
     int M_N = shape[nbatchdims];
     int res = i % M_N, step = M_N, full_step = M_N;
@@ -124,7 +124,7 @@ int *build_offset_tables(int nbatchdims, int *shapes, int nblocks, __INDEX__ *lo
         vect_broadcast_index(range_id, nbatchdims, sizep, shapes, shapes_p, offsets_h + k * sizevars + sizei + sizej);
     }
 
-    cuMemAlloc((CUdeviceptr * ) & offsets_d, sizeof(int) * nblocks * sizevars);
+    cuMemAlloc((CUdeviceptr *) &offsets_d, sizeof(int) * nblocks * sizevars);
     cuMemcpyHtoD((CUdeviceptr) offsets_d, offsets_h, sizeof(int) * nblocks * sizevars);
 
     delete[] offsets_h;
@@ -174,11 +174,11 @@ void range_preprocess(int tagHostDevice, int &nblocks, int tagI, int nranges_x, 
         ranges_x_h = ranges_x;
         // Copy "slices_x" to the device:
 
-        cuMemAlloc((CUdeviceptr * ) & slices_x_d, sizeof(__INDEX__) * nranges);
+        cuMemAlloc((CUdeviceptr *) &slices_x_d, sizeof(__INDEX__) * nranges);
         cuMemcpyHtoD((CUdeviceptr) slices_x_d, slices_x, sizeof(__INDEX__) * nranges);
 
         // Copy "redranges_y" to the device: with batch processing, we KNOW that they have the same shape as ranges_x
-        cuMemAlloc((CUdeviceptr * ) & ranges_y_d, sizeof(__INDEX__) * 2 * nranges);
+        cuMemAlloc((CUdeviceptr *) &ranges_y_d, sizeof(__INDEX__) * 2 * nranges);
         cuMemcpyHtoD((CUdeviceptr) ranges_y_d, ranges_y, sizeof(__INDEX__) * 2 * nranges);
     }
 
@@ -205,7 +205,7 @@ void range_preprocess(int tagHostDevice, int &nblocks, int tagI, int nranges_x, 
     }
 
     // Load the table on the device -----------------------------------------------------
-    cuMemAlloc((CUdeviceptr * ) & lookup_d, sizeof(__INDEX__) * 3 * nblocks);
+    cuMemAlloc((CUdeviceptr *) &lookup_d, sizeof(__INDEX__) * 3 * nblocks);
     cuMemcpyHtoD((CUdeviceptr) lookup_d, lookup_h, sizeof(__INDEX__) * 3 * nblocks);
 
 
@@ -224,4 +224,3 @@ void range_preprocess(int tagHostDevice, int &nblocks, int tagI, int nranges_x, 
 
 
 }
-*/

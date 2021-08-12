@@ -26,8 +26,6 @@
 
 extern "C" int Compile(const char *ptx_file_name, const char *cu_code, int use_half, int device_id) {
 
-    char *ptx;
-
     nvrtcProgram prog;
 
     int numHeaders;
@@ -75,13 +73,6 @@ extern "C" int Compile(const char *ptx_file_name, const char *cu_code, int use_h
                                               opts);          // options
     delete[] arch_flag_char;
 
-    // Obtain compilation log from the program.
-    size_t logSize;
-    NVRTC_SAFE_CALL(nvrtcGetProgramLogSize(prog, &logSize));
-    char *log = new char[logSize];
-    NVRTC_SAFE_CALL(nvrtcGetProgramLog(prog, log));
-    std::cout << log << '\n';
-    delete[] log;
     if (compileResult != NVRTC_SUCCESS) {
         exit(1);
     }
@@ -89,7 +80,7 @@ extern "C" int Compile(const char *ptx_file_name, const char *cu_code, int use_h
     // Obtain PTX from the program.
     size_t ptxSize;
     NVRTC_SAFE_CALL(nvrtcGetPTXSize(prog, &ptxSize));
-    ptx = new char[ptxSize];
+    char ptx[ptxSize];
     NVRTC_SAFE_CALL(nvrtcGetPTX(prog, ptx));
     // Destroy the program.
     NVRTC_SAFE_CALL(nvrtcDestroyProgram(&prog));
@@ -114,13 +105,11 @@ int launch_keops(const char *ptx_file_name, int tagHostDevice, int dimY, int nx,
                  int **ranges, int *shapeout, TYPE *out, int nargs, TYPE **arg, int **argshape) {
 
 
-    //cudaSetDevice(device_id);
     CUdevice cuDevice;
     CUcontext pctx;
     CUDA_SAFE_CALL(cuInit(0));
     CUDA_SAFE_CALL(cuDeviceGet(&cuDevice, device_id));
     CUDA_SAFE_CALL(cuDevicePrimaryCtxRetain(&pctx, cuDevice));
-
 
     SetGpuProps(device_id);
 
@@ -175,14 +164,14 @@ int launch_keops(const char *ptx_file_name, int tagHostDevice, int dimY, int nx,
 
     __INDEX__ *lookup_d = NULL, *slices_x_d = NULL, *ranges_y_d = NULL;
     int *offsets_d = NULL;
-/*
+
     if (RR.tagRanges==1) {
         range_preprocess(tagHostDevice, nblocks, tagI, RR.nranges_x, RR.nranges_y, RR.castedranges,
                          SS.nbatchdims, slices_x_d, ranges_y_d, lookup_d,
                          offsets_d,
                          blockSize_x, indsi, indsj, indsp, SS.shapes);
     }
-*/
+
 
     CUdeviceptr p_data;
     TYPE *out_d;
