@@ -21,6 +21,12 @@ class Minus_Impl(VectorizedScalarOp):
     def DiffT(self, v, gradin):
         f = self.children[0]
         return -f.DiffT(v, gradin)
+        
+    
+    
+    # parameters for testing the operation (optional)
+    nargs = 1                   # number of arguments
+    torch_op = "torch.neg"      # equivalent PyTorch operation
 
 
 # N.B. The following separate function should theoretically be implemented

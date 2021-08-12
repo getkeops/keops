@@ -27,6 +27,11 @@ class Mult_Impl(VectorizedScalarOp):
             return fa.DiffT(v, fb * gradin) + fb.DiffT(v, Scalprod(gradin, fa))
         else:
             return fa.DiffT(v, fb * gradin) + fb.DiffT(v, fa * gradin)
+            
+    
+    # parameters for testing the operation (optional)
+    nargs = 2                   # number of arguments
+    torch_op = "torch.mul"      # equivalent PyTorch operation
 
 
 # N.B. The following separate function should theoretically be implemented
