@@ -106,10 +106,12 @@ int launch_keops(const char *ptx_file_name, int tagHostDevice, int dimY, int nx,
 
 
     CUdevice cuDevice;
-    CUcontext pctx;
+    CUcontext ctx;
+    
     CUDA_SAFE_CALL(cuInit(0));
     CUDA_SAFE_CALL(cuDeviceGet(&cuDevice, device_id));
-    CUDA_SAFE_CALL(cuDevicePrimaryCtxRetain(&pctx, cuDevice));
+    CUDA_SAFE_CALL(cuDevicePrimaryCtxRetain(&ctx, cuDevice));
+    CUDA_SAFE_CALL(cuCtxPushCurrent(ctx));
 
     SetGpuProps(device_id);
 
