@@ -114,6 +114,8 @@ def TestOperation(op_str, tol=1e-4):
             return "no_torch"
         torch_op = "torch."+torch_op_str        
     else:
+        if keops_op_class.torch_op is None:
+            return "no_torch"
         torch_op = keops_op_class.torch_op
         
     print("Comparing with PyTorch implementation ")
@@ -124,14 +126,15 @@ def TestOperation(op_str, tol=1e-4):
     
     ####################################################################
     # The equivalent code with a "vanilla" pytorch implementation
-
-    c_torch = eval(torch_op)(*torch_args, *params).sum(dim=1)
-
-    g_torch = grad(c_torch, args, e) 
-
+    
+    if isinstance(torch_op,str):
+        torch_op = eval(torch_op)
+        
+    c_torch = torch_op(*torch_args, *params).sum(dim=1)
     err_op = torch.norm(c-c_torch).item() / torch.norm(c_torch).item()
     print("relative error for operation :", err_op)
-    
+
+    g_torch = grad(c_torch, args, e) 
     err_gr = [None]*nargs
     for k in range(nargs):
         app_str = f"number {k}" if len(args)>1 else ""

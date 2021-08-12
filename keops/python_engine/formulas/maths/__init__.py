@@ -1,6 +1,8 @@
 from .Abs import Abs
 from .Acos import Acos
 from .Add import Add
+from .ArgMax import ArgMax
+from .ArgMin import ArgMin
 from .Asin import Asin
 from .Atan import Atan
 from .Atan2 import Atan2
@@ -21,6 +23,8 @@ from .IntInv import IntInv
 from .Inv import Inv
 from .Log import Log
 from .MatVecMult import MatVecMult
+from .Max import Max
+from .Min import Min
 from .Minus import Minus
 from .Mod import Mod
 from .Mult import Mult

@@ -18,13 +18,21 @@ class ArgMax(Operation):
 
     def Op(self, out, table, arg):
         tmp = c_variable(out.dtype)
-        loop, k = c_for_loop(1, f.dim, 1, pragma_unroll=True)   #TODO: fix this
+        loop, k = c_for_loop(1, arg.dim, 1, pragma_unroll=True)
         string = value(out).assign(c_zero_float) + tmp.declare_assign(arg[0])
         string += loop(c_if(arg[k] > tmp, tmp.assign(arg[k]) + value(out).assign(k)))
         return string
 
     def DiffT(self, v, gradin):
         return Zero(v.dim)
+    
+    
+    # parameters for testing the operation (optional)
+    enable_test = True          # enable testing for this operation
+    nargs = 1                   # number of arguments
+    test_argdims = [5]          # dimensions of arguments for testing
+    torch_op = "lambda x : torch.argmax(x, dim=-1, keepdim=True).type(x.dtype)"
+
 
 
 

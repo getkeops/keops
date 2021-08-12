@@ -1,5 +1,5 @@
 from keops.python_engine.formulas.Operation import Operation
-from keops.python_engine.formulas.maths.ArgMax import ArgMin
+from keops.python_engine.formulas.maths.ArgMin import ArgMin
 from keops.python_engine.formulas.maths.OneHot import OneHot
 from keops.python_engine.utils.code_gen_utils import c_for_loop, c_if, value
 
