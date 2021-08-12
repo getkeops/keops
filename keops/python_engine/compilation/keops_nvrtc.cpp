@@ -16,13 +16,13 @@
 
 #include "Sizes.h"
 #include "Ranges.h"
+#include "utils_pe.h"
+#include "ranges_utils.h"
+
 
 #include "CudaSizes.h"
-
 #include <cuda_fp16.h>
 
-#include "utils.cpp"
-#include "ranges_utils.cpp"
 
 extern "C" int Compile(const char* ptx_file_name, const char* cu_code, int use_half, int device_id) {
 
@@ -50,12 +50,12 @@ extern "C" int Compile(const char* ptx_file_name, const char* cu_code, int use_h
     cuDeviceGet(&cuDevice, device_id);
 
     // Get Compute Capability from Driver API
-    int *deviceProp_major, *deviceProp_minor;
-    cuDeviceGetAttribute(deviceProp_major, CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MAJOR, cuDevice );
-    cuDeviceGetAttribute(deviceProp_minor, CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MINOR, cuDevice );
+    int deviceProp_major, deviceProp_minor;
+    cuDeviceGetAttribute(&deviceProp_major, CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MAJOR, cuDevice );
+    cuDeviceGetAttribute(&deviceProp_minor, CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MINOR, cuDevice );
 
     std::ostringstream arch_flag;
-    arch_flag << "-arch=compute_" << *deviceProp_major << *deviceProp_minor;
+    arch_flag << "-arch=compute_" << deviceProp_major << deviceProp_minor;
 
     char *arch_flag_char = new char[16];
     arch_flag_char = strdup(arch_flag.str().c_str());
@@ -117,13 +117,13 @@ int launch_keops(const char* ptx_file_name, int tagHostDevice, int dimY, int nx,
                                         int *dimsx, int *dimsy, int *dimsp,
                                         int **ranges, int *shapeout, TYPE *out, int nargs, TYPE **arg, int **argshape) {
 
-    CUdevice cuDevice;
-    CUDA_SAFE_CALL(cuInit(0));
-    CUDA_SAFE_CALL(cuDeviceGet(&cuDevice, device_id));
 
     //cudaSetDevice(device_id);
-    CUcontext* pctx;
-    CUDA_SAFE_CALL(cuDevicePrimaryCtxRetain(pctx, device_id));
+    CUdevice cuDevice; CUcontext pctx;
+    CUDA_SAFE_CALL(cuInit(0));
+    CUDA_SAFE_CALL(cuDeviceGet(&cuDevice, device_id));
+    CUDA_SAFE_CALL(cuDevicePrimaryCtxRetain(&pctx, cuDevice));
+
 
     SetGpuProps(device_id);
 
@@ -137,7 +137,7 @@ int launch_keops(const char* ptx_file_name, int tagHostDevice, int dimY, int nx,
         SS.switch_to_half2_indexing();
 
     Ranges<TYPE> RR(SS, ranges);
-
+    printf("ddfsdfsdf2");
     nx = SS.nx;
     ny = SS.ny;
 
@@ -161,18 +161,13 @@ int launch_keops(const char* ptx_file_name, int tagHostDevice, int dimY, int nx,
 
 	if (use_chunk_mode==0) {
 		// warning : blockSize.x was previously set to CUDA_BLOCK_SIZE; currently CUDA_BLOCK_SIZE value is used as a bound.
-		blockSize_x = ::std::min(cuda_block_size,
-                             ::std::min(maxThreadsPerBlock,
-                                        (int) (sharedMemPerBlock / ::std::max(1,
-                                                    (int) (  dimY * sizeof(TYPE)))))); // number of threads in each block
+		blockSize_x = std::min(cuda_block_size, std::min(maxThreadsPerBlock, (int) (sharedMemPerBlock / std::max(1, (int) (  dimY * sizeof(TYPE)))))); // number of threads in each block
+		printf("Debug   blockSize_x : %d\n", blockSize_x);
 	}
 	else {
 		// warning : the value here must match the one which is set in file GpuReduc1D_chunks.py, line 59
         // and file GpuReduc1D_finalchunks.py, line 67
-		blockSize_x = ::std::min(cuda_block_size,
-		                             ::std::min(1024,
-		                                        (int) (49152 / ::std::max(1,
-		                                                    (int) (  dimY * sizeof(TYPE))))));
+		blockSize_x = std::min(cuda_block_size, std::min(1024, (int) (49152 / std::max(1, (int) (  dimY * sizeof(TYPE))))));
 	}
 
     int nblocks;
@@ -185,19 +180,21 @@ int launch_keops(const char* ptx_file_name, int tagHostDevice, int dimY, int nx,
 
     __INDEX__ *lookup_d = NULL, *slices_x_d = NULL, *ranges_y_d = NULL;
     int *offsets_d = NULL;
-
+/*
     if (RR.tagRanges==1) {
         range_preprocess(tagHostDevice, nblocks, tagI, RR.nranges_x, RR.nranges_y, RR.castedranges,
                          SS.nbatchdims, slices_x_d, ranges_y_d, lookup_d,
                          offsets_d,
                          blockSize_x, indsi, indsj, indsp, SS.shapes);
     }
-
+*/
 
     CUdeviceptr p_data;
     TYPE *out_d;
     TYPE **arg_d;
     int sizeout = get_sum(shapeout);
+
+    printf("Debug   tagHostDevice : %d\n", tagHostDevice);
 
     if(tagHostDevice==1)
         load_args_FromDevice(p_data, out, out_d, nargs, arg, arg_d);
@@ -314,11 +311,14 @@ int launch_keops(const char* ptx_file_name, int tagHostDevice, int dimY, int nx,
         kernel_params[2] = &out_d;
         kernel_params[3] = &arg_d;
 
+
+        printf("ddfsdfsdf.3");
+
         CUDA_SAFE_CALL(cuLaunchKernel(kernel,
-                   gridSize_x, gridSize_y, gridSize_z,    // grid dim
-                   blockSize_x, blockSize_y, blockSize_z,   // block dim
-                   blockSize_x * dimY * sizeof(TYPE), NULL,             // shared mem and stream
-                   kernel_params, 0));           // arguments
+                   gridSize_x, gridSize_y, gridSize_z,        // grid dim
+                   blockSize_x, blockSize_y, blockSize_z,     // block dim
+                   blockSize_x * dimY * sizeof(TYPE), NULL,   // shared mem and stream
+                   kernel_params, 0));                        // arguments
     }
     
     CUDA_SAFE_CALL(cuCtxSynchronize());
