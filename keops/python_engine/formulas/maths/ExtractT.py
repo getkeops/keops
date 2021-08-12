@@ -22,16 +22,29 @@ class ExtractT(Operation):
         # returns the atomic piece of c++ code to evaluate the function on arg and return
         # the result in out
         out_prev, out_mid, out_end = out.split(
-            self.start, self.dim, self.dimarg - self.start - self.dim
+            self.start, self.dimarg, self.dim - self.start - self.dimarg
         )
-        return "\n".join(
+        return "\n".join((
             out_prev.assign(c_zero_float),
             VectCopy(out_mid, arg),
             out_end.assign(c_zero_float),
-        )
+        ))
 
     def DiffT(self, v, gradin):
         from keops.python_engine.formulas.maths.Extract import Extract
 
         f = self.children[0]
         return f.DiffT(v, Extract(gradin, self.start, f.dim))
+
+
+
+    # parameters for testing the operation (optional)
+    enable_test = True          # enable testing for this operation
+    nargs = 1                   # number of arguments
+    test_argdims = [5]          # dimensions of arguments for testing
+    test_params = [3, 10]       # dimensions of parameters for testing
+    def torch_op(x,s,d):        # equivalent PyTorch operation
+        import torch
+        out = torch.zeros((*x.shape[:-1],d), device=x.device, dtype=x.dtype)
+        out[...,s:(s+x.shape[-1])] = x
+        return out

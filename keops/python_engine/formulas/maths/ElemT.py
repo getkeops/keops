@@ -32,3 +32,15 @@ class ElemT(Operation):
 
         f = self.children[0]
         return f.DiffT(v, Elem(gradin, self.m))
+
+    
+    # parameters for testing the operation (optional)
+    enable_test = True          # enable testing for this operation
+    nargs = 1                   # number of arguments
+    test_argdims = [1]          # dimensions of arguments for testing
+    test_params = [5, 3]        # dimensions of parameters for testing
+    def torch_op(x,n,m):        # equivalent PyTorch operation
+        import torch
+        out = torch.zeros((*x.shape[:-1],n), device=x.device, dtype=x.dtype)
+        out[...,m][..., None] = x
+        return out

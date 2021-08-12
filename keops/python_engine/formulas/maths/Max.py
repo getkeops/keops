@@ -16,15 +16,24 @@ class Max(Operation):
         if f.dim < 1:
             raise ValueError("[KeOps] Max operation is only possible when dimension is non zero.")
         self.dim = 1
+        self.argdim = f.dim
 
     def Op(self, out, table, arg):
-        loop, k = c_for_loop(1, f.dim, 1, pragma_unroll=True) # TODO : Fix this
+        loop, k = c_for_loop(1, arg.dim, 1, pragma_unroll=True)
         string = value(out).assign(arg[0])
         string += loop(c_if(arg[k] > value(out), value(out).assign(arg[k])))
         return string
 
     def DiffT(self, v, gradin):
-        return f.DiffT(v, OneHot(ArgMax(f), f.dim) * gradin)
+        return f.DiffT(v, OneHot(ArgMax(f), self.argdim) * gradin)  # TODO : Fix this
+        
+    
+    
+    # parameters for testing the operation (optional)
+    enable_test = True          # enable testing for this operation
+    nargs = 1                   # number of arguments
+    test_argdims = [5]          # dimensions of arguments for testing
+    torch_op = "lambda x : torch.max(x, dim=-1, keepdim=True)"
 
 
 
