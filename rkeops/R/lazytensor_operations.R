@@ -163,6 +163,7 @@
         y <- LazyTensor(y)
     }
     
+    # convert in complex when needed 
     if(!is.ComplexLazyTensor(y)) {
         res <- x - real2complex(y)
         return(res)
@@ -246,22 +247,30 @@
         y <- LazyTensor(y)
     }
     
-    if(is.LazyScalar(y)) {
+    if(!is.LazyTensor(x) && !is.matrix(x)) {
+        x <- LazyTensor(x)
+    }
+    
+    # multiplication between a ComplexLazyTensor and a LazyScalar
+    if(is.LazyScalar(x) || is.LazyScalar(y)) {
         res <- binaryop.LazyTensor(x, y, "ComplexRealScal")
     }
     
+    # multiplication between a ComplexLazyTensor and a LazyTensor
+    # the LazyTensor is converted in ComplexLazyTensor
     else if(!is.ComplexLazyTensor(y)) {
         res <- x * real2complex(y)
     }
-    
     else if(!is.ComplexLazyTensor(x)) {
         res <- real2complex(x) * y
     }
     
+    # multiplication between 2 'ComplexLazyScalars'
     else if(is.ComplexLazyScalar(x) || is.ComplexLazyScalar(y)) {
         res <- binaryop.LazyTensor(x, y, "ComplexScal", dim_check_type = NA)
     }
     
+    # multiplication between 2 ComplexLazyTensors
     else {
         res <- binaryop.LazyTensor(x, y, "ComplexMult")
     }
