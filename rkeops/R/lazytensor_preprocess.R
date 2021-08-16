@@ -174,10 +174,10 @@ LazyTensor <- function(x, index = NA, is_complex = FALSE) {
                       lapply(1:ncol(x),
                              function(ind) return(cbind(ReZ[, ind],
                                                         ImZ[, ind]
-                             )
+                                                        )
+                                                  )
                              )
                       )
-      )
     }
     # If input x is a vector or a single complex value, ReImZ will be a vector.
     else {
@@ -192,7 +192,7 @@ LazyTensor <- function(x, index = NA, is_complex = FALSE) {
       # Parameter LazyTensors have vector as vars (but apparently it
       # doesn't matter is we leave it as a matrix...)
       # Uncomment below if needed.
-      #ReImZ <- as.vector(ReImZ)
+      # ReImZ <- as.vector(ReImZ)
     }
     res$vars[[1]] <- ReImZ
     
@@ -369,11 +369,6 @@ unaryop.LazyTensor <- function(x, opstr, opt_arg = NA, opt_arg2 = NA,
 
   if(is.numeric(x) || is.complex(x))
     x <- LazyTensor(x)
-  
-  ## result dimension
-  #if(is.na(dim_res)) {
-  #  dim_res <- get_inner_dim(x)
-  #}
   
   # result dimension
   if(is.na(dim_res)) {
@@ -667,11 +662,6 @@ ternaryop.LazyTensor <- function(x, y, z, opstr, dim_check_type = "sameor1",
       )
     }
   }
-  
-  ## result dimension
-  #if(is.na(dim_res)) {
-  #  dim_res <- max(c(get_inner_dim(x), get_inner_dim(y), get_inner_dim(z)))
-  #}
   
   # result dimension
   if(is.na(dim_res)) {
@@ -1008,10 +998,6 @@ get_inner_dim <- function(x) {
   if(!is.LazyTensor(x))
     stop("`x` input argument should be a LazyTensor or a ComplexLazyTensor.")
   
-  #end_x_inner_dim <- sub(".*\\(", "", x$args)
-  #x_inner_dim <- substr(end_x_inner_dim, 1, nchar(end_x_inner_dim) - 1)
-  #x_inner_dim <- as.integer(x_inner_dim)
-  
   if(length(x$args) == 1) {
     end_x_inner_dim <- sub(".*\\(", "", x$args)
     x_inner_dim <- substr(end_x_inner_dim, 1, nchar(end_x_inner_dim) - 1)
@@ -1050,28 +1036,6 @@ get_inner_dim <- function(x) {
 #' (see @details section).
 #' @return A boolean TRUE or FALSE.
 check_inner_dim <- function(x, y, z = NA, check_type = "sameor1") {
-  ## init
-  #x_inner_dim <- 1
-  #y_inner_dim <- 1
-  #z_inner_dim <- 1
-  #
-  ### ==========
-  ##if(is.na(z)) {
-  ##  if(is.int(x)) {
-  ##    if(!is.LazyTensor(y)) {
-  ##      stop(
-  ##        "Input arguments should be of class 'LazyTensor' or 'ComplexLazyTensor'."
-  ##      )
-  ##    }
-  ##    if(check_type == "sameor1") {
-  ##      return(TRUE)
-  ##    }
-  ##  }
-  ##  
-  ##}
-  ### ==========
-  ##
-  
   # Inputs must be LazyTensors or ComplexLazyTensors.
   if(!is.LazyTensor(x) || !is.LazyTensor(y)) {
     stop(
@@ -1201,23 +1165,6 @@ preprocess_reduction <- function(x, opstr, index, opt_arg = NA) {
       # put `opt_arg$formula` at the end of the formula
       formula <- paste( opstr,  "_Reduction(",  x$formula, 
                         ",",  tag, ",", opt_arg$formula, ")", sep = "")
-      # list_index <- list()
-      # count <- 0
-      # if(length(x$args) != length(x$vars)){
-      #  for(k in 1:(length(x$vars))) {
-      #    for(l in 1:(length(x$args))) {
-      #      bool_grep <- grep(address(x$vars[[k]]), x$args[[l]])
-      #      if(any(bool_grep)) {
-      #        list_index <- append(list_index, l)
-      #      }
-      #     }
-      #   }
-      #   
-      #   nb_occur <- length(list_index)
-      #   
-      #   
-      # }
-      # else
       args <- c(x$args, opt_arg$args)
     }
     
