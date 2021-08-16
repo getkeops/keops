@@ -250,12 +250,12 @@
 #' @keywords internal
 #' @export
 "*.ComplexLazyTensor" <- function(x, y) {
-    if(!is.LazyTensor(y) && !is.matrix(y)) {
-        y <- LazyTensor(y)
-    }
-    
     if(!is.LazyTensor(x) && !is.matrix(x)) {
         x <- LazyTensor(x)
+    }
+    
+    if(!is.LazyTensor(y) && !is.matrix(y)) {
+        y <- LazyTensor(y)
     }
     
     # multiplication between a ComplexLazyTensor and a LazyScalar
@@ -349,6 +349,10 @@
 #' @keywords internal
 #' @export
 "/.ComplexLazyTensor" <- function(x, y) {
+    if(!is.LazyTensor(x) && !is.matrix(x)) {
+        x <- LazyTensor(x)
+    }
+    
     if(!is.LazyTensor(y) && !is.matrix(y)) {
         y <- LazyTensor(y)
     }
