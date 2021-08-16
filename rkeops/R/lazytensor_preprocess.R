@@ -12,19 +12,21 @@
 #' list containing the following elements:
 #' \itemize{
 #'     \item{**formula**:}{ A string defining the mathematical operation to 
-#'     be computed by the KeOps routine}
+#'     be computed by the KeOps routine - each variable is encoded with the
+#'     pointer address of its argument, suffixed by 'i', 'j', or 'NA', to
+#'     give it a unique identifier;}
 #'     \item{**args**:}{ A vector of arguments containing a unique identifier 
-#'     associated to the type of the argument :
+#'     associated to the type of the argument:
 #'     \itemize{
 #'         \item{**Vi(n)**:}{ vector indexed by **i** of dim **n**}
 #'         \item{**Vj(n)**:}{ vector indexed by **j** of dim **n**}
 #'         \item{**Pm(n)**:}{ fixed parameter of dim **n**}
 #'     }}
 #'     \item{**vars**:}{ A list of R matrices which will be the inputs of the 
-#'                       KeOps routine}
+#'                       KeOps routine;}
 #'     \item{**dimres**:}{ An integer corresponding to the inner dimension of
-#'                        the LazyTensor. **dimres** is used when creating new
-#'                        LazyTensors that result from operations,
+#'                        the `LazyTensor`. **dimres** is used when creating new
+#'                        `LazyTensor`s that result from operations,
 #'                        to keep track of the dimension.}
 #' }
 #' 

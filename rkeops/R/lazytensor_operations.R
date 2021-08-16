@@ -1758,7 +1758,7 @@ normalize <- function(x) {
 
 #' Squared distance.
 #' @description
-#' Symbolic binary operation for vector normalization.
+#' Symbolic binary operation for squared Euclidean distance.
 #' @details `sqdist(x)` returns a `LazyTensor` that encodes, symbolically,
 #' the squared Euclidean distance between `x` and `y`, same as `sqnorm2(x - y)`.
 #' 
