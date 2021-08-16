@@ -64,15 +64,19 @@
 #' @keywords internal
 #' @export
 "+.ComplexLazyTensor" <- function(x, y) {
-    if(!is.LazyTensor(y)) {
+    if(!is.LazyTensor(x) && !is.matrix(x)) {
+        x <- LazyTensor(x)
+    }
+    
+    if(!is.LazyTensor(y) && !is.matrix(y)) {
         y <- LazyTensor(y)
     }
     
+    # convert in complex when needed 
     if(!is.ComplexLazyTensor(y)) {
         res <- x + real2complex(y)
         return(res)
     }
-    
     else if(!is.ComplexLazyTensor(x)) {
         res <- real2complex(x) + y
         return(res)
@@ -159,6 +163,10 @@
         return(res)
     }
     
+    if(!is.LazyTensor(x) && !is.matrix(x)) {
+        x <- LazyTensor(x)
+    }
+    
     if(!is.LazyTensor(y) && !is.matrix(y)) {
         y <- LazyTensor(y)
     }
@@ -168,7 +176,6 @@
         res <- x - real2complex(y)
         return(res)
     }
-    
     else if(!is.ComplexLazyTensor(x)) {
         res <- real2complex(x) - y
         return(res)
