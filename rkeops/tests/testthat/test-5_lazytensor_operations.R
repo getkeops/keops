@@ -45,6 +45,18 @@ test_that("+", {
   bool_grep_formula <- grep("Add\\(A0x.*i,Real2Complex\\(A0x.*i\\)\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
   
+  obj <-  xc_i + 3
+  expect_equal(length(obj$args), 1)
+  expect_equal(length(obj$vars), 1)
+  bool_grep_formula <- grep("Add\\(A0x.*i,Real2Complex\\(IntCst\\(3\\)\\)\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  
+  obj <-  3 + xc_i
+  expect_equal(length(obj$args), 1)
+  expect_equal(length(obj$vars), 1)
+  bool_grep_formula <- grep("Add\\(Real2Complex\\(IntCst\\(3\\)\\),A0x.*i\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  
   obj <-  x_i + 3
   expect_equal(length(obj$args), 1)
   expect_equal(length(obj$vars), 1)
@@ -113,6 +125,18 @@ test_that("-", {
   
   obj <- x_i - yc_j
   bool_grep_formula <- grep("Subtract\\(Real2Complex\\(A0x.*i\\),A0x.*j\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  
+  obj <- xc_i - 3
+  expect_equal(length(obj$args), 1)
+  expect_equal(length(obj$vars), 1)
+  bool_grep_formula <- grep("Subtract\\(A0x.*i,Real2Complex\\(IntCst\\(3\\)\\)\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  
+  obj <- 3.3 - xc_i
+  expect_equal(length(obj$args), 2)
+  expect_equal(length(obj$vars), 2)
+  bool_grep_formula <- grep("Subtract\\(Real2Complex\\(A0x.*NA\\),A0x.*i\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
   
   obj <-  x_i - 3
@@ -204,6 +228,18 @@ test_that("*", {
   bool_grep_formula <- grep("ComplexRealScal\\(A0x.*i,IntCst\\(2\\)\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
   
+  obj <- xc_i * 2
+  expect_equal(length(obj$args), 1)
+  expect_equal(length(obj$vars), 1)
+  bool_grep_formula <- grep("ComplexRealScal\\(A0x.*i,IntCst\\(2\\)\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  
+  obj <- 2 * xc_i
+  expect_equal(length(obj$args), 1)
+  expect_equal(length(obj$vars), 1)
+  bool_grep_formula <- grep("ComplexRealScal\\(IntCst\\(2\\),A0x.*i\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  
   obj <-  x_i * 3
   expect_equal(length(obj$args), 1)
   expect_equal(length(obj$vars), 1)
@@ -272,11 +308,22 @@ test_that("/", {
                             obj$formula)
   expect_equal(bool_grep_formula, 1)
   
-  obj <- yc_j / xc_i
-  expect_equal(length(obj$args), 2)
-  expect_equal(length(obj$vars), 2)
-  bool_grep_formula <- grep("ComplexDivide\\(A0x.*j,A0x.*i\\)", 
-                            obj$formula)
+  obj <- yc_j / 3
+  expect_equal(length(obj$args), 1)
+  expect_equal(length(obj$vars), 1)
+  bool_grep_formula <- grep(
+    "ComplexDivide\\(A0x.*j,Real2Complex\\(IntCst\\(3\\)\\)\\)", 
+    obj$formula
+  )
+  expect_equal(bool_grep_formula, 1)
+  
+  obj <- 3 / xc_i
+  expect_equal(length(obj$args), 1)
+  expect_equal(length(obj$vars), 1)
+  bool_grep_formula <- grep(
+    "ComplexDivide\\(Real2Complex\\(IntCst\\(3\\)\\),A0x.*i\\)", 
+    obj$formula
+  )
   expect_equal(bool_grep_formula, 1)
   
   obj <-  x_i / 3
