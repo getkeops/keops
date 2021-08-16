@@ -14,7 +14,7 @@ vignette: >
   %\VignetteEngine{knitr::rmarkdown}
 ---
 
-```{r, include = FALSE}
+```{r setup, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
   progress = TRUE,
@@ -72,6 +72,7 @@ You can see that the code is very "R and math friendly". All the available opera
 
 To encode symbolically a matrix, a vector, or a single value as a `LazyTensor`, you can use the function `LazyTensor()`. Run `?LazyTensor` to display the complete documentation.
 
+
 ### ComplexLazyTensor
 
 The `LazyTensor` function also allows to encode complex mathematical objects. These new objects are called `ComplexLazyTensor`s, but note that these are also `LazyTensor`s, however, they are not encoded quite the same way: the real and complex parts are dissociated and stored in two contiguous columns. Below is a simple example of what complex objects becomes once encoded as `ComplexLazyTensor`s:
@@ -123,7 +124,43 @@ Pm_v <- LazyTensor(v, is_complex = TRUE)
 ## Operations
 
 **Note:** If none of the input arguments are of class `LazyTensor` or `ComplexLazyTensor`, the default `R` function (if any) is used instead.
-Please refer to the help page of each function for type compatibility, dimension compatibility, and further details.
+Please refer to the help page of each function for type compatibility, dimension compatibility, and further details. You can also take a look at the "Using RKeOps" vignette, at the "Arguments" section, for further explanations about inner and outer dimensions.
+
+
+### Result dimension
+
+`LazyTensor`s contain a `dimres` attribute, which is an integer corresponding to the inner dimension of the LazyTensor. It is used when creating new `LazyTensor`s that result from operations to keep track of the dimension, and this enables you to check dimension compatibility when dealing with large operations.
+
+```{r dimres}
+N <- 100
+# arbitrary R matrices representing 100 data points in R^3
+w <- matrix(runif(N * 3), nrow = N, ncol = 3)
+x <- matrix(runif(N * 3), nrow = N, ncol = 3)
+y <- matrix(runif(N * 3), nrow = N, ncol = 3)
+
+# Create `LazyTensor`s from `w`, `x` and `y`
+w_i <- LazyTensor(w, "i")
+x_i <- LazyTensor(x, "i")
+y_j <- LazyTensor(y, "j")
+
+# print `x_i` inner dimension:
+x_i$dimres
+
+# print `y_j` inner dimension:
+y_j$dimres
+
+# Simple addition
+sum_xy <- x_i + y_j
+
+# print `sum_xy` inner dimension:
+sum_xy$dimres
+
+# Euclidean element-wise squared distance
+sq_dist_sum_xy_w <- sqdist(sum_xy, w_i)
+
+# print `sq_dist_sum_xy_w` inner dimension:
+sq_dist_sum_xy_w$dimres
+```
 
 
 ### Simple arithmetics
@@ -270,17 +307,93 @@ Here, `x` is a `LazyTensor`. The operations `sum()`, `min()`, `argmin()`, `max()
 | `sumsoftmaxweight(x, "j", w)`  `sumsoftmaxweight_reduction(x, "j", w)` | "Sum of weighted Soft-Max" reduction indexed by `j` of the elements of `x` | $\left(\sum_j\exp(x_{ij})w_{ij}\right)/\left(\sum_j\exp(x_{ij})\right)$  |
 
 
+## Advices and random notes
+
+### Aliases
+
+You can use aliases to create `LazyTensor`s:
+
+```{r aliases, eval=FALSE}
+# Data
+N <- 100
+x <- matrix(runif(N * 3), nrow = N, ncol = 3) # arbitrary R matrix representing 
+                                              # 100 data points in R^3
+v <- runif(3, 0, 1)                           # arbitrary vector of length 3
+s <- 0.1                                      # scale parameter
+
+# Create symbolic object representing an arbitrary row of x, 
+# indexed by the letter "i":
+x_i <- LazyTensor(x, "i")   
+# Same as
+x_i <- Vi(x)
+
+# Create symbolic object representing an arbitrary row of x, 
+# indexed by the letter "j":
+x_j <- LazyTensor(x, "j")
+# Same as
+x_j <- Vj(x)
+
+# Create symbolic object representing the vector `v` above:
+LT_v <- LazyTensor(v)
+# Same as
+LT_v <- Pm(v)
+
+# Create symbolic object representing the scalar `s` above:
+LT_s <- LazyTensor(s)
+# Same as
+LT_s <- Pm(s)
+```
+
+
+### Type checking
+
+You can check the "type" of your "object" and/or what kind of values it encodes.
+
+```{r type_checking, eval=FALSE}
+D <- 3
+M <- 100
+x <- matrix(runif(M * D), M, D)   # matrix of real values
+x_i <- LazyTensor(x, index = 'i')
+p <- LazyTensor(runif(3, 0, 1))   # LazyTensor encoding a fixed vector of real values
+l <- LazyTensor(314)              # LazyTensor encoding a fixed scalar parameter
+z <- matrix(1i^(-6:5), nrow = 4)  # matrix of complex values
+z_i <- LazyTensor(z, index = 'i', is_complex = TRUE)
+
+scal <- 3.14
+cplx <- 2 + 3i
+scal_LT <- LazyTensor(scal)
+cplx_LT <- LazyTensor(cplx)
+
+# check types
+is.LazyTensor(x_i)
+# [1] TRUE
+is.ComplexLazyTensor(z_i)
+# [1] TRUE
+is.LazyVector(p)
+# [1] TRUE
+is.LazyScalar(scal_LT)
+# [1] TRUE
+is.ComplexLazyScalar(cplx_LT)
+# [1] TRUE
+```
+Note that above are rudimentary examples, but this can become very handy when dealing with more complex expressions.
+
+
+## The `IntCst` type
+
+When a single integer value `n` is encoded as a LazyTensor, its formula is simply `"IntCst(n)"`, which contains all the necessary informations, and the `args` and `vars` attributes remain empty, to avoid useless storage.
+
+
+## Duplicate items in expressions
+
+When the same `LazyTensor` variable, indexed the same way, is used several times in an expression, it will only appear once in the `args` and `vars` attributes, to avoid useless storage. Of course all its instances remain in the `formula` attribute.
+
 
 TODO:
 
 * add introduction and many many other things
-* add precision word about dimension compatibility (or link to other vignette) ?
-* add precision word about type compatibility ?
 * ask if reformulation is correct in Generic squared Euclidean norms...
 
-```{r}
-
-```
 
 
 
