@@ -34,7 +34,7 @@ def fun(x, y, a, b, backend):
         conj = np.conj
         angle = np.angle
         exp = np.exp
-    Kxy = exp(x + y).sum(axis=2)
+    Kxy = (x / y).sum(axis=2)
     return Kxy.sum(axis=0)
 
 
