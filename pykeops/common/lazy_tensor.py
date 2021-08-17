@@ -2450,14 +2450,6 @@ class ComplexGenericLazyTensor(GenericLazyTensor):
             return other.binary(self, "ComplexRealScal", **kwargs, is_complex=True)
         elif not is_complex_lazytensor(other):
             return self.mulop(other.real2complex())
-        elif self._shape[-1] == 2:
-            return self.binary(
-                other, "ComplexScal", **kwargs, is_complex=True, dimcheck=None
-            )
-        elif other._shape[-1] == 2:
-            return other.binary(
-                self, "ComplexScal", **kwargs, is_complex=True, dimcheck=None
-            )
         else:
             return self.binary(other, "ComplexMult", **kwargs, is_complex=True)
 
@@ -2472,10 +2464,8 @@ class ComplexGenericLazyTensor(GenericLazyTensor):
     def subop(self, other, **kwargs):
         if not is_complex_lazytensor(other):
             return self.subop(other.real2complex())
-        elif self._shape[-1] == other._shape[-1]:
-            return self.binary(other, "Subtract", **kwargs, is_complex=True)
         else:
-            raise ValueError("incompatible shapes for subtraction.")
+            return self.binary(other, "ComplexSubtract", **kwargs, is_complex=True, dimcheck=None)
 
     def divop(self, other, **kwargs):
         if not is_complex_lazytensor(other):

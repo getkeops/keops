@@ -1,7 +1,7 @@
 from keops.python_engine.formulas.Operation import Operation
 from keops.python_engine.utils.code_gen_utils import c_for_loop
 from keops.python_engine.formulas.complex.Real2Complex import Real2Complex
-from keops.python_engine.formulas.complex.ComplexScal import ComplexScal
+from keops.python_engine.formulas.complex.ComplexMult import ComplexMult
 
 # /////////////////////////////////////////////////////////////////////////
 # ////      ComplexRealScal                           ////
@@ -28,7 +28,7 @@ class ComplexRealScal_Impl(Operation):
 
     def DiffT(self, v, gradin):
         f, g = self.children
-        AltFormula = ComplexScal(Real2Complex(f), g)
+        AltFormula = ComplexMult(Real2Complex(f), g)
         return AltFormula.DiffT(v, gradin)
 
 

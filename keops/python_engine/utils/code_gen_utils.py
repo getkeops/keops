@@ -393,6 +393,31 @@ def VectApply(fun, out, *args):
     return forloop(fun(out[k * incr_out], *argsk))
 
 
+def ComplexVectApply(fun, out, *args):
+    # similar to VectApply but for complex operations
+
+    dims = [out.dim]
+    for arg in args:
+        if isinstance(arg, c_array):
+            dims.append(arg.dim)
+        else:
+            raise ValueError("args must be c_array instances")
+    dimloop = max(dims)
+    if not set(dims) in ({dimloop}, {2, dimloop}):
+        raise ValueError("incompatible dimensions in ComplexVectApply")
+    incr_out = 2 if out.dim == dimloop else 0
+    incr_args = list((2 if dim == dimloop else 0) for dim in dims[1:])
+
+    forloop, k = c_for_loop(0, dimloop, 2, pragma_unroll=True)
+
+    argsk = []
+    for (arg, incr) in zip(args, incr_args):
+        argk = c_array(arg.dtype,2,f"({arg.id}+{k.id}*{incr})")
+        argsk.append(argk)
+    outk = c_array(out.dtype,2,f"({out.id}+{k.id}*{incr_out})")
+    return forloop(fun(outk, *argsk))
+
+
 def VectCopy(out, arg, dim=None):
     # returns a C++ code string representing a vector copy between fixed-size arrays
     # - dim is dimension of arrays

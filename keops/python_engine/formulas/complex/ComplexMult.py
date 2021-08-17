@@ -1,5 +1,4 @@
-from keops.python_engine.formulas.Operation import Operation
-from keops.python_engine.utils.code_gen_utils import c_for_loop
+from keops.python_engine.formulas.VectorizedComplexScalarOp import VectorizedComplexScalarOp
 from keops.python_engine.formulas.complex.Conj import Conj
 
 # /////////////////////////////////////////////////////////////////////////
@@ -7,23 +6,14 @@ from keops.python_engine.formulas.complex.Conj import Conj
 # /////////////////////////////////////////////////////////////////////////
 
 
-class ComplexMult(Operation):
+class ComplexMult(VectorizedComplexScalarOp):
 
     string_id = "ComplexMult"
 
-    def __init__(self, f, g):
-        if f.dim % 2 != 0:
-            raise ValueError("Dimension of F must be even")
-        if f.dim != g.dim:
-            raise ValueError("Dimensions of F and G must be equal")
-        self.dim = f.dim
-        super().__init__(f, g)
-
-    def Op(self, out, table, inF, inG):
-        forloop, i = c_for_loop(0, self.dim, 2, pragma_unroll=True)
-        body = out[i].assign(inF[i] * inG[i] - inF[i + 1] * inG[i + 1])
-        body += out[i + 1].assign(inF[i] * inG[i + 1] + inF[i + 1] * inG[i])
-        return forloop(body)
+    def ScalarOp(self, out, inF, inG):
+        string = out[0].assign(inF[0] * inG[0] - inF[1] * inG[1])
+        string += out[1].assign(inF[0] * inG[1] + inF[1] * inG[0])
+        return string
 
     def DiffT(self, v, gradin):
         f, g = self.children
