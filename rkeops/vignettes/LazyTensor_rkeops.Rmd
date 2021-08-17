@@ -131,7 +131,7 @@ Please refer to the help page of each function for type compatibility, dimension
 
 `LazyTensor`s contain a `dimres` attribute, which is an integer corresponding to the inner dimension of the LazyTensor. It is used when creating new `LazyTensor`s that result from operations to keep track of the dimension, and this enables you to check dimension compatibility when dealing with large operations.
 
-```{r dimres}
+```{r dimres, eval=FALSE}
 N <- 100
 # arbitrary R matrices representing 100 data points in R^3
 w <- matrix(runif(N * 3), nrow = N, ncol = 3)
@@ -253,7 +253,6 @@ Here, `x` and `y` are `LazyTensor`s, and the result as well.
 
 | operation                 | meaning                                                                                                 |
 |:--------------------------|:--------------------------------------------------------------------------------------------------------------|
-|          `x %*% y`        | sum reduction of the product `x` $\times$ `y`                                                                 |
 | `matvecmult(x, y)`        | matrix-vector product `x` $\times$ `y`: `x` is a vector interpreted as matrix (column-major), `y` is a vector |
 | `vecmatmult(x, y)`        | vector-matrix product `x` $\times$ `y`: `x` is a vector, `y` is a vector interpreted as matrix (column-major) |
 | `vecmatmult(x, y)`        | vector-matrix product `x` $\times$ `y`: `x` is a vector, `y` is a vector interpreted as matrix (column-major) |
@@ -291,7 +290,11 @@ Here, `x` and `gradin` are `LazyTensor`s.
 
 ### Reductions
 
-Here, `x` is a `LazyTensor`. The operations `sum()`, `min()`, `argmin()`, `max()` and `argmax()` can be called with `NA` index (default), in which case no reduction is done and the result is a `LazyTensor`. Otherwise, the result is not a `LazyTensor`. 
+Here, `x` is a `LazyTensor`. $M$ is its outer dimension and $D$ its inner dimension, and $i \in \{1, \ldots ,M\}$,
+$j \in \{1, \ldots ,D\}$.
+
+
+The operations `sum()`, `min()`, `argmin()`, `max()` and `argmax()` can be called with `NA` index (default), in which case no reduction is done and the result is a `LazyTensor`. Otherwise, the result is not a `LazyTensor`. 
 
 
 | operation                                                 |     meaning                                                |     mathematical expression                                  |
@@ -303,6 +306,7 @@ Here, `x` is a `LazyTensor`. The operations `sum()`, `min()`, `argmin()`, `max()
 | `max(x, "j")`  $\qquad$ `max_reduction(x, "j")`           | max reduction indexed by `j` of the elements of `x`        | $\min_j x_{ij}$                                              |
 | `argmax(x, "j")` $\qquad$  `argmax_reduction(x, "j")`     | argmax reduction indexed by `j` of the elements of `x`     | $\text{argmin}_jx_{ij}$                                      |
 | `max_argmax(x, "j")` $\qquad$  `max_argmax_reduction(x, "j")`| max-argmax reduction indexed by `j` of the elements of `x` | $\left(\max_j x_{ij} ,\text{argmax}_j x_{ij}\right)$      |
+|`x %*% y`| sum reduction of the product `x` $\times$ `y` indexed by `j` | $\sum_j x_{ij} y_{kj}, ~ k \in \{1, ..., M\}$ |
 | `logsumexp(x, "j", w)` $\qquad$  `logsumexp_reduction(x, "j", w)` | [LogSumExp reduction](https://en.wikipedia.org/wiki/LogSumExp), indexed by `j` of the elements of `x`, with weight stored in `w` | $\log\left(\sum_j\exp(x_{ij})\right)$       |
 | `sumsoftmaxweight(x, "j", w)`  `sumsoftmaxweight_reduction(x, "j", w)` | "Sum of weighted Soft-Max" reduction indexed by `j` of the elements of `x` | $\left(\sum_j\exp(x_{ij})w_{ij}\right)/\left(\sum_j\exp(x_{ij})\right)$  |
 
@@ -387,14 +391,6 @@ When a single integer value `n` is encoded as a LazyTensor, its formula is simpl
 ## Duplicate items in expressions
 
 When the same `LazyTensor` variable, indexed the same way, is used several times in an expression, it will only appear once in the `args` and `vars` attributes, to avoid useless storage. Of course all its instances remain in the `formula` attribute.
-
-
-TODO:
-
-* add introduction and many many other things
-* ask if reformulation is correct in Generic squared Euclidean norms...
-
-
 
 
 

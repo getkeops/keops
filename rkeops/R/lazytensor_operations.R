@@ -3431,7 +3431,7 @@ max_argmax <- function(x, index) {
 }
 
 
-# max_argmax reduction -------------------------------------------------------------
+# max_argmax reduction ---------------------------------------------------------
 
 #' Max-ArgMax reduction.
 #' @description
