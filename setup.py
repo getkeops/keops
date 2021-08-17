@@ -8,7 +8,7 @@ from setuptools import setup
 
 here = path.abspath(path.dirname(__file__))
 
-with open(os.path.join(here, "pykeops", "version"), encoding="utf-8") as v:
+with open(os.path.join(here, "pykeops", "keops_version"), encoding="utf-8") as v:
     current_version = v.read().rstrip()
 
 # Get the long description from the README file
