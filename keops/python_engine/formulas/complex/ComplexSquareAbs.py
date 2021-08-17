@@ -20,7 +20,8 @@ class ComplexSquareAbs(Operation):
         super().__init__(f)
 
     def Op(self, out, table, inF):
-        forloop, i = c_for_loop(0, self.dim, 2, pragma_unroll=True)
+        f = self.children[0]
+        forloop, i = c_for_loop(0, f.dim, 2, pragma_unroll=True)
         return forloop(out[i / 2].assign(inF[i] * inF[i] + inF[i + 1] * inF[i + 1]))
 
     def DiffT(self, v, gradin):

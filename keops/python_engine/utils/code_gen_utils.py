@@ -405,8 +405,8 @@ def ComplexVectApply(fun, out, *args):
     dimloop = max(dims)
     if not set(dims) in ({dimloop}, {2, dimloop}):
         raise ValueError("incompatible dimensions in ComplexVectApply")
-    incr_out = 2 if out.dim == dimloop else 0
-    incr_args = list((2 if dim == dimloop else 0) for dim in dims[1:])
+    incr_out = 1 if out.dim == dimloop else 0
+    incr_args = list((1 if dim == dimloop else 0) for dim in dims[1:])
 
     forloop, k = c_for_loop(0, dimloop, 2, pragma_unroll=True)
 
