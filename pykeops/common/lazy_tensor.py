@@ -2435,15 +2435,13 @@ class ComplexGenericLazyTensor(GenericLazyTensor):
         elif not is_complex_lazytensor(other):
             return self.mulop(other.real2complex())
         else:
-            return self.binary(other, "ComplexMult", **kwargs, is_complex=True)
+            return self.binary(other, "ComplexMult", **kwargs, is_complex=True, dimcheck=None)
 
     def addop(self, other, **kwargs):
         if not is_complex_lazytensor(other):
             return self.addop(other.real2complex())
-        elif self._shape[-1] == other._shape[-1]:
-            return self.binary(other, "ComplexAdd", **kwargs, is_complex=True)
         else:
-            raise ValueError("incompatible shapes for addition.")
+            return self.binary(other, "ComplexAdd", **kwargs, is_complex=True, dimcheck=None)
 
     def subop(self, other, **kwargs):
         if not is_complex_lazytensor(other):
@@ -2454,10 +2452,8 @@ class ComplexGenericLazyTensor(GenericLazyTensor):
     def divop(self, other, **kwargs):
         if not is_complex_lazytensor(other):
             return self.divop(other.real2complex())
-        elif self._shape[-1] == other._shape[-1]:
-            return self.binary(other, "ComplexDivide", **kwargs, is_complex=True)
         else:
-            raise ValueError("incompatible shapes for division.")
+            return self.binary(other, "ComplexDivide", **kwargs, is_complex=True, dimcheck=None)
 
     def real2complex(self):
         raise ValueError("real2complex cannot be applied to a complex LazyTensor.")
