@@ -2457,7 +2457,7 @@ class ComplexGenericLazyTensor(GenericLazyTensor):
         if not is_complex_lazytensor(other):
             return self.addop(other.real2complex())
         elif self._shape[-1] == other._shape[-1]:
-            return self.binary(other, "Add", **kwargs, is_complex=True)
+            return self.binary(other, "ComplexAdd", **kwargs, is_complex=True)
         else:
             raise ValueError("incompatible shapes for addition.")
 
