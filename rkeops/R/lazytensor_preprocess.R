@@ -769,15 +769,16 @@ is.ComplexLazyTensor <- function(x){
 }
 
 
-#' is.LazyScalar?
+#' is.LazyParameter?
 #' @description
 #' Checks whether if the given input is a `LazyTensor` encoding
 #' a single scalar value. That is, if the input is a fixed parameter
 #' `LazyTensor` of dimension 1.
-#' @details If `x` is a fixed parameter `LazyTensor` with dimension 1,
-#' `is.LazyScalar(x)` returns TRUE, else, returns FALSE.
+#' @details If `x` is a fixed scalar parameter `LazyTensor`,
+#' `is.LazyParameter(x)` returns TRUE, else, returns FALSE.
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A `LazyTensor` object that we want to know if it is a `LazyScalar`.
+#' @param x A `LazyTensor` object that we want to know if it is a
+#' `LazyParameter`.
 #' @return A boolean, TRUE or FALSE.
 #' @examples
 #' \dontrun{
@@ -793,14 +794,14 @@ is.ComplexLazyTensor <- function(x){
 #' v_LT <- LazyTensor(v)
 #' x_i <- LazyTensor(x, index = 'i')
 #' 
-#' # call is.LazyScalar
-#' is.LazyScalar(scal_LT) # returns TRUE
-#' is.LazyScalar(cplx_LT) # returns FALSE
-#' is.LazyScalar(v_LT) # returns FALSE
-#' is.LazyScalar(x_i) # returns FALSE
+#' # call is.LazyParameter
+#' is.LazyParameter(scal_LT) # returns TRUE
+#' is.LazyParameter(cplx_LT) # returns FALSE
+#' is.LazyParameter(v_LT) # returns FALSE
+#' is.LazyParameter(x_i) # returns FALSE
 #' }
 #' @export
-is.LazyScalar <- function(x) {
+is.LazyParameter <- function(x) {
   if(!is.LazyTensor(x)) {
     stop("`x` input must be a LazyTensor.")
   }
@@ -813,17 +814,17 @@ is.LazyScalar <- function(x) {
   return((length(x$args) == 1) && any(grep(".*=Pm\\(1\\)", x$args)))
 }
 
-#' is.ComplexLazyScalar?
+#' is.ComplexLazyParameter?
 #' @description
 #' Checks whether if the given input is a `ComplexLazyTensor` encoding
 #' a single complex value. That is, if the input is a fixed parameter
 #' `ComplexLazyTensor` of dimension 1.
 #' @details If `x` is a fixed parameter `ComplexLazyTensor` encoding a
-#' single complex value, `is.ComplexLazyScalar(x)`
+#' single complex value, `is.ComplexLazyParameter(x)`
 #' returns TRUE, else, returns FALSE.
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `LazyTensor` object that we want to know if
-#' it is a `ComplexLazyScalar`.
+#' it is a `ComplexLazyParameter`.
 #' @return A boolean, TRUE or FALSE.
 #' @examples
 #' \dontrun{
@@ -839,14 +840,14 @@ is.LazyScalar <- function(x) {
 #' v_LT <- LazyTensor(v)
 #' z_i <- LazyTensor(z, index = 'i')
 #' 
-#' # call is.ComplexLazyScalar
-#' is.ComplexLazyScalar(scal_LT) # returns FALSE
-#' is.ComplexLazyScalar(cplx_LT) # returns TRUE
-#' is.ComplexLazyScalar(v_LT) # returns FALSE
-#' is.ComplexLazyScalar(x_i) # returns FALSE
+#' # call is.ComplexLazyParameter
+#' is.ComplexLazyParameter(scal_LT) # returns FALSE
+#' is.ComplexLazyParameter(cplx_LT) # returns TRUE
+#' is.ComplexLazyParameter(v_LT) # returns FALSE
+#' is.ComplexLazyParameter(x_i) # returns FALSE
 #' }
 #' @export
-is.ComplexLazyScalar <- function(x) {
+is.ComplexLazyParameter <- function(x) {
   if(!is.LazyTensor(x)) {
     stop("`x` input must be a LazyTensor or a ComplexLazyTensor.")
   }
