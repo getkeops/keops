@@ -22,6 +22,12 @@ knitr::opts_chunk$set(
 )
 ```
 
+```{r library, message=FALSE}
+#library(rkeops)
+devtools::load_all("..")
+```
+
+
 ## Lazy evaluation
 
 Lazy evaluation allows to write intermediate computations as symbolic operations that are not directly evaluated. The real evaluation is only made on final computation.
@@ -72,39 +78,30 @@ You can see that the code is very "R and math friendly". All the available opera
 
 To encode symbolically a matrix, a vector, or a single value as a `LazyTensor`, you can use the function `LazyTensor()`. Run `?LazyTensor` to display the complete documentation.
 
+**Note:** In general, the term "`LazyTensor`" can denote both a simple `LazyTensor` or a combination of `LazyTensor`s; same for "`ComplexLazyTensor`".
 
 ### ComplexLazyTensor
 
 The `LazyTensor` function also allows to encode complex mathematical objects. These new objects are called `ComplexLazyTensor`s, but note that these are also `LazyTensor`s, however, they are not encoded quite the same way: the real and complex parts are dissociated and stored in two contiguous columns. Below is a simple example of what complex objects becomes once encoded as `ComplexLazyTensor`s:
 
-```{r cplx_example, eval=FALSE}
+```{r cplx_example}
 # Arbitrary complex R matrix
 z <- matrix(2 + 1i^(-6:-1), nrow = 2, ncol = 2)
-# > z
-#      [,1] [,2]
-# [1,] 1+0i 3+0i
-# [2,] 2-1i 2+1i
+z
 
 # Encode as a `ComplexLazyTensor`, indexed by 'i'
 z_i <- LazyTensor(z, index = 'i', is_complex = TRUE)
-# > z_i$vars
-# [[1]]
-#       [,1] [,2] [,3] [,4]
-# [1,]    1    0    3    0
-# [2,]    2   -1    2    1
+z_i$vars
 
 
 # Same idea with a vector of complex
 v_z <- c(4 + 5i, 2 + 3i, 7 + 1i)
-# > v_z
-# [1] 4+5i 2+3i 7+1i
+v_z
 
 # Encode as a vector parameter `ComplexLazyTensor`
 Pm_v_z <- LazyTensor(v_z, is_complex = TRUE)
-# > Pm_v_z$vars
-# [[1]]
-#      [,1] [,2] [,3] [,4] [,5] [,6]
-# [1,]    4    5    2    3    7    1
+Pm_v_z$vars
+
 
 # Of course if you create a vector or a matrix of real values, and
 # encode it as a `ComplexLazyTensor`, a zero imaginary part is added to it:
@@ -113,11 +110,7 @@ Pm_v_z <- LazyTensor(v_z, is_complex = TRUE)
 v <- c(5, 4, 7, 9)
 
 Pm_v <- LazyTensor(v, is_complex = TRUE)
-# > Pm_v$vars
-# [[1]]
-#      [,1] [,2] [,3] [,4] [,5] [,6] [,7] [,8]
-# [1,]    5    0    4    0    7    0    9    0
-
+Pm_v$vars
 ```
 
 
@@ -131,7 +124,7 @@ Please refer to the help page of each function for type compatibility, dimension
 
 `LazyTensor`s contain a `dimres` attribute, which is an integer corresponding to the inner dimension of the LazyTensor. It is used when creating new `LazyTensor`s that result from operations to keep track of the dimension, and this enables you to check dimension compatibility when dealing with large operations.
 
-```{r dimres, eval=FALSE}
+```{r dimres}
 N <- 100
 # arbitrary R matrices representing 100 data points in R^3
 w <- matrix(runif(N * 3), nrow = N, ncol = 3)
@@ -212,7 +205,7 @@ Here, `x` and `y` are `LazyTensor`s, and the result as well.
 
 ### Operations involving complex numbers
 
-Here, `z` is a `ComplexLazyTensor`, and `x` is a `LazyTensor`.
+Here, `z` is a `ComplexLazyTensor`, and `x` is a `LazyTensor`. The result is a `LazyTensor` or a `ComplexLazyTensor`, depending on the operation.
 
 | operation         | meaning                                                                        |
 |:------------------|:-------------------------------------------------------------------------------|
@@ -242,8 +235,8 @@ Here, `x`, `y` and `s` are `LazyTensor`s, and the result as well.
 
 Generic squared Euclidean norms support scalar weights, and diagonal or full (symmetric) weight matrices. If $x$ is a vector of size $n$, depending on the size of $s$, `weightedsqnorm(x, s)` may refer to:
 
-- a weighted L2 norm $s_0\cdot\displaystyle\sum_{i = 0}^{n - 1} x_i^2$  if $s$ is a vector of size $1$.
-- a separable norm $\displaystyle\sum_{i = 0}^{n - 1} s_i\cdot x_i^2$  if $s$ is a vector of size $n$.
+- a weighted L2 norm $s_0\displaystyle\sum_{i = 0}^{n - 1} x_i^2$  if $s$ is a vector of size $1$.
+- a separable norm $\displaystyle\sum_{i = 0}^{n - 1} s_i x_i^2$  if $s$ is a vector of size $n$.
 - a full anisotropic norm $\displaystyle\sum_{i,j\ =\ 0}^{n - 1} s_{in + j} x_i x_j$  if $s$ is a vector of size $n^2$ such that $s_{in+j} =  s_{jn+i}$ (i.e. stores a symmetric matrix).
 
 
@@ -290,25 +283,31 @@ Here, `x` and `gradin` are `LazyTensor`s.
 
 ### Reductions
 
-Here, `x` is a `LazyTensor`. $M$ is its outer dimension and $D$ its inner dimension, and $i \in \{1, \ldots ,M\}$,
-$j \in \{1, \ldots ,D\}$.
-
+Here, `f` is a combination of `LazyTensor`s, indexed by `i` and `j`, and `w` is a `LazyTensor`.
 
 The operations `sum()`, `min()`, `argmin()`, `max()` and `argmax()` can be called with `NA` index (default), in which case no reduction is done and the result is a `LazyTensor`. Otherwise, the result is not a `LazyTensor`. 
 
 
 | operation                                                 |     meaning                                                |     mathematical expression                                  |
 |:----------------------------------------------------------|:-----------------------------------------------------------|:-------------------------------------------------------------|
-| `sum(x, "j")` $\qquad$ `sum_reduction(x, "j")`            | sum reduction indexed by `j` of the elements of `x`        | $\sum_j x_{ij}$                                              |
-| `min(x, "j")` $\qquad$ `min_reduction(x, "j")`            | min reduction indexed by `j` of the elements of `x`        | $\min_j x_{ij}$                                              |
-| `argmin(x, "j")` $\qquad$  `argmin_reduction(x, "j")`     | argmin reduction indexed by `j` of the elements of `x`     | $\text{argmin}_jx_{ij}$                                      |
-| `min_argmin(x, "j")`  $\qquad$ `min_argmin_reduction(x, "j")` | min-argmin reduction indexed by `j` of the elements of `x` | $\left(\min_j x_{ij} ,\text{argmin}_j x_{ij}\right)$     |
-| `max(x, "j")`  $\qquad$ `max_reduction(x, "j")`           | max reduction indexed by `j` of the elements of `x`        | $\min_j x_{ij}$                                              |
-| `argmax(x, "j")` $\qquad$  `argmax_reduction(x, "j")`     | argmax reduction indexed by `j` of the elements of `x`     | $\text{argmin}_jx_{ij}$                                      |
-| `max_argmax(x, "j")` $\qquad$  `max_argmax_reduction(x, "j")`| max-argmax reduction indexed by `j` of the elements of `x` | $\left(\max_j x_{ij} ,\text{argmax}_j x_{ij}\right)$      |
-|`x %*% y`| sum reduction of the product `x` $\times$ `y` indexed by `j` | $\sum_j x_{ij} y_{kj}, ~ k \in \{1, ..., M\}$ |
-| `logsumexp(x, "j", w)` $\qquad$  `logsumexp_reduction(x, "j", w)` | [LogSumExp reduction](https://en.wikipedia.org/wiki/LogSumExp), indexed by `j` of the elements of `x`, with weight stored in `w` | $\log\left(\sum_j\exp(x_{ij})\right)$       |
-| `sumsoftmaxweight(x, "j", w)`  `sumsoftmaxweight_reduction(x, "j", w)` | "Sum of weighted Soft-Max" reduction indexed by `j` of the elements of `x` | $\left(\sum_j\exp(x_{ij})w_{ij}\right)/\left(\sum_j\exp(x_{ij})\right)$  |
+| `sum(f, "j")` <br> `sum_reduction(f, "j")`            | sum reduction indexed by `j` of the elements of `f`        | $\sum_j f_{ij}$                                              |
+| `min(f, "j")` <br> `min_reduction(f, "j")`            | min reduction indexed by `j` of the elements of `f`        | $\min_j f_{ij}$                                              |
+| `argmin(f, "j")` <br> `argmin_reduction(f, "j")`     | argmin reduction indexed by `j` of the elements of `f`     | $\text{argmin}_j f_{ij}$                                      |
+| `min_argmin(f, "j")` <br> `min_argmin_reduction(f, "j")` | min-argmin reduction indexed by `j` of the elements of `f` | $\left(\min_j f_{ij} ,\text{argmin}_j f_{ij}\right)$     |
+| `max(f, "j")`  <br> `max_reduction(f, "j")`           | max reduction indexed by `j` of the elements of `f`        | $\min_j f_{ij}$                                              |
+| `argmax(f, "j")` <br>  `argmax_reduction(f, "j")`     | argmax reduction indexed by `j` of the elements of `f`     | $\text{argmin}_j f_{ij}$                                      |
+| `max_argmax(f, "j")` <br>  `max_argmax_reduction(f, "j")`| max-argmax reduction indexed by `j` of the elements of `f` | $\left(\max_j f_{ij} ,\text{argmax}_j f_{ij}\right)$      |
+| `logsumexp(f, "j", w)` <br>  `logsumexp_reduction(f, "j", w)` | [LogSumExp reduction](https://en.wikipedia.org/wiki/LogSumExp), indexed by `j` of the elements of `f`, with weight stored in `w` | $\log\left(\sum_j\exp(f_{ij})\right)$       |
+| `sumsoftmaxweight(f, "j", w)` <br> `sumsoftmaxweight_reduction(f, "j", w)` | "Sum of weighted Soft-Max" reduction indexed by `j` of the elements of `f` | $\left(\sum_j\exp(f_{ij})w_{ij}\right)/\left(\sum_j\exp(f_{ij})\right)$  |
+
+
+#### Special reduction
+
+Here, `x` is a `LazyTensor` of inner dimension $D$ and outer dimension $M$, indexed by $i \in \{1, \ldots ,M\}$, and `y` is a `LazyTensor` of inner dimension $D$ and outer dimension $N$, indexed by $j \in \{1, \ldots ,N\}$.
+
+| operation | meaning                                                                                             | mathematical expression                         |
+|:----------|:----------------------------------------------------------------------------------------------------|:------------------------------------------------|
+|`x %*% y`  | sum reduction of the product `x` * `y` indexed by `j`.<br> Same as `sum_reduction(x * y, "j")` | $\sum_j x_{ik} y_{jk}, ~ k \in \{1, \ldots, N\}$ |
 
 
 ## Advices and random notes
@@ -353,7 +352,7 @@ LT_s <- Pm(s)
 
 You can check the "type" of your "object" and/or what kind of values it encodes.
 
-```{r type_checking, eval=FALSE}
+```{r type_checking}
 D <- 3
 M <- 100
 x <- matrix(runif(M * D), M, D)   # matrix of real values
@@ -370,16 +369,16 @@ cplx_LT <- LazyTensor(cplx)
 
 # check types
 is.LazyTensor(x_i)
-# [1] TRUE
+
 is.ComplexLazyTensor(z_i)
-# [1] TRUE
+
 is.LazyVector(p)
-# [1] TRUE
-is.LazyScalar(scal_LT)
-# [1] TRUE
-is.ComplexLazyScalar(cplx_LT)
-# [1] TRUE
+
+is.LazyParameter(scal_LT)
+
+is.ComplexLazyParameter(cplx_LT)
 ```
+
 Note that above are rudimentary examples, but this can become very handy when dealing with more complex expressions.
 
 
