@@ -258,8 +258,8 @@
         y <- LazyTensor(y)
     }
     
-    # multiplication between a ComplexLazyTensor and a LazyScalar
-    if(is.LazyScalar(x) || is.LazyScalar(y)) {
+    # multiplication between a ComplexLazyTensor and a LazyParameter
+    if(is.LazyParameter(x) || is.LazyParameter(y)) {
         res <- binaryop.LazyTensor(x, y, "ComplexRealScal")
     }
     
@@ -272,8 +272,8 @@
         res <- real2complex(x) * y
     }
     
-    # multiplication between 2 'ComplexLazyScalars'
-    else if(is.ComplexLazyScalar(x) || is.ComplexLazyScalar(y)) {
+    # multiplication between 2 'ComplexLazyParameters'
+    else if(is.ComplexLazyParameter(x) || is.ComplexLazyParameter(y)) {
         res <- binaryop.LazyTensor(x, y, "ComplexScal", dim_check_type = NA)
     }
     
@@ -2323,7 +2323,7 @@ elem <- function(x, m) {
 #' }
 #' @export
 elemT <- function(x, m, n) {
-    if(!is.LazyScalar(x) && !is.ComplexLazyScalar(x)) {
+    if(!is.LazyParameter(x) && !is.ComplexLazyParameter(x)) {
         stop(paste("`x` input argument should be a `LazyTensor`",
                    " encoding a single value.", sep = ""))
     }
@@ -2620,7 +2620,7 @@ one_hot <- function(x, D) {
                    sep = ""))
     }
     
-    if(x$dimres != 1 || !is.LazyScalar(x)) {
+    if(x$dimres != 1 || !is.LazyParameter(x)) {
         stop("One-hot encoding is only supported for scalar formulas.")
     }
     

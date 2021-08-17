@@ -659,7 +659,7 @@ test_that("is.ComplexLazyTensor", {
 })
 
 
-test_that("is.LazyScalar", {
+test_that("is.LazyParamater", {
   # basic example
   scal <- 3.14
   cplx <- 2 + 3i
@@ -672,24 +672,24 @@ test_that("is.LazyScalar", {
   x_i <- LazyTensor(x, index = 'i')
 
   # check results
-  expect_true(is.LazyScalar(scal_LT))
-  expect_false(is.LazyScalar(cplx_LT))
-  expect_false(is.LazyScalar(v_LT))
-  expect_false(is.LazyScalar(x_i))
+  expect_true(is.LazyParamater(scal_LT))
+  expect_false(is.LazyParamater(cplx_LT))
+  expect_false(is.LazyParamater(v_LT))
+  expect_false(is.LazyParamater(x_i))
   
   # errors
-  expect_error(is.LazyScalar(x), 
+  expect_error(is.LazyParamater(x), 
                "`x` input must be a LazyTensor.",
                fixed = TRUE
                )
-  expect_error(is.LazyScalar(7), 
+  expect_error(is.LazyParamater(7), 
                "`x` input must be a LazyTensor.",
                fixed = TRUE
                )
 })
 
 
-test_that("is.ComplexLazyScalar", {
+test_that("is.ComplexLazyParamater", {
   # basic example
   scal <- 3.14
   cplx <- 2 + 3i
@@ -704,17 +704,17 @@ test_that("is.ComplexLazyScalar", {
   x_i <- LazyTensor(x, index = 'i')
   
   # check results
-  expect_false(is.ComplexLazyScalar(scal_LT))
-  expect_true(is.ComplexLazyScalar(cplx_LT))
-  expect_false(is.ComplexLazyScalar(v_LT))
-  expect_false(is.ComplexLazyScalar(x_i))
+  expect_false(is.ComplexLazyParamater(scal_LT))
+  expect_true(is.ComplexLazyParamater(cplx_LT))
+  expect_false(is.ComplexLazyParamater(v_LT))
+  expect_false(is.ComplexLazyParamater(x_i))
   
   # errors
-  expect_error(is.ComplexLazyScalar(x), 
+  expect_error(is.ComplexLazyParamater(x), 
                "`x` input must be a LazyTensor or a ComplexLazyTensor.",
                fixed = TRUE
                )
-  expect_error(is.ComplexLazyScalar(7), 
+  expect_error(is.ComplexLazyParamater(7), 
                "`x` input must be a LazyTensor or a ComplexLazyTensor.",
                fixed = TRUE
   )
