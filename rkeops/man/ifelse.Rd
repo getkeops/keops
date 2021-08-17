@@ -7,13 +7,13 @@
 ifelse(x, a, b)
 }
 \arguments{
-\item{x}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric values,
+\item{x}{A \code{LazyTensor}, a vector of numeric values,
 or a scalar value.}
 
-\item{a}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric values,
+\item{a}{A \code{LazyTensor}, a vector of numeric values,
 or a scalar value.}
 
-\item{b}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric values,
+\item{b}{A \code{LazyTensor}, a vector of numeric values,
 or a scalar value.}
 }
 \value{

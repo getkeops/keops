@@ -27,6 +27,12 @@ indices over the \strong{i} indices;
 \item if \strong{index = "j"}, return the maximal values of \strong{x} and its
 indices over the \strong{j} indices.
 }
+
+\strong{Note}
+
+Run \code{browseVignettes("rkeops")} to access the vignettes and find details
+about the function in "RKeOps LazyTensor",
+at section #Reductions.
 }
 \examples{
 \dontrun{

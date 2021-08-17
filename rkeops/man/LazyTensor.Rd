@@ -29,19 +29,21 @@ The \code{LazyTensor()} function builds a \code{LazyTensor}, which is a
 list containing the following elements:
 \itemize{
 \item{\strong{formula}:}{ A string defining the mathematical operation to
-be computed by the KeOps routine}
+be computed by the KeOps routine - each variable is encoded with the
+pointer address of its argument, suffixed by 'i', 'j', or 'NA', to
+give it a unique identifier;}
 \item{\strong{args}:}{ A vector of arguments containing a unique identifier
-associated to the type of the argument :
+associated to the type of the argument:
 \itemize{
 \item{\strong{Vi(n)}:}{ vector indexed by \strong{i} of dim \strong{n}}
 \item{\strong{Vj(n)}:}{ vector indexed by \strong{j} of dim \strong{n}}
 \item{\strong{Pm(n)}:}{ fixed parameter of dim \strong{n}}
 }}
 \item{\strong{vars}:}{ A list of R matrices which will be the inputs of the
-KeOps routine}
+KeOps routine;}
 \item{\strong{dimres}:}{ An integer corresponding to the inner dimension of
-the LazyTensor. \strong{dimres} is used when creating new
-LazyTensors that result from operations,
+the \code{LazyTensor}. \strong{dimres} is used when creating new
+\code{LazyTensor}s that result from operations,
 to keep track of the dimension.}
 }
 
@@ -51,6 +53,12 @@ Setting the argument \code{is_complex} to \code{TRUE} will build a \code{Complex
 which is also a \code{LazyTensor}. Run \code{browseVignettes("rkeops")} and see
 "RKeOps LazyTensor" vignette for further details on how \code{ComplexLazyTensor}s
 are build.
+
+\strong{Note}
+
+If \code{x} is an integer, \code{LazyTensor(x)} builds a \code{LazyTensor} whose
+formula is simply \code{IntCst(x)} and contains all the necessary information;
+\code{args} and \code{vars} remains empty, to avoid useless storage.
 
 \strong{Alternatives}
 

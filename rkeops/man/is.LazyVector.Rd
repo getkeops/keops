@@ -7,7 +7,7 @@
 is.LazyVector(x)
 }
 \arguments{
-\item{x}{An object we want to know if it is a \code{LazyVector}.}
+\item{x}{A \code{LazyTensor} object that we want to know if it is a \code{LazyVector}.}
 }
 \value{
 A boolean, TRUE or FALSE.

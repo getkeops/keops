@@ -17,7 +17,7 @@ or a scalar value.}
 An object of class "LazyTensor".
 }
 \description{
-Symbolic binary operation for vector normalization.
+Symbolic binary operation for squared Euclidean distance.
 }
 \details{
 \code{sqdist(x)} returns a \code{LazyTensor} that encodes, symbolically,

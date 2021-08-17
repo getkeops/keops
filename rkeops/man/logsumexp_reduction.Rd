@@ -30,8 +30,6 @@ over the \strong{i} indices (rows);}
 \item{if \strong{index = j},}{ return the Log-Sum-Exp reduction of \strong{x}
 over the \strong{j} indices (columns).}
 }
-
-
 }
 \examples{
 \dontrun{

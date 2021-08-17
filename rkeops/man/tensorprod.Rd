@@ -15,7 +15,7 @@ tensorprod(x, y)
 A \code{LazyTensor} or a \code{ComplexLazyTensor}.
 }
 \description{
-Tensor product of vectors - a binary operation.
+Tensor product of \code{LazyTensor}s - a binary operation.
 }
 \details{
 If \code{x} and \code{y} are \code{LazyTensor}s encoding matrix,

@@ -26,8 +26,10 @@ Symbolic binary operation for weighted squared norm of a LazyTensor.
 \code{weightedsqnorm(x, s)} returns a \code{LazyTensor} that encodes, symbolically,
 the weighted squared norm of a vector \code{x} with weights stored in the LazyTensor
 \code{s}.
+
 Run \code{browseVignettes("rkeops")} to access the vignettes and find details
-about the function in "RKeOps LazyTensor".
+about the function in "RKeOps LazyTensor",
+at section #Simple vector operations.
 }
 \examples{
 \dontrun{

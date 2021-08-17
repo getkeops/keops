@@ -31,7 +31,11 @@ over the \strong{i} indices (rows);}
 over the \strong{j} indices (columns).}
 }
 
+\strong{Note}
 
+Run \code{browseVignettes("rkeops")} to access the vignettes and find details
+about the function in "RKeOps LazyTensor",
+at section #Reductions.
 }
 \examples{
 \dontrun{

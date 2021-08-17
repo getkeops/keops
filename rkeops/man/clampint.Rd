@@ -7,7 +7,7 @@
 clampint(x, y, z)
 }
 \arguments{
-\item{x}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric values,
+\item{x}{A \code{LazyTensor}, a vector of numeric values,
 or a scalar value.}
 
 \item{y}{An \code{integer}.}
@@ -15,7 +15,7 @@ or a scalar value.}
 \item{z}{An \code{integer}.}
 }
 \value{
-An object of class "LazyTensor".
+An object of class \code{LazyTensor}.
 }
 \description{
 Symbolic ternary operation for element-wise clampint function.

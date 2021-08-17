@@ -32,6 +32,12 @@ indexes.
 \item if \strong{index = NA} (default), return a new \code{LazyTensor} object
 representing the argmin  of the values of the vector.
 }
+
+\strong{Note}
+
+Run \code{browseVignettes("rkeops")} to access the vignettes and find details
+about the function in "RKeOps LazyTensor",
+at section #Reductions.
 }
 \examples{
 \dontrun{

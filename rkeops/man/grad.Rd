@@ -10,7 +10,8 @@ grad(x, gradin, opstr, var, index)
 \item{x}{A \code{LazyTensor} or a \code{ComplexLazyTensor}.}
 
 \item{gradin}{A \code{LazyTensor}, a \code{ComplexLazyTensor} encoding a matrix of ones
-with an inner dimension equal to 1 and with number of rows equal to
+with an inner dimension equal to 1 and indexed by the
+same index and with number of rows equal to
 the number of rows of the first \code{x} variable (in \code{x$vars}).}
 
 \item{opstr}{A \code{string} formula corresponding to a reduction
@@ -21,7 +22,9 @@ variable/parameter (given by name or by position index starting at 0) the
 gradient of the formula should be computed.}
 
 \item{index}{A \code{character} that should be either \strong{i} or \strong{j} to specify
-whether if the reduction is indexed by \strong{i} (rows), or \strong{j} (columns).}
+whether if the reduction is indexed by \strong{i} (rows), or \strong{j} (columns).
+When the first \code{x} variable is indexed by \strong{i} (resp. \strong{j}), index cannot
+be \strong{i} (resp. \strong{j}).}
 }
 \value{
 A \code{matrix}.
@@ -50,7 +53,7 @@ eta <- matrix(runif(nx*1), nrow=nx, ncol=1)   # matrix 100 x 1
 x_i <- LazyTensor(x, index = 'i')  # LazyTensor from matrix x, indexed by 'i'
 y_j <- LazyTensor(y, index = 'j')  # LazyTensor from matrix y, indexed by 'j'
 eta_i <- LazyTensor(eta, index = 'i')   # LazyTensor from matrix eta, 
-                                        # indexed by 'i'
+                                        # indexed by 'i' (like x_i)
 
 # gradient with the formula from position
 grad_xy <- grad(sqnorm2(x_i-y_j), eta_i, "Sum", var = y_j$formula, "j")  

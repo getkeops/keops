@@ -17,7 +17,8 @@ Symbolic unary operation for element-wise "real 2 complex".
 }
 \details{
 \code{real2complex(x)} returns a \code{ComplexLazyTensor} that encodes,
-symbolically, the element-wise "real 2 complex" of \code{x}.
+symbolically, the element-wise "real 2 complex" of \code{x} (i.e. with
+additional zero imaginary part: \code{x + 0*i}).
 }
 \examples{
 \dontrun{

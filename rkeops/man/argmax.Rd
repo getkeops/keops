@@ -33,6 +33,12 @@ representing the argmax of the values of \strong{x};}
 \item{if \strong{index = j},}{ return the argmax reduction of \strong{x} over the
 \strong{i} indices (columns).}
 }
+
+\strong{Note}
+
+Run \code{browseVignettes("rkeops")} to access the vignettes and find details
+about the function in "RKeOps LazyTensor",
+at section #Reductions.
 }
 \examples{
 \dontrun{

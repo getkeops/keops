@@ -33,8 +33,15 @@ indexes.
 \item if \strong{index = NA} (default), return a new \code{LazyTensor} object
 representing the max of the values of the vector.
 }
+
+\strong{Notes}
+
 If \code{x} is not a \code{LazyTensor} it computes R default "max" function with
 other specific arguments (see R default \code{max()} function).
+
+Run \code{browseVignettes("rkeops")} to access the vignettes and find details
+about the function in "RKeOps LazyTensor",
+at section #Reductions.
 }
 \examples{
 \dontrun{

@@ -7,7 +7,7 @@
 is.LazyMatrix(x)
 }
 \arguments{
-\item{x}{An object we want to know if it is a \code{LazyMatrix}.}
+\item{x}{A \code{LazyTensor} object that we want to know if it is a \code{LazyMatrix}.}
 }
 \value{
 A boolean, TRUE or FALSE.

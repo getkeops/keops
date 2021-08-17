@@ -17,7 +17,7 @@ values, or a scalar value.}
 A matrix.
 }
 \description{
-Symbolic binary operation for element-wise matrix multiplication operator.
+Sum reduction of the multiplication operator "*".
 }
 \details{
 If \code{x} or \code{y} is a \code{LazyTensor}, \code{x \%*\% y} returns the sum reduction

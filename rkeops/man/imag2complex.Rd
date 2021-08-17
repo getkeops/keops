@@ -17,7 +17,8 @@ Symbolic unary operation for element-wise "imaginary 2 complex".
 }
 \details{
 \code{imag2complex(x)} returns a \code{ComplexLazyTensor} that encodes,
-symbolically, the element-wise "imaginary 2 complex" of \code{x}.
+symbolically, the element-wise "imaginary 2 complex" of \code{x} (i.e. with
+additional zero real part: \code{0 + x*i}).
 }
 \examples{
 \dontrun{

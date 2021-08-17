@@ -27,6 +27,12 @@ of \strong{x} over the "i" indexes.}
 \item{ if \strong{index = "j"}, return the minimal values and its indices
 of \strong{x} over the "j" indexes.}
 }
+
+\strong{Note}
+
+Run \code{browseVignettes("rkeops")} to access the vignettes and find details
+about the function in "RKeOps LazyTensor",
+at section #Reductions.
 }
 \examples{
 \dontrun{
