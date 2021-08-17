@@ -7,7 +7,6 @@ from .ComplexImag import ComplexImag
 from .ComplexMult import ComplexMult
 from .ComplexReal import ComplexReal
 from .ComplexRealScal import ComplexRealScal
-from .ComplexScal import ComplexScal
 from .ComplexSquareAbs import ComplexSquareAbs
 from .ComplexSum import ComplexSum
 from .ComplexSumT import ComplexSumT

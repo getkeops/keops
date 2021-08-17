@@ -1,4 +1,4 @@
-from keops.python_engine.formulas.Operation import Operation
+from keops.python_engine.formulas.VectorizedComplexScalarOp import VectorizedComplexScalarOp
 from keops.python_engine.utils.code_gen_utils import (
     c_for_loop,
     new_c_varname,
@@ -20,23 +20,16 @@ from keops.python_engine.formulas.maths.Sin import Sin
 # /////////////////////////////////////////////////////////////////////////
 
 
-class ComplexExp(Operation):
+class ComplexExp(VectorizedComplexScalarOp):
 
     string_id = "ComplexExp"
 
-    def __init__(self, f):
-        if f.dim % 2 != 0:
-            raise ValueError("Dimension of F must be even")
-        self.dim = f.dim
-        super().__init__(f)
-
-    def Op(self, out, table, inF):
-        forloop, i = c_for_loop(0, out.dim, 2, pragma_unroll=True)
+    def ScalarOp(self, out, inF):
         r = c_variable(out.dtype, new_c_varname("r"))
-        body = r.declare_assign(keops_exp(inF[i]))
-        body += out[i].assign(r * keops_cos(inF[i + 1]))
-        body += out[i + 1].assign(r * keops_sin(inF[i + 1]))
-        return forloop(body)
+        string = r.declare_assign(keops_exp(inF[0]))
+        string += out[0].assign(r * keops_cos(inF[1]))
+        string += out[1].assign(r * keops_sin(inF[1]))
+        return string
 
     # building equivalent formula for autodiff
     def DiffT(self, v, gradin):
