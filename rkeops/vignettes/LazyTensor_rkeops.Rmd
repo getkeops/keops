@@ -384,7 +384,7 @@ Note that above are rudimentary examples, but this can become very handy when de
 
 ## The `IntCst` type
 
-When a single integer value `n` is encoded as a LazyTensor, its formula is simply `"IntCst(n)"`, which contains all the necessary informations, and the `args` and `vars` attributes remain empty, to avoid useless storage.
+When a single integer value `n` is encoded as a LazyTensor, its formula is simply `"IntCst(n)"`, which contains all the necessary information, and the `args` and `vars` attributes remain empty, to avoid useless storage.
 
 
 ## Duplicate items in expressions

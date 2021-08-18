@@ -136,9 +136,9 @@ LazyTensor <- function(x, index = NA, is_complex = FALSE) {
   if(is.matrix(x)) {
     d <- ncol(x)
     if(index == "i")
-      cat = "Vi"
+      cat <- "Vi"
     else
-      cat = "Vj"
+      cat <- "Vj"
   }
   # 2) else we assume x is a numeric vector, treated as parameter,
   # then converted to matrix
@@ -187,10 +187,10 @@ LazyTensor <- function(x, index = NA, is_complex = FALSE) {
                       lapply(1:length(x),
                              function(ind) return(cbind(ReZ[ind],
                                                         ImZ[ind]
-                             )
+                                                        )
+                                                  )
                              )
                       )
-      )
       # Parameter LazyTensors have vector as vars (but apparently it
       # doesn't matter is we leave it as a matrix...)
       # Uncomment below if needed.
@@ -243,6 +243,7 @@ Vi <- function(x, is_complex = FALSE){
   return(res)
 }
 
+
 # Vj ---------------------------------------------------------------------------
 
 #' Wrapper LazyTensor indexed by "j".
@@ -269,6 +270,7 @@ Vj <- function(x, is_complex = FALSE){
   res <- LazyTensor(x, index = "j", is_complex = is_complex)
   return(res)
 }
+
 
 # Pm ---------------------------------------------------------------------------
 
@@ -1011,8 +1013,10 @@ get_inner_dim <- function(x) {
     x_inner_dim <- x$dimres
   }
   
-  if(is.ComplexLazyTensor(x))
+  if(is.ComplexLazyTensor(x)) {
+    # divide by 2 because of complex casting
     x_inner_dim <- (x_inner_dim / 2)
+  }
   
   return(x_inner_dim)
 }
