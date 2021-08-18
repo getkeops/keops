@@ -1,4 +1,4 @@
-import numpy as np
+#import numpy as np
 
 from keops.python_engine.formulas.Operation import Operation
 from keops.python_engine.utils.code_gen_utils import use_pragma_unroll
@@ -7,154 +7,126 @@ from keops.python_engine.utils.code_gen_utils import use_pragma_unroll
 ######  Tensor Dot Product     #####
 ####################################
 
+def prod(x):
+    # product of all elements in list of integers
+    res = 1
+    for item in x:
+        res *= item
+    return res
+     
+def select(x,ind):
+    # indexing of list via list of integers
+    return [x[i] for i in ind]
+     
+def cumprod_array(x):
+    # special cumulative product
+    if len(x) == 0:
+        return x
+    else:
+        def cumprod(x):
+            res = x.copy()
+            for i in range(1,len(x)):
+                res[i] *= res[i-1]
+            return res    
+        return cumprod(x[1:][::-1])[::-1] + [1]
+        
+def inverse_perm(perm):
+    # inverse a pemutation of 0 ... n-1
+    n = len(perm)
+    invperm = [None]*n
+    for i in range(n):
+        invperm[perm[i]] = i
+    return invperm
+
+def permutation(perm, arr):
+    """Permute column of an array"""
+    if perm is None:
+        return arr
+    else:
+        return select(arr, inverse_perm(perm))
+        
+    
 
 class TensorDot(Operation):
     string_id = "TensorDot"
 
     def __init__(self, fa, fb, dimsfa, dimsfb, contfa, contfb, permute=None):
-        # print(dimsfa, dimsfb, contfa, contfb, permute)
+        
+        dimsfa = list(dimsfa)
+        dimsfb = list(dimsfb)
+        contfa = list(contfa)
+        contfb = list(contfb)
+        
+        assert select(dimsfb,contfb)==select(dimsfa,contfa)
 
-        assert (dimsfb[contfb] == dimsfa[contfa]).all()
-        assert (fa.dim == dimsfa.prod())
-        assert (fb.dim == dimsfb.prod())
+        assert fa.dim == prod(dimsfa)
+        assert fb.dim == prod(dimsfb)
 
         super().__init__(fa, fb)
 
         self.dimfa = dimsfa
         self.dimfb = dimsfb
-        self.contdims = dimsfa[contfa]
+        self.contdims = select(dimsfa,contfa)
 
-        self.indices_keepdim_a = np.delete(np.arange(len(dimsfa)), contfa)
-        self.keepdims_a = np.delete(dimsfa, contfa)
-        self.contdims_a = dimsfa[contfa]
-        self.list_strides_dimsfa = self.cumprod_array(dimsfa)
+        self.indices_keepdim_a = list(set(range(len(dimsfa))) - set(contfa))
+        self.keepdims_a = list(set(dimsfa) - set(contfa))
+        self.contdims_a = select(dimsfa, contfa)
+        self.list_strides_dimsfa = cumprod_array(dimsfa)
 
-        self.indices_keepdim_b = np.delete(np.arange(len(dimsfb)), contfb)
-        self.keepdims_b = np.delete(dimsfb, contfb)
-        self.contdims_b = dimsfb[contfb]
-        self.list_strides_dimsfb = self.cumprod_array(dimsfb)
+        self.indices_keepdim_b = list(set(range(len(dimsfb))) - set(contfb))
+        self.keepdims_b = list(set(dimsfb) - set(contfb))
+        self.contdims_b = select(dimsfb, contfb)
+        self.list_strides_dimsfb = cumprod_array(dimsfb)
 
-        self.keepdims = np.concatenate((self.keepdims_a, self.keepdims_b))
-        self.list_strides_keepdim = self.cumprod_array(
-            self.permutation(permute, self.keepdims)
+        self.keepdims = self.keepdims_a + self.keepdims_b
+        self.list_strides_keepdim = cumprod_array(
+            permutation(permute, self.keepdims)
         )
 
         self.dim = fa.dim * fb.dim
         self.dim = (
-            int(self.dim / self.contdims.prod() ** 2) if len(contfa) else self.dim
+            int(self.dim / prod(self.contdims) ** 2) if len(contfa) else self.dim
         )
 
         if permute is None:
-            permute = np.arange(len(self.keepdims))
+            permute = list(range(len(self.keepdims)))
         else:
             assert (
-                    self.permutation(permute, permute) == np.arange(len(self.keepdims))
+                    self.permutation(permute, permute) == list(range(len(self.keepdims)))
             ).all()
 
         self.permute = permute
 
         # loop
-        self.loopdim = np.concatenate((self.keepdims, self.contdims_a))
-        self.dimloop = self.loopdim.prod()
+        self.loopdim = self.keepdims + self.contdims_a
+        self.dimloop = prod(self.loopdim)
         self.number_of_dimloop = len(dimsfa) + len(dimsfb) - len(contfa)
+        
+        self.ala = list(range(len(self.keepdims_a))) + list(range(len(self.keepdims), self.number_of_dimloop))
+        
+        self.ali = self.indices_keepdim_a + contfa
+        self.list_indices_a_intot = permutation(self.ali, self.ala)
 
-        self.ala = np.concatenate(
-            (
-                np.arange(0, len(self.keepdims_a)),
-                np.arange(len(self.keepdims), self.number_of_dimloop),
-            ),
-            axis=None,
-        ).copy()
-        self.ali = np.concatenate((self.indices_keepdim_a, contfa), axis=None)
-        self.list_indices_a_intot = self.permutation(self.ali, self.ala)
+        self.bla = list(range(len(self.keepdims_a), len(self.keepdims))) + list(range(len(self.keepdims), self.number_of_dimloop))
 
-        self.bla = np.concatenate((np.arange(len(self.keepdims_a), len(self.keepdims)),
-                                   np.arange(len(self.keepdims), self.number_of_dimloop),),
-                                  axis=None,
-                                  ).copy()
-        self.bli = np.concatenate((self.indices_keepdim_b, contfb), axis=None)
+        self.bli = self.indices_keepdim_b + contfb
         self.list_indices_b_intot = self.permutation(self.bli, self.bla)
 
         # Gradient
         self.dimfa_grad = self.permutation(permute, self.keepdims)
 
-        self.list_indices_keepdim_a_inout = np.arange(0, len(self.keepdims_a))
+        self.list_indices_keepdim_a_inout = list(range(0, len(self.keepdims_a)))
         self.reordered_contfa = self.permutation(contfb, contfa)
         self.reordered_keepdim_a = self.permutation(permute[self.list_indices_keepdim_a_inout], self.indices_keepdim_a)
-        self.moveaxis_a = np.concatenate((self.reordered_keepdim_a, self.reordered_contfa), axis=None)
+        self.moveaxis_a = self.reordered_keepdim_a + self.reordered_contfa
 
-        self.list_indices_keepdim_b_inout = np.arange(len(self.keepdims_a), len(self.keepdims))
+        self.list_indices_keepdim_b_inout = list(range(len(self.keepdims_a), len(self.keepdims)))
         self.reordered_contfb = self.permutation(contfa, contfb)
         self.reordered_keepdim_b = self.permutation(permute[self.list_indices_keepdim_b_inout], self.indices_keepdim_b)
-        self.moveaxis_b = np.concatenate((self.reordered_keepdim_b, self.reordered_contfb), axis=None)
+        self.moveaxis_b = self.reordered_keepdim_b + self.reordered_contfb
 
         self.contfa_grad = permute[self.list_indices_keepdim_b_inout]
         self.contfb_grad = permute[self.list_indices_keepdim_a_inout]
-
-    def looper(self, loopdim):
-        """Evil looping function!"""
-
-        inds = self.cartesian_product(*(np.arange(i) for i in loopdim))
-
-        list_indices_a = inds[:, self.list_indices_a_intot]
-        a_indices = (list_indices_a * self.list_strides_dimsfa).sum(axis=1)
-
-        list_indices_b = inds[:, self.list_indices_b_intot]
-        b_indices = (list_indices_b * self.list_strides_dimsfb).sum(axis=1)
-
-        list_indices_keepdim = self.permutation(
-            self.permute, inds[:, : len(self.keepdims)]
-        )
-        out_indices = (list_indices_keepdim * self.list_strides_keepdim).sum(axis=1)
-
-        return out_indices, a_indices, b_indices
-
-    @staticmethod
-    def cartesian_product(*arrays):
-        """From https://stackoverflow.com/questions/11144513/cartesian-product-of-x-and-y-array-points-into-single-array-of-2d-points"""
-        broadcastable = np.ix_(*arrays)
-        broadcasted = np.broadcast_arrays(*broadcastable)
-        rows, cols = np.prod(broadcasted[0].shape), len(broadcasted)
-        dtype = np.result_type(*arrays)
-
-        out = np.empty(rows * cols, dtype=dtype)
-        start, end = 0, rows
-        for a in broadcasted:
-            out[start:end] = a.reshape(-1)
-            start, end = end, end + rows
-        return out.reshape(cols, rows).T
-
-    @staticmethod
-    def cumprod_array(x):
-        if len(x) == 0:
-            return x
-        else:
-            # return np.concatenate((np.cumprod(x[:-1][::1])[::-1], [1]))
-            return np.concatenate((np.cumprod(x[1:][::-1])[::-1], [1]))
-
-    @staticmethod
-    def permutation(perm, arr):
-        """Permute column of an array"""
-
-        if perm is None:
-            return arr
-
-        _perm = perm.astype(int).flatten().copy()
-        _arr = arr.copy()
-
-        rs = False
-        if len(_arr.shape) == 1:
-            _arr = _arr.reshape(1, -1)
-            rs = True
-        elif len(_arr.squeeze().shape) >= 3:
-            raise RuntimeError()
-
-        res = _arr[:, np.argsort(_perm)]
-
-        if rs:
-            return res.flatten()
-        else:
-            return res
 
     def Op(self, out, table, arg0, arg1):
         # returns the atomic piece of c++ code to evaluate the function on arg and return
