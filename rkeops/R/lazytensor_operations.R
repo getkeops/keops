@@ -8,7 +8,10 @@
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @keywords internal
 #' @export
-"+.default" <- .Primitive("+") # assign default as current definition
+"+.default" <- function(x, y) {
+    base::"+"(x, y)
+}
+
 
 #' Addition.
 #' @description
@@ -93,7 +96,21 @@
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @keywords internal
 #' @export
-"-.default" <- .Primitive("-") # assign default as current definition
+"-.default" <- .Primitive("-")
+
+# Below is an alternative, in case the .Primitive("-") option would not work with
+# some argument types.
+# However, this can lead to warning messages in some tests.
+#
+# "-.default" <- function(x, y = NA) {
+#     if(!is.na(y)) {
+#         return(base::"-"(x, y))
+#     }
+#     else {
+#         return(base::"-"(x))
+#     }
+#     
+# }
 
 #' Subtraction or minus sign.
 #' @description
@@ -193,7 +210,9 @@
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @keywords internal
 #' @export
-"*.default" <- .Primitive("*") # assign default as current definition
+"*.default" <- function(x, y) {
+    base::"*"(x, y)
+}
 
 #' Multiplication.
 #' @description
@@ -292,7 +311,9 @@
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @keywords internal
 #' @export
-"/.default" <- .Primitive("/")
+"/.default" <- function(x, y) {
+    base::"/"(x, y)
+}
 
 #' Division.
 #' @description
@@ -513,7 +534,9 @@ rsqrt.LazyTensor <- function(x) {
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @keywords internal
 #' @export
-"^.default" <- .Primitive("^") # assign default as current definition
+"^.default" <- function(x, y) {
+    base::"^"(x, y)
+}
 
 #' Power.
 #' @description
@@ -593,7 +616,9 @@ rsqrt.LazyTensor <- function(x) {
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @keywords internal
 #' @export
-"|.default" <- .Primitive("|")
+"|.default" <- function(x, y) {
+    base::"|"(x, y)
+}
 
 
 #' Euclidean scalar product.
@@ -653,7 +678,7 @@ rsqrt.LazyTensor <- function(x) {
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @keywords internal
 #' @export
-"%*%.default" <- .Primitive("%*%") # assign default as current definition
+"%*%.default" <- .Primitive("%*%")
 
 #' Matrix multiplication.
 #' @description
