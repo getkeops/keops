@@ -36,7 +36,7 @@ devtools::load_all("..")
 
 Lazy evaluation allows to write intermediate computations as symbolic operations that are not directly evaluated. The real evaluation is only made on final computation.
 
-To do so, you can use `LazyTensor`s, that are objects wrapped around R matrices or vectors and used to create symbolic formulas for the KeOps reduction operations. A typical use case is the following: 
+To do so, you can use `LazyTensor`s, that are objects wrapped around R matrices or vectors and used to create symbolic formulas for the `KeOps` reduction operations. A typical use case is the following: 
 
 Let us say that we want to compute
 
@@ -121,7 +121,7 @@ Pm_v$vars
 ## Operations
 
 **Note:** If none of the input arguments are of class `LazyTensor` or `ComplexLazyTensor`, the default `R` function (if any) is used instead.
-Please refer to the help page of each function for type compatibility, dimension compatibility, and further details. You can also take a look at the "Using RKeOps" vignette, at the "Arguments" section, for further explanations about inner and outer dimensions.
+Please refer to the help page of each function for type compatibility, dimension compatibility, and further details. You can also take a look at the "Using `RKeOps`" vignette, at the "Arguments" section, for further explanations about inner and outer dimensions.
 
 
 ### Result dimension
