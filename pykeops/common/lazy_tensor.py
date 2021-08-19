@@ -1713,15 +1713,14 @@ class GenericLazyTensor:
         # permute = tuple(range(len(dimfa) + len(dimfb) - 2 * len(contfa)))
         opt_arg = ""
         for intseq in (dimfa, dimfb, contfa, contfb) + args:
-            opt_arg += "Ind("
+            opt_arg += "["
             if isinstance(intseq, int):
                 intseq = (intseq,)  # convert to tuple
             for item in intseq:
                 opt_arg += "{},".format(item)
             opt_arg = opt_arg[:-1] if len(intseq) else opt_arg  # to remove last comma
-            opt_arg += "), "
+            opt_arg += "], "
         opt_arg = opt_arg[:-2]  # to remove last comma and space
-
         dimres = np.array(dimfa).prod() * np.array(dimfb).prod()
         dimres /= np.array(dimfa)[np.array(contfa)].prod() ** 2 if len(contfa) else 1
         return self.binary(
