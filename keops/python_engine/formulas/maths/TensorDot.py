@@ -1,4 +1,3 @@
-#import numpy as np
 
 from keops.python_engine.formulas.Operation import Operation
 from keops.python_engine.utils.code_gen_utils import use_pragma_unroll
@@ -36,21 +35,13 @@ def cumprod_array(x):
                 res[i] *= res[i-1]
             return res    
         return cumprod(x[1:][::-1])[::-1] + [1]
-        
-def inverse_perm(perm):
-    # inverse a pemutation of 0 ... n-1
-    n = len(perm)
-    invperm = [None]*n
-    for i in range(n):
-        invperm[perm[i]] = i
-    return invperm
 
 def permutation(perm, arr):
-    """Permute column of an array"""
     if perm is None:
         return arr
     else:
-        return select(arr, inverse_perm(perm))
+        tmp = sorted(range(len(perm)), key=perm.__getitem__)
+        return select(arr, tmp)
         
     
 
@@ -99,8 +90,8 @@ class TensorDot(Operation):
             permute = list(range(len(self.keepdims)))
         else:
             assert (
-                    self.permutation(permute, permute) == list(range(len(self.keepdims)))
-            ).all()
+                    permutation(permute, permute) == list(range(len(self.keepdims)))
+            )
 
         self.permute = permute
 
@@ -124,16 +115,16 @@ class TensorDot(Operation):
 
         self.list_indices_keepdim_a_inout = list(range(0, len(self.keepdims_a)))
         self.reordered_contfa = permutation(contfb, contfa)
-        self.reordered_keepdim_a = permutation(permute[self.list_indices_keepdim_a_inout], self.indices_keepdim_a)
+        self.reordered_keepdim_a = permutation(select(permute,self.list_indices_keepdim_a_inout), self.indices_keepdim_a)
         self.moveaxis_a = self.reordered_keepdim_a + self.reordered_contfa
 
         self.list_indices_keepdim_b_inout = list(range(len(self.keepdims_a), len(self.keepdims)))
-        self.reordered_contfb = self.permutation(contfa, contfb)
-        self.reordered_keepdim_b = self.permutation(permute[self.list_indices_keepdim_b_inout], self.indices_keepdim_b)
+        self.reordered_contfb = permutation(contfa, contfb)
+        self.reordered_keepdim_b = permutation(select(permute, self.list_indices_keepdim_b_inout), self.indices_keepdim_b)
         self.moveaxis_b = self.reordered_keepdim_b + self.reordered_contfb
 
-        self.contfa_grad = permute[self.list_indices_keepdim_b_inout]
-        self.contfb_grad = permute[self.list_indices_keepdim_a_inout]
+        self.contfa_grad = select(permute, self.list_indices_keepdim_b_inout)
+        self.contfb_grad = select(permute, self.list_indices_keepdim_a_inout)
 
     def Op(self, out, table, arg0, arg1):
         # returns the atomic piece of c++ code to evaluate the function on arg and return
@@ -144,7 +135,7 @@ class TensorDot(Operation):
         for i in range(len(self.loopdim)):
             str_code += f"for(int TD_var_{chr(70 + i)}=0; TD_var_{chr(70 + i)}<{self.loopdim[i]}; ++TD_var_{chr(70 + i)})" + "{\n" + i * "    "
 
-        list_indices_keepdim = self.permutation(self.permute, np.arange(len(self.keepdims)))
+        list_indices_keepdim = permutation(self.permute, range(len(self.keepdims)))
         str_out_indices = ""
         for i, v in enumerate(list_indices_keepdim):
             str_out_indices += f"TD_var_{chr(70 + v)} * {self.list_strides_keepdim[i]} + "
@@ -176,8 +167,6 @@ class TensorDot(Operation):
                 """
 
     def DiffT(self, v, gradin):
-        from keops.python_engine.formulas import Ind
-
         f = self.children[0]
         g = self.children[1]
         return f.DiffT(
@@ -185,21 +174,21 @@ class TensorDot(Operation):
             TensorDot(
                 gradin,
                 g,
-                Ind(self.dimfa_grad),
-                Ind(self.dimfb),
-                Ind(self.contfa_grad),
-                Ind(self.indices_keepdim_b),
-                Ind(self.moveaxis_a),
+                self.dimfa_grad,
+                self.dimfb,
+                self.contfa_grad,
+                self.indices_keepdim_b,
+                self.moveaxis_a,
             ),
         ) + g.DiffT(
             v,
             TensorDot(
                 gradin,
                 f,
-                Ind(self.dimfa_grad),
-                Ind(self.dimfa),
-                Ind(self.contfb_grad),
-                Ind(self.indices_keepdim_a),
-                Ind(self.moveaxis_b),
+                self.dimfa_grad,
+                self.dimfa,
+                self.contfb_grad,
+                self.indices_keepdim_a,
+                self.moveaxis_b,
             ),
         )
