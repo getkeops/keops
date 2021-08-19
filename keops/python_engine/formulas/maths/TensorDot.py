@@ -18,6 +18,13 @@ def select(x,ind):
     # indexing of list via list of integers
     return [x[i] for i in ind]
      
+def delete(x,ind):
+    # delete items given by indices in list
+    n = len(x)
+    indkeep = list(set(range(n))-set(ind))
+    indkeep.sort()
+    return select(x, indkeep)
+     
 def cumprod_array(x):
     # special cumulative product
     if len(x) == 0:
@@ -68,13 +75,13 @@ class TensorDot(Operation):
         self.dimfb = dimsfb
         self.contdims = select(dimsfa,contfa)
 
-        self.indices_keepdim_a = list(set(range(len(dimsfa))) - set(contfa))
-        self.keepdims_a = list(set(dimsfa) - set(contfa))
+        self.indices_keepdim_a = delete(list(range(len(dimsfa))), contfa)
+        self.keepdims_a = delete(dimsfa, contfa)
         self.contdims_a = select(dimsfa, contfa)
         self.list_strides_dimsfa = cumprod_array(dimsfa)
 
-        self.indices_keepdim_b = list(set(range(len(dimsfb))) - set(contfb))
-        self.keepdims_b = list(set(dimsfb) - set(contfb))
+        self.indices_keepdim_b = delete(list(range(len(dimsfb))), contfb)
+        self.keepdims_b = delete(dimsfb, contfb)
         self.contdims_b = select(dimsfb, contfb)
         self.list_strides_dimsfb = cumprod_array(dimsfb)
 
@@ -110,14 +117,14 @@ class TensorDot(Operation):
         self.bla = list(range(len(self.keepdims_a), len(self.keepdims))) + list(range(len(self.keepdims), self.number_of_dimloop))
 
         self.bli = self.indices_keepdim_b + contfb
-        self.list_indices_b_intot = self.permutation(self.bli, self.bla)
+        self.list_indices_b_intot = permutation(self.bli, self.bla)
 
         # Gradient
-        self.dimfa_grad = self.permutation(permute, self.keepdims)
+        self.dimfa_grad = permutation(permute, self.keepdims)
 
         self.list_indices_keepdim_a_inout = list(range(0, len(self.keepdims_a)))
-        self.reordered_contfa = self.permutation(contfb, contfa)
-        self.reordered_keepdim_a = self.permutation(permute[self.list_indices_keepdim_a_inout], self.indices_keepdim_a)
+        self.reordered_contfa = permutation(contfb, contfa)
+        self.reordered_keepdim_a = permutation(permute[self.list_indices_keepdim_a_inout], self.indices_keepdim_a)
         self.moveaxis_a = self.reordered_keepdim_a + self.reordered_contfa
 
         self.list_indices_keepdim_b_inout = list(range(len(self.keepdims_a), len(self.keepdims)))
