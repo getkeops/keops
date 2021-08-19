@@ -22,7 +22,11 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r library, message=FALSE}
+```{r library, eval=FALSE}
+library(rkeops)
+```
+
+```{r devtools, message=FALSE, include=FALSE}
 #library(rkeops)
 devtools::load_all("..")
 ```
@@ -310,7 +314,7 @@ Here, `x` is a `LazyTensor` of inner dimension $D$ and outer dimension $M$, inde
 |`x %*% y`  | sum reduction of the product `x` * `y` indexed by `j`.<br> Same as `sum_reduction(x * y, "j")` | $\sum_j x_{ik} y_{jk}, ~ k \in \{1, \ldots, N\}$ |
 
 
-## Advices and random notes
+## Advice and random notes
 
 ### Aliases
 
@@ -384,7 +388,7 @@ Note that above are rudimentary examples, but this can become very handy when de
 
 ## The `IntCst` type
 
-When a single integer value `n` is encoded as a LazyTensor, its formula is simply `"IntCst(n)"`, which contains all the necessary information, and the `args` and `vars` attributes remain empty, to avoid useless storage.
+When a single integer value `n` is encoded as a `LazyTensor`, its formula is simply `"IntCst(n)"`, which contains all the necessary information, and the `args` and `vars` attributes remain empty, to avoid useless storage.
 
 
 ## Duplicate items in expressions
