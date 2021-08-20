@@ -3264,7 +3264,7 @@ test_that("grad", {
   y_j <- Vj(y)
   eta_i <- Vi(eta)
   
-  res1 <- grad(sqnorm2(x_i - y_j), eta_i, "Sum", var = x_i$formula, "j") 
+  res1 <- grad(sqnorm2(x_i - y_j), eta_i, "Sum", var = x_i, "j") 
   expect_true(is.matrix(res1))
   expect_equal(dim(res1), c(nx, 3))
   expected_res <- expected_res <- sapply(1:nx, function(i) {
@@ -3283,7 +3283,7 @@ test_that("grad", {
   eta <- matrix(1, nrow = ny, ncol = 1)
   eta_j <- Vj(eta)
   
-  res3 <- grad(sqnorm2(y_j - x_i), eta_j, "Sum", var = x_i$formula, "i") 
+  res3 <- grad(sqnorm2(y_j - x_i), eta_j, "Sum", var = x_i, "i") 
   expect_true(is.matrix(res3))
   expect_equal(dim(res3), c(nx, 3))
   expected_res <- expected_res <- sapply(1:nx, function(i) {

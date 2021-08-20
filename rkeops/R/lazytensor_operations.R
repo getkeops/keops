@@ -3888,10 +3888,12 @@ logsumexp_reduction <- function(x, index, weight = NA) {
 #' }
 #' @export
 sumsoftmaxweight <- function(x, index, weight) {
-    formula2 <- paste("Concat(IntCst(1),", weight$formula, ")", sep = "")
+    #tmp_weight <- fixvariables(weight, is_opt = TRUE)
+    tmp_weight <- concat(1, weight)
+    #formula2 <- paste("Concat(IntCst(1),", tmp_weight$formula, ")", sep = "")
     if(check_index(index))
         res <- reduction.LazyTensor(x, "Max_SumShiftExpWeight", 
-                                    index, opt_arg = formula2)
+                                    index, opt_arg = tmp_weight)
     else
         stop("`index` input argument should be a character, either 'i' or 'j'.")
     
@@ -3953,27 +3955,28 @@ sumsoftmaxweight_reduction <- function(x, index, weight) {
 #' Gradient operation.
 #' @description
 #' Gradient operation.
-#' @details `grad(x, gradin, opstr, var, index)` returns a `matrix` which 
+#' @details `grad(f, gradin, opstr, var, index)` returns a `matrix` which 
 #' corresponds to the gradient (more precisely, the adjoint of the differential 
-#' operator) of `x` with respect to the variable `var` and applied to `gradin` 
+#' operator) of `f` with respect to the variable `var` and applied to `gradin` 
 #' with compiling the corresponding reduction operator of `opstr`.
 #' It has an additional integer input parameter `index` indicating if the inner 
 #' dimension corresponds to columns, i.e. `index = 'j'` or rows, i.e. 
 #' `index = 'i'`.
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A `LazyTensor` or a `ComplexLazyTensor`.
+#' @param f A `LazyTensor` or a `ComplexLazyTensor`.
 #' @param gradin A `LazyTensor`, a `ComplexLazyTensor` encoding a matrix of ones
 #' with an inner dimension equal to 1 and indexed by the 
 #' same index and with number of rows equal to 
 #' the number of rows of the first `x` variable (in `x$vars`).
 #' @param opstr A `string` formula corresponding to a reduction 
 #' (like "Sum" or "Max").
-#' @param var A text `string` or an `integer` number indicating regarding to which 
+#' @param var An `integer` number indicating regarding to which 
 #' variable/parameter (given by name or by position index starting at 0) the 
-#' gradient of the formula should be computed.
+#' gradient of the formula should be computed or a one of the `LazyTensor` 
+#' contained in `f`.
 #' @param index A `character` that should be either **i** or **j** to specify 
 #' whether if the reduction is indexed by **i** (rows), or **j** (columns). 
-#' When the first `x` variable is indexed by **i** (resp. **j**), index cannot 
+#' When the first `f` variable is indexed by **i** (resp. **j**), index cannot 
 #' be **i** (resp. **j**). 
 #' @return A `matrix`.
 #' @examples
@@ -3997,9 +4000,13 @@ sumsoftmaxweight_reduction <- function(x, index, weight) {
 #' grad_xy <- grad(sqnorm2(x_i-y_j), eta_i, "Sum", var = 0, "j")     
 #' }
 #' @export
-grad <- function(x, gradin, opstr, var, index) {
-    if(!is.LazyTensor(x) || !is.LazyTensor(gradin)) {
-        stop(paste0("`x` and `gradin` input arguments should be LazyTensor."))
+grad <- function(f, gradin, opstr, var, index) {
+    if(is.LazyTensor(var)) {
+        var <- fixvariables(var)$formula
+    }
+   
+    if(!is.LazyTensor(f) || !is.LazyTensor(gradin)) {
+        stop(paste0("`f` and `gradin` input arguments should be LazyTensor."))
     }
     
     if(!is.character(opstr)) {
@@ -4009,43 +4016,43 @@ grad <- function(x, gradin, opstr, var, index) {
         )
     }
     
-    first_x_index_i <- grep("A0x.*i", x$args[[1]])
-    first_x_index_j <- grep("A0x.*j", x$args[[1]])
+    first_f_index_i <- grep("A0x.*i", f$args[[1]])
+    first_f_index_j <- grep("A0x.*j", f$args[[1]])
     gradin_index_i <- grep("A0x.*i", gradin$args[[1]])
     gradin_index_j <- grep("A0x.*j", gradin$args[[1]])
     
-    # errors when `x` first argument and `gradin` are not indexed in 
+    # errors when `f` first argument and `gradin` are not indexed in 
     # the same way
-    if(any(first_x_index_i) && any(gradin_index_j)) {
+    if(any(first_f_index_i) && any(gradin_index_j)) {
         stop(
             paste0("`gradin` input argument should be indexed by 'i'.")
         )
     }
     
-    if(any(first_x_index_j) && any(gradin_index_i)) {
+    if(any(first_f_index_j) && any(gradin_index_i)) {
         stop(
             paste0("`gradin` input argument should be indexed by 'j'.")
         )
     }
     
-    # errors to avoid "R aborting session" when the first argument of `x` is
+    # errors to avoid "R aborting session" when the first argument of `f` is
     # indexed by `index`. To change in the future ?
-    if(any(first_x_index_i) && index == "i") {
+    if(any(first_f_index_i) && index == "i") {
         stop(
             paste0("`index` input argument should be 'j'.")
         )
     }
     
-    if(any(first_x_index_j) && index == "j") {
+    if(any(first_f_index_j) && index == "j") {
         stop(
             paste0("`index` input argument should be 'i'.")
         )
     }
     
     # Verification for gradin shape
-    if(gradin$dimres != 1 || (nrow(gradin$vars[[1]]) != nrow(x$vars[[1]]))) {
+    if(gradin$dimres != 1 || (nrow(gradin$vars[[1]]) != nrow(f$vars[[1]]))) {
         stop(paste0("`gradin` input argument should be a LazyTensor encoding", 
-                    " a matrix of shape (", nrow(x$vars[[1]]), ",1)."))
+                    " a matrix of shape (", nrow(f$vars[[1]]), ",1)."))
     }
     
     if(!check_index(index)) {
@@ -4053,9 +4060,10 @@ grad <- function(x, gradin, opstr, var, index) {
                     " either 'i' or 'j'."))
     }
     
-    op <- preprocess_reduction(x, opstr, index)
+    op <- preprocess_reduction(f, opstr, index)
+    
     grad_op <- keops_grad(op, var)
-    res <- grad_op(c(x$vars, gradin$vars))
+    res <- grad_op(c(f$vars, gradin$vars))
     return(res)
 }
 

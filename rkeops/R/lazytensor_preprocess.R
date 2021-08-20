@@ -1188,7 +1188,7 @@ identifier <- function(arg){
 #' b$args               # returns a vector containing "V0=Vi(3)" and "V1=Vj(3)"
 #' }
 #' @export
-fixvariables <- function(x){
+fixvariables <- function(x, is_opt = FALSE){
   if(!is.LazyTensor(x)) {
     stop("`x` input must be a LazyTensor or a ComplexLazyTensor.")
   }
@@ -1207,7 +1207,13 @@ fixvariables <- function(x){
                                       pattern = "(?<=\\()[0-9]+")
     )
     
-    tag <- paste("V", i-1, sep = "")
+    if(!is_opt) {
+      tag <- paste("V", i-1, sep = "")
+    }
+    else {
+      tag <- paste("OptV", i-1, sep = "")
+    }
+    
     id <- identifier(tmp$args[i])
     tmp$formula <- str_replace_all(tmp$formula, id, tag)
     tmp$args <- str_replace(tmp$args, id, tag)
@@ -1256,10 +1262,11 @@ preprocess_reduction <- function(x, opstr, index, opt_arg = NA) {
   
   if(!any(is.na(opt_arg))) {
     if(is.LazyTensor(opt_arg)) {
+      tmp_opt <- fixvariables(opt_arg, is_opt = TRUE)
       # put `opt_arg$formula` at the end of the formula
-      formula <- paste( opstr,  "_Reduction(",  tmp$formula, 
-                        ",",  tag, ",", opt_arg$formula, ")", sep = "")
-      args <- c(tmp$args, opt_arg$args)
+      formula <- paste(opstr,  "_Reduction(",  tmp$formula, 
+                        ",",  tag, ",", tmp_opt$formula, ")", sep = "")
+      args <- c(tmp$args, tmp_opt$args)
     }
     
     else if(is.int(opt_arg)) {
@@ -1268,11 +1275,11 @@ preprocess_reduction <- function(x, opstr, index, opt_arg = NA) {
                         ",",  opt_arg, ",", tag, ")", sep = "")
     }
     
-    else if(is.character(opt_arg)) {
-      # put `opt_arg` at the end of the formula
-      formula <- paste( opstr,  "_Reduction(",  tmp$formula, 
-                        ",",  tag, ",", opt_arg, ")", sep = "")
-    }
+    # else if(is.character(opt_arg)) {
+    #   # put `opt_arg` at the end of the formula
+    #   formula <- paste( opstr,  "_Reduction(",  tmp$formula, 
+    #                     ",",  tag, ",", opt_arg, ")", sep = "")
+    # }
     
   }
   else {
