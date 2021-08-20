@@ -215,6 +215,69 @@ LazyTensor <- function(x, index = NA, is_complex = FALSE) {
 }
 
 
+
+# # Now we define "formula", a string specifying the variable for KeOps C++ codes.
+# var_name = "var0"
+# formula = var_name
+# # formula <- paste('Var(0,', d, ',', cat, ')', sep = "")  # Var(ind,dim,cat), where :
+# #                                                         # ind gives the position in the final call to KeOps routine,
+# #                                                         # dim is the dimension
+# #                                                         # cat the category
+# vars <- list(x)  # vars lists all actual matrices necessary to evaluate the current formula, here only one.
+# args = str_c(var_name, "=", cat, "(", d, ")")
+# 
+# # finally we build and return the LazyTensor object
+# obj <- list(formula = formula, args = args, vars = vars)
+# class(obj) <- "LazyTensor"
+# return(obj)
+
+
+# binaryop.LazyTensor <- function(x, y, opstr, is_operator=FALSE)
+# {
+#   if(is.numeric(x))
+#     x <- LazyTensor(x)
+#   
+#   # if y is a scalar and the operation is a specific operation
+#   # for instance we want : Pow(var0,2)
+#   op_specific <- list("Pow") 
+#   if(is.element(opstr, op_specific) && class(y) != "LazyTensor"){
+#     if(is_operator)
+#       formula <- paste(x$formula, opstr, y, sep="")
+#     # case when the operation is not an operator
+#     else 
+#       formula <- paste(opstr, "(", x$formula, ",", y, ")", sep="")
+#     vars <- c(x$vars, y) # TODO check if we need y$vars instead of y
+#     args <- c(x$args, y) # TODO check if we need y$args instead of y
+#   }
+#   # case with no specific operation 
+#   else{
+#     if(is.numeric(y))
+#       y <- LazyTensor(y)
+#     
+#     dec <- length(x$vars)
+#     yform <- y$formula
+#     # update list of variables and update indices in formula
+#     for(k in 1:length(y$vars))
+#     {
+#       str1 <- paste("var", k - 1, sep="")
+#       str2 <- paste("var", k - 1 + dec, sep="")
+#       yform <- gsub(str1, str2, yform, fixed = TRUE)
+#       y$args[k] <- gsub(str1, str2, y$args[k], fixed = TRUE)
+#     }
+#     # special formula for operator 
+#     if(is_operator)
+#       formula <- paste(x$formula, opstr, yform, sep="")
+#     else
+#       formula <- paste(opstr, "(", x$formula, ",", yform, ")", sep="")
+#     vars <- c(x$vars,y$vars)
+#     args <- c(x$args,y$args)
+#   }
+#   
+#   obj <- list(formula = formula, args=args, vars=vars)
+#   class(obj) <- "LazyTensor"
+#   return(obj)
+# }
+
 # Vi ---------------------------------------------------------------------------
 
 #' Wrapper LazyTensor indexed by "i".
@@ -1165,34 +1228,130 @@ index_to_int <- function(index) {
 #' @export
 preprocess_reduction <- function(x, opstr, index, opt_arg = NA) {
   tag <- index_to_int(index)
-  args <- x$args
+  tmp <- fixvariables(x)
+  args <- tmp$args
   
   if(!any(is.na(opt_arg))) {
     if(is.LazyTensor(opt_arg)) {
       # put `opt_arg$formula` at the end of the formula
-      formula <- paste( opstr,  "_Reduction(",  x$formula, 
+      formula <- paste( opstr,  "_Reduction(",  tmp$formula, 
                         ",",  tag, ",", opt_arg$formula, ")", sep = "")
-      args <- c(x$args, opt_arg$args)
+      args <- c(tmp$args, opt_arg$args)
     }
     
     else if(is.int(opt_arg)) {
       # put `opt_arg` in the middle of the formula
-      formula <- paste( opstr,  "_Reduction(",  x$formula, 
+      formula <- paste( opstr,  "_Reduction(",  tmp$formula, 
                         ",",  opt_arg, ",", tag, ")", sep = "")
     }
     
     else if(is.character(opt_arg)) {
       # put `opt_arg` at the end of the formula
-      formula <- paste( opstr,  "_Reduction(",  x$formula, 
+      formula <- paste( opstr,  "_Reduction(",  tmp$formula, 
                         ",",  tag, ",", opt_arg, ")", sep = "")
     }
     
   }
   else {
-    formula <- paste(opstr, "_Reduction(", x$formula, ",", 
+    formula <- paste(opstr, "_Reduction(", tmp$formula, ",", 
                      tag, ")", sep = "")
   }
   
   op <- keops_kernel(formula, args)
   return(op)
 }
+
+
+#' Identifier.
+#' @keywords internal
+#' @description
+#' 
+#' @details 
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @param 
+#' @return
+#' @examples
+#' \dontrun{
+#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
+#' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
+#'                                     # indexed by 'i'
+#' }
+#' @export
+identifier <- function(arg){
+  id <- str_extract(string = arg, pattern = "A0x.*=")
+  id <- substr(id,1,nchar(id)-1)
+  return(id)
+}
+
+
+
+#' Fix variables.
+#' @keywords internal
+#' @description
+#' 
+#' @details 
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @param 
+#' @return
+#' @examples
+#' \dontrun{
+#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
+#' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
+#'                                     # indexed by 'i'
+#' }
+#' @export
+fixvariables <- function(x){
+    tmp <- x
+    for(i in 1:length(tmp$args)) {
+      
+      suffix_arg <- str_extract(string = tmp$args[i], pattern = "=.*")
+      suffix_arg <- substr(suffix_arg, 2, nchar(suffix_arg))
+      var_dim <- as.numeric(str_extract(string = tmp$arg[i],
+                                        pattern = "(?<=\\()[0-9]+")
+                            )
+
+      tag <- paste("A", i-1, sep = "")
+      id <- identifier(tmp$args[i])
+      tmp$formula <- str_replace_all(tmp$formula, id, tag)
+      tmp$args <- str_replace(tmp$args, id, tag)
+    }
+
+    return(tmp)
+}
+
+
+# fixvariables <- function(x){
+#   tmp <- x
+#   for(i in 1:length(tmp$args)) {
+#     suffix_arg <- str_extract(string = tmp$args[i], pattern = "=.*")
+#     suffix_arg <- substr(suffix_arg, 2, nchar(suffix_arg))
+#     var_dim <- as.numeric(str_extract(string = tmp$arg[i], 
+#                                       pattern = "(?<=\\()[0-9]+")
+#                           )
+#     #substr(suffix_arg, 1, 3)
+#     tag <- paste("Bl(", i-1, ",", var_dim, ")", sep = "")
+#     id <- identifier(tmp$args[i])
+#     tmp$formula <- str_replace_all(tmp$formula, id, tag)
+#     tmp$args <- str_replace(tmp$args, id, tag)
+#   }
+#   
+#   return(tmp)
+# }
+
+# x <- matrix(c(1, 2, 3), 12, 3)
+# y <- matrix(c(1, 2, 45), 2, 3)
+# x_i <- Vi(x)
+# y_j <- Vj(y)
+# a <- x_i + y_j
+
+
+
+
+
+
+
+
+
+
+
+
