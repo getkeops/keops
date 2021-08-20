@@ -904,3 +904,98 @@ test_that("index_to_int", {
   expect_equal(index_to_int("i"), 1)
   expect_equal(index_to_int("j"), 0)
 })
+
+
+# TEST REDUCTION-RELATED PREPROCESS FUNCTIONS ==================================
+
+test_that("identifier", {
+  # basic examples
+  D <- 3
+  E <- 7
+  M <- 100
+  N <- 150
+  x <- matrix(runif(M * D), M, D)
+  y <- matrix(runif(N * D), N, D)
+  x_i <- LazyTensor(x, index = 'i')
+  y_j <- LazyTensor(y, index = 'j')
+  p <- LazyTensor(runif(3, 0, 1)) # fixed vector parameter across indices
+  z <- matrix(1i^(-6:5), nrow = 4)                     # complex 4x3 matrix
+  z_i <- LazyTensor(z, index = 'i', is_complex = TRUE) # ComplexLazyTensor
+  
+  # check results
+  bool_grep_args_i <- grep("A0x.*i", identifier(x_i$args))
+  expect_equal(bool_grep_args_i, 1)
+  bool_grep_args_j <- grep("A0x.*j", identifier(y_j$args))
+  expect_equal(bool_grep_args_j, 1)
+  bool_grep_args_NA <- grep("A0x.*NA", identifier(p$args))
+  expect_equal(bool_grep_args_NA, 1)
+  bool_grep_args_z_i <- grep("A0x.*i", identifier(z_i$args))
+  expect_equal(bool_grep_args_z_i, 1)
+  
+  # errors
+  expect_error(identifier(x_i),
+               "`arg` input argument should be a character string.",
+               fixed = TRUE)
+})
+
+
+test_that("fixvariables", {
+  # basic example
+  D <- 3
+  E <- 7
+  M <- 100
+  N <- 150
+  x <- matrix(runif(M * D), M, D)
+  y <- matrix(runif(N * D), N, D)
+  x_i <- LazyTensor(x, index = 'i')
+  x_j <- LazyTensor(x, index = 'j')
+  y_j <- LazyTensor(y, index = 'j')
+  p <- LazyTensor(runif(3, 0, 1)) # fixed vector parameter across indices
+  l <- LazyTensor(314)            # fixed scalar parameter across indices
+  
+  # weird formulae for verification purpose
+  fix_expr1 <- fixvariables(x_i + y_j + x_i + x_j)
+  fix_expr2 <- fixvariables(exp(sqdist(x_i, y_j)^l) - x_i*x_j)
+  fix_expr3 <- fixvariables(norm2(y_j) + (p|x_i)*l)
+  fix_expr4 <- fixvariables(clamp(x_i, x_j, y_j))
+  
+  # check classes
+  expect_true(is.LazyTensor(fixvariables(l)))
+  expect_true(is.LazyTensor(fixvariables(x_i)))
+  expect_true(is.LazyTensor(fix_expr1))
+  expect_true(is.LazyTensor(fix_expr2))
+  expect_true(is.LazyTensor(fix_expr3))
+  expect_true(is.LazyTensor(fix_expr4))
+  
+  # check formulae
+  expect_equal(fixvariables(l)$formula,
+               "IntCst(314)")
+  expect_equal(fixvariables(l + l*l)$formula,
+               "IntCst(314)+IntCst(314)*IntCst(314)")
+  expect_equal(fixvariables(x_i)$formula,
+               "V0")
+  expect_equal(fix_expr1$formula,
+               "V0+V1+V0+V2")
+  expect_equal(fix_expr2$formula,
+               "Exp(Powf(SqDist(V0,V1),IntCst(314)))-V0*V2")
+  expect_equal(fix_expr3$formula,
+               "Norm2(V0)+(V1|V2)*IntCst(314)")
+  expect_equal(fix_expr4$formula,
+               "Clamp(V0,V1,V2)")
+  
+  # check args
+  expect_equal(fixvariables(x_i)$args, "V0=Vi(3)")
+  expect_equal(fix_expr2$args[1], "V0=Vi(3)")
+  expect_equal(fix_expr2$args[2], "V1=Vj(3)")
+  expect_equal(fix_expr2$args[3], "V2=Vj(3)")
+  expect_equal(fix_expr3$args[1], "V0=Vj(3)")
+  expect_equal(fix_expr3$args[2], "V1=Pm(3)")
+  expect_equal(fix_expr3$args[3], "V2=Vi(3)")
+  
+  # errors
+  expect_error(fixvariables(x),
+               "`x` input must be a LazyTensor or a ComplexLazyTensor.",
+               fixed = TRUE)
+})
+
+
