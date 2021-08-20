@@ -4,7 +4,7 @@
 \alias{|.default}
 \title{Logical "or"}
 \usage{
-\method{|}{default}()
+\method{|}{default}(x, y)
 }
 \description{
 Logical "or"

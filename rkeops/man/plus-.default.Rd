@@ -4,7 +4,7 @@
 \alias{+.default}
 \title{Addition.}
 \usage{
-\method{+}{default}()
+\method{+}{default}(x, y)
 }
 \description{
 Addition.

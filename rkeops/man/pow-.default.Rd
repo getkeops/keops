@@ -4,7 +4,7 @@
 \alias{^.default}
 \title{Power.}
 \usage{
-\method{^}{default}()
+\method{^}{default}(x, y)
 }
 \description{
 Power.

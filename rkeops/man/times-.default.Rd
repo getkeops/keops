@@ -4,7 +4,7 @@
 \alias{*.default}
 \title{Multiplication.}
 \usage{
-\method{*}{default}()
+\method{*}{default}(x, y)
 }
 \description{
 Multiplication.

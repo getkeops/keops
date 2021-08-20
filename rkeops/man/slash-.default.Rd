@@ -4,7 +4,7 @@
 \alias{/.default}
 \title{Division.}
 \usage{
-\method{/}{default}()
+\method{/}{default}(x, y)
 }
 \description{
 Division.
