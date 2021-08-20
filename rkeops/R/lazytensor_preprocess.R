@@ -1195,6 +1195,78 @@ index_to_int <- function(index) {
 
 # Reduction---------------------------------------------------------------------
 
+#' Identifier.
+#' @keywords internal
+#' @description 
+#' Returns the identifier/label of a `LazyTensor` which is contained in `arg`.
+#' @details `identifier(arg)` will extract a unique identifier of the form
+#' `"A0x.*"` from the argument `arg` which has the form `"A0x.*=Vi(3)"`.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @param arg A `string` corresponding to an element of the attribute `args` of a 
+#' `LazyTensor`.
+#' @return A `string`.
+#' @examples
+#' \dontrun{
+#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
+#' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
+#'                                     # indexed by 'i'
+#' arg <- x_i$args[1]                  # argument of the form "A0x.*=Vi(3)"
+#' id <- identifier(arg)               # extracts "A0x.*"
+#' }
+#' @export
+identifier <- function(arg){
+  id <- str_extract(string = arg, pattern = "A0x.*=")
+  id <- substr(id,1,nchar(id)-1)
+  return(id)
+}
+
+
+#' Fix variables.
+#' @keywords internal
+#' @description Assigns final labels to each variable for the `KeOps` routine.
+#' @details `fixvariables(x)` will change the identifiers of `x` variables in 
+#' `x$args` and `x$formula` into simpler ordered labels of the form `V<n>` where
+#' `n` is the apparition order of the variable in the formula.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @param x  A `LazyTensor` or a `ComplexLazyTensor`.
+#' @return A `LazyTensor` or a `ComplexLazyTensor`.
+#' @examples
+#' \dontrun{
+#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
+#' y <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
+#' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
+#'                                     # indexed by 'i'
+#' y_j <- LazyTensor(y, index = 'j')   # creating LazyTensor from matrix y, 
+#'                                     # indexed by 'j'                                   
+#' 
+#' a <- x_i + y_j         # combination of LazyTensors with variable labels 
+#'                        # of the form "A0x.*"
+#' 
+#' b <- fixvariables(a)   # combination of LazyTensors with variable labels 
+#'                        # of the form "V0" and "V1"
+#' b$formula              # gives "V0+V1"
+#' b$args                 # gives a list with "V0=Vi(3)" "V1=Vj(3)"
+#' }
+#' @export
+fixvariables <- function(x){
+  tmp <- x
+  for(i in 1:length(tmp$args)) {
+    
+    suffix_arg <- str_extract(string = tmp$args[i], pattern = "=.*")
+    suffix_arg <- substr(suffix_arg, 2, nchar(suffix_arg))
+    var_dim <- as.numeric(str_extract(string = tmp$arg[i],
+                                      pattern = "(?<=\\()[0-9]+")
+    )
+    
+    tag <- paste("V", i-1, sep = "")
+    id <- identifier(tmp$args[i])
+    tmp$formula <- str_replace_all(tmp$formula, id, tag)
+    tmp$args <- str_replace(tmp$args, id, tag)
+  }
+  
+  return(tmp)
+}
+
 
 #' Preprocess reduction operation.
 #' @keywords internal
@@ -1259,64 +1331,6 @@ preprocess_reduction <- function(x, opstr, index, opt_arg = NA) {
   
   op <- keops_kernel(formula, args)
   return(op)
-}
-
-
-#' Identifier.
-#' @keywords internal
-#' @description
-#' 
-#' @details 
-#' @author Chloe Serre-Combe, Amelie Vernay
-#' @param 
-#' @return
-#' @examples
-#' \dontrun{
-#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
-#' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
-#'                                     # indexed by 'i'
-#' }
-#' @export
-identifier <- function(arg){
-  id <- str_extract(string = arg, pattern = "A0x.*=")
-  id <- substr(id,1,nchar(id)-1)
-  return(id)
-}
-
-
-
-#' Fix variables.
-#' @keywords internal
-#' @description
-#' 
-#' @details 
-#' @author Chloe Serre-Combe, Amelie Vernay
-#' @param 
-#' @return
-#' @examples
-#' \dontrun{
-#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
-#' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
-#'                                     # indexed by 'i'
-#' }
-#' @export
-fixvariables <- function(x){
-    tmp <- x
-    for(i in 1:length(tmp$args)) {
-      
-      suffix_arg <- str_extract(string = tmp$args[i], pattern = "=.*")
-      suffix_arg <- substr(suffix_arg, 2, nchar(suffix_arg))
-      var_dim <- as.numeric(str_extract(string = tmp$arg[i],
-                                        pattern = "(?<=\\()[0-9]+")
-                            )
-
-      tag <- paste("A", i-1, sep = "")
-      id <- identifier(tmp$args[i])
-      tmp$formula <- str_replace_all(tmp$formula, id, tag)
-      tmp$args <- str_replace(tmp$args, id, tag)
-    }
-
-    return(tmp)
 }
 
 
