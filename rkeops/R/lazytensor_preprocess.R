@@ -1152,6 +1152,9 @@ index_to_int <- function(index) {
 #' }
 #' @export
 identifier <- function(arg){
+  if(!is.character(arg)) {
+    stop("`arg` input argument should be a character string.")
+  }
   id <- str_extract(string = arg, pattern = "A0x.*=")
   id <- substr(id,1,nchar(id)-1)
   return(id)
@@ -1176,16 +1179,25 @@ identifier <- function(arg){
 #' y_j <- LazyTensor(y, index = 'j')   # creating LazyTensor from matrix y, 
 #'                                     # indexed by 'j'                                   
 #' 
-#' a <- x_i + y_j         # combination of LazyTensors with variable labels 
-#'                        # of the form "A0x.*"
+#' a <- x_i + y_j       # combination of LazyTensors with variable labels 
+#'                      # of the form "A0x.*"
 #' 
-#' b <- fixvariables(a)   # combination of LazyTensors with variable labels 
-#'                        # of the form "V0" and "V1"
-#' b$formula              # gives "V0+V1"
-#' b$args                 # gives a list with "V0=Vi(3)" "V1=Vj(3)"
+#' b <- fixvariables(a) # combination of LazyTensors with variable labels 
+#'                      # of the form "V0" and "V1"
+#' b$formula            # returns "V0+V1"
+#' b$args               # returns a vector containing "V0=Vi(3)" and "V1=Vj(3)"
 #' }
 #' @export
 fixvariables <- function(x){
+  if(!is.LazyTensor(x)) {
+    stop("`x` input must be a LazyTensor or a ComplexLazyTensor.")
+  }
+  
+  # Should do nothing to IntCst-only LazyTensors:
+  if(is.null(x$args)) {
+    # TRUE only if x is an IntCst LazyTensor (or a combination of)
+    return(x)
+  }
   tmp <- x
   for(i in 1:length(tmp$args)) {
     
