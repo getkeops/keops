@@ -22,14 +22,14 @@ An object of class "LazyTensor" or "ComplexLazyTensor".
 }
 \description{
 \code{LazyTensor}s objects are wrappers around R matrices or vectors that are used
-to create symbolic formulas for the KeOps reduction operations.
+to create symbolic formulas for the \code{KeOps} reduction operations.
 }
 \details{
 The \code{LazyTensor()} function builds a \code{LazyTensor}, which is a
 list containing the following elements:
 \itemize{
 \item{\strong{formula}:}{ A string defining the mathematical operation to
-be computed by the KeOps routine - each variable is encoded with the
+be computed by the \code{KeOps} routine - each variable is encoded with the
 pointer address of its argument, suffixed by 'i', 'j', or 'NA', to
 give it a unique identifier;}
 \item{\strong{args}:}{ A vector of arguments containing a unique identifier
@@ -40,7 +40,7 @@ associated to the type of the argument:
 \item{\strong{Pm(n)}:}{ fixed parameter of dim \strong{n}}
 }}
 \item{\strong{vars}:}{ A list of R matrices which will be the inputs of the
-KeOps routine;}
+\code{KeOps} routine;}
 \item{\strong{dimres}:}{ An integer corresponding to the inner dimension of
 the \code{LazyTensor}. \strong{dimres} is used when creating new
 \code{LazyTensor}s that result from operations,

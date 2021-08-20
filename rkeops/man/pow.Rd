@@ -31,9 +31,9 @@ operator.
 \strong{Note}
 
 \itemize{
-\item{if \strong{y = 2},}{ \code{x^y} relies on the \code{"Square"} KeOps operation;}
-\item{if \strong{y = 0.5},}{ \code{x^y} uses on the \code{"Sqrt"} KeOps operation;}
-\item{if \strong{y = -0.5},}{ \code{x^y} uses on the \code{"Rsqrt"} KeOps operation.}
+\item{if \strong{y = 2},}{ \code{x^y} relies on the \code{"Square"} \code{KeOps} operation;}
+\item{if \strong{y = 0.5},}{ \code{x^y} uses on the \code{"Sqrt"} \code{KeOps} operation;}
+\item{if \strong{y = -0.5},}{ \code{x^y} uses on the \code{"Rsqrt"} \code{KeOps} operation.}
 }
 }
 \examples{
