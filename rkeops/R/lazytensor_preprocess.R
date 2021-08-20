@@ -6,13 +6,13 @@
 #' Build and return a LazyTensor object.
 #' @description
 #' `LazyTensor`s objects are wrappers around R matrices or vectors that are used 
-#' to create symbolic formulas for the KeOps reduction operations.
+#' to create symbolic formulas for the `KeOps` reduction operations.
 #' @details
 #' The `LazyTensor()` function builds a `LazyTensor`, which is a 
 #' list containing the following elements:
 #' \itemize{
 #'     \item{**formula**:}{ A string defining the mathematical operation to 
-#'     be computed by the KeOps routine - each variable is encoded with the
+#'     be computed by the `KeOps` routine - each variable is encoded with the
 #'     pointer address of its argument, suffixed by 'i', 'j', or 'NA', to
 #'     give it a unique identifier;}
 #'     \item{**args**:}{ A vector of arguments containing a unique identifier 
@@ -23,7 +23,7 @@
 #'         \item{**Pm(n)**:}{ fixed parameter of dim **n**}
 #'     }}
 #'     \item{**vars**:}{ A list of R matrices which will be the inputs of the 
-#'                       KeOps routine;}
+#'                       `KeOps` routine;}
 #'     \item{**dimres**:}{ An integer corresponding to the inner dimension of
 #'                        the `LazyTensor`. **dimres** is used when creating new
 #'                        `LazyTensor`s that result from operations,
@@ -214,69 +214,6 @@ LazyTensor <- function(x, index = NA, is_complex = FALSE) {
   return(res)
 }
 
-
-
-# # Now we define "formula", a string specifying the variable for KeOps C++ codes.
-# var_name = "var0"
-# formula = var_name
-# # formula <- paste('Var(0,', d, ',', cat, ')', sep = "")  # Var(ind,dim,cat), where :
-# #                                                         # ind gives the position in the final call to KeOps routine,
-# #                                                         # dim is the dimension
-# #                                                         # cat the category
-# vars <- list(x)  # vars lists all actual matrices necessary to evaluate the current formula, here only one.
-# args = str_c(var_name, "=", cat, "(", d, ")")
-# 
-# # finally we build and return the LazyTensor object
-# obj <- list(formula = formula, args = args, vars = vars)
-# class(obj) <- "LazyTensor"
-# return(obj)
-
-
-# binaryop.LazyTensor <- function(x, y, opstr, is_operator=FALSE)
-# {
-#   if(is.numeric(x))
-#     x <- LazyTensor(x)
-#   
-#   # if y is a scalar and the operation is a specific operation
-#   # for instance we want : Pow(var0,2)
-#   op_specific <- list("Pow") 
-#   if(is.element(opstr, op_specific) && class(y) != "LazyTensor"){
-#     if(is_operator)
-#       formula <- paste(x$formula, opstr, y, sep="")
-#     # case when the operation is not an operator
-#     else 
-#       formula <- paste(opstr, "(", x$formula, ",", y, ")", sep="")
-#     vars <- c(x$vars, y) # TODO check if we need y$vars instead of y
-#     args <- c(x$args, y) # TODO check if we need y$args instead of y
-#   }
-#   # case with no specific operation 
-#   else{
-#     if(is.numeric(y))
-#       y <- LazyTensor(y)
-#     
-#     dec <- length(x$vars)
-#     yform <- y$formula
-#     # update list of variables and update indices in formula
-#     for(k in 1:length(y$vars))
-#     {
-#       str1 <- paste("var", k - 1, sep="")
-#       str2 <- paste("var", k - 1 + dec, sep="")
-#       yform <- gsub(str1, str2, yform, fixed = TRUE)
-#       y$args[k] <- gsub(str1, str2, y$args[k], fixed = TRUE)
-#     }
-#     # special formula for operator 
-#     if(is_operator)
-#       formula <- paste(x$formula, opstr, yform, sep="")
-#     else
-#       formula <- paste(opstr, "(", x$formula, ",", yform, ")", sep="")
-#     vars <- c(x$vars,y$vars)
-#     args <- c(x$args,y$args)
-#   }
-#   
-#   obj <- list(formula = formula, args=args, vars=vars)
-#   class(obj) <- "LazyTensor"
-#   return(obj)
-# }
 
 # Vi ---------------------------------------------------------------------------
 
@@ -1300,6 +1237,8 @@ fixvariables <- function(x){
 #' @export
 preprocess_reduction <- function(x, opstr, index, opt_arg = NA) {
   tag <- index_to_int(index)
+  
+  # Change the identifiers of every variables for the KeOps routine
   tmp <- fixvariables(x)
   args <- tmp$args
   

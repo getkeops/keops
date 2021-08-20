@@ -552,9 +552,9 @@ rsqrt.LazyTensor <- function(x) {
 #' **Note**
 #' 
 #' \itemize{
-#'     \item{if **y = 2**,}{ `x^y` relies on the `"Square"` KeOps operation;}
-#'     \item{if **y = 0.5**,}{ `x^y` uses on the `"Sqrt"` KeOps operation;}
-#'     \item{if **y = -0.5**,}{ `x^y` uses on the `"Rsqrt"` KeOps operation.}
+#'     \item{if **y = 2**,}{ `x^y` relies on the `"Square"` `KeOps` operation;}
+#'     \item{if **y = 0.5**,}{ `x^y` uses on the `"Sqrt"` `KeOps` operation;}
+#'     \item{if **y = -0.5**,}{ `x^y` uses on the `"Rsqrt"` `KeOps` operation.}
 #' }
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, 
