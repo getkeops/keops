@@ -95,7 +95,7 @@ z
 
 # Encode as a `ComplexLazyTensor`, indexed by 'i'
 z_i <- LazyTensor(z, index = 'i', is_complex = TRUE)
-z_i$vars
+z_i$data
 
 
 # Same idea with a vector of complex
@@ -104,7 +104,7 @@ v_z
 
 # Encode as a vector parameter `ComplexLazyTensor`
 Pm_v_z <- LazyTensor(v_z, is_complex = TRUE)
-Pm_v_z$vars
+Pm_v_z$data
 
 
 # Of course if you create a vector or a matrix of real values, and
@@ -114,7 +114,7 @@ Pm_v_z$vars
 v <- c(5, 4, 7, 9)
 
 Pm_v <- LazyTensor(v, is_complex = TRUE)
-Pm_v$vars
+Pm_v$data
 ```
 
 
@@ -387,12 +387,12 @@ Note that above are rudimentary examples, but this can become very handy when de
 
 ## The `IntCst` type
 
-When a single integer value `n` is encoded as a `LazyTensor`, its formula is simply `"IntCst(n)"`, which contains all the necessary information, and the `args` and `vars` attributes remain empty, to avoid useless storage.
+When a single integer value `n` is encoded as a `LazyTensor`, its formula is simply `"IntCst(n)"`, which contains all the necessary information, and the `args` and `data` attributes remain empty, to avoid useless storage.
 
 
 ## Duplicate items in expressions
 
-When the same `LazyTensor` variable, indexed the same way, is used several times in an expression, it will only appear once in the `args` and `vars` attributes, to avoid useless storage. Of course all its instances remain in the `formula` attribute.
+When the same `LazyTensor` variable, indexed the same way, is used several times in an expression, it will only appear once in the `args` and `data` attributes, to avoid useless storage. Of course all its instances remain in the `formula` attribute.
 
 
 
