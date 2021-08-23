@@ -39,20 +39,6 @@ def complete_aliases(formula, aliases):
     return aliases
 
 
-def parse_aliases(aliases):
-    categories, dimensions = [], []
-    for i, alias in enumerate(aliases):
-        varname, cat, dim, pos = get_type(alias)
-        if pos is not None and pos != i:
-            raise ValueError(
-                "This list of aliases is not ordered properly: " + str(aliases)
-            )
-        categories.append(cat)
-        dimensions.append(dim)
-
-    return tuple(categories), tuple(dimensions)
-
-
 def get_sizes(aliases, *args):
     nx, ny = None, None
     for (var_ind, sig) in enumerate(aliases):
@@ -138,26 +124,6 @@ def get_type(type_str, position_in_list=None):
         # output: varname,          cat          ,     dim        , pos
         return m.group(1), categories[m.group(2)], int(m.group(4)), pos
 
-
-def check_aliases_list(types_list):
-    aliases = []
-    for (i, t) in enumerate(types_list):
-        name, cat, dim, pos = get_type(t, position_in_list=i)
-        if name == None:
-            aliases.append("Var(" + str(pos) + "," + str(dim) + "," + str(cat) + ")")
-        else:
-            aliases.append(
-                name
-                + " = "
-                + list(categories.keys())[cat]
-                + "("
-                + str(pos)
-                + ","
-                + str(dim)
-                + ")"
-            )
-
-    return aliases
 
 
 def get_optional_flags(

@@ -1,0 +1,30 @@
+Checks: >-
+  bugprone-*,
+  cppcoreguidelines-slicing,
+  cppcoreguidelines-special-member-functions,
+  google-build-explicit-make-pair,
+  google-build-namespaces,
+  google-default-arguments,
+  google-global-names-in-headers,
+  google-readability-casting,
+  misc-*,
+  -misc-non-private-member-variables-in-classes,
+  -misc-unused-alias-decls,
+  llvm-*,
+  modernize-*,
+  -modernize-avoid-c-arrays,
+  -modernize-concat-nested-namespaces,
+  -modernize-raw-string-literal,
+  performance-*,
+  readability-*,
+  -readability-avoid-const-params-in-decls,
+  -readability-magic-numbers,
+
+CheckOptions:
+  - { key: readability-identifier-naming.ClassCase,     value: lower_case }
+  - { key: readability-identifier-naming.FunctionCase,  value: lower_case }
+  - { key: readability-identifier-naming.ParameterCase, value: lower_case }
+  - { key: readability-identifier-naming.StructCase,    value: lower_case }
+  - { key: readability-identifier-naming.VariableCase,  value: lower_case }
+
+WarningsAsErrors: '*'

@@ -1,0 +1,11 @@
+from keops.formulas.complex.ComplexSquareAbs import ComplexSquareAbs
+from keops.formulas.maths.Sqrt import Sqrt
+
+
+# /////////////////////////////////////////////////////////////////////////
+# ////      ComplexAbs                           ////
+# /////////////////////////////////////////////////////////////////////////
+
+
+def ComplexAbs(f):
+    return Sqrt(ComplexSquareAbs(f))
