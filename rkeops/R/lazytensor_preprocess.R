@@ -22,7 +22,7 @@
 #'         \item{**Vj(n)**:}{ vector indexed by **j** of dim **n**}
 #'         \item{**Pm(n)**:}{ fixed parameter of dim **n**}
 #'     }}
-#'     \item{**vars**:}{ A list of R matrices which will be the inputs of the 
+#'     \item{**data**:}{ A list of R matrices which will be the inputs of the 
 #'                       `KeOps` routine;}
 #'     \item{**dimres**:}{ An integer corresponding to the inner dimension of
 #'                        the `LazyTensor`. **dimres** is used when creating new
@@ -42,7 +42,7 @@
 #' 
 #' If `x` is an integer, `LazyTensor(x)` builds a `LazyTensor` whose
 #' formula is simply `IntCst(x)` and contains all the necessary information;
-#' `args` and `vars` remains empty, to avoid useless storage.
+#' `args` and `data` remains empty, to avoid useless storage.
 #' 
 #' **Alternatives**
 #' 
@@ -152,16 +152,16 @@ LazyTensor <- function(x, index = NA, is_complex = FALSE) {
   # created from same variables, and keep track of there index.
   var_name <- paste("A", address(x), index, sep = "")
   formula <- var_name
-  vars <- list(x)  # vars lists all actual matrices necessary to evaluate 
+  data <- list(x)  # data lists all actual matrices necessary to evaluate 
                    # the current formula, here only one.
   
   if(is_complex) {
     args <- str_c(var_name, "=", cat, "(", 2 * d, ")")
     
     # build ComplexLazyTensor
-    res <- list(formula = formula, args = args, vars = vars)
+    res <- list(formula = formula, args = args, data = data)
     
-    # format vars in a "complex" way
+    # format data in a "complex" way
     ReZ <- Re(x)
     ImZ <- Im(x)
     
@@ -191,12 +191,12 @@ LazyTensor <- function(x, index = NA, is_complex = FALSE) {
                                                   )
                              )
                       )
-      # Parameter LazyTensors have vector as vars (but apparently it
+      # Parameter LazyTensors have vector as data (but apparently it
       # doesn't matter is we leave it as a matrix...)
       # Uncomment below if needed.
       # ReImZ <- as.vector(ReImZ)
     }
-    res$vars[[1]] <- ReImZ
+    res$data[[1]] <- ReImZ
     
     # add ComplexLazyTensor class
     class(res) <- c("ComplexLazyTensor", "LazyTensor")
@@ -204,7 +204,7 @@ LazyTensor <- function(x, index = NA, is_complex = FALSE) {
   else {
     args <- str_c(var_name, "=", cat, "(", d, ")")
     # finally we build and return the LazyTensor object
-    res <- list(formula = formula, args = args, vars = vars)
+    res <- list(formula = formula, args = args, data = data)
     class(res) <- "LazyTensor"
   }
   
@@ -393,7 +393,7 @@ unaryop.LazyTensor <- function(x, opstr, opt_arg = NA, opt_arg2 = NA,
   else 
     formula <- paste(opstr, "(", x$formula, ")", sep = "")
   
-  res <- list(formula = formula, args = x$args, vars = x$vars)
+  res <- list(formula = formula, args = x$args, data = x$data)
   
   # result dimension
   res$dimres <- dim_res
@@ -479,7 +479,7 @@ binaryop.LazyTensor <- function(x, y, opstr, is_operator = FALSE,
   # init
   formula_x <- x$formula
   formula_y <- y$formula
-  vars <- c(x$vars, y$vars)
+  data <- c(x$data, y$data)
   args <- c(x$args, y$args)
   
   dimres_x <- x$dimres
@@ -546,9 +546,9 @@ binaryop.LazyTensor <- function(x, y, opstr, is_operator = FALSE,
     formula <- paste(opstr, "(", formula_x, ",", opt_arg$formula, ",",
                      formula_y, ")", sep = "")
   
-  res <- list(formula = formula, args = args, vars = vars, dimres = dim_res)
+  res <- list(formula = formula, args = args, data = data, dimres = dim_res)
   
-  # only remove duplicate vars if they have same index
+  # only remove duplicate data if they have same index
   pos_args <- c()
   if(length(res$args) > 1) {
     for(k in 1:(length(res$args)-1)) {
@@ -558,7 +558,7 @@ binaryop.LazyTensor <- function(x, y, opstr, is_operator = FALSE,
         }
     }
     
-    res$vars[pos_args] <- NULL
+    res$data[pos_args] <- NULL
   }
   res$args <- unique(res$args)
   
@@ -681,13 +681,13 @@ ternaryop.LazyTensor <- function(x, y, z, opstr, dim_check_type = "sameor1",
   formula <- paste(opstr, "(", x$formula, ",", y$formula, ",", 
                    z$formula, ")", sep = "")
   
-  vars <- c(x$vars, y$vars, z$vars)
+  data <- c(x$data, y$data, z$data)
   args <- c(x$args, y$args, z$args)
   dimres <- dim_res
   
-  res <- list(formula = formula, args = args, vars = vars, dimres = dimres)
+  res <- list(formula = formula, args = args, data = data, dimres = dimres)
   
-  # only remove duplicate vars if they have same index
+  # only remove duplicate data if they have same index
   pos_args <- c()
   if(length(res$args) > 1) {
     for(k in 1:(length(res$args)-1)) {
@@ -697,7 +697,7 @@ ternaryop.LazyTensor <- function(x, y, z, opstr, dim_check_type = "sameor1",
         }
     }
     
-    res$vars[pos_args] <- NULL
+    res$data[pos_args] <- NULL
   }
   res$args <- unique(res$args)
   

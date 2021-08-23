@@ -2843,9 +2843,9 @@ reduction.LazyTensor <- function(x, opstr, index, opt_arg = NA) {
     if(check_index(index)) {
         op <- preprocess_reduction(x, opstr, index, opt_arg)
         if(!any(is.na(opt_arg)) && is.LazyTensor(opt_arg))
-            res <- op(c(x$vars, opt_arg$vars))
+            res <- op(c(x$data, opt_arg$data))
         else {
-            res <- op(x$vars)
+            res <- op(x$data)
         }
     }
     
@@ -3967,7 +3967,7 @@ sumsoftmaxweight_reduction <- function(x, index, weight) {
 #' @param gradin A `LazyTensor`, a `ComplexLazyTensor` encoding a matrix of ones
 #' with an inner dimension equal to 1 and indexed by the 
 #' same index and with number of rows equal to 
-#' the number of rows of the first `x` variable (in `x$vars`).
+#' the number of rows of the first `x` variable (in `x$data`).
 #' @param opstr A `string` formula corresponding to a reduction 
 #' (like "Sum" or "Max").
 #' @param var An `integer` number indicating regarding to which 
@@ -4050,9 +4050,9 @@ grad <- function(f, gradin, opstr, var, index) {
     }
     
     # Verification for gradin shape
-    if(gradin$dimres != 1 || (nrow(gradin$vars[[1]]) != nrow(f$vars[[1]]))) {
+    if(gradin$dimres != 1 || (nrow(gradin$data[[1]]) != nrow(f$data[[1]]))) {
         stop(paste0("`gradin` input argument should be a LazyTensor encoding", 
-                    " a matrix of shape (", nrow(f$vars[[1]]), ",1)."))
+                    " a matrix of shape (", nrow(f$data[[1]]), ",1)."))
     }
     
     if(!check_index(index)) {
@@ -4063,7 +4063,7 @@ grad <- function(f, gradin, opstr, var, index) {
     op <- preprocess_reduction(f, opstr, index)
     
     grad_op <- keops_grad(op, var)
-    res <- grad_op(c(f$vars, gradin$vars))
+    res <- grad_op(c(f$data, gradin$data))
     return(res)
 }
 
