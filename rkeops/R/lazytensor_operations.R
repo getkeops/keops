@@ -228,7 +228,7 @@
 #' 
 #' `x` and `y` input arguments should have the same inner dimension or be of 
 #' dimension 1.
-#' @author Chloé Serre-Combe, Amélie Vernay
+#' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, 
 #' or a scalar value.
 #' @param y A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, 
