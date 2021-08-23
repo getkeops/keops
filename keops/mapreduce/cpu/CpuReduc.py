@@ -1,9 +1,8 @@
-from keops.mapreduce.MapReduce import MapReduce
-from keops.mapreduce.CpuAssignZero import CpuAssignZero
-from keops.utils.code_gen_utils import c_include
-
-from keops.compilation import Cpu_link_compile
 from keops import debug_ops
+from keops.binders.Cpu_link_compile import Cpu_link_compile
+from keops.mapreduce.cpu.CpuAssignZero import CpuAssignZero
+from keops.mapreduce.MapReduce import MapReduce
+from keops.utils.code_gen_utils import c_include
 
 
 class CpuReduc(MapReduce, Cpu_link_compile):

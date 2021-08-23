@@ -1,13 +1,10 @@
+from keops.binders.Gpu_link_compile import Gpu_link_compile
+from keops.mapreduce.gpu.GpuAssignZero import GpuAssignZero
 from keops.mapreduce.MapReduce import MapReduce
-from keops.mapreduce.GpuAssignZero import GpuAssignZero
 from keops.utils.code_gen_utils import (
     c_variable,
     c_array,
-    c_include,
-    signature_list,
-    call_list,
 )
-from keops.compilation import Gpu_link_compile
 
 
 class GpuReduc1D(MapReduce, Gpu_link_compile):
@@ -21,7 +18,6 @@ class GpuReduc1D(MapReduce, Gpu_link_compile):
         self.dimy = self.varloader.dimy
 
     def get_code(self):
-
         super().get_code()
 
         red_formula = self.red_formula
@@ -85,7 +81,7 @@ class GpuReduc1D(MapReduce, Gpu_link_compile):
                               {dtype} * yjrel = yj;
                               {sum_scheme.initialize_temporary_accumulator_block_init()}
                               for (int jrel = 0; (jrel < blockDim.x) && (jrel < ny - jstart); jrel++, yjrel += {varloader.dimy}) {{
-                                {red_formula.formula(fout,table)} // Call the function, which outputs results in fout
+                                {red_formula.formula(fout, table)} // Call the function, which outputs results in fout
                                 {sum_scheme.accumulate_result(acc, fout, jreltile)}
                               }}
                               {sum_scheme.final_operation(acc)}

@@ -1,15 +1,13 @@
 import os
 
-from keops.compilation import link_compile
+from keops.binders.link_compile import link_compile
 from keops.config import use_OpenMP, base_dir_path
 
 
 class Cpu_link_compile(link_compile):
 
     source_code_extension = "cpp"
-
     bindings_source_dir = base_dir_path + "compilation"
-
     compiler = "g++"
     compile_options = ["-shared", "-fPIC", "-O3", "-flto", "-I" + bindings_source_dir]
 

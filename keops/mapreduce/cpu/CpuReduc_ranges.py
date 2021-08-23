@@ -1,16 +1,16 @@
-from keops.mapreduce.MapReduce import MapReduce
-from keops.mapreduce.CpuAssignZero import CpuAssignZero
-from keops.utils.code_gen_utils import (
-    c_variable,
-    c_array,
-    c_include,
-)
-from keops.compilation import Cpu_link_compile
+from keops.binders.Cpu_link_compile import Cpu_link_compile
 from keops.binders.binders_definitions import binders_definitions
 from keops.broadcast_batch_dimensions import (
     define_fill_shapes_function,
     define_broadcast_index_function,
     define_vect_broadcast_index_function,
+)
+from keops.mapreduce.cpu.CpuAssignZero import CpuAssignZero
+from keops.mapreduce.MapReduce import MapReduce
+from keops.utils.code_gen_utils import (
+    c_variable,
+    c_array,
+    c_include,
 )
 
 
