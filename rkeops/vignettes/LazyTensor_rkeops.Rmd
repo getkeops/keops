@@ -76,7 +76,7 @@ a_j <- sum(K_ij, index = "i") # actual R matrix (in fact a row vector of
 
 ```
 
-You can see that the code is very "R and math friendly". All the available operations are listed in the [section operation](#operations).
+All the available operations are listed in the [section operation](#operations).
 
 ## LazyTensor
 
@@ -220,7 +220,6 @@ Here, `z` is a `ComplexLazyTensor`, and `x` is a `LazyTensor`. The result is a `
 | `Conj(z)`         | element-wise conjugate of `z`                                                  |
 | `real2complex(x)` | element-wise conversion of real to complex with zero imaginary part (`x + 0i`) |
 | `imag2complex(x)` | element-wise conversion of real to complex with zero real part (`0 + xi`)      |
-| `Conj(z)`         | element-wise conjugate of `z`                                                  |
 
 
 ### Simple vector operations
