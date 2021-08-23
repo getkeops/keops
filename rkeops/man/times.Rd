@@ -45,5 +45,5 @@ x_times_y <- x_i * y_j              # symbolic matrix
 }
 }
 \author{
-Chloé Serre-Combe, Amélie Vernay
+Chloe Serre-Combe, Amelie Vernay
 }

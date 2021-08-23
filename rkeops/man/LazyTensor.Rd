@@ -39,7 +39,7 @@ associated to the type of the argument:
 \item{\strong{Vj(n)}:}{ vector indexed by \strong{j} of dim \strong{n}}
 \item{\strong{Pm(n)}:}{ fixed parameter of dim \strong{n}}
 }}
-\item{\strong{vars}:}{ A list of R matrices which will be the inputs of the
+\item{\strong{data}:}{ A list of R matrices which will be the inputs of the
 \code{KeOps} routine;}
 \item{\strong{dimres}:}{ An integer corresponding to the inner dimension of
 the \code{LazyTensor}. \strong{dimres} is used when creating new
@@ -58,7 +58,7 @@ are build.
 
 If \code{x} is an integer, \code{LazyTensor(x)} builds a \code{LazyTensor} whose
 formula is simply \code{IntCst(x)} and contains all the necessary information;
-\code{args} and \code{vars} remains empty, to avoid useless storage.
+\code{args} and \code{data} remains empty, to avoid useless storage.
 
 \strong{Alternatives}
 

@@ -4,7 +4,7 @@
 \alias{fixvariables}
 \title{Fix variables.}
 \usage{
-fixvariables(x)
+fixvariables(x, is_opt = FALSE)
 }
 \arguments{
 \item{x}{A \code{LazyTensor} or a \code{ComplexLazyTensor}.}
@@ -29,13 +29,13 @@ x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x,
 y_j <- LazyTensor(y, index = 'j')   # creating LazyTensor from matrix y, 
                                     # indexed by 'j'                                   
 
-a <- x_i + y_j         # combination of LazyTensors with variable labels 
-                       # of the form "A0x.*"
+a <- x_i + y_j       # combination of LazyTensors with variable labels 
+                     # of the form "A0x.*"
 
-b <- fixvariables(a)   # combination of LazyTensors with variable labels 
-                       # of the form "V0" and "V1"
-b$formula              # gives "V0+V1"
-b$args                 # gives a list with "V0=Vi(3)" "V1=Vj(3)"
+b <- fixvariables(a) # combination of LazyTensors with variable labels 
+                     # of the form "V0" and "V1"
+b$formula            # returns "V0+V1"
+b$args               # returns a vector containing "V0=Vi(3)" and "V1=Vj(3)"
 }
 }
 \author{

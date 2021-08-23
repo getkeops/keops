@@ -4,26 +4,27 @@
 \alias{grad}
 \title{Gradient operation.}
 \usage{
-grad(x, gradin, opstr, var, index)
+grad(f, gradin, opstr, var, index)
 }
 \arguments{
-\item{x}{A \code{LazyTensor} or a \code{ComplexLazyTensor}.}
+\item{f}{A \code{LazyTensor} or a \code{ComplexLazyTensor}.}
 
 \item{gradin}{A \code{LazyTensor}, a \code{ComplexLazyTensor} encoding a matrix of ones
 with an inner dimension equal to 1 and indexed by the
 same index and with number of rows equal to
-the number of rows of the first \code{x} variable (in \code{x$vars}).}
+the number of rows of the first \code{x} variable (in \code{x$data}).}
 
 \item{opstr}{A \code{string} formula corresponding to a reduction
 (like "Sum" or "Max").}
 
-\item{var}{A text \code{string} or an \code{integer} number indicating regarding to which
+\item{var}{An \code{integer} number indicating regarding to which
 variable/parameter (given by name or by position index starting at 0) the
-gradient of the formula should be computed.}
+gradient of the formula should be computed or a one of the \code{LazyTensor}
+contained in \code{f}.}
 
 \item{index}{A \code{character} that should be either \strong{i} or \strong{j} to specify
 whether if the reduction is indexed by \strong{i} (rows), or \strong{j} (columns).
-When the first \code{x} variable is indexed by \strong{i} (resp. \strong{j}), index cannot
+When the first \code{f} variable is indexed by \strong{i} (resp. \strong{j}), index cannot
 be \strong{i} (resp. \strong{j}).}
 }
 \value{
@@ -33,9 +34,9 @@ A \code{matrix}.
 Gradient operation.
 }
 \details{
-\code{grad(x, gradin, opstr, var, index)} returns a \code{matrix} which
+\code{grad(f, gradin, opstr, var, index)} returns a \code{matrix} which
 corresponds to the gradient (more precisely, the adjoint of the differential
-operator) of \code{x} with respect to the variable \code{var} and applied to \code{gradin}
+operator) of \code{f} with respect to the variable \code{var} and applied to \code{gradin}
 with compiling the corresponding reduction operator of \code{opstr}.
 It has an additional integer input parameter \code{index} indicating if the inner
 dimension corresponds to columns, i.e. \code{index = 'j'} or rows, i.e.
