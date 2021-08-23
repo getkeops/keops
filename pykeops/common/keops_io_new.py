@@ -6,7 +6,7 @@ import numpy
 
 class LoadKeOps_new:
     def __init__(
-        self, formula, aliases, dtype, lang, optional_flags=[], include_dirs=[]
+            self, formula, aliases, dtype, lang, optional_flags=[], include_dirs=[]
     ):
         aliases_new = []
         for k, alias in enumerate(aliases):
@@ -34,15 +34,15 @@ class LoadKeOps_new:
         self.dtype = dtype
 
     def genred(
-        self,
-        tagCPUGPU,
-        tag1D2D,
-        tagHostDevice,
-        device_id_request,
-        ranges,
-        nx,
-        ny,
-        *args,
+            self,
+            tagCPUGPU,
+            tag1D2D,
+            tagHostDevice,
+            device_id_request,
+            ranges,
+            nx,
+            ny,
+            *args,
     ):
 
         if self.lang == "torch":
@@ -109,7 +109,7 @@ class LoadKeOps_new:
         elif "-DENABLECHUNK=0" in self.optional_flags:
             enable_chunks = 0
             self.optional_flags.remove("-DENABLECHUNK=0")
-        
+
         enable_final_chunks = -1
         if "-DENABLE_FINAL_CHUNKS=1" in self.optional_flags:
             enable_final_chunks = 1
@@ -117,7 +117,7 @@ class LoadKeOps_new:
         elif "-DENABLE_FINAL_CHUNKS=0" in self.optional_flags:
             enable_final_chunks = 0
             self.optional_flags.remove("-DENABLE_FINAL_CHUNKS=0")
-        
+
         mult_var_highdim = -1
         if "-DMULT_VAR_HIGHDIM=1" in self.optional_flags:
             mult_var_highdim = 1
@@ -125,9 +125,7 @@ class LoadKeOps_new:
         elif "-DMULT_VAR_HIGHDIM=0" in self.optional_flags:
             mult_var_highdim = 0
             self.optional_flags.remove("-DMULT_VAR_HIGHDIM=0")
-        
 
-        
         if self.optional_flags:
             print(
                 "[KeOps] warning : there are options not yet implemented in new KeOps engine, these options are deactivated."
@@ -146,9 +144,9 @@ class LoadKeOps_new:
             device_id_args = device_args["index"]
 
         if (
-            device_id_request != -1
-            and device_id_args != -1
-            and device_id_request != device_id_args
+                device_id_request != -1
+                and device_id_args != -1
+                and device_id_request != device_id_args
         ):
             raise ValueError("[KeOps] internal error : code needs some cleaning...")
 
@@ -163,7 +161,7 @@ class LoadKeOps_new:
         nbatchdims = max(len(arg.shape) for arg in args) - 2
         if nbatchdims > 0 or ranges:
             map_reduce_id += "_ranges"
-        
+
         myfun = get_keops_routine(
             map_reduce_id,
             self.red_formula_string,
@@ -211,9 +209,9 @@ class LoadKeOps_new:
         batchdims_shapes = np.array(batchdims_shapes)
         M = nx if myfun.tagI == 0 else ny
         if use_half:
-            M += M%2
+            M += M % 2
         shapeout = tuple(np.max(batchdims_shapes, axis=0)) + (M, myfun.dim)
-        
+
         out = tools.zeros(shapeout, dtype=dtype, device=device_args)
         outshape_ctype = (c_int * (len(out.shape) + 1))(
             *((len(out.shape),) + out.shape)

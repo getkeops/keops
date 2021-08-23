@@ -1,7 +1,7 @@
 from ctypes import create_string_buffer, c_char_p, c_int, CDLL, POINTER, c_void_p
 
-from keops.python_engine.utils.code_gen_utils import get_hash_name
-from keops.python_engine.get_keops_dll import get_keops_dll
+from keops.utils.code_gen_utils import get_hash_name
+from keops.get_keops_dll import get_keops_dll
 
 
 class create_or_load:
@@ -83,7 +83,7 @@ class get_keops_routine_class:
         elif c_dtype == "half2":
             launch_keops = self.dll.launch_keops_half
         else:
-            raise ValueError("dtype", dtype, "not yet implemented in new KeOps engine")
+            raise ValueError("dtype", c_dtype, "not yet implemented in new KeOps engine")
         launch_keops.argtypes = (
             [
                 c_char_p,  # ptx_file_name
