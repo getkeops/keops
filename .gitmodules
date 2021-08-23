@@ -1,9 +1,1 @@
-[submodule "keops/lib/gtest"]
-	path = keops/lib/gtest
-    url = https://github.com/google/googletest.git
-[submodule "keops/lib/benchmark"]
-	path = keops/lib/benchmark
-	url = https://github.com/google/benchmark.git
-[submodule "keops/lib/sequences"]
-	path = keops/lib/sequences
-	url = https://github.com/taocpp/sequences.git
+
