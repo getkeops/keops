@@ -1,27 +1,19 @@
+from keops import cuda_block_size, dimfinalchunk
+from keops.binders.Gpu_link_compile import Gpu_link_compile
+from keops.formulas.reductions.Sum_Reduction import Sum_Reduction
+from keops.formulas.reductions.sum_schemes import *
+from keops.mapreduce.gpu.GpuAssignZero import GpuAssignZero
 from keops.mapreduce.MapReduce import MapReduce
-from keops.mapreduce.GpuAssignZero import GpuAssignZero
 from keops.utils.code_gen_utils import (
-    c_variable,
-    c_array,
-    c_include,
-    signature_list,
-    call_list,
     load_vars,
     load_vars_chunks,
     sizeof,
     pointer,
-    table,
-    table4,
     Var_loader,
     use_pragma_unroll
 )
-from keops.formulas.reductions.sum_schemes import *
-from keops.formulas.reductions.Sum_Reduction import Sum_Reduction
-from keops.compilation import Gpu_link_compile
-from keops import cuda_block_size, dimfinalchunk
-from .Chunk_Mode_Constants import Chunk_Mode_Constants
 
-        
+
 def do_finalchunk_sub(dtype, varfinal, dimfinalchunk_curr,
                                 acc, i, j, jstart, chunk, nx, ny, arg, fout, yj, out):
                                     

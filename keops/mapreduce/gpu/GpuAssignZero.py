@@ -1,11 +1,9 @@
+from keops.binders.Gpu_link_compile import Gpu_link_compile
 from keops.mapreduce.MapReduce import MapReduce
 from keops.utils.code_gen_utils import (
     c_include,
-    signature_list,
     c_zero_float,
-    call_list,
 )
-from keops.compilation import Gpu_link_compile
 
 
 class GpuAssignZero(MapReduce, Gpu_link_compile):

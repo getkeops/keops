@@ -1,11 +1,9 @@
+from keops import cuda_block_size, dimchunk
+from keops.binders.Gpu_link_compile import Gpu_link_compile
+from keops.formulas.reductions.sum_schemes import *
+from keops.mapreduce.gpu.GpuAssignZero import GpuAssignZero
 from keops.mapreduce.MapReduce import MapReduce
-from keops.mapreduce.GpuAssignZero import GpuAssignZero
 from keops.utils.code_gen_utils import (
-    c_variable,
-    c_array,
-    c_include,
-    signature_list,
-    call_list,
     load_vars,
     load_vars_chunks,
     load_vars_chunks_offsets,
@@ -16,10 +14,7 @@ from keops.utils.code_gen_utils import (
     Var_loader,
     use_pragma_unroll
 )
-from keops.formulas.reductions.sum_schemes import *
-from keops.compilation import Gpu_link_compile
-from keops import cuda_block_size, dimchunk
-from .Chunk_Mode_Constants import Chunk_Mode_Constants
+from keops.mapreduce.Chunk_Mode_Constants import Chunk_Mode_Constants
 
 
 def do_chunk_sub_ranges(dtype, red_formula, fun_chunked_curr, dimchunk_curr,

@@ -5,9 +5,9 @@ from keops.config import build_path
 
 
 class link_compile:
-
-    # base class for compiling the map_reduce schemes and
-    # providing the dll to KeOps bindings.
+    """
+    Base class for compiling the map_reduce schemes and providing the dll to KeOps bindings.
+    """
 
     def __init__(self):
         # N.B. Here self is assumed to be populated by the __init__ of one of the MapReduce classes

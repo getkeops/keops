@@ -1,16 +1,13 @@
+from keops.binders.Gpu_link_compile import Gpu_link_compile
+from keops.formulas.reductions.sum_schemes import block_sum, kahan_scheme
+from keops.mapreduce.gpu.GpuAssignZero import GpuAssignZero
 from keops.mapreduce.MapReduce import MapReduce
-from keops.mapreduce.GpuAssignZero import GpuAssignZero
 from keops.utils.code_gen_utils import (
     c_variable,
     c_array,
-    c_include,
-    signature_list,
-    call_list,
-    pointer,
     use_pragma_unroll
 )
-from keops.compilation import Gpu_link_compile
-from keops.formulas.reductions.sum_schemes import block_sum, kahan_scheme
+
 
 class GpuReduc2D(MapReduce, Gpu_link_compile):
     # class for generating the final C++ code, Gpu version

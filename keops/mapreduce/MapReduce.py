@@ -1,15 +1,16 @@
+from keops.reductions import *
 from keops.utils.code_gen_utils import (
     Var_loader,
     new_c_varname,
     pointer,
     c_include
 )
-from keops.reductions import *
 
 
 class MapReduce:
-    # base class for map-reduce schemes
-
+    """
+    base class for map-reduce schemes
+    """
     def __init__(
         self,
         red_formula_string,
