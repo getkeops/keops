@@ -1292,6 +1292,39 @@ preprocess_reduction <- function(x, opstr, index, opt_arg = NA) {
 }
 
 
+# warning message for complex/real operations
+
+#' Warning for ComplexLazyTensor/LazyTensor operations.
+#' @keywords internal
+#' @description 
+#' Returns a warning message when binary operations are used with a
+#' `LazyTensor` and a `ComplexLazyTensor`. These operations might not work
+#' with the current rkeops version.
+#' 
+#' This function is only called in `real2complex.LazyTensor`, which is only
+#' used with binary operations involving a `LazyTensor` and
+#' a `ComplexLazyTensor`.
+#' 
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @return A warning message.
+#' @export
+cplx_warning <- function() {
+  message(paste("Warning message:\nOperations involving both LazyTensors and ",
+              "ComplexLazyTensors may not work with the actual rkeops version.",
+              "\nThis should be fixed in a future release.", sep = ""))
+}
+
+# cplx_warning <- function() {
+#   warning(paste("Operations involving both LazyTensors and ",
+#                 "ComplexLazyTensors may not work with the actual rkeops version.",
+#                 "\nThis should be fixed in a future release.", sep = ""),
+#           call. = FALSE,
+#           noBreaks. = TRUE)
+# }
+
+
+
+
 # fixvariables <- function(x){
 #   tmp <- x
 #   for(i in 1:length(tmp$args)) {

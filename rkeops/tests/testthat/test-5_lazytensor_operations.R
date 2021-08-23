@@ -1774,9 +1774,14 @@ test_that("real2complex", {
   expect_equal(bool_grep_formula, 1)
   expect_is(obj, "ComplexLazyTensor")
   
+  # errors
   expect_error(real2complex(xc_i), 
                "`real2complex` cannot be applied to a ComplexLazyTensor.",
                fixed = TRUE)
+  
+  # Should always produce a warning
+  expect_message(real2complex(x_i))
+  expect_message(real2complex(Pm(3)))
 
 })
 

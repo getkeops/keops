@@ -2080,6 +2080,7 @@ real2complex <- function(x) {
 #' @keywords internal
 #' @export
 real2complex.LazyTensor <- function(x) {
+    cplx_warning()
     res <- unaryop.LazyTensor(x, "Real2Complex", res_type = "ComplexLazyTensor")
 }
 
