@@ -1,4 +1,4 @@
-from keops.binders.Cpu_link_compile import Cpu_link_compile
+from keops.binders.cpp.Cpu_link_compile import Cpu_link_compile
 from keops.mapreduce.MapReduce import MapReduce
 from keops.utils.code_gen_utils import (
     c_include,

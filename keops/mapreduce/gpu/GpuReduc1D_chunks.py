@@ -1,5 +1,6 @@
-from keops import cuda_block_size, dimchunk
-from keops.binders.Gpu_link_compile import Gpu_link_compile
+from keops import cuda_block_size
+from keops.config.chunks import dimchunk
+from keops.binders.nvrtc.Gpu_link_compile import Gpu_link_compile
 from keops.formulas.reductions.sum_schemes import *
 from keops.mapreduce.gpu.GpuAssignZero import GpuAssignZero
 from keops.mapreduce.MapReduce import MapReduce

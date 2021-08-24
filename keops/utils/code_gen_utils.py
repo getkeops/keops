@@ -1,4 +1,7 @@
+import os
 from hashlib import sha256
+
+from keops.config.config import build_path, jit_binary
 
 
 def get_hash_name(*args):
@@ -716,7 +719,7 @@ def load_vars_chunks_offsets(inds, indsref, dim_chunk, dim_chunk_load, dim_org,
         string += "int a=0;\n"
         for u in range(len(inds)):
             l = indsref.index(inds[u])
-            string += {use_pragma_unroll()}
+            string += use_pragma_unroll()
             string += f"for(int v=0; v<{dim_chunk_load}; v++) {{\n"
             string += f"    {xloc.id}[a] = {args[inds[u]].id}[({row_index.id}+{offsets.id}[{l}])*{dim_org}+{k.id}*{dim_chunk}+v];\n"
             string += "     a++;\n"
@@ -744,3 +747,10 @@ def varseq_to_array(vars, vars_ptr_name):
         string += f"""  {vars_ptr_name}[{i}] = {vars[i].id};
                    """
     return string
+
+
+def clean_keops(delete_jit_binary=False):
+    for f in os.scandir(build_path):
+        if f.path != jit_binary or delete_jit_binary:
+            os.remove(f.path)
+    print(f"[KeOps] Folder {build_path} has been cleaned.")
