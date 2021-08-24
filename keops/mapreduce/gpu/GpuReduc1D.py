@@ -1,4 +1,4 @@
-from keops.binders.Gpu_link_compile import Gpu_link_compile
+from keops.binders.nvrtc.Gpu_link_compile import Gpu_link_compile
 from keops.mapreduce.gpu.GpuAssignZero import GpuAssignZero
 from keops.mapreduce.MapReduce import MapReduce
 from keops.utils.code_gen_utils import (

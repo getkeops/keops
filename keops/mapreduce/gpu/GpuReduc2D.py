@@ -1,4 +1,4 @@
-from keops.binders.Gpu_link_compile import Gpu_link_compile
+from keops.binders.nvrtc.Gpu_link_compile import Gpu_link_compile
 from keops.formulas.reductions.sum_schemes import block_sum, kahan_scheme
 from keops.mapreduce.gpu.GpuAssignZero import GpuAssignZero
 from keops.mapreduce.MapReduce import MapReduce

@@ -47,7 +47,10 @@ from keops.reductions import getReduction
 from keops.formulas.variables.Zero import Zero
 from keops.formulas.reductions import *
 from keops.mapreduce import *
-from keops import get_enable_chunk, set_enable_chunk, set_enable_finalchunk, use_final_chunks, set_mult_var_highdim, dimchunk, cuda_block_size
+from keops import cuda_block_size
+from keops.config.chunks import get_enable_chunk, set_enable_chunk, dimchunk, set_enable_finalchunk, use_final_chunks, \
+    set_mult_var_highdim
+
 
 def get_keops_dll(map_reduce_id, red_formula_string, enable_chunks, enable_finalchunks, mul_var_highdim, aliases, *args):
     

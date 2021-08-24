@@ -1,6 +1,8 @@
 from keops.formulas.Operation import Operation
 from keops.formulas.variables.Var import Var
-from keops import enable_chunk, dim_treshold_chunk, specdim_use_chunk1, specdim_use_chunk2, specdim_use_chunk3, specdim_use_chunk4
+from keops.config.chunks import enable_chunk, dim_treshold_chunk, specdim_use_chunk1, specdim_use_chunk2, \
+    specdim_use_chunk3, specdim_use_chunk4
+
 
 class Chunkable_Op(Operation):
     

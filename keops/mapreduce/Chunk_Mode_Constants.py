@@ -1,4 +1,4 @@
-from keops import dimchunk
+from keops.config.chunks import dimchunk
 from keops.utils.code_gen_utils import GetDims, GetInds, Var_loader
 
 class Chunk_Mode_Constants:

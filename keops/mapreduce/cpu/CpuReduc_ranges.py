@@ -1,4 +1,4 @@
-from keops.binders.Cpu_link_compile import Cpu_link_compile
+from keops.binders.cpp.Cpu_link_compile import Cpu_link_compile
 from keops.binders.binders_definitions import binders_definitions
 from keops.broadcast_batch_dimensions import (
     define_fill_shapes_function,
