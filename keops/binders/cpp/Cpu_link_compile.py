@@ -1,25 +1,12 @@
 import os
 
 from keops.binders.LinkCompile import LinkCompile
-from keops.config.config import use_OpenMP, base_dir_path, cxx_compiler
-from keops.config.config import bindings_source_dir
+from keops.config.config import cxx_compiler, cpp_flags
 
 class Cpu_link_compile(LinkCompile):
 
     source_code_extension = "cpp"
-    compiler = cxx_compiler
-    compile_options = ["-shared", "-fPIC", "-O3", "-flto", "-I" + bindings_source_dir]
-
-    if use_OpenMP:
-        import platform
-
-        if platform.system() == "Darwin":
-            pass
-            # compile_options += ["-Xclang -fopenmp", "-lomp"]
-            # warning : this is unsafe hack for OpenMP support on mac...
-            # os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
-        else:
-            compile_options += ["-fopenmp", "-fno-fat-lto-objects"]
+    lang = "cpp"
 
     def __init__(self):
         LinkCompile.__init__(self)
@@ -28,7 +15,7 @@ class Cpu_link_compile(LinkCompile):
         # dllname is the name of the binary dll obtained after compilation, e.g. 7b9a611f7e.so
         self.dllname = self.gencode_file + ".so"
         # compile command string to obtain the dll, e.g. "g++ 7b9a611f7e.cpp -shared -fPIC -O3 -flto -o 7b9a611f7e.so"
-        self.compile_command = f"{self.compiler} {' '.join(self.compile_options)} {self.gencode_file} -o {self.dllname}"
+        self.compile_command = f"{cxx_compiler} {cpp_flags} {self.gencode_file} -o {self.dllname}"
         # actual dll to be called
         self.true_dllname = self.dllname
         # file to check for existence to detect compilation is needed

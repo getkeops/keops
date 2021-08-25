@@ -1,5 +1,6 @@
 import os
 
+
 # System Path
 base_dir_path = os.path.dirname(os.path.realpath(__file__)) + os.path.sep + ".." + os.path.sep
 template_path = base_dir_path + "templates" + os.path.sep
@@ -10,9 +11,29 @@ cuda_path = [os.path.sep + os.path.join("opt", "cuda"),
 
 # Compiler
 cxx_compiler ="g++"
+compile_options = "-shared -fPIC -O3 "
+
+# cpp options
+use_OpenMP = True # flag for OpenMP support
+cpp_flags = compile_options + "-flto "
+
+if use_OpenMP:
+    import platform
+
+    if platform.system() == "Darwin":
+        pass
+        # cpp_flags += ["-Xclang -fopenmp", "-lomp"]
+        # warning : this is unsafe hack for OpenMP support on mac...
+        # os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
+    else:
+        cpp_flags += "-fopenmp -fno-fat-lto-objects"
+
+cpp_flags += " -I" + bindings_source_dir
 
 # nvrtc options
-nvrtc_flags = " -shared -fPIC -lcuda -lnvrtc -fpermissive "
+dependencies = ["cuda", "nvrtc"]
+
+nvrtc_flags = compile_options + "-fpermissive" + " -l" + " -l".join(dependencies)
 
 generate_cuda_path = lambda _cuda_path: "-L" + os.path.join(_cuda_path, "lib64") \
                        + " -L" + os.path.join(_cuda_path, "targets", "x86_64-linux", "lib") \
@@ -22,7 +43,4 @@ nvrtc_include = " ".join([generate_cuda_path(path) for path in cuda_path]) + " -
 jit_source_file = os.path.join(base_dir_path, "binders", "nvrtc", "keops_nvrtc.cpp")
 jit_binary = os.path.join(build_path, "keops_nvrtc.so")
 
-
-# flag for OpenMP support
-use_OpenMP = True
 

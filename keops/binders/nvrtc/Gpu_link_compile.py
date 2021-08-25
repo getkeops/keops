@@ -1,15 +1,16 @@
 import os
-from ctypes import create_string_buffer, CDLL, c_int, RTLD_GLOBAL
+from ctypes import create_string_buffer, CDLL, c_int
 from os import RTLD_LAZY
 
 from keops.binders.LinkCompile import LinkCompile
 from keops.config.config import build_path, jit_binary, cxx_compiler, nvrtc_flags, nvrtc_include, jit_source_file
-from keops.utils.gpu_utils import get_gpu_props
+from keops.utils.gpu_utils import get_gpu_props, cuda_available
 
 
 class Gpu_link_compile(LinkCompile):
     source_code_extension = "cu"
     low_level_code_extension = "ptx"
+    lang = "cuda"
 
     # these were used for command line compiling mode
     # compiler = "nvcc"
@@ -17,10 +18,10 @@ class Gpu_link_compile(LinkCompile):
 
     def __init__(self):
         # checking that the system has a Gpu :
-        use_cuda, self.gpu_props_compile_flags = get_gpu_props()
-        if not use_cuda:
+        _, self.gpu_props_compile_flags = get_gpu_props()
+        if not cuda_available:
             raise ValueError(
-                "[KeOps] Trying to execute Gpu computation but we detected that the system has no properly configured Gpu.")
+                "[KeOps] Trying to compile cuda code... but we detected that the system has no properly configured cuda lib.")
 
         # binary for JIT compiling.
         self.compile_jit_binary()
@@ -62,11 +63,6 @@ class Gpu_link_compile(LinkCompile):
     def compile_jit_binary(self):
         # Returns the path to the main KeOps binary (dll) that will be used to JIT compile all formulas.
         # If the dll is not present, it compiles it from source, except if check_compile is False.
-
-        # we load the main dll that must be run in order to compile the code
-        # CDLL("libnvrtc.so", mode=RTLD_GLOBAL)
-        # CDLL("libcuda.so", mode=RTLD_GLOBAL)
-        # CDLL("libcudart.so", mode=RTLD_GLOBAL)
 
         if not os.path.exists(jit_binary):
             print("[KeOps] Compiling main dll...", flush=True, end="")
