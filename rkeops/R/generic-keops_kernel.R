@@ -110,7 +110,7 @@
 #' res <- op(list(X, Y, beta, lambda))
 #' }
 #' @export
-keops_kernel <- function(formula, args, keops_grad_call = FALSE) {
+keops_kernel <- function(formula, args, keops_grad_call = FALSE, reduction_op = NA) {
 
     # check input
     if(!is.character(formula))
@@ -165,9 +165,10 @@ keops_kernel <- function(formula, args, keops_grad_call = FALSE) {
                     inner_dim=inner_dim,
                     keops_grad_call = keops_grad_call)
         
+        env$reduction_op <- reduction_op
+        
         if(missing(input) | is.null(input))
             return(env)
-        
         # check input type
         if(!is.list(input))
             stop(paste(
@@ -243,6 +244,20 @@ keops_kernel <- function(formula, args, keops_grad_call = FALSE) {
         param <- c(get_rkeops_options("runtime"),
                    list(inner_dim=inner_dim, nx=nx, ny=ny))
         out <- r_genred(input, param)
+        
+        ## Post-processing of the output for specific reduction operations
+        if(!is.na(reduction_op)) {
+            if(reduction_op == "LogSumExp") {
+                # finalize the log-sum-exp computation as m + log(s)
+                out <- out[1,] + log(out[2:nrow(out),])
+            }
+            if(reduction_op == "SumSoftMaxWeight") {
+                # we compute sum_j exp(f_ij) g_ij / sum_j exp(f_ij) 
+                # from sum_j exp(m_i-f_ij) [1,g_ij]
+                out <- out[3:nrow(out),] / out[2,]
+            }
+        }
+        
         ## transpose if necessary
         if(inner_dim) {
             return(t(out))
