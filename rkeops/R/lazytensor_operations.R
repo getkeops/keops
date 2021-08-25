@@ -3793,11 +3793,18 @@ Kmin_argKmin_reduction <- function(x, K, index) {
 #' }
 #' @export
 logsumexp <- function(x, index, weight = NA) {
-    if(check_index(index) && is.na(weight))
-        res <- reduction.LazyTensor(x, "Max_SumShiftExp", index)
-    else if(check_index(index) && !is.na(weight))
-        res <- reduction.LazyTensor(x, "Max_SumShiftExpWeight", 
-                                    index, opt_arg = weight)
+    if(check_index(index) && is.na(weight)) {
+        #res <- reduction.LazyTensor(x, "Max_SumShiftExp", index)
+        res <- reduction.LazyTensor(x, "LogSumExp", index)
+    }
+    else if(check_index(index) && !is.na(weight)) {
+        #res <- reduction.LazyTensor(x, "Max_SumShiftExpWeight", 
+        #                           index, opt_arg = weight)
+        #res <- reduction.LazyTensor(x, "LogSumExp", 
+        #                           index, opt_arg = weight)
+        stop(paste("`logsumexp` reduction is not yet supported with weights.",
+                   "\nThis should be fixed in a future release.", sep = ""))
+    }
     else
         stop("`index` input argument should be a character, either 'i' or 'j'.")
     return(res)
@@ -3848,7 +3855,7 @@ logsumexp_reduction <- function(x, index, weight = NA) {
 }
 
 
-# SumSoftMaxWeight --------------------------------------------------------------
+# SumSoftMaxWeight -------------------------------------------------------------
 
 #' Sum of weighted Soft-Max reduction.
 #' @description
@@ -3889,12 +3896,11 @@ logsumexp_reduction <- function(x, index, weight = NA) {
 #' }
 #' @export
 sumsoftmaxweight <- function(x, index, weight) {
-    #tmp_weight <- fixvariables(weight, is_opt = TRUE)
     tmp_weight <- concat(1, weight)
-    #formula2 <- paste("Concat(IntCst(1),", tmp_weight$formula, ")", sep = "")
-    if(check_index(index))
-        res <- reduction.LazyTensor(x, "Max_SumShiftExpWeight", 
+    if(check_index(index)) {
+        res <- reduction.LazyTensor(x, "SumSoftMaxWeight", 
                                     index, opt_arg = tmp_weight)
+    }
     else
         stop("`index` input argument should be a character, either 'i' or 'j'.")
     
