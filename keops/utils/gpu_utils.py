@@ -5,6 +5,19 @@ CUDA_SUCCESS = 0
 CU_DEVICE_ATTRIBUTE_MAX_THREADS_PER_BLOCK = 1
 CU_DEVICE_ATTRIBUTE_MAX_SHARED_MEMORY_PER_BLOCK = 8
 
+def find_cuda():
+    libnames = ("libcuda.so", "libcuda.dylib", "cuda.dll")
+    for libname in libnames:
+        try:
+            cuda = ctypes.CDLL(libname)
+        except OSError:
+            continue
+        else:
+            return True
+    else:
+        return False
+
+
 def get_gpu_props():
     """
     Return number of GPU by reading libcuda.

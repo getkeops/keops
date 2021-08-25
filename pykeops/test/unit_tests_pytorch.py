@@ -374,14 +374,13 @@ class PytorchUnitTestCase(unittest.TestCase):
         Kinv = KernelSolve(formula, aliases, "b", axis=1)
 
         c = Kinv(self.xc, self.xc, self.ac, self.sigmac, alpha=self.alphac)
-        c_ = torch.solve(
-            self.ac,
+        c_ = torch.linalg.solve(
             self.alphac * torch.eye(self.M, device=self.device)
             + torch.exp(
                 -torch.sum((self.xc[:, None, :] - self.xc[None, :, :]) ** 2, dim=2)
                 * self.sigmac
-            ),
-        )[0]
+            ), self.ac
+        )
 
         self.assertTrue(
             np.allclose(

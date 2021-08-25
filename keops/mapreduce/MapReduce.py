@@ -1,4 +1,5 @@
-from keops.reductions import *
+from keops.formulas.reductions import *
+from keops.formulas.GetReduction import GetReduction
 from keops.utils.code_gen_utils import (
     Var_loader,
     new_c_varname,
@@ -28,7 +29,7 @@ class MapReduce:
         self.red_formula_string = red_formula_string
         self.aliases = aliases
 
-        self.red_formula = getReduction(red_formula_string, aliases)
+        self.red_formula = GetReduction(red_formula_string, aliases)
 
         self.dtype = dtype
         self.dtypeacc = dtypeacc
