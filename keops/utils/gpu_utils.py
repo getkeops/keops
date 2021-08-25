@@ -1,21 +1,13 @@
 import ctypes
+from ctypes.util import find_library
+from keops.config.config import dependencies
 
 # Some constants taken from cuda.h
 CUDA_SUCCESS = 0
 CU_DEVICE_ATTRIBUTE_MAX_THREADS_PER_BLOCK = 1
 CU_DEVICE_ATTRIBUTE_MAX_SHARED_MEMORY_PER_BLOCK = 8
 
-def find_cuda():
-    libnames = ("libcuda.so", "libcuda.dylib", "cuda.dll")
-    for libname in libnames:
-        try:
-            cuda = ctypes.CDLL(libname)
-        except OSError:
-            continue
-        else:
-            return True
-    else:
-        return False
+cuda_available = all([find_library(lib) for lib in dependencies])
 
 
 def get_gpu_props():

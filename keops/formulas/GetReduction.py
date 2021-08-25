@@ -10,7 +10,7 @@ from keops.formulas.autodiff import *
 class GetReduction:
     library = {}
 
-    def __new__(self, red_formula_string, aliases=[]):
+    def __new__(self, red_formula_string, aliases=[], lang=None):
         aliases_dict = {}
         self.check_formula(red_formula_string)
 
