@@ -13,7 +13,7 @@ class Pow(VectorizedScalarOp):
 
     ScalarOpFun = keops_pow
 
-    def DiffT(self, v, gradin):
+    def DiffT(self, v, gradin): #TODO: Fix Pow!
         from keops.formulas.variables.IntCst import IntCst
         m = self.params[0]
         return IntCst(m)*Pow(f,m-1)

@@ -93,7 +93,7 @@ class Max_SumShiftExpWeight_Reduction(Reduction):
         // GRADIN = [Grad(L), Grad(L)/S ]
         // has been backpropagated from L.
         """
-        from keops.reductions import Grad
+        from keops.formulas.autodiff import Grad
 
         M = Extract(MS, 0, self.formulaF.dim)
         S = Extract(gradin, self.formulaF.dim, self.formulaG.dim)

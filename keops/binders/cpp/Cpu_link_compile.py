@@ -2,12 +2,11 @@ import os
 
 from keops.binders.LinkCompile import LinkCompile
 from keops.config.config import use_OpenMP, base_dir_path, cxx_compiler
-
+from keops.config.config import bindings_source_dir
 
 class Cpu_link_compile(LinkCompile):
 
     source_code_extension = "cpp"
-    bindings_source_dir = base_dir_path + "include"
     compiler = cxx_compiler
     compile_options = ["-shared", "-fPIC", "-O3", "-flto", "-I" + bindings_source_dir]
 

@@ -3,8 +3,8 @@ from ctypes import create_string_buffer, CDLL, c_int, RTLD_GLOBAL
 from os import RTLD_LAZY
 
 from keops.binders.LinkCompile import LinkCompile
-from keops.config.config import build_path, jit_binary
-from keops import use_cuda
+from keops.config.config import build_path, jit_binary, cxx_compiler, nvrtc_flags, nvrtc_include, jit_source_file
+from keops.utils.gpu_utils import get_gpu_props
 
 
 class Gpu_link_compile(LinkCompile):
@@ -17,9 +17,13 @@ class Gpu_link_compile(LinkCompile):
 
     def __init__(self):
         # checking that the system has a Gpu :
+        use_cuda, self.gpu_props_compile_flags = get_gpu_props()
         if not use_cuda:
             raise ValueError(
                 "[KeOps] Trying to execute Gpu computation but we detected that the system has no properly configured Gpu.")
+
+        # binary for JIT compiling.
+        self.compile_jit_binary()
 
         LinkCompile.__init__(self)
         # these are used for JIT compiling mode
@@ -31,10 +35,7 @@ class Gpu_link_compile(LinkCompile):
                 + "."
                 + self.low_level_code_extension
         ).encode("utf-8")
-        # we load the main dll that must be run in order to compile the code
-        CDLL("libnvrtc.so", mode=RTLD_GLOBAL)
-        CDLL("libcuda.so", mode=RTLD_GLOBAL)
-        CDLL("libcudart.so", mode=RTLD_GLOBAL)
+
         self.my_c_dll = CDLL(jit_binary, mode=RTLD_LAZY)
         # actual dll to be called is the jit binary
         self.true_dllname = jit_binary
@@ -57,3 +58,20 @@ class Gpu_link_compile(LinkCompile):
         # retreive some parameters that will be saved into info_file.
         self.tagI = self.red_formula.tagI
         self.dim = self.red_formula.dim
+
+    def compile_jit_binary(self):
+        # Returns the path to the main KeOps binary (dll) that will be used to JIT compile all formulas.
+        # If the dll is not present, it compiles it from source, except if check_compile is False.
+
+        # we load the main dll that must be run in order to compile the code
+        # CDLL("libnvrtc.so", mode=RTLD_GLOBAL)
+        # CDLL("libcuda.so", mode=RTLD_GLOBAL)
+        # CDLL("libcudart.so", mode=RTLD_GLOBAL)
+
+        if not os.path.exists(jit_binary):
+            print("[KeOps] Compiling main dll...", flush=True, end="")
+
+            jit_compile_command = f"{cxx_compiler} {nvrtc_flags} {nvrtc_include} {self.gpu_props_compile_flags} {jit_source_file} -o {jit_binary}"
+            os.system(jit_compile_command)
+
+            print("Done.", flush=True)

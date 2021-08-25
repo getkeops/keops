@@ -27,11 +27,6 @@ specdim_use_chunk4 = 114
 enable_final_chunk = True
 
 
-def get_enable_finalchunk():
-    global enable_finalchunk
-    return enable_finalchunk
-
-
 def set_enable_finalchunk(val):
     global enable_finalchunk
     if val == 1:

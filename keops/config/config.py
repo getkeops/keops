@@ -26,15 +26,3 @@ jit_binary = os.path.join(build_path, "keops_nvrtc.so")
 # flag for OpenMP support
 use_OpenMP = True
 
-def compile_jit_binary(gpu_props_compile_flags, check_compile=True):
-    # Returns the path to the main KeOps binary (dll) that will be used to JIT compile all formulas.
-    # If the dll is not present, it compiles it from source, except if check_compile is False.
-
-    if check_compile and not os.path.exists(jit_binary):
-        print("[KeOps] Compiling main dll...", flush=True, end="")
-
-        jit_compile_command = f"{cxx_compiler} {nvrtc_flags} {nvrtc_include} {gpu_props_compile_flags} {jit_source_file} -o {jit_binary}"
-        os.system(jit_compile_command)
-
-        print("Done.", flush=True)
-    return jit_binary

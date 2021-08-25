@@ -10,7 +10,7 @@
   // CUDA_BLOCK_SIZE gives an upper bound on size of the size of Cuda blocks
   // The actual block size may be lower due to memory limitations, depending on the formula used
 #ifndef CUDA_BLOCK_SIZE
-#define CUDA_BLOCK_SIZE 192
+    #define CUDA_BLOCK_SIZE 192
 #endif
   // Here we define the maximum number of threads per block and the shared memory per block
   // These values can depend on the Gpu, although in fact values 1024 and 49152 respectively
@@ -21,18 +21,19 @@
   // for each device, or MAXIDGPU is not defined, and we will use global MAXTHREADSPERBLOCK and SHAREDMEMPERBLOCK
 #ifndef MAXIDGPU
     // we give default values
-#ifndef MAXTHREADSPERBLOCK
-#define MAXTHREADSPERBLOCK 1024
-#endif
-#ifndef SHAREDMEMPERBLOCK
-#define SHAREDMEMPERBLOCK 49152
-#endif
+    #ifndef MAXTHREADSPERBLOCK
+        #define MAXTHREADSPERBLOCK 1024
+    #endif
+    #ifndef SHAREDMEMPERBLOCK
+        #define SHAREDMEMPERBLOCK 49152
+    #endif
 #endif
 
 // global variables maxThreadsPerBlock and sharedMemPerBlock may depend on the device, so we will set them at each call using
 // predefined MAXTHREADSPERBLOCK0, SHAREDMEMPERBLOCK0, MAXTHREADSPERBLOCK1, SHAREDMEMPERBLOCK1, etc.
 // through the function SetGpuProps
 int maxThreadsPerBlock, sharedMemPerBlock;
+
 #define SET_GPU_PROPS_MACRO(n) \
     if(device == n) { \
       maxThreadsPerBlock = MAXTHREADSPERBLOCK ## n; \

@@ -41,16 +41,18 @@ It can be used as a Python function or as a standalone Python script (in which c
   - example (as Python script) :
       python get_keops_dll.py CpuReduc "Sum_Reduction((Exp(Minus(Sum(Square((Var(0,3,0) / Var(1,3,1)))))) * Var(2,1,1)),0)" 0 0 0 "[]" 3 float float block_sum 0 0 0 0 0
 """
-import sys
-from keops.formulas import *
-from keops.reductions import getReduction
+import sys, inspect
+
+from keops.formulas import Zero_Reduction, Sum_Reduction
+from keops.formulas.GetReduction import GetReduction
 from keops.formulas.variables.Zero import Zero
-from keops.formulas.reductions import *
-from keops.mapreduce import *
+import keops.mapreduce
 from keops import cuda_block_size
 from keops.config.chunks import get_enable_chunk, set_enable_chunk, dimchunk, set_enable_finalchunk, use_final_chunks, \
     set_mult_var_highdim
 
+# Get every classes in mapreduce
+map_reduce = dict(inspect.getmembers(keops.mapreduce, inspect.isclass))
 
 def get_keops_dll(map_reduce_id, red_formula_string, enable_chunks, enable_finalchunks, mul_var_highdim, aliases, *args):
     
@@ -64,20 +66,19 @@ def get_keops_dll(map_reduce_id, red_formula_string, enable_chunks, enable_final
             use_chunk_mode = 2
             map_reduce_id += '_finalchunks'
         elif get_enable_chunk():
-            red_formula = getReduction(red_formula_string, aliases)
+            red_formula = GetReduction(red_formula_string, aliases)
             if len(red_formula.formula.chunked_formulas(dimchunk))==1:
                 use_chunk_mode = 1
                 map_reduce_id += '_chunks'
-    
-    map_reduce_class = eval(map_reduce_id)
+
+    # Instantioation of
+    map_reduce_class = map_reduce[map_reduce_id]
     
     map_reduce_obj = map_reduce_class(red_formula_string, aliases, *args)
 
     # detecting the case of formula being equal to zero, to bypass reduction.
     rf = map_reduce_obj.red_formula
-    if isinstance(rf, Zero_Reduction) or (
-        isinstance(rf.formula, Zero) and isinstance(rf, Sum_Reduction)
-    ):
+    if isinstance(rf, Zero_Reduction) or (isinstance(rf.formula, Zero) and isinstance(rf, Sum_Reduction)):
         map_reduce_obj = map_reduce_class.AssignZero(red_formula_string, aliases, *args)
         tagZero = 1
     else:

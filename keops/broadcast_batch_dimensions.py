@@ -1,4 +1,4 @@
-from keops.utils.code_gen_utils import *
+from keops.utils.code_gen_utils import Var_loader
 
 
 def define_broadcast_index_function():

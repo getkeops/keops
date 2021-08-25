@@ -40,6 +40,6 @@ class Sum_Reduction(Reduction):
         )
 
     def DiffT(self, v, gradin, f0=None):
-        from keops.reductions import Grad
+        from keops.formulas.autodiff import Grad
 
         return Sum_Reduction(Grad(self.formula, v, gradin), v.cat % 2)
