@@ -12,6 +12,7 @@ cuda_path = [os.path.sep + os.path.join("opt", "cuda"),
 # Compiler
 cxx_compiler ="g++"
 compile_options = "-shared -fPIC -O3 "
+use_cuda = 0
 
 # cpp options
 use_OpenMP = True # flag for OpenMP support

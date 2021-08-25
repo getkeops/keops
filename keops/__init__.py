@@ -9,5 +9,3 @@ os.makedirs(build_path, exist_ok=True)
 debug_ops = False
 
 cuda_block_size = 192
-
-use_cuda = 1

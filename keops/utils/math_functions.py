@@ -3,8 +3,8 @@ from keops.utils.code_gen_utils import (
     new_c_varname,
     c_variable,
 )
-from keops import use_cuda
 
+import keops.config.config
 
 def math_function(cpu_code, gpu_code=None, gpu_half2_code=None, void=False):
     if gpu_code is None:
@@ -28,7 +28,7 @@ def math_function(cpu_code, gpu_code=None, gpu_half2_code=None, void=False):
         dtype = args[0].dtype
         if dtype == "half2":
             code_fun = convert_to_fun(gpu_half2_code)
-        elif use_cuda:
+        elif keops.config.config.use_cuda:
             code_fun = convert_to_fun(gpu_code)
         else:
             code_fun = convert_to_fun(cpu_code)
