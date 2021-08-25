@@ -3146,8 +3146,8 @@ test_that("Kmin_argKmin_reduction", {
 
 
 test_that("logsumexp", {
-  x <- matrix(c(1., 2., 3.), 2, 3)
-  y <- matrix(c(3., 4., 5.), 2, 3)
+  x <- matrix(c(2.5, 1.5, 3.5), 2, 3)
+  y <- matrix(c(3., 0.6, 5.), 2, 3)
   w <- matrix(c(1., 1., 1.), 2, 3)
   x_i <- LazyTensor(x, index = 'i')
   y_j <- LazyTensor(y, index = 'j')
@@ -3155,12 +3155,17 @@ test_that("logsumexp", {
   
   V_ij <- x_i - y_j
   S_ij <- sum(V_ij^2)
+  
   # check formulas, args & classes
   res <- logsumexp(sum(V_ij), 'i', w_j)
   expect_false(is.LazyTensor(res))
   expect_true(is.matrix(res))
   
   res <- logsumexp(S_ij, 'j', w_j)
+  
+  res <- logsumexp(sum(V_ij), "i")
+  
+  # TODO expected_res with R 
   
   res <- logsumexp(S_ij, 'i')
   expect_false(is.LazyTensor(res))
@@ -3178,7 +3183,6 @@ test_that("logsumexp", {
   )
   
 })
-
 
 test_that("logsumexp_reduction", {
   x <- matrix(runif(150 * 3), 150, 3) 
