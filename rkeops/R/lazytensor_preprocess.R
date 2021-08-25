@@ -1259,40 +1259,66 @@ preprocess_reduction <- function(x, opstr, index, opt_arg = NA) {
   # Change the identifiers of every variables for the KeOps routine
   tmp <- fixvariables(x)
   args <- tmp$args
+  # change internal reduction operation if needed
+  opstr_internal <- fix_op_reduction(opstr, !is.na(opt_arg))
   
   if(!any(is.na(opt_arg))) {
     if(is.LazyTensor(opt_arg)) {
       tmp_opt <- fixvariables(opt_arg, is_opt = TRUE)
       # put `opt_arg$formula` at the end of the formula
-      formula <- paste(opstr,  "_Reduction(",  tmp$formula, 
+      formula <- paste(opstr_internal,  "_Reduction(",  tmp$formula, 
                         ",",  tag, ",", tmp_opt$formula, ")", sep = "")
       args <- c(tmp$args, tmp_opt$args)
     }
     
     else if(is.int(opt_arg)) {
       # put `opt_arg` in the middle of the formula
-      formula <- paste( opstr,  "_Reduction(",  tmp$formula, 
+      formula <- paste(opstr_internal,  "_Reduction(",  tmp$formula, 
                         ",",  opt_arg, ",", tag, ")", sep = "")
     }
     
-    # else if(is.character(opt_arg)) {
-    #   # put `opt_arg` at the end of the formula
-    #   formula <- paste( opstr,  "_Reduction(",  tmp$formula, 
-    #                     ",",  tag, ",", opt_arg, ")", sep = "")
-    # }
-    
   }
   else {
-    formula <- paste(opstr, "_Reduction(", tmp$formula, ",", 
+    formula <- paste(opstr_internal, "_Reduction(", tmp$formula, ",", 
                      tag, ")", sep = "")
   }
   
-  op <- keops_kernel(formula, args)
+  op <- keops_kernel(formula, args, reduction_op = opstr)
   return(op)
 }
 
+#' Fix internal reduction operation.
+#' @keywords internal
+#' @description
+#' 
+#' @details 
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @param 
+#' @return
+#' @export
+fix_op_reduction <- function(reduction_op, with_weight = FALSE){
+  if(reduction_op == "SumSoftMaxWeight") {
+    reduction_op_internal = "Max_SumShiftExpWeight"
+  }
+  else if(reduction_op == "LogSumExp") {
+    # LogSumExp relies also on Max_SumShiftExp or Max_SumShiftExpWeight reductions,
+    # with a custom finalize
+    if(with_weight){
+      # here we want to compute a log-sum-exp with weights: log(sum_j(exp(f_ij)g_ij))
+      reduction_op_internal = "Max_SumShiftExpWeight"
+    } else {
+      # here we want to compute a usual log-sum-exp: log(sum_j(exp(f_ij)))
+      reduction_op_internal = "Max_SumShiftExp"
+    }
+   
+  }
+  else {
+    reduction_op_internal = reduction_op
+  }
+  return(reduction_op_internal)
+}
 
-# warning message for complex/real operations
+
 
 #' Warning for ComplexLazyTensor/LazyTensor operations.
 #' @keywords internal
