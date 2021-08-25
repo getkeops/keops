@@ -6,7 +6,6 @@ from keops.config.config import cxx_compiler, cpp_flags
 class Cpu_link_compile(LinkCompile):
 
     source_code_extension = "cpp"
-    lang = "cpp"
 
     def __init__(self):
         LinkCompile.__init__(self)

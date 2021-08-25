@@ -10,7 +10,6 @@ from keops.utils.gpu_utils import get_gpu_props, cuda_available
 class Gpu_link_compile(LinkCompile):
     source_code_extension = "cu"
     low_level_code_extension = "ptx"
-    lang = "cuda"
 
     # these were used for command line compiling mode
     # compiler = "nvcc"

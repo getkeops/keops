@@ -50,6 +50,7 @@ import keops.mapreduce
 from keops import cuda_block_size
 from keops.config.chunks import get_enable_chunk, set_enable_chunk, dimchunk, set_enable_finalchunk, use_final_chunks, \
     set_mult_var_highdim
+import keops.config.config
 
 # Get every classes in mapreduce
 map_reduce = dict(inspect.getmembers(keops.mapreduce, inspect.isclass))
@@ -59,6 +60,7 @@ def get_keops_dll(map_reduce_id, red_formula_string, enable_chunks, enable_final
     # detecting the need for special chunked computation modes :
     use_chunk_mode = 0
     if "Gpu" in map_reduce_id:
+        keops.config.config.use_cuda = 1
         set_enable_chunk(enable_chunks)
         set_enable_finalchunk(enable_finalchunks)
         set_mult_var_highdim(mul_var_highdim)

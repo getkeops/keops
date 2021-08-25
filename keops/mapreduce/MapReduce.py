@@ -29,7 +29,7 @@ class MapReduce:
         self.red_formula_string = red_formula_string
         self.aliases = aliases
 
-        self.red_formula = GetReduction(red_formula_string, aliases=aliases, lang=self.lang)
+        self.red_formula = GetReduction(red_formula_string, aliases=aliases)
 
         self.dtype = dtype
         self.dtypeacc = dtypeacc
