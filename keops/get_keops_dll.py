@@ -55,8 +55,9 @@ import keops.config.config
 # Get every classes in mapreduce
 map_reduce = dict(inspect.getmembers(keops.mapreduce, inspect.isclass))
 
-def get_keops_dll(map_reduce_id, red_formula_string, enable_chunks, enable_finalchunks, mul_var_highdim, aliases, *args):
-    
+
+def get_keops_dll(map_reduce_id, red_formula_string, enable_chunks, enable_finalchunks, mul_var_highdim, aliases,
+                  *args):
     # detecting the need for special chunked computation modes :
     use_chunk_mode = 0
     if "Gpu" in map_reduce_id:
@@ -69,13 +70,15 @@ def get_keops_dll(map_reduce_id, red_formula_string, enable_chunks, enable_final
             map_reduce_id += '_finalchunks'
         elif get_enable_chunk():
             red_formula = GetReduction(red_formula_string, aliases)
-            if len(red_formula.formula.chunked_formulas(dimchunk))==1:
+            if len(red_formula.formula.chunked_formulas(dimchunk)) == 1:
                 use_chunk_mode = 1
                 map_reduce_id += '_chunks'
+    else:
+        keops.config.config.use_cuda = 0
 
     # Instantioation of
     map_reduce_class = map_reduce[map_reduce_id]
-    
+
     map_reduce_obj = map_reduce_class(red_formula_string, aliases, *args)
 
     # detecting the case of formula being equal to zero, to bypass reduction.
@@ -140,10 +143,10 @@ if __name__ == "__main__":
         argval = argv[k] if argtype == str else eval(argv[k])
         if not isinstance(argval, argtype):
             raise ValueError(
-                f"Invalid call to Python script {sys.argv[0]}. Argument number {k+1} ({key}) should be of type {argtype} but is of type {type(argval)}"
+                f"Invalid call to Python script {sys.argv[0]}. Argument number {k + 1} ({key}) should be of type {argtype} but is of type {type(argval)}"
             )
         argdict[key] = argval
-    
+
     res = get_keops_dll(argdict["map_reduce_id"], *list(argdict.values())[1:])
     for item in res:
         print(item)
