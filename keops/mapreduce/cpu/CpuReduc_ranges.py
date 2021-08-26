@@ -74,8 +74,8 @@ class CpuReduc_ranges(MapReduce, Cpu_link_compile):
                         #define __INDEX__ int32_t
                   
                         {binders_definitions(dtype, red_formula, varloader)}
-                        #include "Sizes.h"
-                        #include "Ranges.h"
+                        #include "Sizes_no_template.h"
+                        #include "Ranges_no_template.h"
                         
                         {define_fill_shapes_function(red_formula)}
                         {define_broadcast_index_function()}
@@ -222,11 +222,15 @@ class CpuReduc_ranges(MapReduce, Cpu_link_compile):
                         for (int i=0; i<nargs; i++)
                             argshape[i] = va_arg(ap, int*);
                         va_end(ap);
-
+                        
+                        Sizes SS(nargs, arg, argshape, nx, ny);
+                        
+                        /* To be used with the Size.h (templated version)
                         Sizes SS(nargs, arg, argshape, nx, ny,
                                  tagI, use_half, dimout,
                                  indsi, indsj, indsp,
                                  dimsx, dimsy, dimsp);
+                        */
                         
                         if (use_half)
                           SS.switch_to_half2_indexing();
