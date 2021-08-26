@@ -3167,6 +3167,20 @@ test_that("logsumexp", {
   
   # TODO expected_res with R 
   
+  # expected_V <- matrix(c(x[1,] - y[1,] + x[1,] - y[2,],
+  #                        x[2,] - y[1,] + x[2,] - y[2,]), 2, 3, byrow = TRUE)
+  # 
+  # expected_res <- sapply(1:2, function(i) {
+  #   tmp <- sapply(1:2, function(j) {
+  #     m <- max(sum(expected_V[,i]))
+  #     s <- exp(sum(expected_V[j,]) - m)
+  #     return(c(m, s))
+  #   })
+  #   return(apply(tmp,1,sum))
+  # })
+  # 
+  # out_res <- expected_res[1,] + log(expected_res[2:nrow(expected_res),])
+  
   res <- logsumexp(S_ij, 'i')
   expect_false(is.LazyTensor(res))
   expect_true(is.matrix(res))
@@ -3213,13 +3227,23 @@ test_that("logsumexp_reduction", {
 
 
 test_that("sumsoftmaxweight", {
-  x <- matrix(runif(150 * 3), 150, 3)
+  x <- matrix(c(2.5, 1.5, 3.5, .5, 2., 4.7), 2, 3)
+  y <- matrix(c(2., 6., 9., 3., 0.6, 5.), 2, 3)
+  w <- matrix(c(1., 1., 1.), 2, 3)
+  
   x_i <- LazyTensor(x, index = 'i') 
-  y <- matrix(runif(100 * 3), 100, 3)
   y_j <- LazyTensor(y, index = 'j')
+  w_j <- LazyTensor(w, index = 'j')
   
   V_ij <- x_i - y_j
   S_ij <- sum(V_ij^2)
+  
+  # with weights equal to 1
+  res <- sumsoftmaxweight(S_ij, 'i', w_j)
+  expected_res <- w
+  expect_true(any(abs(res - expected_res) < 1E-2))
+  
+  # TODO expected_res with R  
   
   # check formulas, args & classes
   res <- sumsoftmaxweight(S_ij, 'i', V_ij)
