@@ -17,8 +17,8 @@ class Gpu_link_compile(LinkCompile):
 
     def __init__(self):
         # checking that the system has a Gpu :
-        _, self.gpu_props_compile_flags = get_gpu_props()
-        if not cuda_available:
+        ngpu, self.gpu_props_compile_flags = get_gpu_props()
+        if not (cuda_available and ngpu):
             raise ValueError(
                 "[KeOps] Trying to compile cuda code... but we detected that the system has no properly configured cuda lib.")
 
