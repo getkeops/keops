@@ -1,0 +1,135 @@
+---
+title: "Kernel Interpolation with RKeOps"
+output: 
+  rmarkdown::html_vignette:
+    toc: true
+  pdf_document:
+    toc: true
+    number_sections: yes
+author: ""
+date: "`r Sys.Date()`"
+vignette: >
+  %\VignetteEncoding{UTF-8}
+  %\VignetteIndexEntry{RKeOps LazyTensor}
+  %\VignetteEngine{knitr::rmarkdown}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  progress = TRUE,
+  warning = FALSE
+)
+```
+
+```{r library, eval=FALSE}
+library(rkeops)
+```
+
+
+This tutorial is highly inspired by the [pyKeOps tutorial on kernel interpolation](https://www.kernel-operations.io/keops/_auto_tutorials/interpolation/plot_RBF_interpolation_numpy.html#sphx-glr-auto-tutorials-interpolation-plot-rbf-interpolation-numpy-py).
+
+The goal here is to solve a ...
+
+```{r setup}
+set_rkeops_option("precision", "double")
+```
+
+
+```{r data}
+N <- 1000
+
+x <- matrix(runif(N * 1), N, 1)
+pert <- matrix(runif(N * 1), N, 1) # random perturbation to create b
+
+# Some random-ish 1D signal:
+b <- x + 0.5 * sin(6 * x) + 0.1 * sin(20 * x) + 0.05 * pert
+```
+
+```{r gaussian_kernel}
+gaussian_kernel <- function(x, y, sigma = 0.1) {
+    x_i <- Vi(x) # symbolic 'i'-indexed matrix
+    y_j <- Vj(y) # symbolic 'j'-indexed matrix
+    D_ij <- sum((x_i - y_j)^2) # symbolic matrix of squared distances
+    res <- exp(-D_ij / (2 * sigma^2)) # symbolic Gaussian kernel matrix
+    return(res)
+}
+```
+
+```{r CGS}
+CG_solve <- function(K, b, lambda, eps = 1e-6) {
+    # ----------------------------------------------------------------
+    # Conjugate gradient algorithm to solve linear systems of the form
+    # (K + lambda * Id) * a = b.
+    #
+    # K: a LazyTensor encoding a symmetric positive definite matrix
+    #       (the spectrum of the matrix must not contain zero)
+    # b: a vector corresponding to the second member of the equation
+    # lambda: Non-negative ridge regularization parameter
+    #       (lambda = 0 means no regularization)
+    # eps (default=1e-6): precision parameter
+    # ----------------------------------------------------------------
+    # TODO add print execution time
+    delta <- length(b) * eps^2
+    a <- 0
+    r <- b
+    nr2 <- sum(r^2) # t(r)*r (L2-norm)
+    if(nr2 < delta) {
+        return(0 * r)
+    }
+    p <- r
+    k <- 0
+    while (TRUE) {
+      #Mp <- K %*% p
+      Mp <- K %*% p + lambda * p
+      alp <- nr2 / sum(p * Mp)
+      a <- a + (alp * p)
+      r <- r - (alp * Mp)
+      nr2new <- sum(r^2)
+      if (nr2new < delta) {
+          break
+      }
+      p <- r + (nr2new / nr2) * p
+      nr2 <- nr2new
+      k <- k + 1
+    }
+    return(a) # should be such that K%*%a + lambda * Id * a = b (eps close) 
+}
+```
+
+
+```{r call}
+K_xx <- gaussian_kernel(x, x)
+
+lambda <- 1
+
+start <- Sys.time()
+a <- CG_solve(K_xx, b, lambda = lambda)
+end <- Sys.time()
+time <- as.numeric(end - start)
+
+is_it_b <- (K_xx %*% a) + lambda * a
+is_it_b - b # should (almost) be a zero vector
+```
+
+
+```{r plot}
+t <- as.matrix(seq(from = 0, to = 1, length.out = N))
+
+K_tx <- gaussian_kernel(t, x)
+mean_t <- K_tx %*% a
+
+D <- as.data.frame(cbind(x, b, t, mean_t))
+colnames(D) <- c("x", "b", "t", "mean_t")
+
+ggplot(aes(x = x, y = b), data = D) +  
+    geom_point(color = '#1193a8', alpha = 0.5) +
+    geom_line(aes(x = t, y = mean_t), color = 'darkred') +
+    theme_bw()
+```
+
+
+
+
+
+
