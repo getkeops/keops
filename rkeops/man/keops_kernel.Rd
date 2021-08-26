@@ -4,7 +4,7 @@
 \alias{keops_kernel}
 \title{Define a new operator}
 \usage{
-keops_kernel(formula, args, keops_grad_call = FALSE)
+keops_kernel(formula, args, keops_grad_call = FALSE, reduction_op = NA)
 }
 \arguments{
 \item{formula}{text string, an operator formula (see Details).}
@@ -13,6 +13,8 @@ keops_kernel(formula, args, keops_grad_call = FALSE)
 
 \item{keops_grad_call}{boolean, for internal use only, do not modify this
 input value.}
+
+\item{reduction_op}{text string, a reduction operation (see Details).}
 }
 \value{
 a function that can be used to compute the value of the formula
@@ -41,6 +43,11 @@ list defining the input arguments of your formula.
 The function \code{keops_kernel} compiles and imports a new operator that
 implements the formula given in input, it returns a function that can be
 used to compute the result of the formula on actual data.
+
+Some advance reduction operations, given in \code{keops_kernel} optional
+\code{reduction_op} argument, need a post-processing in the returned function
+output. It is useful for the cases with log-sum-exp and sum-soft-max in
+\code{LazyTensors} operations.
 
 The returned function expects a list of arguments, as data matrices, whose
 order corresponds to the order given in \code{args} to \code{keops_kernel}.
