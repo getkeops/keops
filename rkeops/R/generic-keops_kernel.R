@@ -17,9 +17,16 @@
 #' implements the formula given in input, it returns a function that can be 
 #' used to compute the result of the formula on actual data.
 #' 
+#' Some advance reduction operations, given in `keops_kernel` optional 
+#' `reduction_op` argument, need a post-processing in the returned function 
+#' output. It is useful for the cases with log-sum-exp and sum-soft-max in 
+#' `LazyTensors` operations. 
+#' 
 #' The returned function expects a list of arguments, as data matrices, whose 
 #' order corresponds to the order given in `args` to `keops_kernel`. 
 #' We use a list to avoid useless copies of data.
+#'
+#' 
 #' 
 #' **Note:** Data are input as a list, because list are references and since 
 #' argument passing is done by copy in R, it is better to copy a list of 
@@ -36,6 +43,7 @@
 #' @param args vector of text string, formula arguments (see Details).
 #' @param keops_grad_call boolean, for internal use only, do not modify this 
 #' input value.
+#' @param reduction_op text string, a reduction operation (see Details).
 #' @return a function that can be used to compute the value of the formula 
 #' on actual data. This function takes as input a list of data corresponding 
 #' to the formula arguments and returns the computed values (generally a 
@@ -111,14 +119,14 @@
 #' }
 #' @export
 keops_kernel <- function(formula, args, keops_grad_call = FALSE, reduction_op = NA) {
-
+    
     # check input
     if(!is.character(formula))
         stop("`formula` input parameter should be a text string")
     if(!(length(args)==0 | (is.vector(args) & is.character(args))))
         stop("`args` input parameter should be a vector of text strings")
     
-    # check formula and args formating
+    # check formula and args formatting
     var_aliases <- format_var_aliases(args)
     
     # hash name to compile formula in a shared library file
@@ -252,7 +260,7 @@ keops_kernel <- function(formula, args, keops_grad_call = FALSE, reduction_op = 
                 out <- out[1,] + log(out[2:nrow(out),])
             }
             if(reduction_op == "SumSoftMaxWeight") {
-                # we compute sum_j exp(f_ij) g_ij / sum_j exp(f_ij) 
+                # we compute sum_j exp(f_ij) g_ij / sum_j exp(f_ij)
                 # from sum_j exp(m_i-f_ij) [1,g_ij]
                 out <- out[3:nrow(out),] / out[2,]
             }
