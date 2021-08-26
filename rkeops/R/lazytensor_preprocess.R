@@ -1223,6 +1223,51 @@ fixvariables <- function(x, is_opt = FALSE){
 }
 
 
+#' Fix internal reduction operation.
+#' @keywords internal
+#' @description Return the internal reduction operation. 
+#' @details `fix_op_reduction(reduction_op, with_weight)` will return the internal 
+#' reduction operation according to `reduction_op` and a possible optional weight 
+#' argument. Some advance operations defined at user level use in fact other 
+#' internal reductions:
+#' \itemize{
+#'     \item If `reduction_op == "LogSumExp"`, the internal reduction operation
+#'     is `"Max_SumShiftExp"` or `"Max_SumShiftExpWeight"` depending on 
+#'     `with_weight`;
+#'     \item If `reduction_op == "SumSoftMax"`, the internal reduction operation
+#'     is `"Max_SumShiftExpWeight"`;
+#'     \item Else, for every other value of `reduction_op`, the internal 
+#'     reduction operation is `reduction_op`.
+#'}
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @param reduction_op A text `string` corresponding to a reduction.
+#' @param with_weight A `boolean` which is `TRUE` when there is an optional 
+#' argument corresponding to a weight argument.
+#' @return A text `string`.
+#' @export
+fix_op_reduction <- function(reduction_op, with_weight = FALSE){
+  if(reduction_op == "SumSoftMaxWeight") {
+    # SumSoftMaxWeight relies on KeOps Max_SumShiftExpWeight reduction.
+    reduction_op_internal = "Max_SumShiftExpWeight"
+  }
+  else if(reduction_op == "LogSumExp") {
+    # LogSumExp relies also on Max_SumShiftExp or Max_SumShiftExpWeight reductions
+    if(with_weight){
+      # here we want to compute a log-sum-exp with weights: log(sum_j(exp(f_ij)g_ij))
+      reduction_op_internal = "Max_SumShiftExpWeight"
+    } else {
+      # here we want to compute a usual log-sum-exp: log(sum_j(exp(f_ij)))
+      reduction_op_internal = "Max_SumShiftExp"
+    }
+    
+  }
+  else {
+    reduction_op_internal = reduction_op
+  }
+  return(reduction_op_internal)
+}
+
+
 #' Preprocess reduction operation.
 #' @keywords internal
 #' @description
@@ -1286,38 +1331,6 @@ preprocess_reduction <- function(x, opstr, index, opt_arg = NA) {
   op <- keops_kernel(formula, args, reduction_op = opstr)
   return(op)
 }
-
-#' Fix internal reduction operation.
-#' @keywords internal
-#' @description
-#' 
-#' @details 
-#' @author Chloe Serre-Combe, Amelie Vernay
-#' @param 
-#' @return
-#' @export
-fix_op_reduction <- function(reduction_op, with_weight = FALSE){
-  if(reduction_op == "SumSoftMaxWeight") {
-    reduction_op_internal = "Max_SumShiftExpWeight"
-  }
-  else if(reduction_op == "LogSumExp") {
-    # LogSumExp relies also on Max_SumShiftExp or Max_SumShiftExpWeight reductions,
-    # with a custom finalize
-    if(with_weight){
-      # here we want to compute a log-sum-exp with weights: log(sum_j(exp(f_ij)g_ij))
-      reduction_op_internal = "Max_SumShiftExpWeight"
-    } else {
-      # here we want to compute a usual log-sum-exp: log(sum_j(exp(f_ij)))
-      reduction_op_internal = "Max_SumShiftExp"
-    }
-   
-  }
-  else {
-    reduction_op_internal = reduction_op
-  }
-  return(reduction_op_internal)
-}
-
 
 
 #' Warning for ComplexLazyTensor/LazyTensor operations.
