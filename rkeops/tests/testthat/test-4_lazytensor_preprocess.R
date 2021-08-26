@@ -997,3 +997,26 @@ test_that("fixvariables", {
                "`x` input must be a LazyTensor or a ComplexLazyTensor.",
                fixed = TRUE)
 })
+
+
+test_that("fix_op_reduction", {
+  op_sum <- "Sum"
+  op_lse <- "LogSumExp"
+  op_ssm <- "SumSoftMaxWeight"
+  
+  expect_equal(fix_op_reduction(op_sum), op_sum)
+  expect_equal(fix_op_reduction(op_sum, with_weight = TRUE), op_sum)
+  
+  expect_equal(fix_op_reduction(op_lse), "Max_SumShiftExp")
+  expect_equal(
+    fix_op_reduction(op_lse, with_weight = TRUE), 
+    "Max_SumShiftExpWeight"
+  )
+  
+  expect_equal(fix_op_reduction(op_ssm), "Max_SumShiftExpWeight")
+  expect_equal(
+    fix_op_reduction(op_ssm, with_weight = TRUE), 
+    "Max_SumShiftExpWeight"
+  )
+  
+})
