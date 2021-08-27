@@ -121,10 +121,13 @@ print(paste("Time to perform an RBF interpolation with",
             )
       )
 
-is_it_b <- (K_xx %*% Vj(a)) + lambda * a
-is_it_b - b # should (almost) be a zero vector
+# check that the result is what it is supposed to be ?
+# is_it_b <- (K_xx %*% Vj(a)) + lambda * a
+# is_it_b - b # should (almost) be a zero vector
+
 ```
 
+**Display the (fitted) model on the unit interval**
 
 ```{r plot}
 t <- as.matrix(seq(from = 0, to = 1, length.out = N))
@@ -135,10 +138,14 @@ mean_t <- K_tx %*% Vj(a)
 D <- as.data.frame(cbind(x, b, t, mean_t))
 colnames(D) <- c("x", "b", "t", "mean_t")
 
-ggplot(aes(x = x, y = b), data = D) +  
-    geom_point(color = '#1193a8', alpha = 0.5) +
-    geom_line(aes(x = t, y = mean_t), color = 'darkred') +
-    theme_bw()
+ggplot(aes(x = x, y = b), data = D) +
+  geom_point(color = '#1193a8', alpha = 0.5) +
+  geom_line(aes(x = t, y = mean_t), color = 'darkred') +
+  annotate("text", x = .75, y = .1,
+           label = paste("Number of samples: ", N,
+                         sep = "")
+           ) +
+  theme_bw()
 ```
 
 
