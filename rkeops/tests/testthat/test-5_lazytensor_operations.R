@@ -873,20 +873,22 @@ test_that("%*%", {
   }
   expect_true(sum(abs(res - expected_res)) < 1E-5)
   
-  
-  res <-  x_i %*% y
-  expect_false(is.LazyTensor(res))
-  expect_equal(dim(res), c(2, 3))
-  expect_true(is.matrix(res))
-  expect_true(sum(abs(res - expected_res)) < 1E-5)
-  
-  res <-  x_i %*% 2
+  res <-  x_i %*% Pm(2)
   expect_false(is.LazyTensor(res))
   expect_equal(dim(res), c(2, 3))
   expect_true(is.matrix(res))
   expected_res <- x * 2
   expect_true(sum(abs(res - expected_res)) < 1E-5)
   
+  expect_error(
+    x %*% y_j,
+    paste(
+     "`x` input argument should be a LazyTensor, a vector or a scalar.",
+     "\nIf you want to use a matrix, convert it to LazyTensor first." ,
+      sep = ""
+     ),
+    fixed = TRUE
+    )
 })
 
 

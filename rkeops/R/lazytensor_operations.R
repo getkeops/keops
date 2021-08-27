@@ -685,13 +685,11 @@ rsqrt.LazyTensor <- function(x) {
 #' Sum reduction of the multiplication operator "*".
 #' @usage x %*% y
 #' @details If `x` or `y` is a `LazyTensor`, `x %*% y` returns the sum reduction 
-#' of the product `x * y`.
+#' of the product `x * y`. 
 #' If none of the arguments is a `LazyTensor`, is equivalent to the "%*%" R operator.
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A `LazyTensor`, a `ComplexLazyTensor`, a vector or a matrix of numeric 
-#' values, or a scalar value.
-#' @param y A `LazyTensor`, a `ComplexLazyTensor`, a vector or a matrix of numeric 
-#' values, or a scalar value.
+#' @param x A `LazyTensor`, a `ComplexLazyTensor`.
+#' @param y A `LazyTensor`, a `ComplexLazyTensor`.
 #' @return A matrix.
 #' @examples
 #' \dontrun{
@@ -716,9 +714,7 @@ rsqrt.LazyTensor <- function(x) {
 #' @keywords internal
 #' @export
 "%*%.LazyTensor" <- function(x, y) {
-    if(is.matrix(y))
-        y <- LazyTensor(y, "j")
-    sum(x * y, index = "j")
+    sum(x * y, index = "j") # sum reduction 
 }
 
 
