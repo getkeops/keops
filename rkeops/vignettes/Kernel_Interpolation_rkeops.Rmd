@@ -22,22 +22,21 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r library, eval=FALSE}
-library(rkeops)
-```
-
-
 This tutorial is highly inspired by the [pyKeOps tutorial on kernel interpolation](https://www.kernel-operations.io/keops/_auto_tutorials/interpolation/plot_RBF_interpolation_numpy.html#sphx-glr-auto-tutorials-interpolation-plot-rbf-interpolation-numpy-py).
 
-The goal here is to solve a ...
+The goal here is to solve a linear system of the form $(K + \lambda I)a = b$, where $K$ is a symmetric, positive definite matrix encoded as an `RKeOps LazyTensor`, and $\lambda$ is a nonnegative regularization parameter. In the following script, we use the conjugate gradient method to solve large-scale [Kriging](https://en.wikipedia.org/wiki/Kriging) problems with a **linear memory footprint**.
 
-```{r setup}
+**Setup**
+
+```{r init}
+library(rkeops)
 set_rkeops_option("precision", "double")
 ```
 
+**Generate some data**
 
 ```{r data}
-N <- 1000
+N <- 1000 # number of samples
 
 x <- matrix(runif(N * 1), N, 1)
 pert <- matrix(runif(N * 1), N, 1) # random perturbation to create b
@@ -45,6 +44,10 @@ pert <- matrix(runif(N * 1), N, 1) # random perturbation to create b
 # Some random-ish 1D signal:
 b <- x + 0.5 * sin(6 * x) + 0.1 * sin(20 * x) + 0.05 * pert
 ```
+
+**Regression model**
+
+Here we create a simple Gaussian kernel matrix, of deviation `sigma`.
 
 ```{r gaussian_kernel}
 gaussian_kernel <- function(x, y, sigma = 0.1) {
@@ -55,6 +58,10 @@ gaussian_kernel <- function(x, y, sigma = 0.1) {
     return(res)
 }
 ```
+
+**Kernel Interpolation**
+
+We implement the conjugate gradient algorithm, that includes the `lambda` regularization parameter.
 
 ```{r CGS}
 CG_solve <- function(K, b, lambda, eps = 1e-6) {
@@ -69,7 +76,6 @@ CG_solve <- function(K, b, lambda, eps = 1e-6) {
     #       (lambda = 0 means no regularization)
     # eps (default=1e-6): precision parameter
     # ----------------------------------------------------------------
-    # TODO add print execution time
     delta <- length(b) * eps^2
     a <- 0
     r <- b
@@ -80,8 +86,7 @@ CG_solve <- function(K, b, lambda, eps = 1e-6) {
     p <- r
     k <- 0
     while (TRUE) {
-      #Mp <- K %*% p
-      Mp <- K %*% p + lambda * p
+      Mp <- K %*% Vj(p) + lambda * p
       alp <- nr2 / sum(p * Mp)
       a <- a + (alp * p)
       r <- r - (alp * Mp)
@@ -97,6 +102,7 @@ CG_solve <- function(K, b, lambda, eps = 1e-6) {
 }
 ```
 
+We perform the kernel interpolation.
 
 ```{r call}
 K_xx <- gaussian_kernel(x, x)
@@ -106,9 +112,16 @@ lambda <- 1
 start <- Sys.time()
 a <- CG_solve(K_xx, b, lambda = lambda)
 end <- Sys.time()
-time <- as.numeric(end - start)
 
-is_it_b <- (K_xx %*% a) + lambda * a
+time <- round(as.numeric(end - start), 5)
+
+print(paste("Time to perform an RBF interpolation with",
+            N,"samples in 1D:", time, "s.",
+            sep = " "
+            )
+      )
+
+is_it_b <- (K_xx %*% Vj(a)) + lambda * a
 is_it_b - b # should (almost) be a zero vector
 ```
 
@@ -117,7 +130,7 @@ is_it_b - b # should (almost) be a zero vector
 t <- as.matrix(seq(from = 0, to = 1, length.out = N))
 
 K_tx <- gaussian_kernel(t, x)
-mean_t <- K_tx %*% a
+mean_t <- K_tx %*% Vj(a)
 
 D <- as.data.frame(cbind(x, b, t, mean_t))
 colnames(D) <- c("x", "b", "t", "mean_t")
