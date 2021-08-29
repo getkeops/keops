@@ -230,14 +230,14 @@ tail(b, 2)
 b[(length(b) - 2 + 1):length(b)] <- 0
 b
 # -------
-N <- 10000
-
+#N <- 10000
+N <- 10201
 # Sampling locations:
 x <- matrix(runif(N * 2), N, 2)
 
 # Some random-ish 2D signal:
 b <- as.matrix(rowSums((x - 0.5)^2))
-b[b < 0.4^2] = 0
+b[b > 0.4^2] = 0
 b[b < 0.3^2] = 0
 b[b >= 0.3^2] = 1
 
@@ -276,26 +276,26 @@ print(paste("Time to perform an RBF interpolation with",
 
 
 # plot ----
+library(ggplot2)
 library(pracma) # to create meshgrid
 
 # Extrapolate on a uniform sample:
-X <- seq(from = 0, to = 1, length.out = 100)
-Y <- seq(from = 0, to = 1, length.out = 100)
+X <- seq(from = 0, to = 1, length.out = 101)
+Y <- seq(from = 0, to = 1, length.out = 101)
 
 G <- meshgrid(X, Y)
 X <- as.vector(G$X)
 Y <- as.vector(G$Y)
 
-t <- cbind(X, Y)
+t <- cbind(Y, X) # order reversion is important here
 
 K_tx <- laplacian_kernel(t, x)
 mean_t <- K_tx %*% Vj(a)
 
-mean_t <- matrix(mean_t, 100, 100)
-mean_t <- mean_t[nrow(mean_t):1,][,1]
+mean_t <- matrix(mean_t, 101, 101)
+mean_t <- mean_t[nrow(mean_t):1, ]
 
-#mean_t <- mean_t.reshape(101, 101)[::-1, :]
-plot(x[, 1], x[, 2])
+#plot(x[, 1], x[, 2])
 
 D <- as.data.frame(x)
 colnames(D) <- c("x1", "x2")
@@ -303,10 +303,92 @@ colnames(D) <- c("x1", "x2")
 ggplot(aes(x = x1, y = x2), data = D) +
   geom_point(color = 30 + as.vector(b), alpha = 0.5)
   
+# library(lattice)
+# levelplot(mean_t)
+# trellis.focus("panel", 1, 1, highlight=FALSE)
+# lpoints(D$x1, D$x2)
+# trellis.unfocus()
+
+
+# levelplot(mean_t,
+#           panel=function(...){
+#             panel.levelplot(...)
+#             grid.points(D$x1, D$x2, pch=2)
+#           }
+# ) 
+
 
 # TODO: look at data <- expand.grid(X=x, Y=y)
 
+## another attempt
+# Dummy data
+# data2 <- matrix(runif(100, 0, 5) , 10 , 10)
+# colnames(data2) <- letters[c(1:10)]
+# rownames(data2) <- paste( rep("row",10) , c(1:10) , sep=" ")
+
+# plot it flipping the axis
+# library(lattice)
+# levelplot(data2)
+# levelplot(mean_t)
 
 
+# p <- ggplot(NULL) +
+#   # vraies valeurs
+#   geom_point(aes(x = x1, y = x2), data = D, color = 30 + as.vector(b), alpha = 0.5) +
+#   heatmap.2(as.data.frame(mean_t), scale = "none", col = bluered(100), 
+#             trace = "none", density.info = "none")
+# 
+# p + geom_tile(data = as.data.frame(mean_t))
 
+# library('plot.matrix')
+# # numeric matrix
+# x <- matrix(runif(35), ncol=5) # create a numeric matrix object
+# class(x)
+# #> [1] "matrix" "array"
+# par(mar=c(5.1, 4.1, 4.1, 4.1)) # adapt margins
+# plot(mean_t, border=NA, col = topo.colors, axis.col=NULL, axis.row=NULL)
+# points(x[, 1], x[, 2], col = as.vector(b) + 10, pch="X")
+# plot.new()
 
+# heatmap(mean_t, Colv = NA, Rowv = NA)
+# points(x[, 1], x[, 2], col = as.vector(b) + 10, pch="X")
+# 
+# library(reshape)
+# G2 <- as.data.frame(mean_t)
+# G3 <- melt(G2)
+# G3$first <- seq(from = 0, to = 1, length.out = 101)
+# 
+# q <- ggplot(NULL) + 
+#   geom_tile(data = G3, aes(variable, first, fill= value))
+# q
+# 
+# p <- q + geom_point(data = D, aes(x = x1, y = x2), color = 30 + as.vector(b), alpha = 0.5)
+# p
+# 
+# r <- ggplot(NULL) + geom_point(data = D, aes(x = x1, y = x2), color = 30 + as.vector(b), alpha = 0.5)
+# r
+# 
+# K <- merge(transform(G3, id = seq_len(nrow(G3))), transform(D, id = seq_len(nrow(D))), all = T)
+# K[is.na(K)] = 0
+# p <- ggplot(data = K, aes(variable, first, fill = value)) +
+#   geom_tile() +
+#   geom_point(aes(x = x1, y = x2), color = 30 + as.vector(b), alpha = 0.5)
+# 
+# p
+
+# ----- (vain) attempt with plotly... :-( -------
+library(plotly)
+fig <- plot_ly(z = mean_t, type = "heatmap", colors = colorRamp(c("#C2C2C9", "darkred")), spans = c(0, 1))
+fig %>% add_trace(type = "scatter",
+              x = ~(100 * D$x1),
+              y = ~(100 * D$x2),
+              mode = "markers",
+              marker = list(size = 4, color = as.vector(b))
+              )
+fig
+
+# 
+# p <- plot_ly(data = D, x = ~x1, y = ~x2, color = as.vector(b))
+# add_heatmap(p, x = NULL, y = NULL, z = mean_t, inherit = TRUE)
+# p
+# plot_ly(z = mean_t, type = "heatmap", colors = colorRamp(c("darkblue", "darkred"))) %>% add_trace(x = ~x1, y = ~x2, data = D, color = as.vector(b))
