@@ -19,7 +19,7 @@
 #' input operator.
 #' 
 #' To decide regarding which variable the input operator should be derived,
-#' you can specify its name or its position starting as 0 with the input 
+#' you can specify its name or its position starting at 0 with the input 
 #' parameter `var`. 
 #' @author Ghislain Durif
 #' @param operator a function returned by `keops_kernel` implementing a 
@@ -104,5 +104,5 @@ keops_grad <- function(operator, var) {
         stop("`var` input argument should be a text string or an integer.")
     }
     # define new op
-    return(keops_kernel(new_formula, env$args))
+    return(keops_kernel(new_formula, env$args, keops_grad_call = TRUE))
 }

@@ -1,6 +1,6 @@
 ---
 title: "Using RKeOps"
-output: 
+output:
   rmarkdown::html_vignette:
     toc: true
   pdf_document:
@@ -50,8 +50,8 @@ install.packages("rkeops")
 
 * Install directly from Github (requires `git`)
 ```{r install_github, eval=FALSE}
-devtools::install_git("https://github.com/getkeops/keops", 
-                      subdir = "rkeops", 
+devtools::install_git("https://github.com/getkeops/keops",
+                      subdir = "rkeops",
                       args="--recursive")
 # not possible to use `devtools::intall_github()` because of the required submodule
 ```
@@ -93,7 +93,7 @@ formula = "Sum_Reduction(Exp(-s * SqNorm2(x - y)) * b, 0)"
 args = c("x = Vi(3)",      # vector indexed by i (of dim 3)
          "y = Vj(3)",      # vector indexed by j (of dim 3)
          "b = Vj(6)",      # vector indexed by j (of dim 6)
-         "s = Pm(1)")      # parameter (scalar) 
+         "s = Pm(1)")      # parameter (scalar)
 # compilation
 op <- keops_kernel(formula, args)
 # data and parameter values
@@ -123,7 +123,7 @@ To use RKeOps and define new operators, you need to write the corresponding _for
 
 2. a reduction over indexes $i=1,...,M$ (row-wise) or $j=1,...,N$ (column-wise) of the $M \times N$ matrix whose entries are defined by 1.
 
-RKeOps implements a wide range of mathematical operators and reduction: please refers to 
+RKeOps implements a wide range of mathematical operators and reduction: please refers to
 <https://www.kernel-operations.io/keops/api/math-operations.html> for more details.<br><br>
 
 **Example:** We want to implement the following kernel-based reduction (convolution with a Gaussian kernel): $$\sum_{j=1}^{N} \exp\Big(-\sigma || \mathbf x_i - \mathbf y_j ||_2^{\,2}\Big)\,\mathbf b_j$$
@@ -157,7 +157,7 @@ You can use two type of input matrices with RKeOps:<br>
 
 The dimensions over indexes $i$ or $j$ are called the **outer dimensions** (i.e. $M$ or $N$). The other dimensions (i.e. $D$ or $D'$) are called the **inner dimensions**. These terms refer to the contiguity of the data in memory:<br>
 
-* **Outer dimensions** $M$ and $N$ (over indexes $i$ and $j$ respectively) can be **very large**, even to large for GPU memory.<br>
+* **Outer dimensions** $M$ and $N$ (over indexes $i$ and $j$ respectively) can be **very large**, even too large for GPU memory.<br>
 
 * **Inner dimensions** $D$ and $D'$ should be **small** enough to fit in GPU memory, in particular to ensure data colocality and avoid useless memory transfers. Corresponding columns (or rows) should be contiguous in memory (this point is handled for you in RKeOps, see this [section](#data-storage-orientation)).<br>
 
@@ -167,7 +167,7 @@ The dimensions over indexes $i$ or $j$ are called the **outer dimensions** (i.e.
 
 ### Notations
 
-Input arguments of the formula are defined by using keywords, they can be of different types: 
+Input arguments of the formula are defined by using keywords, they can be of different types:
 
 | keyword | meaning                 |
 |:--------|:------------------------|
@@ -198,7 +198,7 @@ of the `X`$^\text{th}$ variable in the formula.<br><br>
 args = c("x = Vi(3)",      # vector indexed by i (of dim 3)
          "y = Vj(3)",      # vector indexed by j (of dim 3)
          "b = Vj(6)",      # vector indexed by j (of dim 6)
-         "s = Pm(1)")      # parameter (scalar) 
+         "s = Pm(1)")      # parameter (scalar)
 ```
 
 
@@ -326,11 +326,11 @@ set_rkeops_option("precision", "float")    # float 32bits (default)
 set_rkeops_option("precision", "double")   # float 64bits
 ```
 
-You can directly change the precision used in compiled operators with the 
-functions `compile4float32` and `compile4float64` which respectively 
+You can directly change the precision used in compiled operators with the
+functions `compile4float32` and `compile4float64` which respectively
 enable float 32bits precision (default) and float 64bits (or double) precision.
 
-* other compile options (including boolean value to enable verbosity or to 
+* other compile options (including boolean value to enable verbosity or to
 add debugging flag), see `?compile_options`
 
 
@@ -341,7 +341,7 @@ By default, RKeOps runs computations on CPU (even for GPU-compiled operators). T
 use_gpu()
 # see `?runtime_options` for a more advanced use of GPU inside RKeOps
 ```
-You can also specify the GPU id that you want to use, e.g. `use_gpu(device=0)` 
+You can also specify the GPU id that you want to use, e.g. `use_gpu(device=0)`
 to use GPU 0 (default) for instance.
 
 To deactivate GPU computations, you can run `use_cpu()`.
@@ -407,4 +407,3 @@ res <- op(list(X,Y), inner_dim=0)
 The compilation of new operators produces shared library (or share object `.so`) files stored in a `build` sub-directory of the package installation directory, to be reused and avoid recompilation of already defined operators.
 
 You can check where your compiled operators are stored by running `get_build_dir()`. To clean RKeOps install and remove all shared library files, you can run `clean_rkeops()`.
-

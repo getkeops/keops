@@ -4,12 +4,15 @@
 \alias{keops_kernel}
 \title{Defines a new operators}
 \usage{
-keops_kernel(formula, args)
+keops_kernel(formula, args, keops_grad_call = FALSE)
 }
 \arguments{
 \item{formula}{text string, an operator formula (see Details).}
 
 \item{args}{vector of text string, formula arguments (see Details).}
+
+\item{keops_grad_call}{boolean, for internal use only, do not modify this
+input value.}
 }
 \value{
 a function that can be used to compute the value of the formula
@@ -47,9 +50,9 @@ We use a list to avoid useless copies of data.
 argument passing is done by copy in R, it is better to copy a list of
 reference than the actual input data, especially for big matrices.
 
-You should be careful with the input dimension of your data, to correspond
-to the input dimension specified in \code{args} (see inner ou outer dimension in
-\code{browseVignettes("rkeops")}.
+You should be careful with the input dimension of your data, so that
+it correspond to the input dimension specified in \code{args}
+(see inner ou outer dimension in \code{browseVignettes("rkeops")}.
 
 It is possible to compute partial derivatives of user defined operators
 with the function \code{\link[=keops_grad]{keops_grad()}}.
@@ -97,9 +100,9 @@ res <- op(list(X,Y), inner_dim=0)
 # Defining a function that computes the convolution with a Gaussian kernel 
 # i.e. the sum over i of `e^(lambda * ||x_i - y_j||^2) * beta_j` where `x_i`, 
 # `y_j` and `beta_j` are 3d vectors, and `lambda` is a scalar parameter.
-op = keops_kernel(formula = "Sum_Reduction(Exp(lambda*SqNorm2(x-y))*beta, 1)",
-                 args = c("x=Vi(3)", "y=Vj(3)", 
-                          "beta=Vj(3)", "lambda=Pm(1)"))
+op = keops_kernel(
+    formula = "Sum_Reduction(Exp(lambda*SqNorm2(x-y))*beta, 1)",
+    args = c("x=Vi(3)", "y=Vj(3)", "beta=Vj(3)", "lambda=Pm(1)"))
 
 # data
 nx <- 10

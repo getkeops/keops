@@ -26,7 +26,7 @@ Next we define the type of reduction that we want to perform, as follows:
    auto Sum_f = Sum_Reduction(f,0);
 
 
-This means that we want to perform a sum reduction over the "j" indices, resulting in a "i"-indexed output. 
+This means that we want to perform a sum reduction over the "j" indices, resulting in an "i"-indexed output. 
 We would use ``Sum_Reduction(f,1)`` for a reduction over the "i" indices.
 
 The list of available reductions is given in the following table: :ref:`part.reduction`. The code name of the reduction must be followed by ``_Reduction`` in C++ code.
@@ -39,7 +39,7 @@ The convolution operation is then performed using one of these three calls:
    EvalRed<GpuConv1D_FromHost>(Sum_f,Nx, Ny, pres, params, px, py, pu, pv, pb);
    EvalRed<GpuConv2D_FromHost>(Sum_f,Nx, Ny, pres, params, px, py, pu, pv, pb);
 
-where ``pc``, ``pp``, ``pa``, ``px``, and ``py`` are pointers to their respective arrays in (Cpu) memory, ``pc`` denoting the output. These three functions correspond to computations performed repectively on the Cpu, on the Gpu with a "1D" tiling algorithm, and with a "2D" tiling algorithm.
+where ``pc``, ``pp``, ``pa``, ``px``, and ``py`` are pointers to their respective arrays in (Cpu) memory, ``pc`` denoting the output. These three functions correspond to computations performed respectively on the Cpu, on the Gpu with a "1D" tiling algorithm, and with a "2D" tiling algorithm.
 
 For a minimal working example code, see the files
 `./keops/examples/test_simple.cpp <https://github.com/getkeops/keops/tree/master/keops/examples/test_simple.cpp>`_ and

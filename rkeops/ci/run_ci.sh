@@ -35,6 +35,11 @@ trap cleanup EXIT
 # set up .Rprofile files
 export R_PROFILE_USER=${CIDIR}/.Rprofile
 
+# setup local install dir for R libs
+RLIBDIR=${CIDIR}/.R_libs
+if [[ ! -d $RLIBDIR ]]; then mkdir -p $RLIBDIR; fi
+export R_LIBS_USER=$RLIBDIR
+
 # prepare R requirements
 Rscript ${CIDIR}/prepare_ci.R
 
