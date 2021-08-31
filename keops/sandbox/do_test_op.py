@@ -1,5 +1,5 @@
 import sys
-from keops.utils.TestOperation import TestOperation
+from keops.test.TestOperation import TestOperation
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:
