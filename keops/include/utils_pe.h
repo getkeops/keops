@@ -33,7 +33,7 @@ char *read_text_file(char const *path) {
         fseek(f, 0, SEEK_SET);
         buffer = (char *) malloc((length + 1) * sizeof(char));
         if (buffer) {
-            fread(buffer, sizeof(char), length, f);
+            int res = fread(buffer, sizeof(char), length, f);
         }
         fclose(f);
     }

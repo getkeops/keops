@@ -1,5 +1,5 @@
 import os
-
+from ctypes import CDLL, RTLD_GLOBAL
 
 # System Path
 base_dir_path = os.path.dirname(os.path.realpath(__file__)) + os.path.sep + ".." + os.path.sep
@@ -45,3 +45,13 @@ jit_source_file = os.path.join(base_dir_path, "binders", "nvrtc", "keops_nvrtc.c
 jit_binary = os.path.join(build_path, "keops_nvrtc.so")
 
 
+init_cudalibs_flag = False
+def init_cudalibs():
+    global init_cudalibs_flag
+    if not init_cudalibs_flag:
+        # we load some libraries that need to be linked with KeOps code
+        # This is to avoid "undefined symbols" errors.
+        CDLL("libnvrtc.so", mode=RTLD_GLOBAL)
+        CDLL("libcuda.so", mode=RTLD_GLOBAL)
+        CDLL("libcudart.so", mode=RTLD_GLOBAL)
+        init_cudalibs_flag = True
