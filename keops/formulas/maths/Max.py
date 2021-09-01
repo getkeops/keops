@@ -21,11 +21,27 @@ class Max(Operation):
     def Op(self, out, table, arg):
         loop, k = c_for_loop(1, arg.dim, 1, pragma_unroll=True)
         string = value(out).assign(arg[0])
-        string += loop(c_if(arg[k] > value(out), value(out).assign(arg[k])))
+        print(out.dtype)
+        input()
+        if out.dtype == "half2":
+            print(1)
+            input()
+            loop_string = f"""
+                // we have to work element-wise...
+                __half2 cond = __hlt2(*{out.id},{arg[k].id});                       // cond = (out > outF[k]) (element-wise)
+                __half2 negcond = __float2half2_rn(1.0f)-cond;                      // negcond = 1-cond
+                *{out.id} = cond * {arg[k].id} + negcond * *{out.id};               // out  = cond * outF[k] + (1-cond) * out
+                            """
+            string += loop(loop_string)
+        else:
+            print(2)
+            input()
+            string += loop(c_if(arg[k] > value(out), value(out).assign(arg[k])))
         return string
 
     def DiffT(self, v, gradin):
-        return f.DiffT(v, OneHot(ArgMax(f), self.argdim) * gradin)  # TODO : Fix this
+        f = self.children[0]
+        return f.DiffT(v, OneHot(ArgMax(f), self.argdim) * gradin)
         
     
     
@@ -33,24 +49,7 @@ class Max(Operation):
     enable_test = True          # enable testing for this operation
     nargs = 1                   # number of arguments
     test_argdims = [5]          # dimensions of arguments for testing
-    torch_op = "lambda x : torch.max(x, dim=-1, keepdim=True)"
+    torch_op = "lambda x : torch.max(x, dim=-1, keepdim=True)[0].type(x.dtype)"
 
 
 
-
-# TODO : transcript half2 implementation below
-
-"""
-#if USE_HALF && GPU_ON
-  static DEVICE INLINE void Operation(half2 *out, half2 *outF) {
-    *out = outF[0];
-    #pragma unroll
-    for (int k = 1; k < F::DIM; k++) {
-      // we have to work element-wise...
-      __half2 cond = __hlt2(*out,outF[k]);                 // cond = (out < outF[k]) (element-wise)
-      __half2 negcond = __float2half2_rn(1.0f)-cond;       // negcond = 1-cond
-      *out = cond * outF[k] + negcond * *out;              // out  = cond * outF[k] + (1-cond) * out
-    }
-  }
-#endif
-"""
