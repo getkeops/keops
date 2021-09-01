@@ -24,8 +24,8 @@ class ArgMin(Operation):
             loop_string = f"""
                 // we have to work element-wise...
                 __half2 cond = __hgt2({tmp.id},{arg[k].id});                          // cond = (tmp > outF[k]) (element-wise)
-                __half2 negcond = __float2half2_rn(1.0f)-cond;                      // negcond = 1-cond
-                *{out.id} = cond * __float2half2_rn({k.id}) + negcond * *{out.id};  // out  = cond * k + (1-cond) * out 
+                __half2 negcond = __float2half2_rn(1.0f)-cond;                        // negcond = 1-cond
+                *{out.id} = cond * __float2half2_rn({k.id}) + negcond * *{out.id};    // out  = cond * k + (1-cond) * out 
                 {tmp.id} = cond * {arg[k].id} + negcond * {tmp.id};                   // tmp  = cond * outF[k] + (1-cond) * tmp
                             """
             string += loop(loop_string)
