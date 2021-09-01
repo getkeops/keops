@@ -46,8 +46,8 @@ keops_mul = math_function(
 )
 
 keops_abs = math_function(cpu_code="abs")
-keops_cos = math_function(cpu_code="cos")
-keops_sin = math_function(cpu_code="sin")
+keops_cos = math_function(cpu_code="cos", gpu_half2_code = "h2cos")
+keops_sin = math_function(cpu_code="sin", gpu_half2_code = "h2sin")
 keops_sinxdivx = math_function(cpu_code=lambda x: f"({x} ? sin({x})/{x} : 1.0f)")
 keops_acos = math_function(cpu_code="acos")
 keops_asin = math_function(cpu_code="asin")

@@ -33,6 +33,7 @@ class ArgMin(Operation):
     nargs = 1                   # number of arguments
     test_argdims = [5]          # dimensions of arguments for testing
     torch_op = "lambda x : torch.argmin(x, dim=-1, keepdim=True).type(x.dtype)"
+    no_torch_grad = True
 
 
 # TODO : half2 implementation below

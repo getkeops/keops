@@ -3,7 +3,6 @@ import torch
 from pykeops.common.get_options import get_tag_backend
 from pykeops.common.keops_io_new import LoadKeOps_new
 from pykeops.common.operations import preprocess, postprocess
-from pykeops.torch.half2_convert import preprocess_half2, postprocess_half2
 from pykeops.common.parse_type import (
     get_type,
     get_sizes,
@@ -32,6 +31,8 @@ class GenredAutograd(torch.autograd.Function):
         rec_multVar_highdim,
         nx,
         ny,
+        axis,
+        reduction_op,
         *args
     ):
 
@@ -60,6 +61,8 @@ class GenredAutograd(torch.autograd.Function):
         ctx.myconv = myconv
         ctx.nx = nx
         ctx.ny = ny
+        ctx.axis = axis
+        ctx.reduction_op = reduction_op
 
         tagCPUGPU, tag1D2D, tagHostDevice = get_tag_backend(backend, args)
 
@@ -87,7 +90,7 @@ class GenredAutograd(torch.autograd.Function):
         ranges = tuple(r.contiguous() for r in ranges)
 
         result = myconv.genred_pytorch(
-            tagCPUGPU, tag1D2D, tagHostDevice, device_id, ranges, nx, ny, *args
+            tagCPUGPU, tag1D2D, tagHostDevice, device_id, ranges, nx, ny, axis, reduction_op, *args
         )
 
         # relying on the 'ctx.saved_variables' attribute is necessary  if you want to be able to differentiate the output
@@ -108,6 +111,8 @@ class GenredAutograd(torch.autograd.Function):
         myconv = ctx.myconv
         nx = ctx.nx
         ny = ctx.ny
+        axis = ctx.axis
+        reduction_op = ctx.reduction_op
         args = ctx.saved_tensors[:-1]  # Unwrap the saved variables
         nargs = len(args)
         result = ctx.saved_tensors[-1].detach()
@@ -169,8 +174,8 @@ class GenredAutograd(torch.autograd.Function):
         ):  # Run through the arguments
             # If the current gradient is to be discarded immediatly...
             if not ctx.needs_input_grad[
-                var_ind + 10
-            ]:  # because of (formula, aliases, backend, dtype, device_id, ranges, optional_flags, rec_multVar_highdim, nx, ny)
+                var_ind + 12
+            ]:  # because of (formula, aliases, backend, dtype, device_id, ranges, optional_flags, rec_multVar_highdim, nx, ny, axis, reduction_op)
                 grads.append(None)  # Don't waste time computing it.
 
             else:
@@ -226,6 +231,8 @@ class GenredAutograd(torch.autograd.Function):
                         rec_multVar_highdim,
                         nx,
                         ny,
+                        axis,
+                        reduction_op,
                         *args_g
                     )
                     # Then, sum 'grad' wrt 'i' :
@@ -255,6 +262,8 @@ class GenredAutograd(torch.autograd.Function):
                         rec_multVar_highdim,
                         nx,
                         ny,
+                        axis,
+                        reduction_op,
                         *args_g
                     )
 
@@ -278,8 +287,8 @@ class GenredAutograd(torch.autograd.Function):
                 )  # The gradient should have the same shape as the input!
                 grads.append(grad)
 
-        # Grads wrt. formula, aliases, backend, dtype, device_id, ranges, optional_flags, rec_multVar_highdim, nx, ny, *args
-        return (None, None, None, None, None, None, None, None, None, None, *grads)
+        # Grads wrt. formula, aliases, backend, dtype, device_id, ranges, optional_flags, rec_multVar_highdim, nx, ny, axis, reduction_op, *args
+        return (None, None, None, None, None, None, None, None, None, None, None, None, *grads)
 
 
 class Genred:
@@ -573,11 +582,6 @@ class Genred:
                     "size of input array is too large for Arg type reduction with float16 dtype.."
                 )
 
-        if self.dtype in ("float16", "half"):
-            args, ranges, tag_dummy, N = preprocess_half2(
-                args, self.aliases, self.axis, ranges, nx, ny
-            )
-
         out = GenredAutograd.apply(
             self.formula,
             self.aliases,
@@ -589,11 +593,10 @@ class Genred:
             self.rec_multVar_highdim,
             nx,
             ny,
+            self.axis,
+            self.reduction_op,
             *args
         )
-
-        if self.dtype in ("float16", "half"):
-            out = postprocess_half2(out, tag_dummy, self.reduction_op, N)
 
         return postprocess(
             out, "torch", self.reduction_op, nout, self.opt_arg, self.dtype
