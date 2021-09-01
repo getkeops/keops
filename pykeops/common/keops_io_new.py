@@ -26,8 +26,8 @@ class LoadKeOps_new:
                     ind, dim = eval(alias_args[0]), eval(alias_args[1])
                 alias = f"{varname}=Var({ind},{dim},{cat})"
                 aliases_new.append(alias)
-        aliases = aliases_new
-        self.aliases = aliases
+        self.aliases_old = aliases
+        self.aliases = aliases_new
         self.lang = lang
         self.optional_flags = optional_flags
         self.red_formula_string = formula
@@ -42,6 +42,8 @@ class LoadKeOps_new:
             ranges,
             nx,
             ny,
+            axis,
+            reduction_op,
             *args,
     ):
 
@@ -74,6 +76,12 @@ class LoadKeOps_new:
             use_half = True
         else:
             raise ValueError("not implemented")
+        
+        if dtypename == "float16":
+            from pykeops.torch.half2_convert import preprocess_half2
+            args, ranges, tag_dummy, N = preprocess_half2(
+                args, self.aliases_old, axis, ranges, nx, ny
+            )
 
         if "-D__TYPEACC__=double" in self.optional_flags:
             c_dtype_acc = "double"
@@ -231,7 +239,11 @@ class LoadKeOps_new:
             args_ctype,
             argshapes_ctype,
         )
-
+        
+        if dtypename == "float16":
+            from pykeops.torch.half2_convert import postprocess_half2
+            out = postprocess_half2(out, tag_dummy, reduction_op, N)
+        
         return out
 
     genred_pytorch = genred
