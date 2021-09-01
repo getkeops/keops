@@ -13,10 +13,17 @@ class Pow(VectorizedScalarOp):
 
     ScalarOpFun = keops_pow
 
-    def DiffT(self, v, gradin): #TODO: Fix Pow!
+    @staticmethod
+    def Derivative(f, m):
         from keops.formulas.variables.IntCst import IntCst
-        m = self.params[0]
         return IntCst(m)*Pow(f,m-1)
+        
+    
+    # parameters for testing the operation (optional)
+    nargs = 1                      # number of arguments (excluding parameters)
+    test_ranges = [(0,2)]          # ranges of arguments
+    test_params = [2]              # values of parameters for testing
+    torch_op = "lambda x,m : torch.pow(x, m)"
 
 
 

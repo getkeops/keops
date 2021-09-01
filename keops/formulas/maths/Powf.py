@@ -19,3 +19,4 @@ class Powf(VectorizedScalarOp):
     
     # parameters for testing the operation (optional)
     test_ranges = [(0,2),(-1,1)]          # ranges of arguments
+    torch_op = "lambda x,y : torch.pow(x, y)"
