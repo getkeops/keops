@@ -5,7 +5,9 @@ from keops.utils.math_functions import keops_sinxdivx
 
 
 class SinXDivX(VectorizedScalarOp):
-    """the sin(x)/x vectorized operation"""
+    """
+    the sin(x)/x vectorized operation
+    """
 
     string_id = "SinXDivX"
 
