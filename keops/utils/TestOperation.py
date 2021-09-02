@@ -6,7 +6,9 @@ from pykeops.torch import Genred
 from keops.formulas import *
 import types
 
-def TestOperation(op_str, tol=1e-4):
+def TestOperation(op_str, tol=1e-4, dtype="float32"):
+    
+    # N.B. dtype can be 'float32', 'float64' or 'float16'
     
     print("")
     
@@ -49,8 +51,14 @@ def TestOperation(op_str, tol=1e-4):
     # Choose the storage place for our data : CPU (host) or GPU (device) memory.
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    dtype = "float32"  # Could be 'float32' or 'float64'
-    torchtype = torch.float32 if dtype == "float32" else torch.float64
+    if dtype == "float32":
+        torchtype = torch.float32 
+    elif dtype == "float64":
+        torchtype = torch.float64
+    elif dtype == "float16":
+        torchtype = torch.float16
+    else:
+        raise ValueError("invalid dtype")
 
     argcats = np.random.choice(["i","j"], nargs)
     
@@ -66,6 +74,7 @@ def TestOperation(op_str, tol=1e-4):
         MorN = M if argcats[k] == "i" else N
         args[k] = rand(MorN, dims[k], dtype=torchtype, device=device, requires_grad=True) 
         args[k] = args[k]*(rng[k][1]-rng[k][0]) + rng[k][0]
+
 
     ####################################################################
     # Define a custom formula
@@ -96,8 +105,7 @@ def TestOperation(op_str, tol=1e-4):
     e = torch.rand_like(c)
     
     print("Testing gradient of operation "+op_str)
-
-    # PyTorch remark : grad(c, y, e) alone outputs a length 1 tuple, hence the need for [0].
+    
     g = grad(c, args, e)
     
     print("ok, no error")
@@ -129,17 +137,21 @@ def TestOperation(op_str, tol=1e-4):
     
     if isinstance(torch_op,str):
         torch_op = eval(torch_op)
-        
+    
     c_torch = torch_op(*torch_args, *params).sum(dim=1)
     err_op = torch.norm(c-c_torch).item() / torch.norm(c_torch).item()
     print("relative error for operation :", err_op)
 
-    g_torch = grad(c_torch, args, e) 
-    err_gr = [None]*nargs
-    for k in range(nargs):
-        app_str = f"number {k}" if len(args)>1 else ""
-        err_gr[k] = (torch.norm(g[k]-g_torch[k])/torch.norm(g_torch[k])).item()
-        print(f"relative error for gradient {app_str}:", err_gr[k])
-    
+    if not hasattr(keops_op_class, "no_torch_grad") or not keops_op_class.no_torch_grad:
+        g_torch = grad(c_torch, args, e) 
+        err_gr = [None]*nargs
+        for k in range(nargs):
+            app_str = f"number {k}" if len(args)>1 else ""
+            err_gr[k] = (torch.norm(g[k]-g_torch[k])/torch.norm(g_torch[k])).item()
+            print(f"relative error for gradient {app_str}:", err_gr[k])
+    else:
+        print("no gradient for torch")
+        return abs(err_op)>tol
+        
     return abs(err_op)>tol, list(abs(err)>tol for err in err_gr)
 

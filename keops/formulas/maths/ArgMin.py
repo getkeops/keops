@@ -20,7 +20,17 @@ class ArgMin(Operation):
         tmp = c_variable(out.dtype)
         loop, k = c_for_loop(1, arg.dim, 1, pragma_unroll=True)
         string = value(out).assign(c_zero_float) + tmp.declare_assign(arg[0])
-        string += loop(c_if(arg[k] < tmp, tmp.assign(arg[k]) + value(out).assign(k)))
+        if out.dtype == "half2":
+            loop_string = f"""
+                // we have to work element-wise...
+                __half2 cond = __hgt2({tmp.id},{arg[k].id});                          // cond = (tmp > outF[k]) (element-wise)
+                __half2 negcond = __float2half2_rn(1.0f)-cond;                        // negcond = 1-cond
+                *{out.id} = cond * __float2half2_rn({k.id}) + negcond * *{out.id};    // out  = cond * k + (1-cond) * out 
+                {tmp.id} = cond * {arg[k].id} + negcond * {tmp.id};                   // tmp  = cond * outF[k] + (1-cond) * tmp
+                            """
+            string += loop(loop_string)
+        else:
+            string += loop(c_if(arg[k] < tmp, tmp.assign(arg[k]) + value(out).assign(k)))
         return string
 
     def DiffT(self, v, gradin):
@@ -33,22 +43,7 @@ class ArgMin(Operation):
     nargs = 1                   # number of arguments
     test_argdims = [5]          # dimensions of arguments for testing
     torch_op = "lambda x : torch.argmin(x, dim=-1, keepdim=True).type(x.dtype)"
-
-
-# TODO : half2 implementation below
-"""
-#if USE_HALF && GPU_ON
-  static DEVICE INLINE void Operation(half2 *out, half2 *outF) {
-    *out = __float2half2_rn(0.0f);
-    half2 tmp = outF[0];
-    #pragma unroll
-    for (int k = 1; k < F::DIM; k++) {
-      // we have to work element-wise...
-      __half2 cond = __hgt2(tmp,outF[k]);                  // cond = (tmp > outF[k]) (element-wise)
-      __half2 negcond = __float2half2_rn(1.0f)-cond;       // negcond = 1-cond
-      *out = cond * __float2half2_rn(k) + negcond * *out;  // out  = cond * k + (1-cond) * out 
-      tmp = cond * outF[k] + negcond * tmp;                // tmp  = cond * outF[k] + (1-cond) * tmp
-    }  
-  }
-#endif
-"""
+    no_torch_grad = True
+    
+    
+    

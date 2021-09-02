@@ -312,7 +312,7 @@ class Genred:
                 )
 
         out = self.myconv.genred_numpy(
-            tagCpuGpu, tag1D2D, 0, device_id, ranges, nx, ny, *args
+            tagCpuGpu, tag1D2D, 0, device_id, ranges, nx, ny, self.axis, self.reduction_op, *args
         )
 
         return postprocess(
