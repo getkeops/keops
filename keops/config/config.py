@@ -18,6 +18,7 @@ use_cuda = 0
 # cpp options
 use_OpenMP = True # flag for OpenMP support
 cpp_flags = compile_options + "-flto "
+disable_pragma_unrolls = True
 
 if use_OpenMP:
     import platform

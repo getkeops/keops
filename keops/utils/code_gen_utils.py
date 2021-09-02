@@ -1,7 +1,7 @@
 import os
 from hashlib import sha256
 
-from keops.config.config import build_path, jit_binary
+from keops.config.config import build_path, jit_binary, disable_pragma_unrolls
 
 
 def get_hash_name(*args):
@@ -194,10 +194,13 @@ class c_variable:
             raise ValueError("not implemented")
 
 def use_pragma_unroll(n=64):
-    if n is None:
-        return f"\n#pragma unroll\n"
+    if disable_pragma_unrolls:
+        return "\n"
     else:
-        return f"\n#pragma unroll({n})\n"
+        if n is None:
+            return f"\n#pragma unroll\n"
+        else:
+            return f"\n#pragma unroll({n})\n"
 
 def c_for_loop(start, end, incr, pragma_unroll=False):
     def to_string(x):
