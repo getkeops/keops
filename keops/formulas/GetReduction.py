@@ -4,6 +4,7 @@ import keops.formulas
 from keops.utils.code_gen_utils import get_hash_name
 from keops.formulas.reductions import *
 from keops.formulas.maths import *
+from keops.formulas.complex import *
 from keops.formulas.variables import *
 from keops.formulas.autodiff import *
 
