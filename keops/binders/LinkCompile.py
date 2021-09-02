@@ -45,7 +45,7 @@ class LinkCompile:
         #                                            tagI (O or 1, reduction over i or j indices),
         #                                            dimy (sum of dimensions of j-indexed vectors)
         f = open(self.info_file, "w")
-        f.write(f"dim={self.dim}\ntagI={self.tagI}\ndimy={self.dimy}")
+        f.write(f"red_formula={self.red_formula_string}\ndim={self.dim}\ntagI={self.tagI}\ndimy={self.dimy}")
         f.close()
 
     def read_info(self):
@@ -54,12 +54,12 @@ class LinkCompile:
         string = f.read()
         f.close()
         tmp = string.split("\n")
-        if len(tmp) != 3:
+        if len(tmp) != 4:
             raise ValueError("incorrect info file")
         tmp_dim, tmp_tag, tmp_dimy = (
-            tmp[0].split("="),
             tmp[1].split("="),
             tmp[2].split("="),
+            tmp[3].split("="),
         )
         if (
             len(tmp_dim) != 2
