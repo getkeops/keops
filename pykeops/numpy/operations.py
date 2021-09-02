@@ -171,6 +171,8 @@ class KernelSolve:
                 tmp[i] = s[: s.find("=")].strip()
             varinvpos = tmp.index(varinvalias)
         self.varinvpos = varinvpos
+        self.axis = axis
+        self.reduction_op = reduction_op
 
     def __call__(
         self, *args, backend="auto", device_id=-1, alpha=1e-10, eps=1e-6, ranges=None
@@ -240,7 +242,7 @@ class KernelSolve:
             newargs = args[: self.varinvpos] + (var,) + args[self.varinvpos + 1 :]
             nx, ny = get_sizes(self.aliases, *newargs)
             res = self.myconv.genred_numpy(
-                tagCpuGpu, tag1D2D, 0, device_id, ranges, nx, ny, *newargs
+                tagCpuGpu, tag1D2D, 0, device_id, ranges, nx, ny, self.axis, self.reduction_op, *newargs
             )
             if alpha:
                 res += alpha * var
