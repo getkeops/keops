@@ -610,10 +610,6 @@ class PytorchUnitTestCase(unittest.TestCase):
             full_results.append(results)
 
         for (res_keops, res_torch) in zip(full_results[0], full_results[1]):
-            # TODO: argmin seems to be broken ?
-            print(res_keops.cpu().data.numpy().ravel(),
-                    res_torch.cpu().data.numpy().ravel())
-
             self.assertTrue(res_keops.shape == res_torch.shape)
             self.assertTrue(
                 np.allclose(
