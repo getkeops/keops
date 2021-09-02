@@ -6,7 +6,7 @@ from pykeops.torch import Genred
 from keops.formulas import *
 import types
 
-def TestOperation(op_str, tol=1e-4, dtype="float32"):
+def TestOperation(op_str, tol=1e-4, dtype="float32", test_grad=True):
     
     # N.B. dtype can be 'float32', 'float64' or 'float16'
     
@@ -102,16 +102,17 @@ def TestOperation(op_str, tol=1e-4, dtype="float32"):
     # Compute the gradient
     # -----------------------
     
-    e = torch.rand_like(c)
+    if test_grad:
+        e = torch.rand_like(c)
     
-    print("Testing gradient of operation "+op_str)
+        print("Testing gradient of operation "+op_str)
     
-    g = grad(c, args, e)
+        g = grad(c, args, e)
     
-    print("ok, no error")
-    for k in range(nargs):
-        app_str = f"number {k}" if len(args)>1 else ""
-        print(f"5 first values for gradient {app_str}:", *g[k].flatten()[:5].tolist())
+        print("ok, no error")
+        for k in range(nargs):
+            app_str = f"number {k}" if len(args)>1 else ""
+            print(f"5 first values for gradient {app_str}:", *g[k].flatten()[:5].tolist())
     
     
     
@@ -141,17 +142,18 @@ def TestOperation(op_str, tol=1e-4, dtype="float32"):
     c_torch = torch_op(*torch_args, *params).sum(dim=1)
     err_op = torch.norm(c-c_torch).item() / torch.norm(c_torch).item()
     print("relative error for operation :", err_op)
-
-    if not hasattr(keops_op_class, "no_torch_grad") or not keops_op_class.no_torch_grad:
-        g_torch = grad(c_torch, args, e) 
-        err_gr = [None]*nargs
-        for k in range(nargs):
-            app_str = f"number {k}" if len(args)>1 else ""
-            err_gr[k] = (torch.norm(g[k]-g_torch[k])/torch.norm(g_torch[k])).item()
-            print(f"relative error for gradient {app_str}:", err_gr[k])
+    
+    if test_grad:
+        if not hasattr(keops_op_class, "no_torch_grad") or not keops_op_class.no_torch_grad:
+            g_torch = grad(c_torch, args, e) 
+            err_gr = [None]*nargs
+            for k in range(nargs):
+                app_str = f"number {k}" if len(args)>1 else ""
+                err_gr[k] = (torch.norm(g[k]-g_torch[k])/torch.norm(g_torch[k])).item()
+                print(f"relative error for gradient {app_str}:", err_gr[k])
+        else:
+            print("no gradient for torch")
+            return abs(err_op)>tol
+        return abs(err_op)>tol, list(abs(err)>tol for err in err_gr)
     else:
-        print("no gradient for torch")
         return abs(err_op)>tol
-        
-    return abs(err_op)>tol, list(abs(err)>tol for err in err_gr)
-

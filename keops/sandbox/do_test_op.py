@@ -7,5 +7,7 @@ if __name__ == "__main__":
     else:
         if len(sys.argv) == 2:
             res = TestOperation(sys.argv[1])
-        else:
+        elif len(sys.argv) == 3:
             res = TestOperation(sys.argv[1], dtype=sys.argv[2])
+        else:
+            res = TestOperation(sys.argv[1], dtype=sys.argv[2], test_grad=eval(sys.argv[3]))
