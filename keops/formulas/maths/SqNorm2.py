@@ -1,10 +1,9 @@
 from keops.formulas.maths.Scalprod import Scalprod
 
 
-##########################
-######    SqNorm2    #####
-##########################
 
+class SqNorm2():
+    def __new__(cls, arg0):
+        return Scalprod(arg0, arg0)
 
-def SqNorm2(arg0):
-    return Scalprod(arg0, arg0)
+    enable_test = False
