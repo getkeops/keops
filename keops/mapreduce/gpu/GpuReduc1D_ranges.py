@@ -147,12 +147,12 @@ class GpuReduc1D_ranges(MapReduce, Gpu_link_compile):
                                           if (nbatchdims == 0) {{
                                               for(int jrel = 0; (jrel < blockDim.x) && (jrel<end_y-jstart); jrel++, yjrel+={varloader.dimy}) {{
                                                   {red_formula.formula(fout,table)} // Call the function, which outputs results in xi[0:DIMX1]
-                                                  {sum_scheme.accumulate_result(acc, fout, jreltile)}
+                                                  {sum_scheme.accumulate_result(acc, fout, jreltile+starty)}
                                               }} 
                                           }} else {{
                                               for(int jrel = 0; (jrel < blockDim.x) && (jrel<end_y-jstart); jrel++, yjrel+={varloader.dimy}) {{
                                                   {red_formula.formula(fout,table)} // Call the function, which outputs results in fout
-                                                  {sum_scheme.accumulate_result(acc, fout, jreltile+starty)}
+                                                  {sum_scheme.accumulate_result(acc, fout, jreltile)}
                                               }}
                                           }}
                                           {sum_scheme.final_operation(acc)}
