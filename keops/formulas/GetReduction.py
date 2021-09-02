@@ -12,19 +12,17 @@ class GetReduction:
     library = {}
 
     def __new__(self, red_formula_string, aliases=[]):
-        aliases_dict = {}
-        self.check_formula(red_formula_string)
-
-        for alias in aliases:
-            self.check_formula(alias)
-
-            if "=" in alias:
-                varname, var = alias.split("=")
-                aliases_dict[varname] = eval(var)
         string_id_hash = get_hash_name(red_formula_string, aliases)
         if string_id_hash in GetReduction.library:
             return GetReduction.library[string_id_hash]
         else:
+            self.check_formula(red_formula_string)
+            aliases_dict = {}
+            for alias in aliases:
+                self.check_formula(alias)
+                if "=" in alias:
+                    varname, var = alias.split("=")
+                    aliases_dict[varname] = eval(var)
             reduction = eval(red_formula_string, globals(), aliases_dict)
             GetReduction.library[string_id_hash] = reduction
             return reduction
