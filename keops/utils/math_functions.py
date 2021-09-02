@@ -6,11 +6,13 @@ from keops.utils.code_gen_utils import (
 
 import keops.config.config
 
-def math_function(cpu_code, gpu_code=None, gpu_half2_code=None, void=False):
+def math_function(cpu_code, gpu_code=None, gpu_half2_code=None, gpu_float_code=None, void=False):
     if gpu_code is None:
         gpu_code = cpu_code
     if gpu_half2_code is None:
-        gpu_half2_code = cpu_code
+        gpu_half2_code = gpu_code
+    if gpu_float_code is None:
+        gpu_float_code = gpu_code
 
     def convert_to_fun(code):
         if isinstance(code, str):
@@ -29,7 +31,10 @@ def math_function(cpu_code, gpu_code=None, gpu_half2_code=None, void=False):
         if dtype == "half2":
             code_fun = convert_to_fun(gpu_half2_code)
         elif keops.config.config.use_cuda:
-            code_fun = convert_to_fun(gpu_code)
+            if dtype == "float":
+                code_fun = convert_to_fun(gpu_float_code)
+            else:
+                code_fun = convert_to_fun(gpu_code)
         else:
             code_fun = convert_to_fun(cpu_code)
         string = code_fun(*(arg.id for arg in args))
@@ -63,8 +68,8 @@ keops_xlogx = math_function(cpu_code=lambda x: f"({x} ? {x} * log({x}) : 0.0f)")
 keops_fma = math_function(cpu_code="fma")
 keops_pow = math_function(cpu_code="pow", gpu_code="powf", gpu_half2_code = lambda x, y: f"h2exp({y}*h2log({y}))")
 keops_powf = math_function(cpu_code="powf", gpu_half2_code = lambda x, y: f"h2exp({y}*h2log({y}))")
-keops_rcp = math_function(cpu_code=lambda x: f"(1.0f/({x}))")
-keops_rsqrt = math_function(cpu_code=lambda x: f"(1.0f/sqrt({x}))")
+keops_rcp = math_function(cpu_code=lambda x: f"(1.0f/({x}))", gpu_half2_code = "h2rcp")
+keops_rsqrt = math_function(cpu_code=lambda x: f"(1.0f/sqrt({x}))", gpu_code="rsqrt", gpu_half2_code="h2rsqrt")
 keops_sqrt = math_function(cpu_code="sqrt")
 
 keops_relu = math_function(cpu_code=lambda x: f"(({x}<0.0f)? 0.0f : {x})")
