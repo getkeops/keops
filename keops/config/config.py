@@ -55,4 +55,4 @@ def init_cudalibs():
         CDLL("libnvrtc.so", mode=RTLD_GLOBAL)
         CDLL("libcuda.so", mode=RTLD_GLOBAL)
         CDLL("libcudart.so", mode=RTLD_GLOBAL)
-        init_cudalibs_flag = True
+        keops.config.config.init_cudalibs_flag = True
