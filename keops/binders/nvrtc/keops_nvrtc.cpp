@@ -34,10 +34,10 @@ extern "C" int Compile(const char *ptx_file_name, const char *cu_code, int use_h
     if (use_half) {
         numHeaders = 2;
         header_names[0] = "cuda_fp16.h";
-        header_sources[0] = read_text_file("/usr/include/cuda_fp16.h");
+        header_sources[0] = read_text_file("/usr/local/cuda-11.0/targets/x86_64-linux/include/cuda_fp16.h");
 
         header_names[1] = "cuda_fp16.hpp";
-        header_sources[1] = read_text_file("/usr/include/cuda_fp16.hpp");
+        header_sources[1] = read_text_file("/usr/local/cuda-11.0/targets/x86_64-linux/include/cuda_fp16.hpp");
 
     } else {
         numHeaders = 0;
