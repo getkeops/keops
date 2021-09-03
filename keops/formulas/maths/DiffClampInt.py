@@ -25,4 +25,4 @@ class DiffClampInt(VectorizedScalarOp):
 
     
     # parameters for testing the operation (optional)
-    enable_test = False
+    enable_test = False  # (because it will be tested anyway if we test the gradient of ClampInt)
