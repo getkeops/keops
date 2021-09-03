@@ -18,6 +18,7 @@ from .Exp import Exp
 from .Extract import Extract
 from .ExtractT import ExtractT
 from .Floor import Floor
+from .GradMatrix import GradMatrix
 from .IfElse import IfElse
 from .IntInv import IntInv
 from .Inv import Inv
@@ -36,7 +37,7 @@ from .ReLU import ReLU
 from .Round import Round
 from .Rsqrt import Rsqrt
 from .Scalprod import Scalprod
-from .Sign import Sign, Sign
+from .Sign import Sign
 from .Sin import Sin
 from .SinXDivX import SinXDivX
 from .SqDist import SqDist
@@ -77,6 +78,7 @@ __all__ = [
 "Exp",
 "Extract",
 "ExtractT",
+"GradMatrix",
 "Floor",
 "IfElse",
 "IntInv",
