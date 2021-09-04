@@ -17,7 +17,7 @@ class Rsqrt(VectorizedScalarOp):
 
         # returns the atomic piece of c++ code to evaluate the function on arg and return
         # the result in out
-        return out.assign(keops_rsqrt(arg))  # TODO: check HALF_PRECISION implementation
+        return out.assign(keops_rsqrt(arg))
 
     @staticmethod
     def Derivative(f):
@@ -25,4 +25,4 @@ class Rsqrt(VectorizedScalarOp):
         
         
     # parameters for testing the operation (optional)
-    test_ranges = [(0,2)]           # range of argument
+    test_ranges = [(.5,2)]           # range of argument
