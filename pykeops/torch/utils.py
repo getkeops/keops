@@ -148,6 +148,18 @@ class torchtools:
         )
 
     @staticmethod
+    def empty(
+        shape,
+        dtype=default_dtype,
+        device={"cat": "cpu", "device": -1},
+        requires_grad=False,
+    ):
+        device = torch.device(device["cat"], device["index"])
+        return torch.empty(
+            *shape, dtype=dtype, device=device, requires_grad=requires_grad
+        )
+
+    @staticmethod
     def eye(n, dtype=default_dtype, device="cpu"):
         return torch.eye(n, dtype=dtype, device=device)
 
