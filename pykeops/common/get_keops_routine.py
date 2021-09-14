@@ -2,7 +2,6 @@ from ctypes import create_string_buffer, c_char_p, c_int, CDLL, POINTER, c_void_
 
 from keops.utils.code_gen_utils import get_hash_name
 from keops.get_keops_dll import get_keops_dll
-import time
 
 
 class create_or_load:
@@ -26,7 +25,6 @@ class create_or_load:
 class get_keops_routine_class:
     def __init__(self, map_reduce_id, *args):
         
-        start = time.time()
 
         (
             self.dllname,
@@ -47,9 +45,6 @@ class get_keops_routine_class:
             dimsy,
             dimsp,
         ) = get_keops_dll(map_reduce_id, *args)
-
-        end = time.time()
-        print("total time for get_keops_dll : ", end-start)
 
         # now we switch indsi, indsj and dimsx, dimsy in case tagI=1.
         # This is to be consistent with the convention used in the old
@@ -81,7 +76,6 @@ class get_keops_routine_class:
         args_ctype,
         argshapes_ctype,
     ):
-        start = time.time()
         
         c_args = [arg["data"] for arg in args_ctype]
         nargs = len(args_ctype)
@@ -124,10 +118,6 @@ class get_keops_routine_class:
             + [c_int * len(argshape) for argshape in argshapes_ctype]  # argshape
         )
 
-        end = time.time()
-        print("time for get_keops_routine_class call, part 1 : ", end-start)
-
-        start = time.time()
         launch_keops(
             create_string_buffer(self.low_level_code_file),
             c_int(tagHostDevice),
@@ -156,9 +146,7 @@ class get_keops_routine_class:
             *c_args,
             *argshapes_ctype
         )
-        
-        end = time.time()
-        print("time for launch_keops call : ", end-start)
+
 
 
 def get_keops_routine(*args):
