@@ -115,6 +115,10 @@ class numpytools:
         return np.zeros(shape).astype(dtype)
 
     @staticmethod
+    def empty(shape, dtype=default_dtype, device=None, requires_grad=None):
+        return np.empty(shape).astype(dtype)
+
+    @staticmethod
     def eye(n, dtype=default_dtype):
         return np.eye(n).astype(dtype)
 
