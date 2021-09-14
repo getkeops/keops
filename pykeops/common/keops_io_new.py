@@ -47,6 +47,8 @@ class LoadKeOps_new:
             *args,
     ):
 
+        start = time.time()
+        
         if self.lang == "torch":
             from pykeops.torch.utils import torchtools
 
@@ -243,6 +245,9 @@ class LoadKeOps_new:
         if dtypename == "float16":
             from pykeops.torch.half2_convert import postprocess_half2
             out = postprocess_half2(out, tag_dummy, reduction_op, N)
+            
+        end = time.time()
+        print("total time for genred call : ", end-start)
         
         return out
 

@@ -2,6 +2,7 @@ from ctypes import create_string_buffer, c_char_p, c_int, CDLL, POINTER, c_void_
 
 from keops.utils.code_gen_utils import get_hash_name
 from keops.get_keops_dll import get_keops_dll
+import time
 
 
 class create_or_load:
@@ -74,6 +75,8 @@ class get_keops_routine_class:
         args_ctype,
         argshapes_ctype,
     ):
+        start = time.time()
+        
         c_args = [arg["data"] for arg in args_ctype]
         nargs = len(args_ctype)
         if c_dtype == "float":
@@ -143,6 +146,9 @@ class get_keops_routine_class:
             *c_args,
             *argshapes_ctype
         )
+        
+        end = time.time()
+        print("total time for get_keops_routine_class call : ", end-start)
 
 
 def get_keops_routine(*args):
