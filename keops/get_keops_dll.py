@@ -10,8 +10,8 @@ This is the main entry point for all binders. It takes as inputs :
   - dtype : string specifying the float type of the arguments  "float", "double" or "half")
   - dtypeacc : string specifying the float type of the accumulator of the reduction ("float", "double" or "half")
   - sum_scheme_string : string specifying the type of accumulation for summation reductions : either "direct_sum", "block_sum" or "kahan_scheme".
-  - tagHostDevice : 0 or 1, for Gpu mode only, use Host (0) or Device (1) routines
-  - tagCPUGPU : 0 or 1, use Cpu (0) or Gpu (1) mode
+  - tagHostDevice : 0 or 1, for Gpu mode only, use indicates whether data is stored on Host (0) or Gpu Device (1)
+  - tagCPUGPU : 0 or 1, indicates whether we use Cpu (0) or Gpu (1) mode, i.e. reduction is performed on Cpu or Gpu
   - tag1D2D : 0 or 1, for Gpu mode only, use 1D (0) or 2D (1) computation map-reduce scheme
   - use_half : 0 or 1, for Gpu mode only, enable special routines for half-precision data type
   - device_id : integer, for Gpu mode only, id of Gpu device to build the code for
