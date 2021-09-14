@@ -57,7 +57,7 @@ extern "C" int Compile(const char *ptx_file_name, const char *cu_code, int use_h
 
     char *arch_flag_char = new char[arch_flag.str().length()];
     arch_flag_char = strdup(arch_flag.str().c_str());
-    const char *opts[] = {arch_flag_char};
+    const char *opts[] = {arch_flag_char, "-use_fast_math"};
 
 
     NVRTC_SAFE_CALL(nvrtcCreateProgram(&prog,         // prog
@@ -69,7 +69,7 @@ extern "C" int Compile(const char *ptx_file_name, const char *cu_code, int use_h
     ));
 
     nvrtcResult compileResult = nvrtcCompileProgram(prog,     // prog
-                                              1,              // numOptions
+                                              2,              // numOptions
                                               opts);          // options
     delete[] arch_flag_char;
 
