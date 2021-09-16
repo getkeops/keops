@@ -171,8 +171,10 @@ class torchtools:
             dtype = torch.float64
         elif dtype == "float16":
             dtype = torch.float16
+        elif dtype == "int32":
+            dtype = torch.int32
         else:
-            raise ValueError("[KeOps] data type incompatible with KeOps.")
+            raise ValueError("[KeOps] data type " + dtype + " is incompatible with KeOps.")
         return torch.tensor(x, dtype=dtype, device=device)
 
     @staticmethod

@@ -3,6 +3,7 @@ import numpy as np
 from pykeops.numpy import Genred, default_dtype, KernelSolve
 from pykeops.numpy.cluster import swap_axes as np_swap_axes
 import pykeops.config
+from ctypes import c_void_p
 
 
 class numpytools:
@@ -94,13 +95,10 @@ class numpytools:
     @staticmethod
     def dtypename(dtype):
         return dtype.name
-
+    
     @staticmethod
     def ctypes(x):
-        argtype = np.ctypeslib.ndpointer(
-            dtype=x.dtype, ndim=x.ndim, flags="C_CONTIGUOUS"
-        )
-        return dict(data=x, type=argtype)
+        return dict(data=c_void_p(x.ctypes.data), type=c_void_p)
 
     @staticmethod
     def rand(m, n, dtype=default_dtype):
