@@ -50,6 +50,11 @@ from benchmark_utils import flatten, random_normal, unit_tensor, full_benchmark
 
 use_cuda = torch.cuda.is_available()
 
+if torch.__version__ >= '1.8':
+    torchsolve = lambda A, B : torch.linalg.solve(A,B)
+else:
+    torchsolve = lambda A, B : torch.solve(B,A)[0]
+
 #####################################################################
 # Benchmark specifications:
 #
@@ -151,7 +156,7 @@ def Kinv_pytorch(x, b, gamma, alpha, **kwargs):
     K_xx = alpha * torch.eye(x.shape[0], device=x.get_device()) + torch.exp(
         -gamma * sqdist_torch(x, x)
     )
-    res = torch.solve(b, K_xx)[0]
+    res = torchsolve(K_xx, b)
     return res
 
 
