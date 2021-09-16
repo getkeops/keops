@@ -168,10 +168,18 @@ int launch_keops(const char *ptx_file_name, int tagHostDevice, int dimY, int nx,
     int *offsets_d = NULL;
 
     if (RR.tagRanges==1) {
-        range_preprocess(tagHostDevice, nblocks, tagI, RR.nranges_x, RR.nranges_y, RR.castedranges,
+        if (tagHostDevice==1) {
+            range_preprocess_from_device(nblocks, tagI, RR.nranges_x, RR.nranges_y, RR.castedranges,
                          SS.nbatchdims, slices_x_d, ranges_y_d, lookup_d,
                          offsets_d,
                          blockSize_x, indsi, indsj, indsp, SS.shapes);
+        }
+        else { // tagHostDevice==0
+            range_preprocess_from_host(nblocks, tagI, RR.nranges_x, RR.nranges_y, RR.nredranges_x, RR.nredranges_y, RR.castedranges,
+                         SS.nbatchdims, slices_x_d, ranges_y_d, lookup_d,
+                         offsets_d,
+                         blockSize_x, indsi, indsj, indsp, SS.shapes);
+        }
     }
 
 

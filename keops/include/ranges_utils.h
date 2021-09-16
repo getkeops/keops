@@ -132,7 +132,7 @@ int *build_offset_tables(int nbatchdims, int *shapes, int nblocks, __INDEX__ *lo
 }
 
 
-void range_preprocess(int tagHostDevice, int &nblocks, int tagI, int nranges_x, int nranges_y, __INDEX__ **castedranges,
+void range_preprocess_from_device(int &nblocks, int tagI, int nranges_x, int nranges_y, __INDEX__ **castedranges,
                       int nbatchdims, __INDEX__ *&slices_x_d, __INDEX__ *&ranges_y_d,
                       __INDEX__ *&lookup_d, int *&offsets_d, int blockSize_x,
                       int *indsi, int *indsj, int *indsp, int *shapes) {
@@ -159,7 +159,7 @@ void range_preprocess(int tagHostDevice, int &nblocks, int tagI, int nranges_x, 
     // as well as pointers to slices_x and ranges_y on *device* memory.
     // -> Depending on the "ranges" location, we'll copy ranges_x *or* slices_x and ranges_y
     //    to the appropriate memory:
-    bool ranges_on_device = ((tagHostDevice == 1) && nbatchdims == 0);
+    bool ranges_on_device = (nbatchdims == 0);
     // N.B.: We only support Host ranges with Device data when these ranges were created
     //       to emulate block-sparse reductions.
 
@@ -209,6 +209,83 @@ void range_preprocess(int tagHostDevice, int &nblocks, int tagI, int nranges_x, 
     cuMemcpyHtoD((CUdeviceptr) lookup_d, lookup_h, sizeof(__INDEX__) * 3 * nblocks);
 
 
+    // Support for broadcasting over batch dimensions =============================================
+
+    // We create a lookup table, "offsets", of shape (nblock, SIZEVARS):
+
+    int sizei = indsi[0];
+    int sizej = indsj[0];
+    int sizep = indsp[0];
+
+    if (nbatchdims > 0) {
+        offsets_d = build_offset_tables(nbatchdims, shapes, nblocks, lookup_h,
+                                        sizei, sizej, sizep, indsi, indsj, indsp, tagJ);
+    }
+
+
+}
+
+
+
+
+
+
+void range_preprocess_from_host(int &nblocks, int tagI, int nranges_x, int nranges_y, int nredranges_x, int nredranges_y, __INDEX__ **castedranges,
+                      int nbatchdims, __INDEX__ *&slices_x_d, __INDEX__ *&ranges_y_d,
+                      __INDEX__ *&lookup_d, int *&offsets_d, int blockSize_x,
+                      int *indsi, int *indsj, int *indsp, int *shapes) {
+
+    // Ranges pre-processing... ==================================================================
+
+    // N.B.: In the following code, we assume that the x-ranges do not overlap.
+    //       Otherwise, we'd have to assume that DIMRED == DIMOUT
+    //       or allocate a buffer of size nx * DIMRED. This may be done in the future.
+    // Cf. reduction.h:
+    //    FUN::tagJ = 1 for a reduction over j, result indexed by i
+    //    FUN::tagJ = 0 for a reduction over i, result indexed by j
+
+    int tagJ = 1 - tagI;
+    int nranges = tagJ ? nranges_x : nranges_y;
+    int nredranges = tagJ ? nredranges_y : nredranges_x;
+
+    __INDEX__ *ranges_x = tagJ ? castedranges[0] : castedranges[3];
+    __INDEX__ *slices_x = tagJ ? castedranges[1] : castedranges[4];
+    __INDEX__ *ranges_y = tagJ ? castedranges[2] : castedranges[5];
+    
+    // Computes the number of blocks needed ---------------------------------------------
+    nblocks = 0;
+    int len_range = 0;
+    for (int i = 0; i < nranges; i++) {
+        len_range = ranges_x[2 * i + 1] - ranges_x[2 * i];
+        nblocks += (len_range / blockSize_x) + (len_range % blockSize_x == 0 ? 0 : 1);
+    }
+
+    // Create a lookup table for the blocks --------------------------------------------
+    __INDEX__ *lookup_h = NULL;
+    lookup_h = new __INDEX__[3 * nblocks];
+    int index = 0;
+    for (int i = 0; i < nranges; i++) {
+        len_range = ranges_x[2 * i + 1] - ranges_x[2 * i];
+        for (int j = 0; j < len_range; j += blockSize_x) {
+            lookup_h[3 * index] = i;
+            lookup_h[3 * index + 1] = ranges_x[2 * i] + j;
+            lookup_h[3 * index + 2] = ranges_x[2 * i] + j + ::std::min((int) blockSize_x, len_range - j);
+            index++;
+        }
+    }
+
+    // Load the table on the device -----------------------------------------------------
+    cuMemAlloc((CUdeviceptr *) &lookup_d, sizeof(__INDEX__) * 3 * nblocks);
+    cuMemcpyHtoD((CUdeviceptr) lookup_d, lookup_h, sizeof(__INDEX__) * 3 * nblocks);
+    
+    // Send data from host to device:
+    cuMemAlloc((CUdeviceptr *) &slices_x_d, sizeof(__INDEX__) * 2*nranges);
+    cuMemcpyHtoD((CUdeviceptr) slices_x_d, slices_x, sizeof(__INDEX__) * 2*nranges);
+
+    cuMemAlloc((CUdeviceptr *) &ranges_y_d, sizeof(__INDEX__) * 2*nredranges);
+    cuMemcpyHtoD((CUdeviceptr) ranges_y_d, ranges_y, sizeof(__INDEX__) * 2*nredranges);
+    
+    
     // Support for broadcasting over batch dimensions =============================================
 
     // We create a lookup table, "offsets", of shape (nblock, SIZEVARS):
