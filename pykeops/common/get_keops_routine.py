@@ -24,6 +24,8 @@ class create_or_load:
 
 class get_keops_routine_class:
     def __init__(self, map_reduce_id, *args):
+        
+
         (
             self.dllname,
             self.low_level_code_file,
@@ -74,6 +76,7 @@ class get_keops_routine_class:
         args_ctype,
         argshapes_ctype,
     ):
+        
         c_args = [arg["data"] for arg in args_ctype]
         nargs = len(args_ctype)
         if c_dtype == "float":
@@ -143,6 +146,7 @@ class get_keops_routine_class:
             *c_args,
             *argshapes_ctype
         )
+
 
 
 def get_keops_routine(*args):

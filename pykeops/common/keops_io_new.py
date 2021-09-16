@@ -1,10 +1,19 @@
 from pykeops.common.get_keops_routine import get_keops_routine
-import time
 from ctypes import c_int, c_void_p
-import numpy
-
+import numpy as np
+from functools import reduce
 
 class LoadKeOps_new:
+
+    def ranges2ctype(ranges):
+        ranges_ctype = list(c_void_p(r.ctypes.data) for r in ranges)
+        ranges_ctype = (c_void_p * 7)(*ranges_ctype)
+        return ranges_ctype
+    
+    empty_ranges = (np.array([-1], dtype="int32"),) * 7  # temporary hack
+    empty_ranges_ctype = ranges2ctype(empty_ranges)
+
+
     def __init__(
             self, formula, aliases, dtype, lang, optional_flags=[], include_dirs=[]
     ):
@@ -46,7 +55,7 @@ class LoadKeOps_new:
             reduction_op,
             *args,
     ):
-
+        
         if self.lang == "torch":
             from pykeops.torch.utils import torchtools
 
@@ -187,17 +196,17 @@ class LoadKeOps_new:
             use_half,
             device_id_request
         )
+
         self.tagIJ = myfun.tagI
         self.dimout = myfun.dim
 
         # get ranges argument as ctypes
         if not ranges:
-            ranges = (numpy.array([-1], dtype="int32"),) * 7  # temporary hack
+            ranges_ctype = self.empty_ranges_ctype
         else:
             ranges = tuple(tools.numpy(r) for r in ranges)
             ranges = (*ranges, numpy.array([r.shape[0] for r in ranges], dtype="int32"))
-        ranges_ctype = list(c_void_p(r.ctypes.data) for r in ranges)
-        ranges_ctype = (c_void_p * 7)(*ranges_ctype)
+            ranges_ctype = ranges2ctype(ranges)
 
         # convert arguments arrays to ctypes
         args_ctype = [tools.ctypes(arg) for arg in args]
@@ -209,21 +218,27 @@ class LoadKeOps_new:
         ]
 
         # initialize output array and converting to ctypes
-        batchdims_shapes = []
-        for arg in args:
-            batchdims_shapes.append(list(arg.shape[:nbatchdims]))
-        import numpy as np
 
-        batchdims_shapes = np.array(batchdims_shapes)
         M = nx if myfun.tagI == 0 else ny
+
         if use_half:
             M += M % 2
-        shapeout = tuple(np.max(batchdims_shapes, axis=0)) + (M, myfun.dim)
 
-        out = tools.zeros(shapeout, dtype=dtype, device=device_args)
+        if nbatchdims:
+            batchdims_shapes = []
+            for arg in args:
+                batchdims_shapes.append(list(arg.shape[:nbatchdims]))
+            tmp = reduce(np.maximum,batchdims_shapes)  # this is faster than np.max(..., axis=0)
+            shapeout = tuple(tmp) + (M, myfun.dim)
+        else:
+            shapeout = (M, myfun.dim)
+
+        out = tools.empty(shapeout, dtype=dtype, device=device_args)
+
         outshape_ctype = (c_int * (len(out.shape) + 1))(
             *((len(out.shape),) + out.shape)
         )
+
         out_ctype = tools.ctypes(out)
 
         # call the routine
@@ -239,7 +254,7 @@ class LoadKeOps_new:
             args_ctype,
             argshapes_ctype,
         )
-        
+
         if dtypename == "float16":
             from pykeops.torch.half2_convert import postprocess_half2
             out = postprocess_half2(out, tag_dummy, reduction_op, N)
