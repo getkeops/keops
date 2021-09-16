@@ -4,15 +4,19 @@ import numpy as np
 from functools import reduce
 
 class LoadKeOps_new:
+    
+    @staticmethod
+    def numpy_array2ctypes(x):
+        return dict(data=c_void_p(x.ctypes.data), type=c_void_p)
 
     @staticmethod
-    def ranges2ctype(ranges):
-        ranges_ctype = list(c_void_p(r.ctypes.data) for r in ranges)
-        ranges_ctype = (c_void_p * 7)(*ranges_ctype)
+    def ranges2ctype(ranges, array2ctypes):
+        ranges_ctype = list(array2ctypes(r) for r in ranges)
+        ranges_ctype = (c_void_p * 7)(*(r["data"] for r in ranges_ctype))
         return ranges_ctype
     
-    empty_ranges = (np.array([-1], dtype="int32"),) * 7  # temporary hack
-    empty_ranges_ctype = ranges2ctype.__func__(empty_ranges)
+    empty_ranges = (np.array([-1], dtype="int32"),) * 7
+    empty_ranges_ctype = ranges2ctype.__func__(empty_ranges, numpy_array2ctypes.__func__)
 
 
     def __init__(
@@ -59,11 +63,9 @@ class LoadKeOps_new:
         
         if self.lang == "torch":
             from pykeops.torch.utils import torchtools
-
             tools = torchtools
         elif self.lang == "numpy":
             from pykeops.numpy.utils import numpytools
-
             tools = numpytools
 
         nargs = len(args)
@@ -205,9 +207,8 @@ class LoadKeOps_new:
         if not ranges:
             ranges_ctype = self.empty_ranges_ctype
         else:
-            ranges = tuple(tools.numpy(r) for r in ranges)
-            ranges = (*ranges, np.array([r.shape[0] for r in ranges], dtype="int32"))
-            ranges_ctype = self.ranges2ctype(ranges)
+            ranges = (*ranges, tools.array([r.shape[0] for r in ranges], dtype="int32"))
+            ranges_ctype = self.ranges2ctype(ranges, tools.ctypes)
 
         # convert arguments arrays to ctypes
         args_ctype = [tools.ctypes(arg) for arg in args]
