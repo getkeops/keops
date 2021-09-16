@@ -125,7 +125,7 @@ class get_keops_routine_class:
         )
 
         end = time.time()
-        print("time for get_keops_routine_class call, part 1 : ", end-start)
+        print("    time for get_keops_routine_class call, part 1 : ", end-start)
 
         start = time.time()
         launch_keops(
@@ -158,7 +158,7 @@ class get_keops_routine_class:
         )
         
         end = time.time()
-        print("time for launch_keops call : ", end-start)
+        print("    time for launch_keops call : ", end-start)
 
 
 def get_keops_routine(*args):

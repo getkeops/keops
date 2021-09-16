@@ -18,6 +18,8 @@ class LoadKeOps_new:
     def __init__(
             self, formula, aliases, dtype, lang, optional_flags=[], include_dirs=[]
     ):
+        start = time.time()
+        
         aliases_new = []
         for k, alias in enumerate(aliases):
             alias = alias.replace(" ", "")
@@ -42,6 +44,10 @@ class LoadKeOps_new:
         self.optional_flags = optional_flags
         self.red_formula_string = formula
         self.dtype = dtype
+        
+        end = time.time()
+        print("  time for LoadKeOps_new __init__ : ", end-start)
+        
 
     def genred(
             self,
@@ -57,7 +63,7 @@ class LoadKeOps_new:
             *args,
     ):
 
-        start = time.time()
+        start_rec = start = time.time()
         
         if self.lang == "torch":
             from pykeops.torch.utils import torchtools
@@ -183,7 +189,7 @@ class LoadKeOps_new:
             map_reduce_id += "_ranges"
         
         end = time.time()
-        print("time for genred call, part 1 : ", end-start)
+        print("  time for genred call, part 1 : ", end-start)
 
         start = time.time()
 
@@ -206,7 +212,7 @@ class LoadKeOps_new:
         )
 
         end = time.time()
-        print("time for genred call, part 2 (=get_keops_routine call) : ", end-start)
+        print("  time for genred call, part 2 (get_keops_routine class __init__ method) : ", end-start)
         start = time.time()
 
         self.tagIJ = myfun.tagI
@@ -221,14 +227,14 @@ class LoadKeOps_new:
             ranges_ctype = ranges2ctype(ranges)
 
         end = time.time()
-        print("time for genred call, part 3a : ", end-start)
+        print("  time for genred call, part 3a : ", end-start)
         start = time.time()
 
         # convert arguments arrays to ctypes
         args_ctype = [tools.ctypes(arg) for arg in args]
 
         end = time.time()
-        print("time for converting arguments arrays to ctypes (3b) : ", end-start)
+        print("  time for converting arguments arrays to ctypes (3b) : ", end-start)
         start = time.time()
 
         # get all shapes of arguments as ctypes
@@ -238,23 +244,23 @@ class LoadKeOps_new:
         ]
 
         end = time.time()
-        print("time for get all shapes of arguments as ctypes (3c): ", end-start)
+        print("  time for getting all shapes of arguments as ctypes (3c): ", end-start)
         start = time.time()
 
         # initialize output array and converting to ctypes
 
         end = time.time()
-        print("time for genred call, part 3d : ", end-start)
+        print("  time for genred call, part 3d : ", end-start)
         start = time.time()
 
         end = time.time()
-        print("time for genred call, part 3e1 : ", end-start)
+        print("  time for genred call, part 3e1 : ", end-start)
         start = time.time()
 
         M = nx if myfun.tagI == 0 else ny
 
         end = time.time()
-        print("time for genred call, part 3e2a : ", end-start)
+        print("  time for genred call, part 3e2a : ", end-start)
         start = time.time()
 
         if use_half:
@@ -266,13 +272,13 @@ class LoadKeOps_new:
                 batchdims_shapes.append(list(arg.shape[:nbatchdims]))
 
             end = time.time()
-            print("time intermediate step 1 : ", end-start)
+            print("  time intermediate step 1 : ", end-start)
             start = time.time()
             
             tmp = reduce(np.maximum,batchdims_shapes)  # this is faster than np.max(..., axis=0)
 
             end = time.time()
-            print("time intermediate step 2 : ", end-start)
+            print("  time intermediate step 2 : ", end-start)
             start = time.time()
 
             shapeout = tuple(tmp) + (M, myfun.dim)
@@ -280,13 +286,13 @@ class LoadKeOps_new:
             shapeout = (M, myfun.dim)
             
         end = time.time()
-        print("time for genred call, part 3e2b : ", end-start)
+        print("  time for genred call, part 3e2b : ", end-start)
         start = time.time()
 
         out = tools.empty(shapeout, dtype=dtype, device=device_args)
         
         end = time.time()
-        print("time for genred call, part 3f1 : ", end-start)
+        print("  time for genred call, part 3f1 : ", end-start)
         start = time.time()
 
         outshape_ctype = (c_int * (len(out.shape) + 1))(
@@ -294,13 +300,13 @@ class LoadKeOps_new:
         )
 
         end = time.time()
-        print("time for genred call, part 3f2 : ", end-start)
+        print("  time for genred call, part 3f2 : ", end-start)
         start = time.time()
 
         out_ctype = tools.ctypes(out)
 
         end = time.time()
-        print("time for genred call, part 3f3 : ", end-start)
+        print("  time for genred call, part 3f3 : ", end-start)
         start = time.time()
 
         # call the routine
@@ -318,7 +324,7 @@ class LoadKeOps_new:
         )
         
         end = time.time()
-        print("time for genred call, part 4 (=dll call) : ", end-start)
+        print("  time for genred call, part 4 (get_keops_routine_class __call__ method) : ", end-start)
         start = time.time()
 
         if dtypename == "float16":
@@ -326,7 +332,9 @@ class LoadKeOps_new:
             out = postprocess_half2(out, tag_dummy, reduction_op, N)
             
         end = time.time()
-        print("time for genred call, part 5 : ", end-start)
+        print("  time for genred call, part 5 : ", end-start)
+        
+        print("time for genred call : ", end-start_rec)
         
         return out
 
