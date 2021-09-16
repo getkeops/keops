@@ -5,13 +5,14 @@ from functools import reduce
 
 class LoadKeOps_new:
 
+    @staticmethod
     def ranges2ctype(ranges):
         ranges_ctype = list(c_void_p(r.ctypes.data) for r in ranges)
         ranges_ctype = (c_void_p * 7)(*ranges_ctype)
         return ranges_ctype
     
     empty_ranges = (np.array([-1], dtype="int32"),) * 7  # temporary hack
-    empty_ranges_ctype = ranges2ctype(empty_ranges)
+    empty_ranges_ctype = ranges2ctype.__func__(empty_ranges)
 
 
     def __init__(
@@ -205,8 +206,8 @@ class LoadKeOps_new:
             ranges_ctype = self.empty_ranges_ctype
         else:
             ranges = tuple(tools.numpy(r) for r in ranges)
-            ranges = (*ranges, numpy.array([r.shape[0] for r in ranges], dtype="int32"))
-            ranges_ctype = ranges2ctype(ranges)
+            ranges = (*ranges, np.array([r.shape[0] for r in ranges], dtype="int32"))
+            ranges_ctype = self.ranges2ctype(ranges)
 
         # convert arguments arrays to ctypes
         args_ctype = [tools.ctypes(arg) for arg in args]
