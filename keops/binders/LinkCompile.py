@@ -90,13 +90,11 @@ class LinkCompile:
                 self.red_formula,
                 "...",
                 flush=True,
-                end="",
+                end=" ",
             )
-            start = time.time()
             self.compile_code()
             self.save_info()
-            elapsed = time.time() - start
-            print("Done ({:.2f} s)".format(elapsed))
+            print("OK")
         else:
             self.read_info()
         return dict(
