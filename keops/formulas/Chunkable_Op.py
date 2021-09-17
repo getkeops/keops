@@ -1,7 +1,6 @@
 from keops.formulas.Operation import Operation
 from keops.formulas.variables.Var import Var
-from keops.config.chunks import enable_chunk, dim_treshold_chunk, specdim_use_chunk1, specdim_use_chunk2, \
-    specdim_use_chunk3, specdim_use_chunk4
+from keops.config.chunks import enable_chunk, dim_treshold_chunk, specdims_use_chunk
 
 
 class Chunkable_Op(Operation):
@@ -26,9 +25,7 @@ class Chunkable_Op(Operation):
     def use_chunk(self):
         test = enable_chunk & all(child.is_chunkable for child in self.children)
         child = self.children[0]
-        subtest = (child.dim > dim_treshold_chunk)
-        subtest |= (child.dim == specdim_use_chunk1) or (child.dim == specdim_use_chunk2)
-        subtest |= (child.dim == specdim_use_chunk3) or (child.dim == specdim_use_chunk4)
+        subtest = (child.dim >= dim_treshold_chunk) | child.dim in specdims_use_chunk
         test &= subtest
         return test
     

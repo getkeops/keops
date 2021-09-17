@@ -8,6 +8,19 @@ def get_hash_name(*args):
     return sha256("".join(list(str(arg) for arg in args)).encode("utf-8")).hexdigest()[
         :10
     ]
+    
+
+#######################################################################
+# .  Debugging helpers
+#######################################################################
+
+def KeOps_Error(message, show_line_number=True):
+    message = "[KeOps] Error : " + message
+    if show_line_number:
+        from inspect import currentframe, getframeinfo
+        frameinfo = getframeinfo(currentframe().f_back)
+        message += f" (at line {frameinfo.lineno} in file {frameinfo.filename})"
+    raise ValueError(message)
 
 
 #######################################################################
@@ -22,7 +35,7 @@ def sizeof(dtype):
     elif dtype=="half":
         return 2
     else:
-        raise ValueError("not implemented")
+        KeOps_Error("not implemented")
     
 class new_c_varname:
     # class to generate unique names for variables in C++ code, to avoid conflicts
@@ -108,12 +121,12 @@ class c_variable:
             return self + c_variable(dtype, str(other))
         elif type(other) == c_variable:
             if self.dtype != other.dtype:
-                raise ValueError(
+                KeOps_Error(
                     "addition of two c_variable only possible with same dtype"
                 )
             return c_variable(self.dtype, f"({self.id}+{other.id})")
         else:
-            raise ValueError("not implemented")
+            KeOps_Error("not implemented")
 
     def __mul__(self, other):
         if type(other) in (int, float):
@@ -121,12 +134,12 @@ class c_variable:
             return self * c_variable(dtype, str(other))
         elif type(other) == c_variable:
             if self.dtype != other.dtype:
-                raise ValueError(
+                KeOps_Error(
                     "multiplication of two c_variable only possible with same dtype"
                 )
             return c_variable(self.dtype, f"({self.id}*{other.id})")
         else:
-            raise ValueError("not implemented")
+            KeOps_Error("not implemented")
 
     def __sub__(self, other):
         if type(other) in (int, float):
@@ -134,12 +147,12 @@ class c_variable:
             return self - c_variable(dtype, str(other))
         elif type(other) == c_variable:
             if self.dtype != other.dtype:
-                raise ValueError(
+                KeOps_Error(
                     "subtraction of two c_variable only possible with same dtype"
                 )
             return c_variable(self.dtype, f"({self.id}-{other.id})")
         else:
-            raise ValueError("not implemented")
+            KeOps_Error("not implemented")
 
     def __truediv__(self, other):
         if type(other) in (int, float):
@@ -147,12 +160,12 @@ class c_variable:
             return self / c_variable(dtype, str(other))
         elif type(other) == c_variable:
             if self.dtype != other.dtype:
-                raise ValueError(
+                KeOps_Error(
                     "division of two c_variable only possible with same dtype"
                 )
             return c_variable(self.dtype, f"({self.id}/{other.id})")
         else:
-            raise ValueError("not implemented")
+            KeOps_Error("not implemented")
 
     def __lt__(self, other):
         if type(other) in (int, float):
@@ -160,12 +173,12 @@ class c_variable:
             return self < c_variable(dtype, str(other))
         elif type(other) == c_variable:
             if self.dtype != other.dtype:
-                raise ValueError(
+                KeOps_Error(
                     "comparison of two c_variable only possible with same dtype"
                 )
             return c_variable("bool", f"({self.id}<{other.id})")
         else:
-            raise ValueError("not implemented")
+            KeOps_Error("not implemented")
 
     def __gt__(self, other):
         if type(other) in (int, float):
@@ -173,12 +186,12 @@ class c_variable:
             return self > c_variable(dtype, str(other))
         elif type(other) == c_variable:
             if self.dtype != other.dtype:
-                raise ValueError(
+                KeOps_Error(
                     "comparison of two c_variable only possible with same dtype"
                 )
             return c_variable("bool", f"({self.id}>{other.id})")
         else:
-            raise ValueError("not implemented")
+            KeOps_Error("not implemented")
 
     def __neg__(self):
         return c_variable(self.dtype, f"(-{self.id})")
@@ -188,10 +201,10 @@ class c_variable:
             return self[c_variable("int", str(other))]
         elif type(other) == c_variable:
             if other.dtype != "int":
-                raise ValueError("v[i] with i and v c_variable requires i.dtype='int' ")
+                KeOps_Error("v[i] with i and v c_variable requires i.dtype='int' ")
             return c_variable(value(self.dtype), f"{self.id}[{other.id}]")
         else:
-            raise ValueError("not implemented")
+            KeOps_Error("not implemented")
 
 def use_pragma_unroll(n=64):
     if disable_pragma_unrolls:
@@ -206,12 +219,12 @@ def c_for_loop(start, end, incr, pragma_unroll=False):
     def to_string(x):
         if type(x) == c_variable:
             if x.dtype != "int":
-                raise ValueError("only simple int type for loops implemented")
+                KeOps_Error("only simple int type for loops implemented")
             return x.id
         elif type(x) == int:
             return str(x)
         else:
-            raise ValueError("only simple int type for loops implemented")
+            KeOps_Error("only simple int type for loops implemented")
 
     start, end, incr = map(to_string, (start, end, incr))
     k = c_variable("int", new_c_varname("k"))
@@ -243,7 +256,7 @@ def infinity(dtype):
     elif dtype == "double":
         code = "( 1.7976931348623158e+308 )"
     else:
-        raise ValueError(
+        KeOps_Error(
             "only float and double dtypes are implemented in new python engine for now"
         )
     return c_variable(dtype, code)
@@ -261,7 +274,7 @@ def cast_to(dtype, var):
     elif dtype=="half2" and var.dtype=="float2":
         return f"__float22half2_rn({var.id})"
     else:
-        raise ValueError("not implemented.")
+        KeOps_Error("not implemented")
 
 
 def value(x):
@@ -275,11 +288,11 @@ def value(x):
         if x[-1] == "*":
             return x[:-1]
         else:
-            raise ValueError(
+            KeOps_Error(
                 "Incorrect input string in value function; it should represent a pointer C++ type."
             )
     else:
-        raise ValueError("input should be either c_variable instance or string.")
+        KeOps_Error("input should be either c_variable instance or string.")
 
 
 def pointer(x):
@@ -290,13 +303,13 @@ def pointer(x):
     elif isinstance(x, str):
         return x + "*"
     else:
-        raise ValueError("input should be either c_variable instance or string.")
+        KeOps_Error("input should be either c_variable instance or string.")
 
 
 class c_array:
     def __init__(self, dtype, dim, string_id=new_c_varname("array")):
         if dim < 0:
-            raise ValueError("negative dimension for array")
+            KeOps_Error("negative dimension for array")
         self.c_var = c_variable(pointer(dtype), string_id)
         self.dtype = dtype
         self.dim = dim
@@ -317,7 +330,7 @@ class c_array:
     def split(self, *dims):
         # split c_array in n sub arrays with dimensions dims[0], dims[1], ..., dims[n-1]
         if sum(dims) != self.dim:
-            raise ValueError("incompatible dimensions for split")
+            KeOps_Error("incompatible dimensions for split")
         listarr, cumdim = [], 0
         for dim in dims:
             listarr.append(c_array(self.dtype, dim, f"({self.id}+{cumdim})"))
@@ -335,10 +348,10 @@ class c_array:
             return self[c_variable("int", str(other))]
         elif type(other) == c_variable:
             if other.dtype != "int":
-                raise ValueError("v[i] with i and v c_array requires i.dtype='int' ")
+                KeOps_Error("v[i] with i and v c_array requires i.dtype='int' ")
             return c_variable(self.dtype, f"{self.id}[{other.id}]")
         else:
-            raise ValueError("not implemented")
+            KeOps_Error("not implemented")
 
     @property
     def c_print(self):
@@ -347,7 +360,7 @@ class c_array:
         elif self.dtype == "int":
             tag = "%d, " * self.dim
         else:
-            raise ValueError("not implemented")
+            KeOps_Error("not implemented")
         string = f'printf("{self.id} = {tag}\\n"'
         for i in range(self.dim):
             string += f", {self[i].id}"
@@ -380,10 +393,10 @@ def VectApply(fun, out, *args):
         elif isinstance(arg, c_array):
             dims.append(arg.dim)
         else:
-            raise ValueError("args must be c_variable or c_array instances")
+            KeOps_Error("args must be c_variable or c_array instances")
     dimloop = max(dims)
     if not set(dims) in ({dimloop}, {1, dimloop}):
-        raise ValueError("incompatible dimensions in VectApply")
+        KeOps_Error("incompatible dimensions in VectApply")
     incr_out = 1 if out.dim == dimloop else 0
     incr_args = list((1 if dim == dimloop else 0) for dim in dims[1:])
 
@@ -407,10 +420,10 @@ def ComplexVectApply(fun, out, *args):
         if isinstance(arg, c_array):
             dims.append(arg.dim)
         else:
-            raise ValueError("args must be c_array instances")
+            KeOps_Error("args must be c_array instances")
     dimloop = max(dims)
     if not set(dims) in ({dimloop}, {2, dimloop}):
-        raise ValueError("incompatible dimensions in ComplexVectApply")
+        KeOps_Error("incompatible dimensions in ComplexVectApply")
     incr_out = 1 if out.dim == dimloop else 0
     incr_args = list((1 if dim == dimloop else 0) for dim in dims[1:])
 
@@ -479,7 +492,9 @@ def c_function(name, dtypeout, args, commands, qualifier=None):
     string += "\n".join(list(c for c in commands))
     string += "\n}\n"
     return string
-
+    
+    
+    
 
 #######################################################################
 # .  KeOps related helpers
@@ -741,7 +756,7 @@ def varseq_to_array(vars, vars_ptr_name):
 
     # we check that all variables have the same type
     if not all(var.dtype == dtype for var in vars[1:]):
-        raise ValueError(
+        KeOps_Error(
             "[KeOps] internal error ; incompatible dtypes in varseq_to_array."
         )
     string = f"""   {dtype} {vars_ptr_name}[{nvars}];

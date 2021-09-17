@@ -180,7 +180,8 @@ class GpuReduc1D_ranges_chunks(MapReduce, Gpu_link_compile):
                                 acc, tile, i, j, jstart, starty, last_chunk, end_x, end_y, nbatchdims,
                                 indices_i, indices_j, arg, fout_chunk, xi, yj, param_loc)
         
-        foutj = c_variable(pointer(dtype), "foutj")
+        foutj = c_array(dtype, chk.dimout_chunk, "foutj")
+        
         chktable_out = table4(chk.nminargs+1, chk.dimsx, chk.dimsy, chk.dimsp, [chk.dimout_chunk], 
                                 chk.indsi, chk.indsj, chk.indsp, [chk.nminargs], 
                                 xi, yjrel, param_loc, foutj)
