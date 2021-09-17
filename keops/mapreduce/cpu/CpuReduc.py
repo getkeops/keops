@@ -3,6 +3,7 @@ from keops.binders.cpp.Cpu_link_compile import Cpu_link_compile
 from keops.mapreduce.cpu.CpuAssignZero import CpuAssignZero
 from keops.mapreduce.MapReduce import MapReduce
 from keops.utils.code_gen_utils import c_include
+from keops.config.config import use_OpenMP
 
 
 class CpuReduc(MapReduce, Cpu_link_compile):
@@ -31,7 +32,9 @@ class CpuReduc(MapReduce, Cpu_link_compile):
         table = self.varloader.direct_table(args, i, j)
         sum_scheme = self.sum_scheme
 
-        headers = ["cmath", "omp.h"]
+        headers = ["cmath"]
+        if use_OpenMP:
+            headers.append("omp.h")
         if debug_ops:
             headers.append("iostream")
         self.headers += c_include(*headers)
