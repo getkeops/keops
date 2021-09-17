@@ -24,20 +24,25 @@
 #include <cuda_fp16.h>
 
 
-extern "C" int Compile(const char *ptx_file_name, const char *cu_code, int use_half, int device_id) {
+extern "C" int Compile(const char *ptx_file_name, const char *cu_code, int use_half, int device_id, const char *cuda_include_path) {
 
     nvrtcProgram prog;
 
     int numHeaders;
     const char *header_names[2];
     const char *header_sources[2];
+    
+    std::ostringstream cuda_fp16_h_path, cuda_fp16_hpp_path;
+    cuda_fp16_h_path << cuda_include_path << "cuda_fp16.h" ;
+    cuda_fp16_hpp_path << cuda_include_path << "cuda_fp16.hpp" ;
+    
     if (use_half) {
         numHeaders = 2;
         header_names[0] = "cuda_fp16.h";
-        header_sources[0] = read_text_file("/usr/local/cuda-11.0/targets/x86_64-linux/include/cuda_fp16.h");
+        header_sources[0] = read_text_file(cuda_fp16_h_path.str().c_str());
 
         header_names[1] = "cuda_fp16.hpp";
-        header_sources[1] = read_text_file("/usr/local/cuda-11.0/targets/x86_64-linux/include/cuda_fp16.hpp");
+        header_sources[1] = read_text_file(cuda_fp16_hpp_path.str().c_str());
 
     } else {
         numHeaders = 0;
