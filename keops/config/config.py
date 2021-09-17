@@ -7,8 +7,12 @@ base_dir_path = os.path.dirname(os.path.realpath(__file__)) + os.path.sep + ".."
 template_path = base_dir_path + "templates" + os.path.sep
 bindings_source_dir = base_dir_path + "include" + os.path.sep
 build_path = base_dir_path + "build" + os.path.sep
-cuda_path = [os.path.sep + os.path.join("opt", "cuda"),
-             os.path.sep + os.path.join("usr", "local", "cuda"),]
+
+# path to Cuda : currently we just list a few possible paths this is not good at all...
+cuda_path = [os.path.sep + os.path.join("opt", "cuda"),                 # for oban
+             os.path.sep + os.path.join("usr", "local", "cuda"),        # for bartlett
+             os.path.sep + os.path.join("usr", "local", "cuda-11.3"),   # for topdyn
+         ]
 
 # Compiler
 cxx_compiler ="g++"
