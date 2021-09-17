@@ -33,10 +33,10 @@ class Operation(Tree):
 
     def replace(self, old, new):
         # replace all occurences of subformula old by new in self.
-        if self==old:
+        if self == old:
             return new
         else:
-            new_children = [child.replace(old,new) for child in self.children]
+            new_children = [child.replace(old, new) for child in self.children]
             return type(self)(*new_children, *self.params)
 
     def __call__(self, out, table):
@@ -131,19 +131,23 @@ class Operation(Tree):
     def __neg__(self):
         """-f redirects to Minus(f)"""
         from keops.formulas.maths.Minus import Minus
+
         return Minus(self)
 
     def __pow__(self, other):
         if other == 2:
             """f**2 redirects to Square(f)"""
             from keops.formulas.maths.Square import Square
+
             return Square(self)
         elif isinstance(other, int):
             """f**m with m integer redirects to Pow(f,m)"""
             from keops.formulas.maths.Pow import Pow
+
             return Pow(self, other)
         else:
             from keops.formulas.maths.Powf import Powf
+
             raise Powf(self, other)
 
     def __or__(self, other):
@@ -154,9 +158,9 @@ class Operation(Tree):
 
     def __eq__(self, other):
         return (
-                type(self) == type(other)
-                and self.children == other.children
-                and self.params == other.params
+            type(self) == type(other)
+            and self.children == other.children
+            and self.params == other.params
         )
 
     def Op(self, out, table, param):
@@ -186,10 +190,9 @@ class Operation(Tree):
             ind += child.num_chunked_formulas
         return type(self)(*args, *self.params)
 
-
     enable_test = False
-    
-    
+
+
 def int2Op(x):
     if isinstance(x, int):
         from keops.formulas.variables.IntCst import IntCst

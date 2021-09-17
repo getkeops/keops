@@ -8,6 +8,7 @@ from keops.formulas.complex import *
 from keops.formulas.variables import *
 from keops.formulas.autodiff import *
 
+
 class GetReduction:
     library = {}
 
@@ -32,6 +33,8 @@ class GetReduction:
         formula_class = dict(inspect.getmembers(keops.formulas))
         parsed = ast.parse(string)
         for node in ast.walk(parsed):
-            if isinstance(node, ast.Call) and (node.func.id not in formula_class.keys()):
+            if isinstance(node, ast.Call) and (
+                node.func.id not in formula_class.keys()
+            ):
                 print(node.func.id)
                 # raise NotImplementedError

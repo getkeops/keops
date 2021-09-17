@@ -24,11 +24,9 @@ class Add_Impl(VectorizedScalarOp):
     def DiffT(self, v, gradin):
         fa, fb = self.children
         return fa.DiffT(v, gradin) + fb.DiffT(v, gradin)
-        
-        
+
     # parameters for testing the operation (optional)
-    nargs = 2           # number of arguments
-    
+    nargs = 2  # number of arguments
 
 
 # N.B. The following separate function could theoretically be implemented
@@ -45,12 +43,12 @@ def Add(arg0, arg1):
             #  factorization :  n*x + x = (n+1)*x
             return IntCst(arg0.children[0].val + 1) * arg1
         elif (
-                isinstance(arg1, Mult_Impl)
-                and isinstance(arg1.children[0], IntCst_Impl)
-                and arg1.children[1] == arg0.children[1]
+            isinstance(arg1, Mult_Impl)
+            and isinstance(arg1.children[0], IntCst_Impl)
+            and arg1.children[1] == arg0.children[1]
         ):
             #  factorization :  m*x + n*x = (m+n)*x
             return (
-                    IntCst(arg0.children[0].val + arg1.children[0].val) * arg0.children[1]
+                IntCst(arg0.children[0].val + arg1.children[0].val) * arg0.children[1]
             )
     return Add_Impl(arg0, arg1)

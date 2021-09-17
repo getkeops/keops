@@ -333,10 +333,7 @@ fig.data[1].visible = True
 # Create and add slider
 steps = []
 for i in range(len(fig.data) - 1):
-    step = dict(
-        method="restyle",
-        args=["visible", [False] * len(fig.data)],
-    )
+    step = dict(method="restyle", args=["visible", [False] * len(fig.data)],)
     step["args"][1][0] = True
     step["args"][1][i + 1] = True  # Toggle i'th trace to "visible"
     steps.append(step)

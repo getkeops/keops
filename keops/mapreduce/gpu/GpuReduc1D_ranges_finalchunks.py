@@ -12,23 +12,56 @@ from keops.utils.code_gen_utils import (
     sizeof,
     pointer,
     Var_loader,
-    use_pragma_unroll
+    use_pragma_unroll,
 )
 
 
-def do_finalchunk_sub_ranges(dtype, fun_global, varfinal, dimfinalchunk_curr,
-                                acc, i, j, jstart, start_y, chunk, end_x, end_y, nbatchdims, indices_j,
-                                arg, fout, yj, out):
-                                    
-    
-    
+def do_finalchunk_sub_ranges(
+    dtype,
+    fun_global,
+    varfinal,
+    dimfinalchunk_curr,
+    acc,
+    i,
+    j,
+    jstart,
+    start_y,
+    chunk,
+    end_x,
+    end_y,
+    nbatchdims,
+    indices_j,
+    arg,
+    fout,
+    yj,
+    out,
+):
+
     dimout = varfinal.dim
     yjloc = c_variable(pointer(dtype), f"({yj.id} + threadIdx.x * {dimfinalchunk})")
     indsj_global = Var_loader(fun_global).indsj
-    load_chunks_routine_j = load_vars_chunks([varfinal.ind], dimfinalchunk, dimfinalchunk_curr, varfinal.dim,
-                                                yjloc, arg, chunk, row_index=j)    
-    load_chunks_routine_j_ranges = load_vars_chunks_offsets([varfinal.ind], indsj_global, dimfinalchunk, dimfinalchunk_curr, varfinal.dim,
-                                                yjloc, arg, chunk, indices_j, row_index=j-start_y)
+    load_chunks_routine_j = load_vars_chunks(
+        [varfinal.ind],
+        dimfinalchunk,
+        dimfinalchunk_curr,
+        varfinal.dim,
+        yjloc,
+        arg,
+        chunk,
+        row_index=j,
+    )
+    load_chunks_routine_j_ranges = load_vars_chunks_offsets(
+        [varfinal.ind],
+        indsj_global,
+        dimfinalchunk,
+        dimfinalchunk_curr,
+        varfinal.dim,
+        yjloc,
+        arg,
+        chunk,
+        indices_j,
+        row_index=j - start_y,
+    )
     return f"""
                 {acc.assign(c_zero_float)}
                 {dtype} *yjrel = yj;
@@ -56,7 +89,7 @@ def do_finalchunk_sub_ranges(dtype, fun_global, varfinal, dimfinalchunk_curr,
                 }}
                 __syncthreads();
             """
-    
+
 
 class GpuReduc1D_ranges_finalchunks(MapReduce, Gpu_link_compile):
     # class for generating the final C++ code, Gpu version
@@ -67,13 +100,14 @@ class GpuReduc1D_ranges_finalchunks(MapReduce, Gpu_link_compile):
         MapReduce.__init__(self, *args)
         Gpu_link_compile.__init__(self)
         self.dimy = dimfinalchunk
-        self.blocksize_chunks = min(cuda_block_size, 1024, 49152 // max(1, self.dimy*sizeof(self.dtype)))
-    
+        self.blocksize_chunks = min(
+            cuda_block_size, 1024, 49152 // max(1, self.dimy * sizeof(self.dtype))
+        )
 
     def get_code(self):
 
         super().get_code()
-        
+
         dtype = self.dtype
         dtypeacc = self.dtypeacc
         i = self.i
@@ -86,13 +120,15 @@ class GpuReduc1D_ranges_finalchunks(MapReduce, Gpu_link_compile):
         args = self.args
         yj = c_variable(pointer(dtype), "yj")
         out = c_variable(pointer(dtype), "out")
-        
-        fun_internal = Sum_Reduction(self.red_formula.formula.children[0], self.red_formula.tagI)
+
+        fun_internal = Sum_Reduction(
+            self.red_formula.formula.children[0], self.red_formula.tagI
+        )
         formula = fun_internal.formula
         blocksize_chunks = self.blocksize_chunks
         varfinal = self.red_formula.formula.children[1]
-        nchunks = 1 + (varfinal.dim-1) // dimfinalchunk
-        dimlastfinalchunk = varfinal.dim - (nchunks-1)*dimfinalchunk
+        nchunks = 1 + (varfinal.dim - 1) // dimfinalchunk
+        dimlastfinalchunk = varfinal.dim - (nchunks - 1) * dimfinalchunk
         varloader = Var_loader(fun_internal)
         dimsx = varloader.dimsx
         dimsy = varloader.dimsy
@@ -111,56 +147,96 @@ class GpuReduc1D_ranges_finalchunks(MapReduce, Gpu_link_compile):
         if not isinstance(sum_scheme, block_sum):
             raise ValueError("only block_sum available")
         param_loc = c_array(dtype, dimp, "param_loc")
-        fout = c_array(dtype, dimfout*blocksize_chunks, "fout")
+        fout = c_array(dtype, dimfout * blocksize_chunks, "fout")
         xi = c_array(dtype, dimx, "xi")
         acc = c_array(dtypeacc, dimfinalchunk, "acc")
         yjloc = c_array(dtype, dimy, f"(yj + threadIdx.x * {dimy})")
         foutjrel = c_array(dtype, dimfout, f"({fout.id}+jrel*{dimfout})")
         yjrel = c_array(dtype, dimy, "yjrel")
         table = varloader.table(xi, yjrel, param_loc)
-        
+
         lastchunk = c_variable("int", f"{nchunks-1}")
-        
+
         startx = c_variable("int", "start_x")
         starty = c_variable("int", "start_y")
-        
+
         end_x = c_variable("int", "end_x")
         end_y = c_variable("int", "end_y")
-        
+
         nbatchdims = c_variable("int", "nbatchdims")
-        
+
         fun_global = self.red_formula
-        varloader_global = Var_loader(fun_global)   
-        indsi_global = varloader_global.indsi   
-        indsj_global = varloader_global.indsj   
+        varloader_global = Var_loader(fun_global)
+        indsi_global = varloader_global.indsi
+        indsj_global = varloader_global.indsj
         nvarsi_global, nvarsj_global, nvarsp_global = (
-                    len(varloader_global.Varsi),
-                    len(varloader_global.Varsj),
-                    len(varloader_global.Varsp),
-                )
+            len(varloader_global.Varsi),
+            len(varloader_global.Varsj),
+            len(varloader_global.Varsp),
+        )
         nvars_global = nvarsi_global + nvarsj_global + nvarsp_global
         offsets = c_array("int", nvars_global, "offsets")
-        
+
         indices_i = c_array("int", nvarsi_global, "indices_i")
         indices_j = c_array("int", nvarsj_global, "indices_j")
         indices_p = c_array("int", nvarsp_global, "indices_p")
-        
-        declare_assign_indices_i = "int *indices_i = offsets;" if nvarsi_global > 0 else ""
+
+        declare_assign_indices_i = (
+            "int *indices_i = offsets;" if nvarsi_global > 0 else ""
+        )
         declare_assign_indices_j = (
             f"int *indices_j = offsets + {nvarsi_global};" if nvarsj_global > 0 else ""
         )
         declare_assign_indices_p = (
-            f"int *indices_p = offsets + {nvarsi_global} + {nvarsj_global};" if nvarsp_global > 0 else ""
+            f"int *indices_p = offsets + {nvarsi_global} + {nvarsj_global};"
+            if nvarsp_global > 0
+            else ""
         )
-                
-        chunk_sub_routine = do_finalchunk_sub_ranges(dtype, fun_global, varfinal, dimfinalchunk,
-                                              acc, i, j, jstart, starty, chunk, end_x, end_y, nbatchdims, indices_j, arg, fout, yj, out)
-        
-        chunk_sub_routine_last = do_finalchunk_sub_ranges(dtype, fun_global, varfinal, dimlastfinalchunk,
-                                                acc, i, j, jstart, starty, lastchunk, end_x, end_y, nbatchdims, indices_j, arg, fout, yj, out)
-        
+
+        chunk_sub_routine = do_finalchunk_sub_ranges(
+            dtype,
+            fun_global,
+            varfinal,
+            dimfinalchunk,
+            acc,
+            i,
+            j,
+            jstart,
+            starty,
+            chunk,
+            end_x,
+            end_y,
+            nbatchdims,
+            indices_j,
+            arg,
+            fout,
+            yj,
+            out,
+        )
+
+        chunk_sub_routine_last = do_finalchunk_sub_ranges(
+            dtype,
+            fun_global,
+            varfinal,
+            dimlastfinalchunk,
+            acc,
+            i,
+            j,
+            jstart,
+            starty,
+            lastchunk,
+            end_x,
+            end_y,
+            nbatchdims,
+            indices_j,
+            arg,
+            fout,
+            yj,
+            out,
+        )
+
         threadIdx_x = c_variable("int", "threadIdx.x")
-        
+
         self.code = f"""
                           
                         {self.headers}

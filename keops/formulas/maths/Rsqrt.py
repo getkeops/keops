@@ -22,7 +22,6 @@ class Rsqrt(VectorizedScalarOp):
     @staticmethod
     def Derivative(f):
         return IntInv(-2) * Rsqrt(f) ** 3
-        
-        
+
     # parameters for testing the operation (optional)
-    test_ranges = [(.5,2)]           # range of argument
+    test_ranges = [(0.5, 2)]  # range of argument

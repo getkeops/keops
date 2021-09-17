@@ -14,9 +14,7 @@ class Powf(VectorizedScalarOp):
         from keops.formulas.maths.Log import Log
 
         return b * Powf(a, b - 1), Log(a) * Powf(a, b)
-    
-    
-    
+
     # parameters for testing the operation (optional)
-    test_ranges = [(0,2),(-1,1)]          # ranges of arguments
+    test_ranges = [(0, 2), (-1, 1)]  # ranges of arguments
     torch_op = "lambda x,y : torch.pow(x, y)"

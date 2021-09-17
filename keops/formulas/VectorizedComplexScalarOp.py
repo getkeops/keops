@@ -9,8 +9,10 @@ class VectorizedComplexScalarOp(Operation):
 
     def __init__(self, *args, params=()):
         dims = set(arg.dim for arg in args)
-        if max(dims)%2 != 0 or len(dims) > 2 or (len(dims) == 2 and min(dims) != 2):
-            raise ValueError("dimensions are not compatible for VectorizedComplexScalarOp")
+        if max(dims) % 2 != 0 or len(dims) > 2 or (len(dims) == 2 and min(dims) != 2):
+            raise ValueError(
+                "dimensions are not compatible for VectorizedComplexScalarOp"
+            )
         super().__init__(*args, params=params)
 
     @property
@@ -23,5 +25,3 @@ class VectorizedComplexScalarOp(Operation):
         # Atomic evaluation of the operation : it consists in a simple
         # for loop around the call to the correponding scalar operation
         return ComplexVectApply(self.ScalarOp, out, *args)
-        
-

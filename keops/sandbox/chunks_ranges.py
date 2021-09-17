@@ -15,8 +15,8 @@ device_id = "cuda:0" if torch.cuda.is_available() else "cpu"
 do_warmup = False
 
 x = torch.rand(B1, B2, M, 1, D, device=device_id, dtype=dtype) / math.sqrt(D)
-y = torch.rand(B1,  1, 1, N, D, device=device_id, dtype=dtype) / math.sqrt(D)
-b = torch.randn( 1, B2, N, DV, device=device_id, dtype=dtype)
+y = torch.rand(B1, 1, 1, N, D, device=device_id, dtype=dtype) / math.sqrt(D)
+b = torch.randn(1, B2, N, DV, device=device_id, dtype=dtype)
 
 
 def fun(x, y, b, backend):
@@ -31,7 +31,7 @@ def fun(x, y, b, backend):
         out = Kxy @ b
     if device_id != "cpu":
         torch.cuda.synchronize()
-    #print("out:",out)
+    # print("out:",out)
     return out
 
 
@@ -41,10 +41,16 @@ out = []
 for backend in backends:
     if do_warmup:
         fun(
-            x[:, :, : min(M, 100), :, :], y[:, :, :, : min(N, 100), :], b[:, :, : min(N, 100), :], backend
+            x[:, :, : min(M, 100), :, :],
+            y[:, :, :, : min(N, 100), :],
+            b[:, :, : min(N, 100), :],
+            backend,
         )
         fun(
-            x[:, :, : min(M, 100), :, :], y[:, :, :, : min(N, 100), :], b[:, :, : min(N, 100), :], backend
+            x[:, :, : min(M, 100), :, :],
+            y[:, :, :, : min(N, 100), :],
+            b[:, :, : min(N, 100), :],
+            backend,
         )
     start = time.time()
     out.append(fun(x, y, b, backend).squeeze())

@@ -42,12 +42,9 @@ class MatVecMult(Operation):
 
         A, B = self.children
         return A.DiffT(v, TensorProd(gradin, B)) + B.DiffT(v, VecMatMult(gradin, A))
-    
-    
-    
-    
+
     # parameters for testing the operation (optional)
-    enable_test = True          # enable testing for this operation
-    nargs = 2                   # number of arguments
-    test_argdims = [6,2]        # dimensions of arguments for testing
-    torch_op = None             # equivalent PyTorch operation
+    enable_test = True  # enable testing for this operation
+    nargs = 2  # number of arguments
+    test_argdims = [6, 2]  # dimensions of arguments for testing
+    torch_op = None  # equivalent PyTorch operation

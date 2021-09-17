@@ -7,6 +7,7 @@ CUDA_SUCCESS = 0
 CU_DEVICE_ATTRIBUTE_MAX_THREADS_PER_BLOCK = 1
 CU_DEVICE_ATTRIBUTE_MAX_SHARED_MEMORY_PER_BLOCK = 8
 
+
 def my_find_library(lib):
     """
     wrapper around ctypes find_library that returns the full path
@@ -19,38 +20,36 @@ def my_find_library(lib):
     Anyway it could be useful for future improvements, so keeping it for now.
     """
     from ctypes import c_int, c_void_p, c_char_p, CDLL, byref, cast, POINTER, Structure
-    #linkmap structure, we only need the second entry
+
+    # linkmap structure, we only need the second entry
     class LINKMAP(Structure):
-        _fields_ = [
-            ("l_addr", c_void_p),
-            ("l_name", c_char_p)
-        ]
-        
+        _fields_ = [("l_addr", c_void_p), ("l_name", c_char_p)]
+
     res = find_library(lib)
     if res is None:
         return None
-        
+
     lib = CDLL(res)
-    libdl = CDLL(find_library('dl'))
+    libdl = CDLL(find_library("dl"))
 
     dlinfo = libdl.dlinfo
-    dlinfo.argtypes  = c_void_p, c_int, c_void_p
+    dlinfo.argtypes = c_void_p, c_int, c_void_p
     dlinfo.restype = c_int
 
-    #gets typecasted later, I dont know how to create a ctypes struct pointer instance
+    # gets typecasted later, I dont know how to create a ctypes struct pointer instance
     lmptr = c_void_p()
 
-    #2 equals RTLD_DI_LINKMAP, pass pointer by reference
+    # 2 equals RTLD_DI_LINKMAP, pass pointer by reference
     dlinfo(lib._handle, 2, byref(lmptr))
 
-    #typecast to a linkmap pointer and retrieve the name.
+    # typecast to a linkmap pointer and retrieve the name.
     abspath = cast(lmptr, POINTER(LINKMAP)).contents.l_name
 
     return abspath
-    
-    
+
 
 cuda_available = all([find_library(lib) for lib in dependencies])
+
 
 def cuda_include_fp16_path():
     """
@@ -59,13 +58,19 @@ def cuda_include_fp16_path():
     """
     if cuda_available:
         import os
+
         for _cuda_path in cuda_path:
-            path = os.path.join(_cuda_path, "targets", "x86_64-linux", "include") + os.path.sep
-            if os.path.isfile(path+"cuda_fp16.h") and os.path.isfile(path+"cuda_fp16.hpp"):
+            path = (
+                os.path.join(_cuda_path, "targets", "x86_64-linux", "include")
+                + os.path.sep
+            )
+            if os.path.isfile(path + "cuda_fp16.h") and os.path.isfile(
+                path + "cuda_fp16.hpp"
+            ):
                 return path
     # if not found we return empty string :
     return ""
-        
+
 
 def get_gpu_props():
     """
@@ -106,11 +111,11 @@ def get_gpu_props():
             "[pyKeOps]: Warning, cuda was detected, driver API has been initialized, but no working GPU has been found. Switching to cpu only."
         )
         return 0, ""
-    
+
     nGpus = nGpus.value
-    
+
     def safe_call(d, result):
-        test = (result == CUDA_SUCCESS)
+        test = result == CUDA_SUCCESS
         if not test:
             print(
                 f"""
@@ -120,44 +125,46 @@ def get_gpu_props():
                 """
             )
         return test
-    
+
     test = True
     MaxThreadsPerBlock = [0] * (nGpus)
     SharedMemPerBlock = [0] * (nGpus)
     for d in range(nGpus):
-        
+
         # getting handle to cuda device
         device = ctypes.c_int()
         result &= safe_call(d, cuda.cuDeviceGet(ctypes.byref(device), ctypes.c_int(d)))
-        
+
         # getting MaxThreadsPerBlock info for device
         output = ctypes.c_int()
-        result &= safe_call(d, 
-                        cuda.cuDeviceGetAttribute(
-                            ctypes.byref(output),
-                            ctypes.c_int(CU_DEVICE_ATTRIBUTE_MAX_THREADS_PER_BLOCK),
-                            device
-                        )
-                    )
+        result &= safe_call(
+            d,
+            cuda.cuDeviceGetAttribute(
+                ctypes.byref(output),
+                ctypes.c_int(CU_DEVICE_ATTRIBUTE_MAX_THREADS_PER_BLOCK),
+                device,
+            ),
+        )
         MaxThreadsPerBlock[d] = output.value
-        
+
         # getting SharedMemPerBlock info for device
-        result &= safe_call(d, 
-                        cuda.cuDeviceGetAttribute(
-                            ctypes.byref(output),
-                            ctypes.c_int(CU_DEVICE_ATTRIBUTE_MAX_SHARED_MEMORY_PER_BLOCK),
-                            device
-                        )
-                    )
+        result &= safe_call(
+            d,
+            cuda.cuDeviceGetAttribute(
+                ctypes.byref(output),
+                ctypes.c_int(CU_DEVICE_ATTRIBUTE_MAX_SHARED_MEMORY_PER_BLOCK),
+                device,
+            ),
+        )
         SharedMemPerBlock[d] = output.value
-    
+
     # Building compile flags in the form "-D..." options for further compilations
     # (N.B. the purpose is to avoid the device query at runtime because it would slow down computations)
     string_flags = f"-DMAXIDGPU={nGpus-1} "
     for d in range(nGpus):
         string_flags += f"-DMAXTHREADSPERBLOCK{d}={MaxThreadsPerBlock[d]} "
         string_flags += f"-DSHAREDMEMPERBLOCK{d}={SharedMemPerBlock[d]} "
-    
+
     if test:
         return nGpus, string_flags
     else:

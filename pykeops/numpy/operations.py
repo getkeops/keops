@@ -242,7 +242,16 @@ class KernelSolve:
             newargs = args[: self.varinvpos] + (var,) + args[self.varinvpos + 1 :]
             nx, ny = get_sizes(self.aliases, *newargs)
             res = self.myconv.genred_numpy(
-                tagCpuGpu, tag1D2D, 0, device_id, ranges, nx, ny, self.axis, self.reduction_op, *newargs
+                tagCpuGpu,
+                tag1D2D,
+                0,
+                device_id,
+                ranges,
+                nx,
+                ny,
+                self.axis,
+                self.reduction_op,
+                *newargs
             )
             if alpha:
                 res += alpha * var

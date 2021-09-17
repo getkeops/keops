@@ -213,24 +213,16 @@ for k in kernel_to_test:
 
 # plot violin plot
 plt.violinplot(
-    list(speed_numpy.values()),
-    showmeans=False,
-    showmedians=True,
+    list(speed_numpy.values()), showmeans=False, showmedians=True,
 )
 plt.violinplot(
-    list(speed_pytorch.values()),
-    showmeans=False,
-    showmedians=True,
+    list(speed_pytorch.values()), showmeans=False, showmedians=True,
 )
 plt.violinplot(
-    list(speed_pykeops_specific.values()),
-    showmeans=False,
-    showmedians=True,
+    list(speed_pykeops_specific.values()), showmeans=False, showmedians=True,
 )
 plt.violinplot(
-    list(speed_pykeops.values()),
-    showmeans=False,
-    showmedians=True,
+    list(speed_pykeops.values()), showmeans=False, showmedians=True,
 )
 
 plt.xticks([1, 2, 3, 4], kernel_to_test)

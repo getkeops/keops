@@ -17,10 +17,7 @@ class Clamp(VectorizedScalarOp):
         f, g, h = self.children
         Alt_Clamp = ClampInt((f - g) / (h - g), 0, 1) * (h - g) + g
         return Alt_Clamp.DiffT(v, gradin)
-        
-    
-    
+
     # parameters for testing the operation (optional)
-    nargs = 3                # number of arguments
-    torch_op = None          # equivalent PyTorch operation
-    
+    nargs = 3  # number of arguments
+    torch_op = None  # equivalent PyTorch operation

@@ -25,7 +25,7 @@ class LinkCompile:
             self.tagCpuGpu,
             self.tag1D2D,
             self.use_half,
-            self.device_id
+            self.device_id,
         )
 
         # info_file is the name of the file that will contain some meta-information required by the bindings, e.g. 7b9a611f7e.nfo
@@ -45,7 +45,9 @@ class LinkCompile:
         #                                            tagI (O or 1, reduction over i or j indices),
         #                                            dimy (sum of dimensions of j-indexed vectors)
         f = open(self.info_file, "w")
-        f.write(f"red_formula={self.red_formula_string}\ndim={self.dim}\ntagI={self.tagI}\ndimy={self.dimy}")
+        f.write(
+            f"red_formula={self.red_formula_string}\ndim={self.dim}\ntagI={self.tagI}\ndimy={self.dimy}"
+        )
         f.close()
 
     def read_info(self):

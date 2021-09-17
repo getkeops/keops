@@ -23,10 +23,10 @@ from matplotlib import pyplot as plt
 
 from pykeops.torch import KernelSolve
 
-if torch.__version__ >= '1.8':
-    torchsolve = lambda A, B : torch.linalg.solve(A,B)
+if torch.__version__ >= "1.8":
+    torchsolve = lambda A, B: torch.linalg.solve(A, B)
 else:
-    torchsolve = lambda A, B : torch.solve(B,A)[0]
+    torchsolve = lambda A, B: torch.solve(B, A)[0]
 
 ###############################################################################
 # Define our dataset:

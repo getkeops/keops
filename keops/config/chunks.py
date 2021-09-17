@@ -48,7 +48,7 @@ def set_dimfinalchunk(val):
 def use_final_chunks():
     global enable_final_chunk
     global mult_var_highdim
-    return (enable_final_chunk and mult_var_highdim)
+    return enable_final_chunk and mult_var_highdim
 
 
 mult_var_highdim = False

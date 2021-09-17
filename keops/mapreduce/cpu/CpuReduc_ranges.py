@@ -14,6 +14,7 @@ from keops.utils.code_gen_utils import (
 )
 from keops.config.config import use_OpenMP
 
+
 class CpuReduc_ranges(MapReduce, Cpu_link_compile):
     # class for generating the final C++ code, Cpu version
 

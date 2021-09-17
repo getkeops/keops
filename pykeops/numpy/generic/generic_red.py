@@ -290,16 +290,16 @@ class Genred:
         tagCpuGpu, tag1D2D, _ = get_tag_backend(backend, args)
         if ranges is None:
             ranges = ()  # To keep the same type
-        
+
         # N.B.: KeOps C++ expects contiguous data arrays
-        test_contig = all(arg.flags['C_CONTIGUOUS'] for arg in args)
+        test_contig = all(arg.flags["C_CONTIGUOUS"] for arg in args)
         if not test_contig:
             print(
                 "[pyKeOps] Warning : at least one of the input tensors is not contiguous. "
                 + "Consider using contiguous data arrays to avoid unnecessary copies."
             )
             args = tuple(np.ascontiguousarray(arg) for arg in args)
-            
+
         # N.B.: KeOps C++ expects contiguous integer arrays as ranges
         ranges = tuple(np.ascontiguousarray(r) for r in ranges)
 
@@ -321,7 +321,16 @@ class Genred:
                 )
 
         out = self.myconv.genred_numpy(
-            tagCpuGpu, tag1D2D, 0, device_id, ranges, nx, ny, self.axis, self.reduction_op, *args
+            tagCpuGpu,
+            tag1D2D,
+            0,
+            device_id,
+            ranges,
+            nx,
+            ny,
+            self.axis,
+            self.reduction_op,
+            *args
         )
 
         return postprocess(

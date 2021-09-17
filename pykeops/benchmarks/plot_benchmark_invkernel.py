@@ -50,10 +50,10 @@ from benchmark_utils import flatten, random_normal, unit_tensor, full_benchmark
 
 use_cuda = torch.cuda.is_available()
 
-if torch.__version__ >= '1.8':
-    torchsolve = lambda A, B : torch.linalg.solve(A,B)
+if torch.__version__ >= "1.8":
+    torchsolve = lambda A, B: torch.linalg.solve(A, B)
 else:
-    torchsolve = lambda A, B : torch.solve(B,A)[0]
+    torchsolve = lambda A, B: torch.solve(B, A)[0]
 
 #####################################################################
 # Benchmark specifications:

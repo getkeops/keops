@@ -89,8 +89,9 @@ class KeOpsRBFLazyTensor(gpytorch.lazy.LazyTensor):
         self.x_i, self.y_j = x_i, y_j  # Useful to define a symbolic transpose
 
         with torch.autograd.enable_grad():  # N.B.: gpytorch operates in no_grad mode
-            x_i, y_j = LazyTensor(self.x_i[:, None, :]), LazyTensor(
-                self.y_j[None, :, :]
+            x_i, y_j = (
+                LazyTensor(self.x_i[:, None, :]),
+                LazyTensor(self.y_j[None, :, :]),
             )
             K_xy = (
                 -((x_i - y_j) ** 2).sum(-1) / 2
@@ -202,10 +203,7 @@ likelihood.train()
 
 # Use the adam optimizer
 optimizer = torch.optim.Adam(
-    [
-        {"params": model.parameters()},  # Includes GaussianLikelihood parameters
-    ],
-    lr=0.1,
+    [{"params": model.parameters()},], lr=0.1,  # Includes GaussianLikelihood parameters
 )
 
 # "Loss" for GPs - the marginal log likelihood

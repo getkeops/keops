@@ -174,7 +174,9 @@ class torchtools:
         elif dtype == "int32":
             dtype = torch.int32
         else:
-            raise ValueError("[KeOps] data type " + dtype + " is incompatible with KeOps.")
+            raise ValueError(
+                "[KeOps] data type " + dtype + " is incompatible with KeOps."
+            )
         return torch.tensor(x, dtype=dtype, device=device)
 
     @staticmethod

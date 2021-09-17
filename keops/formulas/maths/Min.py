@@ -8,13 +8,16 @@ from keops.utils.code_gen_utils import c_for_loop, c_if, value
 ######    Min       #####
 ############################
 
+
 class Min(Operation):
     string_id = "Min"
 
     def __init__(self, f):
         super().__init__(f)
         if f.dim < 1:
-            raise ValueError("[KeOps] Min operation is only possible when dimension is non zero.")
+            raise ValueError(
+                "[KeOps] Min operation is only possible when dimension is non zero."
+            )
         self.dim = 1
 
     def Op(self, out, table, arg):
@@ -37,10 +40,8 @@ class Min(Operation):
         f = self.children[0]
         return f.DiffT(v, OneHot(ArgMin(f), f.dim) * gradin)
 
-    
     # parameters for testing the operation (optional)
-    enable_test = True          # enable testing for this operation
-    nargs = 1                   # number of arguments
-    test_argdims = [5]          # dimensions of arguments for testing
+    enable_test = True  # enable testing for this operation
+    nargs = 1  # number of arguments
+    test_argdims = [5]  # dimensions of arguments for testing
     torch_op = "lambda x : torch.min(x, dim=-1, keepdim=True)[0].type(x.dtype)"
-

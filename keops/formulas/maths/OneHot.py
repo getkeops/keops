@@ -38,7 +38,5 @@ class OneHot(Operation):
 
     def DiffT(self, v, gradin):
         from keops.formulas.variables.Zero import Zero
+
         return Zero(v.dim)
-
-
-

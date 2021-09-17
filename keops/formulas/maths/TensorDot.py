@@ -1,4 +1,3 @@
-
 from keops.formulas.Operation import Operation
 from keops.utils.code_gen_utils import use_pragma_unroll
 
@@ -6,35 +5,42 @@ from keops.utils.code_gen_utils import use_pragma_unroll
 ######  Tensor Dot Product     #####
 ####################################
 
+
 def prod(x):
     # product of all elements in list of integers
     res = 1
     for item in x:
         res *= item
     return res
-     
-def select(x,ind):
+
+
+def select(x, ind):
     # indexing of list via list of integers
     return [x[i] for i in ind]
-     
-def delete(x,ind):
+
+
+def delete(x, ind):
     # delete items given by indices in list
     n = len(x)
-    indkeep = list(set(range(n))-set(ind))
+    indkeep = list(set(range(n)) - set(ind))
     indkeep.sort()
     return select(x, indkeep)
-     
+
+
 def cumprod_array(x):
     # special cumulative product
     if len(x) == 0:
         return x
     else:
+
         def cumprod(x):
             res = x.copy()
-            for i in range(1,len(x)):
-                res[i] *= res[i-1]
-            return res    
+            for i in range(1, len(x)):
+                res[i] *= res[i - 1]
+            return res
+
         return cumprod(x[1:][::-1])[::-1] + [1]
+
 
 def permutation(perm, arr):
     if perm is None:
@@ -42,20 +48,19 @@ def permutation(perm, arr):
     else:
         tmp = sorted(range(len(perm)), key=perm.__getitem__)
         return select(arr, tmp)
-        
-    
+
 
 class TensorDot(Operation):
     string_id = "TensorDot"
 
     def __init__(self, fa, fb, dimsfa, dimsfb, contfa, contfb, permute=None):
-        
+
         dimsfa = list(dimsfa)
         dimsfb = list(dimsfb)
         contfa = list(contfa)
         contfb = list(contfb)
-        
-        assert select(dimsfb,contfb)==select(dimsfa,contfa)
+
+        assert select(dimsfb, contfb) == select(dimsfa, contfa)
 
         assert fa.dim == prod(dimsfa)
         assert fb.dim == prod(dimsfb)
@@ -64,7 +69,7 @@ class TensorDot(Operation):
 
         self.dimfa = dimsfa
         self.dimfb = dimsfb
-        self.contdims = select(dimsfa,contfa)
+        self.contdims = select(dimsfa, contfa)
 
         self.indices_keepdim_a = delete(list(range(len(dimsfa))), contfa)
         self.keepdims_a = delete(dimsfa, contfa)
@@ -77,21 +82,15 @@ class TensorDot(Operation):
         self.list_strides_dimsfb = cumprod_array(dimsfb)
 
         self.keepdims = self.keepdims_a + self.keepdims_b
-        self.list_strides_keepdim = cumprod_array(
-            permutation(permute, self.keepdims)
-        )
+        self.list_strides_keepdim = cumprod_array(permutation(permute, self.keepdims))
 
         self.dim = fa.dim * fb.dim
-        self.dim = (
-            int(self.dim / prod(self.contdims) ** 2) if len(contfa) else self.dim
-        )
+        self.dim = int(self.dim / prod(self.contdims) ** 2) if len(contfa) else self.dim
 
         if permute is None:
             permute = list(range(len(self.keepdims)))
         else:
-            assert (
-                    permutation(permute, permute) == list(range(len(self.keepdims)))
-            )
+            assert permutation(permute, permute) == list(range(len(self.keepdims)))
 
         self.permute = permute
 
@@ -99,13 +98,17 @@ class TensorDot(Operation):
         self.loopdim = self.keepdims + self.contdims_a
         self.dimloop = prod(self.loopdim)
         self.number_of_dimloop = len(dimsfa) + len(dimsfb) - len(contfa)
-        
-        self.ala = list(range(len(self.keepdims_a))) + list(range(len(self.keepdims), self.number_of_dimloop))
-        
+
+        self.ala = list(range(len(self.keepdims_a))) + list(
+            range(len(self.keepdims), self.number_of_dimloop)
+        )
+
         self.ali = self.indices_keepdim_a + contfa
         self.list_indices_a_intot = permutation(self.ali, self.ala)
 
-        self.bla = list(range(len(self.keepdims_a), len(self.keepdims))) + list(range(len(self.keepdims), self.number_of_dimloop))
+        self.bla = list(range(len(self.keepdims_a), len(self.keepdims))) + list(
+            range(len(self.keepdims), self.number_of_dimloop)
+        )
 
         self.bli = self.indices_keepdim_b + contfb
         self.list_indices_b_intot = permutation(self.bli, self.bla)
@@ -115,12 +118,18 @@ class TensorDot(Operation):
 
         self.list_indices_keepdim_a_inout = list(range(0, len(self.keepdims_a)))
         self.reordered_contfa = permutation(contfb, contfa)
-        self.reordered_keepdim_a = permutation(select(permute,self.list_indices_keepdim_a_inout), self.indices_keepdim_a)
+        self.reordered_keepdim_a = permutation(
+            select(permute, self.list_indices_keepdim_a_inout), self.indices_keepdim_a
+        )
         self.moveaxis_a = self.reordered_keepdim_a + self.reordered_contfa
 
-        self.list_indices_keepdim_b_inout = list(range(len(self.keepdims_a), len(self.keepdims)))
+        self.list_indices_keepdim_b_inout = list(
+            range(len(self.keepdims_a), len(self.keepdims))
+        )
         self.reordered_contfb = permutation(contfa, contfb)
-        self.reordered_keepdim_b = permutation(select(permute, self.list_indices_keepdim_b_inout), self.indices_keepdim_b)
+        self.reordered_keepdim_b = permutation(
+            select(permute, self.list_indices_keepdim_b_inout), self.indices_keepdim_b
+        )
         self.moveaxis_b = self.reordered_keepdim_b + self.reordered_contfb
 
         self.contfa_grad = select(permute, self.list_indices_keepdim_b_inout)
@@ -133,12 +142,18 @@ class TensorDot(Operation):
         str_code = ""
 
         for i in range(len(self.loopdim)):
-            str_code += f"for(int TD_var_{chr(70 + i)}=0; TD_var_{chr(70 + i)}<{self.loopdim[i]}; ++TD_var_{chr(70 + i)})" + "{\n" + i * "    "
+            str_code += (
+                f"for(int TD_var_{chr(70 + i)}=0; TD_var_{chr(70 + i)}<{self.loopdim[i]}; ++TD_var_{chr(70 + i)})"
+                + "{\n"
+                + i * "    "
+            )
 
         list_indices_keepdim = permutation(self.permute, range(len(self.keepdims)))
         str_out_indices = ""
         for i, v in enumerate(list_indices_keepdim):
-            str_out_indices += f"TD_var_{chr(70 + v)} * {self.list_strides_keepdim[i]} + "
+            str_out_indices += (
+                f"TD_var_{chr(70 + v)} * {self.list_strides_keepdim[i]} + "
+            )
 
         str_a_indices = ""
         for i, v in enumerate(self.list_indices_a_intot):
@@ -148,8 +163,10 @@ class TensorDot(Operation):
         for i, v in enumerate(self.list_indices_b_intot):
             str_b_indices += f"TD_var_{chr(70 + v)} * {self.list_strides_dimsfb[i]} + "
 
-        str_code += len(
-            self.loopdim) * "    " + f"{out.id}[{str_out_indices[:-2]}] += {arg0.id}[{str_a_indices[:-2]}] * {arg1.id}[{str_b_indices[:-2]}];\n"
+        str_code += (
+            len(self.loopdim) * "    "
+            + f"{out.id}[{str_out_indices[:-2]}] += {arg0.id}[{str_a_indices[:-2]}] * {arg1.id}[{str_b_indices[:-2]}];\n"
+        )
 
         str_code += len(self.loopdim) * "}\n"
 

@@ -7,13 +7,16 @@ from keops.utils.code_gen_utils import c_zero_float, c_for_loop, c_if, value, c_
 ######    ArgMin       #####
 ############################
 
+
 class ArgMin(Operation):
     string_id = "ArgMin"
 
     def __init__(self, f):
         super().__init__(f)
         if f.dim < 1:
-            raise ValueError("[KeOps] ArgMin operation is only possible when dimension is non zero.")
+            raise ValueError(
+                "[KeOps] ArgMin operation is only possible when dimension is non zero."
+            )
         self.dim = 1
 
     def Op(self, out, table, arg):
@@ -30,20 +33,17 @@ class ArgMin(Operation):
                             """
             string += loop(loop_string)
         else:
-            string += loop(c_if(arg[k] < tmp, tmp.assign(arg[k]) + value(out).assign(k)))
+            string += loop(
+                c_if(arg[k] < tmp, tmp.assign(arg[k]) + value(out).assign(k))
+            )
         return string
 
     def DiffT(self, v, gradin):
         return Zero(v.dim)
 
-    
-    
     # parameters for testing the operation (optional)
-    enable_test = True          # enable testing for this operation
-    nargs = 1                   # number of arguments
-    test_argdims = [5]          # dimensions of arguments for testing
+    enable_test = True  # enable testing for this operation
+    nargs = 1  # number of arguments
+    test_argdims = [5]  # dimensions of arguments for testing
     torch_op = "lambda x : torch.argmin(x, dim=-1, keepdim=True).type(x.dtype)"
     no_torch_grad = True
-    
-    
-    

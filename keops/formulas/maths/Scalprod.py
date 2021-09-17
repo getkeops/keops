@@ -11,6 +11,7 @@ from keops.utils.math_functions import keops_fma
 #####    Scalprod     ####
 ##########################
 
+
 class Scalprod_Impl(Chunkable_Op):
     string_id = "Scalprod"
     print_spec = "|", "mid", 3
@@ -21,9 +22,7 @@ class Scalprod_Impl(Chunkable_Op):
         # Output dimension = 1, provided that FA::DIM = FB::DIM
         self.dimin = fa.dim
         if self.dimin != fb.dim:
-            raise ValueError(
-                "Dimensions must be the same for Scalprod"
-            )
+            raise ValueError("Dimensions must be the same for Scalprod")
         super().__init__(fa, fb)
 
     def Op(self, out, table, arga, argb):
