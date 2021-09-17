@@ -26,9 +26,8 @@ disable_pragma_unrolls = True
 
 if use_OpenMP:
     import platform
-
     if platform.system() == "Darwin":
-        pass
+        use_OpenMP = False # disabled currently, because hack below is unsafe..
         # cpp_flags += ["-Xclang -fopenmp", "-lomp"]
         # warning : this is unsafe hack for OpenMP support on mac...
         # os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
