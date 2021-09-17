@@ -18,14 +18,17 @@ def StandardBasis(dim):
 # /////////////////////////////////////////////////////////////////////////
 
 
-def GradMatrix(f, v):
-    f.Vars(cat=3)
-    IndsTempVars = GetInds(f.Vars(cat=3))
-    newind = 1 if len(IndsTempVars)==0 else 1+max(IndsTempVars)
-    gradin = Var(newind, f.dim, 3)
-    packGrads = tuple(f.DiffT(v, gradin).replace(gradin, e) for e in StandardBasis(f.dim))
-    res = packGrads[0]
-    for elem in packGrads[1:]:
-        res = Concat(res, elem)
-    return res
+class GradMatrix():
+    def __new__(cls, f, v):
+        f.Vars(cat=3)
+        IndsTempVars = GetInds(f.Vars(cat=3))
+        newind = 1 if len(IndsTempVars)==0 else 1+max(IndsTempVars)
+        gradin = Var(newind, f.dim, 3)
+        packGrads = tuple(f.DiffT(v, gradin).replace(gradin, e) for e in StandardBasis(f.dim))
+        res = packGrads[0]
+        for elem in packGrads[1:]:
+            res = Concat(res, elem)
+        return res
 
+    enable_test = False
+    
