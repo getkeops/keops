@@ -216,7 +216,7 @@ class KernelSolveAutograd(torch.autograd.Function):
                     )  # Don't forget the gradient to backprop !
 
                     # N.B.: if I understand PyTorch's doc, we should redefine this function every time we use it?
-                    genconv = GenredAutograd().apply
+                    genconv = GenredAutograd.apply
 
                     if (
                         cat == 2
