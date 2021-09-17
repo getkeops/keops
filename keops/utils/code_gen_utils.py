@@ -19,7 +19,7 @@ def KeOps_Error(message, show_line_number=True):
     if show_line_number:
         from inspect import currentframe, getframeinfo
         frameinfo = getframeinfo(currentframe().f_back)
-        message += f" (at line {frameinfo.lineno} in file {frameinfo.filename})"
+        message += f" (error at line {frameinfo.lineno} in file {frameinfo.filename})"
     raise ValueError(message)
 
 

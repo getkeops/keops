@@ -51,6 +51,8 @@ from keops import cuda_block_size
 from keops.config.chunks import get_enable_chunk, set_enable_chunk, dimchunk, set_enable_finalchunk, use_final_chunks, \
     set_mult_var_highdim
 import keops.config.config
+from keops.utils.gpu_utils import get_gpu_props
+from keops.utils.code_gen_utils import KeOps_Error
 
 # Get every classes in mapreduce
 map_reduce = dict(inspect.getmembers(keops.mapreduce, inspect.isclass))
@@ -61,6 +63,8 @@ def get_keops_dll(map_reduce_id, red_formula_string, enable_chunks, enable_final
     # detecting the need for special chunked computation modes :
     use_chunk_mode = 0
     if "Gpu" in map_reduce_id:
+        if get_gpu_props()[0]==0:
+            KeOps_Error("You selected a Gpu reduce scheme but the system appears to have no Gpu.")
         keops.config.config.use_cuda = 1
         keops.config.config.init_cudalibs()
         set_enable_chunk(enable_chunks)
