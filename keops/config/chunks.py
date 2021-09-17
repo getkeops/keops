@@ -18,7 +18,7 @@ def set_enable_chunk(val):
 
 dimchunk = 64
 dim_treshold_chunk = 146
-specdims_use_chunk = [99, 100, 102, 133, 138, 139, 140, 141, 142]
+specdims_use_chunk = [99, 100, 102, 120, 133, 138, 139, 140, 141, 142]
 
 # special mode for formula of the type sum_j k(x_i,y_j)*b_j with high dimensional b_j
 enable_final_chunk = True
