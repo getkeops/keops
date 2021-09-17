@@ -62,7 +62,6 @@ pipeline {
           agent { label 'ubuntu' }
           steps {
             echo 'Testing..'
-              sh 'git submodule update --init'
               sh 'cd pykeops/test && python3 unit_tests_pytorch.py'
               sh 'cd pykeops/test && python3 unit_tests_numpy.py'
           }
@@ -72,7 +71,6 @@ pipeline {
           agent { label 'macos' }
           steps {
             echo 'Testing...'
-              sh 'git submodule update --init'
               sh 'cd pykeops/test && /Users/ci/miniconda3/bin/python3 unit_tests_pytorch.py'
               sh 'cd pykeops/test && /Users/ci/miniconda3/bin/python3 unit_tests_numpy.py'
           }
@@ -82,7 +80,6 @@ pipeline {
           agent { label 'cuda' }
           steps {
             echo 'Testing..'
-              sh 'git submodule update --init'
               sh '''#!/bin/bash
                  eval "$(/opt/miniconda3/bin/conda shell.bash hook)"
                  conda activate keops
