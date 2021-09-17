@@ -67,13 +67,13 @@ class CpuReduc_ranges(MapReduce, Cpu_link_compile):
         imstartx = c_variable("int", "i-start_x")
         jmstarty = c_variable("int", "j-start_y")
 
-        self.headers += c_include("cmath")
+        self.headers += c_include("cmath", "stdlib.h")
         if use_OpenMP:
             self.headers += c_include("omp.h")
 
         self.code = f"""
                         {self.headers}
-                        #define __INDEX__ int32_t
+                        #define __INDEX__ int
                   
                         {binders_definitions(dtype, red_formula, varloader)}
                         #include "Sizes_no_template.h"

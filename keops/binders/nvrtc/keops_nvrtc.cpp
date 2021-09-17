@@ -9,8 +9,7 @@
 #include <sstream>
 #include <stdarg.h>
 
-#define __INDEX__ int //int32_t
-
+#define __INDEX__ int
 #define C_CONTIGUOUS 1
 #define USE_HALF 0
 
