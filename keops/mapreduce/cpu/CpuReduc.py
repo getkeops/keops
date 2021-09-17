@@ -32,7 +32,7 @@ class CpuReduc(MapReduce, Cpu_link_compile):
         table = self.varloader.direct_table(args, i, j)
         sum_scheme = self.sum_scheme
 
-        headers = ["cmath"]
+        headers = ["cmath", "stdlib.h"]
         if use_OpenMP:
             headers.append("omp.h")
         if debug_ops:
