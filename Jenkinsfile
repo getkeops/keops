@@ -14,6 +14,9 @@ pipeline {
   stages {
 
 // ----------------------------------------------------------------------------------------
+
+/* Skipping KeOps+ as C++ API is not available anymore in python_engine
+
     stage('Test KeOps++') {
       parallel {
 
@@ -49,7 +52,7 @@ pipeline {
 
       }
     }
-
+*/
 
 // ----------------------------------------------------------------------------------------
     stage('Test PyKeOps') {
@@ -99,6 +102,8 @@ pipeline {
     }
 
 // ----------------------------------------------------------------------------------------
+
+/* Skipping RKeOps because not available yet in python_engine
     stage('Test RKeOps') {
       parallel {
 
@@ -138,8 +143,11 @@ pipeline {
 
       }
     }
+/*
 
 // ----------------------------------------------------------------------------------------
+
+/* Skipping KeOpsLab because not available yet in python_engine
     stage('Test KeOpsLab') {
       //parallel {
 
@@ -158,7 +166,7 @@ pipeline {
 
       //}
     }
-
+*/
 
 /* skipping Doc stage because Oban computer is currently down as of march 9th 2021 - Joan
 // ----------------------------------------------------------------------------------------
