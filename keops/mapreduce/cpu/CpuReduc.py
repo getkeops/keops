@@ -33,6 +33,7 @@ class CpuReduc(MapReduce, Cpu_link_compile):
         sum_scheme = self.sum_scheme
 
         headers = ["cmath"]
+        print("\nuse_OpenMP=",use_OpenMP)
         if use_OpenMP:
             headers.append("omp.h")
         if debug_ops:
