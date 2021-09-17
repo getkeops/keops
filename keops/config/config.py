@@ -19,12 +19,12 @@ cuda_path = [
 
 # Compiler
 cxx_compiler = "g++"
-compile_options = "-shared -fPIC -O3 "
+compile_options = " -shared -fPIC -O3"
 use_cuda = 0
 
 # cpp options
 use_OpenMP = True  # flag for OpenMP support
-cpp_flags = compile_options + "-flto "
+cpp_flags = compile_options + " -flto"
 disable_pragma_unrolls = True
 
 if use_OpenMP:
@@ -32,18 +32,18 @@ if use_OpenMP:
 
     if platform.system() == "Darwin":
         use_OpenMP = False  # disabled currently, because hack below is unsafe..
-        # cpp_flags += ["-Xclang -fopenmp", "-lomp"]
-        # warning : this is unsafe hack for OpenMP support on mac...
+        # cpp_flags += " -Xclang -fopenmp -lomp "
+        # # warning : this is unsafe hack for OpenMP support on mac...
         # os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
     else:
-        cpp_flags += "-fopenmp -fno-fat-lto-objects"
+        cpp_flags += " -fopenmp -fno-fat-lto-objects"
 
 cpp_flags += " -I" + bindings_source_dir
 
 # nvrtc options
 dependencies = ["cuda", "nvrtc"]
 
-nvrtc_flags = compile_options + "-fpermissive" + " -l" + " -l".join(dependencies)
+nvrtc_flags = compile_options + " -fpermissive" + " -l" + " -l".join(dependencies)
 
 generate_cuda_path = (
     lambda _cuda_path: "-L"
