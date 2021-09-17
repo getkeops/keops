@@ -4,6 +4,7 @@ from keops.utils.code_gen_utils import (
     c_include,
     c_zero_float,
 )
+from keops.config.config import use_OpenMP
 
 
 class CpuAssignZero(MapReduce, Cpu_link_compile):
@@ -22,8 +23,9 @@ class CpuAssignZero(MapReduce, Cpu_link_compile):
         dtype = self.dtype
         arg = self.arg
         args = self.args
-
-        self.headers += c_include("omp.h")
+        
+        if use_OpenMP:
+            self.headers += c_include("omp.h")
 
         self.code = f"""
                         {self.headers}
