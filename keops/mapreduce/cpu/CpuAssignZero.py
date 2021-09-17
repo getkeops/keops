@@ -23,7 +23,7 @@ class CpuAssignZero(MapReduce, Cpu_link_compile):
         dtype = self.dtype
         arg = self.arg
         args = self.args
-        
+
         self.headers += c_include("stdlib.h")
         if use_OpenMP:
             self.headers += c_include("omp.h")

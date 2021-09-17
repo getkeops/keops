@@ -48,8 +48,14 @@ from keops.formulas.GetReduction import GetReduction
 from keops.formulas.variables.Zero import Zero
 import keops.mapreduce
 from keops import cuda_block_size
-from keops.config.chunks import get_enable_chunk, set_enable_chunk, dimchunk, set_enable_finalchunk, use_final_chunks, \
-    set_mult_var_highdim
+from keops.config.chunks import (
+    get_enable_chunk,
+    set_enable_chunk,
+    dimchunk,
+    set_enable_finalchunk,
+    use_final_chunks,
+    set_mult_var_highdim,
+)
 import keops.config.config
 from keops.utils.gpu_utils import get_gpu_props
 from keops.utils.code_gen_utils import KeOps_Error
@@ -58,13 +64,22 @@ from keops.utils.code_gen_utils import KeOps_Error
 map_reduce = dict(inspect.getmembers(keops.mapreduce, inspect.isclass))
 
 
-def get_keops_dll(map_reduce_id, red_formula_string, enable_chunks, enable_finalchunks, mul_var_highdim, aliases,
-                  *args):
+def get_keops_dll(
+    map_reduce_id,
+    red_formula_string,
+    enable_chunks,
+    enable_finalchunks,
+    mul_var_highdim,
+    aliases,
+    *args,
+):
     # detecting the need for special chunked computation modes :
     use_chunk_mode = 0
     if "Gpu" in map_reduce_id:
-        if get_gpu_props()[0]==0:
-            KeOps_Error("You selected a Gpu reduce scheme but the system appears to have no Gpu.")
+        if get_gpu_props()[0] == 0:
+            KeOps_Error(
+                "You selected a Gpu reduce scheme but the system appears to have no Gpu."
+            )
         keops.config.config.use_cuda = 1
         keops.config.config.init_cudalibs()
         set_enable_chunk(enable_chunks)
@@ -72,12 +87,12 @@ def get_keops_dll(map_reduce_id, red_formula_string, enable_chunks, enable_final
         set_mult_var_highdim(mul_var_highdim)
         if use_final_chunks():
             use_chunk_mode = 2
-            map_reduce_id += '_finalchunks'
+            map_reduce_id += "_finalchunks"
         elif get_enable_chunk():
             red_formula = GetReduction(red_formula_string, aliases)
             if len(red_formula.formula.chunked_formulas(dimchunk)) == 1:
                 use_chunk_mode = 1
-                map_reduce_id += '_chunks'
+                map_reduce_id += "_chunks"
     else:
         keops.config.config.use_cuda = 0
 
@@ -88,7 +103,9 @@ def get_keops_dll(map_reduce_id, red_formula_string, enable_chunks, enable_final
 
     # detecting the case of formula being equal to zero, to bypass reduction.
     rf = map_reduce_obj.red_formula
-    if isinstance(rf, Zero_Reduction) or (isinstance(rf.formula, Zero) and isinstance(rf, Sum_Reduction)):
+    if isinstance(rf, Zero_Reduction) or (
+        isinstance(rf.formula, Zero) and isinstance(rf, Sum_Reduction)
+    ):
         map_reduce_obj = map_reduce_class.AssignZero(red_formula_string, aliases, *args)
         tagZero = 1
     else:
@@ -135,7 +152,7 @@ if __name__ == "__main__":
         "tagCPUGPU": int,
         "tag1D2D": int,
         "use_half": int,
-        "device_id": int
+        "device_id": int,
     }
 
     if len(argv) != len(argdict):

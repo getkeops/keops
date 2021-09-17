@@ -125,7 +125,6 @@ def get_type(type_str, position_in_list=None):
         return m.group(1), categories[m.group(2)], int(m.group(4)), pos
 
 
-
 def get_optional_flags(
     reduction_op_internal, dtype_acc, use_double_acc, sum_scheme, dtype, enable_chunks
 ):

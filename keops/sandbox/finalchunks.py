@@ -31,7 +31,7 @@ def fun(x, y, b, backend):
         out = Kxy @ b
     if device_id != "cpu":
         torch.cuda.synchronize()
-    #print("out:",out[:,:10])
+    # print("out:",out[:,:10])
     return out
 
 

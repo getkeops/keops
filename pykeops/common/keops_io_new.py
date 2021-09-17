@@ -3,8 +3,8 @@ from ctypes import c_int, c_void_p
 import numpy as np
 from functools import reduce
 
+
 class LoadKeOps_new:
-    
     @staticmethod
     def numpy_array2ctypes(x):
         return dict(data=c_void_p(x.ctypes.data), type=c_void_p)
@@ -14,13 +14,14 @@ class LoadKeOps_new:
         ranges_ctype = list(array2ctypes(r) for r in ranges)
         ranges_ctype = (c_void_p * 7)(*(r["data"] for r in ranges_ctype))
         return ranges_ctype
-    
-    empty_ranges = (np.array([-1], dtype="int32"),) * 7
-    empty_ranges_ctype = ranges2ctype.__func__(empty_ranges, numpy_array2ctypes.__func__)
 
+    empty_ranges = (np.array([-1], dtype="int32"),) * 7
+    empty_ranges_ctype = ranges2ctype.__func__(
+        empty_ranges, numpy_array2ctypes.__func__
+    )
 
     def __init__(
-            self, formula, aliases, dtype, lang, optional_flags=[], include_dirs=[]
+        self, formula, aliases, dtype, lang, optional_flags=[], include_dirs=[]
     ):
         aliases_new = []
         for k, alias in enumerate(aliases):
@@ -48,24 +49,26 @@ class LoadKeOps_new:
         self.dtype = dtype
 
     def genred(
-            self,
-            tagCPUGPU,
-            tag1D2D,
-            tagHostDevice,
-            device_id_request,
-            ranges,
-            nx,
-            ny,
-            axis,
-            reduction_op,
-            *args,
+        self,
+        tagCPUGPU,
+        tag1D2D,
+        tagHostDevice,
+        device_id_request,
+        ranges,
+        nx,
+        ny,
+        axis,
+        reduction_op,
+        *args,
     ):
-        
+
         if self.lang == "torch":
             from pykeops.torch.utils import torchtools
+
             tools = torchtools
         elif self.lang == "numpy":
             from pykeops.numpy.utils import numpytools
+
             tools = numpytools
 
         nargs = len(args)
@@ -88,9 +91,10 @@ class LoadKeOps_new:
             use_half = True
         else:
             raise ValueError("not implemented")
-        
+
         if dtypename == "float16":
             from pykeops.torch.half2_convert import preprocess_half2
+
             args, ranges, tag_dummy, N = preprocess_half2(
                 args, self.aliases_old, axis, ranges, nx, ny
             )
@@ -164,9 +168,9 @@ class LoadKeOps_new:
             device_id_args = device_args["index"]
 
         if (
-                device_id_request != -1
-                and device_id_args != -1
-                and device_id_request != device_id_args
+            device_id_request != -1
+            and device_id_args != -1
+            and device_id_request != device_id_args
         ):
             raise ValueError("[KeOps] internal error : code needs some cleaning...")
 
@@ -197,7 +201,7 @@ class LoadKeOps_new:
             tagCPUGPU,
             tag1D2D,
             use_half,
-            device_id_request
+            device_id_request,
         )
 
         self.tagIJ = myfun.tagI
@@ -230,7 +234,9 @@ class LoadKeOps_new:
             batchdims_shapes = []
             for arg in args:
                 batchdims_shapes.append(list(arg.shape[:nbatchdims]))
-            tmp = reduce(np.maximum,batchdims_shapes)  # this is faster than np.max(..., axis=0)
+            tmp = reduce(
+                np.maximum, batchdims_shapes
+            )  # this is faster than np.max(..., axis=0)
             shapeout = tuple(tmp) + (M, myfun.dim)
         else:
             shapeout = (M, myfun.dim)
@@ -259,8 +265,9 @@ class LoadKeOps_new:
 
         if dtypename == "float16":
             from pykeops.torch.half2_convert import postprocess_half2
+
             out = postprocess_half2(out, tag_dummy, reduction_op, N)
-        
+
         return out
 
     genred_pytorch = genred

@@ -7,7 +7,7 @@ class WeightedSqNorm:
     """
     WeightedSqNorm(A,X) : redirects to SqNormIso, SqNormDiag or SymSqNorm depending on dimension of A.
     """
-    
+
     string_id = "WeightedSqNorm"
 
     def __new__(cls, A, X):
@@ -18,7 +18,6 @@ class WeightedSqNorm:
         else:
             return SymSqNorm(A, X)
 
-
     enable_test = True
-    nargs = 2                   # number of arguments
-    test_argdims = [5,5]        # dimensions of arguments for testing
+    nargs = 2  # number of arguments
+    test_argdims = [5, 5]  # dimensions of arguments for testing

@@ -25,11 +25,9 @@ class Concat(Operation):
         return f.DiffT(v, Extract(gradin, 0, f.dim)) + g.DiffT(
             v, Extract(gradin, f.dim, g.dim)
         )
-    
-    
+
     # parameters for testing the operation (optional)
-    enable_test = True          # enable testing for this operation
-    nargs = 2                   # number of arguments
-    test_argdims = [5,3]        # dimensions of arguments for testing
+    enable_test = True  # enable testing for this operation
+    nargs = 2  # number of arguments
+    test_argdims = [5, 3]  # dimensions of arguments for testing
     torch_op = None
-    

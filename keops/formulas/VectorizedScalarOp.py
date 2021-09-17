@@ -37,31 +37,34 @@ class VectorizedScalarOp(Operation):
 
     def Derivative(self):
         pass
-    
+
     @property
     def is_chunkable(self):
         return all(child.is_chunkable for child in self.children)
 
     def chunked_version(self, dimchk):
-        return type(self)(*((child if child.dim==1 else child.chunked_version(dimchk)) for child in self.children), *self.params)
+        return type(self)(
+            *(
+                (child if child.dim == 1 else child.chunked_version(dimchk))
+                for child in self.children
+            ),
+            *self.params
+        )
 
     def chunked_vars(self, cat):
         res = set()
         for child in self.children:
-            if child.dim!=1:
+            if child.dim != 1:
                 res = set.union(res, set(child.chunked_vars(cat)))
         return list(res)
 
     def notchunked_vars(self, cat):
         res = set()
         for child in self.children:
-            if child.dim==1:
+            if child.dim == 1:
                 res = set.union(res, set(child.Vars(cat)))
             else:
                 res = set.union(res, set(child.notchunked_vars(cat)))
         return list(res)
-        
-    
-    
-    enable_test = True
 
+    enable_test = True

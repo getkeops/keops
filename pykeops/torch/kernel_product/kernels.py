@@ -95,10 +95,8 @@ def set_indices(formula, f_ind, v_ind):
         "xsy" in params_sum,
     )
     formula.subroutine_sum = formula.routine_sum
-    formula.routine_sum = (
-        lambda x=None, y=None, g=None, gxmy2=None, xsy=None: formula.subroutine_sum(
-            x=x[v_ind], y=y[v_ind], gxmy2=gxmy2[f_ind], xsy=xsy[f_ind]
-        )
+    formula.routine_sum = lambda x=None, y=None, g=None, gxmy2=None, xsy=None: formula.subroutine_sum(
+        x=x[v_ind], y=y[v_ind], gxmy2=gxmy2[f_ind], xsy=xsy[f_ind]
     )
 
     params_log = inspect.signature(formula.routine_log).parameters
@@ -110,10 +108,8 @@ def set_indices(formula, f_ind, v_ind):
         "xsy" in params_log,
     )
     formula.subroutine_log = formula.routine_log
-    formula.routine_log = (
-        lambda x=None, y=None, g=None, gxmy2=None, xsy=None: formula.subroutine_log(
-            x=x[v_ind], y=y[v_ind], gxmy2=gxmy2[f_ind], xsy=xsy[f_ind]
-        )
+    formula.routine_log = lambda x=None, y=None, g=None, gxmy2=None, xsy=None: formula.subroutine_log(
+        x=x[v_ind], y=y[v_ind], gxmy2=gxmy2[f_ind], xsy=xsy[f_ind]
     )
     return formula, f_ind + 1, needs_x_y_gxmy2_xsy_sum, needs_x_y_gxmy2_xsy_log
 

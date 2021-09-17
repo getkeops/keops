@@ -39,6 +39,7 @@ def perform_test(op_str, tol=1e-4, dtype="float32"):
                 nargs = len(keops_op_class.test_ranges)
             elif hasattr(keops_op_class, "Derivative"):
                 from inspect import signature
+
                 nargs = len(signature(keops_op_class.Derivative).parameters)
                 if hasattr(keops_op_class, "test_params"):
                     nargs -= len(keops_op_class.test_params)
@@ -80,7 +81,9 @@ def perform_test(op_str, tol=1e-4, dtype="float32"):
     args = [None] * nargs
     for k in range(nargs):
         MorN = M if argcats[k] == "i" else N
-        args[k] = rand(MorN, dims[k], dtype=torchtype, device=device, requires_grad=True)
+        args[k] = rand(
+            MorN, dims[k], dtype=torchtype, device=device, requires_grad=True
+        )
         args[k] = args[k] * (rng[k][1] - rng[k][0]) + rng[k][0]
 
     ####################################################################
@@ -92,17 +95,24 @@ def perform_test(op_str, tol=1e-4, dtype="float32"):
     else:
         params = ()
 
-    formula = op_str + "(" + ",".join(f"v{k}" for k in range(nargs)) + "," + ",".join(str(p) for p in params) + ")"
+    formula = (
+        op_str
+        + "("
+        + ",".join(f"v{k}" for k in range(nargs))
+        + ","
+        + ",".join(str(p) for p in params)
+        + ")"
+    )
 
     variables = list(f"v{k} = V{argcats[k]}({dims[k]})" for k in range(nargs))
 
-    #print("Testing operation " + op_str)
+    # print("Testing operation " + op_str)
 
     my_routine = Genred(formula, variables, reduction_op="Sum", axis=1, dtype=dtype)
     c = my_routine(*args)
 
-    #print("ok, no error")
-    #print("5 first values :", *c.flatten()[:5].tolist())
+    # print("ok, no error")
+    # print("5 first values :", *c.flatten()[:5].tolist())
 
     ####################################################################
     # Compute the gradient
@@ -110,12 +120,12 @@ def perform_test(op_str, tol=1e-4, dtype="float32"):
 
     e = torch.rand_like(c)
 
-    #print("Testing gradient of operation " + op_str)
+    # print("Testing gradient of operation " + op_str)
 
     g = grad(c, args, e)
 
-    #print("ok, no error")
-    #for k in range(nargs):
+    # print("ok, no error")
+    # for k in range(nargs):
     #    app_str = f"number {k}" if len(args) > 1 else ""
     #    print(f"5 first values for gradient {app_str}:", *g[k].flatten()[:5].tolist())
 
@@ -133,7 +143,9 @@ def perform_test(op_str, tol=1e-4, dtype="float32"):
 
     torch_args = [None] * nargs
     for k in range(nargs):
-        torch_args[k] = args[k][:, None, :] if argcats[k] == "i" else args[k][None, :, :]
+        torch_args[k] = (
+            args[k][:, None, :] if argcats[k] == "i" else args[k][None, :, :]
+        )
 
     ####################################################################
     # The equivalent code with a "vanilla" pytorch implementation
@@ -164,7 +176,6 @@ def perform_test(op_str, tol=1e-4, dtype="float32"):
 
 
 class OperationUnitTestCase(unittest.TestCase):
-
     def test_formula_maths(self):
 
         for b in keops.formulas.maths.__all__:

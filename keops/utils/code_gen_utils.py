@@ -8,16 +8,18 @@ def get_hash_name(*args):
     return sha256("".join(list(str(arg) for arg in args)).encode("utf-8")).hexdigest()[
         :10
     ]
-    
+
 
 #######################################################################
 # .  Debugging helpers
 #######################################################################
 
+
 def KeOps_Error(message, show_line_number=True):
     message = "[KeOps] Error : " + message
     if show_line_number:
         from inspect import currentframe, getframeinfo
+
         frameinfo = getframeinfo(currentframe().f_back)
         message += f" (error at line {frameinfo.lineno} in file {frameinfo.filename})"
     raise ValueError(message)
@@ -27,16 +29,18 @@ def KeOps_Error(message, show_line_number=True):
 # .  Python to C++ meta programming toolbox
 #######################################################################
 
+
 def sizeof(dtype):
-    if dtype=="float":
+    if dtype == "float":
         return 4
-    elif dtype=="double":
+    elif dtype == "double":
         return 8
-    elif dtype=="half":
+    elif dtype == "half":
         return 2
     else:
         KeOps_Error("not implemented")
-    
+
+
 class new_c_varname:
     # class to generate unique names for variables in C++ code, to avoid conflicts
     dict_instances = {}
@@ -88,7 +92,7 @@ class c_variable:
         elif type(value) == str:
             return f"{self.id} = ({self.dtype})({value});\n"
         elif value.dtype != self.dtype:
-            if self.dtype=="float2" and value.dtype=="float":
+            if self.dtype == "float2" and value.dtype == "float":
                 return f"""
                             {self.id}.x = {value.id};
                             {self.id}.y = {value.id};
@@ -103,9 +107,9 @@ class c_variable:
             dtype = "int" if type(value) == int else "float"
             return self.add_assign(c_variable(dtype, str(value)))
         if type(value) == str:
-            return f"{self.id} += ({self.dtype})({value});\n" 
+            return f"{self.id} += ({self.dtype})({value});\n"
         elif value.dtype != self.dtype:
-            if self.dtype=="float2" and value.dtype=="half2":
+            if self.dtype == "float2" and value.dtype == "half2":
                 return f"""
                             {self.id}.x += (float){value.id}.x;
                             {self.id}.y += (float){value.id}.y;
@@ -121,9 +125,7 @@ class c_variable:
             return self + c_variable(dtype, str(other))
         elif type(other) == c_variable:
             if self.dtype != other.dtype:
-                KeOps_Error(
-                    "addition of two c_variable only possible with same dtype"
-                )
+                KeOps_Error("addition of two c_variable only possible with same dtype")
             return c_variable(self.dtype, f"({self.id}+{other.id})")
         else:
             KeOps_Error("not implemented")
@@ -160,9 +162,7 @@ class c_variable:
             return self / c_variable(dtype, str(other))
         elif type(other) == c_variable:
             if self.dtype != other.dtype:
-                KeOps_Error(
-                    "division of two c_variable only possible with same dtype"
-                )
+                KeOps_Error("division of two c_variable only possible with same dtype")
             return c_variable(self.dtype, f"({self.id}/{other.id})")
         else:
             KeOps_Error("not implemented")
@@ -206,6 +206,7 @@ class c_variable:
         else:
             KeOps_Error("not implemented")
 
+
 def use_pragma_unroll(n=64):
     if disable_pragma_unrolls:
         return "\n"
@@ -214,6 +215,7 @@ def use_pragma_unroll(n=64):
             return f"\n#pragma unroll\n"
         else:
             return f"\n#pragma unroll({n})\n"
+
 
 def c_for_loop(start, end, incr, pragma_unroll=False):
     def to_string(x):
@@ -267,11 +269,11 @@ def cast_to(dtype, var):
     simple_dtypes = ["float", "double", "int"]
     if (dtype in simple_dtypes) and (var.dtype in simple_dtypes):
         return f"({dtype})({var.id})"
-    elif dtype=="half2" and var.dtype=="float":
+    elif dtype == "half2" and var.dtype == "float":
         return f"__float2half2_rn({var.id})"
-    elif dtype=="float2" and var.dtype=="half2":
+    elif dtype == "float2" and var.dtype == "half2":
         return f"__half22float2({var.id})"
-    elif dtype=="half2" and var.dtype=="float2":
+    elif dtype == "half2" and var.dtype == "float2":
         return f"__float22half2_rn({var.id})"
     else:
         KeOps_Error("not implemented")
@@ -431,9 +433,9 @@ def ComplexVectApply(fun, out, *args):
 
     argsk = []
     for (arg, incr) in zip(args, incr_args):
-        argk = c_array(arg.dtype,2,f"({arg.id}+{k.id}*{incr})")
+        argk = c_array(arg.dtype, 2, f"({arg.id}+{k.id}*{incr})")
         argsk.append(argk)
-    outk = c_array(out.dtype,2,f"({out.id}+{k.id}*{incr_out})")
+    outk = c_array(out.dtype, 2, f"({out.id}+{k.id}*{incr_out})")
     return forloop(fun(outk, *argsk))
 
 
@@ -492,9 +494,7 @@ def c_function(name, dtypeout, args, commands, qualifier=None):
     string += "\n".join(list(c for c in commands))
     string += "\n}\n"
     return string
-    
-    
-    
+
 
 #######################################################################
 # .  KeOps related helpers
@@ -548,11 +548,33 @@ class Var_loader:
         self.nminargs = max(self.inds) + 1 if len(self.inds) > 0 else 0
 
     def table(self, xi, yj, pp):
-        return table(self.nminargs, self.dimsx, self.dimsy, self.dimsp, self.indsi, self.indsj, self.indsp, xi, yj, pp)
+        return table(
+            self.nminargs,
+            self.dimsx,
+            self.dimsy,
+            self.dimsp,
+            self.indsi,
+            self.indsj,
+            self.indsp,
+            xi,
+            yj,
+            pp,
+        )
 
     def direct_table(self, args, i, j):
-        return direct_table(self.nminargs, self.dimsx, self.dimsy, self.dimsp, self.indsi, self.indsj, self.indsp, args, i, j)
-        
+        return direct_table(
+            self.nminargs,
+            self.dimsx,
+            self.dimsy,
+            self.dimsp,
+            self.indsi,
+            self.indsj,
+            self.indsp,
+            args,
+            i,
+            j,
+        )
+
     def load_vars(self, cat, *args, **kwargs):
         if cat == "i":
             dims, inds = self.dimsx, self.indsi
@@ -561,8 +583,8 @@ class Var_loader:
         elif cat == "p":
             dims, inds = self.dimsp, self.indsp
         return load_vars(dims, inds, *args, **kwargs)
-        
-        
+
+
 def table(nminargs, dimsx, dimsy, dimsp, indsi, indsj, indsp, xi, yj, pp):
     res = [None] * nminargs
     for (dims, inds, xloc) in (
@@ -575,6 +597,7 @@ def table(nminargs, dimsx, dimsy, dimsp, indsi, indsj, indsp, xi, yj, pp):
             res[inds[u]] = c_array(xloc.dtype, dims[u], f"({xloc.id}+{k})")
             k += dims[u]
     return res
+
 
 def direct_table(nminargs, dimsx, dimsy, dimsp, indsi, indsj, indsp, args, i, j):
     res = [None] * nminargs
@@ -590,7 +613,22 @@ def direct_table(nminargs, dimsx, dimsy, dimsp, indsi, indsj, indsp, args, i, j)
             )
     return res
 
-def table4(nminargs, dimsx, dimsy, dimsp, dims_new, indsi, indsj, indsp, inds_new, xi, yj, pp, arg_new):
+
+def table4(
+    nminargs,
+    dimsx,
+    dimsy,
+    dimsp,
+    dims_new,
+    indsi,
+    indsj,
+    indsp,
+    inds_new,
+    xi,
+    yj,
+    pp,
+    arg_new,
+):
     res = [None] * nminargs
     for (dims, inds, xloc) in (
         (dimsx, indsi, xi),
@@ -603,7 +641,6 @@ def table4(nminargs, dimsx, dimsy, dimsp, dims_new, indsi, indsj, indsp, inds_ne
             res[inds[u]] = c_array(xloc.dtype, dims[u], f"({xloc.id}+{k})")
             k += dims[u]
     return res
-
 
 
 def load_vars(dims, inds, xloc, args, row_index=c_zero_int, offsets=None, indsref=None):
@@ -628,7 +665,7 @@ def load_vars(dims, inds, xloc, args, row_index=c_zero_int, offsets=None, indsre
     #   xi[5] = arg8[5*3+1];
     #   xi[6] = arg8[5*3+2];
     #
-    # Example (with offsets): assuming i=c_variable("int", "5"), 
+    # Example (with offsets): assuming i=c_variable("int", "5"),
     # xloc=c_variable("float", "xi"), px=c_variable("float**", "px"),
     # and offsets = c_array("int", 3, "offsets"), then
     # if dims = [2,2,3] and inds = [7,9,8], the call to
@@ -642,10 +679,10 @@ def load_vars(dims, inds, xloc, args, row_index=c_zero_int, offsets=None, indsre
     #   xi[5] = arg8[(5+offsets[2])*3+1];
     #   xi[6] = arg8[(5+offsets[2])*3+2];
     #
-    # Example (with offsets and indsref): assuming i=c_variable("int", "5"), 
+    # Example (with offsets and indsref): assuming i=c_variable("int", "5"),
     # xloc=c_variable("float", "xi"), px=c_variable("float**", "px"),
-    # offsets = c_array("int", 3, "offsets"), 
-    # if dims = [2,2,3] and inds = [7,9,8], 
+    # offsets = c_array("int", 3, "offsets"),
+    # if dims = [2,2,3] and inds = [7,9,8],
     # and indsref = [8,1,7,3,9,2], then since 7,8,9 are at positions 2,0,4 in indsref,
     # the call to
     #   load_vars (dims, inds, xi, [arg0, arg1,..., arg9], row_index=i, offsets=offsets, indsref=indsref)
@@ -658,28 +695,28 @@ def load_vars(dims, inds, xloc, args, row_index=c_zero_int, offsets=None, indsre
     #   xi[5] = arg8[(5+offsets[4])*3+1];
     #   xi[6] = arg8[(5+offsets[4])*3+2];
     string = ""
-    if len(dims)>0:
+    if len(dims) > 0:
         string += "{\n"
         string += "int a=0;\n"
         for u in range(len(dims)):
             l = indsref.index(inds[u]) if indsref else u
             row_index_str = (
-                    f"({row_index.id}+{offsets.id}[{l}])" if offsets else row_index.id
-                )
+                f"({row_index.id}+{offsets.id}[{l}])" if offsets else row_index.id
+            )
             string += use_pragma_unroll()
             string += f"for(int v=0; v<{dims[u]}; v++) {{\n"
-            string += f"    {xloc.id}[a] = {args[inds[u]].id}[{row_index_str}*{dims[u]}+v];\n"
+            string += (
+                f"    {xloc.id}[a] = {args[inds[u]].id}[{row_index_str}*{dims[u]}+v];\n"
+            )
             string += "     a++;\n"
             string += "}\n"
         string += "}\n"
     return string
 
 
-
-
-
-def load_vars_chunks(inds, dim_chunk, dim_chunk_load, dim_org, 
-                    xloc, args, k, row_index=c_zero_int):
+def load_vars_chunks(
+    inds, dim_chunk, dim_chunk_load, dim_org, xloc, args, k, row_index=c_zero_int
+):
     #
     # loads chunks of variables, unrolling dimensions and indices.
     #
@@ -695,7 +732,7 @@ def load_vars_chunks(inds, dim_chunk, dim_chunk_load, dim_org,
     # to load vectors at positions px[7]+5*11, px[9]+5*11, px[8]+5*11.
     # For each, we load the kth chunk, assuming vector is divided
     # into chunks of size 3. And finally, we stop after loading 2 values.
-    # 
+    #
     # So we will execute:
     #   xi[0] = px[7][5*11+k*3];
     #   xi[1] = px[7][5*11+k*3+1];
@@ -704,7 +741,7 @@ def load_vars_chunks(inds, dim_chunk, dim_chunk_load, dim_org,
     #   xi[4] = px[8][5*11+k*3];
     #   xi[5] = px[8][5*11+k*3+1];
     string = ""
-    if len(inds)>0:
+    if len(inds) > 0:
         string += "{"
         string += "int a=0;\n"
         for u in range(len(inds)):
@@ -715,12 +752,22 @@ def load_vars_chunks(inds, dim_chunk, dim_chunk_load, dim_org,
             string += "}"
         string += "}"
     return string
-    
 
-def load_vars_chunks_offsets(inds, indsref, dim_chunk, dim_chunk_load, dim_org, 
-                    xloc, args, k, offsets, row_index=c_zero_int):
+
+def load_vars_chunks_offsets(
+    inds,
+    indsref,
+    dim_chunk,
+    dim_chunk_load,
+    dim_org,
+    xloc,
+    args,
+    k,
+    offsets,
+    row_index=c_zero_int,
+):
     # Version with variable-dependent offsets (used when broadcasting batch dimensions)
-    # indsref gives mapping for offsets indexing 
+    # indsref gives mapping for offsets indexing
     # Example:
     #   load_vars_chunks_offsets([2,3,1], [8,9,7,3,1,2], 3, 2, 11, xi, px, k, offsets, row_index=i)
     # Since 2,3,1 are at positions 5,3,4 respectively in the list [8,9,7,3,1,2],
@@ -732,7 +779,7 @@ def load_vars_chunks_offsets(inds, indsref, dim_chunk, dim_chunk_load, dim_org,
     #   xi[4] = px[1][(5+offsets[4])*11+k*3];
     #   xi[5] = px[1][(5+offsets[4])*11+k*3+1];
     string = ""
-    if len(inds)>0:
+    if len(inds) > 0:
         string = "{"
         string += "int a=0;\n"
         for u in range(len(inds)):
@@ -746,7 +793,6 @@ def load_vars_chunks_offsets(inds, indsref, dim_chunk, dim_chunk_load, dim_org,
     return string
 
 
-
 def varseq_to_array(vars, vars_ptr_name):
     # returns the C++ code corresponding to storing the values of a sequence of variables
     # into an array.
@@ -756,9 +802,7 @@ def varseq_to_array(vars, vars_ptr_name):
 
     # we check that all variables have the same type
     if not all(var.dtype == dtype for var in vars[1:]):
-        KeOps_Error(
-            "[KeOps] internal error ; incompatible dtypes in varseq_to_array."
-        )
+        KeOps_Error("[KeOps] internal error ; incompatible dtypes in varseq_to_array.")
     string = f"""   {dtype} {vars_ptr_name}[{nvars}];
               """
     for i in range(nvars):

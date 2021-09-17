@@ -90,7 +90,16 @@ class GenredAutograd(torch.autograd.Function):
         ranges = tuple(r.contiguous() for r in ranges)
 
         result = myconv.genred_pytorch(
-            tagCPUGPU, tag1D2D, tagHostDevice, device_id, ranges, nx, ny, axis, reduction_op, *args
+            tagCPUGPU,
+            tag1D2D,
+            tagHostDevice,
+            device_id,
+            ranges,
+            nx,
+            ny,
+            axis,
+            reduction_op,
+            *args
         )
 
         # relying on the 'ctx.saved_variables' attribute is necessary  if you want to be able to differentiate the output
@@ -288,7 +297,21 @@ class GenredAutograd(torch.autograd.Function):
                 grads.append(grad)
 
         # Grads wrt. formula, aliases, backend, dtype, device_id, ranges, optional_flags, rec_multVar_highdim, nx, ny, axis, reduction_op, *args
-        return (None, None, None, None, None, None, None, None, None, None, None, None, *grads)
+        return (
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            *grads,
+        )
 
 
 class Genred:

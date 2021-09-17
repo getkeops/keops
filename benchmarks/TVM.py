@@ -97,9 +97,7 @@ for n in Ns:
     b1 = tvm.nd.array(b_np[:, 1], ctx)
     b2 = tvm.nd.array(b_np[:, 2], ctx)
 
-    d_np = np.random.randn(
-        n,
-    ).astype(D.dtype)
+    d_np = np.random.randn(n,).astype(D.dtype)
     d = tvm.nd.array(d_np, ctx)
 
     c_np = np.random.randn(n, 3).astype(C0.dtype)

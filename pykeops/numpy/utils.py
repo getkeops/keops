@@ -95,7 +95,7 @@ class numpytools:
     @staticmethod
     def dtypename(dtype):
         return dtype.name
-    
+
     @staticmethod
     def ctypes(x):
         return dict(data=c_void_p(x.ctypes.data), type=c_void_p)

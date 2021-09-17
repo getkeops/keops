@@ -14,8 +14,6 @@ class XLogX(VectorizedScalarOp):
     def Derivative(f):
         return Log(f) + 1
 
-
-    
     # parameters for testing the operation (optional)
-    test_ranges = [(0,2)]           # range of argument
+    test_ranges = [(0, 2)]  # range of argument
     torch_op = "lambda x:x*torch.log(x)"

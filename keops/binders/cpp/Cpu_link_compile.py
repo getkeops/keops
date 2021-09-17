@@ -3,6 +3,7 @@ import os
 from keops.binders.LinkCompile import LinkCompile
 from keops.config.config import cxx_compiler, cpp_flags
 
+
 class Cpu_link_compile(LinkCompile):
 
     source_code_extension = "cpp"
@@ -14,7 +15,9 @@ class Cpu_link_compile(LinkCompile):
         # dllname is the name of the binary dll obtained after compilation, e.g. 7b9a611f7e.so
         self.dllname = self.gencode_file + ".so"
         # compile command string to obtain the dll, e.g. "g++ 7b9a611f7e.cpp -shared -fPIC -O3 -flto -o 7b9a611f7e.so"
-        self.compile_command = f"{cxx_compiler} {cpp_flags} {self.gencode_file} -o {self.dllname}"
+        self.compile_command = (
+            f"{cxx_compiler} {cpp_flags} {self.gencode_file} -o {self.dllname}"
+        )
         # actual dll to be called
         self.true_dllname = self.dllname
         # file to check for existence to detect compilation is needed

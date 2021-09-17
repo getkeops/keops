@@ -92,7 +92,16 @@ class KernelSolveAutograd(torch.autograd.Function):
         def linop(var):
             newargs = args[:varinvpos] + (var,) + args[varinvpos + 1 :]
             res = myconv.genred_pytorch(
-                tagCPUGPU, tag1D2D, tagHostDevice, device_id, ranges, nx, ny, axis, reduction_op, *newargs
+                tagCPUGPU,
+                tag1D2D,
+                tagHostDevice,
+                device_id,
+                ranges,
+                nx,
+                ny,
+                axis,
+                reduction_op,
+                *newargs
             )
             if alpha:
                 res += alpha * var
@@ -421,11 +430,21 @@ class KernelSolve:
         self.reduction_op = "Sum"
 
         self.optional_flags = get_optional_flags(
-            self.reduction_op, dtype_acc, use_double_acc, sum_scheme, dtype, enable_chunks
+            self.reduction_op,
+            dtype_acc,
+            use_double_acc,
+            sum_scheme,
+            dtype,
+            enable_chunks,
         )
 
         self.formula = (
-            self.reduction_op + "_Reduction(" + formula + "," + str(axis2cat(axis)) + ")"
+            self.reduction_op
+            + "_Reduction("
+            + formula
+            + ","
+            + str(axis2cat(axis))
+            + ")"
         )
         self.aliases = complete_aliases(
             formula, list(aliases)

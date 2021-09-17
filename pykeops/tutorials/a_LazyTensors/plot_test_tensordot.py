@@ -525,9 +525,10 @@ y = torch.randn(N, 2, 4, requires_grad=True, dtype=torch.float64)
 
 dimfa, dimfb = x.shape[1:], y.shape[1:]
 contfa, contfb = [3], [2]
-keepfa, keepfb = [item - 1 for item in [1, 2, 3] if item not in contfa], [
-    item for item in [1, 2] if item not in contfb
-]
+keepfa, keepfb = (
+    [item - 1 for item in [1, 2, 3] if item not in contfa],
+    [item for item in [1, 2] if item not in contfb],
+)
 # contfa, contfb = [2, 3], [1, 2]
 n = len(dimfa) + len(dimfb) - 2 * len(contfa)
 # perm = [int(i) for i in torch.randperm(n)]
@@ -592,9 +593,10 @@ y = torch.randn(N, 2, 4, 5, requires_grad=True, dtype=torch.float64)
 
 dimfa, dimfb = x.shape[1:], y.shape[1:]
 contfa, contfb = [3], [2]
-keepfa, keepfb = [item - 1 for item in [1, 2, 3] if item not in contfa], [
-    item for item in [1, 2, 3] if item not in contfb
-]
+keepfa, keepfb = (
+    [item - 1 for item in [1, 2, 3] if item not in contfa],
+    [item for item in [1, 2, 3] if item not in contfb],
+)
 # contfa, contfb = [2, 3], [1, 2]
 n = len(dimfa) + len(dimfb) - 2 * len(contfa)
 # perm = [int(i) for i in torch.randperm(n)]

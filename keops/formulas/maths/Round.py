@@ -18,9 +18,7 @@ class Round(VectorizedScalarOp):
     def DiffT(self, v, gradin):
         return Zero(v.dim)
 
-    
-    
     # parameters for testing the operation (optional)
-    nargs = 1                       # number of arguments
-    test_params = [3]               # parameters to try
-    torch_op = None                 # equivalent PyTorch operation
+    nargs = 1  # number of arguments
+    test_params = [3]  # parameters to try
+    torch_op = None  # equivalent PyTorch operation

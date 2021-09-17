@@ -1,17 +1,13 @@
 from keops.formulas.reductions import *
 from keops.formulas.GetReduction import GetReduction
-from keops.utils.code_gen_utils import (
-    Var_loader,
-    new_c_varname,
-    pointer,
-    c_include
-)
+from keops.utils.code_gen_utils import Var_loader, new_c_varname, pointer, c_include
 
 
 class MapReduce:
     """
     base class for map-reduce schemes
     """
+
     def __init__(
         self,
         red_formula_string,
@@ -24,7 +20,7 @@ class MapReduce:
         tagCpuGpu,
         tag1D2D,
         use_half,
-        device_id
+        device_id,
     ):
         self.red_formula_string = red_formula_string
         self.aliases = aliases
@@ -47,7 +43,7 @@ class MapReduce:
     def get_code(self):
 
         self.headers = "#define C_CONTIGUOUS 1\n"
-        
+
         if self.use_half == 1:
             self.headers += "#define USE_HALF 1\n"
             self.headers += c_include("cuda_fp16.h")

@@ -105,14 +105,9 @@ setup(
         ]
         + tao_seq_files
     },
-    install_requires=[
-        "numpy",
-    ],
+    install_requires=["numpy",],
     extras_require={
-        "colab": [
-            "torch",
-            "cmake>=3.18",
-        ],
+        "colab": ["torch", "cmake>=3.18",],
         "full": [
             "sphinx",
             "sphinx-gallery",

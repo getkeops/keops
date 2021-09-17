@@ -25,20 +25,18 @@ class Divide_Impl(VectorizedScalarOp):
         fa, fb = self.children
         if fa.dim == 1 and fb.dim > 1:
             return (
-                           fa.DiffT(v, Scalprod(gradin, fb)) - fb.DiffT(v, fa * gradin)
-                   ) / Square(fb)
+                fa.DiffT(v, Scalprod(gradin, fb)) - fb.DiffT(v, fa * gradin)
+            ) / Square(fb)
         elif fb.dim == 1 and fa.dim > 1:
             return (
-                           fa.DiffT(v, fb * gradin) - fb.DiffT(v, Scalprod(gradin, fa))
-                   ) / Square(fb)
+                fa.DiffT(v, fb * gradin) - fb.DiffT(v, Scalprod(gradin, fa))
+            ) / Square(fb)
         else:
             return (fa.DiffT(v, fb * gradin) - fb.DiffT(v, fa * gradin)) / Square(fb)
-    
-    
+
     # parameters for testing the operation (optional)
-    nargs = 2           # number of arguments
-    
-    
+    nargs = 2  # number of arguments
+
 
 # N.B. The following separate function should theoretically be implemented
 # as a __new__ method of the previous class, but this can generate infinite recursion problems

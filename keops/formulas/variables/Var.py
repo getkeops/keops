@@ -49,27 +49,26 @@ class Var(Operation):
         from keops.formulas.variables.Zero import Zero
 
         return gradin if v == self else Zero(v.dim)
-        
-    
+
     def chunked_version(self, dimchk):
         return Var(self.ind, dimchk, self.cat)
-    
+
     @property
     def is_chunkable(self):
         return True
-    
+
     def chunked_formulas(self, dimchk):
         return []
-    
+
     @property
     def num_chunked_formulas(self):
         return 0
-    
+
     def post_chunk_formula(self, ind):
         return Var(self.ind, self.dim, self.cat)
-    
+
     def chunked_vars(self, cat):
         return self.Vars(cat)
-    
+
     def notchunked_vars(self, cat):
         return set()

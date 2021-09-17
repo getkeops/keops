@@ -7,7 +7,7 @@ from keops.utils.code_gen_utils import (
     new_c_varname,
     c_if,
     c_array,
-    use_pragma_unroll
+    use_pragma_unroll,
 )
 from keops.formulas.reductions.Reduction import Reduction
 

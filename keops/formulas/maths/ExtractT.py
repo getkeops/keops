@@ -24,11 +24,13 @@ class ExtractT(Operation):
         out_prev, out_mid, out_end = out.split(
             self.start, self.dimarg, self.dim - self.start - self.dimarg
         )
-        return "\n".join((
-            out_prev.assign(c_zero_float),
-            VectCopy(out_mid, arg),
-            out_end.assign(c_zero_float),
-        ))
+        return "\n".join(
+            (
+                out_prev.assign(c_zero_float),
+                VectCopy(out_mid, arg),
+                out_end.assign(c_zero_float),
+            )
+        )
 
     def DiffT(self, v, gradin):
         from keops.formulas.maths.Extract import Extract
@@ -36,15 +38,15 @@ class ExtractT(Operation):
         f = self.children[0]
         return f.DiffT(v, Extract(gradin, self.start, f.dim))
 
-
-
     # parameters for testing the operation (optional)
-    enable_test = True          # enable testing for this operation
-    nargs = 1                   # number of arguments
-    test_argdims = [5]          # dimensions of arguments for testing
-    test_params = [3, 10]       # dimensions of parameters for testing
-    def torch_op(x,s,d):        # equivalent PyTorch operation
+    enable_test = True  # enable testing for this operation
+    nargs = 1  # number of arguments
+    test_argdims = [5]  # dimensions of arguments for testing
+    test_params = [3, 10]  # dimensions of parameters for testing
+
+    def torch_op(x, s, d):  # equivalent PyTorch operation
         import torch
-        out = torch.zeros((*x.shape[:-1],d), device=x.device, dtype=x.dtype)
-        out[...,s:(s+x.shape[-1])] = x
+
+        out = torch.zeros((*x.shape[:-1], d), device=x.device, dtype=x.dtype)
+        out[..., s : (s + x.shape[-1])] = x
         return out

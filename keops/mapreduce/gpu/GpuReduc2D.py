@@ -2,11 +2,7 @@ from keops.binders.nvrtc.Gpu_link_compile import Gpu_link_compile
 from keops.formulas.reductions.sum_schemes import block_sum, kahan_scheme
 from keops.mapreduce.gpu.GpuAssignZero import GpuAssignZero
 from keops.mapreduce.MapReduce import MapReduce
-from keops.utils.code_gen_utils import (
-    c_variable,
-    c_array,
-    use_pragma_unroll
-)
+from keops.utils.code_gen_utils import c_variable, c_array, use_pragma_unroll
 
 
 class GpuReduc2D(MapReduce, Gpu_link_compile):
@@ -22,7 +18,7 @@ class GpuReduc2D(MapReduce, Gpu_link_compile):
     def get_code(self):
 
         super().get_code()
-        
+
         i = self.i
         j = self.j
         red_formula = self.red_formula
@@ -32,10 +28,10 @@ class GpuReduc2D(MapReduce, Gpu_link_compile):
         varloader = self.varloader
         dtypeacc = self.dtypeacc
         acc2 = c_array(dtypeacc, dimin, "acc2")
-        
+
         inloc = c_array(dtype, dimin, f"(in + (tid+y*nx)*{dimin})")
-        outloc = c_array(dtype, dimout,  f"(out+tid*{dimout})")
-        
+        outloc = c_array(dtype, dimout, f"(out+tid*{dimout})")
+
         dimsx = varloader.dimsx
         dimsy = varloader.dimsy
         dimsp = varloader.dimsp
@@ -47,14 +43,14 @@ class GpuReduc2D(MapReduce, Gpu_link_compile):
         dimp = sum(dimsp)
         dimred = red_formula.dimred
         dimfout = red_formula.formula.dim
-        
+
         fout = c_array(dtype, dimfout, "fout")
         param_loc = c_array(dtype, dimp, "param_loc")
         xi = c_array(dtype, dimx, "xi")
-        
+
         sum_scheme = self.sum_scheme
-        
-        # N.B. To be consistent with the convention used in GpuConv1D, when SUM_SCHEME == BLOCK_SUM=1 we accumulate results in TYPE 
+
+        # N.B. To be consistent with the convention used in GpuConv1D, when SUM_SCHEME == BLOCK_SUM=1 we accumulate results in TYPE
         # instead of __TYPEACC__ in each block, __TYPEACC__ will be used only to sum up results from each block
         if isinstance(sum_scheme, block_sum):
             acc = c_array(dtype, dimred, "acc")
@@ -62,17 +58,17 @@ class GpuReduc2D(MapReduce, Gpu_link_compile):
             acc = c_array(dtypeacc, dimred, "acc")
         else:
             raise ValueError("incorrect reduction scheme")
-        
+
         yjloc = c_array(dtype, varloader.dimy, f"(yj + threadIdx.x * {varloader.dimy})")
         arg = self.arg
         args = self.args
         yjrel = c_array(dtype, dimy, "yjrel")
         table = varloader.table(self.xi, yjrel, self.param_loc)
-        
-        jrelloc= c_variable("int", "(blockDim.x*blockIdx.y+jrel)")
-        
+
+        jrelloc = c_variable("int", "(blockDim.x*blockIdx.y+jrel)")
+
         tid = c_variable("int", "tid")
-        
+
         self.code = f"""
                           
                         {self.headers}

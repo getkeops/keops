@@ -374,16 +374,17 @@ class PytorchUnitTestCase(unittest.TestCase):
         Kinv = KernelSolve(formula, aliases, "b", axis=1)
 
         c = Kinv(self.xc, self.xc, self.ac, self.sigmac, alpha=self.alphac)
-        if torch.__version__ >= '1.8':
-            torchsolve = lambda A, B : torch.linalg.solve(A,B)
+        if torch.__version__ >= "1.8":
+            torchsolve = lambda A, B: torch.linalg.solve(A, B)
         else:
-            torchsolve = lambda A, B : torch.solve(B,A)[0]
+            torchsolve = lambda A, B: torch.solve(B, A)[0]
         c_ = torchsolve(
             self.alphac * torch.eye(self.M, device=self.device)
             + torch.exp(
                 -torch.sum((self.xc[:, None, :] - self.xc[None, :, :]) ** 2, dim=2)
                 * self.sigmac
-            ), self.ac
+            ),
+            self.ac,
         )
 
         self.assertTrue(

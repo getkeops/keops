@@ -6,7 +6,10 @@ from keops.utils.code_gen_utils import (
 
 import keops.config.config
 
-def math_function(cpu_code, gpu_code=None, gpu_half2_code=None, gpu_float_code=None, void=False):
+
+def math_function(
+    cpu_code, gpu_code=None, gpu_half2_code=None, gpu_float_code=None, void=False
+):
     if gpu_code is None:
         gpu_code = cpu_code
     if gpu_half2_code is None:
@@ -45,31 +48,34 @@ def math_function(cpu_code, gpu_code=None, gpu_half2_code=None, gpu_float_code=N
 
     return call
 
-keops_mul = math_function(
-    cpu_code = lambda x, y: f"({x}*{y})",
-    gpu_half2_code = "__hmul2"
-)
 
-keops_abs = math_function(cpu_code="abs", gpu_half2_code = "__habs2")
-keops_cos = math_function(cpu_code="cos", gpu_half2_code = "h2cos")
-keops_sin = math_function(cpu_code="sin", gpu_half2_code = "h2sin")
+keops_mul = math_function(cpu_code=lambda x, y: f"({x}*{y})", gpu_half2_code="__hmul2")
+
+keops_abs = math_function(cpu_code="abs", gpu_half2_code="__habs2")
+keops_cos = math_function(cpu_code="cos", gpu_half2_code="h2cos")
+keops_sin = math_function(cpu_code="sin", gpu_half2_code="h2sin")
 keops_sinxdivx = math_function(cpu_code=lambda x: f"({x} ? sin({x})/{x} : 1.0f)")
 keops_acos = math_function(cpu_code="acos")
 keops_asin = math_function(cpu_code="asin")
 keops_atan = math_function(cpu_code="atan")
 keops_atan2 = math_function(cpu_code="atan2")
-keops_exp = math_function(
-    cpu_code="exp",
-    gpu_half2_code="h2exp"
-)
+keops_exp = math_function(cpu_code="exp", gpu_half2_code="h2exp")
 keops_floor = math_function(cpu_code="floor")
 keops_log = math_function(cpu_code="log")
 keops_xlogx = math_function(cpu_code=lambda x: f"({x} ? {x} * log({x}) : 0.0f)")
 keops_fma = math_function(cpu_code="fma")
-keops_pow = math_function(cpu_code="pow", gpu_code="powf", gpu_half2_code = lambda x, y: f"h2exp(__float2half2_rn((float){y})*h2log({x}))")
-keops_powf = math_function(cpu_code="powf", gpu_half2_code = lambda x, y: f"h2exp({y}*h2log({x}))")
-keops_rcp = math_function(cpu_code=lambda x: f"(1.0f/({x}))", gpu_half2_code = "h2rcp")
-keops_rsqrt = math_function(cpu_code=lambda x: f"(1.0f/sqrt({x}))", gpu_code="rsqrt", gpu_half2_code="h2rsqrt")
+keops_pow = math_function(
+    cpu_code="pow",
+    gpu_code="powf",
+    gpu_half2_code=lambda x, y: f"h2exp(__float2half2_rn((float){y})*h2log({x}))",
+)
+keops_powf = math_function(
+    cpu_code="powf", gpu_half2_code=lambda x, y: f"h2exp({y}*h2log({x}))"
+)
+keops_rcp = math_function(cpu_code=lambda x: f"(1.0f/({x}))", gpu_half2_code="h2rcp")
+keops_rsqrt = math_function(
+    cpu_code=lambda x: f"(1.0f/sqrt({x}))", gpu_code="rsqrt", gpu_half2_code="h2rsqrt"
+)
 keops_sqrt = math_function(cpu_code="sqrt")
 
 keops_relu = math_function(cpu_code=lambda x: f"(({x}<0.0f)? 0.0f : {x})")

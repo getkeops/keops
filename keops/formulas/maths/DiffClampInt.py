@@ -21,8 +21,10 @@ class DiffClampInt(VectorizedScalarOp):
 
     def DiffT(self, v, gradin):
         from keops.formulas import Zero
+
         return Zero(v.dim)
 
-    
     # parameters for testing the operation (optional)
-    enable_test = False  # (because it will be tested anyway if we test the gradient of ClampInt)
+    enable_test = (
+        False  # (because it will be tested anyway if we test the gradient of ClampInt)
+    )

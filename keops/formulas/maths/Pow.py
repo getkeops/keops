@@ -1,6 +1,7 @@
 from keops.formulas.VectorizedScalarOp import VectorizedScalarOp
 from keops.utils.math_functions import keops_pow
 
+
 class Pow(VectorizedScalarOp):
     """the integer power vectorized operation
     Pow(f,m) where m is integer, computes f^m
@@ -16,17 +17,11 @@ class Pow(VectorizedScalarOp):
     @staticmethod
     def Derivative(f, m):
         from keops.formulas.variables.IntCst import IntCst
-        return IntCst(m)*Pow(f,m-1)
-        
-    
+
+        return IntCst(m) * Pow(f, m - 1)
+
     # parameters for testing the operation (optional)
-    nargs = 1                      # number of arguments (excluding parameters)
-    test_ranges = [(0,2)]          # ranges of arguments
-    test_params = [2]              # values of parameters for testing
+    nargs = 1  # number of arguments (excluding parameters)
+    test_ranges = [(0, 2)]  # ranges of arguments
+    test_params = [2]  # values of parameters for testing
     torch_op = "lambda x,m : torch.pow(x, m)"
-
-
-
-
-
-

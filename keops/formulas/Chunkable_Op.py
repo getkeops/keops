@@ -4,14 +4,13 @@ from keops.config.chunks import enable_chunk, dim_treshold_chunk, specdims_use_c
 
 
 class Chunkable_Op(Operation):
-    
     def chunked_version(self, dimchk):
         chunked_args = [child.chunked_version(dimchk) for child in self.children]
-        if self.params==():
+        if self.params == ():
             return type(self)(*chunked_args)
         else:
             return type(self)(*chunked_args, params=self.params)
-    
+
     def chunked_vars(self, cat):
         res = set()
         for child in self.children:
@@ -28,10 +27,12 @@ class Chunkable_Op(Operation):
         subtest = (child.dim >= dim_treshold_chunk) | (child.dim in specdims_use_chunk)
         test &= subtest
         return test
-    
+
     def chunked_formula(self, dimchk):
         if self.use_chunk:
-            return dict(formula=self.chunked_version(dimchk), dim_org=self.children[0].dim)
+            return dict(
+                formula=self.chunked_version(dimchk), dim_org=self.children[0].dim
+            )
         else:
             return None
 
@@ -44,10 +45,15 @@ class Chunkable_Op(Operation):
 
     @property
     def num_chunked_formulas(self):
-        return sum(child.num_chunked_formulas for child in self.children) + self.use_chunk
+        return (
+            sum(child.num_chunked_formulas for child in self.children) + self.use_chunk
+        )
 
     def post_chunk_formula(self, ind):
         if self.use_chunk:
             return Var(ind, 1, 3)
         else:
-            return type(self)(*(child.post_chunk_formula(ind) for child in self.children), params=self.params)
+            return type(self)(
+                *(child.post_chunk_formula(ind) for child in self.children),
+                params=self.params
+            )

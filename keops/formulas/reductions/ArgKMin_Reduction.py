@@ -1,6 +1,4 @@
-from keops.formulas.reductions.KMin_ArgKMin_Reduction import (
-    KMin_ArgKMin_Reduction,
-)
+from keops.formulas.reductions.KMin_ArgKMin_Reduction import KMin_ArgKMin_Reduction
 from keops.formulas.reductions.Zero_Reduction import Zero_Reduction
 from keops.utils.code_gen_utils import (
     c_for_loop,

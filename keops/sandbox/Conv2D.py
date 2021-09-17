@@ -32,11 +32,11 @@ def fun(x, y, b, backend):
         out = Kxy @ b
     if device_id != "cpu":
         torch.cuda.synchronize()
-    #print("out:",out)
+    # print("out:",out)
     return out
 
 
-backends = ["keops2D", "torch"]  
+backends = ["keops2D", "torch"]
 
 out = []
 for backend in backends:

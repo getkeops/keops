@@ -11,19 +11,39 @@ from keops.utils.code_gen_utils import (
     sizeof,
     pointer,
     Var_loader,
-    use_pragma_unroll
+    use_pragma_unroll,
 )
 
 
-def do_finalchunk_sub(dtype, varfinal, dimfinalchunk_curr,
-                                acc, i, j, jstart, chunk, nx, ny, arg, fout, yj, out):
-                                    
-    
-    
+def do_finalchunk_sub(
+    dtype,
+    varfinal,
+    dimfinalchunk_curr,
+    acc,
+    i,
+    j,
+    jstart,
+    chunk,
+    nx,
+    ny,
+    arg,
+    fout,
+    yj,
+    out,
+):
+
     dimout = varfinal.dim
     yjloc = c_variable(pointer(dtype), f"({yj.id} + threadIdx.x * {dimfinalchunk})")
-    load_chunks_routine_j = load_vars_chunks([varfinal.ind], dimfinalchunk, dimfinalchunk_curr, varfinal.dim,
-                                                yjloc, arg, chunk, row_index=j)    
+    load_chunks_routine_j = load_vars_chunks(
+        [varfinal.ind],
+        dimfinalchunk,
+        dimfinalchunk_curr,
+        varfinal.dim,
+        yjloc,
+        arg,
+        chunk,
+        row_index=j,
+    )
     return f"""
                 {acc.assign(c_zero_float)}
                 {dtype} *yjrel = yj;
@@ -47,7 +67,7 @@ def do_finalchunk_sub(dtype, varfinal, dimfinalchunk_curr,
                 }}
                 __syncthreads();
             """
-    
+
 
 class GpuReduc1D_finalchunks(MapReduce, Gpu_link_compile):
     # class for generating the final C++ code, Gpu version
@@ -58,8 +78,9 @@ class GpuReduc1D_finalchunks(MapReduce, Gpu_link_compile):
         MapReduce.__init__(self, *args)
         Gpu_link_compile.__init__(self)
         self.dimy = dimfinalchunk
-        self.blocksize_chunks = min(cuda_block_size, 1024, 49152 // max(1, self.dimy*sizeof(self.dtype)))
-    
+        self.blocksize_chunks = min(
+            cuda_block_size, 1024, 49152 // max(1, self.dimy * sizeof(self.dtype))
+        )
 
     def get_code(self):
 
@@ -76,13 +97,15 @@ class GpuReduc1D_finalchunks(MapReduce, Gpu_link_compile):
         args = self.args
         yj = c_variable(pointer(dtype), "yj")
         out = c_variable(pointer(dtype), "out")
-        
-        fun_internal = Sum_Reduction(self.red_formula.formula.children[0], self.red_formula.tagI)
+
+        fun_internal = Sum_Reduction(
+            self.red_formula.formula.children[0], self.red_formula.tagI
+        )
         formula = fun_internal.formula
         blocksize_chunks = self.blocksize_chunks
         varfinal = self.red_formula.formula.children[1]
-        nchunks = 1 + (varfinal.dim-1) // dimfinalchunk
-        dimlastfinalchunk = varfinal.dim - (nchunks-1)*dimfinalchunk
+        nchunks = 1 + (varfinal.dim - 1) // dimfinalchunk
+        dimlastfinalchunk = varfinal.dim - (nchunks - 1) * dimfinalchunk
         varloader = Var_loader(fun_internal)
         dimsx = varloader.dimsx
         dimsy = varloader.dimsy
@@ -101,22 +124,50 @@ class GpuReduc1D_finalchunks(MapReduce, Gpu_link_compile):
         if not isinstance(sum_scheme, block_sum):
             raise ValueError("only block_sum available")
         param_loc = c_array(dtype, dimp, "param_loc")
-        fout = c_array(dtype, dimfout*blocksize_chunks, "fout")
+        fout = c_array(dtype, dimfout * blocksize_chunks, "fout")
         xi = c_array(dtype, dimx, "xi")
         acc = c_array(dtypeacc, dimfinalchunk, "acc")
         yjloc = c_array(dtype, dimy, f"(yj + threadIdx.x * {dimy})")
         foutjrel = c_array(dtype, dimfout, f"({fout.id}+jrel*{dimfout})")
         yjrel = c_array(dtype, dimy, "yjrel")
         table = self.varloader.table(xi, yjrel, param_loc)
-        
+
         last_chunk = c_variable("int", f"{nchunks-1}")
-        
-        chunk_sub_routine = do_finalchunk_sub(dtype, varfinal, dimfinalchunk,
-                                              acc, i, j, jstart, chunk, nx, ny, arg, fout, yj, out)
-        
-        chunk_sub_routine_last = do_finalchunk_sub(dtype, varfinal, dimlastfinalchunk,
-                                                acc, i, j, jstart, last_chunk, nx, ny, arg, fout, yj, out)
-        
+
+        chunk_sub_routine = do_finalchunk_sub(
+            dtype,
+            varfinal,
+            dimfinalchunk,
+            acc,
+            i,
+            j,
+            jstart,
+            chunk,
+            nx,
+            ny,
+            arg,
+            fout,
+            yj,
+            out,
+        )
+
+        chunk_sub_routine_last = do_finalchunk_sub(
+            dtype,
+            varfinal,
+            dimlastfinalchunk,
+            acc,
+            i,
+            j,
+            jstart,
+            last_chunk,
+            nx,
+            ny,
+            arg,
+            fout,
+            yj,
+            out,
+        )
+
         self.code = f"""
                           
                         {self.headers}
