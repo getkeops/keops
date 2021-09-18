@@ -44,14 +44,9 @@ if use_OpenMP:
 cpp_flags += " -I" + bindings_source_dir
 
 
-if use_cuda:
+cuda_dependencies = ["cuda", "nvrtc"]
     
-    cuda_dependencies = ["cuda", "nvrtc"]
-    
-    cuda_available = all([find_library(lib) for lib in cuda_dependencies])
-    
-    if not cuda_available:
-        KeOps_Warning
+cuda_available = all([find_library(lib) for lib in cuda_dependencies])
     
 # path to Cuda : currently we just list a few possible paths this is not good at all...
 cuda_path = [
