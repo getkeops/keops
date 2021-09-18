@@ -57,79 +57,23 @@ if use_cuda and not cuda_available:
     KeOps_Warning("Cuda was not detected on the system ; using cpu only mode")
     use_cuda = False
 
-
-from keops.utils.misc_utils import find_library_abspath
-
-libcuda_folder = os.path.dirname(find_library_abspath("cuda"))
-libnvrtc_folder = os.path.dirname(find_library_abspath("nvrtc"))
-
-nvrtc_flags = compile_options + f" -fpermissive -L {libcuda_folder} -L {libnvrtc_folder} -lcuda -lnvrtc"
-
-"""
-cuda_path = [
-    os.path.sep + os.path.join("opt", "cuda"),  # for oban
-    os.path.sep + os.path.join("usr", "local", "cuda"),  # for bartlett
-    os.path.sep + os.path.join("usr", "local", "cuda-11.3"),  # for topdyn
-]
-
-
-generate_cuda_path = (
-    lambda _cuda_path: "-L"
-    + os.path.join(_cuda_path, "lib64")
-    + " -L"
-    + os.path.join(_cuda_path, "targets", "x86_64-linux", "lib")
-    + " -I"
-    + os.path.join(_cuda_path, "targets", "x86_64-linux", "include")
-)
-nvrtc_include = (
-    " ".join([generate_cuda_path(path) for path in cuda_path])
-    + " -I"
-    + bindings_source_dir
-)
-"""
-
-nvrtc_include = " -I" + bindings_source_dir
-
-# trying to auto detect location of cuda headers
-cuda_include_path = None
-for libpath in libcuda_folder, libnvrtc_folder:
-    for libtag in "lib", "lib64":
-        libtag = os.path.sep + libtag + os.path.sep
-        if libtag in libpath:
-            includetag = os.path.sep + "include" + os.path.sep
-            includepath = libpath.replace(libtag,includetag) + os.path.sep
-            if os.path.isfile(includepath + "cuda.h") and os.path.isfile(includepath + "nvrtc.h"):
-                cuda_include_path = includepath
-                break
-    if cuda_include_path:   
-        break
-
-# if not successfull, we try a few standard locations:
-if not cuda_include_path:
-    from keops.utils.gpu_utils import get_cuda_version
-    cuda_version = get_cuda_version()
-    s = os.path.sep
-    cuda_paths_to_try_start = [f"{s}opt{s}cuda{s}",
-                        f"{s}usr{s}local{s}cuda{s}",
-                        f"{s}usr{s}local{s}cuda-{cuda_version}{s}",
-                        ]
-    cuda_paths_to_try_end = [f"include{s}",
-                        f"targets{s}x86_64-linux{s}include{s}",
-                        ]
-    for path_start in cuda_paths_to_try_start:
-        for path_end in cuda_paths_to_try_end:
-            path = path_start + path_end
-            if os.path.isfile(path + "cuda.h") and os.path.isfile(path + "nvrtc.h"):
-                cuda_include_path = path
-                break
-        if cuda_include_path:
-            break
-
-if cuda_include_path:
-    nvrtc_include += " -I" + cuda_include_path
-
-jit_source_file = os.path.join(base_dir_path, "binders", "nvrtc", "keops_nvrtc.cpp")
-jit_binary = os.path.join(build_path, "keops_nvrtc.so")
+if use_cuda:
+    from keops.utils.gpu_utils import libcuda_folder, libnvrtc_folder, get_cuda_include_path
+    nvrtc_flags = compile_options + f" -fpermissive -L {libcuda_folder} -L {libnvrtc_folder} -lcuda -lnvrtc"
+    nvrtc_include = " -I" + bindings_source_dir
+    cuda_include_path = get_cuda_include_path()
+    if cuda_include_path:
+        nvrtc_include += " -I" + cuda_include_path
+    jit_source_file = os.path.join(base_dir_path, "binders", "nvrtc", "keops_nvrtc.cpp")
+    jit_binary = os.path.join(build_path, "keops_nvrtc.so")
+else:
+    libcuda_folder = None
+    libnvrtc_folder = None
+    nvrtc_flags = None
+    nvrtc_include = None
+    cuda_include_path = None
+    jit_source_file = None
+    jit_binary = None
 
 init_cudalibs_flag = False
 

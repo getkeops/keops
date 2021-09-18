@@ -1,12 +1,46 @@
 import ctypes
 from ctypes.util import find_library
-from keops.utils.misc_utils import KeOps_Error, KeOps_Warning
+from keops.utils.misc_utils import KeOps_Error, KeOps_Warning, find_library_abspath
 from keops.config.config import cxx_compiler, build_path
+import os
 
 # Some constants taken from cuda.h
 CUDA_SUCCESS = 0
 CU_DEVICE_ATTRIBUTE_MAX_THREADS_PER_BLOCK = 1
 CU_DEVICE_ATTRIBUTE_MAX_SHARED_MEMORY_PER_BLOCK = 8
+
+libcuda_folder = os.path.dirname(find_library_abspath("cuda"))
+libnvrtc_folder = os.path.dirname(find_library_abspath("nvrtc"))
+
+
+def get_cuda_include_path():
+    # trying to auto detect location of cuda headers
+    cuda_include_path = None
+    for libpath in libcuda_folder, libnvrtc_folder:
+        for libtag in "lib", "lib64":
+            libtag = os.path.sep + libtag + os.path.sep
+            if libtag in libpath:
+                includetag = os.path.sep + "include" + os.path.sep
+                includepath = libpath.replace(libtag,includetag) + os.path.sep
+                if os.path.isfile(includepath + "cuda.h") and os.path.isfile(includepath + "nvrtc.h"):
+                    return includepath
+                    
+    # if not successfull, we try a few standard locations:
+    cuda_version = get_cuda_version()
+    s = os.path.sep
+    cuda_paths_to_try_start = [f"{s}opt{s}cuda{s}",
+                        f"{s}usr{s}local{s}cuda{s}",
+                        f"{s}usr{s}local{s}cuda-{cuda_version}{s}",
+                        ]
+    cuda_paths_to_try_end = [f"include{s}",
+                        f"targets{s}x86_64-linux{s}include{s}",
+                        ]
+    for path_start in cuda_paths_to_try_start:
+        for path_end in cuda_paths_to_try_end:
+            path = path_start + path_end
+            if os.path.isfile(path + "cuda.h") and os.path.isfile(path + "nvrtc.h"):
+                return path
+
 
 def get_include_file_abspath(filename):
     import os
