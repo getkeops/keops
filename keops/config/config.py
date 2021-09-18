@@ -95,6 +95,7 @@ nvrtc_include = (
 
 nvrtc_include = " -I" + bindings_source_dir
 
+# trying to auto detect location of cuda headers
 cuda_include_path = None
 for libpath in libcuda_path, libnvrtc_path:
     for libtag in "lib", "lib64":
@@ -102,6 +103,7 @@ for libpath in libcuda_path, libnvrtc_path:
         if libtag in libpath:
             includetag = os.path.sep + "include" + os.path.sep
             includepath = libpath.replace(libtag,includetag) + os.path.sep
+            print("1***", includepath)
             if os.path.isfile(includepath + "cuda.h") and os.path.isfile(includepath + "nvrtc.h"):
                 cuda_include_path = includepath
                 break
@@ -109,6 +111,32 @@ for libpath in libcuda_path, libnvrtc_path:
                 continue
         break
 
+# if not successfull, we try a few standard locations:
+if not cuda_include_path:
+    from keops.utils.gpu_utils import get_cuda_version
+    cuda_version = get_cuda_version()
+    s = os.path.sep
+    cuda_paths_to_try_start = [f"{s}opt{s}cuda{s}",
+                        f"{s}usr{s}local{s}cuda{s}",
+                        f"{s}usr{s}local{s}cuda-{cuda_version}{s}",
+                        ]
+    cuda_paths_to_try_end = [f"include{s}",
+                        f"targets{s}x86_64-linux{s}include{s}",
+                        ]
+    for path_start in cuda_paths_to_try_start:
+        for path_end in cuda_paths_to_try_end:
+            path = path_start + path_end
+            print("2***", path)
+            if os.path.isfile(includepath + "cuda.h") and os.path.isfile(includepath + "nvrtc.h"):
+                print("ok!!!!")
+                cuda_include_path = includepath
+                break
+            else:
+                print("not ok!!!!")
+                continue
+            print("hi guy")
+            break
+        
 print("cuda_include_path=", cuda_include_path)
 
 if cuda_include_path:
