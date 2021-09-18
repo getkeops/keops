@@ -44,7 +44,7 @@ def find_library_abspath(lib):
 
     res = find_library(lib)
     if res is None:
-        return None
+        return ""
 
     lib = CDLL(res)
     libdl = CDLL(find_library("dl"))
