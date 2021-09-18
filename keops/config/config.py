@@ -60,15 +60,10 @@ if use_cuda and not cuda_available:
 
 from keops.utils.misc_utils import find_library_abspath
 
-libcuda_path = find_library_abspath("cuda").decode("utf-8") 
-libnvrtc_path = find_library_abspath("nvrtc").decode("utf-8") 
+libcuda_folder = os.path.dirname(find_library_abspath("cuda"))
+libnvrtc_folder = os.path.dirname(find_library_abspath("nvrtc"))
 
-print()
-print("libcuda_path=", libcuda_path)
-print("libnvrtc_path=", libnvrtc_path)
-print()
-
-nvrtc_flags = compile_options + f" -fpermissive -l{libcuda_path} -l{libnvrtc_path}"
+nvrtc_flags = compile_options + f" -fpermissive -L {libcuda_folder} -L {libnvrtc_folder} -lcuda -lnvrtc"
 
 """
 cuda_path = [
@@ -97,7 +92,7 @@ nvrtc_include = " -I" + bindings_source_dir
 
 # trying to auto detect location of cuda headers
 cuda_include_path = None
-for libpath in libcuda_path, libnvrtc_path:
+for libpath in libcuda_folder, libnvrtc_folder:
     for libtag in "lib", "lib64":
         libtag = os.path.sep + libtag + os.path.sep
         if libtag in libpath:
@@ -109,7 +104,7 @@ for libpath in libcuda_path, libnvrtc_path:
                 break
             else:
                 continue
-        break
+    break
 
 # if not successfull, we try a few standard locations:
 if not cuda_include_path:
@@ -135,7 +130,7 @@ if not cuda_include_path:
                 print("not ok!!!!")
                 continue
             print("hi guy")
-            break
+        break
         
 print("cuda_include_path=", cuda_include_path)
 
