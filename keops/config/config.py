@@ -63,6 +63,11 @@ from keops.utils.misc_utils import find_library_abspath
 libcuda_path = find_library_abspath("cuda").decode("utf-8") 
 libnvrtc_path = find_library_abspath("nvrtc").decode("utf-8") 
 
+print()
+print("libcuda_path=", libcuda_path)
+print("libnvrtc_path=", libnvrtc_path)
+print()
+
 nvrtc_flags = compile_options + f" -fpermissive -l{libcuda_path} -l{libnvrtc_path}"
 
 """
@@ -103,6 +108,8 @@ for libpath in libcuda_path, libnvrtc_path:
             else:
                 continue
         break
+
+print("cuda_include_path=", cuda_include_path)
 
 if cuda_include_path:
     nvrtc_include += " -I" + cuda_include_path
