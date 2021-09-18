@@ -98,7 +98,6 @@ for libpath in libcuda_folder, libnvrtc_folder:
         if libtag in libpath:
             includetag = os.path.sep + "include" + os.path.sep
             includepath = libpath.replace(libtag,includetag) + os.path.sep
-            print("1***", includepath)
             if os.path.isfile(includepath + "cuda.h") and os.path.isfile(includepath + "nvrtc.h"):
                 cuda_include_path = includepath
                 break
@@ -120,17 +119,11 @@ if not cuda_include_path:
     for path_start in cuda_paths_to_try_start:
         for path_end in cuda_paths_to_try_end:
             path = path_start + path_end
-            print("2***", path)
             if os.path.isfile(path + "cuda.h") and os.path.isfile(path + "nvrtc.h"):
-                print("ok!!!!")
                 cuda_include_path = path
                 break
-            print("hi guy")
-        print("here!!")
         if cuda_include_path:
             break
-        
-print("cuda_include_path=", cuda_include_path)
 
 if cuda_include_path:
     nvrtc_include += " -I" + cuda_include_path
@@ -144,8 +137,8 @@ def init_cudalibs():
     if not keops.config.config.init_cudalibs_flag:
         # we load some libraries that need to be linked with KeOps code
         # This is to avoid "undefined symbols" errors.
-        CDLL("libnvrtc.so", mode=RTLD_GLOBAL)
-        CDLL("libcuda.so", mode=RTLD_GLOBAL)
-        CDLL("libcudart.so", mode=RTLD_GLOBAL)
+        CDLL(find_library("nvrtc"), mode=RTLD_GLOBAL)
+        CDLL(find_library("cuda"), mode=RTLD_GLOBAL)
+        CDLL(find_library("cudart"), mode=RTLD_GLOBAL)
         keops.config.config.init_cudalibs_flag = True
 
