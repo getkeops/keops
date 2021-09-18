@@ -127,9 +127,9 @@ if not cuda_include_path:
         for path_end in cuda_paths_to_try_end:
             path = path_start + path_end
             print("2***", path)
-            if os.path.isfile(includepath + "cuda.h") and os.path.isfile(includepath + "nvrtc.h"):
+            if os.path.isfile(path + "cuda.h") and os.path.isfile(path + "nvrtc.h"):
                 print("ok!!!!")
-                cuda_include_path = includepath
+                cuda_include_path = path
                 break
             else:
                 print("not ok!!!!")
