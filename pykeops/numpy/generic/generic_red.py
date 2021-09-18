@@ -179,8 +179,7 @@ class Genred:
         )
         self.aliases = complete_aliases(self.formula, aliases)
         self.dtype = dtype
-        my_LoadKeOps = LoadKeOps_new  # TODO: clean pykeops.use_python_engine
-        self.myconv = my_LoadKeOps(
+        self.myconv = LoadKeOps(
             self.formula, self.aliases, self.dtype, "numpy", self.optional_flags
         ).import_module()
         self.axis = axis
