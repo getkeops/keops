@@ -13,9 +13,10 @@ with open(
 # Utils
 
 import pykeops.config
-from .common.set_path import set_bin_folder, clean_pykeops
 
-set_bin_folder()
+def clean_pykeops(path="", lang=""):
+    from keops.utils.code_gen_utils import clean_keops
+    clean_keops(delete_jit_binary=True)
 
 if pykeops.config.numpy_found:
     from .test.install import test_numpy_bindings
@@ -23,5 +24,3 @@ if pykeops.config.numpy_found:
 if pykeops.config.torch_found:
     from .test.install import test_torch_bindings
 
-# TODO : remove this
-use_python_engine = True

@@ -4,7 +4,7 @@ import numpy as np
 from functools import reduce
 
 
-class LoadKeOps_new:
+class LoadKeOps:
     @staticmethod
     def numpy_array2ctypes(x):
         return dict(data=c_void_p(x.ctypes.data), type=c_void_p)
