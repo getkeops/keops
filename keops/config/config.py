@@ -1,29 +1,32 @@
 import os
 from ctypes import CDLL, RTLD_GLOBAL
 import keops
+from ctypes.util import find_library
 
 # System Path
 base_dir_path = (
     os.path.dirname(os.path.realpath(__file__)) + os.path.sep + ".." + os.path.sep
 )
+
+
+# global parameters can be set here :
+use_cuda = True                                         # use cuda if possible
+use_OpenMP = True                                       # use OpenMP if possible
+build_path = base_dir_path + "build" + os.path.sep      # location of all JIT generated files
+
+
+
+# System Path, continued
 template_path = base_dir_path + "templates" + os.path.sep
 bindings_source_dir = base_dir_path + "include" + os.path.sep
-build_path = base_dir_path + "build" + os.path.sep
 
-# path to Cuda : currently we just list a few possible paths this is not good at all...
-cuda_path = [
-    os.path.sep + os.path.join("opt", "cuda"),  # for oban
-    os.path.sep + os.path.join("usr", "local", "cuda"),  # for bartlett
-    os.path.sep + os.path.join("usr", "local", "cuda-11.3"),  # for topdyn
-]
 
 # Compiler
 cxx_compiler = "g++"
 compile_options = " -shared -fPIC -O3"
-use_cuda = 0
+
 
 # cpp options
-use_OpenMP = True  # flag for OpenMP support
 cpp_flags = compile_options + " -flto"
 disable_pragma_unrolls = True
 
@@ -40,10 +43,27 @@ if use_OpenMP:
 
 cpp_flags += " -I" + bindings_source_dir
 
-# nvrtc options
-dependencies = ["cuda", "nvrtc"]
 
-nvrtc_flags = compile_options + " -fpermissive" + " -l" + " -l".join(dependencies)
+if use_cuda:
+    
+    cuda_dependencies = ["cuda", "nvrtc"]
+    
+    cuda_available = all([find_library(lib) for lib in cuda_dependencies])
+    
+    if not cuda_available:
+        KeOps_Warning
+    
+# path to Cuda : currently we just list a few possible paths this is not good at all...
+cuda_path = [
+    os.path.sep + os.path.join("opt", "cuda"),  # for oban
+    os.path.sep + os.path.join("usr", "local", "cuda"),  # for bartlett
+    os.path.sep + os.path.join("usr", "local", "cuda-11.3"),  # for topdyn
+]
+
+
+
+
+nvrtc_flags = compile_options + " -fpermissive" + " -l" + " -l".join(cuda_dependencies)
 
 generate_cuda_path = (
     lambda _cuda_path: "-L"

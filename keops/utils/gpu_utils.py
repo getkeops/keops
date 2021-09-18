@@ -1,7 +1,7 @@
 import ctypes
 from ctypes.util import find_library
-from keops.config.config import dependencies, cuda_path
 from keops.utils.misc_utils import KeOps_Error, KeOps_Warning
+from keops.config.config import cuda_available, cuda_path
 
 # Some constants taken from cuda.h
 CUDA_SUCCESS = 0
@@ -49,7 +49,7 @@ def my_find_library(lib):
     return abspath
 
 
-cuda_available = all([find_library(lib) for lib in dependencies])
+
 
 
 def cuda_include_fp16_path():
@@ -76,21 +76,11 @@ def cuda_include_fp16_path():
 def get_gpu_props():
     """
     Return number of GPU by reading libcuda.
-
-    From https://gist.github.com/f0k/0d6431e3faa60bffc788f8b4daa029b1
+    Here we assume the system has cuda support (more precisely that libcuda can be loaded)
+    Adapted from https://gist.github.com/f0k/0d6431e3faa60bffc788f8b4daa029b1
     credit: Jan Schlüter
     """
-    libnames = ("libcuda.so", "libcuda.dylib", "cuda.dll")
-    for libname in libnames:
-        try:
-            cuda = ctypes.CDLL(libname)
-        except OSError:
-            continue
-        else:
-            break
-    else:
-        # KeOps_Warning("No cuda detected. Switching to cpu only.")
-        return 0, ""  # raise
+    cuda = ctypes.CDLL(find_library("cuda"))
 
     nGpus = ctypes.c_int()
     error_str = ctypes.c_char_p()
@@ -107,7 +97,7 @@ def get_gpu_props():
     result = cuda.cuDeviceGetCount(ctypes.byref(nGpus))
     if result != CUDA_SUCCESS:
         # cuda.cuGetErrorString(result, ctypes.byref(error_str))
-        # print("[pyKeOps]: cuDeviceGetCount failed with error code %d: %s" % (result, error_str.value.decode()))
+        # KeOps_Warning("cuDeviceGetCount failed with error code %d: %s" % (result, error_str.value.decode()))
         KeOps_Warning(
             "cuda was detected, driver API has been initialized, but no working GPU has been found. Switching to cpu only."
         )
@@ -118,9 +108,9 @@ def get_gpu_props():
     def safe_call(d, result):
         test = result == CUDA_SUCCESS
         if not test:
-            print(
+            KeOps_Warning(
                 f"""
-                    [pyKeOps]: Warning, cuda was detected, driver API has been initialized, 
+                    cuda was detected, driver API has been initialized, 
                     but there was an error for detecting properties of GPU device nr {d}. 
                     Switching to cpu only.
                 """
