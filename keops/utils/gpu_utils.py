@@ -40,8 +40,17 @@ def cuda_include_fp16_path():
         return path
     else:
         KeOps_Error("cuda_fp16.h and cuda_fp16.hpp were not found")
+        
 
-
+def get_cuda_version():
+    cuda = ctypes.CDLL(find_library("cudart"))
+    cuda_version = ctypes.c_int()
+    cuda.cudaDriverGetVersion(ctypes.byref(cuda_version))
+    cuda_version = int(cuda_version.value)
+    cuda_version_major = cuda_version//1000
+    cuda_version_minor = (cuda_version-(1000*cuda_version_major))//10
+    return f"{cuda_version_major}.{cuda_version_minor}"
+    
 def get_gpu_props():
     """
     Return number of GPU by reading libcuda.
@@ -128,4 +137,4 @@ def get_gpu_props():
     if test:
         return nGpus, string_flags
     else:
-        return 0, ""
+        return 0, 0, ""
