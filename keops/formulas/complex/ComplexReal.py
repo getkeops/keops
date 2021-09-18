@@ -1,6 +1,7 @@
 from keops.formulas.Operation import Operation
 from keops.utils.code_gen_utils import c_for_loop
 from keops.formulas.complex.Real2Complex import Real2Complex
+from keops.utils.misc_utils import KeOps_Error
 
 # /////////////////////////////////////////////////////////////////////////
 # ////      ComplexReal                           ////
@@ -13,7 +14,7 @@ class ComplexReal(Operation):
 
     def __init__(self, f):
         if f.dim % 2 != 0:
-            raise ValueError("Dimension of F must be even")
+            KeOps_Error("Dimension of F must be even")
         self.dim = int(f.dim / 2)
         super().__init__(f)
 

@@ -1,6 +1,6 @@
 from keops.formulas.Operation import Operation
 from keops.utils.code_gen_utils import value, c_zero_float, c_for_loop
-
+from keops.utils.misc_utils import KeOps_Error
 
 ############################
 ######    ELEMENT "INJECTION" : ElemT(f,m,n)
@@ -13,7 +13,7 @@ class ElemT(Operation):
     def __init__(self, f, n, m):
         super().__init__(f, params=(n, m))
         if f.dim != 1:
-            raise ValueError("Input of ElemT should be a scalar")
+            KeOps_Error("Input of ElemT should be a scalar")
         self.dim = n
         self.n = n
         self.m = m

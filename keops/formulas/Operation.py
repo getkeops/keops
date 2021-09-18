@@ -1,7 +1,7 @@
 from keops.utils.code_gen_utils import new_c_varname, c_array
 from keops.utils.Tree import Tree
 from keops import debug_ops
-
+from keops.utils.misc_utils import KeOps_Error
 
 ###################
 ## Base class
@@ -201,7 +201,7 @@ def int2Op(x):
     elif isinstance(x, Operation):
         return x
     else:
-        raise ValueError("invalid type : ", type(x))
+        KeOps_Error("invalid type : " + str(type(x)))
 
 
 ##########################
@@ -217,4 +217,4 @@ def Broadcast(arg, dim):
     elif arg.dim == 1:
         return SumT(arg, dim)
     else:
-        raise ValueError("dimensions are not compatible for Broadcast operation")
+        KeOps_Error("dimensions are not compatible for Broadcast operation")

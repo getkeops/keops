@@ -3,7 +3,7 @@ from keops.formulas.reductions.sum_schemes import block_sum, kahan_scheme
 from keops.mapreduce.gpu.GpuAssignZero import GpuAssignZero
 from keops.mapreduce.MapReduce import MapReduce
 from keops.utils.code_gen_utils import c_variable, c_array, use_pragma_unroll
-
+from keops.utils.misc_utils import KeOps_Error
 
 class GpuReduc2D(MapReduce, Gpu_link_compile):
     # class for generating the final C++ code, Gpu version
@@ -57,7 +57,7 @@ class GpuReduc2D(MapReduce, Gpu_link_compile):
         elif isinstance(sum_scheme, direct_sum):
             acc = c_array(dtypeacc, dimred, "acc")
         else:
-            raise ValueError("incorrect reduction scheme")
+            KeOps_Error("incorrect reduction scheme")
 
         yjloc = c_array(dtype, varloader.dimy, f"(yj + threadIdx.x * {varloader.dimy})")
         arg = self.arg

@@ -5,7 +5,7 @@ from keops.utils.code_gen_utils import (
     VectApply,
 )
 from keops.utils.math_functions import keops_fma
-
+from keops.utils.misc_utils import KeOps_Error
 
 ##########################
 #####    Scalprod     ####
@@ -22,7 +22,7 @@ class Scalprod_Impl(Chunkable_Op):
         # Output dimension = 1, provided that FA::DIM = FB::DIM
         self.dimin = fa.dim
         if self.dimin != fb.dim:
-            raise ValueError("Dimensions must be the same for Scalprod")
+            KeOps_Error("Dimensions must be the same for Scalprod")
         super().__init__(fa, fb)
 
     def Op(self, out, table, arga, argb):

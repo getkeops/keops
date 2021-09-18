@@ -1,6 +1,6 @@
 from keops.formulas.Operation import Operation
 from keops.utils.code_gen_utils import c_zero_float
-
+from keops.utils.misc_utils import KeOps_Error
 
 # //////////////////////////////////////////////////////////////
 # ////       ONE-HOT REPRESENTATION : OneHot<F,DIM>         ////
@@ -13,11 +13,11 @@ class OneHot(Operation):
 
     def __init__(self, f, dim):
         if f.dim != 1:
-            raise ValueError(
+            KeOps_Error(
                 "One-hot representation is only supported for scalar formulas."
             )
         if dim < 1:
-            raise ValueError("A one-hot vector should have length >= 1.")
+            KeOps_Error("A one-hot vector should have length >= 1.")
         super().__init__(f)
         self.dim = dim
         self.params = (dim,)

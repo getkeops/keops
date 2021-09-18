@@ -2,6 +2,7 @@ from keops.formulas.Operation import Operation
 from keops.utils.code_gen_utils import c_for_loop
 from keops.formulas.complex.Real2Complex import Real2Complex
 from keops.formulas.complex.ComplexMult import ComplexMult
+from keops.utils.misc_utils import KeOps_Error
 
 # /////////////////////////////////////////////////////////////////////////
 # ////      ComplexRealScal                           ////
@@ -14,9 +15,9 @@ class ComplexRealScal_Impl(Operation):
 
     def __init__(self, f, g):
         if f.dim != 1:
-            raise ValueError("Dimension of F must be 1")
+            KeOps_Error("Dimension of F must be 1")
         if g.dim % 2 != 0:
-            raise ValueError("Dimension of G must be even")
+            KeOps_Error("Dimension of G must be even")
         self.dim = g.dim
         super().__init__(f, g)
 

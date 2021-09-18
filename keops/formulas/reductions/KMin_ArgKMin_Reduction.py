@@ -10,7 +10,7 @@ from keops.utils.code_gen_utils import (
     use_pragma_unroll,
 )
 from keops.formulas.reductions.Reduction import Reduction
-
+from keops.utils.misc_utils import KeOps_Error
 
 class KMin_ArgKMin_Reduction(Reduction):
     """Implements the k-min-arg-k-min reduction operation : for each i or each j, find the
@@ -33,7 +33,7 @@ class KMin_ArgKMin_Reduction(Reduction):
     def InitializeReduction(self, acc):
         # Returns C++ code to be used at initialization phase of the reduction.
         if acc.dtype == "half2":
-            raise ValueError("not implemented")
+            KeOps_Error("not implemented")
         fdim, K = self.formula.dim, self.K
         outer_loop, k = c_for_loop(0, fdim, 1, pragma_unroll=True)
         inner_loop, l = c_for_loop(k, k + (2 * K * fdim), 2 * fdim, pragma_unroll=True)

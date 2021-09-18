@@ -156,7 +156,7 @@ if __name__ == "__main__":
     }
 
     if len(argv) != len(argdict):
-        raise ValueError(
+        KeOps_Error(
             f"Invalid call to Python script {sys.argv[0]}. There should be {len(argdict)} arguments corresponding to:\n{list(argdict.keys())}"
         )
 
@@ -164,7 +164,7 @@ if __name__ == "__main__":
         argtype = argdict[key]
         argval = argv[k] if argtype == str else eval(argv[k])
         if not isinstance(argval, argtype):
-            raise ValueError(
+            KeOps_Error(
                 f"Invalid call to Python script {sys.argv[0]}. Argument number {k + 1} ({key}) should be of type {argtype} but is of type {type(argval)}"
             )
         argdict[key] = argval

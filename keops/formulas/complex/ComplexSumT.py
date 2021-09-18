@@ -1,5 +1,6 @@
 from keops.formulas.Operation import Operation
 from keops.utils.code_gen_utils import c_for_loop
+from keops.utils.misc_utils import KeOps_Error
 
 # /////////////////////////////////////////////////////////////////////////
 # ////      adjoint of ComplexSum                           ////
@@ -11,7 +12,7 @@ class ComplexSumT(Operation):
 
     def __init__(self, f, dim):
         if f.dim != 2:
-            raise ValueError("Dimension of F must be 2")
+            KeOps_Error("Dimension of F must be 2")
         self.dim = dim
         super().__init__(f)
 

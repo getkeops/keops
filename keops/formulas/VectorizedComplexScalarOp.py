@@ -1,6 +1,6 @@
 from keops.utils.code_gen_utils import ComplexVectApply
 from keops.formulas.Operation import Operation
-
+from keops.utils.misc_utils import KeOps_Error
 
 class VectorizedComplexScalarOp(Operation):
     # class for operations that are vectorized or broadcasted
@@ -10,7 +10,7 @@ class VectorizedComplexScalarOp(Operation):
     def __init__(self, *args, params=()):
         dims = set(arg.dim for arg in args)
         if max(dims) % 2 != 0 or len(dims) > 2 or (len(dims) == 2 and min(dims) != 2):
-            raise ValueError(
+            KeOps_Error(
                 "dimensions are not compatible for VectorizedComplexScalarOp"
             )
         super().__init__(*args, params=params)

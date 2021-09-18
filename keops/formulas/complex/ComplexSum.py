@@ -1,5 +1,6 @@
 from keops.formulas.Operation import Operation
 from keops.utils.code_gen_utils import c_zero_float, c_for_loop
+from keops.utils.misc_utils import KeOps_Error
 
 # /////////////////////////////////////////////////////////////////////////
 # ////      ComplexSum                           ////
@@ -12,7 +13,7 @@ class ComplexSum(Operation):
 
     def __init__(self, f):
         if f.dim % 2 != 0:
-            raise ValueError("Dimension of F must be even")
+            KeOps_Error("Dimension of F must be even")
         self.dim = 2
         super().__init__(f)
 

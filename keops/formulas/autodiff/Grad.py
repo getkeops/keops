@@ -1,5 +1,6 @@
 from keops.formulas import Var
 from keops.utils.code_gen_utils import GetInds
+from keops.utils.misc_utils import KeOps_Error
 
 # /////////////////////////////////////////////////////////////
 # ///      GRADIENT OPERATOR  : Grad< F, V, Gradin >       ////
@@ -13,7 +14,7 @@ from keops.utils.code_gen_utils import GetInds
 def Grad(formula, v, gradin=None):
     if gradin is None:
         if v.cat == 2:
-            raise ValueError("not implemented")
+            KeOps_Error("not implemented")
         inds = GetInds(formula.Vars_)
         ind = 1 + max(inds) if len(inds) > 0 else 0
         dim = formula.dim

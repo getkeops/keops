@@ -2,7 +2,7 @@ import os, time
 
 from keops.utils.code_gen_utils import get_hash_name
 from keops.config.config import build_path
-
+from keops.utils.misc_utils import KeOps_Error, KeOps_Message
 
 class LinkCompile:
     """
@@ -57,7 +57,7 @@ class LinkCompile:
         f.close()
         tmp = string.split("\n")
         if len(tmp) != 4:
-            raise ValueError("incorrect info file")
+            KeOps_Error("Incorrect info file")
         tmp_dim, tmp_tag, tmp_dimy = (
             tmp[1].split("="),
             tmp[2].split("="),
@@ -71,7 +71,7 @@ class LinkCompile:
             or len(tmp_dimy) != 2
             or tmp_dimy[0] != "dimy"
         ):
-            raise ValueError("incorrect info file")
+            KeOps_Error("Incorrect info file")
         self.dim = eval(tmp_dim[1])
         self.tagI = eval(tmp_tag[1])
         self.dimy = eval(tmp_dimy[1])
@@ -87,16 +87,14 @@ class LinkCompile:
         # performing the reduction, e.g. 7b9a611f7e.so, or in the case of JIT compilation, the name of the main KeOps dll,
         # and the name of the assembly code file.
         if not os.path.exists(self.file_to_check):
-            print(
-                "[KeOps] Compiling formula :",
-                self.red_formula,
-                "...",
+            KeOps_Message(
+                "Compiling formula " + self.red_formula.__str__() + " ... ",
                 flush=True,
-                end=" ",
+                end="",
             )
             self.compile_code()
             self.save_info()
-            print("OK")
+            print("OK",flush=True)
         else:
             self.read_info()
         return dict(

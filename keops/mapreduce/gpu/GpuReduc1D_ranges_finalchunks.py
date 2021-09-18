@@ -14,7 +14,7 @@ from keops.utils.code_gen_utils import (
     Var_loader,
     use_pragma_unroll,
 )
-
+from keops.utils.misc_utils import KeOps_Error
 
 def do_finalchunk_sub_ranges(
     dtype,
@@ -142,10 +142,10 @@ class GpuReduc1D_ranges_finalchunks(MapReduce, Gpu_link_compile):
         dimout = varfinal.dim
         dimfout = fun_internal.formula.dim
         if dimfout != 1:
-            raise ValueError("dimfout should be 1")
+            KeOps_Error("dimfout should be 1")
         sum_scheme = self.sum_scheme
         if not isinstance(sum_scheme, block_sum):
-            raise ValueError("only block_sum available")
+            KeOps_Error("only block_sum available")
         param_loc = c_array(dtype, dimp, "param_loc")
         fout = c_array(dtype, dimfout * blocksize_chunks, "fout")
         xi = c_array(dtype, dimx, "xi")

@@ -4,7 +4,7 @@ from keops.utils.code_gen_utils import (
     c_for_loop,
     c_zero_float,
 )
-
+from keops.utils.misc_utils import KeOps_Error
 
 # /////////////////////////////////////////////////////////////////////////
 # ////     Vector-matrix product           b x A                       ////
@@ -18,7 +18,7 @@ class VecMatMult(Operation):
         # A is vector of size n*p, interpreted as matrix, B is vector of size n, interpreted as row vector
         # output is vector of size p
         if A.dim % B.dim != 0:
-            raise ValueError(
+            KeOps_Error(
                 "Dimensions of A and B are not compatible for vector-matrix product"
             )
         super().__init__(B, A)
