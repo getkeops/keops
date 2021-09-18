@@ -10,9 +10,10 @@ from keops.config.config import (
     nvrtc_flags,
     nvrtc_include,
     jit_source_file,
+    cuda_available
 )
 from keops.utils.misc_utils import KeOps_Error, KeOps_Message
-from keops.utils.gpu_utils import get_gpu_props, cuda_available, cuda_include_fp16_path
+from keops.utils.gpu_utils import get_gpu_props, cuda_include_fp16_path
 
 
 class Gpu_link_compile(LinkCompile):
