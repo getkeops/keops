@@ -102,9 +102,8 @@ for libpath in libcuda_folder, libnvrtc_folder:
             if os.path.isfile(includepath + "cuda.h") and os.path.isfile(includepath + "nvrtc.h"):
                 cuda_include_path = includepath
                 break
-            else:
-                continue
-    break
+    if cuda_include_path:   
+        break
 
 # if not successfull, we try a few standard locations:
 if not cuda_include_path:
@@ -126,11 +125,10 @@ if not cuda_include_path:
                 print("ok!!!!")
                 cuda_include_path = path
                 break
-            else:
-                print("not ok!!!!")
-                continue
             print("hi guy")
-        break
+        print("here!!")
+        if cuda_include_path:
+            break
         
 print("cuda_include_path=", cuda_include_path)
 
