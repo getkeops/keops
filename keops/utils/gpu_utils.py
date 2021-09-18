@@ -25,6 +25,9 @@ def cuda_include_fp16_path():
     We look for float 16 cuda headers cuda_fp16.h and cuda_fp16.hpp
     based on cuda_path locations and return their directory
     """
+    from keops.config.config import cuda_include_path
+    if cuda_include_path:
+        return cuda_include_path
     import os
     cuda_fp16_h_abspath = get_include_file_abspath("cuda_fp16.h")
     cuda_fp16_hpp_abspath = get_include_file_abspath("cuda_fp16.hpp")
@@ -36,7 +39,7 @@ def cuda_include_fp16_path():
         path += os.path.sep
         return path
     else:
-        KeOps_Error("cuda_fp16.h and cuda_fp16.hpp are not in the include path")
+        KeOps_Error("cuda_fp16.h and cuda_fp16.hpp were not found")
 
 
 def get_gpu_props():

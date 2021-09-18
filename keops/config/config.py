@@ -2,7 +2,7 @@ import os
 from ctypes import CDLL, RTLD_GLOBAL
 import keops
 from ctypes.util import find_library
-from keops.utils.misc_utils import KeOps_Warning
+from keops.utils.misc_utils import KeOps_Warning, KeOps_Error
 
 # System Path
 base_dir_path = (
@@ -60,8 +60,8 @@ if use_cuda and not cuda_available:
 
 from keops.utils.misc_utils import find_library_abspath
 
-libcuda_path = find_library_abspath("cuda")
-libnvrtc_path = find_library_abspath("nvrtc")
+libcuda_path = find_library_abspath("cuda").decode("utf-8") 
+libnvrtc_path = find_library_abspath("nvrtc").decode("utf-8") 
 
 nvrtc_flags = compile_options + f" -fpermissive -l{libcuda_path} -l{libnvrtc_path}"
 
@@ -89,6 +89,23 @@ nvrtc_include = (
 """
 
 nvrtc_include = " -I" + bindings_source_dir
+
+cuda_include_path = None
+for libpath in libcuda_path, libnvrtc_path:
+    for libtag in "lib", "lib64":
+        libtag = os.path.sep + libtag + os.path.sep
+        if libtag in libpath:
+            includetag = os.path.sep + "include" + os.path.sep
+            includepath = libpath.replace(libtag,includetag) + os.path.sep
+            if os.path.isfile(includepath + "cuda.h") and os.path.isfile(includepath + "nvrtc.h"):
+                cuda_include_path = includepath
+                break
+            else:
+                continue
+        break
+
+if cuda_include_path:
+    nvrtc_include += " -I" + cuda_include_path
 
 jit_source_file = os.path.join(base_dir_path, "binders", "nvrtc", "keops_nvrtc.cpp")
 jit_binary = os.path.join(build_path, "keops_nvrtc.so")
