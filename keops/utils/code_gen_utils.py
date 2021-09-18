@@ -2,28 +2,12 @@ import os
 from hashlib import sha256
 
 from keops.config.config import build_path, jit_binary, disable_pragma_unrolls
-
+from keops.utils.misc_utils import KeOps_Error, KeOps_Message
 
 def get_hash_name(*args):
     return sha256("".join(list(str(arg) for arg in args)).encode("utf-8")).hexdigest()[
         :10
     ]
-
-
-#######################################################################
-# .  Debugging helpers
-#######################################################################
-
-
-def KeOps_Error(message, show_line_number=True):
-    message = "[KeOps] Error : " + message
-    if show_line_number:
-        from inspect import currentframe, getframeinfo
-
-        frameinfo = getframeinfo(currentframe().f_back)
-        message += f" (error at line {frameinfo.lineno} in file {frameinfo.filename})"
-    raise ValueError(message)
-
 
 #######################################################################
 # .  Python to C++ meta programming toolbox
@@ -815,4 +799,4 @@ def clean_keops(delete_jit_binary=False):
     for f in os.scandir(build_path):
         if f.path != jit_binary or delete_jit_binary:
             os.remove(f.path)
-    print(f"[KeOps] Folder {build_path} has been cleaned.")
+    KeOps_Message(f"{build_path} has been cleaned.")

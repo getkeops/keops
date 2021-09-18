@@ -1,6 +1,6 @@
 from keops.utils.code_gen_utils import infinity, c_if
 from keops.formulas.reductions.Reduction import Reduction
-
+from keops.utils.misc_utils import KeOps_Error
 
 class Min_Reduction(Reduction):
     """Implements the min reduction operation : for each i or each j, find the minimal value of Fij
@@ -21,5 +21,5 @@ class Min_Reduction(Reduction):
     def ReducePairScalar(self, acc, xi):
         # Subroutine of ReducePairShort and ReducePair methods.
         if xi.dtype == "half2":
-            raise ValueError("not implemented")
+            KeOps_Error("not implemented")
         return c_if(xi < acc, acc.assign(xi))

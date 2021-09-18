@@ -2,7 +2,7 @@ from keops.formulas.Operation import Operation
 from keops.formulas.maths.ArgMin import ArgMin
 from keops.formulas.maths.OneHot import OneHot
 from keops.utils.code_gen_utils import c_for_loop, c_if, value
-
+from keops.utils.misc_utils import KeOps_Error
 
 ############################
 ######    Min       #####
@@ -15,8 +15,8 @@ class Min(Operation):
     def __init__(self, f):
         super().__init__(f)
         if f.dim < 1:
-            raise ValueError(
-                "[KeOps] Min operation is only possible when dimension is non zero."
+            KeOps_Error(
+                "Min operation is only possible when dimension is non zero."
             )
         self.dim = 1
 

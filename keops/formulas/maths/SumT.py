@@ -1,7 +1,7 @@
 from keops.formulas.Operation import Operation
 from keops.formulas.variables.Zero import Zero
 from keops.utils.code_gen_utils import value
-
+from keops.utils.misc_utils import KeOps_Error
 
 ##########################
 ######    SumT       #####
@@ -31,7 +31,7 @@ class SumT_Impl(Operation):
 # as a __new__ method of the previous class, but this can generate infinite recursion problems
 def SumT(arg, dim):
     if arg.dim != 1:
-        raise ValueError("dimension of argument must be 1 for SumT operation")
+        KeOps_Error("dimension of argument must be 1 for SumT operation")
     elif isinstance(arg, Zero):
         return Zero(dim)
     else:

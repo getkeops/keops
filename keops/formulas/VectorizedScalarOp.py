@@ -1,6 +1,6 @@
 from keops.utils.code_gen_utils import VectApply
 from keops.formulas.Operation import Operation
-
+from keops.utils.misc_utils import KeOps_Error
 
 class VectorizedScalarOp(Operation):
     # class for operations that are vectorized or broadcasted
@@ -10,7 +10,7 @@ class VectorizedScalarOp(Operation):
     def __init__(self, *args, params=()):
         dims = set(arg.dim for arg in args)
         if len(dims) > 2 or (len(dims) == 2 and min(dims) != 1):
-            raise ValueError("dimensions are not compatible for VectorizedScalarOp")
+            KeOps_Error("dimensions are not compatible for VectorizedScalarOp")
         super().__init__(*args, params=params)
 
     @property

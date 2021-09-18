@@ -1,6 +1,6 @@
 from keops.formulas.Operation import Operation
 from keops.utils.code_gen_utils import value
-
+from keops.utils.misc_utils import KeOps_Error
 
 ############################
 ######    ELEMENT EXTRACTION : Elem(f,m) (aka get_item)       #####
@@ -13,7 +13,7 @@ class Elem(Operation):
     def __init__(self, f, m):
         super().__init__(f, params=(m,))
         if f.dim <= m:
-            raise ValueError("Index out of bound in Elem")
+            KeOps_Error("Index out of bound in Elem")
         self.dim = 1
         self.m = m
 

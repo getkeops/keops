@@ -1,6 +1,6 @@
 from keops.formulas.Operation import Operation
 from keops.utils.code_gen_utils import c_zero_float, VectCopy
-
+from keops.utils.misc_utils import KeOps_Error
 
 # //////////////////////////////////////////////////////////////
 # ////     VECTOR "INJECTION" : ExtractT<F,START,DIM>       ////
@@ -12,7 +12,7 @@ class ExtractT(Operation):
 
     def __init__(self, f, start, dim):
         if start + f.dim > dim or start < 0:
-            raise ValueError("Index out of bound in ExtractT")
+            KeOps_Error("Index out of bound in ExtractT")
         super().__init__(f, params=(start, dim))
         self.start = start
         self.dim = dim

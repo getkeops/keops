@@ -11,6 +11,7 @@ from keops.config.config import (
     nvrtc_include,
     jit_source_file,
 )
+from keops.utils.misc_utils import KeOps_Error, KeOps_Message
 from keops.utils.gpu_utils import get_gpu_props, cuda_available, cuda_include_fp16_path
 
 
@@ -26,8 +27,8 @@ class Gpu_link_compile(LinkCompile):
         # checking that the system has a Gpu :
         ngpu, self.gpu_props_compile_flags = get_gpu_props()
         if not (cuda_available and ngpu):
-            raise ValueError(
-                "[KeOps] Trying to compile cuda code... but we detected that the system has no properly configured cuda lib."
+            KeOps_Error(
+                "Trying to compile cuda code... but we detected that the system has no properly configured cuda lib."
             )
 
         # binary for JIT compiling.
@@ -73,9 +74,9 @@ class Gpu_link_compile(LinkCompile):
         # If the dll is not present, it compiles it from source, except if check_compile is False.
 
         if not os.path.exists(jit_binary):
-            print("[KeOps] Compiling main dll...", flush=True, end="")
+            KeOps_Message("Compiling main dll ... ", flush=True, end="")
 
             jit_compile_command = f"{cxx_compiler} {nvrtc_flags} {nvrtc_include} {self.gpu_props_compile_flags} {jit_source_file} -o {jit_binary}"
             os.system(jit_compile_command)
 
-            print("Done.", flush=True)
+            print("OK", flush=True)

@@ -10,7 +10,7 @@ from keops.utils.code_gen_utils import (
     c_for_loop,
 )
 from keops.utils.math_functions import keops_exp
-
+from keops.utils.misc_utils import KeOps_Error
 
 class Max_SumShiftExpWeight_Reduction(Reduction):
     """Implements the coupled reduction operation m_i=max_j f_ij, s_i=sum_j exp(f_ij-m_i) g_ij
@@ -21,7 +21,7 @@ class Max_SumShiftExpWeight_Reduction(Reduction):
 
     def __init__(self, formulaF, tagIJ, formulaG=IntCst(1)):
         if formulaF.dim != 1:
-            raise ValueError(
+            KeOps_Error(
                 "Max_SumShiftExpWeight_Reduction requires first formula of dimension 1."
             )
         super().__init__(Concat(formulaF, formulaG), tagIJ)
@@ -42,7 +42,7 @@ class Max_SumShiftExpWeight_Reduction(Reduction):
         (m,s) + (m',s'), i.e. exp(m)*s + exp(m')*s'"""
 
         if xi.dtype == "half2":
-            raise ValueError("Not implemented.")
+            KeOps_Error("Not implemented.")
 
         tmpexp = c_variable(acc.dtype, new_c_varname("tmpexp"))
         loop, k = c_for_loop(1, self.dimred, 1, pragma_unroll=True)
@@ -63,7 +63,7 @@ class Max_SumShiftExpWeight_Reduction(Reduction):
 
     def KahanScheme(self, acc, xi, tmp):
         if xi.dtype == "half2":
-            raise ValueError("Not implemented.")
+            KeOps_Error("Not implemented.")
         tmpexp = c_variable(acc.dtype, new_c_varname("tmpexp"))
         loop, k = c_for_loop(1, self.dimred, 1, pragma_unroll=True)
         a = c_variable(acc.dtype, new_c_varname("a"))

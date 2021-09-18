@@ -5,7 +5,7 @@ from keops.utils.code_gen_utils import (
     c_if,
 )
 from keops.formulas.reductions.Reduction import Reduction
-
+from keops.utils.misc_utils import KeOps_Error
 
 class Min_ArgMin_Reduction_Base(Reduction):
     """min+argmin reduction : base class"""
@@ -25,7 +25,7 @@ class Min_ArgMin_Reduction_Base(Reduction):
     def ReducePairScalar(self, acc_val, acc_ind, xi, ind):
         # Subroutine of ReducePairShort and ReducePair methods.
         if xi.dtype == "half2":
-            raise ValueError("not implemented")
+            KeOps_Error("not implemented")
         return c_if(xi < acc_val, acc_val.assign(xi) + acc_ind.assign(ind))
 
     def ReducePair(self, acc, xi):
@@ -37,7 +37,7 @@ class Min_ArgMin_Reduction_Base(Reduction):
 
     def ReducePairShort(self, acc, xi, ind):
         if xi.dtype == "half2":
-            raise ValueError("not implemented")
+            KeOps_Error("not implemented")
             half2_val = c_variable("half2_ind")
             string = half2_val.declare_assign(
                 f"__floats2half2_rn(2*{ind()},2*{ind()}+1)"

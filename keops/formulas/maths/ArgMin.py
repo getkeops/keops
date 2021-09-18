@@ -1,7 +1,7 @@
 from keops.formulas.Operation import Operation
 from keops.formulas.variables.Zero import Zero
 from keops.utils.code_gen_utils import c_zero_float, c_for_loop, c_if, value, c_variable
-
+from keops.utils.misc_utils import KeOps_Error
 
 ############################
 ######    ArgMin       #####
@@ -14,8 +14,8 @@ class ArgMin(Operation):
     def __init__(self, f):
         super().__init__(f)
         if f.dim < 1:
-            raise ValueError(
-                "[KeOps] ArgMin operation is only possible when dimension is non zero."
+            KeOps_Error(
+                "ArgMin operation is only possible when dimension is non zero."
             )
         self.dim = 1
 
