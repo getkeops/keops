@@ -57,14 +57,21 @@ if use_cuda and not cuda_available:
     KeOps_Warning("Cuda was not detected on the system ; using cpu only mode")
     use_cuda = False
 
-# path to Cuda : currently we just list a few possible paths this is not good at all...
+
+from keops.utils.misc_utils import find_library_abspath
+
+libcuda_path = find_library_abspath("cuda")
+libnvrtc_path = find_library_abspath("nvrtc")
+
+nvrtc_flags = compile_options + f" -fpermissive -l{libcuda_path} -l{libnvrtc_path}"
+
+"""
 cuda_path = [
     os.path.sep + os.path.join("opt", "cuda"),  # for oban
     os.path.sep + os.path.join("usr", "local", "cuda"),  # for bartlett
     os.path.sep + os.path.join("usr", "local", "cuda-11.3"),  # for topdyn
 ]
 
-nvrtc_flags = compile_options + " -fpermissive" + " -l" + " -l".join(cuda_dependencies)
 
 generate_cuda_path = (
     lambda _cuda_path: "-L"
@@ -79,6 +86,9 @@ nvrtc_include = (
     + " -I"
     + bindings_source_dir
 )
+"""
+
+nvrtc_include = " -I" + bindings_source_dir
 
 jit_source_file = os.path.join(base_dir_path, "binders", "nvrtc", "keops_nvrtc.cpp")
 jit_binary = os.path.join(build_path, "keops_nvrtc.so")

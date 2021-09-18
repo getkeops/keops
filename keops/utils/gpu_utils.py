@@ -1,76 +1,42 @@
 import ctypes
 from ctypes.util import find_library
 from keops.utils.misc_utils import KeOps_Error, KeOps_Warning
-from keops.config.config import cuda_available, cuda_path
+from keops.config.config import cxx_compiler, build_path
 
 # Some constants taken from cuda.h
 CUDA_SUCCESS = 0
 CU_DEVICE_ATTRIBUTE_MAX_THREADS_PER_BLOCK = 1
 CU_DEVICE_ATTRIBUTE_MAX_SHARED_MEMORY_PER_BLOCK = 8
 
-
-def my_find_library(lib):
-    """
-    wrapper around ctypes find_library that returns the full path
-    of the library. 
-    Warning : it also opens the shared library !
-    Adapted from
-    https://stackoverflow.com/questions/35682600/get-absolute-path-of-shared-library-in-python/35683698
-    
-    N.B. (Joan) I wrote this because I thought it could be used for locating cuda fp16 headers, but it not the case.
-    Anyway it could be useful for future improvements, so keeping it for now.
-    """
-    from ctypes import c_int, c_void_p, c_char_p, CDLL, byref, cast, POINTER, Structure
-
-    # linkmap structure, we only need the second entry
-    class LINKMAP(Structure):
-        _fields_ = [("l_addr", c_void_p), ("l_name", c_char_p)]
-
-    res = find_library(lib)
-    if res is None:
-        return None
-
-    lib = CDLL(res)
-    libdl = CDLL(find_library("dl"))
-
-    dlinfo = libdl.dlinfo
-    dlinfo.argtypes = c_void_p, c_int, c_void_p
-    dlinfo.restype = c_int
-
-    # gets typecasted later, I dont know how to create a ctypes struct pointer instance
-    lmptr = c_void_p()
-
-    # 2 equals RTLD_DI_LINKMAP, pass pointer by reference
-    dlinfo(lib._handle, 2, byref(lmptr))
-
-    # typecast to a linkmap pointer and retrieve the name.
-    abspath = cast(lmptr, POINTER(LINKMAP)).contents.l_name
-
+def get_include_file_abspath(filename):
+    import os
+    tmp_file = build_path + "tmp.txt"
+    os.system(f'echo "#include <{filename}>" | {cxx_compiler} -M -E -x c++ - | head -n 2 > {tmp_file}')
+    strings = open(tmp_file).read().split()
+    abspath = None
+    for s in strings:
+        if filename in s:
+            abspath = s
+    os.remove(tmp_file)
     return abspath
-
-
-
-
 
 def cuda_include_fp16_path():
     """
     We look for float 16 cuda headers cuda_fp16.h and cuda_fp16.hpp
     based on cuda_path locations and return their directory
     """
-    if cuda_available:
-        import os
-
-        for _cuda_path in cuda_path:
-            path = (
-                os.path.join(_cuda_path, "targets", "x86_64-linux", "include")
-                + os.path.sep
-            )
-            if os.path.isfile(path + "cuda_fp16.h") and os.path.isfile(
-                path + "cuda_fp16.hpp"
-            ):
-                return path
-    # if not found we return empty string :
-    return ""
+    import os
+    cuda_fp16_h_abspath = get_include_file_abspath("cuda_fp16.h")
+    cuda_fp16_hpp_abspath = get_include_file_abspath("cuda_fp16.hpp")
+    
+    if cuda_fp16_h_abspath and cuda_fp16_hpp_abspath:
+        path = os.path.dirname(cuda_fp16_h_abspath)
+        if path != os.path.dirname(cuda_fp16_hpp_abspath):
+            KeOps_Error("cuda_fp16.h and cuda_fp16.hpp are not in the same folder !")
+        path += os.path.sep
+        return path
+    else:
+        KeOps_Error("cuda_fp16.h and cuda_fp16.hpp are not in the include path")
 
 
 def get_gpu_props():
