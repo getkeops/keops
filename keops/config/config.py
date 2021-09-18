@@ -2,6 +2,7 @@ import os
 from ctypes import CDLL, RTLD_GLOBAL
 import keops
 from ctypes.util import find_library
+from keops.utils.misc_utils import KeOps_Warning
 
 # System Path
 base_dir_path = (
@@ -44,19 +45,24 @@ if use_OpenMP:
 cpp_flags += " -I" + bindings_source_dir
 
 
+
+
 cuda_dependencies = ["cuda", "nvrtc"]
-    
 cuda_available = all([find_library(lib) for lib in cuda_dependencies])
+
+if not use_cuda and cuda_available:
+    KeOps_Warning("Cuda appears to be available on your system, but use_cuda is set to False in config.py. Using cpu only mode")
     
+if use_cuda and not cuda_available:
+    KeOps_Warning("Cuda was not detected on the system ; using cpu only mode")
+    use_cuda = False
+
 # path to Cuda : currently we just list a few possible paths this is not good at all...
 cuda_path = [
     os.path.sep + os.path.join("opt", "cuda"),  # for oban
     os.path.sep + os.path.join("usr", "local", "cuda"),  # for bartlett
     os.path.sep + os.path.join("usr", "local", "cuda-11.3"),  # for topdyn
 ]
-
-
-
 
 nvrtc_flags = compile_options + " -fpermissive" + " -l" + " -l".join(cuda_dependencies)
 
@@ -77,9 +83,7 @@ nvrtc_include = (
 jit_source_file = os.path.join(base_dir_path, "binders", "nvrtc", "keops_nvrtc.cpp")
 jit_binary = os.path.join(build_path, "keops_nvrtc.so")
 
-
 init_cudalibs_flag = False
-
 
 def init_cudalibs():
     if not keops.config.config.init_cudalibs_flag:
@@ -89,3 +93,4 @@ def init_cudalibs():
         CDLL("libcuda.so", mode=RTLD_GLOBAL)
         CDLL("libcudart.so", mode=RTLD_GLOBAL)
         keops.config.config.init_cudalibs_flag = True
+

@@ -57,7 +57,7 @@ from keops.config.chunks import (
     set_mult_var_highdim,
 )
 import keops.config.config
-from keops.utils.gpu_utils import get_gpu_props
+from keops.config.config import use_cuda
 from keops.utils.code_gen_utils import KeOps_Error
 
 # Get every classes in mapreduce
@@ -76,9 +76,9 @@ def get_keops_dll(
     # detecting the need for special chunked computation modes :
     use_chunk_mode = 0
     if "Gpu" in map_reduce_id:
-        if get_gpu_props()[0] == 0:
+        if not use_cuda:
             KeOps_Error(
-                "You selected a Gpu reduce scheme but the system appears to have no Gpu."
+                "You selected a Gpu reduce scheme but KeOps is in Cpu only mode."
             )
         keops.config.config.use_cuda = 1
         keops.config.config.init_cudalibs()
