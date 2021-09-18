@@ -62,4 +62,4 @@ def find_library_abspath(lib):
     # typecast to a linkmap pointer and retrieve the name.
     abspath = cast(lmptr, POINTER(LINKMAP)).contents.l_name
 
-    return abspath
+    return abspath.decode("utf-8") 
