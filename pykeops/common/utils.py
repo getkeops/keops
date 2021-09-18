@@ -9,12 +9,6 @@ import pykeops.config
 c_type = dict(float16="half2", float32="float", float64="double")
 
 
-def module_exists(dllname, template_name):
-    if not os.path.exists(pykeops.config.bin_folder + os.path.sep + dllname):
-        return False
-    spec = importlib.util.find_spec(dllname + "." + template_name)
-    return spec is not None
-
 
 def axis2cat(axis):
     """
@@ -42,48 +36,8 @@ def cat2axis(cat):
         raise ValueError("Category should be Vi or Vj.")
 
 
-class FileLock:
-    def __init__(self, fd, op=fcntl.LOCK_EX):
-        self.fd = fd
-        self.op = op
-
-    def __enter__(self):
-        fcntl.flock(self.fd, self.op)
-        return self
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        fcntl.flock(self.fd, fcntl.LOCK_UN)
 
 
-def create_and_lock_build_folder():
-    """
-    This function is used to create and lock the building dir (see cmake) too avoid two concurrency
-    threads using the same cache files.
-    """
-
-    def wrapper(func):
-        @functools.wraps(func)
-        def wrapper_filelock(*args, **kwargs):
-            # get build folder name
-            bf = args[0].build_folder
-            # create build folder
-            os.makedirs(bf, exist_ok=True)
-
-            # create a file lock to prevent multiple compilations at the same time
-            with open(os.path.join(bf, "pykeops_build2.lock"), "w") as f:
-                with FileLock(f):
-                    func_res = func(*args, **kwargs)
-
-            # clean
-            # if (pykeops.config.build_type == 'Release'): # and (module_exists(args[0].dll_name,template_name)):
-            #    shutil.rmtree(bf)
-            os.remove(os.path.join(bf, "pykeops_build2.lock"))
-
-            return func_res
-
-        return wrapper_filelock
-
-    return wrapper
 
 
 def get_tools(lang):
@@ -146,33 +100,3 @@ def check_broadcasting(dims_1, dims_2):
 
     return max_tuple(padded_dims_1, padded_dims_2)
 
-
-def replace_strings_in_file(filename, source_target_string_pairs):
-    # replaces all occurences of source_string by target_string in file named filename
-    with open(filename, "r") as file:
-        filedata = file.read()
-    for source_string, target_string in source_target_string_pairs:
-        filedata = filedata.replace(source_string, target_string)
-    with open(filename, "w") as file:
-        file.write(filedata)
-
-
-def run_and_display(args, build_folder, msg=""):
-    """
-    This function run the command stored in args and display the output if needed
-    :param args: list
-    :param msg: str
-    :return: None
-    """
-    try:
-        proc = subprocess.run(
-            args, cwd=build_folder, stdout=subprocess.PIPE, check=True
-        )
-        if pykeops.config.verbose:
-            print(proc.stdout.decode("utf-8"))
-
-    except subprocess.CalledProcessError as e:
-        print("\n--------------------- " + msg + " DEBUG -----------------")
-        print(e)
-        print(e.stdout.decode("utf-8"))
-        print("--------------------- ----------- -----------------")
