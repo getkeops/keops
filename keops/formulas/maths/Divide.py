@@ -4,7 +4,7 @@ from keops.formulas.maths.Scalprod import Scalprod
 from keops.formulas.maths.Square import Square
 from keops.formulas.variables.Zero import Zero
 from keops.utils.misc_utils import KeOps_Error
-
+        
 ##########################
 ######    Divide     #####
 ##########################
@@ -45,9 +45,5 @@ def Divide(arg0, arg1):
         return Broadcast(arg0, arg1.dim)
     elif isinstance(arg1, Zero):
         KeOps_Error("division by zero")
-    elif isinstance(arg1, int):
-        from keops.formulas.variables.IntCst import IntCst
-
-        return Divide(arg0, IntCst(arg1))
     else:
         return Divide_Impl(arg0, arg1)
