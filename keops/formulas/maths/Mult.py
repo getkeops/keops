@@ -1,9 +1,10 @@
 from keops.formulas.Operation import Broadcast
 from keops.formulas.VectorizedScalarOp import VectorizedScalarOp
 from keops.formulas.maths.Scalprod import Scalprod
+from keops.formulas.maths.Square import Square
 from keops.formulas.variables.Zero import Zero
 from keops.utils.math_functions import keops_mul
-
+from keops.formulas.variables.IntCst import IntCst_Impl
 
 ##########################
 ######    Mult       #####
@@ -40,9 +41,23 @@ def Mult(arg0, arg1):
         return Broadcast(arg0, arg1.dim)
     elif isinstance(arg1, Zero):
         return Broadcast(arg1, arg0.dim)
-    elif isinstance(arg1, int):
-        from keops.formulas.variables.IntCst import IntCst
-
-        return Mult(IntCst(arg1), arg0)
+    elif isinstance(arg0, IntCst_Impl):
+        if arg0.val==1:
+            # 1*f -> f 
+            return arg1
+        if arg0.val==-1:
+            # -1*f -> -f 
+            return -arg1
+        elif isinstance(arg1, IntCst_Impl):
+            # m*n -> mn
+            return IntCst_Impl(arg0.val*arg1.val)
+    if isinstance(arg1, IntCst_Impl):
+        # f*n -> n*f (bringing integers to the left)
+        return Mult(arg1, arg0)
+    elif isinstance(arg1, Mult_Impl) and isinstance(arg1.children[0], IntCst_Impl):
+        # f*(n*g) -> (n*f)*g
+        return (arg1.children[0]*arg0)*arg1.children[1]
+    elif arg0 == arg1:
+        return Square(arg0)
     else:
         return Mult_Impl(arg0, arg1)
