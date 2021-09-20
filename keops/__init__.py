@@ -1,8 +1,6 @@
 import os
 
-from keops.config.config import build_path
-
-os.makedirs(build_path, exist_ok=True)
+from keops.config.config import get_build_path, set_build_path
 
 # flag for debugging : adds C++ code for printing all input and output values
 # for all atomic operations during computations
