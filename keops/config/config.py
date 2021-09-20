@@ -4,22 +4,45 @@ import keops
 from ctypes.util import find_library
 from keops.utils.misc_utils import KeOps_Warning, KeOps_Error
 
-# System Path
-base_dir_path = (
-    os.path.dirname(os.path.realpath(__file__)) + os.path.sep + ".." + os.path.sep
-)
-
 
 # global parameters can be set here :
 use_cuda = True                                         # use cuda if possible
 use_OpenMP = True                                       # use OpenMP if possible
-build_path = base_dir_path + "build" + os.path.sep      # location of all JIT generated files
 
 
 
-# System Path, continued
+# System Path
+base_dir_path = (
+    os.path.abspath(os.path.dirname(os.path.realpath(__file__)) + os.path.sep + "..") + os.path.sep
+)
 template_path = base_dir_path + "templates" + os.path.sep
 bindings_source_dir = base_dir_path + "include" + os.path.sep
+keops_cache_folder = os.path.expanduser("~") + os.path.sep + ".keops" + os.path.sep
+os.makedirs(keops_cache_folder, exist_ok=True)
+default_build_path = keops_cache_folder + "build" + os.path.sep
+
+# build path setter/getter
+
+def set_build_path(path=None, read_save_file=False):
+    save_file = keops_cache_folder + "build_folder_location"
+    if not path:
+        if read_save_file and os.path.isfile(save_file):
+            f = open(save_file, "r")
+            path = f.read()
+            f.close()
+        else:
+            path = default_build_path
+    global build_path
+    build_path = path
+    os.makedirs(path, exist_ok=True)
+    f = open(save_file, "w")
+    f.write(path)
+
+def get_build_path():
+    return build_path
+
+set_build_path(read_save_file=True)
+
 
 
 # Compiler
