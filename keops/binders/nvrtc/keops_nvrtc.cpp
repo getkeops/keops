@@ -83,9 +83,9 @@ extern "C" int Compile(const char *ptx_file_name, const char *cu_code, int use_h
 
     // Obtain PTX from the program.
     size_t ptxSize;
-    NVRTC_SAFE_CALL(nvrtcGetPTXSize(prog, &ptxSize));
+    NVRTC_SAFE_CALL(nvrtcGetCUBINSize(prog, &ptxSize));
     char ptx[ptxSize];
-    NVRTC_SAFE_CALL(nvrtcGetPTX(prog, ptx));
+    NVRTC_SAFE_CALL(nvrtcGetCUBIN(prog, ptx));
     // Destroy the program.
     NVRTC_SAFE_CALL(nvrtcDestroyProgram(&prog));
 

@@ -37,6 +37,7 @@ use_cuda = torch.cuda.is_available()
 problem_sizes = flatten(
     [[1 * 10 ** k, 2 * 10 ** k, 5 * 10 ** k] for k in [2, 3, 4, 5]] + [[10 ** 6]]
 )
+problem_sizes = [100,200,500,1000]
 D = 3  # We work with 3D points
 
 
@@ -155,7 +156,7 @@ if use_cuda:
         problem_sizes=problem_sizes,
     )
 
-
+"""
 ##############################################
 # NumPy vs. PyTorch vs. KeOps (Cpu)
 # --------------------------------------------------------
@@ -196,5 +197,5 @@ if use_cuda:
         problem_sizes=problem_sizes,
     )
 
-
+"""
 plt.show()
