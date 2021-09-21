@@ -164,13 +164,14 @@ You can change the build folder by using the ``set_build_folder()`` function:
 .. code-block:: python
 
   import pykeops
-  print(pykeops.config.bin_folder)  # display default build_folder
-  pykeops.set_bin_folder("/my/new/location")  # change the build folder
-  print(pykeops.config.bin_folder)  # display new build_folder
+  print(pykeops.get_build_folder())  # display current build_folder
+  pykeops.set_build_folder("/my/new/location")  # change the build folder
+  print(pykeops.get_build_folder())  # display new build_folder
 
+Note that the command ``set_build_folder()`` without any argument will reset the location to the default one (``~/.keops/build`` on unix-like systems)
 
 .. warning::
-    The ``build_folder`` variable must be changed at the beginning of a Python session.
+    Setting the build folder must be done at the beginning of a Python session.
     That is, **before** importing any pykeops modules.
 
 

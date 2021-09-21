@@ -1,8 +1,9 @@
 import ctypes
 from ctypes.util import find_library
 from keops.utils.misc_utils import KeOps_Error, KeOps_Warning, find_library_abspath
-from keops.config.config import cxx_compiler, build_path
+from keops.config.config import cxx_compiler, get_build_folder
 import os
+from os.path import join
 
 # Some constants taken from cuda.h
 CUDA_SUCCESS = 0
@@ -63,15 +64,12 @@ def cuda_include_fp16_path():
     from keops.config.config import cuda_include_path
     if cuda_include_path:
         return cuda_include_path
-    import os
     cuda_fp16_h_abspath = get_include_file_abspath("cuda_fp16.h")
     cuda_fp16_hpp_abspath = get_include_file_abspath("cuda_fp16.hpp")
-    
     if cuda_fp16_h_abspath and cuda_fp16_hpp_abspath:
         path = os.path.dirname(cuda_fp16_h_abspath)
         if path != os.path.dirname(cuda_fp16_hpp_abspath):
             KeOps_Error("cuda_fp16.h and cuda_fp16.hpp are not in the same folder !")
-        path += os.path.sep
         return path
     else:
         KeOps_Error("cuda_fp16.h and cuda_fp16.hpp were not found")

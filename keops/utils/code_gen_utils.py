@@ -1,7 +1,7 @@
 import os
 from hashlib import sha256
 
-from keops.config.config import build_path, disable_pragma_unrolls
+from keops.config.config import disable_pragma_unrolls
 from keops.utils.misc_utils import KeOps_Error, KeOps_Message
 
 def get_hash_name(*args):
@@ -795,9 +795,11 @@ def varseq_to_array(vars, vars_ptr_name):
     return string
 
 
-def clean_keops(delete_jit_binary=False):
+def clean_keops(keep_jit_binary=False):
     from keops.config.config import use_cuda
-    if use_cuda and delete_jit_binary:
+    from keops.config.config import get_build_folder
+    build_path = get_build_folder()
+    if use_cuda and keep_jit_binary:
         from keops.config.config import jit_binary
     else:
         jit_binary = None

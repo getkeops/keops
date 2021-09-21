@@ -1,4 +1,5 @@
 import os
+from os.path import join
 from ctypes import CDLL, RTLD_GLOBAL
 import keops
 from ctypes.util import find_library
@@ -13,18 +14,19 @@ use_OpenMP = True      # use OpenMP if possible
 
 # System Path
 base_dir_path = (
-    os.path.abspath(os.path.dirname(os.path.realpath(__file__)) + os.path.sep + "..") + os.path.sep
+    os.path.abspath(join(os.path.dirname(os.path.realpath(__file__)), ".."))
 )
-template_path = base_dir_path + "templates" + os.path.sep
-bindings_source_dir = base_dir_path + "include" + os.path.sep
-keops_cache_folder = os.path.expanduser("~") + os.path.sep + ".keops" + os.path.sep
+template_path = join(base_dir_path, "templates")
+bindings_source_dir = join(base_dir_path, "include")
+keops_cache_folder = join(os.path.expanduser("~"), ".keops")
 os.makedirs(keops_cache_folder, exist_ok=True)
-default_build_path = keops_cache_folder + "build" + os.path.sep
+default_build_path = join(keops_cache_folder, "build")
+
 
 # build path setter/getter
 
-def set_build_path(path=None, read_save_file=False):
-    save_file = keops_cache_folder + "build_folder_location"
+def set_build_folder(path=None, read_save_file=False):
+    save_file = join(keops_cache_folder, "build_folder_location.txt")
     if not path:
         if read_save_file and os.path.isfile(save_file):
             f = open(save_file, "r")
@@ -37,11 +39,13 @@ def set_build_path(path=None, read_save_file=False):
     os.makedirs(path, exist_ok=True)
     f = open(save_file, "w")
     f.write(path)
-
-def get_build_path():
+    global jit_binary
+    jit_binary = join(build_path, "keops_nvrtc.so")
+    
+def get_build_folder():
     return build_path
 
-set_build_path(read_save_file=True)
+set_build_folder(read_save_file=True)
 
 
 
@@ -87,8 +91,7 @@ if use_cuda:
     cuda_include_path = get_cuda_include_path()
     if cuda_include_path:
         nvrtc_include += " -I" + cuda_include_path
-    jit_source_file = os.path.join(base_dir_path, "binders", "nvrtc", "keops_nvrtc.cpp")
-    jit_binary = os.path.join(build_path, "keops_nvrtc.so")
+    jit_source_file = join(base_dir_path, "binders", "nvrtc", "keops_nvrtc.cpp")
 else:
     libcuda_folder = None
     libnvrtc_folder = None
