@@ -17,7 +17,7 @@ libnvrtc_folder = os.path.dirname(find_library_abspath("nvrtc"))
 def get_cuda_include_path():
     
     # auto detect location of cuda headers
-    
+
     # First we look at CUDA_PATH env variable if it is set
     path = os.getenv('CUDA_PATH')
     if path:
@@ -50,6 +50,14 @@ def get_cuda_include_path():
                 includepath = libpath.replace(libtag,includetag)
                 if os.path.isfile(join(includepath, "cuda.h")) and os.path.isfile(join(includepath, "nvrtc.h")):
                     return includepath
+    
+    # last try, testing if by any chance the header is already in the default
+    # include path of gcc
+    path_cudah = get_include_file_abspath("cuda.h")
+    if path_cudah:
+        path = os.path.dirname(path_cudah)
+    if os.path.isfile(join(path, "nvrtc.h")):
+        return path
     
     # finally nothing found, so we display a warning asking the user to do something
     KeOps_Warning("""
