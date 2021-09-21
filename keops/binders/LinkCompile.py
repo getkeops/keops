@@ -1,7 +1,7 @@
 import os, time
 
 from keops.utils.code_gen_utils import get_hash_name
-from keops.config.config import build_path
+from keops.config.config import get_build_folder
 from keops.utils.misc_utils import KeOps_Error, KeOps_Message
 
 class LinkCompile:
@@ -29,16 +29,10 @@ class LinkCompile:
         )
 
         # info_file is the name of the file that will contain some meta-information required by the bindings, e.g. 7b9a611f7e.nfo
-        self.info_file = build_path + os.path.sep + self.gencode_filename + ".nfo"
+        self.info_file = os.path.join(get_build_folder(), self.gencode_filename + ".nfo")
 
         # gencode_file is the name of the source file to be created and then compiled, e.g. 7b9a611f7e.cpp or 7b9a611f7e.cu
-        self.gencode_file = (
-            build_path
-            + os.path.sep
-            + self.gencode_filename
-            + "."
-            + self.source_code_extension
-        )
+        self.gencode_file = os.path.join(get_build_folder(), self.gencode_filename+"."+self.source_code_extension)
 
     def save_info(self):
         # create info_file to save some parameters : dim (dimension of output vectors),

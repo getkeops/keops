@@ -12,11 +12,11 @@ with open(
 ###########################################################
 # Utils
 
+from keops import get_build_folder, set_build_folder
+
 import pykeops.config
 
-def clean_pykeops(path="", lang=""):
-    from keops.utils.code_gen_utils import clean_keops
-    clean_keops(delete_jit_binary=True)
+from keops.utils.code_gen_utils import clean_keops as clean_pykeops
 
 if pykeops.config.numpy_found:
     from .test.install import test_numpy_bindings
