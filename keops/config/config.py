@@ -6,8 +6,8 @@ from keops.utils.misc_utils import KeOps_Warning, KeOps_Error
 
 
 # global parameters can be set here :
-use_cuda = True                                         # use cuda if possible
-use_OpenMP = True                                       # use OpenMP if possible
+use_cuda = True        # use cuda if possible
+use_OpenMP = True      # use OpenMP if possible
 
 
 

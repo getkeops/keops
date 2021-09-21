@@ -31,6 +31,7 @@ def get_cuda_include_path():
     cuda_paths_to_try_start = [f"{s}opt{s}cuda{s}",
                         f"{s}usr{s}local{s}cuda{s}",
                         f"{s}usr{s}local{s}cuda-{cuda_version}{s}",
+                        "/vol/cuda/10.2.89-cudnn7.6.4.38/",
                         ]
     cuda_paths_to_try_end = [f"include{s}",
                         f"targets{s}x86_64-linux{s}include{s}",
