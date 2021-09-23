@@ -186,33 +186,28 @@ def get_optional_flags(
             '[KeOps] invalid value for option sum_scheme : should be one of "auto", "direct_sum", "block_sum" or "kahan_scheme".'
         )
 
-    optional_flags = []
+    optional_flags = dict()
     if dtype_acc == "float64":
-        optional_flags += ["-D__TYPEACC__=double"]
+        optional_flags["dtype_acc"] = "double"
     elif dtype_acc == "float32":
         if dtype == "float16":
-            optional_flags += ["-D__TYPEACC__=float2"]
+            optional_flags["dtype_acc"] = "float2"
         else:
-            optional_flags += ["-D__TYPEACC__=float"]
+            optional_flags["dtype_acc"] = "float"
     elif dtype_acc == "float16":
-        optional_flags += ["-D__TYPEACC__=half2"]
+        optional_flags["dtype_acc"] = "half2"
     else:
         raise ValueError(
             '[KeOps] invalid value for option dtype_acc : should be one of "auto", "float16", "float32" or "float64".'
         )
-
-    if sum_scheme == "direct_sum":
-        optional_flags += ["-DSUM_SCHEME=0"]
-    elif sum_scheme == "block_sum":
-        optional_flags += ["-DSUM_SCHEME=1"]
-    elif sum_scheme == "kahan_scheme":
-        optional_flags += ["-DSUM_SCHEME=2"]
+    
+    optional_flags["sum_scheme"] = sum_scheme
 
     # 2. Option for chunk mode
 
     if enable_chunks:
-        optional_flags += ["-DENABLECHUNK=1"]
+        optional_flags["enable_chunks"] = 1
     else:
-        optional_flags += ["-DENABLECHUNK=0"]
+        optional_flags["enable_chunks"] = 0
 
     return optional_flags
