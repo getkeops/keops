@@ -10,17 +10,11 @@ class create_or_load:
     @staticmethod
     def __call__(cls, *args):
         
-        start = time.time()
-        
         cls_id = str(cls)
         if cls_id not in create_or_load.library:
             create_or_load.library[cls_id] = {}
         cls_library = create_or_load.library[cls_id]
         hash_name = get_hash_name(*args)
-        
-        end = time.time()
-        print("create_or_load, part 1 :", end-start)
-        start = time.time()
         
         if hash_name in cls_library:
             res = cls_library[hash_name]
@@ -28,9 +22,6 @@ class create_or_load:
             obj = cls(*args)
             cls_library[hash_name] = obj
             res = obj
-        
-        end = time.time()
-        print("create_or_load, part 2 :", end-start)
         
         return res
 

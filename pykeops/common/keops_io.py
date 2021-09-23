@@ -3,8 +3,9 @@ from ctypes import c_int, c_void_p
 import numpy as np
 from functools import reduce
 import time
+from keops.utils.code_gen_utils import get_hash_name
 
-class LoadKeOps:
+class LoadKeOps_class:
     @staticmethod
     def numpy_array2ctypes(x):
         return dict(data=c_void_p(x.ctypes.data), type=c_void_p)
@@ -273,3 +274,32 @@ class LoadKeOps:
 
     def import_module(self):
         return self
+
+
+class create_or_load:
+    library = {}
+
+    @staticmethod
+    def __call__(cls, *args):
+        
+        cls_id = str(cls)
+        if cls_id not in create_or_load.library:
+            create_or_load.library[cls_id] = {}
+        cls_library = create_or_load.library[cls_id]
+        hash_name = get_hash_name(*args)
+        
+        if hash_name in cls_library:
+            res = cls_library[hash_name]
+        else:
+            obj = cls(*args)
+            cls_library[hash_name] = obj
+            res = obj
+        
+        return res
+
+def LoadKeOps(*args):    
+    start = time.time()
+    res = create_or_load()(LoadKeOps_class, *args)
+    end = time.time()
+    print("LoadKeOps init:", end-start)
+    return res

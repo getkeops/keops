@@ -130,19 +130,28 @@ int launch_keops(const char *target_file_name, int tagHostDevice, int dimY, int 
     SetGpuProps(device_id);
     end = clock();
     std::cout << "time for cuda init : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
-
+    begin = clock();
+    
     Sizes<TYPE> SS(nargs, arg, argshape, nx, ny,
                    tagI, use_half,
                    dimout,
                    indsi, indsj, indsp,
                    dimsx, dimsy, dimsp);
-
+                   
+    end = clock();
+    std::cout << "time for Sizes : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
+    begin = clock();
+    
     if (use_half)
         SS.switch_to_half2_indexing();
 
     Ranges<TYPE> RR(SS, ranges);
     nx = SS.nx;
     ny = SS.ny;
+    
+    end = clock();
+    std::cout << "time for Ranges : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
+    begin = clock();
 
     // now we switch (back...) indsi, indsj and dimsx, dimsy in case tagI=1.
     // This is to be consistent with the convention used in the old
@@ -182,6 +191,10 @@ int launch_keops(const char *target_file_name, int tagHostDevice, int dimY, int 
 
     __INDEX__ *lookup_d = NULL, *slices_x_d = NULL, *ranges_y_d = NULL;
     int *offsets_d = NULL;
+    
+    end = clock();
+    std::cout << "time for interm : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
+    begin = clock();
 
     if (RR.tagRanges==1) {
         if (tagHostDevice==1) {
@@ -197,7 +210,10 @@ int launch_keops(const char *target_file_name, int tagHostDevice, int dimY, int 
                          blockSize_x, indsi, indsj, indsp, SS.shapes);
         }
     }
-
+    
+    end = clock();
+    std::cout << "time for range_preprocess : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
+    begin = clock();
 
     CUdeviceptr p_data;
     TYPE *out_d;
@@ -209,8 +225,10 @@ int launch_keops(const char *target_file_name, int tagHostDevice, int dimY, int 
     else
         load_args_FromHost(p_data, out, out_d, nargs, arg, arg_d, argshape, sizeout);
 
-
+    end = clock();
+    std::cout << "time for load args : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
     begin = clock();
+
     char *target;
     std::ifstream rf(target_file_name, std::ifstream::binary);
     size_t targetSize;
@@ -218,9 +236,11 @@ int launch_keops(const char *target_file_name, int tagHostDevice, int dimY, int 
     target = new char[targetSize];
     rf.read(target, targetSize);
     rf.close();
+    
     end = clock();
     std::cout << "time for reading : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
-
+    begin = clock();
+    
     CUmodule module;
     CUfunction kernel;
 
@@ -229,12 +249,13 @@ int launch_keops(const char *target_file_name, int tagHostDevice, int dimY, int 
     //jitOptions[0] = CU_JIT_TARGET;
     //long targ_comp = 75;
     //jitOptVals[0] = (void *)targ_comp;
-
-    begin = clock();
+    
     CUDA_SAFE_CALL(cuModuleLoadDataEx(&module, target, 0, NULL, NULL));
+    
     end = clock();
-    std::cout << "time for loading : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
-
+    std::cout << "time for loading kernel : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
+    begin = clock();
+    
     int gridSize_x = 1, gridSize_y = 1, gridSize_z = 1;
 
     if (tag1D2D == 1) { // 2D scheme
@@ -336,16 +357,28 @@ int launch_keops(const char *target_file_name, int tagHostDevice, int dimY, int 
                                       blockSize_x * dimY * sizeof(TYPE), NULL,   // shared mem and stream
                                       kernel_params, 0));                        // arguments
     }
-
+    
     CUDA_SAFE_CALL(cuCtxSynchronize());
+    
+    end = clock();
+    std::cout << "time for exec kernel : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
+    begin = clock();
 
     CUDA_SAFE_CALL(cuModuleUnload(module));
+    
+    end = clock();
+    std::cout << "time for unloading kernel : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
+    begin = clock();
 
     // Send data from device to host.
 
     if (tagHostDevice == 0)
         cuMemcpyDtoH(out, (CUdeviceptr) out_d, sizeof(TYPE) * sizeout);
 
+    end = clock();
+    std::cout << "time for copying result : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
+    begin = clock();
+    
     cuMemFree(p_data);
     if (RR.tagRanges == 1) {
         cuMemFree((CUdeviceptr) lookup_d);
@@ -354,6 +387,10 @@ int launch_keops(const char *target_file_name, int tagHostDevice, int dimY, int 
         if (SS.nbatchdims > 0)
             cuMemFree((CUdeviceptr) offsets_d);
     }
+    
+    end = clock();
+    std::cout << "time for freeing memory : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
+    begin = clock();
 
     B = clock();
     std::cout << "total time : " << double(B - A) / CLOCKS_PER_SEC << std::endl;
