@@ -44,6 +44,8 @@ class GenredAutograd(torch.autograd.Function):
         ctx.optional_flags = optional_flags.copy()
         if rec_multVar_highdim is not None:
             optional_flags["multVar_highdim"] = 1
+        else:
+            optional_flags["multVar_highdim"] = 0
 
         myconv = LoadKeOps(
             formula, aliases, dtype, "torch", optional_flags, include_dirs

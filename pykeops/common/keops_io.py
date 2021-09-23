@@ -2,7 +2,7 @@ from pykeops.common.get_keops_routine import get_keops_routine
 from ctypes import c_int, c_void_p
 import numpy as np
 from functools import reduce
-
+import time
 
 class LoadKeOps:
     @staticmethod
@@ -23,6 +23,9 @@ class LoadKeOps:
     def __init__(
         self, formula, aliases, dtype, lang, optional_flags=[], include_dirs=[]
     ):
+        
+        start = time.time()
+        
         aliases_new = []
         for k, alias in enumerate(aliases):
             alias = alias.replace(" ", "")
@@ -47,15 +50,29 @@ class LoadKeOps:
         self.red_formula_string = formula
         self.dtype = dtype
         
+        end = time.time()
+        print("keops_io init, part 1 :", end-start)
+        start = time.time()
+        
         self.c_dtype_acc = optional_flags["dtype_acc"]
         
         self.sum_scheme = optional_flags["sum_scheme"]
 
         self.enable_chunks = optional_flags["enable_chunks"]
 
-        self.enable_final_chunks = optional_flags["enable_final_chunks"]
+        self.enable_final_chunks = -1
         
         self.mult_var_highdim = optional_flags["multVar_highdim"]
+        
+        if self.lang == "torch":
+            from pykeops.torch.utils import torchtools
+            self.tools = torchtools
+        elif self.lang == "numpy":
+            from pykeops.numpy.utils import numpytools
+            self.tools = numpytools
+        
+        end = time.time()
+        print("keops_io init, part 2 :", end-start)
 
     def genred(
         self,
@@ -71,24 +88,31 @@ class LoadKeOps:
         *args,
     ):
 
-        if self.lang == "torch":
-            from pykeops.torch.utils import torchtools
-
-            tools = torchtools
-        elif self.lang == "numpy":
-            from pykeops.numpy.utils import numpytools
-
-            tools = numpytools
+        start = time.time()
 
         nargs = len(args)
-        device_args = tools.device_dict(args[0])
-        dtype = tools.dtype(args[0])
-        dtypename = tools.dtypename(dtype)
+        device_type, device_index = self.tools.device_type_index(args[0])
+        
+        end = time.time()
+        print("keops_io call, part 0a :", end-start)
+        start = time.time()
+        
+        dtype = self.tools.dtype(args[0])
+        dtypename = self.tools.dtypename(dtype)
+        
+        end = time.time()
+        print("keops_io call, part 0b :", end-start)
+        start = time.time()
+        
         if self.dtype not in ["auto", dtypename]:
             print(
                 "[KeOps] warning : setting a dtype argument in Genred different from the input dtype of tensors is not permitted anymore, argument is ignored."
             )
-
+        
+        end = time.time()
+        print("keops_io call, part 0c :", end-start)
+        start = time.time()
+        
         if dtypename == "float32":
             c_dtype = "float"
             use_half = False
@@ -100,6 +124,10 @@ class LoadKeOps:
             use_half = True
         else:
             raise ValueError("not implemented")
+        
+        end = time.time()
+        print("keops_io call, part 0d :", end-start)
+        start = time.time()
 
         if not self.c_dtype_acc:
             self.c_dtype_acc = c_dtype
@@ -117,10 +145,10 @@ class LoadKeOps:
             map_reduce_id = "GpuReduc"
             map_reduce_id += "1D" if tag1D2D == 0 else "2D"
 
-        if device_args["cat"] == "cpu":
+        if device_type == "cpu":
             device_id_args = -1
         else:
-            device_id_args = device_args["index"]
+            device_id_args = device_index
 
         if (
             device_id_request != -1
@@ -136,11 +164,15 @@ class LoadKeOps:
                 device_id_request = device_id_args
 
         # detect the need for using "ranges" method
-        # N.B. we assume here that there is a least a cat=0 or cat=1 variable in the formula...
+        # N.B. we assume here that there is at least a cat=0 or cat=1 variable in the formula...
         nbatchdims = max(len(arg.shape) for arg in args) - 2
         if nbatchdims > 0 or ranges:
             map_reduce_id += "_ranges"
 
+        end = time.time()
+        print("keops_io call, part 1 :", end-start)
+        start = time.time()
+        
         myfun = get_keops_routine(
             map_reduce_id,
             self.red_formula_string,
@@ -158,6 +190,10 @@ class LoadKeOps:
             use_half,
             device_id_request,
         )
+        
+        end = time.time()
+        print("keops_io call, part 2 :", end-start)
+        start = time.time()
 
         self.tagIJ = myfun.tagI
         self.dimout = myfun.dim
@@ -166,11 +202,11 @@ class LoadKeOps:
         if not ranges:
             ranges_ctype = self.empty_ranges_ctype
         else:
-            ranges = (*ranges, tools.array([r.shape[0] for r in ranges], dtype="int32"))
-            ranges_ctype = self.ranges2ctype(ranges, tools.ctypes)
+            ranges = (*ranges, self.tools.array([r.shape[0] for r in ranges], dtype="int32"))
+            ranges_ctype = self.ranges2ctype(ranges, self.tools.ctypes)
 
         # convert arguments arrays to ctypes
-        args_ctype = [tools.ctypes(arg) for arg in args]
+        args_ctype = [self.tools.ctypes(arg) for arg in args]
 
         # get all shapes of arguments as ctypes
         argshapes_ctype = [
@@ -196,13 +232,17 @@ class LoadKeOps:
         else:
             shapeout = (M, myfun.dim)
 
-        out = tools.empty(shapeout, dtype=dtype, device=device_args)
+        out = self.tools.empty(shapeout, dtype=dtype, device_type=device_type, device_index=device_index)
 
         outshape_ctype = (c_int * (len(out.shape) + 1))(
             *((len(out.shape),) + out.shape)
         )
 
-        out_ctype = tools.ctypes(out)
+        out_ctype = self.tools.ctypes(out)
+        
+        end = time.time()
+        print("keops_io call, part 3 :", end-start)
+        start = time.time()
 
         # call the routine
         myfun(
@@ -222,6 +262,9 @@ class LoadKeOps:
             from pykeops.torch.half2_convert import postprocess_half2
 
             out = postprocess_half2(out, tag_dummy, reduction_op, N)
+        
+        end = time.time()
+        print("keops_io call, part 4 :", end-start)
 
         return out
 
