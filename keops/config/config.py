@@ -85,7 +85,8 @@ if use_cuda and not cuda_available:
     use_cuda = False
 
 if use_cuda:
-    from keops.utils.gpu_utils import libcuda_folder, libnvrtc_folder, get_cuda_include_path
+    from keops.utils.gpu_utils import libcuda_folder, libnvrtc_folder, get_cuda_include_path, get_cuda_version
+    cuda_version = get_cuda_version()
     nvrtc_flags = compile_options + f" -fpermissive -L {libcuda_folder} -L {libnvrtc_folder} -lcuda -lnvrtc"
     nvrtc_include = " -I" + bindings_source_dir
     cuda_include_path = get_cuda_include_path()
@@ -93,6 +94,7 @@ if use_cuda:
         nvrtc_include += " -I" + cuda_include_path
     jit_source_file = join(base_dir_path, "binders", "nvrtc", "keops_nvrtc.cpp")
 else:
+    cuda_version = None
     libcuda_folder = None
     libnvrtc_folder = None
     nvrtc_flags = None
