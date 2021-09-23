@@ -2,29 +2,43 @@ from ctypes import create_string_buffer, c_char_p, c_int, CDLL, POINTER, c_void_
 
 from keops.utils.code_gen_utils import get_hash_name
 from keops.get_keops_dll import get_keops_dll
-
+import time
 
 class create_or_load:
     library = {}
 
     @staticmethod
     def __call__(cls, *args):
+        
+        start = time.time()
+        
         cls_id = str(cls)
         if cls_id not in create_or_load.library:
             create_or_load.library[cls_id] = {}
         cls_library = create_or_load.library[cls_id]
         hash_name = get_hash_name(*args)
+        
+        end = time.time()
+        print("create_or_load, part 1 :", end-start)
+        start = time.time()
+        
         if hash_name in cls_library:
-            return cls_library[hash_name]
+            res = cls_library[hash_name]
         else:
             obj = cls(*args)
             cls_library[hash_name] = obj
-            return obj
-
+            res = obj
+        
+        end = time.time()
+        print("create_or_load, part 2 :", end-start)
+        
+        return res
 
 class get_keops_routine_class:
     def __init__(self, map_reduce_id, *args):
 
+        start = time.time()
+            
         (
             self.dllname,
             self.low_level_code_file,
@@ -45,6 +59,10 @@ class get_keops_routine_class:
             dimsp,
         ) = get_keops_dll(map_reduce_id, *args)
 
+        end = time.time()
+        print("get_keops_routine_class init, part 1 (get_keops_dll call) :", end-start)
+        start = time.time()
+            
         # now we switch indsi, indsj and dimsx, dimsy in case tagI=1.
         # This is to be consistent with the convention used in the old
         # bindings (see functions GetIndsI, GetIndsJ, GetDimsX, GetDimsY
@@ -61,6 +79,9 @@ class get_keops_routine_class:
         self.dimsx_ctype = (c_int * (len(dimsx) + 1))(*((len(dimsx),) + dimsx))
         self.dimsy_ctype = (c_int * (len(dimsy) + 1))(*((len(dimsy),) + dimsy))
         self.dimsp_ctype = (c_int * (len(dimsp) + 1))(*((len(dimsp),) + dimsp))
+        
+        end = time.time()
+        print("get_keops_routine_class init, part 2 :", end-start)
 
     def __call__(
         self,
@@ -75,6 +96,8 @@ class get_keops_routine_class:
         args_ctype,
         argshapes_ctype,
     ):
+        
+        start = time.time()
 
         c_args = [arg["data"] for arg in args_ctype]
         nargs = len(args_ctype)
@@ -118,7 +141,11 @@ class get_keops_routine_class:
             + [arg["type"] for arg in args_ctype]  # arg
             + [c_int * len(argshape) for argshape in argshapes_ctype]  # argshape
         )
-
+        
+        end = time.time()
+        print("get_keops_routine_class call, part 1 :", end-start)
+        start = time.time()
+        
         launch_keops(
             create_string_buffer(self.low_level_code_file),
             c_int(tagHostDevice),
@@ -147,7 +174,10 @@ class get_keops_routine_class:
             *c_args,
             *argshapes_ctype
         )
+        
+        end = time.time()
+        print("get_keops_routine_class call, part 2 (launch_keops call) :", end-start)
 
 
-def get_keops_routine(*args):
+def get_keops_routine(*args):    
     return create_or_load()(get_keops_routine_class, *args)

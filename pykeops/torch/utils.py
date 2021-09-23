@@ -139,10 +139,11 @@ class torchtools:
     def zeros(
         shape,
         dtype=default_dtype,
-        device={"cat": "cpu", "device": -1},
+        device_type="cpu",
+        device_index=-1,
         requires_grad=False,
     ):
-        device = torch.device(device["cat"], device["index"])
+        device = torch.device(device_type, device_index)
         return torch.zeros(
             *shape, dtype=dtype, device=device, requires_grad=requires_grad
         )
@@ -151,10 +152,11 @@ class torchtools:
     def empty(
         shape,
         dtype=default_dtype,
-        device={"cat": "cpu", "device": -1},
+        device_type="cpu",
+        device_index=-1,
         requires_grad=False,
     ):
-        device = torch.device(device["cat"], device["index"])
+        device = torch.device(device_type, device_index)
         return torch.empty(
             *shape, dtype=dtype, device=device, requires_grad=requires_grad
         )
@@ -187,15 +189,12 @@ class torchtools:
             return None
 
     @staticmethod
-    def device_dict(x):
+    def device_type_index(x):
         if isinstance(x, torch.Tensor):
             dev = x.device
-            if str(dev) == "cpu":
-                return dict(cat="cpu", index=0)
-            else:
-                return dict(cat="cuda", index=dev.index)
+            return dev.type, dev.index
         else:
-            return None
+            return None, None
 
     @staticmethod
     def pointer(x):
