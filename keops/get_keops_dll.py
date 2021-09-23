@@ -18,7 +18,7 @@ This is the main entry point for all binders. It takes as inputs :
 
 It returns :
       - dllname : string, file name of the dll to be called for performing the reduction
-      - low_level_code_file : string, file name of the low level code file to be passed to the dll if JIT is enabled, or "none" otherwise
+      - target_file : string, file name of the low level code or binary file to be passed to the dll if JIT is enabled, or "none" otherwise
       - tagI : integer, 0 or 1, specifying if reduction must be performed over i or j indices,
       - tagZero : integer, 0 or 1, specifying if reduction just consists in filling output with zeros,
       - use_half : 0 or 1, enable special routines for half-precision data type,
@@ -115,7 +115,7 @@ def get_keops_dll(
 
     return (
         res["dllname"],
-        res["low_level_code_file"],
+        res["target_file"],
         res["tagI"],
         tagZero,
         res["use_half"],

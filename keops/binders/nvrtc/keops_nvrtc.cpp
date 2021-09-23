@@ -6,8 +6,10 @@
 #include <cuda.h>
 #include <stdio.h>
 #include <iostream>
+#include <fstream>
 #include <sstream>
 #include <stdarg.h>
+#include <ctime>
 
 #define __INDEX__ int
 #define C_CONTIGUOUS 1
@@ -23,7 +25,8 @@
 #include <cuda_fp16.h>
 
 
-extern "C" int Compile(const char *ptx_file_name, const char *cu_code, int use_half, int device_id, const char *cuda_include_path) {
+extern "C" int Compile(const char *target_file_name, const char *cu_code, int use_half, int device_id, 
+                        const char *cuda_include_path) {
 
     nvrtcProgram prog;
 
@@ -57,7 +60,7 @@ extern "C" int Compile(const char *ptx_file_name, const char *cu_code, int use_h
     cuDeviceGetAttribute(&deviceProp_minor, CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MINOR, cuDevice);
 
     std::ostringstream arch_flag;
-    arch_flag << "-arch=compute_" << deviceProp_major << deviceProp_minor;
+    arch_flag << "-arch=sm_" << deviceProp_major << deviceProp_minor;
 
     char *arch_flag_char = new char[arch_flag.str().length()];
     arch_flag_char = strdup(arch_flag.str().c_str());
@@ -81,25 +84,42 @@ extern "C" int Compile(const char *ptx_file_name, const char *cu_code, int use_h
         exit(1);
     }
 
-    // Obtain PTX from the program.
-    size_t ptxSize;
-    NVRTC_SAFE_CALL(nvrtcGetCUBINSize(prog, &ptxSize));
-    char ptx[ptxSize];
-    NVRTC_SAFE_CALL(nvrtcGetCUBIN(prog, ptx));
+    // Obtain PTX or CUBIN from the program.
+    size_t targetSize;
+    char *target;
+    // Get Cuda version
+    int cudaVersion;
+    cuDriverGetVersion(&cudaVersion);
+    std::cout << "Cuda Driver version is " << cudaVersion << std::endl;
+    bool use_cubin = (cudaVersion >= 11010);
+    if (use_cubin) {
+        std::cout << "Using CUBIN !!!!" << std::endl;
+        NVRTC_SAFE_CALL(nvrtcGetCUBINSize(prog, &targetSize));
+        target = new char[targetSize];
+        NVRTC_SAFE_CALL(nvrtcGetCUBIN(prog, target));
+    } else {
+        std::cout << "Using PTX !!!!" << std::endl;
+        NVRTC_SAFE_CALL(nvrtcGetPTXSize(prog, &targetSize));
+        target = new char[targetSize];
+        NVRTC_SAFE_CALL(nvrtcGetPTX(prog, target));
+    }
+
     // Destroy the program.
     NVRTC_SAFE_CALL(nvrtcDestroyProgram(&prog));
 
-    // write ptx code to file
-    FILE *ptx_file = fopen(ptx_file_name, "w");
-    fputs(ptx, ptx_file);
-    fclose(ptx_file);
+    // write PTX code to file
+
+    std::ofstream wf(target_file_name, std::ofstream::binary);
+    wf.write((char*)&targetSize, sizeof(size_t));
+    wf.write(target, targetSize);
+    wf.close();
 
     return 0;
 }
 
 
 template<typename TYPE>
-int launch_keops(const char *ptx_file_name, int tagHostDevice, int dimY, int nx, int ny,
+int launch_keops(const char *target_file_name, int tagHostDevice, int dimY, int nx, int ny,
                  int device_id, int tagI, int tagZero, int use_half,
                  int tag1D2D, int dimred,
                  int cuda_block_size, int use_chunk_mode,
@@ -108,16 +128,22 @@ int launch_keops(const char *ptx_file_name, int tagHostDevice, int dimY, int nx,
                  int *dimsx, int *dimsy, int *dimsp,
                  int **ranges, int *shapeout, TYPE *out, int nargs, TYPE **arg, int **argshape) {
 
+    
+    clock_t A, B, begin, end;
+    A = clock();
 
     CUdevice cuDevice;
     CUcontext ctx;
     
+    begin = clock();
     CUDA_SAFE_CALL(cuInit(0));
     CUDA_SAFE_CALL(cuDeviceGet(&cuDevice, device_id));
     CUDA_SAFE_CALL(cuDevicePrimaryCtxRetain(&ctx, cuDevice));
     CUDA_SAFE_CALL(cuCtxPushCurrent(ctx));
 
     SetGpuProps(device_id);
+    end = clock();
+    std::cout << "time for cuda init : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
     Sizes<TYPE> SS(nargs, arg, argshape, nx, ny,
                    tagI, use_half,
@@ -198,8 +224,16 @@ int launch_keops(const char *ptx_file_name, int tagHostDevice, int dimY, int nx,
         load_args_FromHost(p_data, out, out_d, nargs, arg, arg_d, argshape, sizeout);
 
 
-    char *ptx;
-    ptx = read_text_file(ptx_file_name);
+    begin = clock();
+    char *target;
+    std::ifstream rf(target_file_name, std::ifstream::binary);
+    size_t targetSize;
+    rf.read((char*)&targetSize, sizeof(size_t));
+    target = new char[targetSize];
+    rf.read(target, targetSize);
+    rf.close();
+    end = clock();
+    std::cout << "time for reading : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
     CUmodule module;
     CUfunction kernel;
@@ -210,7 +244,10 @@ int launch_keops(const char *ptx_file_name, int tagHostDevice, int dimY, int nx,
     //long targ_comp = 75;
     //jitOptVals[0] = (void *)targ_comp;
 
-    CUDA_SAFE_CALL(cuModuleLoadDataEx(&module, ptx, 0, NULL, NULL));
+    begin = clock();
+    CUDA_SAFE_CALL(cuModuleLoadDataEx(&module, target, 0, NULL, NULL));
+    end = clock();
+    std::cout << "time for loading : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
     int gridSize_x = 1, gridSize_y = 1, gridSize_z = 1;
 
@@ -332,11 +369,14 @@ int launch_keops(const char *ptx_file_name, int tagHostDevice, int dimY, int nx,
             cuMemFree((CUdeviceptr) offsets_d);
     }
 
+    B = clock();
+    std::cout << "total time : " << double(B - A) / CLOCKS_PER_SEC << std::endl;
+
     return 0;
 }
 
 
-extern "C" int launch_keops_float(const char *ptx_file_name, int tagHostDevice, int dimY, int nx, int ny,
+extern "C" int launch_keops_float(const char *target_file_name, int tagHostDevice, int dimY, int nx, int ny,
                                   int device_id, int tagI, int tagZero, int use_half,
                                   int tag1D2D, int dimred,
                                   int cuda_block_size, int use_chunk_mode,
@@ -355,7 +395,7 @@ extern "C" int launch_keops_float(const char *ptx_file_name, int tagHostDevice, 
         argshape[i] = va_arg(ap, int*);
     va_end(ap);
 
-    return launch_keops(ptx_file_name, tagHostDevice, dimY, nx, ny, device_id, tagI, tagZero, use_half,
+    return launch_keops(target_file_name, tagHostDevice, dimY, nx, ny, device_id, tagI, tagZero, use_half,
                         tag1D2D, dimred,
                         cuda_block_size, use_chunk_mode,
                         indsi, indsj, indsp,
@@ -369,7 +409,7 @@ extern "C" int launch_keops_float(const char *ptx_file_name, int tagHostDevice, 
 
 
 
-extern "C" int launch_keops_double(const char *ptx_file_name, int tagHostDevice, int dimY, int nx, int ny,
+extern "C" int launch_keops_double(const char *target_file_name, int tagHostDevice, int dimY, int nx, int ny,
                                    int device_id, int tagI, int tagZero, int use_half,
                                    int tag1D2D, int dimred,
                                    int cuda_block_size, int use_chunk_mode,
@@ -388,7 +428,7 @@ extern "C" int launch_keops_double(const char *ptx_file_name, int tagHostDevice,
         argshape[i] = va_arg(ap, int*);
     va_end(ap);
 
-    return launch_keops(ptx_file_name, tagHostDevice, dimY, nx, ny, device_id, tagI, tagZero, use_half,
+    return launch_keops(target_file_name, tagHostDevice, dimY, nx, ny, device_id, tagI, tagZero, use_half,
                         tag1D2D, dimred,
                         cuda_block_size, use_chunk_mode,
                         indsi, indsj, indsp,
@@ -401,7 +441,7 @@ extern "C" int launch_keops_double(const char *ptx_file_name, int tagHostDevice,
 
 
 
-extern "C" int launch_keops_half(const char *ptx_file_name, int tagHostDevice, int dimY, int nx, int ny,
+extern "C" int launch_keops_half(const char *target_file_name, int tagHostDevice, int dimY, int nx, int ny,
                                  int device_id, int tagI, int tagZero, int use_half,
                                  int tag1D2D, int dimred,
                                  int cuda_block_size, int use_chunk_mode,
@@ -420,7 +460,7 @@ extern "C" int launch_keops_half(const char *ptx_file_name, int tagHostDevice, i
         argshape[i] = va_arg(ap, int*);
     va_end(ap);
 
-    return launch_keops(ptx_file_name, tagHostDevice, dimY, nx, ny, device_id, tagI, tagZero, use_half,
+    return launch_keops(target_file_name, tagHostDevice, dimY, nx, ny, device_id, tagI, tagZero, use_half,
                         tag1D2D, dimred,
                         cuda_block_size, use_chunk_mode,
                         indsi, indsj, indsp,
