@@ -14,7 +14,7 @@ from si_prefix import si_format
 
 import numpy as np
 import torch
-import jax
+#import jax
 
 use_cuda = torch.cuda.is_available()
 

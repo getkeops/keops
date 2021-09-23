@@ -11,7 +11,7 @@ class Cpu_link_compile(LinkCompile):
     def __init__(self):
         LinkCompile.__init__(self)
         # these are used for command line compiling mode
-        self.low_level_code_file = "none".encode("utf-8")
+        self.target_file = "none".encode("utf-8")
         # dllname is the name of the binary dll obtained after compilation, e.g. 7b9a611f7e.so
         self.dllname = self.gencode_file + ".so"
         # compile command string to obtain the dll, e.g. "g++ 7b9a611f7e.cpp -shared -fPIC -O3 -flto -o 7b9a611f7e.so"
