@@ -44,9 +44,18 @@ class LoadKeOps:
         self.aliases_old = aliases
         self.aliases = aliases_new
         self.lang = lang
-        self.optional_flags = optional_flags
         self.red_formula_string = formula
         self.dtype = dtype
+        
+        self.c_dtype_acc = optional_flags["dtype_acc"]
+        
+        self.sum_scheme = optional_flags["sum_scheme"]
+
+        self.enable_chunks = optional_flags["enable_chunks"]
+
+        self.enable_final_chunks = optional_flags["enable_final_chunks"]
+        
+        self.mult_var_highdim = optional_flags["multVar_highdim"]
 
     def genred(
         self,
@@ -92,69 +101,15 @@ class LoadKeOps:
         else:
             raise ValueError("not implemented")
 
+        if not self.c_dtype_acc:
+            self.c_dtype_acc = c_dtype
+
         if dtypename == "float16":
             from pykeops.torch.half2_convert import preprocess_half2
 
             args, ranges, tag_dummy, N = preprocess_half2(
                 args, self.aliases_old, axis, ranges, nx, ny
             )
-
-        if "-D__TYPEACC__=double" in self.optional_flags:
-            c_dtype_acc = "double"
-            self.optional_flags.remove("-D__TYPEACC__=double")
-        elif "-D__TYPEACC__=float" in self.optional_flags:
-            c_dtype_acc = "float"
-            self.optional_flags.remove("-D__TYPEACC__=float")
-        elif "-D__TYPEACC__=half2" in self.optional_flags:
-            c_dtype_acc = "half2"
-            self.optional_flags.remove("-D__TYPEACC__=half2")
-        elif "-D__TYPEACC__=float2" in self.optional_flags:
-            c_dtype_acc = "float2"
-            self.optional_flags.remove("-D__TYPEACC__=float2")
-        else:
-            c_dtype_acc = c_dtype
-
-        if "-DSUM_SCHEME=0" in self.optional_flags:
-            sum_scheme = "direct_sum"
-            self.optional_flags.remove("-DSUM_SCHEME=0")
-        elif "-DSUM_SCHEME=1" in self.optional_flags:
-            sum_scheme = "block_sum"
-            self.optional_flags.remove("-DSUM_SCHEME=1")
-        elif "-DSUM_SCHEME=2" in self.optional_flags:
-            sum_scheme = "kahan_scheme"
-            self.optional_flags.remove("-DSUM_SCHEME=2")
-        else:
-            sum_scheme = "block_sum"
-
-        enable_chunks = -1
-        if "-DENABLECHUNK=1" in self.optional_flags:
-            enable_chunks = 1
-            self.optional_flags.remove("-DENABLECHUNK=1")
-        elif "-DENABLECHUNK=0" in self.optional_flags:
-            enable_chunks = 0
-            self.optional_flags.remove("-DENABLECHUNK=0")
-
-        enable_final_chunks = -1
-        if "-DENABLE_FINAL_CHUNKS=1" in self.optional_flags:
-            enable_final_chunks = 1
-            self.optional_flags.remove("-DENABLE_FINAL_CHUNKS=1")
-        elif "-DENABLE_FINAL_CHUNKS=0" in self.optional_flags:
-            enable_final_chunks = 0
-            self.optional_flags.remove("-DENABLE_FINAL_CHUNKS=0")
-
-        mult_var_highdim = -1
-        if "-DMULT_VAR_HIGHDIM=1" in self.optional_flags:
-            mult_var_highdim = 1
-            self.optional_flags.remove("-DMULT_VAR_HIGHDIM=1")
-        elif "-DMULT_VAR_HIGHDIM=0" in self.optional_flags:
-            mult_var_highdim = 0
-            self.optional_flags.remove("-DMULT_VAR_HIGHDIM=0")
-
-        if self.optional_flags:
-            print(
-                "[KeOps] warning : there are options not yet implemented in new KeOps engine, these options are deactivated."
-            )
-            print("Options are:", self.optional_flags)
 
         if tagCPUGPU == 0:
             map_reduce_id = "CpuReduc"
@@ -189,14 +144,14 @@ class LoadKeOps:
         myfun = get_keops_routine(
             map_reduce_id,
             self.red_formula_string,
-            enable_chunks,
-            enable_final_chunks,
-            mult_var_highdim,
+            self.enable_chunks,
+            self.enable_final_chunks,
+            self.mult_var_highdim,
             self.aliases,
             nargs,
             c_dtype,
-            c_dtype_acc,
-            sum_scheme,
+            self.c_dtype_acc,
+            self.sum_scheme,
             tagHostDevice,
             tagCPUGPU,
             tag1D2D,

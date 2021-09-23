@@ -43,7 +43,7 @@ class GenredAutograd(torch.autograd.Function):
         # before adding the MULT_VAR_HIGHDIM compiler option.
         ctx.optional_flags = optional_flags.copy()
         if rec_multVar_highdim is not None:
-            optional_flags += ["-DMULT_VAR_HIGHDIM=1"]
+            optional_flags["multVar_highdim"] = 1
 
         myconv = LoadKeOps(
             formula, aliases, dtype, "torch", optional_flags, include_dirs
@@ -363,7 +363,6 @@ class Genred:
         use_double_acc=False,
         sum_scheme="auto",
         enable_chunks=True,
-        optional_flags=[],
         rec_multVar_highdim=None,
     ):
         r"""
@@ -439,8 +438,6 @@ class Genred:
             enable_chunks (bool, default True): enable automatic selection of special "chunked" computation mode for accelerating reductions
                                 with formulas involving large dimension variables.
 
-                        optional_flags (list, default []): further optional flags passed to the compiler, in the form ['-D...=...','-D...=...']
-
         """
         if cuda_type:
             # cuda_type is just old keyword for dtype, so this is just a trick to keep backward compatibility
@@ -448,7 +445,7 @@ class Genred:
         self.reduction_op = reduction_op
         reduction_op_internal, formula2 = preprocess(reduction_op, formula2)
 
-        self.optional_flags = optional_flags + get_optional_flags(
+        self.optional_flags = get_optional_flags(
             reduction_op_internal,
             dtype_acc,
             use_double_acc,
