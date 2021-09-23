@@ -75,7 +75,8 @@ class Gpu_link_compile(LinkCompile):
             target_tag = "CUBIN" if self.target_prefix=="cubin_" else "PTX"
             nvrtcGetTARGET = "nvrtcGet" + target_tag
             nvrtcGetTARGETSize = nvrtcGetTARGET + "Size"
-            target_type_define = "-DnvrtcGetTARGET="+nvrtcGetTARGET+" -DnvrtcGetTARGETSize="+nvrtcGetTARGETSize
+            arch_tag = '\\\"sm\\\"' if self.target_prefix=="cubin_" else '\\\"compute\\\"'
+            target_type_define = f"-DnvrtcGetTARGET={nvrtcGetTARGET} -DnvrtcGetTARGETSize={nvrtcGetTARGETSize} -DARCHTAG={arch_tag}" 
             jit_compile_command = f"{cxx_compiler} {nvrtc_flags} {target_type_define} {nvrtc_include} {self.gpu_props_compile_flags} {jit_source_file} -o {jit_binary}"
             os.system(jit_compile_command)
             print("OK", flush=True)

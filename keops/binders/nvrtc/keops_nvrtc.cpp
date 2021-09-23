@@ -38,8 +38,6 @@ extern "C" int Compile(const char *target_file_name, const char *cu_code, int us
     cuda_fp16_h_path << cuda_include_path << "cuda_fp16.h" ;
     cuda_fp16_hpp_path << cuda_include_path << "cuda_fp16.hpp" ;
     
-std::cout << "ok a" << std::endl;
-    
     if (use_half) {
         numHeaders = 2;
         header_names[0] = "cuda_fp16.h";
@@ -60,17 +58,13 @@ std::cout << "ok a" << std::endl;
     int deviceProp_major, deviceProp_minor;
     cuDeviceGetAttribute(&deviceProp_major, CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MAJOR, cuDevice);
     cuDeviceGetAttribute(&deviceProp_minor, CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MINOR, cuDevice);
-
-std::cout << "ok b" << std::endl;
     
     std::ostringstream arch_flag;
-    arch_flag << "-arch=sm_" << deviceProp_major << deviceProp_minor;
+    arch_flag << "-arch=" << ARCHTAG << "_" << deviceProp_major << deviceProp_minor;
 
     char *arch_flag_char = new char[arch_flag.str().length()];
     arch_flag_char = strdup(arch_flag.str().c_str());
     const char *opts[] = {arch_flag_char, "-use_fast_math"};
-
-std::cout << "ok ba" << std::endl;
 
     NVRTC_SAFE_CALL(nvrtcCreateProgram(&prog,         // prog
                                        cu_code,         // buffer
@@ -80,13 +74,9 @@ std::cout << "ok ba" << std::endl;
                                        header_names     // includeNames
     ));
 
-std::cout << "ok bb" << std::endl;
-
     nvrtcResult compileResult = nvrtcCompileProgram(prog,     // prog
                                               2,              // numOptions
                                               opts);          // options
-
-std::cout << "ok bc" << std::endl;
                                             
     delete[] arch_flag_char;
 
@@ -94,15 +84,11 @@ std::cout << "ok bc" << std::endl;
         exit(1);
     }
     
-std::cout << "ok c" << std::endl;
-    
     // Obtain PTX or CUBIN from the program.
     size_t targetSize;
     NVRTC_SAFE_CALL(nvrtcGetTARGETSize(prog, &targetSize));
     char *target = new char[targetSize];
     NVRTC_SAFE_CALL(nvrtcGetTARGET(prog, target));
-    
-std::cout << "ok d" << std::endl;
     
     // Destroy the program.
     NVRTC_SAFE_CALL(nvrtcDestroyProgram(&prog));
