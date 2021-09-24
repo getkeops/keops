@@ -1,6 +1,6 @@
 import os
 from hashlib import sha256
-import mmh3
+#import mmh3
 
 from keops.config.config import disable_pragma_unrolls
 from keops.utils.misc_utils import KeOps_Error, KeOps_Message

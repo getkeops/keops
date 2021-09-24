@@ -5,6 +5,8 @@ from functools import reduce
 import time
 from keops.utils.code_gen_utils import get_hash_name
 
+import torch
+
 class LoadKeOps_class:
     @staticmethod
     def numpy_array2ctypes(x):
@@ -234,12 +236,14 @@ class LoadKeOps_class:
             shapeout = (M, myfun.dim)
 
         out = self.tools.empty(shapeout, dtype=dtype, device_type=device_type, device_index=device_index)
+        buffer = self.tools.empty([len(args)*2], dtype=torch.float32, device_type=device_type, device_index=device_index)
 
         outshape_ctype = (c_int * (len(out.shape) + 1))(
             *((len(out.shape),) + out.shape)
         )
 
         out_ctype = self.tools.ctypes(out)
+        buffer_ctype = self.tools.ctypes(buffer)
         
         end = time.time()
         print("keops_io call, part 3 :", end-start)
@@ -257,6 +261,7 @@ class LoadKeOps_class:
             out_ctype,
             args_ctype,
             argshapes_ctype,
+            buffer_ctype
         )
 
         if dtypename == "float16":

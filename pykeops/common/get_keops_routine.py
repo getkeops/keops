@@ -86,6 +86,7 @@ class get_keops_routine_class:
         out_ctype,
         args_ctype,
         argshapes_ctype,
+        buffer_ctype
     ):
         
         start = time.time()
@@ -127,6 +128,7 @@ class get_keops_routine_class:
                 POINTER(c_void_p),  # ranges
                 c_int * len(outshape_ctype),  # shapeout
                 out_ctype["type"],  # out
+                buffer_ctype["type"],  # buffer
                 c_int,  # nargs
             ]
             + [arg["type"] for arg in args_ctype]  # arg
@@ -161,6 +163,7 @@ class get_keops_routine_class:
             ranges_ctype,
             outshape_ctype,
             out_ctype["data"],
+            buffer_ctype["data"],
             c_int(nargs),
             *c_args,
             *argshapes_ctype

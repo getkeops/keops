@@ -112,7 +112,7 @@ int launch_keops(const char *target_file_name, int tagHostDevice, int dimY, int 
                  int *indsi, int *indsj, int *indsp,
                  int dimout,
                  int *dimsx, int *dimsy, int *dimsp,
-                 int **ranges, int *shapeout, TYPE *out, int nargs, TYPE **arg, int **argshape) {
+                 int **ranges, int *shapeout, TYPE *out, int nargs, float *buffer, TYPE **arg, int **argshape) {
 
     
     clock_t A, B, begin, end;
@@ -220,8 +220,12 @@ int launch_keops(const char *target_file_name, int tagHostDevice, int dimY, int 
     TYPE **arg_d;
     int sizeout = get_sum(shapeout);
 
+    end = clock();
+    std::cout << "time for pre-load args : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
+    begin = clock();
+
     if (tagHostDevice == 1)
-        load_args_FromDevice(p_data, out, out_d, nargs, arg, arg_d);
+        load_args_FromDevice(p_data, out, out_d, nargs, arg, arg_d, buffer);
     else
         load_args_FromHost(p_data, out, out_d, nargs, arg, arg_d, argshape, sizeout);
 
@@ -379,7 +383,7 @@ int launch_keops(const char *target_file_name, int tagHostDevice, int dimY, int 
     std::cout << "time for copying result : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
     begin = clock();
     
-    cuMemFree(p_data);
+    //cuMemFree(p_data);
     if (RR.tagRanges == 1) {
         cuMemFree((CUdeviceptr) lookup_d);
         cuMemFree((CUdeviceptr) slices_x_d);
@@ -406,7 +410,7 @@ extern "C" int launch_keops_float(const char *target_file_name, int tagHostDevic
                                   int *indsi, int *indsj, int *indsp,
                                   int dimout,
                                   int *dimsx, int *dimsy, int *dimsp,
-                                  int **ranges, int *shapeout, float *out, int nargs, ...) {
+                                  int **ranges, int *shapeout, float *out, float *buffer, int nargs, ...) {
     // reading arguments
     va_list ap;
     va_start(ap, nargs);
@@ -424,7 +428,7 @@ extern "C" int launch_keops_float(const char *target_file_name, int tagHostDevic
                         indsi, indsj, indsp,
                         dimout,
                         dimsx, dimsy, dimsp,
-                        ranges, shapeout, out, nargs, arg, argshape);
+                        ranges, shapeout, out, nargs, buffer, arg, argshape);
 
 }
 
@@ -439,7 +443,7 @@ extern "C" int launch_keops_double(const char *target_file_name, int tagHostDevi
                                    int *indsi, int *indsj, int *indsp,
                                    int dimout,
                                    int *dimsx, int *dimsy, int *dimsp,
-                                   int **ranges, int *shapeout, double *out, int nargs, ...) {
+                                   int **ranges, int *shapeout, double *out, float *buffer, int nargs, ...) {
     // reading arguments
     va_list ap;
     va_start(ap, nargs);
@@ -457,7 +461,7 @@ extern "C" int launch_keops_double(const char *target_file_name, int tagHostDevi
                         indsi, indsj, indsp,
                         dimout,
                         dimsx, dimsy, dimsp,
-                        ranges, shapeout, out, nargs, arg, argshape);
+                        ranges, shapeout, out, nargs, buffer, arg, argshape);
 
 }
 
@@ -471,7 +475,7 @@ extern "C" int launch_keops_half(const char *target_file_name, int tagHostDevice
                                  int *indsi, int *indsj, int *indsp,
                                  int dimout,
                                  int *dimsx, int *dimsy, int *dimsp,
-                                 int **ranges, int *shapeout, half2 *out, int nargs, ...) {
+                                 int **ranges, int *shapeout, half2 *out, float *buffer, int nargs, ...) {
     // reading arguments
     va_list ap;
     va_start(ap, nargs);
@@ -489,6 +493,6 @@ extern "C" int launch_keops_half(const char *target_file_name, int tagHostDevice
                         indsi, indsj, indsp,
                         dimout,
                         dimsx, dimsy, dimsp,
-                        ranges, shapeout, out, nargs, arg, argshape);
+                        ranges, shapeout, out, nargs, buffer, arg, argshape);
 
 }
