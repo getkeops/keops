@@ -96,7 +96,7 @@ def get_keops_dll(
     else:
         keops.config.config.use_cuda = 0
 
-    # Instantioation of
+    # Instantiation of
     map_reduce_class = map_reduce[map_reduce_id]
 
     map_reduce_obj = map_reduce_class(red_formula_string, aliases, *args)

@@ -148,9 +148,11 @@ class KernelSolve:
             reduction_op, dtype_acc, use_double_acc, sum_scheme, dtype, enable_chunks
         )
 
-        if rec_multVar_highdim is not None:
-            optional_flags += ["-DMULT_VAR_HIGHDIM=1"]
-
+        if rec_multVar_highdim:
+            optional_flags["multVar_highdim"] = 1
+        else:
+            optional_flags["multVar_highdim"] = 0
+            
         self.aliases = complete_aliases(formula, aliases)
         self.varinvalias = varinvalias
         self.dtype = dtype

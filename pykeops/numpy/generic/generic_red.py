@@ -63,8 +63,7 @@ class Genred:
         use_double_acc=False,
         sum_scheme="auto",
         enable_chunks=True,
-        optional_flags=[],
-        rec_multVar_highdim=None,
+        rec_multVar_highdim=False,
     ):
         r"""
         Instantiate a new generic operation.
@@ -137,8 +136,10 @@ class Genred:
 
             enable_chunks (bool, default True): enable automatic selection of special "chunked" computation mode for accelerating reductions
                                 with formulas involving large dimension variables.
-
-                        optional_flags (list, default []): further optional flags passed to the compiler, in the form ['-D...=...','-D...=...']
+            
+            rec_multVar_highdim (bool, default False): for Gpu mode only, enable special "final chunked" computation mode for accelerating reductions
+                                with formulas involving large dimension variables. Beware ! This will only work if the formula has the very special form
+                                that allows such computation mode.
 
         """
         if cuda_type:
@@ -153,10 +154,7 @@ class Genred:
         self.reduction_op = reduction_op
         reduction_op_internal, formula2 = preprocess(reduction_op, formula2)
 
-        if rec_multVar_highdim is not None:
-            optional_flags += ["-DMULT_VAR_HIGHDIM=1"]
-
-        self.optional_flags = optional_flags + get_optional_flags(
+        self.optional_flags = get_optional_flags(
             reduction_op_internal,
             dtype_acc,
             use_double_acc,
@@ -164,6 +162,12 @@ class Genred:
             dtype,
             enable_chunks,
         )
+        
+        if rec_multVar_highdim:
+            self.optional_flags["multVar_highdim"] = 1
+        else:
+            self.optional_flags["multVar_highdim"] = 0
+            
         str_opt_arg = "," + str(opt_arg) if opt_arg else ""
         str_formula2 = "," + formula2 if formula2 else ""
 

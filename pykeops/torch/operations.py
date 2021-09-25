@@ -40,15 +40,17 @@ class KernelSolveAutograd(torch.autograd.Function):
         reduction_op,
         *args
     ):
-
+        
         # N.B. when rec_multVar_highdim option is set, it means that formula is of the form "sum(F*b)", where b is a variable
-        # with large dimension. In this case we set compiler option MULT_VAR_HIGHDIM to allow for the use of the special "final chunk" computation
+        # with large dimension. In this case we set option multVar_highdim to allow for the use of the special "final chunk" computation
         # mode. However, this may not be also true for the gradients of the same formula. In fact only the gradient
         # with respect to variable b will have the same form. Hence, we save optional_flags current status into ctx,
-        # before adding the MULT_VAR_HIGHDIM compiler option.
+        # before adding the multVar_highdim option.
         ctx.optional_flags = optional_flags.copy()
-        if rec_multVar_highdim is not None:
-            optional_flags += ["-DMULT_VAR_HIGHDIM=1"]
+        if rec_multVar_highdim:
+            optional_flags["multVar_highdim"] = 1
+        else:
+            optional_flags["multVar_highdim"] = 0
 
         myconv = LoadKeOps(
             formula, aliases, dtype, "torch", optional_flags, include_dirs

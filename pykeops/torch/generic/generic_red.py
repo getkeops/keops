@@ -37,12 +37,12 @@ class GenredAutograd(torch.autograd.Function):
     ):
 
         # N.B. when rec_multVar_highdim option is set, it means that formula is of the form "sum(F*b)", where b is a variable
-        # with large dimension. In this case we set compiler option MULT_VAR_HIGHDIM to allow for the use of the special "final chunk" computation
+        # with large dimension. In this case we set option multVar_highdim to allow for the use of the special "final chunk" computation
         # mode. However, this may not be also true for the gradients of the same formula. In fact only the gradient
         # with respect to variable b will have the same form. Hence, we save optional_flags current status into ctx,
-        # before adding the MULT_VAR_HIGHDIM compiler option.
+        # before adding the multVar_highdim option.
         ctx.optional_flags = optional_flags.copy()
-        if rec_multVar_highdim is not None:
+        if rec_multVar_highdim:
             optional_flags["multVar_highdim"] = 1
         else:
             optional_flags["multVar_highdim"] = 0
@@ -365,7 +365,7 @@ class Genred:
         use_double_acc=False,
         sum_scheme="auto",
         enable_chunks=True,
-        rec_multVar_highdim=None,
+        rec_multVar_highdim=False,
     ):
         r"""
         Instantiate a new generic operation.
@@ -437,8 +437,12 @@ class Genred:
                   - **sum_scheme** =  ``"kahan_scheme"``: use Kahan summation algorithm to compensate for round-off errors. This improves
                 accuracy for large sized data.
 
-            enable_chunks (bool, default True): enable automatic selection of special "chunked" computation mode for accelerating reductions
+            enable_chunks (bool, default True): for Gpu mode only, enable automatic selection of special "chunked" computation mode for accelerating reductions
                                 with formulas involving large dimension variables.
+            
+            rec_multVar_highdim (bool, default False): for Gpu mode only, enable special "final chunked" computation mode for accelerating reductions
+                                with formulas involving large dimension variables. Beware ! This will only work if the formula has the very special form
+                                that allows such computation mode. 
 
         """
         if cuda_type:
