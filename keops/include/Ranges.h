@@ -9,7 +9,7 @@ public:
   __INDEX__ **castedranges;
   __INDEX__ *ranges_i, *slices_i, *redranges_j;
   
-  Ranges(Sizes<TYPE> sizes, index_t *ranges) {
+  Ranges(Sizes<TYPE> sizes, const std::vector<int*>& ranges) {
 
     // Sparsity: should we handle ranges? ======================================
     if (sizes.nbatchdims == 0) {  // Standard M-by-N computation

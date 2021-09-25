@@ -62,7 +62,7 @@ template<typename TYPE>
 class Sizes {
 public:
     // constructors
-    Sizes(int _nargs, TYPE **args, index_t*argshapes, int _nx, int _ny,
+    Sizes(int _nargs, const std::vector<TYPE*>& args, const std::vector<int*>& argshapes, int _nx, int _ny,
           int tagIJ_, int use_half_, int dimout_,
           int *indsI_, int *indsJ_, int *indsP_,
           int *dimsX_, int *dimsY_, int *dimsP_) {
@@ -169,16 +169,16 @@ public:
     void switch_to_half2_indexing();
 
 private:
-    void fill_shape(int nargs, TYPE **args, index_t*argshapes);
+    void fill_shape(int nargs, const std::vector<TYPE*>& args, const std::vector<int*>& argshapes);
 
-    void check_ranges(int nargs, TYPE **args, index_t*argshapes);
+    void check_ranges(int nargs, const std::vector<TYPE*>& args, const std::vector<int*>& argshapes);
 
     int MN_pos, D_pos;
 };
 
 
 template<typename TYPE>
-void Sizes<TYPE>::fill_shape(int nargs, TYPE **args, index_t*argshapes) {
+void Sizes<TYPE>::fill_shape(int nargs, const std::vector<TYPE*>& args, const std::vector<int*>& argshapes) {
 
     int pos = (pos_first_argI > pos_first_argJ) ? pos_first_argI : pos_first_argJ;
 
@@ -232,7 +232,7 @@ void Sizes<TYPE>::fill_shape(int nargs, TYPE **args, index_t*argshapes) {
 }
 
 template<typename TYPE>
-void Sizes<TYPE>::check_ranges(int nargs, TYPE **args, index_t*argshapes) {
+void Sizes<TYPE>::check_ranges(int nargs, const std::vector<TYPE*>& args, const std::vector<int*>& argshapes) {
 
     // Check the compatibility of all tensor shapes ==================================
     if (nminargs > 0) {

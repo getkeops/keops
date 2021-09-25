@@ -1,9 +1,10 @@
 from pykeops.common.get_keops_routine import get_keops_routine
-from ctypes import c_int, c_void_p
+from ctypes import c_int, c_void_p, POINTER, c_float
 import numpy as np
 from functools import reduce
 import time
-from keops.utils.code_gen_utils import get_hash_name
+from keops.utils.code_gen_utils import get_fast_hash
+from array import array
 
 import torch
 
@@ -17,9 +18,13 @@ class LoadKeOps_class:
         ranges_ctype = list(array2ctypes(r) for r in ranges)
         ranges_ctype = (c_void_p * 7)(*(r["data"] for r in ranges_ctype))
         return ranges_ctype
+        
+    @staticmethod
+    def ranges2cppyy(ranges, array2ctypes):
+        return [array("i", r) for r in ranges]
 
     empty_ranges = (np.array([-1], dtype="int32"),) * 7
-    empty_ranges_ctype = ranges2ctype.__func__(
+    empty_ranges_ctype = ranges2cppyy.__func__(
         empty_ranges, numpy_array2ctypes.__func__
     )
 
@@ -207,15 +212,14 @@ class LoadKeOps_class:
         else:
             ranges = (*ranges, self.tools.array([r.shape[0] for r in ranges], dtype="int32"))
             ranges_ctype = self.ranges2ctype(ranges, self.tools.ctypes)
-
+        
         # convert arguments arrays to ctypes
-        args_ctype = [self.tools.ctypes(arg) for arg in args]
+        nargs = len(args)
+        args_ctype = [self.tools.cppyy(arg) for arg in args]
 
         # get all shapes of arguments as ctypes
-        argshapes_ctype = [
-            (c_int * (len(arg.shape) + 1))(*((len(arg.shape),) + arg.shape))
-            for arg in args
-        ]
+        argshapes = [(len(arg.shape),) + arg.shape for arg in args]
+        argshapes_ctype = [array("i", a) for a in argshapes]
 
         # initialize output array and converting to ctypes
 
@@ -238,12 +242,10 @@ class LoadKeOps_class:
         out = self.tools.empty(shapeout, dtype=dtype, device_type=device_type, device_index=device_index)
         buffer = self.tools.empty([len(args)*2], dtype=torch.float32, device_type=device_type, device_index=device_index)
 
-        outshape_ctype = (c_int * (len(out.shape) + 1))(
-            *((len(out.shape),) + out.shape)
-        )
+        outshape_ctype = array("i", ((len(out.shape),) + out.shape))
 
-        out_ctype = self.tools.ctypes(out)
-        buffer_ctype = self.tools.ctypes(buffer)
+        out_ctype = self.tools.cppyy(out)       
+        buffer_ctype = self.tools.cppyy(buffer)
         
         end = time.time()
         print("keops_io call, part 3 :", end-start)
@@ -259,6 +261,7 @@ class LoadKeOps_class:
             ranges_ctype,
             outshape_ctype,
             out_ctype,
+            nargs,
             args_ctype,
             argshapes_ctype,
             buffer_ctype
@@ -291,7 +294,7 @@ class create_or_load:
         if cls_id not in create_or_load.library:
             create_or_load.library[cls_id] = {}
         cls_library = create_or_load.library[cls_id]
-        hash_name = get_hash_name(*args)
+        hash_name = get_fast_hash(*args)
         
         if hash_name in cls_library:
             res = cls_library[hash_name]

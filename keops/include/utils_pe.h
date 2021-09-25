@@ -53,7 +53,7 @@ int get_sum(TYPE *shape) {
 
 template<typename TYPE>
 void load_args_FromDevice(CUdeviceptr &p_data, TYPE *out, TYPE *&out_d, 
-              int nargs, TYPE **arg, TYPE **&arg_d, float *buffer) {
+              int nargs, const std::vector<TYPE*>& arg, TYPE **&arg_d, float *buffer) {
     
     clock_t A, B, begin, end;
     begin = clock();
@@ -68,7 +68,7 @@ void load_args_FromDevice(CUdeviceptr &p_data, TYPE *out, TYPE *&out_d,
     out_d = out;
     arg_d = (TYPE **) p_data;
     // copy array of pointers
-    cuMemcpyHtoD((CUdeviceptr) arg_d, arg, nargs * sizeof(TYPE *));
+    cuMemcpyHtoD((CUdeviceptr) arg_d, arg.data(), nargs * sizeof(TYPE *));
 
     end = clock();
     std::cout << "time for cuMemcpyHtoD : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
@@ -77,7 +77,7 @@ void load_args_FromDevice(CUdeviceptr &p_data, TYPE *out, TYPE *&out_d,
 
 template<typename TYPE>
 void
-load_args_FromHost(CUdeviceptr &p_data, TYPE *out, TYPE *&out_d, int nargs, TYPE **arg, TYPE **&arg_d, int **argshape,
+load_args_FromHost(CUdeviceptr &p_data, TYPE *out, TYPE *&out_d, int nargs, const std::vector<TYPE*>& arg, TYPE **&arg_d, const std::vector<int*>& argshape,
                    int sizeout) {
     int sizes[nargs];
     int totsize = sizeout;

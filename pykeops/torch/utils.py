@@ -2,7 +2,7 @@ import torch
 
 from pykeops.torch import Genred, KernelSolve, default_dtype
 from pykeops.torch.cluster import swap_axes as torch_swap_axes
-from ctypes import c_float, c_double, c_void_p, POINTER
+from ctypes import c_float, c_float, c_double, c_void_p, POINTER
 
 
 # from pykeops.torch.generic.generic_red import GenredLowlevel
@@ -126,6 +126,10 @@ class torchtools:
     @staticmethod
     def ctypes(x):
         return dict(data=c_void_p(x.data_ptr()), type=c_void_p)
+
+    @staticmethod
+    def cppyy(x):
+        return POINTER(c_float)(c_void_p(x.data_ptr()))
 
     @staticmethod
     def rand(m, n, dtype=default_dtype, device="cpu"):
