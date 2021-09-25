@@ -109,11 +109,11 @@ class numpytools:
         return np.random.randn(m, n).astype(dtype)
 
     @staticmethod
-    def zeros(shape, dtype=default_dtype, device=None, requires_grad=None):
+    def zeros(shape, dtype=default_dtype, device_type=None, device_index=None, requires_grad=None):
         return np.zeros(shape).astype(dtype)
 
     @staticmethod
-    def empty(shape, dtype=default_dtype, device=None, requires_grad=None):
+    def empty(shape, dtype=default_dtype, device_type=None, device_index=None, requires_grad=None):
         return np.empty(shape).astype(dtype)
 
     @staticmethod
@@ -128,6 +128,10 @@ class numpytools:
     def device(x):
         return "cpu"
 
+    @staticmethod
+    def device_type_index(x):
+        return "cpu", None
+            
     @staticmethod
     def device_dict(x):
         return dict(cat="cpu")
