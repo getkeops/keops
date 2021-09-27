@@ -88,6 +88,9 @@ extern "C" int Compile(const char *target_file_name, const char *cu_code, int us
     // Obtain PTX or CUBIN from the program.
     size_t targetSize;
     NVRTC_SAFE_CALL(nvrtcGetTARGETSize(prog, &targetSize));
+
+std::cout << "targetSize=" << targetSize << std::endl;
+    
     char *target = new char[targetSize];
     NVRTC_SAFE_CALL(nvrtcGetTARGET(prog, target));
     
@@ -100,6 +103,8 @@ extern "C" int Compile(const char *target_file_name, const char *cu_code, int us
     wf.write((char*)&targetSize, sizeof(size_t));
     wf.write(target, targetSize);
     wf.close();
+    
+    delete[] target;
 
     return 0;
 }
@@ -109,59 +114,114 @@ class context {
     public :
 
 int current_device_id = -1;
+CUcontext ctx;
 CUmodule module;
 char *target;
-bool module_loaded = false;
 
 void SetDevice(int device_id) {
+
+std::cout << "here in SetDevice 1" << std::endl;
+
     if (current_device_id != device_id) {
-        if(module_loaded) {
+
+std::cout << "here in SetDevice 2" << std::endl;
+
+        if(current_device_id != -1) {
+
+std::cout << "here in SetDevice 3" << std::endl;
+            
             CUDA_SAFE_CALL(cuModuleUnload(module));
-            module_loaded = false;
+            CUDA_SAFE_CALL(cuCtxDestroy(ctx));
+
+std::cout << "here in SetDevice 4" << std::endl;
+
         }
+
+std::cout << "here in SetDevice 5" << std::endl;
+  
         current_device_id = device_id;
         CUdevice cuDevice;
-        CUcontext ctx;
+        
         CUDA_SAFE_CALL(cuInit(0));
         CUDA_SAFE_CALL(cuDeviceGet(&cuDevice, device_id));
-        CUDA_SAFE_CALL(cuDevicePrimaryCtxRetain(&ctx, cuDevice));
-        CUDA_SAFE_CALL(cuCtxPushCurrent(ctx));
+        
+        //CUDA_SAFE_CALL(cuDevicePrimaryCtxRetain(&ctx, cuDevice));
+        //CUDA_SAFE_CALL(cuCtxPushCurrent(ctx));
+        
+        CUDA_SAFE_CALL(cuCtxCreate(&ctx, 0, cuDevice));
     
         CUdeviceptr tmp;
         cuMemAlloc(&tmp, 10);
+        cuMemFree(tmp);
 
         SetGpuProps(device_id);
+        
+        //CUjit_option jitOptions[1];
+        //void* jitOptVals[1];
+        //jitOptions[0] = CU_JIT_TARGET;
+        //long targ_comp = 75;
+        //jitOptVals[0] = (void *)targ_comp;
+        
+        CUDA_SAFE_CALL(cuModuleLoadDataEx(&module, target, 0, NULL, NULL));
+
+std::cout << "here in SetDevice 6" << std::endl;
+
     }
+
+std::cout << "here in SetDevice 7" << std::endl;
+
 }
 
 void Read_Target(const char *target_file_name) {
+
+std::cout << "here in Read_Target 1" << std::endl;
+
     std::ifstream rf(target_file_name, std::ifstream::binary);
     size_t targetSize;
     rf.read((char*)&targetSize, sizeof(size_t));
+
+std::cout << "targetSize=" << targetSize << std::endl;
+    
     target = new char[targetSize];
     rf.read(target, targetSize);
     rf.close();
-}
 
-void Load_Module() {
-    //CUjit_option jitOptions[1];
-    //void* jitOptVals[1];
-    //jitOptions[0] = CU_JIT_TARGET;
-    //long targ_comp = 75;
-    //jitOptVals[0] = (void *)targ_comp;
-    
-    CUDA_SAFE_CALL(cuModuleLoadDataEx(&module, target, 0, NULL, NULL));
-    module_loaded = true;
+std::cout << "here in Read_Target 2" << std::endl;
+
 }
 
 context(const char *target_file_name) {
-    SetDevice(0);
+    
+std::cout << "here in context constructor 1" << std::endl;
+
     Read_Target(target_file_name);
-    Load_Module();
+
+std::cout << "here in context constructor 2" << std::endl;
+
+    //SetDevice(0);
+
+std::cout << "here in context constructor 3" << std::endl;
 }
 
 ~context() {
-    CUDA_SAFE_CALL(cuModuleUnload(module));
+
+std::cout << "here in context destructor 1" << std::endl;
+
+    if(current_device_id != -1) {
+
+std::cout << "here in context destructor 2" << std::endl;
+
+        CUDA_SAFE_CALL(cuModuleUnload(module));
+        CUDA_SAFE_CALL(cuCtxDestroy(ctx));
+
+std::cout << "here in context destructor 3" << std::endl;
+
+    }
+    
+    delete[] target;
+
+std::cout << "here in context destructor 4" << std::endl;
+
 }
 
 int launch_keops_dumb1() {
@@ -406,12 +466,8 @@ int launch_keops(int tagHostDevice, int dimY, int nx, int ny,
         // simple mode
 
         gridSize_x = nx / blockSize_x + (nx % blockSize_x == 0 ? 0 : 1);
-        
-        std::cout << "here a) ok !!" << std::endl;
 
         CUDA_SAFE_CALL(cuModuleGetFunction(&kernel, module, "GpuConv1DOnDevice"));
-        
-        std::cout << "here b) ok !!" << std::endl;
 
         void *kernel_params[4];
         kernel_params[0] = &nx;

@@ -162,9 +162,6 @@ class LoadKeOps_class:
         end = time.time()
         print("keops_io call, part 1 :", end-start)
         start = time.time()
-
-        
-        input()
         
                 
         myfun = get_keops_routine(
