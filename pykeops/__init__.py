@@ -27,6 +27,19 @@ template <typename TYPE>
 class context {
 public:
 context(const char *target_file_name);
+int launch_keops_dumb1();
+int launch_keops_dumb2(int tagHostDevice, int dimY, int nx, int ny,
+                 int device_id, int tagI, int tagZero, int use_half,
+                 int tag1D2D, int dimred,
+                 int cuda_block_size, int use_chunk_mode,
+                 int *indsi, int *indsj, int *indsp,
+                 int dimout,
+                 int *dimsx, int *dimsy, int *dimsp,
+                 const std::vector<int*>& ranges_v,
+                 int *shapeout, void *out_void, int nargs, 
+                 const std::vector<void*>& arg_v,
+                 const std::vector<int*>& argshape_v
+                 );
 int launch_keops(int tagHostDevice, int dimY, int nx, int ny,
                  int device_id, int tagI, int tagZero, int use_half,
                  int tag1D2D, int dimred,

@@ -110,34 +110,40 @@ class context {
 
 int current_device_id = -1;
 CUmodule module;
-   
+char *target;
+bool module_loaded = false;
+
 void SetDevice(int device_id) {
     if (current_device_id != device_id) {
-    current_device_id = device_id;
-    CUdevice cuDevice;
-    CUcontext ctx;
-    CUDA_SAFE_CALL(cuInit(0));
-    CUDA_SAFE_CALL(cuDeviceGet(&cuDevice, device_id));
-    CUDA_SAFE_CALL(cuDevicePrimaryCtxRetain(&ctx, cuDevice));
-    CUDA_SAFE_CALL(cuCtxPushCurrent(ctx));
+        if(module_loaded) {
+            CUDA_SAFE_CALL(cuModuleUnload(module));
+            module_loaded = false;
+        }
+        current_device_id = device_id;
+        CUdevice cuDevice;
+        CUcontext ctx;
+        CUDA_SAFE_CALL(cuInit(0));
+        CUDA_SAFE_CALL(cuDeviceGet(&cuDevice, device_id));
+        CUDA_SAFE_CALL(cuDevicePrimaryCtxRetain(&ctx, cuDevice));
+        CUDA_SAFE_CALL(cuCtxPushCurrent(ctx));
     
-    CUdeviceptr tmp;
-    cuMemAlloc(&tmp, 10);
+        CUdeviceptr tmp;
+        cuMemAlloc(&tmp, 10);
 
-    SetGpuProps(device_id);
-}
+        SetGpuProps(device_id);
+    }
 }
 
-void Load_Module(const char *target_file_name) {
-    
-    char *target;
+void Read_Target(const char *target_file_name) {
     std::ifstream rf(target_file_name, std::ifstream::binary);
     size_t targetSize;
     rf.read((char*)&targetSize, sizeof(size_t));
     target = new char[targetSize];
     rf.read(target, targetSize);
     rf.close();
+}
 
+void Load_Module() {
     //CUjit_option jitOptions[1];
     //void* jitOptVals[1];
     //jitOptions[0] = CU_JIT_TARGET;
@@ -145,15 +151,46 @@ void Load_Module(const char *target_file_name) {
     //jitOptVals[0] = (void *)targ_comp;
     
     CUDA_SAFE_CALL(cuModuleLoadDataEx(&module, target, 0, NULL, NULL));
+    module_loaded = true;
 }
 
 context(const char *target_file_name) {
     SetDevice(0);
-    Load_Module(target_file_name);
+    Read_Target(target_file_name);
+    Load_Module();
 }
 
 ~context() {
     CUDA_SAFE_CALL(cuModuleUnload(module));
+}
+
+int launch_keops_dumb1() {
+    clock_t begin, end; 
+    begin = clock();
+    
+    end = clock();
+    std::cout << "time for dumb1 inner : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
+    return 0;
+}
+
+int launch_keops_dumb2(int tagHostDevice, int dimY, int nx, int ny,
+                 int device_id, int tagI, int tagZero, int use_half,
+                 int tag1D2D, int dimred,
+                 int cuda_block_size, int use_chunk_mode,
+                 int *indsi, int *indsj, int *indsp,
+                 int dimout,
+                 int *dimsx, int *dimsy, int *dimsp,
+                 const std::vector<int*>& ranges_v,
+                 int *shapeout, void *out_void, int nargs, 
+                 const std::vector<void*>& arg_v,
+                 const std::vector<int*>& argshape_v
+                 ) { 
+    clock_t begin, end; 
+    begin = clock();
+    
+    end = clock();
+    std::cout << "time for dumb2 inner : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
+    return 0;
 }
 
 int launch_keops(int tagHostDevice, int dimY, int nx, int ny,
@@ -369,8 +406,12 @@ int launch_keops(int tagHostDevice, int dimY, int nx, int ny,
         // simple mode
 
         gridSize_x = nx / blockSize_x + (nx % blockSize_x == 0 ? 0 : 1);
+        
+        std::cout << "here a) ok !!" << std::endl;
 
         CUDA_SAFE_CALL(cuModuleGetFunction(&kernel, module, "GpuConv1DOnDevice"));
+        
+        std::cout << "here b) ok !!" << std::endl;
 
         void *kernel_params[4];
         kernel_params[0] = &nx;

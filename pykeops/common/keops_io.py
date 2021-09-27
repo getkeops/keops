@@ -99,6 +99,7 @@ class LoadKeOps_class:
             )
         
         end = time.time()
+        
         print("keops_io call, part 0c :", end-start)
         start = time.time()
         
@@ -161,7 +162,11 @@ class LoadKeOps_class:
         end = time.time()
         print("keops_io call, part 1 :", end-start)
         start = time.time()
+
         
+        input()
+        
+                
         myfun = get_keops_routine(
             map_reduce_id,
             self.red_formula_string,
