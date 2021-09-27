@@ -1,8 +1,9 @@
-from ctypes import create_string_buffer, c_char_p, c_int, CDLL, POINTER, c_void_p
-
 from keops.utils.code_gen_utils import get_hash_name
 from keops.get_keops_dll import get_keops_dll
 import time
+import cppyy
+from array import array
+
 
 class create_or_load:
     library = {}
@@ -49,6 +50,12 @@ class get_keops_routine_class:
             dimsy,
             dimsp,
         ) = get_keops_dll(map_reduce_id, *args)
+        
+        if self.low_level_code_file == "none":
+            raise ValueError("not implemented yet")
+            cppyy.load_library(self.dllname)
+        else:
+            self.dll = cppyy.gbl.context["float"](self.low_level_code_file)
 
         end = time.time()
         print("get_keops_routine_class init, part 1 (get_keops_dll call) :", end-start)
@@ -63,13 +70,12 @@ class get_keops_routine_class:
             indsi, indsj = indsj, indsi
             dimsx, dimsy = dimsy, dimsx
 
-        self.dll = CDLL(self.dllname)
-        self.indsi_ctype = (c_int * (len(indsi) + 1))(*((len(indsi),) + indsi))
-        self.indsj_ctype = (c_int * (len(indsj) + 1))(*((len(indsj),) + indsj))
-        self.indsp_ctype = (c_int * (len(indsp) + 1))(*((len(indsp),) + indsp))
-        self.dimsx_ctype = (c_int * (len(dimsx) + 1))(*((len(dimsx),) + dimsx))
-        self.dimsy_ctype = (c_int * (len(dimsy) + 1))(*((len(dimsy),) + dimsy))
-        self.dimsp_ctype = (c_int * (len(dimsp) + 1))(*((len(dimsp),) + dimsp))
+        self.indsi = array("i", (len(indsi),) + indsi)
+        self.indsj = array("i", (len(indsj),) + indsj)
+        self.indsp = array("i", (len(indsp),) + indsp)
+        self.dimsx = array("i", (len(dimsx),) + dimsx)
+        self.dimsy = array("i", (len(dimsy),) + dimsy)
+        self.dimsp = array("i", (len(dimsp),) + dimsp)
         
         end = time.time()
         print("get_keops_routine_class init, part 2 :", end-start)
@@ -81,19 +87,18 @@ class get_keops_routine_class:
         ny,
         tagHostDevice,
         device_id,
-        ranges_ctype,
-        outshape_ctype,
-        out_ctype,
-        args_ctype,
-        argshapes_ctype,
+        ranges,
+        outshape,
+        out,
+        args,
+        argshapes,
     ):
         
         start = time.time()
 
-        c_args = [arg["data"] for arg in args_ctype]
-        nargs = len(args_ctype)
+        nargs = len(args)
         if c_dtype == "float":
-            launch_keops = self.dll.launch_keops_float
+            launch_keops = self.dll.launch_keops
         elif c_dtype == "double":
             launch_keops = self.dll.launch_keops_double
         elif c_dtype == "half2":
@@ -102,68 +107,37 @@ class get_keops_routine_class:
             raise ValueError(
                 "dtype", c_dtype, "not yet implemented in new KeOps engine"
             )
-        launch_keops.argtypes = (
-            [
-                c_char_p,  # ptx_file_name
-                c_int,  # tagHostDevice
-                c_int,  # dimY
-                c_int,  # nx
-                c_int,  # ny
-                c_int,  # device_id
-                c_int,  # tagI
-                c_int,  # tagZero
-                c_int,  # use_half
-                c_int,  # tag1D2D
-                c_int,  # dimred
-                c_int,  # cuda_block_size
-                c_int,  # use_chunk_mode
-                c_int * len(self.indsi_ctype),  # indsi
-                c_int * len(self.indsj_ctype),  # indsj
-                c_int * len(self.indsp_ctype),  # indsp
-                c_int,  # dimout
-                c_int * len(self.dimsx_ctype),  # dimsx
-                c_int * len(self.dimsy_ctype),  # dimsy
-                c_int * len(self.dimsp_ctype),  # dimsp
-                POINTER(c_void_p),  # ranges
-                c_int * len(outshape_ctype),  # shapeout
-                out_ctype["type"],  # out
-                c_int,  # nargs
-            ]
-            + [arg["type"] for arg in args_ctype]  # arg
-            + [c_int * len(argshape) for argshape in argshapes_ctype]  # argshape
-        )
         
         end = time.time()
         print("get_keops_routine_class call, part 1 :", end-start)
         start = time.time()
         
         launch_keops(
-            create_string_buffer(self.low_level_code_file),
-            c_int(tagHostDevice),
-            c_int(self.dimy),
-            c_int(nx),
-            c_int(ny),
-            c_int(device_id),
-            c_int(self.tagI),
-            c_int(self.tagZero),
-            c_int(self.use_half),
-            c_int(self.tag1D2D),
-            c_int(self.dimred),
-            c_int(self.cuda_block_size),
-            c_int(self.use_chunk_mode),
-            self.indsi_ctype,
-            self.indsj_ctype,
-            self.indsp_ctype,
-            c_int(self.dim),
-            self.dimsx_ctype,
-            self.dimsy_ctype,
-            self.dimsp_ctype,
-            ranges_ctype,
-            outshape_ctype,
-            out_ctype["data"],
-            c_int(nargs),
-            *c_args,
-            *argshapes_ctype
+            tagHostDevice,
+            self.dimy,
+            nx,
+            ny,
+            device_id,
+            self.tagI,
+            self.tagZero,
+            self.use_half,
+            self.tag1D2D,
+            self.dimred,
+            self.cuda_block_size,
+            self.use_chunk_mode,
+            self.indsi,
+            self.indsj,
+            self.indsp,
+            self.dim,
+            self.dimsx,
+            self.dimsy,
+            self.dimsp,
+            ranges,
+            outshape,
+            out,
+            nargs,
+            args,
+            argshapes
         )
         
         end = time.time()

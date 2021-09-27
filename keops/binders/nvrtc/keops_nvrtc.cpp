@@ -9,6 +9,7 @@
 #include <fstream>
 #include <sstream>
 #include <stdarg.h>
+#include <vector>
 #include <ctime>
 
 #define __INDEX__ int
@@ -103,31 +104,82 @@ extern "C" int Compile(const char *target_file_name, const char *cu_code, int us
     return 0;
 }
 
-
 template<typename TYPE>
-int launch_keops(const char *target_file_name, int tagHostDevice, int dimY, int nx, int ny,
+class context {
+    public :
+
+int current_device_id = -1;
+CUmodule module;
+   
+void SetDevice(int device_id) {
+    if (current_device_id != device_id) {
+    current_device_id = device_id;
+    CUdevice cuDevice;
+    CUcontext ctx;
+    CUDA_SAFE_CALL(cuInit(0));
+    CUDA_SAFE_CALL(cuDeviceGet(&cuDevice, device_id));
+    CUDA_SAFE_CALL(cuDevicePrimaryCtxRetain(&ctx, cuDevice));
+    CUDA_SAFE_CALL(cuCtxPushCurrent(ctx));
+    
+    CUdeviceptr tmp;
+    cuMemAlloc(&tmp, 10);
+
+    SetGpuProps(device_id);
+}
+}
+
+void Load_Module(const char *target_file_name) {
+    
+    char *target;
+    std::ifstream rf(target_file_name, std::ifstream::binary);
+    size_t targetSize;
+    rf.read((char*)&targetSize, sizeof(size_t));
+    target = new char[targetSize];
+    rf.read(target, targetSize);
+    rf.close();
+
+    //CUjit_option jitOptions[1];
+    //void* jitOptVals[1];
+    //jitOptions[0] = CU_JIT_TARGET;
+    //long targ_comp = 75;
+    //jitOptVals[0] = (void *)targ_comp;
+    
+    CUDA_SAFE_CALL(cuModuleLoadDataEx(&module, target, 0, NULL, NULL));
+}
+
+context(const char *target_file_name) {
+    SetDevice(0);
+    Load_Module(target_file_name);
+}
+
+~context() {
+    CUDA_SAFE_CALL(cuModuleUnload(module));
+}
+
+int launch_keops(int tagHostDevice, int dimY, int nx, int ny,
                  int device_id, int tagI, int tagZero, int use_half,
                  int tag1D2D, int dimred,
                  int cuda_block_size, int use_chunk_mode,
                  int *indsi, int *indsj, int *indsp,
                  int dimout,
                  int *dimsx, int *dimsy, int *dimsp,
-                 int **ranges, int *shapeout, TYPE *out, int nargs, TYPE **arg, int **argshape) {
+                 const std::vector<int*>& ranges_v,
+                 int *shapeout, void *out_void, int nargs, 
+                 const std::vector<void*>& arg_v,
+                 const std::vector<int*>& argshape_v
+                 ) {
 
+    int **ranges = (int**) ranges_v.data();
+    TYPE **arg = (TYPE**) arg_v.data();
+    int **argshape = (int**) argshape_v.data();
+    TYPE *out = (TYPE*) out_void;
     
     clock_t A, B, begin, end;
     A = clock();
-
-    CUdevice cuDevice;
-    CUcontext ctx;
     
     begin = clock();
-    CUDA_SAFE_CALL(cuInit(0));
-    CUDA_SAFE_CALL(cuDeviceGet(&cuDevice, device_id));
-    CUDA_SAFE_CALL(cuDevicePrimaryCtxRetain(&ctx, cuDevice));
-    CUDA_SAFE_CALL(cuCtxPushCurrent(ctx));
 
-    SetGpuProps(device_id);
+    SetDevice(device_id);
     end = clock();
     std::cout << "time for cuda init : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
     begin = clock();
@@ -228,33 +280,8 @@ int launch_keops(const char *target_file_name, int tagHostDevice, int dimY, int 
     end = clock();
     std::cout << "time for load args : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
     begin = clock();
-
-    char *target;
-    std::ifstream rf(target_file_name, std::ifstream::binary);
-    size_t targetSize;
-    rf.read((char*)&targetSize, sizeof(size_t));
-    target = new char[targetSize];
-    rf.read(target, targetSize);
-    rf.close();
     
-    end = clock();
-    std::cout << "time for reading : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
-    begin = clock();
-    
-    CUmodule module;
     CUfunction kernel;
-
-    //CUjit_option jitOptions[1];
-    //void* jitOptVals[1];
-    //jitOptions[0] = CU_JIT_TARGET;
-    //long targ_comp = 75;
-    //jitOptVals[0] = (void *)targ_comp;
-    
-    CUDA_SAFE_CALL(cuModuleLoadDataEx(&module, target, 0, NULL, NULL));
-    
-    end = clock();
-    std::cout << "time for loading kernel : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
-    begin = clock();
     
     int gridSize_x = 1, gridSize_y = 1, gridSize_z = 1;
 
@@ -364,12 +391,6 @@ int launch_keops(const char *target_file_name, int tagHostDevice, int dimY, int 
     std::cout << "time for exec kernel : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
     begin = clock();
 
-    CUDA_SAFE_CALL(cuModuleUnload(module));
-    
-    end = clock();
-    std::cout << "time for unloading kernel : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
-    begin = clock();
-
     // Send data from device to host.
 
     if (tagHostDevice == 0)
@@ -398,97 +419,8 @@ int launch_keops(const char *target_file_name, int tagHostDevice, int dimY, int 
     return 0;
 }
 
-
-extern "C" int launch_keops_float(const char *target_file_name, int tagHostDevice, int dimY, int nx, int ny,
-                                  int device_id, int tagI, int tagZero, int use_half,
-                                  int tag1D2D, int dimred,
-                                  int cuda_block_size, int use_chunk_mode,
-                                  int *indsi, int *indsj, int *indsp,
-                                  int dimout,
-                                  int *dimsx, int *dimsy, int *dimsp,
-                                  int **ranges, int *shapeout, float *out, int nargs, ...) {
-    // reading arguments
-    va_list ap;
-    va_start(ap, nargs);
-    float *arg[nargs];
-    for (int i = 0; i < nargs; i++)
-        arg[i] = va_arg(ap, float*);
-    int *argshape[nargs];
-    for (int i = 0; i < nargs; i++)
-        argshape[i] = va_arg(ap, int*);
-    va_end(ap);
-
-    return launch_keops(target_file_name, tagHostDevice, dimY, nx, ny, device_id, tagI, tagZero, use_half,
-                        tag1D2D, dimred,
-                        cuda_block_size, use_chunk_mode,
-                        indsi, indsj, indsp,
-                        dimout,
-                        dimsx, dimsy, dimsp,
-                        ranges, shapeout, out, nargs, arg, argshape);
-
-}
+};
 
 
+template class context<float>;
 
-
-
-extern "C" int launch_keops_double(const char *target_file_name, int tagHostDevice, int dimY, int nx, int ny,
-                                   int device_id, int tagI, int tagZero, int use_half,
-                                   int tag1D2D, int dimred,
-                                   int cuda_block_size, int use_chunk_mode,
-                                   int *indsi, int *indsj, int *indsp,
-                                   int dimout,
-                                   int *dimsx, int *dimsy, int *dimsp,
-                                   int **ranges, int *shapeout, double *out, int nargs, ...) {
-    // reading arguments
-    va_list ap;
-    va_start(ap, nargs);
-    double *arg[nargs];
-    for (int i = 0; i < nargs; i++)
-        arg[i] = va_arg(ap, double*);
-    int *argshape[nargs];
-    for (int i = 0; i < nargs; i++)
-        argshape[i] = va_arg(ap, int*);
-    va_end(ap);
-
-    return launch_keops(target_file_name, tagHostDevice, dimY, nx, ny, device_id, tagI, tagZero, use_half,
-                        tag1D2D, dimred,
-                        cuda_block_size, use_chunk_mode,
-                        indsi, indsj, indsp,
-                        dimout,
-                        dimsx, dimsy, dimsp,
-                        ranges, shapeout, out, nargs, arg, argshape);
-
-}
-
-
-
-
-extern "C" int launch_keops_half(const char *target_file_name, int tagHostDevice, int dimY, int nx, int ny,
-                                 int device_id, int tagI, int tagZero, int use_half,
-                                 int tag1D2D, int dimred,
-                                 int cuda_block_size, int use_chunk_mode,
-                                 int *indsi, int *indsj, int *indsp,
-                                 int dimout,
-                                 int *dimsx, int *dimsy, int *dimsp,
-                                 int **ranges, int *shapeout, half2 *out, int nargs, ...) {
-    // reading arguments
-    va_list ap;
-    va_start(ap, nargs);
-    half2 *arg[nargs];
-    for (int i = 0; i < nargs; i++)
-        arg[i] = va_arg(ap, half2*);
-    int *argshape[nargs];
-    for (int i = 0; i < nargs; i++)
-        argshape[i] = va_arg(ap, int*);
-    va_end(ap);
-
-    return launch_keops(target_file_name, tagHostDevice, dimY, nx, ny, device_id, tagI, tagZero, use_half,
-                        tag1D2D, dimred,
-                        cuda_block_size, use_chunk_mode,
-                        indsi, indsj, indsp,
-                        dimout,
-                        dimsx, dimsy, dimsp,
-                        ranges, shapeout, out, nargs, arg, argshape);
-
-}
