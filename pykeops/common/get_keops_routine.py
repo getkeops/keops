@@ -1,6 +1,5 @@
 from keops.utils.code_gen_utils import get_hash_name
 from keops.get_keops_dll import get_keops_dll
-import time
 import cppyy
 from array import array
 
@@ -28,8 +27,6 @@ class create_or_load:
 
 class get_keops_routine_class:
     def __init__(self, map_reduce_id, *args):
-
-        start = time.time()
             
         (
             self.dllname,
@@ -56,10 +53,6 @@ class get_keops_routine_class:
             cppyy.load_library(self.dllname)
         else:
             self.dll = cppyy.gbl.context["float"](self.low_level_code_file)
-
-        end = time.time()
-        print("get_keops_routine_class init, part 1 (get_keops_dll call) :", end-start)
-        start = time.time()
             
         # now we switch indsi, indsj and dimsx, dimsy in case tagI=1.
         # This is to be consistent with the convention used in the old
@@ -76,9 +69,7 @@ class get_keops_routine_class:
         self.dimsx = array("i", (len(dimsx),) + dimsx)
         self.dimsy = array("i", (len(dimsy),) + dimsy)
         self.dimsp = array("i", (len(dimsp),) + dimsp)
-        
-        end = time.time()
-        print("get_keops_routine_class init, part 2 :", end-start)
+
 
     def __call__(
         self,
@@ -94,7 +85,6 @@ class get_keops_routine_class:
         argshapes,
     ):
         
-        start = time.time()
 
         nargs = len(args)
         if c_dtype == "float":
@@ -108,9 +98,6 @@ class get_keops_routine_class:
                 "dtype", c_dtype, "not yet implemented in new KeOps engine"
             )
         
-        end = time.time()
-        print("get_keops_routine_class call, part 1 :", end-start)
-        start = time.time()
         
         launch_keops(
             tagHostDevice,
@@ -140,8 +127,6 @@ class get_keops_routine_class:
             argshapes
         )
         
-        end = time.time()
-        print("get_keops_routine_class call, part 2 (launch_keops call) :", end-start)
 
 
 def get_keops_routine(*args):    

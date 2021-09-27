@@ -10,7 +10,6 @@
 #include <sstream>
 #include <stdarg.h>
 #include <vector>
-#include <ctime>
 
 #define __INDEX__ int
 #define C_CONTIGUOUS 1
@@ -180,19 +179,12 @@ int launch_keops(int tagHostDevice, int dimY, int nx, int ny,
     begin = clock();
 
     SetDevice(device_id);
-    end = clock();
-    std::cout << "time for cuda init : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
-    begin = clock();
     
     Sizes<TYPE> SS(nargs, arg, argshape, nx, ny,
                    tagI, use_half,
                    dimout,
                    indsi, indsj, indsp,
                    dimsx, dimsy, dimsp);
-                   
-    end = clock();
-    std::cout << "time for Sizes : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
-    begin = clock();
     
     if (use_half)
         SS.switch_to_half2_indexing();
@@ -200,10 +192,6 @@ int launch_keops(int tagHostDevice, int dimY, int nx, int ny,
     Ranges<TYPE> RR(SS, ranges);
     nx = SS.nx;
     ny = SS.ny;
-    
-    end = clock();
-    std::cout << "time for Ranges : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
-    begin = clock();
 
     // now we switch (back...) indsi, indsj and dimsx, dimsy in case tagI=1.
     // This is to be consistent with the convention used in the old
@@ -243,10 +231,6 @@ int launch_keops(int tagHostDevice, int dimY, int nx, int ny,
 
     __INDEX__ *lookup_d = NULL, *slices_x_d = NULL, *ranges_y_d = NULL;
     int *offsets_d = NULL;
-    
-    end = clock();
-    std::cout << "time for interm : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
-    begin = clock();
 
     if (RR.tagRanges==1) {
         if (tagHostDevice==1) {
@@ -262,10 +246,6 @@ int launch_keops(int tagHostDevice, int dimY, int nx, int ny,
                          blockSize_x, indsi, indsj, indsp, SS.shapes);
         }
     }
-    
-    end = clock();
-    std::cout << "time for range_preprocess : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
-    begin = clock();
 
     CUdeviceptr p_data;
     TYPE *out_d;
@@ -276,10 +256,6 @@ int launch_keops(int tagHostDevice, int dimY, int nx, int ny,
         load_args_FromDevice(p_data, out, out_d, nargs, arg, arg_d);
     else
         load_args_FromHost(p_data, out, out_d, nargs, arg, arg_d, argshape, sizeout);
-
-    end = clock();
-    std::cout << "time for load args : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
-    begin = clock();
     
     CUfunction kernel;
     
@@ -386,19 +362,11 @@ int launch_keops(int tagHostDevice, int dimY, int nx, int ny,
     }
     
     CUDA_SAFE_CALL(cuCtxSynchronize());
-    
-    end = clock();
-    std::cout << "time for exec kernel : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
-    begin = clock();
 
     // Send data from device to host.
 
     if (tagHostDevice == 0)
         cuMemcpyDtoH(out, (CUdeviceptr) out_d, sizeof(TYPE) * sizeout);
-
-    end = clock();
-    std::cout << "time for copying result : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
-    begin = clock();
     
     cuMemFree(p_data);
     if (RR.tagRanges == 1) {
@@ -408,13 +376,6 @@ int launch_keops(int tagHostDevice, int dimY, int nx, int ny,
         if (SS.nbatchdims > 0)
             cuMemFree((CUdeviceptr) offsets_d);
     }
-    
-    end = clock();
-    std::cout << "time for freeing memory : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
-    begin = clock();
-
-    B = clock();
-    std::cout << "total time : " << double(B - A) / CLOCKS_PER_SEC << std::endl;
 
     return 0;
 }
