@@ -25,6 +25,10 @@ fun = Genred(formula, aliases, reduction_op="Sum", axis=1, sum_scheme = "block_s
 if do_warmup:
     fun(x[: min(M, 100), :], y[: min(N, 100), :], b[: min(N, 100), :])
     fun(x[: min(M, 100), :], y[: min(N, 100), :], b[: min(N, 100), :])
+    
+print()
+print()
+    
 start = time.time()
 fun(x, y, b)
 end = time.time()
