@@ -22,11 +22,22 @@ if use_cuda:
 
     
     from keops.config.config import jit_binary
+
+    cppyy.include("/usr/local/cuda/include/nvrtc.h")
+    cppyy.include("/usr/local/cuda/include/cuda.h")
+
     cppyy.cppdef("""
 template <typename TYPE>
 class context {
 public:
+int current_device_id;
+CUcontext ctx;
+CUmodule module;
+char *target;
+void SetDevice(int device_id);
+void Read_Target(const char *target_file_name);
 context(const char *target_file_name);
+~context();
 int launch_keops_dumb1();
 int launch_keops_dumb2(int tagHostDevice, int dimY, int nx, int ny,
                  int device_id, int tagI, int tagZero, int use_half,

@@ -1,0 +1,10 @@
+g++ -shared -fPIC -O3 -fpermissive \
+    -L /lib/x86_64-linux-gnu -L /home/glaunes/anaconda3/lib \
+    -lcuda -lnvrtc \
+    -DnvrtcGetTARGET=nvrtcGetPTX -DnvrtcGetTARGETSize=nvrtcGetPTXSize -DARCHTAG=\"compute\"  \
+    -I/home/glaunes/Bureau/keops/keops/include -I/usr/local/cuda/include \
+    -DMAXIDGPU=1 -DMAXTHREADSPERBLOCK0=1024 -DSHAREDMEMPERBLOCK0=49152 \
+    -DMAXTHREADSPERBLOCK1=1024 -DSHAREDMEMPERBLOCK1=49152  \
+    keops_nvrtc.cpp \
+    -o keops_nvrtc.so
+
