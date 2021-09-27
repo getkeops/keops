@@ -1,25 +1,13 @@
 from pykeops.common.get_keops_routine import get_keops_routine
 from ctypes import c_int, c_void_p
-import numpy as np
 from functools import reduce
 import time
 from keops.utils.code_gen_utils import get_hash_name
+from array import array
 
 class LoadKeOps_class:
-    @staticmethod
-    def numpy_array2ctypes(x):
-        return dict(data=c_void_p(x.ctypes.data), type=c_void_p)
 
-    @staticmethod
-    def ranges2ctype(ranges, array2ctypes):
-        ranges_ctype = list(array2ctypes(r) for r in ranges)
-        ranges_ctype = (c_void_p * 7)(*(r["data"] for r in ranges_ctype))
-        return ranges_ctype
-
-    empty_ranges = (np.array([-1], dtype="int32"),) * 7
-    empty_ranges_ctype = ranges2ctype.__func__(
-        empty_ranges, numpy_array2ctypes.__func__
-    )
+    empty_ranges = [array("i", [-1])] * 7
 
     def __init__(
         self, formula, aliases, dtype, lang, optional_flags=[], include_dirs=[]
@@ -199,23 +187,18 @@ class LoadKeOps_class:
         self.tagIJ = myfun.tagI
         self.dimout = myfun.dim
 
-        # get ranges argument as ctypes
+        # get ranges argument
         if not ranges:
-            ranges_ctype = self.empty_ranges_ctype
+            ranges = self.empty_ranges
         else:
-            ranges = (*ranges, self.tools.array([r.shape[0] for r in ranges], dtype="int32"))
-            ranges_ctype = self.ranges2ctype(ranges, self.tools.ctypes)
+            ranges = [*ranges, self.tools.array([r.shape[0] for r in ranges], dtype="int32")]
+            
+        args_ptr = [c_void_p(arg.data_ptr()) for arg in args]
 
-        # convert arguments arrays to ctypes
-        args_ctype = [self.tools.ctypes(arg) for arg in args]
+        # get all shapes of arguments
+        argshapes = [array("i", (len(arg.shape),) + arg.shape) for arg in args]
 
-        # get all shapes of arguments as ctypes
-        argshapes_ctype = [
-            (c_int * (len(arg.shape) + 1))(*((len(arg.shape),) + arg.shape))
-            for arg in args
-        ]
-
-        # initialize output array and converting to ctypes
+        # initialize output array
 
         M = nx if myfun.tagI == 0 else ny
 
@@ -234,12 +217,9 @@ class LoadKeOps_class:
             shapeout = (M, myfun.dim)
 
         out = self.tools.empty(shapeout, dtype=dtype, device_type=device_type, device_index=device_index)
+        out_ptr = c_void_p(out.data_ptr())
 
-        outshape_ctype = (c_int * (len(out.shape) + 1))(
-            *((len(out.shape),) + out.shape)
-        )
-
-        out_ctype = self.tools.ctypes(out)
+        outshape = array("i", (len(out.shape),) + out.shape)
         
         end = time.time()
         print("keops_io call, part 3 :", end-start)
@@ -252,11 +232,11 @@ class LoadKeOps_class:
             ny,
             tagHostDevice,
             device_id_request,
-            ranges_ctype,
-            outshape_ctype,
-            out_ctype,
-            args_ctype,
-            argshapes_ctype,
+            ranges,
+            outshape,
+            out_ptr,
+            args_ptr,
+            argshapes,
         )
 
         if dtypename == "float16":
