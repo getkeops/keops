@@ -9,7 +9,7 @@
 #include <fstream>
 #include <sstream>
 #include <stdarg.h>
-#include <ctime>
+#include <vector>
 
 #define __INDEX__ int
 #define C_CONTIGUOUS 1
@@ -87,6 +87,7 @@ extern "C" int Compile(const char *target_file_name, const char *cu_code, int us
     // Obtain PTX or CUBIN from the program.
     size_t targetSize;
     NVRTC_SAFE_CALL(nvrtcGetTARGETSize(prog, &targetSize));
+    
     char *target = new char[targetSize];
     NVRTC_SAFE_CALL(nvrtcGetTARGET(prog, target));
     
@@ -99,48 +100,125 @@ extern "C" int Compile(const char *target_file_name, const char *cu_code, int us
     wf.write((char*)&targetSize, sizeof(size_t));
     wf.write(target, targetSize);
     wf.close();
+    
+    delete[] target;
 
     return 0;
 }
 
-
 template<typename TYPE>
-int launch_keops(const char *target_file_name, int tagHostDevice, int dimY, int nx, int ny,
+class context {
+    public :
+
+int current_device_id = -1;
+CUcontext ctx;
+CUmodule module;
+char *target;
+
+void SetDevice(int device_id) {
+
+    if (current_device_id != device_id) {
+
+        if(current_device_id != -1) {
+            
+            CUDA_SAFE_CALL(cuModuleUnload(module));
+            CUDA_SAFE_CALL(cuCtxDestroy(ctx));
+
+        }
+
+  
+        current_device_id = device_id;
+        CUdevice cuDevice;
+        
+        CUDA_SAFE_CALL(cuInit(0));
+        CUDA_SAFE_CALL(cuDeviceGet(&cuDevice, device_id));
+        
+        //CUDA_SAFE_CALL(cuDevicePrimaryCtxRetain(&ctx, cuDevice));
+        //CUDA_SAFE_CALL(cuCtxPushCurrent(ctx));
+        
+        CUDA_SAFE_CALL(cuCtxCreate(&ctx, 0, cuDevice));
+    
+        CUdeviceptr tmp;
+        cuMemAlloc(&tmp, 10);
+        cuMemFree(tmp);
+
+        SetGpuProps(device_id);
+        
+        //CUjit_option jitOptions[1];
+        //void* jitOptVals[1];
+        //jitOptions[0] = CU_JIT_TARGET;
+        //long targ_comp = 75;
+        //jitOptVals[0] = (void *)targ_comp;
+        
+        CUDA_SAFE_CALL(cuModuleLoadDataEx(&module, target, 0, NULL, NULL));
+
+    }
+
+}
+
+void Read_Target(const char *target_file_name) {
+
+    std::ifstream rf(target_file_name, std::ifstream::binary);
+    size_t targetSize;
+    rf.read((char*)&targetSize, sizeof(size_t));
+    
+    target = new char[targetSize];
+    rf.read(target, targetSize);
+    rf.close();
+
+}
+
+context(const char *target_file_name) {
+    
+
+    Read_Target(target_file_name);
+
+
+    //SetDevice(0);
+
+}
+
+~context() {
+
+    if(current_device_id != -1) {
+
+        CUDA_SAFE_CALL(cuModuleUnload(module));
+        CUDA_SAFE_CALL(cuCtxDestroy(ctx));
+
+
+    }
+    
+    delete[] target;
+
+}
+
+
+int launch_keops(int tagHostDevice, int dimY, int nx, int ny,
                  int device_id, int tagI, int tagZero, int use_half,
                  int tag1D2D, int dimred,
                  int cuda_block_size, int use_chunk_mode,
                  int *indsi, int *indsj, int *indsp,
                  int dimout,
                  int *dimsx, int *dimsy, int *dimsp,
-                 int **ranges, int *shapeout, TYPE *out, int nargs, TYPE **arg, int **argshape) {
+                 const std::vector<int*>& ranges_v,
+                 int *shapeout, void *out_void, int nargs, 
+                 const std::vector<void*>& arg_v,
+                 const std::vector<int*>& argshape_v
+                 ) {
 
+    int **ranges = (int**) ranges_v.data();
+    TYPE **arg = (TYPE**) arg_v.data();
+    int **argshape = (int**) argshape_v.data();
+    TYPE *out = (TYPE*) out_void;
     
-    clock_t A, B, begin, end;
-    A = clock();
 
-    CUdevice cuDevice;
-    CUcontext ctx;
-    
-    begin = clock();
-    CUDA_SAFE_CALL(cuInit(0));
-    CUDA_SAFE_CALL(cuDeviceGet(&cuDevice, device_id));
-    CUDA_SAFE_CALL(cuDevicePrimaryCtxRetain(&ctx, cuDevice));
-    CUDA_SAFE_CALL(cuCtxPushCurrent(ctx));
-
-    SetGpuProps(device_id);
-    end = clock();
-    std::cout << "time for cuda init : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
-    begin = clock();
+    SetDevice(device_id);
     
     Sizes<TYPE> SS(nargs, arg, argshape, nx, ny,
                    tagI, use_half,
                    dimout,
                    indsi, indsj, indsp,
                    dimsx, dimsy, dimsp);
-                   
-    end = clock();
-    std::cout << "time for Sizes : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
-    begin = clock();
     
     if (use_half)
         SS.switch_to_half2_indexing();
@@ -149,9 +227,6 @@ int launch_keops(const char *target_file_name, int tagHostDevice, int dimY, int 
     nx = SS.nx;
     ny = SS.ny;
     
-    end = clock();
-    std::cout << "time for Ranges : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
-    begin = clock();
 
     // now we switch (back...) indsi, indsj and dimsx, dimsy in case tagI=1.
     // This is to be consistent with the convention used in the old
@@ -191,10 +266,6 @@ int launch_keops(const char *target_file_name, int tagHostDevice, int dimY, int 
 
     __INDEX__ *lookup_d = NULL, *slices_x_d = NULL, *ranges_y_d = NULL;
     int *offsets_d = NULL;
-    
-    end = clock();
-    std::cout << "time for interm : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
-    begin = clock();
 
     if (RR.tagRanges==1) {
         if (tagHostDevice==1) {
@@ -210,10 +281,6 @@ int launch_keops(const char *target_file_name, int tagHostDevice, int dimY, int 
                          blockSize_x, indsi, indsj, indsp, SS.shapes);
         }
     }
-    
-    end = clock();
-    std::cout << "time for range_preprocess : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
-    begin = clock();
 
     CUdeviceptr p_data;
     TYPE *out_d;
@@ -224,37 +291,8 @@ int launch_keops(const char *target_file_name, int tagHostDevice, int dimY, int 
         load_args_FromDevice(p_data, out, out_d, nargs, arg, arg_d);
     else
         load_args_FromHost(p_data, out, out_d, nargs, arg, arg_d, argshape, sizeout);
-
-    end = clock();
-    std::cout << "time for load args : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
-    begin = clock();
-
-    char *target;
-    std::ifstream rf(target_file_name, std::ifstream::binary);
-    size_t targetSize;
-    rf.read((char*)&targetSize, sizeof(size_t));
-    target = new char[targetSize];
-    rf.read(target, targetSize);
-    rf.close();
     
-    end = clock();
-    std::cout << "time for reading : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
-    begin = clock();
-    
-    CUmodule module;
     CUfunction kernel;
-
-    //CUjit_option jitOptions[1];
-    //void* jitOptVals[1];
-    //jitOptions[0] = CU_JIT_TARGET;
-    //long targ_comp = 75;
-    //jitOptVals[0] = (void *)targ_comp;
-    
-    CUDA_SAFE_CALL(cuModuleLoadDataEx(&module, target, 0, NULL, NULL));
-    
-    end = clock();
-    std::cout << "time for loading kernel : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
-    begin = clock();
     
     int gridSize_x = 1, gridSize_y = 1, gridSize_z = 1;
 
@@ -359,25 +397,11 @@ int launch_keops(const char *target_file_name, int tagHostDevice, int dimY, int 
     }
     
     CUDA_SAFE_CALL(cuCtxSynchronize());
-    
-    end = clock();
-    std::cout << "time for exec kernel : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
-    begin = clock();
-
-    CUDA_SAFE_CALL(cuModuleUnload(module));
-    
-    end = clock();
-    std::cout << "time for unloading kernel : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
-    begin = clock();
 
     // Send data from device to host.
 
     if (tagHostDevice == 0)
         cuMemcpyDtoH(out, (CUdeviceptr) out_d, sizeof(TYPE) * sizeout);
-
-    end = clock();
-    std::cout << "time for copying result : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
-    begin = clock();
     
     cuMemFree(p_data);
     if (RR.tagRanges == 1) {
@@ -388,107 +412,11 @@ int launch_keops(const char *target_file_name, int tagHostDevice, int dimY, int 
             cuMemFree((CUdeviceptr) offsets_d);
     }
     
-    end = clock();
-    std::cout << "time for freeing memory : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
-    begin = clock();
-
-    B = clock();
-    std::cout << "total time : " << double(B - A) / CLOCKS_PER_SEC << std::endl;
-
     return 0;
 }
 
-
-extern "C" int launch_keops_float(const char *target_file_name, int tagHostDevice, int dimY, int nx, int ny,
-                                  int device_id, int tagI, int tagZero, int use_half,
-                                  int tag1D2D, int dimred,
-                                  int cuda_block_size, int use_chunk_mode,
-                                  int *indsi, int *indsj, int *indsp,
-                                  int dimout,
-                                  int *dimsx, int *dimsy, int *dimsp,
-                                  int **ranges, int *shapeout, float *out, int nargs, ...) {
-    // reading arguments
-    va_list ap;
-    va_start(ap, nargs);
-    float *arg[nargs];
-    for (int i = 0; i < nargs; i++)
-        arg[i] = va_arg(ap, float*);
-    int *argshape[nargs];
-    for (int i = 0; i < nargs; i++)
-        argshape[i] = va_arg(ap, int*);
-    va_end(ap);
-
-    return launch_keops(target_file_name, tagHostDevice, dimY, nx, ny, device_id, tagI, tagZero, use_half,
-                        tag1D2D, dimred,
-                        cuda_block_size, use_chunk_mode,
-                        indsi, indsj, indsp,
-                        dimout,
-                        dimsx, dimsy, dimsp,
-                        ranges, shapeout, out, nargs, arg, argshape);
-
-}
+};
 
 
+template class context<float>;
 
-
-
-extern "C" int launch_keops_double(const char *target_file_name, int tagHostDevice, int dimY, int nx, int ny,
-                                   int device_id, int tagI, int tagZero, int use_half,
-                                   int tag1D2D, int dimred,
-                                   int cuda_block_size, int use_chunk_mode,
-                                   int *indsi, int *indsj, int *indsp,
-                                   int dimout,
-                                   int *dimsx, int *dimsy, int *dimsp,
-                                   int **ranges, int *shapeout, double *out, int nargs, ...) {
-    // reading arguments
-    va_list ap;
-    va_start(ap, nargs);
-    double *arg[nargs];
-    for (int i = 0; i < nargs; i++)
-        arg[i] = va_arg(ap, double*);
-    int *argshape[nargs];
-    for (int i = 0; i < nargs; i++)
-        argshape[i] = va_arg(ap, int*);
-    va_end(ap);
-
-    return launch_keops(target_file_name, tagHostDevice, dimY, nx, ny, device_id, tagI, tagZero, use_half,
-                        tag1D2D, dimred,
-                        cuda_block_size, use_chunk_mode,
-                        indsi, indsj, indsp,
-                        dimout,
-                        dimsx, dimsy, dimsp,
-                        ranges, shapeout, out, nargs, arg, argshape);
-
-}
-
-
-
-
-extern "C" int launch_keops_half(const char *target_file_name, int tagHostDevice, int dimY, int nx, int ny,
-                                 int device_id, int tagI, int tagZero, int use_half,
-                                 int tag1D2D, int dimred,
-                                 int cuda_block_size, int use_chunk_mode,
-                                 int *indsi, int *indsj, int *indsp,
-                                 int dimout,
-                                 int *dimsx, int *dimsy, int *dimsp,
-                                 int **ranges, int *shapeout, half2 *out, int nargs, ...) {
-    // reading arguments
-    va_list ap;
-    va_start(ap, nargs);
-    half2 *arg[nargs];
-    for (int i = 0; i < nargs; i++)
-        arg[i] = va_arg(ap, half2*);
-    int *argshape[nargs];
-    for (int i = 0; i < nargs; i++)
-        argshape[i] = va_arg(ap, int*);
-    va_end(ap);
-
-    return launch_keops(target_file_name, tagHostDevice, dimY, nx, ny, device_id, tagI, tagZero, use_half,
-                        tag1D2D, dimred,
-                        cuda_block_size, use_chunk_mode,
-                        indsi, indsj, indsp,
-                        dimout,
-                        dimsx, dimsy, dimsp,
-                        ranges, shapeout, out, nargs, arg, argshape);
-
-}

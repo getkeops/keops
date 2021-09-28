@@ -1,31 +1,16 @@
 from pykeops.common.get_keops_routine import get_keops_routine
 from ctypes import c_int, c_void_p
-import numpy as np
 from functools import reduce
-import time
 from keops.utils.code_gen_utils import get_hash_name
+from array import array
 
 class LoadKeOps_class:
-    @staticmethod
-    def numpy_array2ctypes(x):
-        return dict(data=c_void_p(x.ctypes.data), type=c_void_p)
 
-    @staticmethod
-    def ranges2ctype(ranges, array2ctypes):
-        ranges_ctype = list(array2ctypes(r) for r in ranges)
-        ranges_ctype = (c_void_p * 7)(*(r["data"] for r in ranges_ctype))
-        return ranges_ctype
-
-    empty_ranges = (np.array([-1], dtype="int32"),) * 7
-    empty_ranges_ctype = ranges2ctype.__func__(
-        empty_ranges, numpy_array2ctypes.__func__
-    )
+    empty_ranges = [array("i", [-1])] * 7
 
     def __init__(
         self, formula, aliases, dtype, lang, optional_flags=[], include_dirs=[]
     ):
-        
-        start = time.time()
         
         aliases_new = []
         for k, alias in enumerate(aliases):
@@ -51,10 +36,6 @@ class LoadKeOps_class:
         self.red_formula_string = formula
         self.dtype = dtype
         
-        end = time.time()
-        print("keops_io init, part 1 :", end-start)
-        start = time.time()
-        
         self.c_dtype_acc = optional_flags["dtype_acc"]
         
         self.sum_scheme = optional_flags["sum_scheme"]
@@ -71,9 +52,6 @@ class LoadKeOps_class:
         elif self.lang == "numpy":
             from pykeops.numpy.utils import numpytools
             self.tools = numpytools
-        
-        end = time.time()
-        print("keops_io init, part 2 :", end-start)
 
     def genred(
         self,
@@ -89,30 +67,16 @@ class LoadKeOps_class:
         *args,
     ):
 
-        start = time.time()
-
         nargs = len(args)
         device_type, device_index = self.tools.device_type_index(args[0])
         
-        end = time.time()
-        print("keops_io call, part 0a :", end-start)
-        start = time.time()
-        
         dtype = self.tools.dtype(args[0])
         dtypename = self.tools.dtypename(dtype)
-        
-        end = time.time()
-        print("keops_io call, part 0b :", end-start)
-        start = time.time()
         
         if self.dtype not in ["auto", dtypename]:
             print(
                 "[KeOps] warning : setting a dtype argument in Genred different from the input dtype of tensors is not permitted anymore, argument is ignored."
             )
-        
-        end = time.time()
-        print("keops_io call, part 0c :", end-start)
-        start = time.time()
         
         if dtypename == "float32":
             c_dtype = "float"
@@ -125,10 +89,6 @@ class LoadKeOps_class:
             use_half = True
         else:
             raise ValueError("not implemented")
-        
-        end = time.time()
-        print("keops_io call, part 0d :", end-start)
-        start = time.time()
 
         if not self.c_dtype_acc:
             self.c_dtype_acc = c_dtype
@@ -169,11 +129,8 @@ class LoadKeOps_class:
         nbatchdims = max(len(arg.shape) for arg in args) - 2
         if nbatchdims > 0 or ranges:
             map_reduce_id += "_ranges"
-
-        end = time.time()
-        print("keops_io call, part 1 :", end-start)
-        start = time.time()
         
+                
         myfun = get_keops_routine(
             map_reduce_id,
             self.red_formula_string,
@@ -191,31 +148,22 @@ class LoadKeOps_class:
             use_half,
             device_id_request,
         )
-        
-        end = time.time()
-        print("keops_io call, part 2 :", end-start)
-        start = time.time()
 
         self.tagIJ = myfun.tagI
         self.dimout = myfun.dim
 
-        # get ranges argument as ctypes
+        # get ranges argument
         if not ranges:
-            ranges_ctype = self.empty_ranges_ctype
+            ranges = self.empty_ranges
         else:
-            ranges = (*ranges, self.tools.array([r.shape[0] for r in ranges], dtype="int32"))
-            ranges_ctype = self.ranges2ctype(ranges, self.tools.ctypes)
+            ranges = [*ranges, self.tools.array([r.shape[0] for r in ranges], dtype="int32")]
+            
+        args_ptr = [c_void_p(arg.data_ptr()) for arg in args]
 
-        # convert arguments arrays to ctypes
-        args_ctype = [self.tools.ctypes(arg) for arg in args]
+        # get all shapes of arguments
+        argshapes = [array("i", (len(arg.shape),) + arg.shape) for arg in args]
 
-        # get all shapes of arguments as ctypes
-        argshapes_ctype = [
-            (c_int * (len(arg.shape) + 1))(*((len(arg.shape),) + arg.shape))
-            for arg in args
-        ]
-
-        # initialize output array and converting to ctypes
+        # initialize output array
 
         M = nx if myfun.tagI == 0 else ny
 
@@ -234,16 +182,9 @@ class LoadKeOps_class:
             shapeout = (M, myfun.dim)
 
         out = self.tools.empty(shapeout, dtype=dtype, device_type=device_type, device_index=device_index)
+        out_ptr = c_void_p(out.data_ptr())
 
-        outshape_ctype = (c_int * (len(out.shape) + 1))(
-            *((len(out.shape),) + out.shape)
-        )
-
-        out_ctype = self.tools.ctypes(out)
-        
-        end = time.time()
-        print("keops_io call, part 3 :", end-start)
-        start = time.time()
+        outshape = array("i", (len(out.shape),) + out.shape)
 
         # call the routine
         myfun(
@@ -252,20 +193,17 @@ class LoadKeOps_class:
             ny,
             tagHostDevice,
             device_id_request,
-            ranges_ctype,
-            outshape_ctype,
-            out_ctype,
-            args_ctype,
-            argshapes_ctype,
+            ranges,
+            outshape,
+            out_ptr,
+            args_ptr,
+            argshapes,
         )
 
         if dtypename == "float16":
             from pykeops.torch.half2_convert import postprocess_half2
 
             out = postprocess_half2(out, tag_dummy, reduction_op, N)
-        
-        end = time.time()
-        print("keops_io call, part 4 :", end-start)
 
         return out
 
@@ -298,8 +236,4 @@ class create_or_load:
         return res
 
 def LoadKeOps(*args):    
-    start = time.time()
-    res = create_or_load()(LoadKeOps_class, *args)
-    end = time.time()
-    print("LoadKeOps init:", end-start)
-    return res
+    return create_or_load()(LoadKeOps_class, *args)

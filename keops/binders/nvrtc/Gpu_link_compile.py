@@ -24,11 +24,12 @@ class Gpu_link_compile(LinkCompile):
     # these were used for command line compiling mode
     # compiler = "nvcc"
     # compile_options = ["-shared", "-Xcompiler -fPIC", "-O3"]
+    
+    ngpu, gpu_props_compile_flags = get_gpu_props()
 
     def __init__(self):
         # checking that the system has a Gpu :
-        ngpu, self.gpu_props_compile_flags = get_gpu_props()
-        if not (cuda_available and ngpu):
+        if not (cuda_available and Gpu_link_compile.ngpu):
             KeOps_Error(
                 "Trying to compile cuda code... but we detected that the system has no properly configured cuda lib."
             )
@@ -66,17 +67,17 @@ class Gpu_link_compile(LinkCompile):
         self.tagI = self.red_formula.tagI
         self.dim = self.red_formula.dim
 
-    def compile_jit_binary(self):
-        # Returns the path to the main KeOps binary (dll) that will be used to JIT compile all formulas.
+    @staticmethod
+    def compile_jit_binary():
+        # This is about the main KeOps binary (dll) that will be used to JIT compile all formulas.
         # If the dll is not present, it compiles it from source, except if check_compile is False.
-
         if not os.path.exists(jit_binary):
             KeOps_Message("Compiling main dll ... ", flush=True, end="")
-            target_tag = "CUBIN" if self.target_prefix=="cubin_" else "PTX"
+            target_tag = "CUBIN" if Gpu_link_compile.target_prefix=="cubin_" else "PTX"
             nvrtcGetTARGET = "nvrtcGet" + target_tag
             nvrtcGetTARGETSize = nvrtcGetTARGET + "Size"
-            arch_tag = '\\\"sm\\\"' if self.target_prefix=="cubin_" else '\\\"compute\\\"'
+            arch_tag = '\\\"sm\\\"' if Gpu_link_compile.target_prefix=="cubin_" else '\\\"compute\\\"'
             target_type_define = f"-DnvrtcGetTARGET={nvrtcGetTARGET} -DnvrtcGetTARGETSize={nvrtcGetTARGETSize} -DARCHTAG={arch_tag}" 
-            jit_compile_command = f"{cxx_compiler} {nvrtc_flags} {target_type_define} {nvrtc_include} {self.gpu_props_compile_flags} {jit_source_file} -o {jit_binary}"
+            jit_compile_command = f"{cxx_compiler} {nvrtc_flags} {target_type_define} {nvrtc_include} {Gpu_link_compile.gpu_props_compile_flags} {jit_source_file} -o {jit_binary}"
             os.system(jit_compile_command)
             print("OK", flush=True)
