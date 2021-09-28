@@ -27,6 +27,9 @@ if use_cuda:
 
     cppyy.include("/usr/local/cuda/include/nvrtc.h")
     cppyy.include("/usr/local/cuda/include/cuda.h")
+    
+    cppyy.load_library("cuda")
+    cppyy.load_library("nvrtc")
 
     cppyy.cppdef("""
 template <typename TYPE>
