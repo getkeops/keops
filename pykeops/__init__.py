@@ -16,6 +16,8 @@ with open(
 from keops import get_build_folder, set_build_folder
 from keops.config.config import use_cuda
 
+default_device_id = 0       # default Gpu device number
+
 if use_cuda:
     from keops.binders.nvrtc.Gpu_link_compile import Gpu_link_compile
     Gpu_link_compile.compile_jit_binary()
@@ -34,6 +36,7 @@ int current_device_id;
 CUcontext ctx;
 CUmodule module;
 char *target;
+CUdeviceptr buffer;
 void SetDevice(int device_id);
 void Read_Target(const char *target_file_name);
 context(const char *target_file_name);

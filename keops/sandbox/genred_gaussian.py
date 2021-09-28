@@ -26,9 +26,6 @@ if do_warmup:
     fun(x[: min(M, 100), :], y[: min(N, 100), :], b[: min(N, 100), :])
     fun(x[: min(M, 100), :], y[: min(N, 100), :], b[: min(N, 100), :])
     
-print()
-print()
-    
 start = time.time()
 fun(x, y, b)
 end = time.time()

@@ -1,17 +1,32 @@
-from pykeops.common.get_keops_routine import get_keops_routine
+from pykeops.common.parse_type import parse_dtype_acc
 from ctypes import c_int, c_void_p
 from functools import reduce
-from keops.utils.code_gen_utils import get_hash_name
 from array import array
+import time
+from keops.get_keops_dll import get_keops_dll
+import cppyy
+import numpy as np
+from keops.config.config import get_build_folder
+import os
+import pickle
+import types
 
 class LoadKeOps_class:
 
     empty_ranges = [array("i", [-1])] * 7
 
-    def __init__(
-        self, formula, aliases, dtype, lang, optional_flags=[], include_dirs=[]
+    def __init__(self, *args, fast_init=False):
+        if fast_init:
+            self.params = args[0]
+        else:
+            self.init(*args)
+        self.init_phase2()
+
+    def init(
+        self, tagCPUGPU, tag1D2D, tagHostDevice, use_ranges, device_id_request,
+        formula, aliases, nargs, dtype, lang, optional_flags
     ):
-        
+
         aliases_new = []
         for k, alias in enumerate(aliases):
             alias = alias.replace(" ", "")
@@ -30,132 +45,158 @@ class LoadKeOps_class:
                     ind, dim = eval(alias_args[0]), eval(alias_args[1])
                 alias = f"{varname}=Var({ind},{dim},{cat})"
                 aliases_new.append(alias)
-        self.aliases_old = aliases
-        self.aliases = aliases_new
-        self.lang = lang
-        self.red_formula_string = formula
-        self.dtype = dtype
         
-        self.c_dtype_acc = optional_flags["dtype_acc"]
-        
-        self.sum_scheme = optional_flags["sum_scheme"]
+        params = types.SimpleNamespace()
+        params.aliases_old = aliases
+        params.aliases = aliases_new
+        params.lang = lang
+        params.red_formula_string = formula
+        params.dtype = dtype
+        dtype_acc = optional_flags["dtype_acc"]
+        dtype_acc = parse_dtype_acc(dtype_acc, dtype)
 
-        self.enable_chunks = optional_flags["enable_chunks"]
+        params.c_dtype_acc = dtype_acc
+        
+        params.sum_scheme = optional_flags["sum_scheme"]
 
-        self.enable_final_chunks = -1
-        
-        self.mult_var_highdim = optional_flags["multVar_highdim"]
-        
-        if self.lang == "torch":
-            from pykeops.torch.utils import torchtools
-            self.tools = torchtools
-        elif self.lang == "numpy":
-            from pykeops.numpy.utils import numpytools
-            self.tools = numpytools
+        params.enable_chunks = optional_flags["enable_chunks"]
 
-    def genred(
-        self,
-        tagCPUGPU,
-        tag1D2D,
-        tagHostDevice,
-        device_id_request,
-        ranges,
-        nx,
-        ny,
-        axis,
-        reduction_op,
-        *args,
-    ):
+        params.enable_final_chunks = -1
+        
+        params.mult_var_highdim = optional_flags["multVar_highdim"]
 
-        nargs = len(args)
-        device_type, device_index = self.tools.device_type_index(args[0])
+        params.tagHostDevice = tagHostDevice
         
-        dtype = self.tools.dtype(args[0])
-        dtypename = self.tools.dtypename(dtype)
         
-        if self.dtype not in ["auto", dtypename]:
-            print(
-                "[KeOps] warning : setting a dtype argument in Genred different from the input dtype of tensors is not permitted anymore, argument is ignored."
-            )
+
         
-        if dtypename == "float32":
-            c_dtype = "float"
-            use_half = False
-        elif dtypename == "float64":
-            c_dtype = "double"
-            use_half = False
-        elif dtypename == "float16":
-            c_dtype = "half2"
-            use_half = True
+        
+        if dtype == "float32":
+            params.c_dtype = "float"
+            params.use_half = False
+        elif dtype == "float64":
+            params.c_dtype = "double"
+            params.use_half = False
+        elif dtype == "float16":
+            params.c_dtype = "half2"
+            params.use_half = True
         else:
             raise ValueError("not implemented")
 
-        if not self.c_dtype_acc:
-            self.c_dtype_acc = c_dtype
-
-        if dtypename == "float16":
-            from pykeops.torch.half2_convert import preprocess_half2
-
-            args, ranges, tag_dummy, N = preprocess_half2(
-                args, self.aliases_old, axis, ranges, nx, ny
-            )
-
+        if not params.c_dtype_acc:
+            params.c_dtype_acc = params.c_dtype
+        
         if tagCPUGPU == 0:
             map_reduce_id = "CpuReduc"
         else:
             map_reduce_id = "GpuReduc"
             map_reduce_id += "1D" if tag1D2D == 0 else "2D"
-
-        if device_type == "cpu":
-            device_id_args = -1
-        else:
-            device_id_args = device_index
-
-        if (
-            device_id_request != -1
-            and device_id_args != -1
-            and device_id_request != device_id_args
-        ):
-            raise ValueError("[KeOps] internal error : code needs some cleaning...")
-
-        if device_id_request == -1:
-            if device_id_args == -1:
-                device_id_request = 0
-            else:
-                device_id_request = device_id_args
-
-        # detect the need for using "ranges" method
-        # N.B. we assume here that there is at least a cat=0 or cat=1 variable in the formula...
-        nbatchdims = max(len(arg.shape) for arg in args) - 2
-        if nbatchdims > 0 or ranges:
+  
+        if use_ranges:
             map_reduce_id += "_ranges"
-        
-                
-        myfun = get_keops_routine(
+
+
+        (
+            params.dllname,
+            params.low_level_code_file,
+            params.tagI,
+            params.tagZero,
+            params.use_half,
+            params.cuda_block_size,
+            params.use_chunk_mode,
+            params.tag1D2D,
+            params.dimred,
+            params.dim,
+            params.dimy,
+            indsi,
+            indsj,
+            indsp,
+            dimsx,
+            dimsy,
+            dimsp,
+        ) = get_keops_dll(
             map_reduce_id,
-            self.red_formula_string,
-            self.enable_chunks,
-            self.enable_final_chunks,
-            self.mult_var_highdim,
-            self.aliases,
+            params.red_formula_string,
+            params.enable_chunks,
+            params.enable_final_chunks,
+            params.mult_var_highdim,
+            params.aliases,
             nargs,
-            c_dtype,
-            self.c_dtype_acc,
-            self.sum_scheme,
-            tagHostDevice,
+            params.c_dtype,
+            params.c_dtype_acc,
+            params.sum_scheme,
+            params.tagHostDevice,
             tagCPUGPU,
             tag1D2D,
-            use_half,
-            device_id_request,
+            params.use_half,
+            device_id_request
         )
 
-        self.tagIJ = myfun.tagI
-        self.dimout = myfun.dim
+        
+        # now we switch indsi, indsj and dimsx, dimsy in case tagI=1.
+        # This is to be consistent with the convention used in the old
+        # bindings (see functions GetIndsI, GetIndsJ, GetDimsX, GetDimsY
+        # from file binder_interface.h. Clearly we could do better if we
+        # carefully rewrite some parts of the code
+        if params.tagI == 1:
+            indsi, indsj = indsj, indsi
+            dimsx, dimsy = dimsy, dimsx
+        
+        params.indsi = array("i", (len(indsi),) + indsi)
+        params.indsj = array("i", (len(indsj),) + indsj)
+        params.indsp = array("i", (len(indsp),) + indsp)
+        params.dimsx = array("i", (len(dimsx),) + dimsx)
+        params.dimsy = array("i", (len(dimsy),) + dimsy)
+        params.dimsp = array("i", (len(dimsp),) + dimsp)
+
+        self.params = params
+
+    def init_phase2(self):
+        params = self.params
+        if params.lang == "torch":
+            from pykeops.torch.utils import torchtools
+            self.tools = torchtools
+        elif params.lang == "numpy":
+            from pykeops.numpy.utils import numpytools
+            self.tools = numpytools
+
+        if params.low_level_code_file == "none":
+            raise ValueError("cpu not implemented yet")
+            cppyy.load_library(params.dllname)
+        else:
+            self.dll = cppyy.gbl.context["float"](params.low_level_code_file)
+
+    def genred(
+        self,
+        device_id_request,
+        ranges,
+        nx,
+        ny,
+        nbatchdims,
+        axis,
+        reduction_op,
+        *args,
+    ):
+
+        #start = time.time()
+
+        params = self.params
+
+        if params.use_half:
+            from pykeops.torch.half2_convert import preprocess_half2
+
+            args, ranges, tag_dummy, N = preprocess_half2(
+                args, params.aliases_old, axis, ranges, nx, ny
+            )
+
+        #tagIJ = params.tagI
+        #dimout = params.dim
 
         # get ranges argument
         if not ranges:
             ranges = self.empty_ranges
         else:
+            raise ValueError("ranges not implemented yet")
             ranges = [*ranges, self.tools.array([r.shape[0] for r in ranges], dtype="int32")]
             
         args_ptr = [c_void_p(arg.data_ptr()) for arg in args]
@@ -165,9 +206,9 @@ class LoadKeOps_class:
 
         # initialize output array
 
-        M = nx if myfun.tagI == 0 else ny
+        M = nx if params.tagI == 0 else ny
 
-        if use_half:
+        if params.use_half:
             M += M % 2
 
         if nbatchdims:
@@ -177,33 +218,74 @@ class LoadKeOps_class:
             tmp = reduce(
                 np.maximum, batchdims_shapes
             )  # this is faster than np.max(..., axis=0)
-            shapeout = tuple(tmp) + (M, myfun.dim)
+            shapeout = tuple(tmp) + (M, params.dim)
         else:
-            shapeout = (M, myfun.dim)
+            shapeout = (M, params.dim)
 
-        out = self.tools.empty(shapeout, dtype=dtype, device_type=device_type, device_index=device_index)
+        if device_id_request==-1:
+            device_type, device_index = "cpu", None
+        else:
+            device_type, device_index = "cuda", device_id_request
+        out = self.tools.empty(shapeout, dtype=args[0].dtype, device_type=device_type, device_index=device_index)
         out_ptr = c_void_p(out.data_ptr())
 
         outshape = array("i", (len(out.shape),) + out.shape)
 
-        # call the routine
-        myfun(
-            c_dtype,
+        nargs = len(args_ptr)
+        if params.c_dtype == "float":
+            launch_keops = self.dll.launch_keops
+        elif params.c_dtype == "double":
+            launch_keops = self.dll.launch_keops_double
+        elif params.c_dtype == "half2":
+            launch_keops = self.dll.launch_keops_half
+        else:
+            raise ValueError(
+                "dtype", params.c_dtype, "not yet implemented in new KeOps engine"
+            )
+        
+        #end = time.time()
+        #print("elapsed, before launch : ", end-start)
+        #start = time.time()
+        
+        launch_keops(
+            params.tagHostDevice,
+            params.dimy,
             nx,
             ny,
-            tagHostDevice,
             device_id_request,
+            params.tagI,
+            params.tagZero,
+            params.use_half,
+            params.tag1D2D,
+            params.dimred,
+            params.cuda_block_size,
+            params.use_chunk_mode,
+            params.indsi,
+            params.indsj,
+            params.indsp,
+            params.dim,
+            params.dimsx,
+            params.dimsy,
+            params.dimsp,
             ranges,
             outshape,
             out_ptr,
+            nargs,
             args_ptr,
-            argshapes,
+            argshapes
         )
 
-        if dtypename == "float16":
+        #end = time.time()
+        #print("elapsed, launch : ", end-start)
+        #start = time.time()
+
+        if params.dtype == "float16":
             from pykeops.torch.half2_convert import postprocess_half2
 
             out = postprocess_half2(out, tag_dummy, reduction_op, N)
+
+        #end = time.time()
+        #print("elapsed, after launch : ", end-start)
 
         return out
 
@@ -213,6 +295,48 @@ class LoadKeOps_class:
     def import_module(self):
         return self
 
+
+class library:
+    
+    def __init__(self, cls, use_cache_file=False, save_folder="."):
+        self.cls = cls
+        self.library = {}
+        self.use_cache_file = use_cache_file
+        if use_cache_file:
+            self.cache_file = os.path.join(save_folder, cls.__name__+"_cache.pkl")
+            if os.path.isfile(self.cache_file):
+                f = open(self.cache_file, "rb")
+                self.library_params = pickle.load(f)
+                f.close()
+            else:
+                self.library_params = {}
+            import atexit
+            atexit.register(self.save_cache)
+        
+    def __call__(self, *args):
+        str_id = "".join(list(str(arg) for arg in args))
+        if not str_id in self.library:
+            if self.use_cache_file:
+                if str_id in self.library_params:
+                    params = self.library_params[str_id]
+                    self.library[str_id] = self.cls(params, fast_init=True)
+                else:
+                    obj = self.cls(*args)
+                    self.library_params[str_id] = obj.params
+                    self.library[str_id] = obj
+            else:
+                self.library[str_id] = self.cls(*args)
+        return self.library[str_id]
+
+    def save_cache(self):
+        f = open(self.cache_file, "wb")
+        pickle.dump(self.library_params, f)
+        f.close()
+
+
+
+library_LoadKeOps = library(LoadKeOps_class, use_cache_file=True, save_folder=get_build_folder())
+#library_LoadKeOps = library(LoadKeOps_class)
 
 class create_or_load:
     library = {}
@@ -224,7 +348,8 @@ class create_or_load:
         if cls_id not in create_or_load.library:
             create_or_load.library[cls_id] = {}
         cls_library = create_or_load.library[cls_id]
-        hash_name = get_hash_name(*args)
+        #hash_name = get_hash_name(*args)
+        hash_name = "".join(list(str(arg) for arg in args))
         
         if hash_name in cls_library:
             res = cls_library[hash_name]
@@ -235,5 +360,10 @@ class create_or_load:
         
         return res
 
-def LoadKeOps(*args):    
-    return create_or_load()(LoadKeOps_class, *args)
+def LoadKeOps(*args):   
+    #start = time.time() 
+    res = library_LoadKeOps(*args)
+    #res = create_or_load()(LoadKeOps_class, *args)
+    #end = time.time()
+    #print("elapsed, retrieve instance : ", end-start)
+    return res
