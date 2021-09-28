@@ -10,7 +10,6 @@
 #include <sstream>
 #include <stdarg.h>
 #include <vector>
-#include <ctime>
 
 #define __INDEX__ int
 #define C_CONTIGUOUS 1
@@ -88,8 +87,6 @@ extern "C" int Compile(const char *target_file_name, const char *cu_code, int us
     // Obtain PTX or CUBIN from the program.
     size_t targetSize;
     NVRTC_SAFE_CALL(nvrtcGetTARGETSize(prog, &targetSize));
-
-std::cout << "targetSize=" << targetSize << std::endl;
     
     char *target = new char[targetSize];
     NVRTC_SAFE_CALL(nvrtcGetTARGET(prog, target));
@@ -120,24 +117,15 @@ char *target;
 
 void SetDevice(int device_id) {
 
-std::cout << "here in SetDevice 1" << std::endl;
-
     if (current_device_id != device_id) {
 
-std::cout << "here in SetDevice 2" << std::endl;
-
         if(current_device_id != -1) {
-
-std::cout << "here in SetDevice 3" << std::endl;
             
             CUDA_SAFE_CALL(cuModuleUnload(module));
             CUDA_SAFE_CALL(cuCtxDestroy(ctx));
 
-std::cout << "here in SetDevice 4" << std::endl;
-
         }
 
-std::cout << "here in SetDevice 5" << std::endl;
   
         current_device_id = device_id;
         CUdevice cuDevice;
@@ -164,94 +152,46 @@ std::cout << "here in SetDevice 5" << std::endl;
         
         CUDA_SAFE_CALL(cuModuleLoadDataEx(&module, target, 0, NULL, NULL));
 
-std::cout << "here in SetDevice 6" << std::endl;
-
     }
-
-std::cout << "here in SetDevice 7" << std::endl;
 
 }
 
 void Read_Target(const char *target_file_name) {
 
-std::cout << "here in Read_Target 1" << std::endl;
-
     std::ifstream rf(target_file_name, std::ifstream::binary);
     size_t targetSize;
     rf.read((char*)&targetSize, sizeof(size_t));
-
-std::cout << "targetSize=" << targetSize << std::endl;
     
     target = new char[targetSize];
     rf.read(target, targetSize);
     rf.close();
 
-std::cout << "here in Read_Target 2" << std::endl;
-
 }
 
 context(const char *target_file_name) {
     
-std::cout << "here in context constructor 1" << std::endl;
 
     Read_Target(target_file_name);
 
-std::cout << "here in context constructor 2" << std::endl;
 
     //SetDevice(0);
 
-std::cout << "here in context constructor 3" << std::endl;
 }
 
 ~context() {
 
-std::cout << "here in context destructor 1" << std::endl;
-
     if(current_device_id != -1) {
-
-std::cout << "here in context destructor 2" << std::endl;
 
         CUDA_SAFE_CALL(cuModuleUnload(module));
         CUDA_SAFE_CALL(cuCtxDestroy(ctx));
 
-std::cout << "here in context destructor 3" << std::endl;
 
     }
     
     delete[] target;
 
-std::cout << "here in context destructor 4" << std::endl;
-
 }
 
-int launch_keops_dumb1() {
-    clock_t begin, end; 
-    begin = clock();
-    
-    end = clock();
-    std::cout << "time for dumb1 inner : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
-    return 0;
-}
-
-int launch_keops_dumb2(int tagHostDevice, int dimY, int nx, int ny,
-                 int device_id, int tagI, int tagZero, int use_half,
-                 int tag1D2D, int dimred,
-                 int cuda_block_size, int use_chunk_mode,
-                 int *indsi, int *indsj, int *indsp,
-                 int dimout,
-                 int *dimsx, int *dimsy, int *dimsp,
-                 const std::vector<int*>& ranges_v,
-                 int *shapeout, void *out_void, int nargs, 
-                 const std::vector<void*>& arg_v,
-                 const std::vector<int*>& argshape_v
-                 ) { 
-    clock_t begin, end; 
-    begin = clock();
-    
-    end = clock();
-    std::cout << "time for dumb2 inner : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
-    return 0;
-}
 
 int launch_keops(int tagHostDevice, int dimY, int nx, int ny,
                  int device_id, int tagI, int tagZero, int use_half,
@@ -271,25 +211,14 @@ int launch_keops(int tagHostDevice, int dimY, int nx, int ny,
     int **argshape = (int**) argshape_v.data();
     TYPE *out = (TYPE*) out_void;
     
-    clock_t A, B, begin, end;
-    A = clock();
-    
-    begin = clock();
 
     SetDevice(device_id);
-    end = clock();
-    std::cout << "time for cuda init : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
-    begin = clock();
     
     Sizes<TYPE> SS(nargs, arg, argshape, nx, ny,
                    tagI, use_half,
                    dimout,
                    indsi, indsj, indsp,
                    dimsx, dimsy, dimsp);
-                   
-    end = clock();
-    std::cout << "time for Sizes : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
-    begin = clock();
     
     if (use_half)
         SS.switch_to_half2_indexing();
@@ -298,9 +227,6 @@ int launch_keops(int tagHostDevice, int dimY, int nx, int ny,
     nx = SS.nx;
     ny = SS.ny;
     
-    end = clock();
-    std::cout << "time for Ranges : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
-    begin = clock();
 
     // now we switch (back...) indsi, indsj and dimsx, dimsy in case tagI=1.
     // This is to be consistent with the convention used in the old
@@ -340,10 +266,6 @@ int launch_keops(int tagHostDevice, int dimY, int nx, int ny,
 
     __INDEX__ *lookup_d = NULL, *slices_x_d = NULL, *ranges_y_d = NULL;
     int *offsets_d = NULL;
-    
-    end = clock();
-    std::cout << "time for interm : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
-    begin = clock();
 
     if (RR.tagRanges==1) {
         if (tagHostDevice==1) {
@@ -359,10 +281,6 @@ int launch_keops(int tagHostDevice, int dimY, int nx, int ny,
                          blockSize_x, indsi, indsj, indsp, SS.shapes);
         }
     }
-    
-    end = clock();
-    std::cout << "time for range_preprocess : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
-    begin = clock();
 
     CUdeviceptr p_data;
     TYPE *out_d;
@@ -373,10 +291,6 @@ int launch_keops(int tagHostDevice, int dimY, int nx, int ny,
         load_args_FromDevice(p_data, out, out_d, nargs, arg, arg_d);
     else
         load_args_FromHost(p_data, out, out_d, nargs, arg, arg_d, argshape, sizeout);
-
-    end = clock();
-    std::cout << "time for load args : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
-    begin = clock();
     
     CUfunction kernel;
     
@@ -483,19 +397,11 @@ int launch_keops(int tagHostDevice, int dimY, int nx, int ny,
     }
     
     CUDA_SAFE_CALL(cuCtxSynchronize());
-    
-    end = clock();
-    std::cout << "time for exec kernel : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
-    begin = clock();
 
     // Send data from device to host.
 
     if (tagHostDevice == 0)
         cuMemcpyDtoH(out, (CUdeviceptr) out_d, sizeof(TYPE) * sizeout);
-
-    end = clock();
-    std::cout << "time for copying result : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
-    begin = clock();
     
     cuMemFree(p_data);
     if (RR.tagRanges == 1) {
@@ -506,13 +412,6 @@ int launch_keops(int tagHostDevice, int dimY, int nx, int ny,
             cuMemFree((CUdeviceptr) offsets_d);
     }
     
-    end = clock();
-    std::cout << "time for freeing memory : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
-    begin = clock();
-
-    B = clock();
-    std::cout << "total time : " << double(B - A) / CLOCKS_PER_SEC << std::endl;
-
     return 0;
 }
 

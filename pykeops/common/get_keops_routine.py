@@ -1,6 +1,5 @@
 from keops.utils.code_gen_utils import get_hash_name
 from keops.get_keops_dll import get_keops_dll
-import time
 import cppyy
 from array import array
 
@@ -28,8 +27,6 @@ class create_or_load:
 
 class get_keops_routine_class:
     def __init__(self, map_reduce_id, *args):
-
-        start = time.time()
             
         (
             self.dllname,
@@ -56,10 +53,6 @@ class get_keops_routine_class:
             cppyy.load_library(self.dllname)
         else:
             self.dll = cppyy.gbl.context["float"](self.low_level_code_file)
-        
-        end = time.time()
-        print("get_keops_routine_class init, part 1 (get_keops_dll call) :", end-start)
-        start = time.time()
             
         # now we switch indsi, indsj and dimsx, dimsy in case tagI=1.
         # This is to be consistent with the convention used in the old
@@ -76,9 +69,6 @@ class get_keops_routine_class:
         self.dimsx = array("i", (len(dimsx),) + dimsx)
         self.dimsy = array("i", (len(dimsy),) + dimsy)
         self.dimsp = array("i", (len(dimsp),) + dimsp)
-        
-        end = time.time()
-        print("get_keops_routine_class init, part 2 :", end-start)
 
     def __call__(
         self,
@@ -94,7 +84,6 @@ class get_keops_routine_class:
         argshapes,
     ):
         
-        start = time.time()
         
         
 
@@ -109,56 +98,6 @@ class get_keops_routine_class:
             raise ValueError(
                 "dtype", c_dtype, "not yet implemented in new KeOps engine"
             )
-            
-        launch_keops_dumb1 = self.dll.launch_keops_dumb1
-        launch_keops_dumb2 = self.dll.launch_keops_dumb2
-        
-        
-        end = time.time()
-        print("get_keops_routine_class call, part 1 :", end-start)
-        print("**************")
-        start = time.time()
-        
-        
-        
-        launch_keops_dumb1()
-        
-        end = time.time()
-        print("launch keops dumb 1:", end-start)
-        start = time.time()
-        
-        
-        launch_keops_dumb2(
-            tagHostDevice,
-            self.dimy,
-            nx,
-            ny,
-            device_id,
-            self.tagI,
-            self.tagZero,
-            self.use_half,
-            self.tag1D2D,
-            self.dimred,
-            self.cuda_block_size,
-            self.use_chunk_mode,
-            self.indsi,
-            self.indsj,
-            self.indsp,
-            self.dim,
-            self.dimsx,
-            self.dimsy,
-            self.dimsp,
-            ranges,
-            outshape,
-            out,
-            nargs,
-            args,
-            argshapes
-        )
-        
-        end = time.time()
-        print("launch keops dumb 2:", end-start)
-        start = time.time()
         
         
         launch_keops(
@@ -189,15 +128,7 @@ class get_keops_routine_class:
             argshapes
         )
         
-        
-        end = time.time()
-        print("get_keops_routine_class call, part 2 (launch_keops call) :", end-start)
-        print("**************")
 
 
 def get_keops_routine(*args):   
-    start = time.time() 
-    res = create_or_load()(get_keops_routine_class, *args)
-    end = time.time()
-    print("get_keops_routine :", end-start)
-    return res
+    return create_or_load()(get_keops_routine_class, *args)
