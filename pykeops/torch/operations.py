@@ -10,8 +10,6 @@ from pykeops.common.parse_type import (
     get_optional_flags,
 )
 from pykeops.common.utils import axis2cat
-from pykeops.torch import default_dtype
-from pykeops.torch import include_dirs
 from pykeops.torch.generic.generic_red import GenredAutograd
 
 
@@ -53,7 +51,7 @@ class KernelSolveAutograd(torch.autograd.Function):
             optional_flags["multVar_highdim"] = 0
 
         myconv = LoadKeOps(
-            formula, aliases, dtype, "torch", optional_flags, include_dirs
+            formula, aliases, dtype, "torch", optional_flags
         ).import_module()
 
         # Context variables: save everything to compute the gradient:
@@ -341,8 +339,6 @@ class KernelSolve:
         aliases,
         varinvalias,
         axis=0,
-        dtype=default_dtype,
-        cuda_type=None,
         dtype_acc="auto",
         use_double_acc=False,
         sum_scheme="auto",
@@ -392,13 +388,6 @@ class KernelSolve:
                   - **axis** = 0: reduction with respect to :math:`i`, outputs a ``Vj`` or ":math:`j`" variable.
                   - **axis** = 1: reduction with respect to :math:`j`, outputs a ``Vi`` or ":math:`i`" variable.
 
-            dtype (string, default = ``"float32"``): Specifies the numerical ``dtype`` of the input and output arrays.
-                The supported values are:
-
-                  - **dtype** = ``"float16"`` or ``"half"``.
-                  - **dtype** = ``"float32"`` or ``"float"``.
-                  - **dtype** = ``"float64"`` or ``"double"``.
-
             dtype_acc (string, default ``"auto"``): type for accumulator of reduction, before casting to dtype.
                 It improves the accuracy of results in case of large sized data, but is slower.
                 Default value "auto" will set this option to the value of dtype. The supported values are:
@@ -424,9 +413,7 @@ class KernelSolve:
                                 with formulas involving large dimension variables.
 
         """
-        if cuda_type:
-            # cuda_type is just old keyword for dtype, so this is just a trick to keep backward compatibility
-            dtype = cuda_type
+
         self.reduction_op = "Sum"
 
         self.optional_flags = get_optional_flags(
