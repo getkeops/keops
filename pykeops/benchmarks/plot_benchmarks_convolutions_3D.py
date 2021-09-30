@@ -155,7 +155,7 @@ if use_cuda:
         problem_sizes=problem_sizes,
     )
 
-"""
+
 ##############################################
 # NumPy vs. PyTorch vs. KeOps (Cpu)
 # --------------------------------------------------------
@@ -197,5 +197,5 @@ if use_cuda:
     )
 
 
-"""
+
 plt.show()

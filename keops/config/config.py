@@ -61,11 +61,11 @@ disable_pragma_unrolls = True
 if use_OpenMP:
     import platform
     if platform.system() == "Darwin":
-        KeOps_Warning("OpenMP support is disabled on Mac")
-        use_OpenMP = False  # disabled currently, because hack below is unsafe..
-        # cpp_flags += " -Xclang -fopenmp -lomp "
-        # # warning : this is unsafe hack for OpenMP support on mac...
-        # os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
+        if not os.getenv('KMP_DUPLICATE_LIB_OK') == "TRUE":
+            KeOps_Warning("OpenMP support is disabled on Mac by default, see the doc for enabling it.")
+            use_OpenMP = False
+        else:
+            cpp_flags += " -Xclang -fopenmp -lomp "
     else:
         cpp_flags += " -fopenmp -fno-fat-lto-objects"
 

@@ -242,10 +242,6 @@ class KernelSolve:
 
         varinv = args[self.varinvpos]
 
-        if ranges is None:
-            ranges = ()  # ranges should be encoded as a tuple
-
-
         def linop(var):
             newargs = args[: self.varinvpos] + (var,) + args[self.varinvpos + 1 :]
             nx, ny = get_sizes(self.aliases, *newargs)

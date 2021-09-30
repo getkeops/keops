@@ -281,6 +281,7 @@ class Genred:
         # number of batch dimensions
         # N.B. we assume here that there is at least a cat=0 or cat=1 variable in the formula...
         nbatchdims = max(len(arg.shape) for arg in args) - 2
+        
         use_ranges = (nbatchdims > 0 or ranges)
 
         dtype = args[0].dtype.__str__()
@@ -292,9 +293,6 @@ class Genred:
             self.formula, self.aliases, len(args), dtype, "numpy", self.optional_flags
         ).import_module()
 
-        if ranges is None:
-            ranges = ()  # To keep the same type
-
         # N.B.: KeOps C++ expects contiguous data arrays
         test_contig = all(arg.flags["C_CONTIGUOUS"] for arg in args)
         if not test_contig:
@@ -305,7 +303,8 @@ class Genred:
             args = tuple(np.ascontiguousarray(arg) for arg in args)
 
         # N.B.: KeOps C++ expects contiguous integer arrays as ranges
-        ranges = tuple(np.ascontiguousarray(r) for r in ranges)
+        if ranges:
+            ranges = tuple(np.ascontiguousarray(r) for r in ranges)
 
         nx, ny = get_sizes(self.aliases, *args)
         nout, nred = (nx, ny) if self.axis == 1 else (ny, nx)
@@ -315,11 +314,11 @@ class Genred:
             # if nred is greater than 16 millions and dtype=float32, the result is not reliable
             # because we encode indices as floats, so we raise an exception ;
             # same with float16 type and nred>2048
-            if nred > 1.6e7 and self.dtype in ("float32", "float"):
+            if nred > 1.6e7 and dtype in ("float32", "float"):
                 raise ValueError(
                     "size of input array is too large for Arg type reduction with single precision. Use double precision."
                 )
-            elif nred > 2048 and self.dtype in ("float16", "half"):
+            elif nred > 2048 and dtype in ("float16", "half"):
                 raise ValueError(
                     "size of input array is too large for Arg type reduction with float16 dtype.."
                 )

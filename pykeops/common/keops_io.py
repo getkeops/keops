@@ -12,8 +12,9 @@ import pickle
 import types
 
 class LoadKeOps_class:
-
-    empty_ranges = [array("i", [-1])] * 7
+    
+    null_range = np.array([-1], dtype='int32')
+    empty_ranges = [c_void_p(null_range.__array_interface__['data'][0])] * 7
 
     def __init__(self, *args, fast_init=False):
         if fast_init:
@@ -149,6 +150,8 @@ class LoadKeOps_class:
         params.dimsx = array("i", (len(dimsx),) + dimsx)
         params.dimsy = array("i", (len(dimsy),) + dimsy)
         params.dimsp = array("i", (len(dimsp),) + dimsp)
+        
+        params.tagCPUGPU = tagCPUGPU
 
         self.params = params
 
@@ -161,11 +164,20 @@ class LoadKeOps_class:
             from pykeops.numpy.utils import numpytools
             self.tools = numpytools
 
-        if params.low_level_code_file == b"none":
-            raise ValueError("cpu not implemented yet")
+        if params.tagCPUGPU==0:
             cppyy.load_library(params.dllname)
+            launch_keops_fun_name = "launch_keops_cpu_"+os.path.basename(params.dllname).split('.')[0]
+            cppyy.cppdef(f"""
+                            int {launch_keops_fun_name}(int nx, int ny, int tagI, int use_half,
+                                                     const std::vector<void*>& ranges_v,
+                                                     void *out_void, int nargs, 
+                                                     const std::vector<void*>& arg_v,
+                                                     const std::vector<int*>& argshape_v);                         
+            """)
+            self.launch_keops_cpu = getattr(cppyy.gbl, launch_keops_fun_name)
         else:
             self.dll = cppyy.gbl.context[params.c_dtype](params.low_level_code_file)
+            self.launch_keops = self.dll.launch_keops
 
     def genred(
         self,
@@ -196,10 +208,11 @@ class LoadKeOps_class:
 
         # get ranges argument
         if not ranges:
-            ranges = self.empty_ranges
+            ranges_ptr = self.empty_ranges
         else:
-            raise ValueError("ranges not implemented yet")
-            ranges = [*ranges, self.tools.array([r.shape[0] for r in ranges], dtype="int32")]
+            ranges_shapes = self.tools.array([r.shape[0] for r in ranges], dtype="int32", device="cpu")
+            ranges = [*ranges, ranges_shapes]
+            ranges_ptr = [c_void_p(self.tools.get_pointer(r)) for r in ranges]
             
         args_ptr = [c_void_p(self.tools.get_pointer(arg)) for arg in args]
 
@@ -230,39 +243,51 @@ class LoadKeOps_class:
         outshape = array("i", (len(out.shape),) + out.shape)
 
         nargs = len(args_ptr)
-        launch_keops = self.dll.launch_keops
         
         #end = time.time()
         #print("elapsed, before launch : ", end-start)
         #start = time.time()
         
-        launch_keops(
-            params.tagHostDevice,
-            params.dimy,
-            nx,
-            ny,
-            device_id_request,
-            params.tagI,
-            params.tagZero,
-            params.use_half,
-            params.tag1D2D,
-            params.dimred,
-            params.cuda_block_size,
-            params.use_chunk_mode,
-            params.indsi,
-            params.indsj,
-            params.indsp,
-            params.dim,
-            params.dimsx,
-            params.dimsy,
-            params.dimsp,
-            ranges,
-            outshape,
-            out_ptr,
-            nargs,
-            args_ptr,
-            argshapes
-        )
+        if params.tagCPUGPU==0:
+            self.launch_keops_cpu(
+                nx,
+                ny,
+                params.tagI,
+                params.use_half,
+                ranges_ptr,
+                out_ptr,
+                nargs,
+                args_ptr,
+                argshapes
+            )
+        else:
+            self.launch_keops(
+                params.tagHostDevice,
+                params.dimy,
+                nx,
+                ny,
+                device_id_request,
+                params.tagI,
+                params.tagZero,
+                params.use_half,
+                params.tag1D2D,
+                params.dimred,
+                params.cuda_block_size,
+                params.use_chunk_mode,
+                params.indsi,
+                params.indsj,
+                params.indsp,
+                params.dim,
+                params.dimsx,
+                params.dimsy,
+                params.dimsp,
+                ranges,
+                outshape,
+                out_ptr,
+                nargs,
+                args_ptr,
+                argshapes
+            )
 
         #end = time.time()
         #print("elapsed, launch : ", end-start)

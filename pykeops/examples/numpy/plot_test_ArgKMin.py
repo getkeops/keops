@@ -44,7 +44,7 @@ variables = [
 
 # N.B.: The number K is specified as an optional argument `opt_arg`
 my_routine = Genred(
-    formula, variables, reduction_op="ArgKMin", axis=1, dtype=dtype, opt_arg=K
+    formula, variables, reduction_op="ArgKMin", axis=1, opt_arg=K
 )
 
 

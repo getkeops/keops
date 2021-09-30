@@ -17,7 +17,7 @@ int launch_keops(int tagHostDevice, int dimY, int nx, int ny,
                  int *indsi, int *indsj, int *indsp,
                  int dimout,
                  int *dimsx, int *dimsy, int *dimsp,
-                 const std::vector<int*>& ranges_v,
+                 const std::vector<void*>& ranges_v,
                  int *shapeout, void *out_void, int nargs, 
                  const std::vector<void*>& arg_v,
                  const std::vector<int*>& argshape_v
