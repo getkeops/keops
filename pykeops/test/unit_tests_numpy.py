@@ -62,7 +62,7 @@ class NumpyUnitTestCase(unittest.TestCase):
 
                 # Call cuda kernel
                 myconv = Genred(
-                    formula, aliases, reduction_op="Sum", axis=axis, dtype=t
+                    formula, aliases, reduction_op="Sum", axis=axis
                 )
                 gamma_keops = myconv(
                     self.sigma.astype(t),
@@ -100,7 +100,7 @@ class NumpyUnitTestCase(unittest.TestCase):
 
                 # Call cuda kernel
                 myconv = Genred(
-                    formula, aliases, reduction_op="LogSumExp", axis=1, dtype=t
+                    formula, aliases, reduction_op="LogSumExp", axis=1
                 )
                 gamma_keops = myconv(
                     self.sigma.astype(t),
@@ -143,7 +143,6 @@ class NumpyUnitTestCase(unittest.TestCase):
                     aliases,
                     reduction_op="SumSoftMaxWeight",
                     axis=1,
-                    dtype=t,
                     formula2=formula_weights,
                 )
                 gamma_keops = myop(
@@ -270,7 +269,6 @@ class NumpyUnitTestCase(unittest.TestCase):
             variables,
             reduction_op="ArgKMin",
             axis=1,
-            dtype=self.type_to_test[1],
             opt_arg=3,
         )
 

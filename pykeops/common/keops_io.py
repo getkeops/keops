@@ -20,7 +20,10 @@ class LoadKeOps_class:
             self.params = args[0]
         else:
             self.init(*args)
+        self.dimout = self.params.dim
+        self.tagIJ = self.params.tagI
         self.init_phase2()
+
 
     def init(
         self, tagCPUGPU, tag1D2D, tagHostDevice, use_ranges, device_id_request,
@@ -95,7 +98,6 @@ class LoadKeOps_class:
         if use_ranges:
             map_reduce_id += "_ranges"
 
-
         (
             params.dllname,
             params.low_level_code_file,
@@ -132,7 +134,6 @@ class LoadKeOps_class:
             device_id_request
         )
 
-        
         # now we switch indsi, indsj and dimsx, dimsy in case tagI=1.
         # This is to be consistent with the convention used in the old
         # bindings (see functions GetIndsI, GetIndsJ, GetDimsX, GetDimsY
@@ -160,15 +161,16 @@ class LoadKeOps_class:
             from pykeops.numpy.utils import numpytools
             self.tools = numpytools
 
-        if params.low_level_code_file == "none":
+        if params.low_level_code_file == b"none":
             raise ValueError("cpu not implemented yet")
             cppyy.load_library(params.dllname)
         else:
-            self.dll = cppyy.gbl.context["float"](params.low_level_code_file)
+            self.dll = cppyy.gbl.context[params.c_dtype](params.low_level_code_file)
 
     def genred(
         self,
         device_id_request,
+        device_args,
         ranges,
         nx,
         ny,
@@ -199,7 +201,7 @@ class LoadKeOps_class:
             raise ValueError("ranges not implemented yet")
             ranges = [*ranges, self.tools.array([r.shape[0] for r in ranges], dtype="int32")]
             
-        args_ptr = [c_void_p(arg.data_ptr()) for arg in args]
+        args_ptr = [c_void_p(self.tools.get_pointer(arg)) for arg in args]
 
         # get all shapes of arguments
         argshapes = [array("i", (len(arg.shape),) + arg.shape) for arg in args]
@@ -222,26 +224,13 @@ class LoadKeOps_class:
         else:
             shapeout = (M, params.dim)
 
-        if device_id_request==-1:
-            device_type, device_index = "cpu", None
-        else:
-            device_type, device_index = "cuda", device_id_request
-        out = self.tools.empty(shapeout, dtype=args[0].dtype, device_type=device_type, device_index=device_index)
-        out_ptr = c_void_p(out.data_ptr())
+        out = self.tools.empty(shapeout, dtype=args[0].dtype, device=device_args)
+        out_ptr = c_void_p(self.tools.get_pointer(out))
 
         outshape = array("i", (len(out.shape),) + out.shape)
 
         nargs = len(args_ptr)
-        if params.c_dtype == "float":
-            launch_keops = self.dll.launch_keops
-        elif params.c_dtype == "double":
-            launch_keops = self.dll.launch_keops_double
-        elif params.c_dtype == "half2":
-            launch_keops = self.dll.launch_keops_half
-        else:
-            raise ValueError(
-                "dtype", params.c_dtype, "not yet implemented in new KeOps engine"
-            )
+        launch_keops = self.dll.launch_keops
         
         #end = time.time()
         #print("elapsed, before launch : ", end-start)
@@ -302,7 +291,7 @@ class library:
         self.cls = cls
         self.library = {}
         self.use_cache_file = use_cache_file
-        if use_cache_file:
+        if self.use_cache_file:
             self.cache_file = os.path.join(save_folder, cls.__name__+"_cache.pkl")
             if os.path.isfile(self.cache_file):
                 f = open(self.cache_file, "rb")
@@ -327,6 +316,11 @@ class library:
             else:
                 self.library[str_id] = self.cls(*args)
         return self.library[str_id]
+    
+    def reset(self):
+        self.library = {}
+        if self.use_cache_file:
+            self.library_params = {}
 
     def save_cache(self):
         f = open(self.cache_file, "wb")
@@ -335,35 +329,5 @@ class library:
 
 
 
-library_LoadKeOps = library(LoadKeOps_class, use_cache_file=True, save_folder=get_build_folder())
-#library_LoadKeOps = library(LoadKeOps_class)
+LoadKeOps = library(LoadKeOps_class, use_cache_file=True, save_folder=get_build_folder())
 
-class create_or_load:
-    library = {}
-
-    @staticmethod
-    def __call__(cls, *args):
-        
-        cls_id = str(cls)
-        if cls_id not in create_or_load.library:
-            create_or_load.library[cls_id] = {}
-        cls_library = create_or_load.library[cls_id]
-        #hash_name = get_hash_name(*args)
-        hash_name = "".join(list(str(arg) for arg in args))
-        
-        if hash_name in cls_library:
-            res = cls_library[hash_name]
-        else:
-            obj = cls(*args)
-            cls_library[hash_name] = obj
-            res = obj
-        
-        return res
-
-def LoadKeOps(*args):   
-    #start = time.time() 
-    res = library_LoadKeOps(*args)
-    #res = create_or_load()(LoadKeOps_class, *args)
-    #end = time.time()
-    #print("elapsed, retrieve instance : ", end-start)
-    return res

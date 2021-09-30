@@ -93,6 +93,7 @@ if use_cuda:
     if cuda_include_path:
         nvrtc_include += " -I" + cuda_include_path
     jit_source_file = join(base_dir_path, "binders", "nvrtc", "keops_nvrtc.cpp")
+    jit_source_header = join(base_dir_path, "binders", "nvrtc", "keops_nvrtc.h")
 else:
     cuda_version = None
     libcuda_folder = None
@@ -101,6 +102,7 @@ else:
     nvrtc_include = None
     cuda_include_path = None
     jit_source_file = None
+    jit_source_header = None
     jit_binary = None
 
 init_cudalibs_flag = False

@@ -1,6 +1,5 @@
 import os
 from hashlib import sha256
-import mmh3
 
 from keops.config.config import disable_pragma_unrolls
 from keops.utils.misc_utils import KeOps_Error, KeOps_Message
@@ -9,9 +8,6 @@ def get_hash_name(*args):
     return sha256("".join(list(str(arg) for arg in args)).encode("utf-8")).hexdigest()[
         :10
     ]
-
-def get_fast_hash(*args):
-    return str(mmh3.hash("".join(list(str(arg) for arg in args)).encode("utf-8")))
 
 #######################################################################
 # .  Python to C++ meta programming toolbox
@@ -811,3 +807,5 @@ def clean_keops(keep_jit_binary=False):
         if f.path != jit_binary:
             os.remove(f.path)
     KeOps_Message(f"{build_path} has been cleaned.")
+    from keops.get_keops_dll import get_keops_dll
+    get_keops_dll.reset()

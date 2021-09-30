@@ -732,11 +732,10 @@ class GenericLazyTensor:
             res.callfun = res.Genred(
                 res.formula,
                 [],
-                res.reduction_op,
-                res.axis,
-                res._dtype,
-                res.opt_arg,
-                res.formula2,
+                reduction_op=res.reduction_op,
+                axis=res.axis,
+                opt_arg=res.opt_arg,
+                formula2=res.formula2,
                 **kwargs_init,
                 rec_multVar_highdim=res.rec_multVar_highdim
             )
@@ -856,7 +855,6 @@ class GenericLazyTensor:
                 [],
                 res.varformula,
                 res.axis,
-                res._dtype,
                 **kwargs_init,
                 rec_multVar_highdim=res.rec_multVar_highdim
             )

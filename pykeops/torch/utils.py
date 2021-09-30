@@ -146,11 +146,9 @@ class torchtools:
     def zeros(
         shape,
         dtype,
-        device_type,
-        device_index=-1,
+        device,
         requires_grad=False,
     ):
-        device = torch.device(device_type, device_index)
         return torch.zeros(
             *shape, dtype=dtype, device=device, requires_grad=requires_grad
         )
@@ -159,11 +157,9 @@ class torchtools:
     def empty(
         shape,
         dtype,
-        device_type,
-        device_index=-1,
+        device,
         requires_grad=False,
     ):
-        device = torch.device(device_type, device_index)
         return torch.empty(
             *shape, dtype=dtype, device=device, requires_grad=requires_grad
         )
@@ -194,6 +190,10 @@ class torchtools:
             return x.device
         else:
             return None
+    
+    @staticmethod
+    def get_pointer(x):
+        return x.data_ptr()
 
     @staticmethod
     def device_type_index(x):

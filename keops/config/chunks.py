@@ -25,11 +25,11 @@ enable_final_chunk = True
 
 
 def set_enable_finalchunk(val):
-    global enable_finalchunk
+    global enable_final_chunk
     if val == 1:
-        enable_finalchunk = True
+        enable_final_chunk = True
     elif val == 0:
-        enable_finalchunk = False
+        enable_final_chunk = False
 
 
 dimfinalchunk = 64
@@ -45,10 +45,11 @@ def set_dimfinalchunk(val):
     dimfinalchunk = val
 
 
-def use_final_chunks():
+def use_final_chunks(red_formula):
     global enable_final_chunk
     global mult_var_highdim
-    return enable_final_chunk and mult_var_highdim
+    global dim_treshold_chunk
+    return enable_final_chunk and mult_var_highdim and red_formula.dim>dim_treshold_chunk
 
 
 mult_var_highdim = False

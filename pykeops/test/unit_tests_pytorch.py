@@ -103,7 +103,7 @@ class PytorchUnitTestCase(unittest.TestCase):
         for b in backend_to_test:
             with self.subTest(b=b):
                 # Call cuda kernel
-                gamma_keops = Genred(formula, aliases, axis=1, dtype="float32")(
+                gamma_keops = Genred(formula, aliases, axis=1)(
                     self.sigmac, self.gc, self.xc, self.yc, backend=b
                 )
                 # Numpy version
@@ -132,7 +132,7 @@ class PytorchUnitTestCase(unittest.TestCase):
         for b in backend_to_test:
             with self.subTest(b=b):
                 # Call cuda kernel
-                gamma_keops = Genred(formula, aliases, axis=1, dtype="float64")(
+                gamma_keops = Genred(formula, aliases, axis=1)(
                     self.sigmacd, self.gcd, self.xcd, self.ycd, backend=b
                 )
                 # Numpy version
@@ -167,7 +167,6 @@ class PytorchUnitTestCase(unittest.TestCase):
                     aliases,
                     reduction_op="SumSoftMaxWeight",
                     axis=1,
-                    dtype="float64",
                     formula2=formula_weights,
                 )
                 gamma_keops = myop(
@@ -341,7 +340,7 @@ class PytorchUnitTestCase(unittest.TestCase):
         formula = "Square(p-Var(3,1,1))*Exp(-SqNorm2(y-x))"
 
         # Call cuda kernel
-        myconv = Genred(formula, aliases, reduction_op="Sum", axis=1, dtype="float32")
+        myconv = Genred(formula, aliases, reduction_op="Sum", axis=1)
         gamma_keops = myconv(self.sigmac, self.xc, self.yc, self.gc, backend="auto")
 
         # Numpy version
