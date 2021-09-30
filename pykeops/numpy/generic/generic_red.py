@@ -5,8 +5,7 @@ from pykeops.common.keops_io import LoadKeOps
 from pykeops.common.operations import preprocess, postprocess
 from pykeops.common.parse_type import get_sizes, complete_aliases, get_optional_flags
 from pykeops.common.utils import axis2cat
-from pykeops.numpy import default_dtype
-
+from pykeops import default_device_id
 
 class Genred:
     r"""
@@ -55,7 +54,7 @@ class Genred:
         aliases,
         reduction_op="Sum",
         axis=0,
-        dtype=default_dtype,
+        dtype=None,
         opt_arg=None,
         formula2=None,
         cuda_type=None,
@@ -104,12 +103,6 @@ class Genred:
                   - **axis** = 0: reduction with respect to :math:`i`, outputs a ``Vj`` or ":math:`j`" variable.
                   - **axis** = 1: reduction with respect to :math:`j`, outputs a ``Vi`` or ":math:`i`" variable.
 
-            dtype (string, default = ``"float64"``): Specifies the numerical ``dtype`` of the input and output arrays.
-                The supported values are:
-
-                  - **dtype** = ``"float32"``.
-                  - **dtype** = ``"float64"``.
-
             opt_arg (int, default = None): If **reduction_op** is in ``["KMin", "ArgKMin", "KMinArgKMin"]``,
                 this argument allows you to specify the number ``K`` of neighbors to consider.
 
@@ -142,14 +135,11 @@ class Genred:
                                 that allows such computation mode.
 
         """
-        if cuda_type:
-            # cuda_type is just old keyword for dtype, so this is just a trick to keep backward compatibility
-            dtype = cuda_type
 
-        if dtype in ("float16", "half"):
-            raise ValueError(
-                "[KeOps] Float16 type is only supported with PyTorch tensors inputs."
-            )
+        if dtype:
+            print("[pyKeOps] Warning: keyword argument dtype in Genred is deprecated ; argument is ignored.")
+        if cuda_type:
+            print("[pyKeOps] Warning: keyword argument cuda_type in Genred is deprecated ; argument is ignored.")
 
         self.reduction_op = reduction_op
         reduction_op_internal, formula2 = preprocess(reduction_op, formula2)
@@ -159,7 +149,6 @@ class Genred:
             dtype_acc,
             use_double_acc,
             sum_scheme,
-            dtype,
             enable_chunks,
         )
         
@@ -182,10 +171,7 @@ class Genred:
             + ")"
         )
         self.aliases = complete_aliases(self.formula, aliases)
-        self.dtype = dtype
-        self.myconv = LoadKeOps(
-            self.formula, self.aliases, self.dtype, "numpy", self.optional_flags
-        ).import_module()
+
         self.axis = axis
         self.opt_arg = opt_arg
 
@@ -290,7 +276,22 @@ class Genred:
         """
 
         # Get tags
-        tagCpuGpu, tag1D2D, _ = get_tag_backend(backend, args)
+        tagCpuGpu, tag1D2D, tagHostDevice = get_tag_backend(backend, args)
+        
+        # number of batch dimensions
+        # N.B. we assume here that there is at least a cat=0 or cat=1 variable in the formula...
+        nbatchdims = max(len(arg.shape) for arg in args) - 2
+        use_ranges = (nbatchdims > 0 or ranges)
+
+        dtype = args[0].dtype.__str__()
+
+        if device_id==-1:
+            device_id = default_device_id if tagCpuGpu==1 else -1
+
+        self.myconv = LoadKeOps( tagCpuGpu, tag1D2D, tagHostDevice, use_ranges, device_id,
+            self.formula, self.aliases, len(args), dtype, "numpy", self.optional_flags
+        ).import_module()
+
         if ranges is None:
             ranges = ()  # To keep the same type
 
@@ -324,18 +325,17 @@ class Genred:
                 )
 
         out = self.myconv.genred_numpy(
-            tagCpuGpu,
-            tag1D2D,
-            0,
             device_id,
+            -1,
             ranges,
             nx,
             ny,
+            nbatchdims,
             self.axis,
             self.reduction_op,
             *args
         )
 
         return postprocess(
-            out, "numpy", self.reduction_op, nout, self.opt_arg, self.dtype
+            out, "numpy", self.reduction_op, nout, self.opt_arg, dtype
         )

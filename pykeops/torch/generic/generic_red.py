@@ -13,23 +13,6 @@ from pykeops.common.utils import axis2cat
 from pykeops import default_device_id
 
 
-def dtypename(dtype):
-        if dtype == torch.float32:
-            return "float32"
-        elif dtype == torch.float64:
-            return "float64"
-        elif dtype == torch.float16:
-            return "float16"
-        elif dtype == int:
-            return int
-        elif dtype == list:
-            return "float32"
-        else:
-            raise ValueError(
-                "[KeOps] {} data type incompatible with KeOps.".format(dtype)
-            )
-
-
 
 class GenredAutograd(torch.autograd.Function):
     """
@@ -72,22 +55,22 @@ class GenredAutograd(torch.autograd.Function):
         nbatchdims = max(len(arg.shape) for arg in args) - 2
         use_ranges = (nbatchdims > 0 or ranges)
 
-        device_id_args = args[0].device.index
+        device_args = args[0].device
         if tagCPUGPU == 1 & tagHostDevice == 1:
             for i in range(1, len(args)):
-                if args[i].device.index != device_id_args:
+                if args[i].device.index != device_args.index:
                     raise ValueError(
                         "[KeOps] Input arrays must be all located on the same device."
                     )
         
         if device_id_request==-1:       # -1 means auto setting
-            if device_id_args:          # means args are on Gpu
-                device_id_request = device_id_args
+            if device_args.index:          # means args are on Gpu
+                device_id_request = device_args.index
             else:
                 device_id_request = default_device_id if tagCPUGPU==1 else -1
         else:
-            if device_id_args:
-                if device_id_args != device_id_request:
+            if device_args.index:
+                if device_args.index != device_id_request:
                     raise ValueError(
                         "[KeOps] Gpu device id of arrays is different from device id requested for computation."
                     )
@@ -129,6 +112,7 @@ class GenredAutograd(torch.autograd.Function):
 
         result = myconv.genred_pytorch(
             device_id_request,
+            device_args,
             ranges,
             nx,
             ny,
@@ -619,7 +603,7 @@ class Genred:
 
         """
 
-        dtype = dtypename(args[0].dtype)
+        dtype = args[0].dtype.__str__().split(".")[1]
 
         nx, ny = get_sizes(self.aliases, *args)
         nout, nred = (nx, ny) if self.axis == 1 else (ny, nx)

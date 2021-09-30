@@ -1,6 +1,6 @@
 import numpy as np
 
-from pykeops.numpy import Genred, default_dtype, KernelSolve
+from pykeops.numpy import Genred, KernelSolve
 from pykeops.numpy.cluster import swap_axes as np_swap_axes
 import pykeops.config
 from ctypes import c_void_p
@@ -101,28 +101,32 @@ class numpytools:
         return dict(data=c_void_p(x.ctypes.data), type=c_void_p)
 
     @staticmethod
-    def rand(m, n, dtype=default_dtype):
+    def rand(m, n, dtype):
         return np.random.rand(m, n).astype(dtype)
 
     @staticmethod
-    def randn(m, n, dtype=default_dtype):
+    def randn(m, n, dtype):
         return np.random.randn(m, n).astype(dtype)
 
     @staticmethod
-    def zeros(shape, dtype=default_dtype, device_type=None, device_index=None, requires_grad=None):
+    def zeros(shape, dtype, device=None, requires_grad=None):
         return np.zeros(shape).astype(dtype)
 
     @staticmethod
-    def empty(shape, dtype=default_dtype, device_type=None, device_index=None, requires_grad=None):
+    def empty(shape, dtype, device=None, requires_grad=None):
         return np.empty(shape).astype(dtype)
 
     @staticmethod
-    def eye(n, dtype=default_dtype):
+    def eye(n, dtype):
         return np.eye(n).astype(dtype)
 
     @staticmethod
-    def array(x, dtype=default_dtype, device=None):
+    def array(x, dtype, device=None):
         return np.array(x).astype(dtype)
+    
+    @staticmethod
+    def get_pointer(x):
+        return x.__array_interface__['data'][0]
 
     @staticmethod
     def device(x):

@@ -101,7 +101,7 @@ def TestOperation(op_str, tol=1e-4, dtype="float32", test_grad=True):
 
     print("Testing operation " + op_str)
 
-    my_routine = Genred(formula, variables, reduction_op="Sum", axis=1, dtype=dtype)
+    my_routine = Genred(formula, variables, reduction_op="Sum", axis=1)
     c = my_routine(*args)
 
     print("ok, no error")

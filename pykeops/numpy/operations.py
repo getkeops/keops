@@ -5,7 +5,7 @@ from pykeops.common.keops_io import LoadKeOps
 from pykeops.common.operations import ConjugateGradientSolver
 from pykeops.common.parse_type import get_sizes, complete_aliases, get_optional_flags
 from pykeops.common.utils import axis2cat
-from pykeops.numpy import default_dtype
+from pykeops import default_device_id
 
 
 class KernelSolve:
@@ -49,7 +49,7 @@ class KernelSolve:
         aliases,
         varinvalias,
         axis=0,
-        dtype=default_dtype,
+        dtype=None,
         opt_arg=None,
         dtype_acc="auto",
         use_double_acc=False,
@@ -95,13 +95,6 @@ class KernelSolve:
                   - **axis** = 0: reduction with respect to :math:`i`, outputs a ``Vj`` or ":math:`j`" variable.
                   - **axis** = 1: reduction with respect to :math:`j`, outputs a ``Vi`` or ":math:`i`" variable.
 
-            dtype (string, default = ``"float64"``): Specifies the numerical ``dtype`` of the input and output arrays.
-                The supported values are:
-
-                  - **dtype** = ``"float16"``.
-                  - **dtype** = ``"float32"``.
-                  - **dtype** = ``"float64"``.
-
             dtype_acc (string, default ``"auto"``): type for accumulator of reduction, before casting to dtype.
                 It improves the accuracy of results in case of large sized data, but is slower.
                 Default value "auto" will set this option to the value of dtype. The supported values are:
@@ -127,6 +120,9 @@ class KernelSolve:
                                 with formulas involving large dimension variables.
 
         """
+        if dtype:
+            print("[pyKeOps] Warning: keyword argument dtype in KernelSolve is deprecated ; argument is ignored.")
+
         reduction_op = "Sum"
         if opt_arg:
             self.formula = (
@@ -145,7 +141,7 @@ class KernelSolve:
             )
 
         optional_flags = get_optional_flags(
-            reduction_op, dtype_acc, use_double_acc, sum_scheme, dtype, enable_chunks
+            reduction_op, dtype_acc, use_double_acc, sum_scheme, enable_chunks
         )
 
         if rec_multVar_highdim:
@@ -155,11 +151,6 @@ class KernelSolve:
             
         self.aliases = complete_aliases(formula, aliases)
         self.varinvalias = varinvalias
-        self.dtype = dtype
-
-        self.myconv = LoadKeOps(
-            self.formula, self.aliases, self.dtype, "numpy", optional_flags
-        ).import_module()
 
         if varinvalias[:4] == "Var(":
             # varinv is given directly as Var(*,*,*) so we just have to read the index
@@ -173,6 +164,7 @@ class KernelSolve:
         self.varinvpos = varinvpos
         self.axis = axis
         self.reduction_op = reduction_op
+        self.optional_flags = optional_flags
 
     def __call__(
         self, *args, backend="auto", device_id=-1, alpha=1e-10, eps=1e-6, ranges=None
@@ -232,23 +224,38 @@ class KernelSolve:
 
         """
         # Get tags
-        tagCpuGpu, tag1D2D, _ = get_tag_backend(backend, args)
+        tagCpuGpu, tag1D2D, tagHostDevice = get_tag_backend(backend, args)
+
+        # number of batch dimensions
+        # N.B. we assume here that there is at least a cat=0 or cat=1 variable in the formula...
+        nbatchdims = max(len(arg.shape) for arg in args) - 2
+        use_ranges = (nbatchdims > 0 or ranges)
+
+        dtype = args[0].dtype.__str__()
+
+        if device_id==-1:
+            device_id = default_device_id if tagCpuGpu==1 else -1
+
+        self.myconv = LoadKeOps( tagCpuGpu, tag1D2D, tagHostDevice, use_ranges, device_id,
+            self.formula, self.aliases, len(args), dtype, "numpy", self.optional_flags
+        ).import_module()
+
         varinv = args[self.varinvpos]
 
         if ranges is None:
             ranges = ()  # ranges should be encoded as a tuple
 
+
         def linop(var):
             newargs = args[: self.varinvpos] + (var,) + args[self.varinvpos + 1 :]
             nx, ny = get_sizes(self.aliases, *newargs)
             res = self.myconv.genred_numpy(
-                tagCpuGpu,
-                tag1D2D,
-                0,
                 device_id,
+                -1,
                 ranges,
                 nx,
                 ny,
+                nbatchdims,
                 self.axis,
                 self.reduction_op,
                 *newargs

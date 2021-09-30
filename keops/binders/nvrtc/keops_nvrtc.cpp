@@ -82,6 +82,7 @@ extern "C" int Compile(const char *target_file_name, const char *cu_code, int us
     delete[] arch_flag_char;
 
     if (compileResult != NVRTC_SUCCESS) {
+        std::cout << std::endl << "[KeOps] Error when compiling formula." << std::endl;
         exit(1);
     }
     
@@ -429,10 +430,10 @@ int launch_keops(int tagHostDevice, int dimY, int nx, int ny,
 
     // Send data from device to host.
 
-    if (tagHostDevice == 0)
+    if (tagHostDevice == 0) {
         cuMemcpyDtoH(out, (CUdeviceptr) out_d, sizeof(TYPE) * sizeout);
-    
-    cuMemFree(p_data);
+        cuMemFree(p_data);
+    }
     if (RR.tagRanges == 1) {
         cuMemFree((CUdeviceptr) lookup_d);
         cuMemFree((CUdeviceptr) slices_x_d);
@@ -452,4 +453,6 @@ int launch_keops(int tagHostDevice, int dimY, int nx, int ny,
 
 
 template class context<float>;
+template class context<double>;
+template class context<half2>;
 
