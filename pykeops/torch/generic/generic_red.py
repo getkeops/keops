@@ -93,11 +93,6 @@ class GenredAutograd(torch.autograd.Function):
         ctx.axis = axis
         ctx.reduction_op = reduction_op
 
-        
-
-        if ranges is None:
-            ranges = ()  # To keep the same type
-
         # N.B.: KeOps C++ expects contiguous data arrays
         test_contig = all(arg.is_contiguous() for arg in args)
         if not test_contig:
@@ -108,7 +103,8 @@ class GenredAutograd(torch.autograd.Function):
             args = tuple(arg.contiguous() for arg in args)
 
         # N.B.: KeOps C++ expects contiguous integer arrays as ranges
-        ranges = tuple(r.contiguous() for r in ranges)
+        if ranges:
+            ranges = tuple(r.contiguous() for r in ranges)
 
         result = myconv.genred_pytorch(
             device_id_request,

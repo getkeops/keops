@@ -197,7 +197,7 @@ int launch_keops(int tagHostDevice, int dimY, int nx, int ny,
                  int *indsi, int *indsj, int *indsp,
                  int dimout,
                  int *dimsx, int *dimsy, int *dimsp,
-                 const std::vector<int*>& ranges_v,
+                 const std::vector<void*>& ranges_v,
                  int *shapeout, void *out_void, int nargs, 
                  const std::vector<void*>& arg_v,
                  const std::vector<int*>& argshape_v
@@ -456,3 +456,119 @@ template class context<float>;
 template class context<double>;
 template class context<half2>;
 
+
+
+
+
+
+
+template <typename TYPE>
+int launch_keops(const char* target_file_name, int tagHostDevice, int dimY, int nx, int ny, 
+                                    int device_id, int tagI, int tagZero, int use_half, 
+                                    int tag1D2D, int dimred,
+                                    int cuda_block_size, int use_chunk_mode,
+                                    int *indsi, int *indsj, int *indsp, 
+                                    int dimout, 
+                                    int *dimsx, int *dimsy, int *dimsp, 
+                                    int **ranges, int *shapeout, TYPE *out, int nargs, ...) {
+					
+        // reading arguments
+        va_list ap;
+        va_start(ap, nargs);
+				std::vector<TYPE*> arg_v(nargs);
+        for (int i=0; i<nargs; i++)
+            arg_v[i] = va_arg(ap, float*);
+				std::vector<int*> argshape_v(nargs);
+        for (int i=0; i<nargs; i++)
+            argshape[i] = va_arg(ap, int*);
+        va_end(ap);
+				
+				std::vector<void*> ranges_v((void*)ranges, (void*)ranges + 7);
+
+				context<TYPE> ctx(target_file_name);
+				
+				ctx.launch_keops(tagHostDevice, dimY, nx, ny,
+					                 device_id, tagI, tagZero, use_half,
+					                 tag1D2D, dimred,
+					                 cuda_block_size, use_chunk_mode,
+					                 indsi, indsj, indsp,
+					                 dimout,
+					                 dimsx, dimsy, dimsp,
+					                 ranges_v,
+					                 shapeout, out_void, nargs, 
+					                 arg_v,
+					                 argshape_v
+					                 );
+				
+				return 0;
+}
+
+
+extern "C" int launch_keops_float(const char* target_file_name, int tagHostDevice, int dimY, int nx, int ny, 
+                                    int device_id, int tagI, int tagZero, int use_half, 
+                                    int tag1D2D, int dimred,
+                                    int cuda_block_size, int use_chunk_mode,
+                                    int *indsi, int *indsj, int *indsp, 
+                                    int dimout, 
+                                    int *dimsx, int *dimsy, int *dimsp, 
+                                    int **ranges, int *shapeout, float *out, int nargs, ...) {
+				
+				return launch_keops<float>(target_file_name, tagHostDevice, dimY, nx, ny,
+					                 device_id, tagI, tagZero, use_half,
+					                 tag1D2D, dimred,
+					                 cuda_block_size, use_chunk_mode,
+					                 indsi, indsj, indsp,
+					                 dimout,
+					                 dimsx, dimsy, dimsp,
+					                 ranges,
+					                 shapeout, out_void, nargs, 
+					                 arg,
+					                 argshape
+					                 );
+}
+
+extern "C" int launch_keops_double(const char* target_file_name, int tagHostDevice, int dimY, int nx, int ny, 
+                                    int device_id, int tagI, int tagZero, int use_half, 
+                                    int tag1D2D, int dimred,
+                                    int cuda_block_size, int use_chunk_mode,
+                                    int *indsi, int *indsj, int *indsp, 
+                                    int dimout, 
+                                    int *dimsx, int *dimsy, int *dimsp, 
+                                    int **ranges, int *shapeout, double *out, int nargs, ...) {
+				
+				return launch_keops<double>(target_file_name, tagHostDevice, dimY, nx, ny,
+					                 device_id, tagI, tagZero, use_half,
+					                 tag1D2D, dimred,
+					                 cuda_block_size, use_chunk_mode,
+					                 indsi, indsj, indsp,
+					                 dimout,
+					                 dimsx, dimsy, dimsp,
+					                 ranges,
+					                 shapeout, out_void, nargs, 
+					                 arg,
+					                 argshape
+					                 );
+}
+
+extern "C" int launch_keops_half2(const char* target_file_name, int tagHostDevice, int dimY, int nx, int ny, 
+                                    int device_id, int tagI, int tagZero, int use_half, 
+                                    int tag1D2D, int dimred,
+                                    int cuda_block_size, int use_chunk_mode,
+                                    int *indsi, int *indsj, int *indsp, 
+                                    int dimout, 
+                                    int *dimsx, int *dimsy, int *dimsp, 
+                                    int **ranges, int *shapeout, half2 *out, int nargs, ...) {
+				
+				return launch_keops<half2>(target_file_name, tagHostDevice, dimY, nx, ny,
+					                 device_id, tagI, tagZero, use_half,
+					                 tag1D2D, dimred,
+					                 cuda_block_size, use_chunk_mode,
+					                 indsi, indsj, indsp,
+					                 dimout,
+					                 dimsx, dimsy, dimsp,
+					                 ranges,
+					                 shapeout, out_void, nargs, 
+					                 arg,
+					                 argshape
+					                 );
+}

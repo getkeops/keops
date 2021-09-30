@@ -99,8 +99,6 @@ class KernelSolveAutograd(torch.autograd.Function):
         ctx.ranges = ranges
         ctx.rec_multVar_highdim = rec_multVar_highdim
         ctx.optional_flags = optional_flags
-        if ranges is None:
-            ranges = ()  # To keep the same type
 
         varinv = args[varinvpos]
         ctx.varinvpos = varinvpos

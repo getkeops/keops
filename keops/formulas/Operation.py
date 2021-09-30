@@ -75,8 +75,8 @@ class Operation(Tree):
         # some debugging helper :
         if debug_ops:
             for arg in args:
-                string += arg.c_print()
-            string += out.c_print()
+                string += arg.c_print
+            string += out.c_print
             string += f"std::cout << std::endl << std::endl;\n"
 
         string += f"\n\n// Finished code block for {self.__repr__()}.\n}}\n\n"
