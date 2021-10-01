@@ -1,3 +1,4 @@
+from keops import debug_ops
 from keops.binders.cpp.Cpu_link_compile import Cpu_link_compile
 from keops.binders.binders_definitions import binders_definitions
 from keops.broadcast_batch_dimensions import (
@@ -67,10 +68,13 @@ class CpuReduc_ranges(MapReduce, Cpu_link_compile):
         indices_p = c_array("int", nvarsp, "indices_p")
         imstartx = c_variable("int", "i-start_x")
         jmstarty = c_variable("int", "j-start_y")
-
-        self.headers += c_include("cmath", "stdlib.h")
+        
+        headers = ["cmath", "stdlib.h"]
         if use_OpenMP:
-            self.headers += c_include("omp.h")
+            headers.append("omp.h")
+        if debug_ops:
+            headers.append("iostream")
+        self.headers += c_include(*headers)
 
         self.code = f"""
                         {self.headers}
@@ -84,7 +88,7 @@ class CpuReduc_ranges(MapReduce, Cpu_link_compile):
                         {define_broadcast_index_function()}
                         {define_vect_broadcast_index_function()}
                         
-                        int CpuConv_ranges(int nx, int ny, 
+                        int CpuConv_ranges_{self.gencode_filename}(int nx, int ny, 
                                             int nbatchdims, int* shapes,
                                             int nranges_x, int nranges_y, __INDEX__** ranges,
                                             {dtype}* out, {dtype} **{arg.id}) {{
@@ -205,8 +209,47 @@ class CpuReduc_ranges(MapReduce, Cpu_link_compile):
         self.code += f"""    
                     
                     #include "stdarg.h"
+                    #include <vector>
                     
-                    extern "C" int launch_keops_{dtype}(const char* ptx_file_name, int tagHostDevice, int dimY, int nx, int ny, 
+                    int launch_keops_{self.gencode_filename}(int nx, int ny, int tagI, int use_half, int **ranges, {dtype}* out, int nargs, {dtype}** arg, int** argshape) {{
+                        
+                        Sizes SS(nargs, arg, argshape, nx, ny);
+                        
+                        if (use_half)
+                          SS.switch_to_half2_indexing();
+
+                        Ranges RR(SS, ranges);
+                        
+                        nx = SS.nx;
+                        ny = SS.ny;
+                        
+                        if (tagI==1) {{
+                            int tmp = ny;
+                            ny = nx;
+                            nx = tmp;
+                        }}
+                        
+                        return CpuConv_ranges_{self.gencode_filename}(nx, ny, SS.nbatchdims, SS.shapes,
+                                                RR.nranges_x, RR.nranges_y, RR.castedranges,
+                                                out, arg);
+                    }}
+                    
+                    int launch_keops_cpu_{self.gencode_filename}(int nx, int ny, int tagI, int use_half, 
+                                             const std::vector<void*>& ranges_v,
+                                             void *out_void, int nargs, 
+                                             const std::vector<void*>& arg_v,
+                                             const std::vector<int*>& argshape_v) {{
+                        
+                        int **ranges = (int**) ranges_v.data();
+                        {dtype} **arg = ({dtype}**) arg_v.data();
+                        {dtype} *out = ({dtype}*) out_void;
+                        int **argshape = (int**) argshape_v.data();
+                        
+                        return launch_keops_{self.gencode_filename}(nx, ny, tagI, use_half, ranges, out, nargs, arg, argshape);
+                    }}
+                        
+                    
+                    extern "C" int launch_keops_{dtype}(const char* target_file_name, int tagHostDevice, int dimY, int nx, int ny, 
                                                         int device_id, int tagI, int tagZero, int use_half, 
                                                         int tag1D2D, int dimred,
                                                         int cuda_block_size, int use_chunk_mode,
@@ -226,31 +269,7 @@ class CpuReduc_ranges(MapReduce, Cpu_link_compile):
                             argshape[i] = va_arg(ap, int*);
                         va_end(ap);
                         
-                        Sizes SS(nargs, arg, argshape, nx, ny);
+                        return launch_keops_{self.gencode_filename}(nx, ny, tagI, use_half, ranges, out, nargs, arg, argshape);
                         
-                        /* To be used with the Size.h (templated version)
-                        Sizes SS(nargs, arg, argshape, nx, ny,
-                                 tagI, use_half, dimout,
-                                 indsi, indsj, indsp,
-                                 dimsx, dimsy, dimsp);
-                        */
-                        
-                        if (use_half)
-                          SS.switch_to_half2_indexing();
-
-                        Ranges RR(SS, ranges);
-                        
-                        nx = SS.nx;
-                        ny = SS.ny;
-                        
-                        if (tagI==1) {{
-                            int tmp = ny;
-                            ny = nx;
-                            nx = tmp;
-                        }}
-                        
-                        return CpuConv_ranges(nx, ny, SS.nbatchdims, SS.shapes,
-                                                RR.nranges_x, RR.nranges_y, RR.castedranges,
-                                                out, arg);
                     }}
                 """
