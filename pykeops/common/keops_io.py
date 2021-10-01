@@ -58,23 +58,14 @@ class LoadKeOps_class:
         params.dtype = dtype
         dtype_acc = optional_flags["dtype_acc"]
         dtype_acc = parse_dtype_acc(dtype_acc, dtype)
-
+        
         params.c_dtype_acc = dtype_acc
-        
         params.sum_scheme = optional_flags["sum_scheme"]
-
         params.enable_chunks = optional_flags["enable_chunks"]
-
-        params.enable_final_chunks = -1
-        
+        params.enable_final_chunks = -1        
         params.mult_var_highdim = optional_flags["multVar_highdim"]
-
         params.tagHostDevice = tagHostDevice
-        
-        
-
-        
-        
+                
         if dtype == "float32":
             params.c_dtype = "float"
             params.use_half = False
@@ -152,8 +143,12 @@ class LoadKeOps_class:
         params.dimsp = array("i", (len(dimsp),) + dimsp)
         
         params.tagCPUGPU = tagCPUGPU
+        params.device_id_request = device_id_request
+        params.nargs = nargs
 
         self.params = params
+        
+        
 
     def init_phase2(self):
         params = self.params
@@ -168,7 +163,7 @@ class LoadKeOps_class:
             cppyy.load_library(params.dllname)
             launch_keops_fun_name = "launch_keops_cpu_"+os.path.basename(params.dllname).split('.')[0]
             cppyy.cppdef(f"""
-                            int {launch_keops_fun_name}(int nx, int ny, int tagI, int use_half,
+                           int {launch_keops_fun_name}(int nx, int ny, int tagI, int use_half,
                                                      const std::vector<void*>& ranges_v,
                                                      void *out_void, int nargs, 
                                                      const std::vector<void*>& arg_v,
@@ -176,12 +171,10 @@ class LoadKeOps_class:
             """)
             self.launch_keops_cpu = getattr(cppyy.gbl, launch_keops_fun_name)
         else:
-            self.dll = cppyy.gbl.context[params.c_dtype](params.low_level_code_file)
-            self.launch_keops = self.dll.launch_keops
+            self.launch_keops = cppyy.gbl.KeOps_module[params.c_dtype](params.device_id_request, params.nargs, params.low_level_code_file)
 
     def genred(
         self,
-        device_id_request,
         device_args,
         ranges,
         nx,
@@ -192,8 +185,6 @@ class LoadKeOps_class:
         *args,
     ):
 
-        #start = time.time()
-
         params = self.params
 
         if params.use_half:
@@ -202,9 +193,6 @@ class LoadKeOps_class:
             args, ranges, tag_dummy, N = preprocess_half2(
                 args, params.aliases_old, axis, ranges, nx, ny
             )
-
-        #tagIJ = params.tagI
-        #dimout = params.dim
 
         # get ranges argument
         if not ranges:
@@ -241,12 +229,6 @@ class LoadKeOps_class:
         out_ptr = c_void_p(self.tools.get_pointer(out))
 
         outshape = array("i", (len(out.shape),) + out.shape)
-
-        nargs = len(args_ptr)
-        
-        #end = time.time()
-        #print("elapsed, before launch : ", end-start)
-        #start = time.time()
         
         if params.tagCPUGPU==0:
             self.launch_keops_cpu(
@@ -256,7 +238,7 @@ class LoadKeOps_class:
                 params.use_half,
                 ranges_ptr,
                 out_ptr,
-                nargs,
+                params.nargs,
                 args_ptr,
                 argshapes
             )
@@ -266,7 +248,6 @@ class LoadKeOps_class:
                 params.dimy,
                 nx,
                 ny,
-                device_id_request,
                 params.tagI,
                 params.tagZero,
                 params.use_half,
@@ -281,25 +262,17 @@ class LoadKeOps_class:
                 params.dimsx,
                 params.dimsy,
                 params.dimsp,
-                ranges,
+                ranges_ptr,
                 outshape,
                 out_ptr,
-                nargs,
                 args_ptr,
                 argshapes
             )
-
-        #end = time.time()
-        #print("elapsed, launch : ", end-start)
-        #start = time.time()
 
         if params.dtype == "float16":
             from pykeops.torch.half2_convert import postprocess_half2
 
             out = postprocess_half2(out, tag_dummy, reduction_op, N)
-
-        #end = time.time()
-        #print("elapsed, after launch : ", end-start)
 
         return out
 

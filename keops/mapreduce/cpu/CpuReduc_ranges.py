@@ -88,7 +88,7 @@ class CpuReduc_ranges(MapReduce, Cpu_link_compile):
                         {define_broadcast_index_function()}
                         {define_vect_broadcast_index_function()}
                         
-                        int CpuConv_ranges(int nx, int ny, 
+                        int CpuConv_ranges_{self.gencode_filename}(int nx, int ny, 
                                             int nbatchdims, int* shapes,
                                             int nranges_x, int nranges_y, __INDEX__** ranges,
                                             {dtype}* out, {dtype} **{arg.id}) {{
@@ -211,7 +211,7 @@ class CpuReduc_ranges(MapReduce, Cpu_link_compile):
                     #include "stdarg.h"
                     #include <vector>
                     
-                    int launch_keops(int nx, int ny, int tagI, int use_half, int **ranges, {dtype}* out, int nargs, {dtype}** arg, int** argshape) {{
+                    int launch_keops_{self.gencode_filename}(int nx, int ny, int tagI, int use_half, int **ranges, {dtype}* out, int nargs, {dtype}** arg, int** argshape) {{
                         
                         Sizes SS(nargs, arg, argshape, nx, ny);
                         
@@ -229,7 +229,7 @@ class CpuReduc_ranges(MapReduce, Cpu_link_compile):
                             nx = tmp;
                         }}
                         
-                        return CpuConv_ranges(nx, ny, SS.nbatchdims, SS.shapes,
+                        return CpuConv_ranges_{self.gencode_filename}(nx, ny, SS.nbatchdims, SS.shapes,
                                                 RR.nranges_x, RR.nranges_y, RR.castedranges,
                                                 out, arg);
                     }}
@@ -245,7 +245,7 @@ class CpuReduc_ranges(MapReduce, Cpu_link_compile):
                         {dtype} *out = ({dtype}*) out_void;
                         int **argshape = (int**) argshape_v.data();
                         
-                        return launch_keops(nx, ny, tagI, use_half, ranges, out, nargs, arg, argshape);
+                        return launch_keops_{self.gencode_filename}(nx, ny, tagI, use_half, ranges, out, nargs, arg, argshape);
                     }}
                         
                     
@@ -269,7 +269,7 @@ class CpuReduc_ranges(MapReduce, Cpu_link_compile):
                             argshape[i] = va_arg(ap, int*);
                         va_end(ap);
                         
-                        return launch_keops(nx, ny, tagI, use_half, ranges, out, nargs, arg, argshape);
+                        return launch_keops_{self.gencode_filename}(nx, ny, tagI, use_half, ranges, out, nargs, arg, argshape);
                         
                     }}
                 """

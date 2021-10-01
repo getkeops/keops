@@ -35,7 +35,7 @@ class CpuAssignZero(MapReduce, Cpu_link_compile):
         self.code = f"""
                         {self.headers}
 
-                        extern "C" int AssignZeroCpu(int nx, int ny, {dtype}* out, {dtype} **{arg.id}) {{
+                        extern "C" int AssignZeroCpu_{self.gencode_filename}(int nx, int ny, {dtype}* out, {dtype} **{arg.id}) {{
                             #pragma omp parallel for
                             for (int i = 0; i < nx; i++) {{
                                 {outi.assign(c_zero_float)}
@@ -46,7 +46,7 @@ class CpuAssignZero(MapReduce, Cpu_link_compile):
                         #include "stdarg.h"
                         #include <vector>
                         
-                        int launch_keops(int nx, int ny, int tagI, {dtype} *out, {dtype} **arg) {{
+                        int launch_keops_{self.gencode_filename}(int nx, int ny, int tagI, {dtype} *out, {dtype} **arg) {{
                         
                             if (tagI==1) {{
                                 int tmp = ny;
@@ -54,7 +54,7 @@ class CpuAssignZero(MapReduce, Cpu_link_compile):
                                 nx = tmp;
                             }}
                         
-                            return AssignZeroCpu(nx, ny, out, arg);
+                            return AssignZeroCpu_{self.gencode_filename}(nx, ny, out, arg);
 
                         }}
                         
@@ -67,7 +67,7 @@ class CpuAssignZero(MapReduce, Cpu_link_compile):
                             {dtype} **arg = ({dtype}**) arg_v.data();
                             {dtype} *out = ({dtype}*) out_void;
                         
-                            return launch_keops(nx, ny, tagI, out, arg);
+                            return launch_keops_{self.gencode_filename}(nx, ny, tagI, out, arg);
 
                         }}
                         
@@ -88,6 +88,6 @@ class CpuAssignZero(MapReduce, Cpu_link_compile):
                                 arg[i] = va_arg(ap, {dtype}*);
                             va_end(ap);
                             
-                            return launch_keops(nx, ny, tagI, out, arg);
+                            return launch_keops_{self.gencode_filename}(nx, ny, tagI, out, arg);
                         }}
                     """

@@ -324,7 +324,6 @@ class Genred:
                 )
 
         out = self.myconv.genred_numpy(
-            device_id,
             -1,
             ranges,
             nx,

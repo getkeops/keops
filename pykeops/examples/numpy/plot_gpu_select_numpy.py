@@ -39,7 +39,7 @@ variables = ["x = Vi(3)", "y = Vj(3)", "a = Vj(1)", "p = Pm(1)"]
 
 dtype = "float32"  # May be 'float32' or 'float64'
 
-my_routine = Genred(formula, variables, reduction_op="Sum", axis=1, dtype=dtype)
+my_routine = Genred(formula, variables, reduction_op="Sum", axis=1)
 
 
 ####################################################################
@@ -82,7 +82,6 @@ if pykeops.config.gpu_available:
         plt.tight_layout()
         plt.show()
 
-
 ####################################################################
 # Using LazyTensor
 # ----------------
@@ -90,7 +89,9 @@ if pykeops.config.gpu_available:
 #
 
 xi, yj, aj = Vi(x), Vj(y), Vj(a)
-c = ((p - aj) ** 2 * (xi + yj).exp()).sum(axis=1, backend="CPU")
+#c = ((p - aj) ** 2 * (xi + yj).exp()).sum(axis=1, backend="CPU")
+c = ((aj-p)**2 * (yj+xi).exp()).sum(axis=1, backend="CPU")
+
 
 ####################################################################
 # And on the GPUs, with copies between the Host and Device memories:

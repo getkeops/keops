@@ -106,7 +106,6 @@ class KernelSolveAutograd(torch.autograd.Function):
         def linop(var):
             newargs = args[:varinvpos] + (var,) + args[varinvpos + 1 :]
             res = myconv.genred_pytorch(
-                device_id_request,
                 device_args,
                 ranges,
                 nx,
