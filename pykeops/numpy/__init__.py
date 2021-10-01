@@ -1,6 +1,5 @@
 import pykeops.config
 
-default_dtype = "float64"  # float32' or 'float64'
 
 ##########################################################
 # Import pyKeOps routines

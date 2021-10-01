@@ -14,7 +14,7 @@ from si_prefix import si_format
 
 import numpy as np
 import torch
-import jax
+#import jax
 
 use_cuda = torch.cuda.is_available()
 
@@ -410,6 +410,7 @@ def full_benchmark(
     ]
     benches = np.array(lines).T
 
+    
     # Creates a pyplot figure:
     plt.figure(figsize=(12, 8))
     for i, label in enumerate(labels):
@@ -481,3 +482,4 @@ def full_benchmark(
         comments="",
         delimiter=",",
     )
+    

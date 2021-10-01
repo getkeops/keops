@@ -5,8 +5,7 @@ from pykeops.common.keops_io import LoadKeOps
 from pykeops.common.operations import preprocess, postprocess
 from pykeops.common.parse_type import get_sizes, complete_aliases, get_optional_flags
 from pykeops.common.utils import axis2cat
-from pykeops.numpy import default_dtype
-
+from pykeops import default_device_id
 
 class Genred:
     r"""
@@ -55,7 +54,7 @@ class Genred:
         aliases,
         reduction_op="Sum",
         axis=0,
-        dtype=default_dtype,
+        dtype=None,
         opt_arg=None,
         formula2=None,
         cuda_type=None,
@@ -63,8 +62,7 @@ class Genred:
         use_double_acc=False,
         sum_scheme="auto",
         enable_chunks=True,
-        optional_flags=[],
-        rec_multVar_highdim=None,
+        rec_multVar_highdim=False,
     ):
         r"""
         Instantiate a new generic operation.
@@ -105,12 +103,6 @@ class Genred:
                   - **axis** = 0: reduction with respect to :math:`i`, outputs a ``Vj`` or ":math:`j`" variable.
                   - **axis** = 1: reduction with respect to :math:`j`, outputs a ``Vi`` or ":math:`i`" variable.
 
-            dtype (string, default = ``"float64"``): Specifies the numerical ``dtype`` of the input and output arrays.
-                The supported values are:
-
-                  - **dtype** = ``"float32"``.
-                  - **dtype** = ``"float64"``.
-
             opt_arg (int, default = None): If **reduction_op** is in ``["KMin", "ArgKMin", "KMinArgKMin"]``,
                 this argument allows you to specify the number ``K`` of neighbors to consider.
 
@@ -137,33 +129,34 @@ class Genred:
 
             enable_chunks (bool, default True): enable automatic selection of special "chunked" computation mode for accelerating reductions
                                 with formulas involving large dimension variables.
-
-                        optional_flags (list, default []): further optional flags passed to the compiler, in the form ['-D...=...','-D...=...']
+            
+            rec_multVar_highdim (bool, default False): for Gpu mode only, enable special "final chunked" computation mode for accelerating reductions
+                                with formulas involving large dimension variables. Beware ! This will only work if the formula has the very special form
+                                that allows such computation mode.
 
         """
-        if cuda_type:
-            # cuda_type is just old keyword for dtype, so this is just a trick to keep backward compatibility
-            dtype = cuda_type
 
-        if dtype in ("float16", "half"):
-            raise ValueError(
-                "[KeOps] Float16 type is only supported with PyTorch tensors inputs."
-            )
+        if dtype:
+            print("[pyKeOps] Warning: keyword argument dtype in Genred is deprecated ; argument is ignored.")
+        if cuda_type:
+            print("[pyKeOps] Warning: keyword argument cuda_type in Genred is deprecated ; argument is ignored.")
 
         self.reduction_op = reduction_op
         reduction_op_internal, formula2 = preprocess(reduction_op, formula2)
 
-        if rec_multVar_highdim is not None:
-            optional_flags += ["-DMULT_VAR_HIGHDIM=1"]
-
-        self.optional_flags = optional_flags + get_optional_flags(
+        self.optional_flags = get_optional_flags(
             reduction_op_internal,
             dtype_acc,
             use_double_acc,
             sum_scheme,
-            dtype,
             enable_chunks,
         )
+        
+        if rec_multVar_highdim:
+            self.optional_flags["multVar_highdim"] = 1
+        else:
+            self.optional_flags["multVar_highdim"] = 0
+            
         str_opt_arg = "," + str(opt_arg) if opt_arg else ""
         str_formula2 = "," + formula2 if formula2 else ""
 
@@ -178,10 +171,7 @@ class Genred:
             + ")"
         )
         self.aliases = complete_aliases(self.formula, aliases)
-        self.dtype = dtype
-        self.myconv = LoadKeOps(
-            self.formula, self.aliases, self.dtype, "numpy", self.optional_flags
-        ).import_module()
+
         self.axis = axis
         self.opt_arg = opt_arg
 
@@ -286,9 +276,22 @@ class Genred:
         """
 
         # Get tags
-        tagCpuGpu, tag1D2D, _ = get_tag_backend(backend, args)
-        if ranges is None:
-            ranges = ()  # To keep the same type
+        tagCpuGpu, tag1D2D, tagHostDevice = get_tag_backend(backend, args)
+        
+        # number of batch dimensions
+        # N.B. we assume here that there is at least a cat=0 or cat=1 variable in the formula...
+        nbatchdims = max(len(arg.shape) for arg in args) - 2
+        
+        use_ranges = (nbatchdims > 0 or ranges)
+
+        dtype = args[0].dtype.__str__()
+
+        if device_id==-1:
+            device_id = default_device_id if tagCpuGpu==1 else -1
+
+        self.myconv = LoadKeOps( tagCpuGpu, tag1D2D, tagHostDevice, use_ranges, device_id,
+            self.formula, self.aliases, len(args), dtype, "numpy", self.optional_flags
+        ).import_module()
 
         # N.B.: KeOps C++ expects contiguous data arrays
         test_contig = all(arg.flags["C_CONTIGUOUS"] for arg in args)
@@ -300,7 +303,8 @@ class Genred:
             args = tuple(np.ascontiguousarray(arg) for arg in args)
 
         # N.B.: KeOps C++ expects contiguous integer arrays as ranges
-        ranges = tuple(np.ascontiguousarray(r) for r in ranges)
+        if ranges:
+            ranges = tuple(np.ascontiguousarray(r) for r in ranges)
 
         nx, ny = get_sizes(self.aliases, *args)
         nout, nred = (nx, ny) if self.axis == 1 else (ny, nx)
@@ -310,28 +314,26 @@ class Genred:
             # if nred is greater than 16 millions and dtype=float32, the result is not reliable
             # because we encode indices as floats, so we raise an exception ;
             # same with float16 type and nred>2048
-            if nred > 1.6e7 and self.dtype in ("float32", "float"):
+            if nred > 1.6e7 and dtype in ("float32", "float"):
                 raise ValueError(
                     "size of input array is too large for Arg type reduction with single precision. Use double precision."
                 )
-            elif nred > 2048 and self.dtype in ("float16", "half"):
+            elif nred > 2048 and dtype in ("float16", "half"):
                 raise ValueError(
                     "size of input array is too large for Arg type reduction with float16 dtype.."
                 )
 
         out = self.myconv.genred_numpy(
-            tagCpuGpu,
-            tag1D2D,
-            0,
-            device_id,
+            -1,
             ranges,
             nx,
             ny,
+            nbatchdims,
             self.axis,
             self.reduction_op,
             *args
         )
 
         return postprocess(
-            out, "numpy", self.reduction_op, nout, self.opt_arg, self.dtype
+            out, "numpy", self.reduction_op, nout, self.opt_arg, dtype
         )

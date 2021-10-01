@@ -60,7 +60,7 @@ variables = [
 # i.e. on the axis ``1`` of the kernel matrix.
 # The output c is an :math:`x`-variable indexed by :math:`i`.
 
-my_routine = Genred(formula, variables, reduction_op="Sum", axis=1, dtype=dtype)
+my_routine = Genred(formula, variables, reduction_op="Sum", axis=1)
 c = my_routine(x, y, a, p, backend="auto")
 
 ####################################################################
@@ -119,7 +119,7 @@ variables_grad = variables + [
 ]  # Fifth arg: an i-variable of size 3... Just like "c"!
 
 # The summation is done with respect to the 'i' index (axis=0) in order to get a 'j'-variable
-my_grad = Genred(formula_grad, variables_grad, reduction_op="Sum", axis=0, dtype=dtype)
+my_grad = Genred(formula_grad, variables_grad, reduction_op="Sum", axis=0)
 
 g = my_grad(x, y, a, p, e)
 

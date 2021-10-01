@@ -18,7 +18,7 @@ This is the main entry point for all binders. It takes as inputs :
 
 It returns :
       - dllname : string, file name of the dll to be called for performing the reduction
-      - low_level_code_file : string, file name of the low level code file to be passed to the dll if JIT is enabled, or "none" otherwise
+      - target_file : string, file name of the low level code or binary file to be passed to the dll if JIT is enabled, or "none" otherwise
       - tagI : integer, 0 or 1, specifying if reduction must be performed over i or j indices,
       - tagZero : integer, 0 or 1, specifying if reduction just consists in filling output with zeros,
       - use_half : 0 or 1, enable special routines for half-precision data type,
@@ -57,14 +57,15 @@ from keops.config.chunks import (
     set_mult_var_highdim,
 )
 import keops.config.config
-from keops.config.config import use_cuda
+from keops.config.config import use_cuda, get_build_folder
 from keops.utils.code_gen_utils import KeOps_Error
+import os, pickle
 
 # Get every classes in mapreduce
 map_reduce = dict(inspect.getmembers(keops.mapreduce, inspect.isclass))
 
 
-def get_keops_dll(
+def get_keops_dll_impl(
     map_reduce_id,
     red_formula_string,
     enable_chunks,
@@ -85,18 +86,18 @@ def get_keops_dll(
         set_enable_chunk(enable_chunks)
         set_enable_finalchunk(enable_finalchunks)
         set_mult_var_highdim(mul_var_highdim)
-        if use_final_chunks():
+        red_formula = GetReduction(red_formula_string, aliases)
+        if use_final_chunks(red_formula):
             use_chunk_mode = 2
             map_reduce_id += "_finalchunks"
         elif get_enable_chunk():
-            red_formula = GetReduction(red_formula_string, aliases)
             if len(red_formula.formula.chunked_formulas(dimchunk)) == 1:
                 use_chunk_mode = 1
                 map_reduce_id += "_chunks"
     else:
         keops.config.config.use_cuda = 0
 
-    # Instantioation of
+    # Instantiation of
     map_reduce_class = map_reduce[map_reduce_id]
 
     map_reduce_obj = map_reduce_class(red_formula_string, aliases, *args)
@@ -115,7 +116,7 @@ def get_keops_dll(
 
     return (
         res["dllname"],
-        res["low_level_code_file"],
+        res["target_file"],
         res["tagI"],
         tagZero,
         res["use_half"],
@@ -172,3 +173,37 @@ if __name__ == "__main__":
     res = get_keops_dll(argdict["map_reduce_id"], *list(argdict.values())[1:])
     for item in res:
         print(item)
+
+
+
+
+class library:
+    
+    def __init__(self, fun, use_cache_file=False, save_folder="."):
+        self.fun = fun
+        self.library = {}
+        self.use_cache_file = use_cache_file
+        if use_cache_file:
+            self.cache_file = os.path.join(save_folder, fun.__name__+"_cache.pkl")
+            if os.path.isfile(self.cache_file):
+                f = open(self.cache_file, "rb")
+                self.library = pickle.load(f)
+                f.close()
+            import atexit
+            atexit.register(self.save_cache)
+        
+    def __call__(self, *args):
+        str_id = "".join(list(str(arg) for arg in args))
+        if not str_id in self.library:
+            self.library[str_id] = self.fun(*args)
+        return self.library[str_id]
+    
+    def reset(self):
+        self.library = {}
+
+    def save_cache(self):
+        f = open(self.cache_file, "wb")
+        pickle.dump(self.library, f)
+        f.close()
+
+get_keops_dll = library(get_keops_dll_impl, use_cache_file=True, save_folder=get_build_folder())

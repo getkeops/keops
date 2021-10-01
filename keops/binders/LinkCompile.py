@@ -93,7 +93,7 @@ class LinkCompile:
             self.read_info()
         return dict(
             dllname=self.true_dllname,
-            low_level_code_file=self.low_level_code_file,
+            target_file=self.target_file,
             tagI=self.tagI,
             use_half=self.use_half,
             tag1D2D=self.tag1D2D,

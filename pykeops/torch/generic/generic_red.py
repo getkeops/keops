@@ -10,7 +10,8 @@ from pykeops.common.parse_type import (
     get_optional_flags,
 )
 from pykeops.common.utils import axis2cat
-from pykeops.torch import default_dtype, include_dirs
+from pykeops import default_device_id
+
 
 
 class GenredAutograd(torch.autograd.Function):
@@ -25,7 +26,7 @@ class GenredAutograd(torch.autograd.Function):
         aliases,
         backend,
         dtype,
-        device_id,
+        device_id_request,
         ranges,
         optional_flags,
         rec_multVar_highdim,
@@ -37,16 +38,45 @@ class GenredAutograd(torch.autograd.Function):
     ):
 
         # N.B. when rec_multVar_highdim option is set, it means that formula is of the form "sum(F*b)", where b is a variable
-        # with large dimension. In this case we set compiler option MULT_VAR_HIGHDIM to allow for the use of the special "final chunk" computation
+        # with large dimension. In this case we set option multVar_highdim to allow for the use of the special "final chunk" computation
         # mode. However, this may not be also true for the gradients of the same formula. In fact only the gradient
         # with respect to variable b will have the same form. Hence, we save optional_flags current status into ctx,
-        # before adding the MULT_VAR_HIGHDIM compiler option.
+        # before adding the multVar_highdim option.
         ctx.optional_flags = optional_flags.copy()
-        if rec_multVar_highdim is not None:
-            optional_flags += ["-DMULT_VAR_HIGHDIM=1"]
+        if rec_multVar_highdim:
+            optional_flags["multVar_highdim"] = 1
+        else:
+            optional_flags["multVar_highdim"] = 0
+        
+        tagCPUGPU, tag1D2D, tagHostDevice = get_tag_backend(backend, args)
 
-        myconv = LoadKeOps(
-            formula, aliases, dtype, "torch", optional_flags, include_dirs
+        # number of batch dimensions
+        # N.B. we assume here that there is at least a cat=0 or cat=1 variable in the formula...
+        nbatchdims = max(len(arg.shape) for arg in args) - 2
+        use_ranges = (nbatchdims > 0 or ranges)
+
+        device_args = args[0].device
+        if tagCPUGPU == 1 & tagHostDevice == 1:
+            for i in range(1, len(args)):
+                if args[i].device.index != device_args.index:
+                    raise ValueError(
+                        "[KeOps] Input arrays must be all located on the same device."
+                    )
+        
+        if device_id_request==-1:       # -1 means auto setting
+            if device_args.index:          # means args are on Gpu
+                device_id_request = device_args.index
+            else:
+                device_id_request = default_device_id if tagCPUGPU==1 else -1
+        else:
+            if device_args.index:
+                if device_args.index != device_id_request:
+                    raise ValueError(
+                        "[KeOps] Gpu device id of arrays is different from device id requested for computation."
+                    )
+
+        myconv = LoadKeOps( tagCPUGPU, tag1D2D, tagHostDevice, use_ranges, device_id_request,
+            formula, aliases, len(args), dtype, "torch", optional_flags
         ).import_module()
 
         # Context variables: save everything to compute the gradient:
@@ -54,7 +84,7 @@ class GenredAutograd(torch.autograd.Function):
         ctx.aliases = aliases
         ctx.backend = backend
         ctx.dtype = dtype
-        ctx.device_id = device_id
+        ctx.device_id_request = device_id_request
         ctx.ranges = ranges
         ctx.rec_multVar_highdim = rec_multVar_highdim
         ctx.myconv = myconv
@@ -62,19 +92,6 @@ class GenredAutograd(torch.autograd.Function):
         ctx.ny = ny
         ctx.axis = axis
         ctx.reduction_op = reduction_op
-
-        tagCPUGPU, tag1D2D, tagHostDevice = get_tag_backend(backend, args)
-
-        if tagCPUGPU == 1 & tagHostDevice == 1:
-            device_id = args[0].device.index
-            for i in range(1, len(args)):
-                if args[i].device.index != device_id:
-                    raise ValueError(
-                        "[KeOps] Input arrays must be all located on the same device."
-                    )
-
-        if ranges is None:
-            ranges = ()  # To keep the same type
 
         # N.B.: KeOps C++ expects contiguous data arrays
         test_contig = all(arg.is_contiguous() for arg in args)
@@ -86,16 +103,15 @@ class GenredAutograd(torch.autograd.Function):
             args = tuple(arg.contiguous() for arg in args)
 
         # N.B.: KeOps C++ expects contiguous integer arrays as ranges
-        ranges = tuple(r.contiguous() for r in ranges)
+        if ranges:
+            ranges = tuple(r.contiguous() for r in ranges)
 
         result = myconv.genred_pytorch(
-            tagCPUGPU,
-            tag1D2D,
-            tagHostDevice,
-            device_id,
+            device_args,
             ranges,
             nx,
             ny,
+            nbatchdims,
             axis,
             reduction_op,
             *args
@@ -115,7 +131,7 @@ class GenredAutograd(torch.autograd.Function):
         dtype = ctx.dtype
         ranges = ctx.ranges
         optional_flags = ctx.optional_flags
-        device_id = ctx.device_id
+        device_id_request = ctx.device_id_request
         myconv = ctx.myconv
         nx = ctx.nx
         ny = ctx.ny
@@ -183,7 +199,7 @@ class GenredAutograd(torch.autograd.Function):
             # If the current gradient is to be discarded immediatly...
             if not ctx.needs_input_grad[
                 var_ind + 12
-            ]:  # because of (formula, aliases, backend, dtype, device_id, ranges, optional_flags, rec_multVar_highdim, nx, ny, axis, reduction_op)
+            ]:  # because of (formula, aliases, backend, dtype, device_id_request, ranges, optional_flags, rec_multVar_highdim, nx, ny, axis, reduction_op)
                 grads.append(None)  # Don't waste time computing it.
 
             else:
@@ -233,7 +249,7 @@ class GenredAutograd(torch.autograd.Function):
                         aliases_g,
                         backend,
                         dtype,
-                        device_id,
+                        device_id_request,
                         ranges,
                         optional_flags,
                         rec_multVar_highdim,
@@ -264,7 +280,7 @@ class GenredAutograd(torch.autograd.Function):
                         aliases_g,
                         backend,
                         dtype,
-                        device_id,
+                        device_id_request,
                         ranges,
                         optional_flags,
                         rec_multVar_highdim,
@@ -295,7 +311,7 @@ class GenredAutograd(torch.autograd.Function):
                 )  # The gradient should have the same shape as the input!
                 grads.append(grad)
 
-        # Grads wrt. formula, aliases, backend, dtype, device_id, ranges, optional_flags, rec_multVar_highdim, nx, ny, axis, reduction_op, *args
+        # Grads wrt. formula, aliases, backend, dtype, device_id_request, ranges, optional_flags, rec_multVar_highdim, nx, ny, axis, reduction_op, *args
         return (
             None,
             None,
@@ -355,7 +371,7 @@ class Genred:
         aliases,
         reduction_op="Sum",
         axis=0,
-        dtype=default_dtype,
+        dtype=None,
         opt_arg=None,
         formula2=None,
         cuda_type=None,
@@ -363,8 +379,7 @@ class Genred:
         use_double_acc=False,
         sum_scheme="auto",
         enable_chunks=True,
-        optional_flags=[],
-        rec_multVar_highdim=None,
+        rec_multVar_highdim=False,
     ):
         r"""
         Instantiate a new generic operation.
@@ -405,13 +420,6 @@ class Genred:
                   - **axis** = 0: reduction with respect to :math:`i`, outputs a ``Vj`` or ":math:`j`" variable.
                   - **axis** = 1: reduction with respect to :math:`j`, outputs a ``Vi`` or ":math:`i`" variable.
 
-            dtype (string, default = ``"float32"``): Specifies the numerical ``dtype`` of the input and output arrays.
-                The supported values are:
-
-                  - **dtype** = ``"float16"`` or ``"half"``.
-                  - **dtype** = ``"float32"`` or ``"float"``.
-                  - **dtype** = ``"float64"`` or ``"double"``.
-
             opt_arg (int, default = None): If **reduction_op** is in ``["KMin", "ArgKMin", "KMin_ArgKMin"]``,
                 this argument allows you to specify the number ``K`` of neighbors to consider.
 
@@ -436,24 +444,28 @@ class Genred:
                   - **sum_scheme** =  ``"kahan_scheme"``: use Kahan summation algorithm to compensate for round-off errors. This improves
                 accuracy for large sized data.
 
-            enable_chunks (bool, default True): enable automatic selection of special "chunked" computation mode for accelerating reductions
+            enable_chunks (bool, default True): for Gpu mode only, enable automatic selection of special "chunked" computation mode for accelerating reductions
                                 with formulas involving large dimension variables.
-
-                        optional_flags (list, default []): further optional flags passed to the compiler, in the form ['-D...=...','-D...=...']
+            
+            rec_multVar_highdim (bool, default False): for Gpu mode only, enable special "final chunked" computation mode for accelerating reductions
+                                with formulas involving large dimension variables. Beware ! This will only work if the formula has the very special form
+                                that allows such computation mode. 
 
         """
+
+        if dtype:
+            print("[pyKeOps] Warning: keyword argument dtype in Genred is deprecated ; argument is ignored.")
         if cuda_type:
-            # cuda_type is just old keyword for dtype, so this is just a trick to keep backward compatibility
-            dtype = cuda_type
+            print("[pyKeOps] Warning: keyword argument cuda_type in Genred is deprecated ; argument is ignored.")
+        
         self.reduction_op = reduction_op
         reduction_op_internal, formula2 = preprocess(reduction_op, formula2)
 
-        self.optional_flags = optional_flags + get_optional_flags(
+        self.optional_flags = get_optional_flags(
             reduction_op_internal,
             dtype_acc,
             use_double_acc,
             sum_scheme,
-            dtype,
             enable_chunks,
         )
 
@@ -473,7 +485,6 @@ class Genred:
         self.aliases = complete_aliases(
             self.formula, list(aliases)
         )  # just in case the user provided a tuple
-        self.dtype = dtype
         self.axis = axis
         self.opt_arg = opt_arg
 
@@ -587,6 +598,8 @@ class Genred:
 
         """
 
+        dtype = args[0].dtype.__str__().split(".")[1]
+
         nx, ny = get_sizes(self.aliases, *args)
         nout, nred = (nx, ny) if self.axis == 1 else (ny, nx)
 
@@ -608,7 +621,7 @@ class Genred:
             self.formula,
             self.aliases,
             backend,
-            self.dtype,
+            dtype,
             device_id,
             ranges,
             self.optional_flags,
@@ -621,5 +634,5 @@ class Genred:
         )
 
         return postprocess(
-            out, "torch", self.reduction_op, nout, self.opt_arg, self.dtype
+            out, "torch", self.reduction_op, nout, self.opt_arg, dtype
         )

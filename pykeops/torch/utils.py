@@ -1,6 +1,6 @@
 import torch
 
-from pykeops.torch import Genred, KernelSolve, default_dtype
+from pykeops.torch import Genred, KernelSolve
 from pykeops.torch.cluster import swap_axes as torch_swap_axes
 from ctypes import c_float, c_double, c_void_p, POINTER
 
@@ -11,7 +11,7 @@ from ctypes import c_float, c_double, c_void_p, POINTER
 def is_on_device(x):
     return x.is_cuda
 
-
+            
 class torchtools:
     copy = torch.clone
     exp = torch.exp
@@ -84,6 +84,13 @@ class torchtools:
             return type(x)
 
     @staticmethod
+    def dtype(x):
+        if hasattr(x, "dtype"):
+            return x.dtype
+        else:
+            return type(x)
+
+    @staticmethod
     def detect_complex(x):
         if type(x) == list:
             return any(type(v) == complex for v in x)
@@ -128,21 +135,20 @@ class torchtools:
         return dict(data=c_void_p(x.data_ptr()), type=c_void_p)
 
     @staticmethod
-    def rand(m, n, dtype=default_dtype, device="cpu"):
+    def rand(m, n, dtype, device):
         return torch.rand(m, n, dtype=dtype, device=device)
 
     @staticmethod
-    def randn(m, n, dtype=default_dtype, device="cpu"):
+    def randn(m, n, dtype, device):
         return torch.randn(m, n, dtype=dtype, device=device)
 
     @staticmethod
     def zeros(
         shape,
-        dtype=default_dtype,
-        device={"cat": "cpu", "device": -1},
+        dtype,
+        device,
         requires_grad=False,
     ):
-        device = torch.device(device["cat"], device["index"])
         return torch.zeros(
             *shape, dtype=dtype, device=device, requires_grad=requires_grad
         )
@@ -150,21 +156,20 @@ class torchtools:
     @staticmethod
     def empty(
         shape,
-        dtype=default_dtype,
-        device={"cat": "cpu", "device": -1},
+        dtype,
+        device,
         requires_grad=False,
     ):
-        device = torch.device(device["cat"], device["index"])
         return torch.empty(
             *shape, dtype=dtype, device=device, requires_grad=requires_grad
         )
 
     @staticmethod
-    def eye(n, dtype=default_dtype, device="cpu"):
+    def eye(n, dtype, device):
         return torch.eye(n, dtype=dtype, device=device)
 
     @staticmethod
-    def array(x, dtype=default_dtype, device="cpu"):
+    def array(x, dtype, device):
         if dtype == "float32":
             dtype = torch.float32
         elif dtype == "float64":
@@ -185,17 +190,18 @@ class torchtools:
             return x.device
         else:
             return None
+    
+    @staticmethod
+    def get_pointer(x):
+        return x.data_ptr()
 
     @staticmethod
-    def device_dict(x):
+    def device_type_index(x):
         if isinstance(x, torch.Tensor):
             dev = x.device
-            if str(dev) == "cpu":
-                return dict(cat="cpu", index=0)
-            else:
-                return dict(cat="cuda", index=dev.index)
+            return dev.type, dev.index
         else:
-            return None
+            return None, None
 
     @staticmethod
     def pointer(x):

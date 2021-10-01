@@ -26,7 +26,7 @@ def get_cuda_include_path():
             return path
     
     # if not successfull, we try a few standard locations:
-    cuda_version = get_cuda_version()
+    cuda_version = get_cuda_version(out_type="string")
     cuda_paths_to_try_start = [join(os.path.sep, "opt","cuda"),
                     join(os.path.sep, "usr", "local", "cuda"),
                     join(os.path.sep, "usr", "local", f"cuda-{cuda_version}"),
@@ -102,14 +102,19 @@ def cuda_include_fp16_path():
         KeOps_Error("cuda_fp16.h and cuda_fp16.hpp were not found")
         
 
-def get_cuda_version():
+def get_cuda_version(out_type="single_value"):
     cuda = ctypes.CDLL(find_library("cudart"))
     cuda_version = ctypes.c_int()
-    cuda.cudaDriverGetVersion(ctypes.byref(cuda_version))
+    cuda.cudaRuntimeGetVersion(ctypes.byref(cuda_version))
     cuda_version = int(cuda_version.value)
+    if out_type=="single_value":
+        return cuda_version
     cuda_version_major = cuda_version//1000
     cuda_version_minor = (cuda_version-(1000*cuda_version_major))//10
-    return f"{cuda_version_major}.{cuda_version_minor}"
+    if out_type=="major,minor":
+        return cuda_version_major, cuda_version_minor
+    elif out_type=="string":
+        return f"{cuda_version_major}.{cuda_version_minor}"
     
 def get_gpu_props():
     """

@@ -126,7 +126,7 @@ def get_type(type_str, position_in_list=None):
 
 
 def get_optional_flags(
-    reduction_op_internal, dtype_acc, use_double_acc, sum_scheme, dtype, enable_chunks
+    reduction_op_internal, dtype_acc, use_double_acc, sum_scheme, enable_chunks
 ):
     # 1. Options for accuracy
 
@@ -144,20 +144,7 @@ def get_optional_flags(
         raise ValueError(
             "[KeOps] parameter dtype_acc should be set to 'auto' for no-sum type reductions (Min, Max, ArgMin, etc.)"
         )
-    if dtype_acc == "auto":
-        dtype_acc = dtype
-    if dtype == "float32" and dtype_acc not in ("float32", "float64"):
-        raise ValueError(
-            "[KeOps] invalid parameter dtype_acc : should be either 'float32' or 'float64' when dtype is 'float32'"
-        )
-    elif dtype == "float16" and dtype_acc not in ("float16", "float32"):
-        raise ValueError(
-            "[KeOps] invalid parameter dtype_acc : should be either 'float16' or 'float32' when dtype is 'float16'"
-        )
-    elif dtype == "float64" and dtype_acc not in "float64":
-        raise ValueError(
-            "[KeOps] invalid parameter dtype_acc : should be 'float64' when dtype is 'float64'"
-        )
+    
     if sum_scheme == "auto":
         if reduction_op_internal in ("Sum", "Max_SumShiftExp", "Max_SumShiftExpWeight"):
             sum_scheme = "block_sum"
@@ -186,33 +173,52 @@ def get_optional_flags(
             '[KeOps] invalid value for option sum_scheme : should be one of "auto", "direct_sum", "block_sum" or "kahan_scheme".'
         )
 
-    optional_flags = []
-    if dtype_acc == "float64":
-        optional_flags += ["-D__TYPEACC__=double"]
-    elif dtype_acc == "float32":
-        if dtype == "float16":
-            optional_flags += ["-D__TYPEACC__=float2"]
-        else:
-            optional_flags += ["-D__TYPEACC__=float"]
-    elif dtype_acc == "float16":
-        optional_flags += ["-D__TYPEACC__=half2"]
-    else:
-        raise ValueError(
-            '[KeOps] invalid value for option dtype_acc : should be one of "auto", "float16", "float32" or "float64".'
-        )
+    optional_flags = dict()
 
-    if sum_scheme == "direct_sum":
-        optional_flags += ["-DSUM_SCHEME=0"]
-    elif sum_scheme == "block_sum":
-        optional_flags += ["-DSUM_SCHEME=1"]
-    elif sum_scheme == "kahan_scheme":
-        optional_flags += ["-DSUM_SCHEME=2"]
+    optional_flags["dtype_acc"] = dtype_acc
+
+    optional_flags["sum_scheme"] = sum_scheme
 
     # 2. Option for chunk mode
 
     if enable_chunks:
-        optional_flags += ["-DENABLECHUNK=1"]
+        optional_flags["enable_chunks"] = 1
     else:
-        optional_flags += ["-DENABLECHUNK=0"]
+        optional_flags["enable_chunks"] = 0
 
     return optional_flags
+
+def parse_dtype_acc(dtype_acc, dtype):
+
+    if dtype_acc == "auto":
+        dtype_acc = dtype
+    if dtype == "float32" and dtype_acc not in ("float32", "float64"):
+        raise ValueError(
+            "[KeOps] invalid parameter dtype_acc : should be either 'float32' or 'float64' when dtype is 'float32'"
+        )
+    elif dtype == "float16" and dtype_acc not in ("float16", "float32"):
+        raise ValueError(
+            "[KeOps] invalid parameter dtype_acc : should be either 'float16' or 'float32' when dtype is 'float16'"
+        )
+    elif dtype == "float64" and dtype_acc not in "float64":
+        raise ValueError(
+            "[KeOps] invalid parameter dtype_acc : should be 'float64' when dtype is 'float64'"
+        )
+        
+    if dtype_acc == "float64":
+        dtype_acc = "double"
+    elif dtype_acc == "float32":
+        if dtype == "float16":
+            dtype_acc = "float2"
+        else:
+            dtype_acc = "float"
+    elif dtype_acc == "float16":
+        dtype_acc = "half2"
+    else:
+        raise ValueError(
+            '[KeOps] invalid value for option dtype_acc : should be one of "auto", "float16", "float32" or "float64".'
+        )
+    
+    return dtype_acc
+    
+    

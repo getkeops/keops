@@ -66,7 +66,7 @@ start = time.time()
 # i.e. on the axis ``1`` of the kernel matrix.
 # The output c is an :math:`x`-variable indexed by :math:`i`.
 
-my_routine = Genred(formula, variables, reduction_op="LogSumExp", axis=1, dtype=dtype)
+my_routine = Genred(formula, variables, reduction_op="LogSumExp", axis=1)
 c = my_routine(x, y, a, p, backend="CPU")
 
 # N.B.: By specifying backend='CPU', we can make sure that the result is computed using a simple C++ for loop.

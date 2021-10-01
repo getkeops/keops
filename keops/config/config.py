@@ -61,11 +61,11 @@ disable_pragma_unrolls = True
 if use_OpenMP:
     import platform
     if platform.system() == "Darwin":
-        KeOps_Warning("OpenMP support is disabled on Mac")
-        use_OpenMP = False  # disabled currently, because hack below is unsafe..
-        # cpp_flags += " -Xclang -fopenmp -lomp "
-        # # warning : this is unsafe hack for OpenMP support on mac...
-        # os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
+        if not os.getenv('KMP_DUPLICATE_LIB_OK') == "TRUE":
+            KeOps_Warning("OpenMP support is disabled on Mac by default, see the doc for enabling it.")
+            use_OpenMP = False
+        else:
+            cpp_flags += " -Xclang -fopenmp -lomp "
     else:
         cpp_flags += " -fopenmp -fno-fat-lto-objects"
 
@@ -85,20 +85,24 @@ if use_cuda and not cuda_available:
     use_cuda = False
 
 if use_cuda:
-    from keops.utils.gpu_utils import libcuda_folder, libnvrtc_folder, get_cuda_include_path
+    from keops.utils.gpu_utils import libcuda_folder, libnvrtc_folder, get_cuda_include_path, get_cuda_version
+    cuda_version = get_cuda_version()
     nvrtc_flags = compile_options + f" -fpermissive -L {libcuda_folder} -L {libnvrtc_folder} -lcuda -lnvrtc"
     nvrtc_include = " -I" + bindings_source_dir
     cuda_include_path = get_cuda_include_path()
     if cuda_include_path:
         nvrtc_include += " -I" + cuda_include_path
     jit_source_file = join(base_dir_path, "binders", "nvrtc", "keops_nvrtc.cpp")
+    jit_source_header = join(base_dir_path, "binders", "nvrtc", "keops_nvrtc.h")
 else:
+    cuda_version = None
     libcuda_folder = None
     libnvrtc_folder = None
     nvrtc_flags = None
     nvrtc_include = None
     cuda_include_path = None
     jit_source_file = None
+    jit_source_header = None
     jit_binary = None
 
 init_cudalibs_flag = False

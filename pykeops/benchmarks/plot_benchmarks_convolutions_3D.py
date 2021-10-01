@@ -107,18 +107,18 @@ def gaussianconv_pytorch(x, y, b, **kwargs):
 #
 
 from pykeops.torch import generic_sum
-
-
-def gaussianconv_keops(x, y, b, backend="GPU", **kwargs):
-    """(B,N,D), (B,N,D), (B,N,1) -> (B,N,1)"""
-    fun = generic_sum(
+fun_gaussianconv_keops = generic_sum(
         "Exp(-SqDist(X,Y)) * B",  # Formula
         "A = Vi(1)",  # Output
         "X = Vi({})".format(D),  # 1st argument
         "Y = Vj({})".format(D),  # 2nd argument
         "B = Vj(1)",  # 3rd argument
     )
-    return fun(x, y, b, backend=backend)
+
+def gaussianconv_keops(x, y, b, backend="GPU", **kwargs):
+    """(B,N,D), (B,N,D), (B,N,1) -> (B,N,1)"""
+    x, y, b = x.squeeze(), y.squeeze(), b.squeeze()
+    return fun_gaussianconv_keops(x, y, b, backend=backend)
 
 
 #############################################
@@ -195,6 +195,7 @@ if use_cuda:
         generate_samples,
         problem_sizes=problem_sizes,
     )
+
 
 
 plt.show()

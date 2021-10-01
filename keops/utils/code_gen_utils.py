@@ -807,3 +807,5 @@ def clean_keops(keep_jit_binary=False):
         if f.path != jit_binary:
             os.remove(f.path)
     KeOps_Message(f"{build_path} has been cleaned.")
+    from keops.get_keops_dll import get_keops_dll
+    get_keops_dll.reset()

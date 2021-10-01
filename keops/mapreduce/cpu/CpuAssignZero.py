@@ -1,3 +1,4 @@
+from keops import debug_ops
 from keops.binders.cpp.Cpu_link_compile import Cpu_link_compile
 from keops.mapreduce.MapReduce import MapReduce
 from keops.utils.code_gen_utils import (
@@ -23,15 +24,18 @@ class CpuAssignZero(MapReduce, Cpu_link_compile):
         dtype = self.dtype
         arg = self.arg
         args = self.args
-
-        self.headers += c_include("stdlib.h")
+            
+        headers = ["stdlib.h"]
         if use_OpenMP:
-            self.headers += c_include("omp.h")
+            headers.append("omp.h")
+        if debug_ops:
+            headers.append("iostream")
+        self.headers += c_include(*headers)
 
         self.code = f"""
                         {self.headers}
 
-                        extern "C" int AssignZeroCpu(int nx, int ny, {dtype}* out, {dtype} **{arg.id}) {{
+                        extern "C" int AssignZeroCpu_{self.gencode_filename}(int nx, int ny, {dtype}* out, {dtype} **{arg.id}) {{
                             #pragma omp parallel for
                             for (int i = 0; i < nx; i++) {{
                                 {outi.assign(c_zero_float)}
@@ -40,8 +44,34 @@ class CpuAssignZero(MapReduce, Cpu_link_compile):
                         }}
                         
                         #include "stdarg.h"
+                        #include <vector>
                         
-                        extern "C" int launch_keops_{dtype}(const char* ptx_file_name, int tagHostDevice, int dimY, int nx, int ny, 
+                        int launch_keops_{self.gencode_filename}(int nx, int ny, int tagI, {dtype} *out, {dtype} **arg) {{
+                        
+                            if (tagI==1) {{
+                                int tmp = ny;
+                                ny = nx;
+                                nx = tmp;
+                            }}
+                        
+                            return AssignZeroCpu_{self.gencode_filename}(nx, ny, out, arg);
+
+                        }}
+                        
+                        int launch_keops_cpu_{self.gencode_filename}(int nx, int ny, int tagI, int use_half, 
+                                                 const std::vector<void*>& ranges_v,
+                                                 void *out_void, int nargs, 
+                                                 const std::vector<void*>& arg_v,
+                                                 const std::vector<int*>& argshape_v) {{
+                        
+                            {dtype} **arg = ({dtype}**) arg_v.data();
+                            {dtype} *out = ({dtype}*) out_void;
+                        
+                            return launch_keops_{self.gencode_filename}(nx, ny, tagI, out, arg);
+
+                        }}
+                        
+                        extern "C" int launch_keops_{dtype}(const char* target_file_name, int tagHostDevice, int dimY, int nx, int ny, 
                                                             int device_id, int tagI, int tagZero, int use_half, 
                                                             int tag1D2D, int dimred,
                                                             int cuda_block_size, int use_chunk_mode,
@@ -58,12 +88,6 @@ class CpuAssignZero(MapReduce, Cpu_link_compile):
                                 arg[i] = va_arg(ap, {dtype}*);
                             va_end(ap);
                             
-                            if (tagI==1) {{
-                                int tmp = ny;
-                                ny = nx;
-                                nx = tmp;
-                            }}
-                            
-                            return AssignZeroCpu(nx, ny, out, arg);
+                            return launch_keops_{self.gencode_filename}(nx, ny, tagI, out, arg);
                         }}
                     """

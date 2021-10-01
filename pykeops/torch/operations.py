@@ -10,9 +10,8 @@ from pykeops.common.parse_type import (
     get_optional_flags,
 )
 from pykeops.common.utils import axis2cat
-from pykeops.torch import default_dtype
-from pykeops.torch import include_dirs
 from pykeops.torch.generic.generic_red import GenredAutograd
+from pykeops import default_device_id
 
 
 class KernelSolveAutograd(torch.autograd.Function):
@@ -29,7 +28,7 @@ class KernelSolveAutograd(torch.autograd.Function):
         alpha,
         backend,
         dtype,
-        device_id,
+        device_id_request,
         eps,
         ranges,
         optional_flags,
@@ -40,18 +39,47 @@ class KernelSolveAutograd(torch.autograd.Function):
         reduction_op,
         *args
     ):
-
+        
         # N.B. when rec_multVar_highdim option is set, it means that formula is of the form "sum(F*b)", where b is a variable
-        # with large dimension. In this case we set compiler option MULT_VAR_HIGHDIM to allow for the use of the special "final chunk" computation
+        # with large dimension. In this case we set option multVar_highdim to allow for the use of the special "final chunk" computation
         # mode. However, this may not be also true for the gradients of the same formula. In fact only the gradient
         # with respect to variable b will have the same form. Hence, we save optional_flags current status into ctx,
-        # before adding the MULT_VAR_HIGHDIM compiler option.
+        # before adding the multVar_highdim option.
         ctx.optional_flags = optional_flags.copy()
-        if rec_multVar_highdim is not None:
-            optional_flags += ["-DMULT_VAR_HIGHDIM=1"]
+        if rec_multVar_highdim:
+            optional_flags["multVar_highdim"] = 1
+        else:
+            optional_flags["multVar_highdim"] = 0
 
-        myconv = LoadKeOps(
-            formula, aliases, dtype, "torch", optional_flags, include_dirs
+        tagCPUGPU, tag1D2D, tagHostDevice = get_tag_backend(backend, args)
+
+        # number of batch dimensions
+        # N.B. we assume here that there is at least a cat=0 or cat=1 variable in the formula...
+        nbatchdims = max(len(arg.shape) for arg in args) - 2
+        use_ranges = (nbatchdims > 0 or ranges)
+
+        device_args = args[0].device
+        if tagCPUGPU == 1 & tagHostDevice == 1:
+            for i in range(1, len(args)):
+                if args[i].device.index != device_args.index:
+                    raise ValueError(
+                        "[KeOps] Input arrays must be all located on the same device."
+                    )
+        
+        if device_id_request==-1:       # -1 means auto setting
+            if device_args.index:          # means args are on Gpu
+                device_id_request = device_args.index
+            else:
+                device_id_request = default_device_id if tagCPUGPU==1 else -1
+        else:
+            if device_args.index:
+                if device_args.index != device_id_request:
+                    raise ValueError(
+                        "[KeOps] Gpu device id of arrays is different from device id requested for computation."
+                    )
+
+        myconv = LoadKeOps( tagCPUGPU, tag1D2D, tagHostDevice, use_ranges, device_id_request,
+            formula, aliases, len(args), dtype, "torch", optional_flags
         ).import_module()
 
         # Context variables: save everything to compute the gradient:
@@ -61,7 +89,7 @@ class KernelSolveAutograd(torch.autograd.Function):
         ctx.alpha = alpha
         ctx.backend = backend
         ctx.dtype = dtype
-        ctx.device_id = device_id
+        ctx.device_id_request = device_id_request
         ctx.eps = eps
         ctx.nx = nx
         ctx.ny = ny
@@ -71,32 +99,18 @@ class KernelSolveAutograd(torch.autograd.Function):
         ctx.ranges = ranges
         ctx.rec_multVar_highdim = rec_multVar_highdim
         ctx.optional_flags = optional_flags
-        if ranges is None:
-            ranges = ()  # To keep the same type
 
         varinv = args[varinvpos]
         ctx.varinvpos = varinvpos
 
-        tagCPUGPU, tag1D2D, tagHostDevice = get_tag_backend(backend, args)
-
-        if tagCPUGPU == 1 & tagHostDevice == 1:
-            device_id = args[0].device.index
-            for i in range(1, len(args)):
-                if args[i].device.index != device_id:
-                    raise ValueError(
-                        "[KeOps] Input arrays must be all located on the same device."
-                    )
-
         def linop(var):
             newargs = args[:varinvpos] + (var,) + args[varinvpos + 1 :]
             res = myconv.genred_pytorch(
-                tagCPUGPU,
-                tag1D2D,
-                tagHostDevice,
-                device_id,
+                device_args,
                 ranges,
                 nx,
                 ny,
+                nbatchdims,
                 axis,
                 reduction_op,
                 *newargs
@@ -122,7 +136,7 @@ class KernelSolveAutograd(torch.autograd.Function):
         backend = ctx.backend
         alpha = ctx.alpha
         dtype = ctx.dtype
-        device_id = ctx.device_id
+        device_id_request = ctx.device_id_request
         eps = ctx.eps
         nx = ctx.nx
         ny = ctx.ny
@@ -169,7 +183,7 @@ class KernelSolveAutograd(torch.autograd.Function):
             alpha,
             backend,
             dtype,
-            device_id,
+            device_id_request,
             eps,
             ranges,
             optional_flags,
@@ -235,7 +249,7 @@ class KernelSolveAutograd(torch.autograd.Function):
                             aliases_g,
                             backend,
                             dtype,
-                            device_id,
+                            device_id_request,
                             ranges,
                             optional_flags,
                             None,
@@ -257,7 +271,7 @@ class KernelSolveAutograd(torch.autograd.Function):
                             aliases_g,
                             backend,
                             dtype,
-                            device_id,
+                            device_id_request,
                             ranges,
                             optional_flags,
                             None,
@@ -269,7 +283,7 @@ class KernelSolveAutograd(torch.autograd.Function):
                         )
                     grads.append(grad)
 
-        # Grads wrt. formula, aliases, varinvpos, alpha, backend, dtype, device_id, eps, ranges, optional_flags, rec_multVar_highdim, nx, ny, axis, reduction_op, *args
+        # Grads wrt. formula, aliases, varinvpos, alpha, backend, dtype, device_id_request, eps, ranges, optional_flags, rec_multVar_highdim, nx, ny, axis, reduction_op, *args
         return (
             None,
             None,
@@ -339,13 +353,13 @@ class KernelSolve:
         aliases,
         varinvalias,
         axis=0,
-        dtype=default_dtype,
-        cuda_type=None,
         dtype_acc="auto",
         use_double_acc=False,
         sum_scheme="auto",
         enable_chunks=True,
         rec_multVar_highdim=None,
+        dtype=None,
+        cuda_type=None,
     ):
         r"""
         Instantiate a new KernelSolve operation.
@@ -390,13 +404,6 @@ class KernelSolve:
                   - **axis** = 0: reduction with respect to :math:`i`, outputs a ``Vj`` or ":math:`j`" variable.
                   - **axis** = 1: reduction with respect to :math:`j`, outputs a ``Vi`` or ":math:`i`" variable.
 
-            dtype (string, default = ``"float32"``): Specifies the numerical ``dtype`` of the input and output arrays.
-                The supported values are:
-
-                  - **dtype** = ``"float16"`` or ``"half"``.
-                  - **dtype** = ``"float32"`` or ``"float"``.
-                  - **dtype** = ``"float64"`` or ``"double"``.
-
             dtype_acc (string, default ``"auto"``): type for accumulator of reduction, before casting to dtype.
                 It improves the accuracy of results in case of large sized data, but is slower.
                 Default value "auto" will set this option to the value of dtype. The supported values are:
@@ -422,9 +429,12 @@ class KernelSolve:
                                 with formulas involving large dimension variables.
 
         """
+
+        if dtype:
+            print("[pyKeOps] Warning: keyword argument dtype in Genred is deprecated ; argument is ignored.")
         if cuda_type:
-            # cuda_type is just old keyword for dtype, so this is just a trick to keep backward compatibility
-            dtype = cuda_type
+            print("[pyKeOps] Warning: keyword argument cuda_type in Genred is deprecated ; argument is ignored.")
+
         self.reduction_op = "Sum"
 
         self.optional_flags = get_optional_flags(
@@ -432,7 +442,6 @@ class KernelSolve:
             dtype_acc,
             use_double_acc,
             sum_scheme,
-            dtype,
             enable_chunks,
         )
 
@@ -457,7 +466,6 @@ class KernelSolve:
                 tmp[i] = s[: s.find("=")].strip()
             varinvpos = tmp.index(varinvalias)
         self.varinvpos = varinvpos
-        self.dtype = dtype
         self.rec_multVar_highdim = rec_multVar_highdim
         self.axis = axis
 
@@ -515,6 +523,7 @@ class KernelSolve:
 
         """
 
+        dtype = args[0].dtype.__str__().split(".")[1]
         nx, ny = get_sizes(self.aliases, *args)
 
         return KernelSolveAutograd.apply(
@@ -523,7 +532,7 @@ class KernelSolve:
             self.varinvpos,
             alpha,
             backend,
-            self.dtype,
+            dtype,
             device_id,
             eps,
             ranges,
