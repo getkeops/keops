@@ -246,7 +246,6 @@ class KernelSolve:
             newargs = args[: self.varinvpos] + (var,) + args[self.varinvpos + 1 :]
             nx, ny = get_sizes(self.aliases, *newargs)
             res = self.myconv.genred_numpy(
-                device_id,
                 -1,
                 ranges,
                 nx,

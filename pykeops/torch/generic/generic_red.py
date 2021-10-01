@@ -107,7 +107,6 @@ class GenredAutograd(torch.autograd.Function):
             ranges = tuple(r.contiguous() for r in ranges)
 
         result = myconv.genred_pytorch(
-            device_id_request,
             device_args,
             ranges,
             nx,
