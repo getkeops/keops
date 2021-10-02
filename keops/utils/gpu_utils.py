@@ -15,31 +15,37 @@ libnvrtc_folder = os.path.dirname(find_library_abspath("nvrtc"))
 
 
 def get_cuda_include_path():
-    
+
     # auto detect location of cuda headers
 
     # First we look at CUDA_PATH env variable if it is set
-    path = os.getenv('CUDA_PATH')
+    path = os.getenv("CUDA_PATH")
     if path:
         path = join(path, "include")
-        if os.path.isfile(join(path, "cuda.h")) and os.path.isfile(join(path, "nvrtc.h")):
+        if os.path.isfile(join(path, "cuda.h")) and os.path.isfile(
+            join(path, "nvrtc.h")
+        ):
             return path
-    
+
     # if not successfull, we try a few standard locations:
     cuda_version = get_cuda_version(out_type="string")
-    cuda_paths_to_try_start = [join(os.path.sep, "opt","cuda"),
-                    join(os.path.sep, "usr", "local", "cuda"),
-                    join(os.path.sep, "usr", "local", f"cuda-{cuda_version}"),
-                        ]
-    cuda_paths_to_try_end = ["include",
-                        join("targets", "x86_64-linux", "include"),
-                        ]
+    cuda_paths_to_try_start = [
+        join(os.path.sep, "opt", "cuda"),
+        join(os.path.sep, "usr", "local", "cuda"),
+        join(os.path.sep, "usr", "local", f"cuda-{cuda_version}"),
+    ]
+    cuda_paths_to_try_end = [
+        "include",
+        join("targets", "x86_64-linux", "include"),
+    ]
     for path_start in cuda_paths_to_try_start:
         for path_end in cuda_paths_to_try_end:
             path = join(path_start, path_end)
-            if os.path.isfile(join(path, "cuda.h")) and os.path.isfile(join(path, "nvrtc.h")):
+            if os.path.isfile(join(path, "cuda.h")) and os.path.isfile(
+                join(path, "nvrtc.h")
+            ):
                 return path
-    
+
     # if not successfull, we try to infer location from the libs
     cuda_include_path = None
     for libpath in libcuda_folder, libnvrtc_folder:
@@ -47,10 +53,12 @@ def get_cuda_include_path():
             libtag = os.path.sep + libtag + os.path.sep
             if libtag in libpath:
                 includetag = os.path.sep + "include" + os.path.sep
-                includepath = libpath.replace(libtag,includetag)
-                if os.path.isfile(join(includepath, "cuda.h")) and os.path.isfile(join(includepath, "nvrtc.h")):
+                includepath = libpath.replace(libtag, includetag)
+                if os.path.isfile(join(includepath, "cuda.h")) and os.path.isfile(
+                    join(includepath, "nvrtc.h")
+                ):
                     return includepath
-    
+
     # last try, testing if by any chance the header is already in the default
     # include path of gcc
     path_cudah = get_include_file_abspath("cuda.h")
@@ -58,9 +66,10 @@ def get_cuda_include_path():
         path = os.path.dirname(path_cudah)
     if os.path.isfile(join(path, "nvrtc.h")):
         return path
-    
+
     # finally nothing found, so we display a warning asking the user to do something
-    KeOps_Warning("""
+    KeOps_Warning(
+        """
     The location of Cuda header files cuda.h and nvrtc.h could not be detected on your system.
     You must determine their location and then define the environment variable CUDA_PATH,
     either before launching Python or using os.environ before importing keops. For example
@@ -68,13 +77,15 @@ def get_cuda_include_path():
       import os
       os.environ['CUDA_PATH'] = '/vol/cuda/10.2.89-cudnn7.6.4.38'
       import pykeops
-    """)
-    
+    """
+    )
 
 
 def get_include_file_abspath(filename):
     tmp_file = join(get_build_folder(), "tmp.txt")
-    os.system(f'echo "#include <{filename}>" | {cxx_compiler} -M -E -x c++ - | head -n 2 > {tmp_file}')
+    os.system(
+        f'echo "#include <{filename}>" | {cxx_compiler} -M -E -x c++ - | head -n 2 > {tmp_file}'
+    )
     strings = open(tmp_file).read().split()
     abspath = None
     for s in strings:
@@ -83,12 +94,14 @@ def get_include_file_abspath(filename):
     os.remove(tmp_file)
     return abspath
 
+
 def cuda_include_fp16_path():
     """
     We look for float 16 cuda headers cuda_fp16.h and cuda_fp16.hpp
     based on cuda_path locations and return their directory
     """
     from keops.config.config import cuda_include_path
+
     if cuda_include_path:
         return cuda_include_path
     cuda_fp16_h_abspath = get_include_file_abspath("cuda_fp16.h")
@@ -100,22 +113,23 @@ def cuda_include_fp16_path():
         return path
     else:
         KeOps_Error("cuda_fp16.h and cuda_fp16.hpp were not found")
-        
+
 
 def get_cuda_version(out_type="single_value"):
     cuda = ctypes.CDLL(find_library("cudart"))
     cuda_version = ctypes.c_int()
     cuda.cudaRuntimeGetVersion(ctypes.byref(cuda_version))
     cuda_version = int(cuda_version.value)
-    if out_type=="single_value":
+    if out_type == "single_value":
         return cuda_version
-    cuda_version_major = cuda_version//1000
-    cuda_version_minor = (cuda_version-(1000*cuda_version_major))//10
-    if out_type=="major,minor":
+    cuda_version_major = cuda_version // 1000
+    cuda_version_minor = (cuda_version - (1000 * cuda_version_major)) // 10
+    if out_type == "major,minor":
         return cuda_version_major, cuda_version_minor
-    elif out_type=="string":
+    elif out_type == "string":
         return f"{cuda_version_major}.{cuda_version_minor}"
-    
+
+
 def get_gpu_props():
     """
     Return number of GPU by reading libcuda.

@@ -39,7 +39,7 @@ class KernelSolveAutograd(torch.autograd.Function):
         reduction_op,
         *args
     ):
-        
+
         # N.B. when rec_multVar_highdim option is set, it means that formula is of the form "sum(F*b)", where b is a variable
         # with large dimension. In this case we set option multVar_highdim to allow for the use of the special "final chunk" computation
         # mode. However, this may not be also true for the gradients of the same formula. In fact only the gradient
@@ -56,7 +56,7 @@ class KernelSolveAutograd(torch.autograd.Function):
         # number of batch dimensions
         # N.B. we assume here that there is at least a cat=0 or cat=1 variable in the formula...
         nbatchdims = max(len(arg.shape) for arg in args) - 2
-        use_ranges = (nbatchdims > 0 or ranges)
+        use_ranges = nbatchdims > 0 or ranges
 
         device_args = args[0].device
         if tagCPUGPU == 1 & tagHostDevice == 1:
@@ -65,12 +65,12 @@ class KernelSolveAutograd(torch.autograd.Function):
                     raise ValueError(
                         "[KeOps] Input arrays must be all located on the same device."
                     )
-        
-        if device_id_request==-1:       # -1 means auto setting
-            if device_args.index:          # means args are on Gpu
+
+        if device_id_request == -1:  # -1 means auto setting
+            if device_args.index:  # means args are on Gpu
                 device_id_request = device_args.index
             else:
-                device_id_request = default_device_id if tagCPUGPU==1 else -1
+                device_id_request = default_device_id if tagCPUGPU == 1 else -1
         else:
             if device_args.index:
                 if device_args.index != device_id_request:
@@ -78,8 +78,18 @@ class KernelSolveAutograd(torch.autograd.Function):
                         "[KeOps] Gpu device id of arrays is different from device id requested for computation."
                     )
 
-        myconv = LoadKeOps( tagCPUGPU, tag1D2D, tagHostDevice, use_ranges, device_id_request,
-            formula, aliases, len(args), dtype, "torch", optional_flags
+        myconv = LoadKeOps(
+            tagCPUGPU,
+            tag1D2D,
+            tagHostDevice,
+            use_ranges,
+            device_id_request,
+            formula,
+            aliases,
+            len(args),
+            dtype,
+            "torch",
+            optional_flags,
         ).import_module()
 
         # Context variables: save everything to compute the gradient:
@@ -434,18 +444,18 @@ class KernelSolve:
         """
 
         if dtype:
-            print("[pyKeOps] Warning: keyword argument dtype in Genred is deprecated ; argument is ignored.")
+            print(
+                "[pyKeOps] Warning: keyword argument dtype in Genred is deprecated ; argument is ignored."
+            )
         if cuda_type:
-            print("[pyKeOps] Warning: keyword argument cuda_type in Genred is deprecated ; argument is ignored.")
+            print(
+                "[pyKeOps] Warning: keyword argument cuda_type in Genred is deprecated ; argument is ignored."
+            )
 
         self.reduction_op = "Sum"
 
         self.optional_flags = get_optional_flags(
-            self.reduction_op,
-            dtype_acc,
-            use_double_acc,
-            sum_scheme,
-            enable_chunks,
+            self.reduction_op, dtype_acc, use_double_acc, sum_scheme, enable_chunks,
         )
 
         self.formula = (

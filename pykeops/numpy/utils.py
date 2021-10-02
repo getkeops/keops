@@ -123,10 +123,10 @@ class numpytools:
     @staticmethod
     def array(x, dtype, device=None):
         return np.array(x).astype(dtype)
-    
+
     @staticmethod
     def get_pointer(x):
-        return x.__array_interface__['data'][0]
+        return x.__array_interface__["data"][0]
 
     @staticmethod
     def device(x):
@@ -135,7 +135,7 @@ class numpytools:
     @staticmethod
     def device_type_index(x):
         return "cpu", None
-            
+
     @staticmethod
     def device_dict(x):
         return dict(cat="cpu")

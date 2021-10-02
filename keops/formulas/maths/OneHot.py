@@ -13,9 +13,7 @@ class OneHot(Operation):
 
     def __init__(self, f, dim):
         if f.dim != 1:
-            KeOps_Error(
-                "One-hot representation is only supported for scalar formulas."
-            )
+            KeOps_Error("One-hot representation is only supported for scalar formulas.")
         if dim < 1:
             KeOps_Error("A one-hot vector should have length >= 1.")
         super().__init__(f)

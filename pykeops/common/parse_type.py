@@ -144,7 +144,7 @@ def get_optional_flags(
         raise ValueError(
             "[KeOps] parameter dtype_acc should be set to 'auto' for no-sum type reductions (Min, Max, ArgMin, etc.)"
         )
-    
+
     if sum_scheme == "auto":
         if reduction_op_internal in ("Sum", "Max_SumShiftExp", "Max_SumShiftExpWeight"):
             sum_scheme = "block_sum"
@@ -188,6 +188,7 @@ def get_optional_flags(
 
     return optional_flags
 
+
 def parse_dtype_acc(dtype_acc, dtype):
 
     if dtype_acc == "auto":
@@ -204,7 +205,7 @@ def parse_dtype_acc(dtype_acc, dtype):
         raise ValueError(
             "[KeOps] invalid parameter dtype_acc : should be 'float64' when dtype is 'float64'"
         )
-        
+
     if dtype_acc == "float64":
         dtype_acc = "double"
     elif dtype_acc == "float32":
@@ -218,7 +219,5 @@ def parse_dtype_acc(dtype_acc, dtype):
         raise ValueError(
             '[KeOps] invalid value for option dtype_acc : should be one of "auto", "float16", "float32" or "float64".'
         )
-    
+
     return dtype_acc
-    
-    

@@ -90,6 +90,7 @@ class Operation(Tree):
 
     def __rmul__(self, other):
         from keops.formulas.maths.Mult import Mult
+
         return Mult(int2Op(other), self)
 
     def __truediv__(self, other):
@@ -101,6 +102,7 @@ class Operation(Tree):
     def __rtruediv__(self, other):
         if other == 1:
             from keops.formulas.maths.Inv import Inv
+
             return Inv(self)
         else:
             return int2Op(other) / self
@@ -108,6 +110,7 @@ class Operation(Tree):
     def __add__(self, other):
         """f+g redirects to Add(f,g)"""
         from keops.formulas.maths.Add import Add
+
         return Add(self, int2Op(other))
 
     def __radd__(self, other):

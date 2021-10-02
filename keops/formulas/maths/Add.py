@@ -51,7 +51,11 @@ def Add(arg0, arg1):
             return (
                 IntCst(arg0.children[0].val + arg1.children[0].val) * arg0.children[1]
             )
-    if isinstance(arg1, Mult_Impl) and isinstance(arg1.children[0], IntCst_Impl) and arg1.children[1] == arg0:
+    if (
+        isinstance(arg1, Mult_Impl)
+        and isinstance(arg1.children[0], IntCst_Impl)
+        and arg1.children[1] == arg0
+    ):
         #  factorization :  x + n*x = (n+1)*x
         return IntCst(arg1.children[0].val + 1) * arg0
     return Add_Impl(arg0, arg1)

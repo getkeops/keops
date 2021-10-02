@@ -7,6 +7,7 @@ from keops.utils.code_gen_utils import (
 from keops.formulas.reductions.Reduction import Reduction
 from keops.utils.misc_utils import KeOps_Error
 
+
 class Min_ArgMin_Reduction_Base(Reduction):
     """min+argmin reduction : base class"""
 

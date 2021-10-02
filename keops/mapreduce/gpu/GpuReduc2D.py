@@ -5,6 +5,7 @@ from keops.mapreduce.MapReduce import MapReduce
 from keops.utils.code_gen_utils import c_variable, c_array, use_pragma_unroll
 from keops.utils.misc_utils import KeOps_Error
 
+
 class GpuReduc2D(MapReduce, Gpu_link_compile):
     # class for generating the final C++ code, Gpu version
 

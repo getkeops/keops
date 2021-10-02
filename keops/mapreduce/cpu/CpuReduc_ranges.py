@@ -68,7 +68,7 @@ class CpuReduc_ranges(MapReduce, Cpu_link_compile):
         indices_p = c_array("int", nvarsp, "indices_p")
         imstartx = c_variable("int", "i-start_x")
         jmstarty = c_variable("int", "j-start_y")
-        
+
         headers = ["cmath", "stdlib.h"]
         if use_OpenMP:
             headers.append("omp.h")

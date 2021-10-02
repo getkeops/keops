@@ -13,7 +13,6 @@ from pykeops.common.utils import axis2cat
 from pykeops import default_device_id
 
 
-
 class GenredAutograd(torch.autograd.Function):
     """
     This class is the entry point to pytorch auto grad engine.
@@ -48,13 +47,13 @@ class GenredAutograd(torch.autograd.Function):
             optional_flags["multVar_highdim"] = 1
         else:
             optional_flags["multVar_highdim"] = 0
-        
+
         tagCPUGPU, tag1D2D, tagHostDevice = get_tag_backend(backend, args)
 
         # number of batch dimensions
         # N.B. we assume here that there is at least a cat=0 or cat=1 variable in the formula...
         nbatchdims = max(len(arg.shape) for arg in args) - 2
-        use_ranges = (nbatchdims > 0 or ranges)
+        use_ranges = nbatchdims > 0 or ranges
 
         device_args = args[0].device
         if tagCPUGPU == 1 & tagHostDevice == 1:
@@ -63,12 +62,12 @@ class GenredAutograd(torch.autograd.Function):
                     raise ValueError(
                         "[KeOps] Input arrays must be all located on the same device."
                     )
-        
-        if device_id_request==-1:       # -1 means auto setting
-            if device_args.index:          # means args are on Gpu
+
+        if device_id_request == -1:  # -1 means auto setting
+            if device_args.index:  # means args are on Gpu
                 device_id_request = device_args.index
             else:
-                device_id_request = default_device_id if tagCPUGPU==1 else -1
+                device_id_request = default_device_id if tagCPUGPU == 1 else -1
         else:
             if device_args.index:
                 if device_args.index != device_id_request:
@@ -76,8 +75,18 @@ class GenredAutograd(torch.autograd.Function):
                         "[KeOps] Gpu device id of arrays is different from device id requested for computation."
                     )
 
-        myconv = LoadKeOps( tagCPUGPU, tag1D2D, tagHostDevice, use_ranges, device_id_request,
-            formula, aliases, len(args), dtype, "torch", optional_flags
+        myconv = LoadKeOps(
+            tagCPUGPU,
+            tag1D2D,
+            tagHostDevice,
+            use_ranges,
+            device_id_request,
+            formula,
+            aliases,
+            len(args),
+            dtype,
+            "torch",
+            optional_flags,
         ).import_module()
 
         # Context variables: save everything to compute the gradient:
@@ -108,15 +117,7 @@ class GenredAutograd(torch.autograd.Function):
             ranges = tuple(r.contiguous() for r in ranges)
 
         result = myconv.genred_pytorch(
-            device_args,
-            ranges,
-            nx,
-            ny,
-            nbatchdims,
-            axis,
-            reduction_op,
-            out,
-            *args
+            device_args, ranges, nx, ny, nbatchdims, axis, reduction_op, out, *args
         )
 
         # relying on the 'ctx.saved_variables' attribute is necessary  if you want to be able to differentiate the output
@@ -459,19 +460,19 @@ class Genred:
         """
 
         if dtype:
-            print("[pyKeOps] Warning: keyword argument dtype in Genred is deprecated ; argument is ignored.")
+            print(
+                "[pyKeOps] Warning: keyword argument dtype in Genred is deprecated ; argument is ignored."
+            )
         if cuda_type:
-            print("[pyKeOps] Warning: keyword argument cuda_type in Genred is deprecated ; argument is ignored.")
-        
+            print(
+                "[pyKeOps] Warning: keyword argument cuda_type in Genred is deprecated ; argument is ignored."
+            )
+
         self.reduction_op = reduction_op
         reduction_op_internal, formula2 = preprocess(reduction_op, formula2)
 
         self.optional_flags = get_optional_flags(
-            reduction_op_internal,
-            dtype_acc,
-            use_double_acc,
-            sum_scheme,
-            enable_chunks,
+            reduction_op_internal, dtype_acc, use_double_acc, sum_scheme, enable_chunks,
         )
 
         str_opt_arg = "," + str(opt_arg) if opt_arg else ""
@@ -643,6 +644,4 @@ class Genred:
             *args
         )
 
-        return postprocess(
-            out, "torch", self.reduction_op, nout, self.opt_arg, dtype
-        )
+        return postprocess(out, "torch", self.reduction_op, nout, self.opt_arg, dtype)

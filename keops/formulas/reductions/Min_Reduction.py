@@ -2,6 +2,7 @@ from keops.utils.code_gen_utils import infinity, c_if
 from keops.formulas.reductions.Reduction import Reduction
 from keops.utils.misc_utils import KeOps_Error
 
+
 class Min_Reduction(Reduction):
     """Implements the min reduction operation : for each i or each j, find the minimal value of Fij
     operation is vectorized: if Fij is vector-valued, min is computed for each dimension."""

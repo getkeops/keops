@@ -6,15 +6,12 @@ from ctypes.util import find_library
 from keops.utils.misc_utils import KeOps_Warning, KeOps_Error
 
 # global parameters can be set here :
-use_cuda = True        # use cuda if possible
-use_OpenMP = True      # use OpenMP if possible
-
+use_cuda = True  # use cuda if possible
+use_OpenMP = True  # use OpenMP if possible
 
 
 # System Path
-base_dir_path = (
-    os.path.abspath(join(os.path.dirname(os.path.realpath(__file__)), ".."))
-)
+base_dir_path = os.path.abspath(join(os.path.dirname(os.path.realpath(__file__)), ".."))
 template_path = join(base_dir_path, "templates")
 bindings_source_dir = join(base_dir_path, "include")
 keops_cache_folder = join(os.path.expanduser("~"), ".keops")
@@ -23,6 +20,7 @@ default_build_path = join(keops_cache_folder, "build")
 
 
 # build path setter/getter
+
 
 def set_build_folder(path=None, read_save_file=False):
     save_file = join(keops_cache_folder, "build_folder_location.txt")
@@ -40,12 +38,13 @@ def set_build_folder(path=None, read_save_file=False):
     f.write(path)
     global jit_binary
     jit_binary = join(build_path, "keops_nvrtc.so")
-    
+
+
 def get_build_folder():
     return build_path
 
-set_build_folder(read_save_file=True)
 
+set_build_folder(read_save_file=True)
 
 
 # Compiler
@@ -59,9 +58,12 @@ disable_pragma_unrolls = True
 
 if use_OpenMP:
     import platform
+
     if platform.system() == "Darwin":
-        if not os.getenv('KMP_DUPLICATE_LIB_OK') == "TRUE":
-            KeOps_Warning("OpenMP support is disabled on Mac by default, see the doc for enabling it.")
+        if not os.getenv("KMP_DUPLICATE_LIB_OK") == "TRUE":
+            KeOps_Warning(
+                "OpenMP support is disabled on Mac by default, see the doc for enabling it."
+            )
             use_OpenMP = False
         else:
             cpp_flags += " -Xclang -fopenmp -lomp "
@@ -71,26 +73,39 @@ if use_OpenMP:
 cpp_flags += " -I" + bindings_source_dir
 
 
-from keops.utils.gpu_utils import get_gpu_props 
+from keops.utils.gpu_utils import get_gpu_props
 
 cuda_dependencies = ["cuda", "nvrtc"]
 if all([find_library(lib) for lib in cuda_dependencies]):
     # N.B. calling get_gpu_props issues a warning if cuda is not available, so we do not add another warning here
-    cuda_available = get_gpu_props()[0]>0
+    cuda_available = get_gpu_props()[0] > 0
 else:
     cuda_available = False
-    KeOps_Warning("Cuda libraries were not detected on the system ; using cpu only mode")
+    KeOps_Warning(
+        "Cuda libraries were not detected on the system ; using cpu only mode"
+    )
 
 if not use_cuda and cuda_available:
-    KeOps_Warning("Cuda appears to be available on your system, but use_cuda is set to False in config.py. Using cpu only mode")
-    
+    KeOps_Warning(
+        "Cuda appears to be available on your system, but use_cuda is set to False in config.py. Using cpu only mode"
+    )
+
 if use_cuda and not cuda_available:
     use_cuda = False
 
 if use_cuda:
-    from keops.utils.gpu_utils import libcuda_folder, libnvrtc_folder, get_cuda_include_path, get_cuda_version
+    from keops.utils.gpu_utils import (
+        libcuda_folder,
+        libnvrtc_folder,
+        get_cuda_include_path,
+        get_cuda_version,
+    )
+
     cuda_version = get_cuda_version()
-    nvrtc_flags = compile_options + f" -fpermissive -L {libcuda_folder} -L {libnvrtc_folder} -lcuda -lnvrtc"
+    nvrtc_flags = (
+        compile_options
+        + f" -fpermissive -L {libcuda_folder} -L {libnvrtc_folder} -lcuda -lnvrtc"
+    )
     nvrtc_include = " -I" + bindings_source_dir
     cuda_include_path = get_cuda_include_path()
     if cuda_include_path:
@@ -110,6 +125,7 @@ else:
 
 init_cudalibs_flag = False
 
+
 def init_cudalibs():
     if not keops.config.config.init_cudalibs_flag:
         # we load some libraries that need to be linked with KeOps code
@@ -118,4 +134,3 @@ def init_cudalibs():
         CDLL(find_library("cuda"), mode=RTLD_GLOBAL)
         CDLL(find_library("cudart"), mode=RTLD_GLOBAL)
         keops.config.config.init_cudalibs_flag = True
-

@@ -12,7 +12,7 @@ from keops.utils.math_functions import keops_diffclampint
 
 
 class DiffClampInt(VectorizedScalarOp):
-    
+
     string_id = "DiffClampInt"
 
     def __init__(self, x, a, b):
@@ -22,6 +22,7 @@ class DiffClampInt(VectorizedScalarOp):
 
     def DiffT(self, v, gradin):
         from keops.formulas import Zero
+
         return Zero(v.dim)
 
     # parameters for testing the operation (optional)

@@ -43,9 +43,7 @@ variables = [
 ]  # Second arg: j-variable, of size D
 
 # N.B.: The number K is specified as an optional argument `opt_arg`
-my_routine = Genred(
-    formula, variables, reduction_op="ArgKMin", axis=1, opt_arg=K
-)
+my_routine = Genred(formula, variables, reduction_op="ArgKMin", axis=1, opt_arg=K)
 
 
 ###############################################################

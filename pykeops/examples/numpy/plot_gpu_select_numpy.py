@@ -89,8 +89,8 @@ if pykeops.config.gpu_available:
 #
 
 xi, yj, aj = Vi(x), Vj(y), Vj(a)
-#c = ((p - aj) ** 2 * (xi + yj).exp()).sum(axis=1, backend="CPU")
-c = ((aj-p)**2 * (yj+xi).exp()).sum(axis=1, backend="CPU")
+# c = ((p - aj) ** 2 * (xi + yj).exp()).sum(axis=1, backend="CPU")
+c = ((aj - p) ** 2 * (yj + xi).exp()).sum(axis=1, backend="CPU")
 
 
 ####################################################################

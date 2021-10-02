@@ -37,7 +37,7 @@ def Subtract(arg0, arg1):
     elif isinstance(arg1, Zero):
         return Broadcast(arg0, arg1.dim)
     elif arg0 == arg1:
-        return Zero(arg0.dim)   
+        return Zero(arg0.dim)
     elif isinstance(arg0, Mult_Impl) and isinstance(arg0.children[0], IntCst_Impl):
         if arg0.children[1] == arg1:
             #  factorization :  n*x - x = (n-1)*x
@@ -51,8 +51,12 @@ def Subtract(arg0, arg1):
             return (
                 IntCst(arg0.children[0].val - arg1.children[0].val) * arg0.children[1]
             )
-    if isinstance(arg1, Mult_Impl) and isinstance(arg1.children[0], IntCst_Impl) and arg1.children[1] == arg0:
+    if (
+        isinstance(arg1, Mult_Impl)
+        and isinstance(arg1.children[0], IntCst_Impl)
+        and arg1.children[1] == arg0
+    ):
         #  factorization :  x - n*x = (1-n)*x
-        return IntCst(1-arg1.children[0].val) * arg0 
+        return IntCst(1 - arg1.children[0].val) * arg0
     else:
         return Subtract_Impl(arg0, arg1)
