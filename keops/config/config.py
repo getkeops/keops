@@ -5,7 +5,6 @@ import keops
 from ctypes.util import find_library
 from keops.utils.misc_utils import KeOps_Warning, KeOps_Error
 
-
 # global parameters can be set here :
 use_cuda = True        # use cuda if possible
 use_OpenMP = True      # use OpenMP if possible
@@ -72,10 +71,10 @@ if use_OpenMP:
 cpp_flags += " -I" + bindings_source_dir
 
 
-
+from keops.utils.gpu_utils import get_gpu_props 
 
 cuda_dependencies = ["cuda", "nvrtc"]
-cuda_available = all([find_library(lib) for lib in cuda_dependencies])
+cuda_available = get_gpu_props()[0]>0 and all([find_library(lib) for lib in cuda_dependencies])
 
 if not use_cuda and cuda_available:
     KeOps_Warning("Cuda appears to be available on your system, but use_cuda is set to False in config.py. Using cpu only mode")
