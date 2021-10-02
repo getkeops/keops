@@ -27,7 +27,7 @@ def fun(x, y, b, backend, out=None):
     Dxy = ((x - y).square()).sum(dim=2)
     Kxy = (-Dxy).exp()
     if "keops" in backend:
-        out = Kxy.__matmul__(b, sum_scheme=sum_scheme, out=out)
+        Kxy.__matmul__(b, sum_scheme=sum_scheme, out=out)
     else:
         out = Kxy @ b
     if device_id != "cpu":
