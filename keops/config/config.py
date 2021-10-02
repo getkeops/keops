@@ -74,13 +74,17 @@ cpp_flags += " -I" + bindings_source_dir
 from keops.utils.gpu_utils import get_gpu_props 
 
 cuda_dependencies = ["cuda", "nvrtc"]
-cuda_available = get_gpu_props()[0]>0 and all([find_library(lib) for lib in cuda_dependencies])
+if all([find_library(lib) for lib in cuda_dependencies]):
+    # N.B. calling get_gpu_props issues a warning if cuda is not available, so we do not add another warning here
+    cuda_available = get_gpu_props()[0]>0
+else:
+    cuda_available = False
+    KeOps_Warning("Cuda libraries were not detected on the system ; using cpu only mode")
 
 if not use_cuda and cuda_available:
     KeOps_Warning("Cuda appears to be available on your system, but use_cuda is set to False in config.py. Using cpu only mode")
     
 if use_cuda and not cuda_available:
-    KeOps_Warning("Cuda was not detected on the system ; using cpu only mode")
     use_cuda = False
 
 if use_cuda:
