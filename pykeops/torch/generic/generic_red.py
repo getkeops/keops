@@ -200,7 +200,7 @@ class GenredAutograd(torch.autograd.Function):
         ):  # Run through the arguments
             # If the current gradient is to be discarded immediatly...
             if not ctx.needs_input_grad[
-                var_ind + 12
+                var_ind + 13
             ]:  # because of (formula, aliases, backend, dtype, device_id_request, ranges, optional_flags, rec_multVar_highdim, nx, ny, axis, reduction_op)
                 grads.append(None)  # Don't waste time computing it.
 
