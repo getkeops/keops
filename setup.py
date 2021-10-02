@@ -16,7 +16,7 @@ with open(path.join(here, "pykeops", "readme.md"), encoding="utf-8") as f:
     long_description = f.read()
 
 
-def import_files(dirname, ext=["h", "hpp"]):
+def import_files(dirname, ext=["h", "cpp"]):
     _dirname = path.join(os.getcwd(), "pykeops", dirname)
     res = [
         path.join(dirname, f)
@@ -24,11 +24,6 @@ def import_files(dirname, ext=["h", "hpp"]):
         if any(f.endswith(ext) for ext in ext)
     ]
     return res
-
-
-tao_seq_files = import_files("keops/lib/sequences/include/tao/seq/") + import_files(
-    "keops/lib/sequences/include/tao/seq/contrib/"
-)
 
 setup(
     name="pykeops",
@@ -68,46 +63,36 @@ setup(
         "pykeops.torch.generic",
         "pykeops.torch.lazytensor",
         "pykeops.torch.kernel_product",
+        "keops",
+        "keops.binders",
+        "keops.binders.cpp",
+        "keops.binders.nvrtc",
+        "keops.config",
+        "keops.formulas",
+        "keops.formulas.autodiff",
+        "keops.formulas.complex",
+        "keops.formulas.maths",
+        "keops.formulas.reductions",
+        "keops.formulas.variables",
+        "keops.include",
+        "keops.mapreduce",
+        "keops.mapreduce.cpu",
+        "keops.mapreduce.gpu",
+        "keops.tests",
+        "keops.utils",      
     ],
     package_data={
         "pykeops": [
             "readme.md",
             "licence.txt",
-            "numpy/generic/generic_red.cpp",
-            "torch/generic/generic_red.cpp",
-            "torch/generic/generic_red.cpp",
-            "version",
+            "keops_version",
         ]
-        + import_files(path.join("keops", "binders"))
-        + import_files(path.join("keops", "core", "autodiff"))
-        + import_files(path.join("keops", "core", "pack"))
-        + import_files(path.join("keops", "core", "formulas"))
-        + import_files(path.join("keops", "core", "formulas", "constants"))
-        + import_files(path.join("keops", "core", "formulas", "complex"))
-        + import_files(path.join("keops", "core", "formulas", "kernels"))
-        + import_files(path.join("keops", "core", "formulas", "maths"))
-        + import_files(path.join("keops", "core", "formulas", "norms"))
-        + import_files(path.join("keops", "core", "reductions"))
-        + import_files(path.join("keops", "core", "utils"), ["h", "cu"])
-        + import_files(path.join("keops", "core", "mapreduce"), ["h", "cpp", "cu"])
-        + import_files(path.join("keops", "core"), ["h", "cpp", "cu"])
-        + import_files(path.join("keops", "python_engine"), ["py"])
-        + [
-            "keops/specific/CMakeLists.txt",
-            "keops/specific/radial_kernels/cuda_conv.cu",
-            "keops/specific/radial_kernels/cuda_conv.cx",
-            "keops/specific/radial_kernels/cuda_grad1conv.cu",
-            "keops/specific/radial_kernels/cuda_grad1conv.cx",
-            "keops/specific/radial_kernels/radial_kernels.h",
-            "keops/specific/shape_distance/fshape_gpu.cu",
-            "keops/specific/shape_distance/fshape_gpu.cx",
-            "keops/specific/shape_distance/kernels.cx",
-        ]
-        + tao_seq_files
+        + import_files(path.join("keops", "binders", "nvrtc"))
+        + import_files(path.join("keops", "include"))
     },
-    install_requires=["numpy",],
+    install_requires=["numpy","cppyy"],
     extras_require={
-        "colab": ["torch", "cmake>=3.18",],
+        "colab": ["torch"],
         "full": [
             "sphinx",
             "sphinx-gallery",
