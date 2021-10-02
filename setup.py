@@ -15,16 +15,6 @@ with open(os.path.join(here, "pykeops", "keops_version"), encoding="utf-8") as v
 with open(path.join(here, "pykeops", "readme.md"), encoding="utf-8") as f:
     long_description = f.read()
 
-
-def import_files(dirname, ext=["h", "cpp"]):
-    _dirname = path.join(os.getcwd(), "pykeops", dirname)
-    res = [
-        path.join(dirname, f)
-        for f in os.listdir(_dirname)
-        if any(f.endswith(ext) for ext in ext)
-    ]
-    return res
-
 setup(
     name="pykeops",
     version=current_version,
@@ -87,9 +77,15 @@ setup(
             "licence.txt",
             "keops_version",
             "keops/binders/nvrtc/keops_nvrtc.h",
-            "keops/binders/nvrtc/keops_nvrtc.cpp"
+            "keops/binders/nvrtc/keops_nvrtc.cpp",
+            "keops/include/nvrtc/CudaSizes.h",
+            "keops/include/nvrtc/Ranges_no_template.h",
+            "keops/include/nvrtc/ranges_utils.h",
+            "keops/include/nvrtc/Ranges.h",
+            "keops/include/nvrtc/Sizes_no_template.h",
+            "keops/include/nvrtc/Sizes.h",
+            "keops/include/nvrtc/utils_pe.h",
         ]
-        + import_files(path.join("keops", "include"))
     },
     install_requires=["numpy","cppyy"],
     extras_require={
