@@ -259,6 +259,7 @@ class GenredAutograd(torch.autograd.Function):
                         ny,
                         axis,
                         reduction_op,
+                        None,
                         *args_g
                     )
                     # Then, sum 'grad' wrt 'i' :
@@ -290,6 +291,7 @@ class GenredAutograd(torch.autograd.Function):
                         ny,
                         axis,
                         reduction_op,
+                        None,
                         *args_g
                     )
 
