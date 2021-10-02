@@ -86,8 +86,9 @@ setup(
             "readme.md",
             "licence.txt",
             "keops_version",
+            "keops/binders/nvrtc/keops_nvrtc.h",
+            "keops/binders/nvrtc/keops_nvrtc.cpp"
         ]
-        + import_files(path.join("keops", "binders", "nvrtc"))
         + import_files(path.join("keops", "include"))
     },
     install_requires=["numpy","cppyy"],
