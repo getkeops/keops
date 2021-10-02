@@ -34,6 +34,7 @@ class GenredAutograd(torch.autograd.Function):
         ny,
         axis,
         reduction_op,
+        out,
         *args
     ):
 
@@ -114,6 +115,7 @@ class GenredAutograd(torch.autograd.Function):
             nbatchdims,
             axis,
             reduction_op,
+            out,
             *args
         )
 
@@ -311,8 +313,9 @@ class GenredAutograd(torch.autograd.Function):
                 )  # The gradient should have the same shape as the input!
                 grads.append(grad)
 
-        # Grads wrt. formula, aliases, backend, dtype, device_id_request, ranges, optional_flags, rec_multVar_highdim, nx, ny, axis, reduction_op, *args
+        # Grads wrt. formula, aliases, backend, dtype, device_id_request, ranges, optional_flags, rec_multVar_highdim, nx, ny, axis, reduction_op, out, *args
         return (
+            None,
             None,
             None,
             None,
@@ -490,7 +493,7 @@ class Genred:
 
         self.rec_multVar_highdim = rec_multVar_highdim
 
-    def __call__(self, *args, backend="auto", device_id=-1, ranges=None):
+    def __call__(self, *args, backend="auto", device_id=-1, ranges=None, out=None):
         r"""
         To apply the routine on arbitrary torch Tensors.
 
@@ -586,6 +589,10 @@ class Genred:
                 should be computed using a Map-Reduce scheme over
                 indices ``i in Union( range( redranges_i[l, 0], redranges_i[l, 1] ))``
                 for ``l in range( slices_j[k-1], slices_j[k] )``.
+            
+            out (2d Tensor, None by default): The output numerical array, for in-place computation.
+                If provided, the output array should all have the same ``dtype``, be **contiguous** and be stored on
+                the **same device** as the arguments. Moreover it should have the correct shape for the output.
 
         Returns:
             (M,D) or (N,D) Tensor:
@@ -630,6 +637,7 @@ class Genred:
             ny,
             self.axis,
             self.reduction_op,
+            out,
             *args
         )
 

@@ -253,6 +253,7 @@ class KernelSolve:
                 nbatchdims,
                 self.axis,
                 self.reduction_op,
+                None,
                 *newargs
             )
             if alpha:

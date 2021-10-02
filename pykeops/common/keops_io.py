@@ -182,6 +182,7 @@ class LoadKeOps_class:
         nbatchdims,
         axis,
         reduction_op,
+        out,
         *args,
     ):
 
@@ -224,8 +225,9 @@ class LoadKeOps_class:
             shapeout = tuple(tmp) + (M, params.dim)
         else:
             shapeout = (M, params.dim)
-
-        out = self.tools.empty(shapeout, dtype=args[0].dtype, device=device_args)
+        
+        if out is None:
+            out = self.tools.empty(shapeout, dtype=args[0].dtype, device=device_args)
         out_ptr = c_void_p(self.tools.get_pointer(out))
 
         outshape = array("i", (len(out.shape),) + out.shape)
