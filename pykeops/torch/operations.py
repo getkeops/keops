@@ -281,6 +281,7 @@ class KernelSolveAutograd(torch.autograd.Function):
                             ny,
                             axis,
                             reduction_op,
+                            None,
                             *args_g
                         )
                     grads.append(grad)
