@@ -175,7 +175,7 @@ class Genred:
         self.axis = axis
         self.opt_arg = opt_arg
 
-    def __call__(self, *args, backend="auto", device_id=-1, ranges=None):
+    def __call__(self, *args, backend="auto", device_id=-1, ranges=None, out=None):
         r"""
         Apply the routine on arbitrary NumPy arrays.
 
@@ -265,6 +265,10 @@ class Genred:
                 these integer arrays allow us to say that ``for k in range(Nc)``, the output values for
                 indices ``j in range( ranges_j[k,0], ranges_j[k,1] )`` should be computed using a Map-Reduce scheme over
                 indices ``i in Union( range( redranges_i[l, 0], redranges_i[l, 1] ))`` for ``l in range( slices_j[k-1], slices_j[k] )``.
+            
+            out (2d array, None by default): The output numerical array, for in-place computation.
+                If provided, the output array should all have the same ``dtype``, be **contiguous** and be stored on
+                the **same device** as the arguments. Moreover it should have the correct shape for the output.
 
         Returns:
             (M,D) or (N,D) array:
@@ -331,6 +335,7 @@ class Genred:
             nbatchdims,
             self.axis,
             self.reduction_op,
+            out,
             *args
         )
 

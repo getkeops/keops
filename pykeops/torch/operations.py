@@ -113,6 +113,7 @@ class KernelSolveAutograd(torch.autograd.Function):
                 nbatchdims,
                 axis,
                 reduction_op,
+                None,
                 *newargs
             )
             if alpha:
@@ -257,6 +258,7 @@ class KernelSolveAutograd(torch.autograd.Function):
                             ny,
                             axis,
                             reduction_op,
+                            None,
                             *args_g
                         )
                         # Then, sum 'grad' wrt 'i' :
