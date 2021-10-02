@@ -121,7 +121,9 @@ class KernelSolve:
 
         """
         if dtype:
-            print("[pyKeOps] Warning: keyword argument dtype in KernelSolve is deprecated ; argument is ignored.")
+            print(
+                "[pyKeOps] Warning: keyword argument dtype in KernelSolve is deprecated ; argument is ignored."
+            )
 
         reduction_op = "Sum"
         if opt_arg:
@@ -148,7 +150,7 @@ class KernelSolve:
             optional_flags["multVar_highdim"] = 1
         else:
             optional_flags["multVar_highdim"] = 0
-            
+
         self.aliases = complete_aliases(formula, aliases)
         self.varinvalias = varinvalias
 
@@ -229,15 +231,25 @@ class KernelSolve:
         # number of batch dimensions
         # N.B. we assume here that there is at least a cat=0 or cat=1 variable in the formula...
         nbatchdims = max(len(arg.shape) for arg in args) - 2
-        use_ranges = (nbatchdims > 0 or ranges)
+        use_ranges = nbatchdims > 0 or ranges
 
         dtype = args[0].dtype.__str__()
 
-        if device_id==-1:
-            device_id = default_device_id if tagCpuGpu==1 else -1
+        if device_id == -1:
+            device_id = default_device_id if tagCpuGpu == 1 else -1
 
-        self.myconv = LoadKeOps( tagCpuGpu, tag1D2D, tagHostDevice, use_ranges, device_id,
-            self.formula, self.aliases, len(args), dtype, "numpy", self.optional_flags
+        self.myconv = LoadKeOps(
+            tagCpuGpu,
+            tag1D2D,
+            tagHostDevice,
+            use_ranges,
+            device_id,
+            self.formula,
+            self.aliases,
+            len(args),
+            dtype,
+            "numpy",
+            self.optional_flags,
         ).import_module()
 
         varinv = args[self.varinvpos]

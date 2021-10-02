@@ -49,7 +49,9 @@ def use_final_chunks(red_formula):
     global enable_final_chunk
     global mult_var_highdim
     global dim_treshold_chunk
-    return enable_final_chunk and mult_var_highdim and red_formula.dim>dim_treshold_chunk
+    return (
+        enable_final_chunk and mult_var_highdim and red_formula.dim > dim_treshold_chunk
+    )
 
 
 mult_var_highdim = False

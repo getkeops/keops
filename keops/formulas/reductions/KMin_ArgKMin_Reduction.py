@@ -12,6 +12,7 @@ from keops.utils.code_gen_utils import (
 from keops.formulas.reductions.Reduction import Reduction
 from keops.utils.misc_utils import KeOps_Error
 
+
 class KMin_ArgKMin_Reduction(Reduction):
     """Implements the k-min-arg-k-min reduction operation : for each i or each j, find the
     values and indices of the k minimal values of Fij operation is vectorized: if Fij is vector-valued,

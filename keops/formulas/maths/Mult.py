@@ -42,21 +42,21 @@ def Mult(arg0, arg1):
     elif isinstance(arg1, Zero):
         return Broadcast(arg1, arg0.dim)
     elif isinstance(arg0, IntCst_Impl):
-        if arg0.val==1:
-            # 1*f -> f 
+        if arg0.val == 1:
+            # 1*f -> f
             return arg1
-        if arg0.val==-1:
-            # -1*f -> -f 
+        if arg0.val == -1:
+            # -1*f -> -f
             return -arg1
         elif isinstance(arg1, IntCst_Impl):
             # m*n -> mn
-            return IntCst_Impl(arg0.val*arg1.val)
+            return IntCst_Impl(arg0.val * arg1.val)
     if isinstance(arg1, IntCst_Impl):
         # f*n -> n*f (bringing integers to the left)
         return Mult(arg1, arg0)
     elif isinstance(arg1, Mult_Impl) and isinstance(arg1.children[0], IntCst_Impl):
         # f*(n*g) -> (n*f)*g
-        return (arg1.children[0]*arg0)*arg1.children[1]
+        return (arg1.children[0] * arg0) * arg1.children[1]
     elif arg0 == arg1:
         return Square(arg0)
     else:

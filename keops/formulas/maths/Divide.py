@@ -4,7 +4,7 @@ from keops.formulas.maths.Scalprod import Scalprod
 from keops.formulas.maths.Square import Square
 from keops.formulas.variables.Zero import Zero
 from keops.utils.misc_utils import KeOps_Error
-        
+
 ##########################
 ######    Divide     #####
 ##########################

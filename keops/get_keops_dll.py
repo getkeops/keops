@@ -175,29 +175,27 @@ if __name__ == "__main__":
         print(item)
 
 
-
-
 class library:
-    
     def __init__(self, fun, use_cache_file=False, save_folder="."):
         self.fun = fun
         self.library = {}
         self.use_cache_file = use_cache_file
         if use_cache_file:
-            self.cache_file = os.path.join(save_folder, fun.__name__+"_cache.pkl")
+            self.cache_file = os.path.join(save_folder, fun.__name__ + "_cache.pkl")
             if os.path.isfile(self.cache_file):
                 f = open(self.cache_file, "rb")
                 self.library = pickle.load(f)
                 f.close()
             import atexit
+
             atexit.register(self.save_cache)
-        
+
     def __call__(self, *args):
         str_id = "".join(list(str(arg) for arg in args))
         if not str_id in self.library:
             self.library[str_id] = self.fun(*args)
         return self.library[str_id]
-    
+
     def reset(self):
         self.library = {}
 
@@ -206,4 +204,7 @@ class library:
         pickle.dump(self.library, f)
         f.close()
 
-get_keops_dll = library(get_keops_dll_impl, use_cache_file=True, save_folder=get_build_folder())
+
+get_keops_dll = library(
+    get_keops_dll_impl, use_cache_file=True, save_folder=get_build_folder()
+)

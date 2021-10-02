@@ -11,10 +11,11 @@ import os
 import pickle
 import types
 
+
 class LoadKeOps_class:
-    
-    null_range = np.array([-1], dtype='int32')
-    empty_ranges = [c_void_p(null_range.__array_interface__['data'][0])] * 7
+
+    null_range = np.array([-1], dtype="int32")
+    empty_ranges = [c_void_p(null_range.__array_interface__["data"][0])] * 7
 
     def __init__(self, *args, fast_init=False):
         if fast_init:
@@ -25,10 +26,19 @@ class LoadKeOps_class:
         self.tagIJ = self.params.tagI
         self.init_phase2()
 
-
     def init(
-        self, tagCPUGPU, tag1D2D, tagHostDevice, use_ranges, device_id_request,
-        formula, aliases, nargs, dtype, lang, optional_flags
+        self,
+        tagCPUGPU,
+        tag1D2D,
+        tagHostDevice,
+        use_ranges,
+        device_id_request,
+        formula,
+        aliases,
+        nargs,
+        dtype,
+        lang,
+        optional_flags,
     ):
 
         aliases_new = []
@@ -49,7 +59,7 @@ class LoadKeOps_class:
                     ind, dim = eval(alias_args[0]), eval(alias_args[1])
                 alias = f"{varname}=Var({ind},{dim},{cat})"
                 aliases_new.append(alias)
-        
+
         params = types.SimpleNamespace()
         params.aliases_old = aliases
         params.aliases = aliases_new
@@ -58,14 +68,14 @@ class LoadKeOps_class:
         params.dtype = dtype
         dtype_acc = optional_flags["dtype_acc"]
         dtype_acc = parse_dtype_acc(dtype_acc, dtype)
-        
+
         params.c_dtype_acc = dtype_acc
         params.sum_scheme = optional_flags["sum_scheme"]
         params.enable_chunks = optional_flags["enable_chunks"]
-        params.enable_final_chunks = -1        
+        params.enable_final_chunks = -1
         params.mult_var_highdim = optional_flags["multVar_highdim"]
         params.tagHostDevice = tagHostDevice
-                
+
         if dtype == "float32":
             params.c_dtype = "float"
             params.use_half = False
@@ -80,13 +90,13 @@ class LoadKeOps_class:
 
         if not params.c_dtype_acc:
             params.c_dtype_acc = params.c_dtype
-        
+
         if tagCPUGPU == 0:
             map_reduce_id = "CpuReduc"
         else:
             map_reduce_id = "GpuReduc"
             map_reduce_id += "1D" if tag1D2D == 0 else "2D"
-  
+
         if use_ranges:
             map_reduce_id += "_ranges"
 
@@ -123,7 +133,7 @@ class LoadKeOps_class:
             tagCPUGPU,
             tag1D2D,
             params.use_half,
-            device_id_request
+            device_id_request,
         )
 
         # now we switch indsi, indsj and dimsx, dimsy in case tagI=1.
@@ -134,56 +144,53 @@ class LoadKeOps_class:
         if params.tagI == 1:
             indsi, indsj = indsj, indsi
             dimsx, dimsy = dimsy, dimsx
-        
+
         params.indsi = array("i", (len(indsi),) + indsi)
         params.indsj = array("i", (len(indsj),) + indsj)
         params.indsp = array("i", (len(indsp),) + indsp)
         params.dimsx = array("i", (len(dimsx),) + dimsx)
         params.dimsy = array("i", (len(dimsy),) + dimsy)
         params.dimsp = array("i", (len(dimsp),) + dimsp)
-        
+
         params.tagCPUGPU = tagCPUGPU
         params.device_id_request = device_id_request
         params.nargs = nargs
 
         self.params = params
-        
-        
 
     def init_phase2(self):
         params = self.params
         if params.lang == "torch":
             from pykeops.torch.utils import torchtools
+
             self.tools = torchtools
         elif params.lang == "numpy":
             from pykeops.numpy.utils import numpytools
+
             self.tools = numpytools
 
-        if params.tagCPUGPU==0:
+        if params.tagCPUGPU == 0:
             cppyy.load_library(params.dllname)
-            launch_keops_fun_name = "launch_keops_cpu_"+os.path.basename(params.dllname).split('.')[0]
-            cppyy.cppdef(f"""
+            launch_keops_fun_name = (
+                "launch_keops_cpu_" + os.path.basename(params.dllname).split(".")[0]
+            )
+            cppyy.cppdef(
+                f"""
                            int {launch_keops_fun_name}(int nx, int ny, int tagI, int use_half,
                                                      const std::vector<void*>& ranges_v,
                                                      void *out_void, int nargs, 
                                                      const std::vector<void*>& arg_v,
                                                      const std::vector<int*>& argshape_v);                         
-            """)
+            """
+            )
             self.launch_keops_cpu = getattr(cppyy.gbl, launch_keops_fun_name)
         else:
-            self.launch_keops = cppyy.gbl.KeOps_module[params.c_dtype](params.device_id_request, params.nargs, params.low_level_code_file)
+            self.launch_keops = cppyy.gbl.KeOps_module[params.c_dtype](
+                params.device_id_request, params.nargs, params.low_level_code_file
+            )
 
     def genred(
-        self,
-        device_args,
-        ranges,
-        nx,
-        ny,
-        nbatchdims,
-        axis,
-        reduction_op,
-        out,
-        *args,
+        self, device_args, ranges, nx, ny, nbatchdims, axis, reduction_op, out, *args,
     ):
 
         params = self.params
@@ -199,10 +206,12 @@ class LoadKeOps_class:
         if not ranges:
             ranges_ptr = self.empty_ranges
         else:
-            ranges_shapes = self.tools.array([r.shape[0] for r in ranges], dtype="int32", device="cpu")
+            ranges_shapes = self.tools.array(
+                [r.shape[0] for r in ranges], dtype="int32", device="cpu"
+            )
             ranges = [*ranges, ranges_shapes]
             ranges_ptr = [c_void_p(self.tools.get_pointer(r)) for r in ranges]
-            
+
         args_ptr = [c_void_p(self.tools.get_pointer(arg)) for arg in args]
 
         # get all shapes of arguments
@@ -225,14 +234,14 @@ class LoadKeOps_class:
             shapeout = tuple(tmp) + (M, params.dim)
         else:
             shapeout = (M, params.dim)
-        
+
         if out is None:
             out = self.tools.empty(shapeout, dtype=args[0].dtype, device=device_args)
         out_ptr = c_void_p(self.tools.get_pointer(out))
 
         outshape = array("i", (len(out.shape),) + out.shape)
-        
-        if params.tagCPUGPU==0:
+
+        if params.tagCPUGPU == 0:
             self.launch_keops_cpu(
                 nx,
                 ny,
@@ -242,7 +251,7 @@ class LoadKeOps_class:
                 out_ptr,
                 params.nargs,
                 args_ptr,
-                argshapes
+                argshapes,
             )
         else:
             self.launch_keops(
@@ -268,7 +277,7 @@ class LoadKeOps_class:
                 outshape,
                 out_ptr,
                 args_ptr,
-                argshapes
+                argshapes,
             )
 
         if params.dtype == "float16":
@@ -286,13 +295,12 @@ class LoadKeOps_class:
 
 
 class library:
-    
     def __init__(self, cls, use_cache_file=False, save_folder="."):
         self.cls = cls
         self.library = {}
         self.use_cache_file = use_cache_file
         if self.use_cache_file:
-            self.cache_file = os.path.join(save_folder, cls.__name__+"_cache.pkl")
+            self.cache_file = os.path.join(save_folder, cls.__name__ + "_cache.pkl")
             if os.path.isfile(self.cache_file):
                 f = open(self.cache_file, "rb")
                 self.library_params = pickle.load(f)
@@ -300,8 +308,9 @@ class library:
             else:
                 self.library_params = {}
             import atexit
+
             atexit.register(self.save_cache)
-        
+
     def __call__(self, *args):
         str_id = "".join(list(str(arg) for arg in args))
         if not str_id in self.library:
@@ -316,7 +325,7 @@ class library:
             else:
                 self.library[str_id] = self.cls(*args)
         return self.library[str_id]
-    
+
     def reset(self):
         self.library = {}
         if self.use_cache_file:
@@ -328,6 +337,6 @@ class library:
         f.close()
 
 
-
-LoadKeOps = library(LoadKeOps_class, use_cache_file=True, save_folder=get_build_folder())
-
+LoadKeOps = library(
+    LoadKeOps_class, use_cache_file=True, save_folder=get_build_folder()
+)

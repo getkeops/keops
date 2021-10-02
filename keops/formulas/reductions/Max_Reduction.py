@@ -2,6 +2,7 @@ from keops.utils.code_gen_utils import neg_infinity, c_if
 from keops.formulas.reductions.Reduction import Reduction
 from keops.utils.misc_utils import KeOps_Error
 
+
 class Max_Reduction(Reduction):
     """Implements the max reduction operation : for each i or each j, find the
     maximal value of Fij operation is vectorized: if Fij is vector-valued, max is computed for each dimension."""

@@ -9,7 +9,6 @@ import pykeops.config
 c_type = dict(float16="half2", float32="float", float64="double")
 
 
-
 def axis2cat(axis):
     """
     Axis is the dimension to sum (the pythonic way). Cat is the dimension that
@@ -34,10 +33,6 @@ def cat2axis(cat):
         return (cat + 1) % 2
     else:
         raise ValueError("Category should be Vi or Vj.")
-
-
-
-
 
 
 def get_tools(lang):
@@ -99,4 +94,3 @@ def check_broadcasting(dims_1, dims_2):
             )
 
     return max_tuple(padded_dims_1, padded_dims_2)
-

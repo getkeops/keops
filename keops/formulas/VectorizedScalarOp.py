@@ -2,6 +2,7 @@ from keops.utils.code_gen_utils import VectApply
 from keops.formulas.Operation import Operation
 from keops.utils.misc_utils import KeOps_Error
 
+
 class VectorizedScalarOp(Operation):
     # class for operations that are vectorized or broadcasted
     # scalar operations,

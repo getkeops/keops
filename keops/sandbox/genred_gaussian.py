@@ -20,7 +20,7 @@ b = torch.randn(N, DV, device=device_id, dtype=dtype)
 aliases = [f"x=Vi(0,{D})", f"y=Vj(1,{D})", f"b=Vj(2,{DV})"]
 formula = "Exp(-Sum(Square(x-y)))*b"
 
-fun = Genred(formula, aliases, reduction_op="Sum", axis=1, sum_scheme = "block_sum")
+fun = Genred(formula, aliases, reduction_op="Sum", axis=1, sum_scheme="block_sum")
 
 if do_warmup:
     fun(x[: min(M, 100), :], y[: min(N, 100), :], b[: min(N, 100), :])

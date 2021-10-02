@@ -11,7 +11,7 @@ from ctypes import c_float, c_double, c_void_p, POINTER
 def is_on_device(x):
     return x.is_cuda
 
-            
+
 class torchtools:
     copy = torch.clone
     exp = torch.exp
@@ -144,10 +144,7 @@ class torchtools:
 
     @staticmethod
     def zeros(
-        shape,
-        dtype,
-        device,
-        requires_grad=False,
+        shape, dtype, device, requires_grad=False,
     ):
         return torch.zeros(
             *shape, dtype=dtype, device=device, requires_grad=requires_grad
@@ -155,10 +152,7 @@ class torchtools:
 
     @staticmethod
     def empty(
-        shape,
-        dtype,
-        device,
-        requires_grad=False,
+        shape, dtype, device, requires_grad=False,
     ):
         return torch.empty(
             *shape, dtype=dtype, device=device, requires_grad=requires_grad
@@ -190,7 +184,7 @@ class torchtools:
             return x.device
         else:
             return None
-    
+
     @staticmethod
     def get_pointer(x):
         return x.data_ptr()

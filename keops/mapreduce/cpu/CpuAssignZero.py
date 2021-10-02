@@ -24,7 +24,7 @@ class CpuAssignZero(MapReduce, Cpu_link_compile):
         dtype = self.dtype
         arg = self.arg
         args = self.args
-            
+
         headers = ["stdlib.h"]
         if use_OpenMP:
             headers.append("omp.h")

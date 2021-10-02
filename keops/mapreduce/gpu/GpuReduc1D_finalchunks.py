@@ -15,6 +15,7 @@ from keops.utils.code_gen_utils import (
 )
 from keops.utils.misc_utils import KeOps_Error
 
+
 def do_finalchunk_sub(
     dtype,
     varfinal,

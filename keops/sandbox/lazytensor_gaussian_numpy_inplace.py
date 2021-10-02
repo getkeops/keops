@@ -29,7 +29,7 @@ def fun(x, y, b, backend, out=None):
         out = Kxy.__matmul__(b, out=out)
     else:
         Kxy = np.exp(-Dxy)
-        out = Kxy@b    
+        out = Kxy @ b
     return out
 
 

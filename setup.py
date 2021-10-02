@@ -69,14 +69,10 @@ setup(
         "keops.mapreduce.cpu",
         "keops.mapreduce.gpu",
         "keops.tests",
-        "keops.utils",      
+        "keops.utils",
     ],
     package_data={
-        "pykeops": [
-            "readme.md",
-            "licence.txt",
-            "keops_version",
-        ],
+        "pykeops": ["readme.md", "licence.txt", "keops_version",],
         "keops": [
             "binders/nvrtc/keops_nvrtc.h",
             "binders/nvrtc/keops_nvrtc.cpp",
@@ -87,9 +83,9 @@ setup(
             "include/Sizes_no_template.h",
             "include/Sizes.h",
             "include/utils_pe.h",
-        ]
+        ],
     },
-    install_requires=["numpy","cppyy"],
+    install_requires=["numpy", "cppyy"],
     extras_require={
         "colab": ["torch"],
         "full": [

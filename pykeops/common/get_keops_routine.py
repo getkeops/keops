@@ -9,25 +9,26 @@ class create_or_load:
 
     @staticmethod
     def __call__(cls, *args):
-        
+
         cls_id = str(cls)
         if cls_id not in create_or_load.library:
             create_or_load.library[cls_id] = {}
         cls_library = create_or_load.library[cls_id]
         hash_name = get_hash_name(*args)
-        
+
         if hash_name in cls_library:
             res = cls_library[hash_name]
         else:
             obj = cls(*args)
             cls_library[hash_name] = obj
             res = obj
-        
+
         return res
+
 
 class get_keops_routine_class:
     def __init__(self, map_reduce_id, *args):
-            
+
         (
             self.dllname,
             self.low_level_code_file,
@@ -47,13 +48,13 @@ class get_keops_routine_class:
             dimsy,
             dimsp,
         ) = get_keops_dll(map_reduce_id, *args)
-        
+
         if self.low_level_code_file == "none":
             raise ValueError("not implemented yet")
             cppyy.load_library(self.dllname)
         else:
             self.dll = cppyy.gbl.context["float"](self.low_level_code_file)
-            
+
         # now we switch indsi, indsj and dimsx, dimsy in case tagI=1.
         # This is to be consistent with the convention used in the old
         # bindings (see functions GetIndsI, GetIndsJ, GetDimsX, GetDimsY
@@ -62,7 +63,7 @@ class get_keops_routine_class:
         if self.tagI == 1:
             indsi, indsj = indsj, indsi
             dimsx, dimsy = dimsy, dimsx
-        
+
         self.indsi = array("i", (len(indsi),) + indsi)
         self.indsj = array("i", (len(indsj),) + indsj)
         self.indsp = array("i", (len(indsp),) + indsp)
@@ -83,9 +84,6 @@ class get_keops_routine_class:
         args,
         argshapes,
     ):
-        
-        
-        
 
         nargs = len(args)
         if c_dtype == "float":
@@ -98,8 +96,7 @@ class get_keops_routine_class:
             raise ValueError(
                 "dtype", c_dtype, "not yet implemented in new KeOps engine"
             )
-        
-        
+
         launch_keops(
             tagHostDevice,
             self.dimy,
@@ -125,10 +122,9 @@ class get_keops_routine_class:
             out,
             nargs,
             args,
-            argshapes
+            argshapes,
         )
-        
 
 
-def get_keops_routine(*args):   
+def get_keops_routine(*args):
     return create_or_load()(get_keops_routine_class, *args)

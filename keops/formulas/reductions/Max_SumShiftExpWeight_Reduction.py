@@ -12,6 +12,7 @@ from keops.utils.code_gen_utils import (
 from keops.utils.math_functions import keops_exp
 from keops.utils.misc_utils import KeOps_Error
 
+
 class Max_SumShiftExpWeight_Reduction(Reduction):
     """Implements the coupled reduction operation m_i=max_j f_ij, s_i=sum_j exp(f_ij-m_i) g_ij
     where f and g are two formulas. f must be scalar-valued.

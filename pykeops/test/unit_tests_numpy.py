@@ -61,9 +61,7 @@ class NumpyUnitTestCase(unittest.TestCase):
             with self.subTest(b=b, t=t):
 
                 # Call cuda kernel
-                myconv = Genred(
-                    formula, aliases, reduction_op="Sum", axis=axis
-                )
+                myconv = Genred(formula, aliases, reduction_op="Sum", axis=axis)
                 gamma_keops = myconv(
                     self.sigma.astype(t),
                     self.g.astype(t),
@@ -99,9 +97,7 @@ class NumpyUnitTestCase(unittest.TestCase):
             with self.subTest(b=b, t=t):
 
                 # Call cuda kernel
-                myconv = Genred(
-                    formula, aliases, reduction_op="LogSumExp", axis=1
-                )
+                myconv = Genred(formula, aliases, reduction_op="LogSumExp", axis=1)
                 gamma_keops = myconv(
                     self.sigma.astype(t),
                     self.g.astype(t),
@@ -265,11 +261,7 @@ class NumpyUnitTestCase(unittest.TestCase):
         ]  # Second arg  : j-variable, of size D
 
         my_routine = Genred(
-            formula,
-            variables,
-            reduction_op="ArgKMin",
-            axis=1,
-            opt_arg=3,
+            formula, variables, reduction_op="ArgKMin", axis=1, opt_arg=3,
         )
 
         c = my_routine(self.x, self.y, backend="auto").astype(int)

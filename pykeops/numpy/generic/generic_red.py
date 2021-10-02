@@ -7,6 +7,7 @@ from pykeops.common.parse_type import get_sizes, complete_aliases, get_optional_
 from pykeops.common.utils import axis2cat
 from pykeops import default_device_id
 
+
 class Genred:
     r"""
     Creates a new generic operation.
@@ -137,26 +138,26 @@ class Genred:
         """
 
         if dtype:
-            print("[pyKeOps] Warning: keyword argument dtype in Genred is deprecated ; argument is ignored.")
+            print(
+                "[pyKeOps] Warning: keyword argument dtype in Genred is deprecated ; argument is ignored."
+            )
         if cuda_type:
-            print("[pyKeOps] Warning: keyword argument cuda_type in Genred is deprecated ; argument is ignored.")
+            print(
+                "[pyKeOps] Warning: keyword argument cuda_type in Genred is deprecated ; argument is ignored."
+            )
 
         self.reduction_op = reduction_op
         reduction_op_internal, formula2 = preprocess(reduction_op, formula2)
 
         self.optional_flags = get_optional_flags(
-            reduction_op_internal,
-            dtype_acc,
-            use_double_acc,
-            sum_scheme,
-            enable_chunks,
+            reduction_op_internal, dtype_acc, use_double_acc, sum_scheme, enable_chunks,
         )
-        
+
         if rec_multVar_highdim:
             self.optional_flags["multVar_highdim"] = 1
         else:
             self.optional_flags["multVar_highdim"] = 0
-            
+
         str_opt_arg = "," + str(opt_arg) if opt_arg else ""
         str_formula2 = "," + formula2 if formula2 else ""
 
@@ -281,20 +282,30 @@ class Genred:
 
         # Get tags
         tagCpuGpu, tag1D2D, tagHostDevice = get_tag_backend(backend, args)
-        
+
         # number of batch dimensions
         # N.B. we assume here that there is at least a cat=0 or cat=1 variable in the formula...
         nbatchdims = max(len(arg.shape) for arg in args) - 2
-        
-        use_ranges = (nbatchdims > 0 or ranges)
+
+        use_ranges = nbatchdims > 0 or ranges
 
         dtype = args[0].dtype.__str__()
 
-        if device_id==-1:
-            device_id = default_device_id if tagCpuGpu==1 else -1
+        if device_id == -1:
+            device_id = default_device_id if tagCpuGpu == 1 else -1
 
-        self.myconv = LoadKeOps( tagCpuGpu, tag1D2D, tagHostDevice, use_ranges, device_id,
-            self.formula, self.aliases, len(args), dtype, "numpy", self.optional_flags
+        self.myconv = LoadKeOps(
+            tagCpuGpu,
+            tag1D2D,
+            tagHostDevice,
+            use_ranges,
+            device_id,
+            self.formula,
+            self.aliases,
+            len(args),
+            dtype,
+            "numpy",
+            self.optional_flags,
         ).import_module()
 
         # N.B.: KeOps C++ expects contiguous data arrays
@@ -328,17 +339,7 @@ class Genred:
                 )
 
         out = self.myconv.genred_numpy(
-            -1,
-            ranges,
-            nx,
-            ny,
-            nbatchdims,
-            self.axis,
-            self.reduction_op,
-            out,
-            *args
+            -1, ranges, nx, ny, nbatchdims, self.axis, self.reduction_op, out, *args
         )
 
-        return postprocess(
-            out, "numpy", self.reduction_op, nout, self.opt_arg, dtype
-        )
+        return postprocess(out, "numpy", self.reduction_op, nout, self.opt_arg, dtype)

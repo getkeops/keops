@@ -15,9 +15,7 @@ class Min(Operation):
     def __init__(self, f):
         super().__init__(f)
         if f.dim < 1:
-            KeOps_Error(
-                "Min operation is only possible when dimension is non zero."
-            )
+            KeOps_Error("Min operation is only possible when dimension is non zero.")
         self.dim = 1
 
     def Op(self, out, table, arg):
