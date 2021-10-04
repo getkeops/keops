@@ -95,7 +95,7 @@ def preprocess_half2(args, aliases, axis, ranges, nx, ny):
     # when we will do the post-process back conversion after reduction
     N = ny if axis == 1 else nx
 
-    if ranges != ():
+    if ranges:
         # When using ranges, we need to adapt the ranges to the special copy trick
         if axis == 1:
             ranges = ranges2half2(ranges[0:3], ny) + ranges[3:6]

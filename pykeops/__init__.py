@@ -30,9 +30,12 @@ if use_cuda:
         cuda_include_path,
         jit_source_header,
     )
+    from keops.utils.gpu_utils import cuda_include_fp16_path
 
     cppyy.include(os.path.join(cuda_include_path, "nvrtc.h"))
     cppyy.include(os.path.join(cuda_include_path, "cuda.h"))
+    cppyy.include(os.path.join(cuda_include_fp16_path(), "cuda_fp16.h"))
+    cppyy.include(os.path.join(cuda_include_fp16_path(), "cuda_fp16.hpp"))
 
     cppyy.load_library(os.path.join(libcuda_folder, "libcuda"))
     cppyy.load_library(os.path.join(libnvrtc_folder, "libnvrtc"))
