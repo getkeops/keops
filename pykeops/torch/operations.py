@@ -35,8 +35,6 @@ class KernelSolveAutograd(torch.autograd.Function):
         rec_multVar_highdim,
         nx,
         ny,
-        axis,
-        reduction_op,
         *args
     ):
 
@@ -103,8 +101,6 @@ class KernelSolveAutograd(torch.autograd.Function):
         ctx.eps = eps
         ctx.nx = nx
         ctx.ny = ny
-        ctx.axis = axis
-        ctx.reduction_op = reduction_op
         ctx.myconv = myconv
         ctx.ranges = ranges
         ctx.rec_multVar_highdim = rec_multVar_highdim
@@ -121,8 +117,6 @@ class KernelSolveAutograd(torch.autograd.Function):
                 nx,
                 ny,
                 nbatchdims,
-                axis,
-                reduction_op,
                 None,
                 *newargs
             )
@@ -151,8 +145,6 @@ class KernelSolveAutograd(torch.autograd.Function):
         eps = ctx.eps
         nx = ctx.nx
         ny = ctx.ny
-        axis = ctx.axis
-        reduction_op = ctx.reduction_op
         myconv = ctx.myconv
         ranges = ctx.ranges
         optional_flags = ctx.optional_flags
@@ -201,8 +193,6 @@ class KernelSolveAutograd(torch.autograd.Function):
             rec_multVar_highdim,
             nx,
             ny,
-            axis,
-            reduction_op,
             *newargs
         )
 
@@ -211,8 +201,8 @@ class KernelSolveAutograd(torch.autograd.Function):
         for (var_ind, sig) in enumerate(aliases):  # Run through the arguments
             # If the current gradient is to be discarded immediatly...
             if not ctx.needs_input_grad[
-                var_ind + 15
-            ]:  # because of (formula, aliases, varinvpos, alpha, backend, dtype, device_id, eps, ranges, optional_flags, rec_multVar_highdim, nx, ny, axis, reduction_op)
+                var_ind + 13
+            ]:  # because of (formula, aliases, varinvpos, alpha, backend, dtype, device_id, eps, ranges, optional_flags, rec_multVar_highdim, nx, ny)
                 grads.append(None)  # Don't waste time computing it.
 
             else:  # Otherwise, the current gradient is really needed by the user:
@@ -266,8 +256,6 @@ class KernelSolveAutograd(torch.autograd.Function):
                             None,
                             nx,
                             ny,
-                            axis,
-                            reduction_op,
                             None,
                             *args_g
                         )
@@ -289,17 +277,13 @@ class KernelSolveAutograd(torch.autograd.Function):
                             None,
                             nx,
                             ny,
-                            axis,
-                            reduction_op,
                             None,
                             *args_g
                         )
                     grads.append(grad)
 
-        # Grads wrt. formula, aliases, varinvpos, alpha, backend, dtype, device_id_request, eps, ranges, optional_flags, rec_multVar_highdim, nx, ny, axis, reduction_op, *args
+        # Grads wrt. formula, aliases, varinvpos, alpha, backend, dtype, device_id_request, eps, ranges, optional_flags, rec_multVar_highdim, nx, ny, *args
         return (
-            None,
-            None,
             None,
             None,
             None,
@@ -553,7 +537,5 @@ class KernelSolve:
             self.rec_multVar_highdim,
             nx,
             ny,
-            self.axis,
-            self.reduction_op,
             *args
         )

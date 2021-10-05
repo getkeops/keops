@@ -155,6 +155,9 @@ class LoadKeOps_class:
         params.tagCPUGPU = tagCPUGPU
         params.device_id_request = device_id_request
         params.nargs = nargs
+        
+        params.reduction_op = params.red_formula_string.split("(")[0]
+        params.axis = 1-params.tagI
 
         self.params = params
 
@@ -190,7 +193,7 @@ class LoadKeOps_class:
             )
 
     def genred(
-        self, device_args, ranges, nx, ny, nbatchdims, axis, reduction_op, out, *args,
+        self, device_args, ranges, nx, ny, nbatchdims, out, *args,
     ):
 
         params = self.params
@@ -199,7 +202,7 @@ class LoadKeOps_class:
             from pykeops.torch.half2_convert import preprocess_half2
 
             args, ranges, tag_dummy, N = preprocess_half2(
-                args, params.aliases_old, axis, ranges, nx, ny
+                args, params.aliases_old, params.axis, ranges, nx, ny
             )
 
         # get ranges argument
@@ -283,7 +286,7 @@ class LoadKeOps_class:
         if params.dtype == "float16":
             from pykeops.torch.half2_convert import postprocess_half2
 
-            out = postprocess_half2(out, tag_dummy, reduction_op, N)
+            out = postprocess_half2(out, tag_dummy, params.reduction_op, N)
 
         return out
 

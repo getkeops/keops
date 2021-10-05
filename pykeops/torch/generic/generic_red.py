@@ -31,8 +31,6 @@ class GenredAutograd(torch.autograd.Function):
         rec_multVar_highdim,
         nx,
         ny,
-        axis,
-        reduction_op,
         out,
         *args
     ):
@@ -74,7 +72,7 @@ class GenredAutograd(torch.autograd.Function):
                     raise ValueError(
                         "[KeOps] Gpu device id of arrays is different from device id requested for computation."
                     )
-
+        
         myconv = LoadKeOps(
             tagCPUGPU,
             tag1D2D,
@@ -100,8 +98,6 @@ class GenredAutograd(torch.autograd.Function):
         ctx.myconv = myconv
         ctx.nx = nx
         ctx.ny = ny
-        ctx.axis = axis
-        ctx.reduction_op = reduction_op
 
         # N.B.: KeOps C++ expects contiguous data arrays
         test_contig = all(arg.is_contiguous() for arg in args)
@@ -117,7 +113,7 @@ class GenredAutograd(torch.autograd.Function):
             ranges = tuple(r.contiguous() for r in ranges)
 
         result = myconv.genred_pytorch(
-            device_args, ranges, nx, ny, nbatchdims, axis, reduction_op, out, *args
+            device_args, ranges, nx, ny, nbatchdims, out, *args
         )
 
         # relying on the 'ctx.saved_variables' attribute is necessary  if you want to be able to differentiate the output
@@ -138,8 +134,6 @@ class GenredAutograd(torch.autograd.Function):
         myconv = ctx.myconv
         nx = ctx.nx
         ny = ctx.ny
-        axis = ctx.axis
-        reduction_op = ctx.reduction_op
         args = ctx.saved_tensors[:-1]  # Unwrap the saved variables
         nargs = len(args)
         result = ctx.saved_tensors[-1].detach()
@@ -201,8 +195,8 @@ class GenredAutograd(torch.autograd.Function):
         ):  # Run through the arguments
             # If the current gradient is to be discarded immediatly...
             if not ctx.needs_input_grad[
-                var_ind + 13
-            ]:  # because of (formula, aliases, backend, dtype, device_id_request, ranges, optional_flags, rec_multVar_highdim, nx, ny, axis, reduction_op)
+                var_ind + 11
+            ]:  # because of (formula, aliases, backend, dtype, device_id_request, ranges, optional_flags, rec_multVar_highdim, nx, ny, out)
                 grads.append(None)  # Don't waste time computing it.
 
             else:
@@ -258,8 +252,6 @@ class GenredAutograd(torch.autograd.Function):
                         rec_multVar_highdim,
                         nx,
                         ny,
-                        axis,
-                        reduction_op,
                         None,
                         *args_g
                     )
@@ -290,8 +282,6 @@ class GenredAutograd(torch.autograd.Function):
                         rec_multVar_highdim,
                         nx,
                         ny,
-                        axis,
-                        reduction_op,
                         None,
                         *args_g
                     )
@@ -316,10 +306,8 @@ class GenredAutograd(torch.autograd.Function):
                 )  # The gradient should have the same shape as the input!
                 grads.append(grad)
 
-        # Grads wrt. formula, aliases, backend, dtype, device_id_request, ranges, optional_flags, rec_multVar_highdim, nx, ny, axis, reduction_op, out, *args
+        # Grads wrt. formula, aliases, backend, dtype, device_id_request, ranges, optional_flags, rec_multVar_highdim, nx, ny, out, *args
         return (
-            None,
-            None,
             None,
             None,
             None,
@@ -638,8 +626,6 @@ class Genred:
             self.rec_multVar_highdim,
             nx,
             ny,
-            self.axis,
-            self.reduction_op,
             out,
             *args
         )

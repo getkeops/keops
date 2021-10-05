@@ -8,16 +8,16 @@ from pykeops.torch import LazyTensor
 
 dtype = torch.float16
 
-M, N, D = 1001, 1001, 3
+M, N, D = 5, 5, 1
 
-test_grad = False
+test_grad = True
 
 device_id = "cuda" if torch.cuda.is_available() else "cpu"
 
 do_warmup = False
 
-x = torch.randn(M, 1, D, dtype=dtype, requires_grad=test_grad, device=device_id)
-y = torch.randn(1, N, D, dtype=dtype, device=device_id)
+x = torch.zeros(M, 1, D, dtype=dtype, requires_grad=test_grad, device=device_id)
+y = torch.ones(1, N, D, dtype=dtype, device=device_id)
 a = -1.23
 b = 1.54
 
@@ -28,8 +28,8 @@ def fun(x, y, a, b, backend):
         y = LazyTensor(y)
     elif backend != "torch":
         raise ValueError("wrong backend")
-    Dxy = ((x * y)).sum(dim=2)
-    Kxy = (-(Dxy ** 2)).exp()
+    Dxy = (x-y).sum(dim=2)
+    Kxy = Dxy
     return Kxy.sum(dim=0)
 
 
@@ -52,7 +52,7 @@ if test_grad:
     out_g = []
     for k, backend in enumerate(backends):
         start = time.time()
-        out_g.append(torch.autograd.grad((out[k] ** 2).sum(), [x])[0])
+        out_g.append(torch.autograd.grad(out[k][0], [x])[0])
         end = time.time()
         print("time for " + backend + " (grad):", end - start)
 
