@@ -24,6 +24,7 @@ pipeline {
           agent { label 'ubuntu' }
           steps {
             echo 'Building..'
+						  pip3 install cppyy
               sh 'git submodule update --init'
               sh 'cd keops/build && cmake ..'
               sh 'cd keops/build && make VERBOSE=0'
