@@ -61,9 +61,9 @@ pipeline {
           agent { label 'ubuntu' }
           steps {
             echo 'Testing..'
-						  sh 'export PYTHONPATH="$PYTHONPATH:/builds/keops/" && cd keops/sandbox && python3 do_clean_keops.py'
-              sh 'export PYTHONPATH="$PYTHONPATH:/builds/keops/" && cd pykeops/test && python3 unit_tests_pytorch.py'
-              sh 'export PYTHONPATH="$PYTHONPATH:/builds/keops/" && cd pykeops/test && python3 unit_tests_numpy.py'
+						  sh 'cd keops/sandbox && python3 do_clean_keops.py'
+              sh 'cd pykeops/test && python3 unit_tests_pytorch.py'
+              sh 'cd pykeops/test && python3 unit_tests_numpy.py'
           }
         }
 
