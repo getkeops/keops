@@ -24,7 +24,6 @@ pipeline {
           agent { label 'ubuntu' }
           steps {
             echo 'Building..'
-						  pip3 install cppyy
               sh 'git submodule update --init'
               sh 'cd keops/build && cmake ..'
               sh 'cd keops/build && make VERBOSE=0'
@@ -62,6 +61,8 @@ pipeline {
           agent { label 'ubuntu' }
           steps {
             echo 'Testing..'
+						  sh 'pip3 install cppyy'
+						  sh 'cd keops/sandbox && python3 do_clean_keops.py'
               sh 'cd pykeops/test && python3 unit_tests_pytorch.py'
               sh 'cd pykeops/test && python3 unit_tests_numpy.py'
           }
