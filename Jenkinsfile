@@ -49,7 +49,6 @@ pipeline {
               sh 'cd keops/build && make -j15 VERBOSE=0'
           }
         }
-
       }
     }
 */
