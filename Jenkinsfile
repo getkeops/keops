@@ -62,6 +62,7 @@ pipeline {
           steps {
             echo 'Testing..'
 						  sh 'pip3 install cppyy'
+							sh 'export PYTHONPATH="$PYTHONPATH:/Users/glaunes/repos_git/keops/"'
 						  sh 'cd keops/sandbox && python3 do_clean_keops.py'
               sh 'cd pykeops/test && python3 unit_tests_pytorch.py'
               sh 'cd pykeops/test && python3 unit_tests_numpy.py'
