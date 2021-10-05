@@ -263,8 +263,6 @@ class KernelSolve:
                 nx,
                 ny,
                 nbatchdims,
-                self.axis,
-                self.reduction_op,
                 None,
                 *newargs
             )

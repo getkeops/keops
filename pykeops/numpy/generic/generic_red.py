@@ -339,7 +339,7 @@ class Genred:
                 )
 
         out = self.myconv.genred_numpy(
-            -1, ranges, nx, ny, nbatchdims, self.axis, self.reduction_op, out, *args
+            -1, ranges, nx, ny, nbatchdims, out, *args
         )
 
         return postprocess(out, "numpy", self.reduction_op, nout, self.opt_arg, dtype)
