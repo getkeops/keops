@@ -1,4 +1,4 @@
-# Always prefer setuptools over distutils
+#  Always prefer setuptools over distutils
 # To use a consistent encoding
 from codecs import open
 import os
