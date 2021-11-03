@@ -14,7 +14,7 @@ use_OpenMP = True  # use OpenMP if possible
 base_dir_path = os.path.abspath(join(os.path.dirname(os.path.realpath(__file__)), ".."))
 template_path = join(base_dir_path, "templates")
 bindings_source_dir = join(base_dir_path, "include")
-keops_cache_folder = join(os.path.expanduser("~"), ".keops")
+keops_cache_folder = join(os.path.expanduser("~"), ".cache", "keops")
 os.makedirs(keops_cache_folder, exist_ok=True)
 default_build_path = join(keops_cache_folder, "build")
 
