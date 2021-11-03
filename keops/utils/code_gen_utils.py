@@ -262,7 +262,7 @@ def cast_to(dtype, var):
     elif dtype == "half2" and var.dtype == "float2":
         return f"__float22half2_rn({var.id})"
     else:
-        KeOps_Error("not implemented")
+        KeOps_Error(f"not implemented: casting from {var.dtype} to {dtype}")
 
 
 def value(x):
