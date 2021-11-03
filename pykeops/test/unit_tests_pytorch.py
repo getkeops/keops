@@ -574,6 +574,62 @@ class PytorchUnitTestCase(unittest.TestCase):
             )
 
     ############################################################
+    # Test min reduction with chunk without batches
+    def test_LazyTensor_min_chunked(self):
+        ############################################################
+        from pykeops.torch import LazyTensor
+        import torch
+        X = np.random.rand(self.M, 990)
+        Xc = torch.tensor(X, dtype=self.dtype, device=self.device)
+        Y = np.random.rand(self.N, 990)
+        Yc = torch.tensor(Y, dtype=self.dtype, device=self.device)
+
+
+        full_results = []
+        for use_keops in [True, False]:
+
+            results = []
+
+            # N.B.: We could loop over float32 and float64, but this would take longer...
+            for (x, y) in [(Xc, Yc)]:  # Float32
+
+                x_i = x.unsqueeze(-2)
+                y_j = y.unsqueeze(-3)
+
+                if use_keops:
+                    x_i, y_j = (
+                        LazyTensor(x_i),
+                        LazyTensor(y_j),
+                    )
+
+                K_ij = (( -((x_i + y_j)) ** 2).exp()).sum(
+                    -1, keepdim=True
+                )
+
+                if use_keops:
+                    m, am = K_ij.min_argmin(dim=0)
+                else:
+                    m, am = K_ij.min(dim=0)
+
+                results += [m, am]
+
+            full_results.append(results)
+
+        for (res_keops, res_torch) in zip(full_results[0], full_results[1]):
+            print(res_keops.cpu().data.numpy().ravel())
+            print(res_torch.cpu().data.numpy().ravel())
+            print(res_keops.cpu().data.numpy().ravel() - res_torch.cpu().data.numpy().ravel())
+            self.assertTrue(res_keops.shape == res_torch.shape)
+            self.assertTrue(
+                np.allclose(
+                    res_keops.cpu().data.numpy().ravel(),
+                    res_torch.cpu().data.numpy().ravel(),
+                    atol=1e-5,
+                )
+            )
+
+
+    ############################################################
     def test_LazyTensor_min(self):
         ############################################################
         from pykeops.torch import LazyTensor

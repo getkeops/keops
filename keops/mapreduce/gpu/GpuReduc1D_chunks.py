@@ -210,7 +210,7 @@ class GpuReduc1D_chunks(MapReduce, Gpu_link_compile):
             param_loc,
         )
 
-        foutj = c_variable(pointer(dtype), "foutj")
+        foutj = c_array(dtype, chk.dimout_chunk, "foutj")
         chktable_out = table4(
             chk.nminargs + 1,
             chk.dimsx,
