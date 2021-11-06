@@ -83,6 +83,7 @@ def do_chunk_sub(
     foutj = c_variable(pointer(dtype), "foutj")
 
     return f"""
+                // Starting chunk_sub routine
                 {fout_tmp_chunk.declare()}
                 if ({i.id} < {nx.id}) {{
                     {load_chunks_routine_i}
@@ -100,6 +101,7 @@ def do_chunk_sub(
                     }}
                 }} 
                 __syncthreads();
+                // Finished chunk_sub routine
             """
 
 
@@ -147,7 +149,7 @@ class GpuReduc1D_chunks(MapReduce, Gpu_link_compile):
         yjloc = c_array(dtype, chk.dimy, f"(yj + threadIdx.x * {chk.dimy})")
 
         fout_chunk_loc = c_variable(
-            pointer(dtype), f"({fout_chunk.id}+jrel*{chk.dimout})"
+            pointer(dtype), f"({fout_chunk.id}+jrel*{chk.dimout_chunk})"
         )
 
         tile = c_variable("int", "tile")

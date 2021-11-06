@@ -218,7 +218,7 @@ class GpuReduc1D_ranges_chunks(MapReduce, Gpu_link_compile):
         yjloc = c_array(dtype, chk.dimy, f"(yj + threadIdx.x * {chk.dimy})")
 
         fout_chunk_loc = c_variable(
-            pointer(dtype), f"({fout_chunk.id}+jrel*{chk.dimout})"
+            pointer(dtype), f"({fout_chunk.id}+jrel*{chk.dimout_chunk})"
         )
 
         tile = c_variable("int", "tile")
