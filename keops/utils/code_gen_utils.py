@@ -240,9 +240,9 @@ def neg_infinity(dtype):
 
 def infinity(dtype):
     if dtype == "float":
-        code = "( 1.0f/0.0f )" #"( 3.402823466e+38f )"
+        code = "( 1.0f/0.0f )"
     elif dtype == "double":
-        code = "( 1.0f/0.0f )" #"( 1.7976931348623158e+308 )"
+        code = "( 1.0/0.0 )"
     else:
         KeOps_Error(
             "only float and double dtypes are implemented in new python engine for now"
