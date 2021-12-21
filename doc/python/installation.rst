@@ -165,6 +165,7 @@ A common starting point for users looking to get started with pykeops, is to hav
 3. Install the runfile using the --toolkit and --toolkitpath options.  This installs nvcc to a directory, without modifying your drivers or system configuration. Do not use sudo, to guarantee that this step doesn't modify your drivers. For example,
 
 .. code-block:: bash
+
   sh cuda_version_here_linux --silent --override --toolkit --toolkitpath=/local/path/to/put/nvcc
   
 4. Add /local/path/to/put/nvcc/bin to $PATH and /local/path/to/put/nvcc/lib64 to $LD_LIBRARY_PATH . You can either do this in .bashrc, or a script local to your pykeops project
