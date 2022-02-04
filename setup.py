@@ -127,7 +127,7 @@ setup(
             "keops/formula.h.in",
             "keops/headers.cmake",
             "keops/keops_includes.h",
-            "version",
+            "keops_version",
             "cmake_scripts/*",
             "cmake_scripts/script_keops_formula/*",
             "cmake_scripts/script_specific/*",
