@@ -15,6 +15,7 @@ import types
 class LoadKeOps_class:
 
     null_range = np.array([-1], dtype="int32")
+    empty_ranges_new = tuple([null_range.__array_interface__["data"][0]] * 7)
     empty_ranges = [c_void_p(null_range.__array_interface__["data"][0])] * 7
 
     def __init__(self, *args, fast_init=False):
@@ -144,13 +145,13 @@ class LoadKeOps_class:
         if params.tagI == 1:
             indsi, indsj = indsj, indsi
             dimsx, dimsy = dimsy, dimsx
-
-        params.indsi = array("i", (len(indsi),) + indsi)
-        params.indsj = array("i", (len(indsj),) + indsj)
-        params.indsp = array("i", (len(indsp),) + indsp)
-        params.dimsx = array("i", (len(dimsx),) + dimsx)
-        params.dimsy = array("i", (len(dimsy),) + dimsy)
-        params.dimsp = array("i", (len(dimsp),) + dimsp)
+        # TODO: the tuple length is added at the beginning. Should be remove with Pybind11
+        params.indsi = (len(indsi),) + indsi
+        params.indsj = (len(indsj),) + indsj
+        params.indsp = (len(indsp),) + indsp
+        params.dimsx = (len(dimsx),) + dimsx
+        params.dimsy = (len(dimsy),) + dimsy
+        params.dimsp = (len(dimsp),) + dimsp
 
         params.tagCPUGPU = tagCPUGPU
         params.device_id_request = device_id_request
@@ -188,9 +189,14 @@ class LoadKeOps_class:
             )
             self.launch_keops_cpu = getattr(cppyy.gbl, launch_keops_fun_name)
         else:
-            self.launch_keops = cppyy.gbl.KeOps_module[params.c_dtype](
-                params.device_id_request, params.nargs, params.low_level_code_file
-            )
+            import keops_nvrtc
+            if params.c_dtype == "float":
+                self.launch_keops = keops_nvrtc.KeOps_module_float(params.device_id_request, params.nargs, params.low_level_code_file)
+            elif params.c_dtype == "double":
+                self.launch_keops = keops_nvrtc.KeOps_module_double(params.device_id_request, params.nargs, params.low_level_code_file)
+            elif params.c_dtype == "half2":
+                self.launch_keops = keops_nvrtc.KeOps_module_half2(params.device_id_request, params.nargs, params.low_level_code_file)
+
 
     def genred(
         self, device_args, ranges, nx, ny, nbatchdims, out, *args,
@@ -207,18 +213,21 @@ class LoadKeOps_class:
 
         # get ranges argument
         if not ranges:
-            ranges_ptr = self.empty_ranges
+            ranges_ptr_new = self.empty_ranges_new
         else:
             ranges_shapes = self.tools.array(
                 [r.shape[0] for r in ranges], dtype="int32", device="cpu"
             )
             ranges = [*ranges, ranges_shapes]
             ranges_ptr = [c_void_p(self.tools.get_pointer(r)) for r in ranges]
+            ranges_ptr_new = tuple([self.tools.get_pointer(r) for r in ranges])
 
         args_ptr = [c_void_p(self.tools.get_pointer(arg)) for arg in args]
+        args_ptr_new = tuple([self.tools.get_pointer(arg) for arg in args])
 
         # get all shapes of arguments
         argshapes = [array("i", (len(arg.shape),) + arg.shape) for arg in args]
+        argshapes_new = tuple([(len(arg.shape),) + arg.shape for arg in args])
 
         # initialize output array
 
@@ -240,9 +249,9 @@ class LoadKeOps_class:
 
         if out is None:
             out = self.tools.empty(shapeout, dtype=args[0].dtype, device=device_args)
-        out_ptr = c_void_p(self.tools.get_pointer(out))
+        out_ptr = self.tools.get_pointer(out)
 
-        outshape = array("i", (len(out.shape),) + out.shape)
+        outshape = (len(out.shape),) + out.shape
 
         if params.tagCPUGPU == 0:
             self.launch_keops_cpu(
@@ -276,11 +285,11 @@ class LoadKeOps_class:
                 params.dimsx,
                 params.dimsy,
                 params.dimsp,
-                ranges_ptr,
+                ranges_ptr_new,
                 outshape,
                 out_ptr,
-                args_ptr,
-                argshapes,
+                args_ptr_new,
+                argshapes_new,
             )
 
         if params.dtype == "float16":
@@ -341,5 +350,5 @@ class library:
 
 
 LoadKeOps = library(
-    LoadKeOps_class, use_cache_file=True, save_folder=get_build_folder()
+    LoadKeOps_class, use_cache_file=False, save_folder=get_build_folder()
 )

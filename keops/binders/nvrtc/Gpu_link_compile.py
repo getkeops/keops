@@ -1,6 +1,4 @@
 import os
-from ctypes import create_string_buffer, CDLL, c_int
-from os import RTLD_LAZY
 
 from keops.binders.LinkCompile import LinkCompile
 from keops.config.config import (
@@ -45,7 +43,7 @@ class Gpu_link_compile(LinkCompile):
             get_build_folder(), self.target_prefix + self.gencode_filename
         ).encode("utf-8")
 
-        self.my_c_dll = CDLL(jit_binary, mode=RTLD_LAZY)
+        #self.my_c_dll = CDLL(jit_binary, mode=RTLD_LAZY)
         # actual dll to be called is the jit binary
         self.true_dllname = jit_binary
         # file to check for existence to detect compilation is needed
@@ -58,13 +56,12 @@ class Gpu_link_compile(LinkCompile):
         # write the code in the source file
         self.write_code()
         # we execute the main dll, passing the code as argument, and the name of the low level code file to save the assembly instructions
-        self.my_c_dll.Compile(
-            create_string_buffer(self.target_file),
-            create_string_buffer(self.code.encode("utf-8")),
-            c_int(self.use_half),
-            c_int(self.device_id),
-            create_string_buffer((cuda_include_fp16_path()+os.path.sep).encode("utf-8")),
-        )
+        import keops_nvrtc
+        keops_nvrtc.Compile(self.target_file,
+                            self.code.encode("utf-8"),
+                            self.use_half, self.device_id,
+                            (cuda_include_fp16_path() + os.path.sep).encode("utf-8"))
+
         # retreive some parameters that will be saved into info_file.
         self.tagI = self.red_formula.tagI
         self.dim = self.red_formula.dim
@@ -86,6 +83,6 @@ class Gpu_link_compile(LinkCompile):
                 else '\\"compute\\"'
             )
             target_type_define = f"-DnvrtcGetTARGET={nvrtcGetTARGET} -DnvrtcGetTARGETSize={nvrtcGetTARGETSize} -DARCHTAG={arch_tag}"
-            jit_compile_command = f"{cxx_compiler} {nvrtc_flags} {target_type_define} {nvrtc_include} {Gpu_link_compile.gpu_props_compile_flags} {jit_source_file} -o {jit_binary}"
+            jit_compile_command = f"{cxx_compiler} {nvrtc_flags} {target_type_define} $(python3 -m pybind11 --includes) {nvrtc_include} {Gpu_link_compile.gpu_props_compile_flags} {jit_source_file} -o {jit_binary}"
             os.system(jit_compile_command)
             print("OK", flush=True)

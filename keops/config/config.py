@@ -1,5 +1,6 @@
 import os
 from os.path import join
+import sysconfig
 from ctypes import CDLL, RTLD_GLOBAL
 import keops
 from ctypes.util import find_library
@@ -37,7 +38,7 @@ def set_build_folder(path=None, read_save_file=False):
     f = open(save_file, "w")
     f.write(path)
     global jit_binary
-    jit_binary = join(build_path, "keops_nvrtc.so")
+    jit_binary = join(build_path, "keops_nvrtc" + sysconfig.get_config_var('EXT_SUFFIX'))
 
 
 def get_build_folder():
@@ -49,7 +50,7 @@ set_build_folder(read_save_file=True)
 
 # Compiler
 cxx_compiler = "g++"
-compile_options = " -shared -fPIC -O3"
+compile_options = " -shared -fPIC -O3 -std=c++11"
 
 
 # cpp options
@@ -104,7 +105,7 @@ if use_cuda:
     cuda_version = get_cuda_version()
     nvrtc_flags = (
         compile_options
-        + f" -fpermissive -L {libcuda_folder} -L {libnvrtc_folder} -lcuda -lnvrtc"
+        + f" -fpermissive -L{libcuda_folder} -L{libnvrtc_folder} -lcuda -lnvrtc"
     )
     nvrtc_include = " -I" + bindings_source_dir
     cuda_include_path = get_cuda_include_path()
