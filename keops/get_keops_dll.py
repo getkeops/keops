@@ -41,11 +41,12 @@ It can be used as a Python function or as a standalone Python script (in which c
   - example (as Python script) :
       python get_keops_dll.py CpuReduc "Sum_Reduction((Exp(Minus(Sum(Square((Var(0,3,0) / Var(1,3,1)))))) * Var(2,1,1)),0)" 0 0 0 "[]" 3 float float block_sum 0 0 0 0 0
 """
-import sys, inspect
+import inspect
+import os
+import pickle
+import sys
 
-from keops.formulas import Zero_Reduction, Sum_Reduction
-from keops.formulas.GetReduction import GetReduction
-from keops.formulas.variables.Zero import Zero
+import keops.config.config
 import keops.mapreduce
 from keops import cuda_block_size
 from keops.config.chunks import (
@@ -56,10 +57,10 @@ from keops.config.chunks import (
     use_final_chunks,
     set_mult_var_highdim,
 )
-import keops.config.config
-from keops.config.config import use_cuda, get_build_folder
+from keops.formulas import Zero_Reduction, Sum_Reduction
+from keops.formulas.GetReduction import GetReduction
+from keops.formulas.variables.Zero import Zero
 from keops.utils.code_gen_utils import KeOps_Error
-import os, pickle
 
 # Get every classes in mapreduce
 map_reduce = dict(inspect.getmembers(keops.mapreduce, inspect.isclass))
@@ -77,7 +78,7 @@ def get_keops_dll_impl(
     # detecting the need for special chunked computation modes :
     use_chunk_mode = 0
     if "Gpu" in map_reduce_id:
-        if not use_cuda:
+        if not keops.config.config.use_cuda:
             KeOps_Error(
                 "You selected a Gpu reduce scheme but KeOps is in Cpu only mode."
             )
@@ -206,5 +207,5 @@ class library:
 
 
 get_keops_dll = library(
-    get_keops_dll_impl, use_cache_file=True, save_folder=get_build_folder()
+    get_keops_dll_impl, use_cache_file=False, save_folder=keops.config.config.get_build_folder()
 )

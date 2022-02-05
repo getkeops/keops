@@ -1,6 +1,7 @@
 
 // nvcc -shared -Xcompiler -fPIC -lnvrtc -lcuda keops_nvrtc.cu -o keops_nvrtc.so
-// g++ --verbose -L/opt/cuda/lib64 -L/opt/cuda/targets/x86_64-linux/lib/ -I/opt/cuda/targets/x86_64-linux/include/ -shared -fPIC -lcuda -lnvrtc -fpermissive -DMAXIDGPU=0 -DMAXTHREADSPERBLOCK0=1024 -DSHAREDMEMPERBLOCK0=49152  /home/bcharlier/projets/keops/keops/keops/python_engine/compilation/keops_nvrtc.cpp -o /home/bcharlier/projets/keops/keops/keops/python_engine/build/keops_nvrtc.so
+// g++ --verbose -L/opt/cuda/lib64 -L/opt/cuda/targets/x86_64-linux/lib/ -I/opt/cuda/targets/x86_64-linux/include/ -I../../include -shared -fPIC -lcuda -lnvrtc -fpermissive -DMAXIDGPU=0 -DMAXTHREADSPERBLOCK0=1024 -DSHAREDMEMPERBLOCK0=49152 -DnvrtcGetTARGET=nvrtcGetCUBIN -DnvrtcGetTARGETSize=nvrtcGetCUBINSize -DARCHTAG=\"sm\" keops_nvrtc.cpp -o keops_nvrtc.so
+// g++ -std=c++11  -shared -fPIC -O3 -fpermissive -L /usr/lib -L /opt/cuda/lib64 -lcuda -lnvrtc -DnvrtcGetTARGET=nvrtcGetCUBIN -DnvrtcGetTARGETSize=nvrtcGetCUBINSize -DARCHTAG=\"sm\"  -I/home/bcharlier/projets/keops/keops/keops/include -I/opt/cuda/include -I/usr/include/python3.10/ -DMAXIDGPU=0 -DMAXTHREADSPERBLOCK0=1024 -DSHAREDMEMPERBLOCK0=49152  /home/bcharlier/projets/keops/keops/keops/binders/nvrtc/keops_nvrtc.cpp -o keops_nvrtc.cpython-310-x86_64-linux-gnu.so
 
 #include <nvrtc.h>
 #include <cuda.h>
@@ -25,6 +26,9 @@
 #include "CudaSizes.h"
 #include <cuda_fp16.h>
 
+#include <pybind11/pybind11.h>
+
+namespace py = pybind11;
 
 extern "C" int Compile(const char *target_file_name, const char *cu_code, int use_half, int device_id, 
                         const char *cuda_include_path) {
@@ -109,12 +113,6 @@ extern "C" int Compile(const char *target_file_name, const char *cu_code, int us
 }
 
 
-
-
-
-
-
-
 template<typename TYPE>
 class KeOps_module {
     public :
@@ -190,29 +188,105 @@ class KeOps_module {
                          int tagI, int tagZero, int use_half,
                          int tag1D2D, int dimred,
                          int cuda_block_size, int use_chunk_mode,
-                         int *indsi, int *indsj, int *indsp,
+                         py::tuple py_indsi, py::tuple py_indsj, py::tuple py_indsp,
                          int dimout,
-                         int *dimsx, int *dimsy, int *dimsp,
-                         const std::vector<void*>& ranges_v,
-                         int *shapeout, void *out_void,
-                         const std::vector<void*>& arg_v,
-                         const std::vector<int*>& argshape_v
+                         py::tuple py_dimsx, py::tuple py_dimsy, py::tuple py_dimsp,
+                         py::tuple py_ranges,
+                         py::tuple py_shapeout,
+                         long out_void,
+                         py::tuple py_arg,
+                         py::tuple py_argshape
                          ) {
-        
+
+        /*------------------------------------*/
+        /*         Cast input args            */
+        /*------------------------------------*/
+
+        std::vector< int > indsi_v(py_indsi.size());
+         for (auto i = 0; i < py_indsi.size(); i++)
+           indsi_v[i] = py::cast< int >(py_indsi[i]);
+         int *indsi = &indsi_v[0];
+         // std::cout << "indsi " << (long) indsi << std::endl;
+
+         std::vector< int > indsj_v(py_indsj.size());
+         for (auto i = 0; i < py_indsj.size(); i++)
+            indsj_v[i] = py::cast< int >(py_indsj[i]);
+         int *indsj = &indsj_v[0];
+            
+         std::vector< int > indsp_v(py_indsp.size());
+         for (auto i = 0; i < py_indsp.size(); i++)
+            indsp_v[i] = py::cast< int >(py_indsp[i]);
+         int *indsp = &indsp_v[0];
+
+         std::vector< int > dimsx_v(py_dimsx.size());
+         for (auto i = 0; i < py_dimsx.size(); i++)
+           dimsx_v[i] = py::cast< int >(py_dimsx[i]);
+         int *dimsx = &dimsx_v[0];
+
+
+         std::vector< int > dimsy_v(py_dimsy.size());
+         for (auto i = 0; i < py_dimsy.size(); i++)
+            dimsy_v[i] = py::cast< int >(py_dimsy[i]);
+         int* dimsy = &dimsy_v[0];
+
+         std::vector< int > dimsp_v(py_dimsp.size());
+         for (auto i = 0; i < py_dimsp.size(); i++)
+            dimsp_v[i] = py::cast< int >(py_dimsp[i]);
+         int *dimsp = &dimsp_v[0];
+
+          // Cast the ranges arrays
+          std::vector< int* > ranges_v(py_ranges.size());
+          for (int i = 0; i < py_ranges.size(); i++)
+            ranges_v[i] = (int*) py::cast< long >(py_ranges[i]);
+          int **ranges = (int**) ranges_v.data();
+
+         std::vector< int > shapeout_v(py_shapeout.size());
+         for (auto i = 0; i < py_shapeout.size(); i++)
+            shapeout_v[i] = py::cast< int >(py_shapeout[i]);
+         int *shapeout = &shapeout_v[0];
+         // std::cout << "shapeout : " << shapeout_v[0] << shapeout_v[1]  << shapeout_v[2] << std::endl;
+
+        TYPE *out = (TYPE*) out_void;
+        // std::cout << "out_ptr : " << (long) out << std::endl;
+
+        std::vector< TYPE* > arg_v(py_arg.size());
+          for (int i = 0; i < py_arg.size(); i++)
+            arg_v[i] = (TYPE*) py::cast< long >(py_arg[i]);
+        TYPE **arg = (TYPE**) arg_v.data();
+
+        std::vector< std::vector< int > > argshape_v(py_argshape.size());
+        std::vector< int* > argshape_ptr_v(py_argshape.size());
+        for (auto i = 0; i < py_argshape.size(); i++){
+            py::tuple tmp = py_argshape[i];
+            std::vector< int > tmp_v(tmp.size());
+            for (auto j =0; j < tmp.size(); j++)
+                tmp_v[j] = py::cast< int >(tmp[j]);
+            argshape_v[i] = tmp_v;
+             argshape_ptr_v[i] = argshape_v[i].data();
+        }
+
+        int **argshape = argshape_ptr_v.data();
+
+        //std::cout << nx << " " << ny << " " << dimsy[0] << " " << argshape[0][0] << " " << argshape[0][1]<< " " << argshape_ptr_v[1][1]<< std::endl;
+
         //clock_t start, end, start_, //end_;
         //start_ = start = clock();
         
         ////std::cout << "Entering launch_keops inner" << std::endl;
         
-            int **ranges = (int**) ranges_v.data();
-            TYPE **arg = (TYPE**) arg_v.data();
-            int **argshape = (int**) argshape_v.data();
-            TYPE *out = (TYPE*) out_void;
+            //int **ranges = (int**) ranges_v.data();
+            //TYPE **arg = (TYPE**) arg_v.data();
+            //int **argshape = (int**) argshape_v.data();
+            //TYPE *out = (TYPE*) out_void;
             
         ////end_ = clock();
         ////std::cout << "  time for converting std::vector : " << double(//end_ - start_) / CLOCKS_PER_SEC << std::endl;
         //start_ = clock();
-        
+
+        /*------------------------------------*/
+        /*      End cast input args           */
+        /*------------------------------------*/
+
             SetContext();
         
         ////end_ = clock();
@@ -380,7 +454,7 @@ class KeOps_module {
                 gridSize_x = nblocks;
         
                 CUDA_SAFE_CALL(cuModuleGetFunction(&kernel, module, "GpuConv1DOnDevice_ranges"));
-        
+                // std::cout << "GpuConv1DOnDevice_ranges " << nx << " " << gridSize_x ;
                 void *kernel_params[9];
                 kernel_params[0] = &nx;
                 kernel_params[1] = &ny;
@@ -400,7 +474,7 @@ class KeOps_module {
         
             } else {
                 // simple mode
-        
+
                 gridSize_x = nx / blockSize_x + (nx % blockSize_x == 0 ? 0 : 1);
         
                 CUDA_SAFE_CALL(cuModuleGetFunction(&kernel, module, "GpuConv1DOnDevice"));
@@ -410,7 +484,9 @@ class KeOps_module {
                 kernel_params[1] = &ny;
                 kernel_params[2] = &out_d;
                 kernel_params[3] = &arg_d;
-        
+
+                //std::cout << "GpuConv1DOnDevice " << nx << " " << gridSize_x ;//<< " " << gridSize_y << " " << gridSize_z << " " <<  blockSize_x << " " << blockSize_y << " " <<  blockSize_z << " " <<   blockSize_x * dimY * sizeof(TYPE)  << std::endl;
+
                 CUDA_SAFE_CALL(cuLaunchKernel(kernel,
                                               gridSize_x, gridSize_y, gridSize_z,        // grid dim
                                               blockSize_x, blockSize_y, blockSize_z,     // block dim
@@ -441,7 +517,7 @@ class KeOps_module {
         //end_ = end = clock();
         ////std::cout << "  time for last part : " << double(//end_ - start_) / CLOCKS_PER_SEC << std::endl;
         ////std::cout << "time for launch_keops inner : " << double(end - start) / CLOCKS_PER_SEC << std::endl;
-            
+
             return 0;
         }
 
@@ -454,135 +530,25 @@ template class KeOps_module<half2>;
 
 
 
+/////////////////////////////////////////////////////////////////////////////////
+//                    PyBind11 entry point                                     //
+/////////////////////////////////////////////////////////////////////////////////
 
 
+PYBIND11_MODULE(keops_nvrtc, m) {
+m.doc() = "pyKeOps: KeOps for pytorch through pybind11 (pytorch flavour).";
 
+m.def("Compile", &Compile, "Entry point to keops - Compile.");
 
-extern "C" int launch_keops_float(const char* target_file_name, int tagHostDevice, int dimY, int nx, int ny, 
-                                    int device_id, int tagI, int tagZero, int use_half, 
-                                    int tag1D2D, int dimred,
-                                    int cuda_block_size, int use_chunk_mode,
-                                    int *indsi, int *indsj, int *indsp, 
-                                    int dimout, 
-                                    int *dimsx, int *dimsy, int *dimsp, 
-                                    int **ranges, int *shapeout, float *out, int nargs, ...) {
-					
-        // reading arguments
-        va_list ap;
-        va_start(ap, nargs);
-        std::vector<void*> arg_v(nargs);
-        for (int i=0; i<nargs; i++)
-            arg_v[i] = va_arg(ap, float*);
-        std::vector<int*> argshape_v(nargs);
-        for (int i=0; i<nargs; i++)
-            argshape_v[i] = va_arg(ap, int*);
-        va_end(ap);
-				
-        std::vector<void*> ranges_v((void**)ranges, (void**)(ranges + 7));
-        
-        void *out_void = (void*)out;
+py::class_< KeOps_module< float > >(m, "KeOps_module_float")
+.def(py::init<int, int, const char *>())
+.def("__call__", &KeOps_module< float >::operator());
 
-        KeOps_module<float> Kmod(device_id, nargs, target_file_name);
-				
-        Kmod(tagHostDevice, dimY, nx, ny,
-             tagI, tagZero, use_half,
-             tag1D2D, dimred,
-             cuda_block_size, use_chunk_mode,
-             indsi, indsj, indsp,
-             dimout,
-             dimsx, dimsy, dimsp,
-             ranges_v,
-             shapeout, out_void,
-             arg_v,
-             argshape_v
-             );
-				
-        return 0;
+py::class_< KeOps_module< double > >(m, "KeOps_module_double")
+.def(py::init<int, int, const char *>())
+.def("__call__", &KeOps_module< double >::operator());
+
+py::class_< KeOps_module< half2 > >(m, "KeOps_module_half2")
+.def(py::init<int, int, const char *>())
+.def("__call__", &KeOps_module< half2 >::operator());
 }
-
-
-extern "C" int launch_keops_double(const char* target_file_name, int tagHostDevice, int dimY, int nx, int ny, 
-                                    int device_id, int tagI, int tagZero, int use_half, 
-                                    int tag1D2D, int dimred,
-                                    int cuda_block_size, int use_chunk_mode,
-                                    int *indsi, int *indsj, int *indsp, 
-                                    int dimout, 
-                                    int *dimsx, int *dimsy, int *dimsp, 
-                                    int **ranges, int *shapeout, double *out, int nargs, ...) {
-					
-        // reading arguments
-        va_list ap;
-        va_start(ap, nargs);
-        std::vector<void*> arg_v(nargs);
-        for (int i=0; i<nargs; i++)
-            arg_v[i] = va_arg(ap, double*);
-        std::vector<int*> argshape_v(nargs);
-        for (int i=0; i<nargs; i++)
-            argshape_v[i] = va_arg(ap, int*);
-        va_end(ap);
-				
-        std::vector<void*> ranges_v((void**)ranges, (void**)(ranges + 7));
-        
-        void *out_void = (void*)out;
-
-        KeOps_module<double> Kmod(device_id, nargs, target_file_name);
-				
-        Kmod(tagHostDevice, dimY, nx, ny,
-             tagI, tagZero, use_half,
-             tag1D2D, dimred,
-             cuda_block_size, use_chunk_mode,
-             indsi, indsj, indsp,
-             dimout,
-             dimsx, dimsy, dimsp,
-             ranges_v,
-             shapeout, out_void,
-             arg_v,
-             argshape_v
-             );
-				
-        return 0;
-}
-
-
-extern "C" int launch_keops_half2(const char* target_file_name, int tagHostDevice, int dimY, int nx, int ny, 
-                                    int device_id, int tagI, int tagZero, int use_half, 
-                                    int tag1D2D, int dimred,
-                                    int cuda_block_size, int use_chunk_mode,
-                                    int *indsi, int *indsj, int *indsp, 
-                                    int dimout, 
-                                    int *dimsx, int *dimsy, int *dimsp, 
-                                    int **ranges, int *shapeout, half2 *out, int nargs, ...) {
-					
-        // reading arguments
-        va_list ap;
-        va_start(ap, nargs);
-        std::vector<void*> arg_v(nargs);
-        for (int i=0; i<nargs; i++)
-            arg_v[i] = va_arg(ap, half2*);
-        std::vector<int*> argshape_v(nargs);
-        for (int i=0; i<nargs; i++)
-            argshape_v[i] = va_arg(ap, int*);
-        va_end(ap);
-				
-        std::vector<void*> ranges_v((void**)ranges, (void**)(ranges + 7));
-        
-        void *out_void = (void*)out;
-
-        KeOps_module<half2> Kmod(device_id, nargs, target_file_name);
-				
-        Kmod(tagHostDevice, dimY, nx, ny,
-             tagI, tagZero, use_half,
-             tag1D2D, dimred,
-             cuda_block_size, use_chunk_mode,
-             indsi, indsj, indsp,
-             dimout,
-             dimsx, dimsy, dimsp,
-             ranges_v,
-             shapeout, out_void, 
-             arg_v,
-             argshape_v
-             );
-				
-        return 0;
-}
-

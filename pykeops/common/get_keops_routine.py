@@ -53,7 +53,8 @@ class get_keops_routine_class:
             raise ValueError("not implemented yet")
             cppyy.load_library(self.dllname)
         else:
-            self.dll = cppyy.gbl.context["float"](self.low_level_code_file)
+            import keops_nvrtc
+            # self.dll = cppyy.gbl.context["float"](self.low_level_code_file)
 
         # now we switch indsi, indsj and dimsx, dimsy in case tagI=1.
         # This is to be consistent with the convention used in the old
@@ -63,13 +64,13 @@ class get_keops_routine_class:
         if self.tagI == 1:
             indsi, indsj = indsj, indsi
             dimsx, dimsy = dimsy, dimsx
-
-        self.indsi = array("i", (len(indsi),) + indsi)
-        self.indsj = array("i", (len(indsj),) + indsj)
-        self.indsp = array("i", (len(indsp),) + indsp)
-        self.dimsx = array("i", (len(dimsx),) + dimsx)
-        self.dimsy = array("i", (len(dimsy),) + dimsy)
-        self.dimsp = array("i", (len(dimsp),) + dimsp)
+        # TODO : check if this lines are used...
+        self.indsi = (len(indsi),) + indsi
+        self.indsj = (len(indsj),) + indsj
+        self.indsp = (len(indsp),) + indsp
+        self.dimsx = (len(dimsx),) + dimsx
+        self.dimsy = (len(dimsy),) + dimsy
+        self.dimsp = (len(dimsp),) + dimsp
 
     def __call__(
         self,
@@ -88,7 +89,7 @@ class get_keops_routine_class:
         nargs = len(args)
         if c_dtype == "float":
             launch_keops = self.dll.launch_keops
-        elif c_dtype == "double":
+        elif c_dtype == "double":            # TODO: Careful should depend on cdtype!! See Keops_io.py line 191
             launch_keops = self.dll.launch_keops_double
         elif c_dtype == "half2":
             launch_keops = self.dll.launch_keops_half
