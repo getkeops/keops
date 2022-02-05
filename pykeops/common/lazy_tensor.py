@@ -2251,7 +2251,6 @@ class GenericLazyTensor:
             res.formula2 = re.sub(
                 r"(Var|VarSymb)\((\d+),(\d+),i\)", r"\1(\2,\3,1)", res.formula2
             )
-            
         # we need also to make copies of references for all variables in the formula
         newvars = []
         for x in self.variables:
@@ -2267,7 +2266,6 @@ class GenericLazyTensor:
                     r"(Var|VarSymb)\({},(\d+),(\d+)\)".format(id(x)), r"\1({},\2,\3)".format(id(y)), res.formula2
                 )
         res.variables = tuple(newvars)
-
         return res
 
     @property
