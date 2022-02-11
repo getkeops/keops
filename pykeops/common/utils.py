@@ -94,3 +94,13 @@ def check_broadcasting(dims_1, dims_2):
             )
 
     return max_tuple(padded_dims_1, padded_dims_2)
+
+
+def pyKeOps_Message(message, **kwargs):
+    message = "[pyKeOps] " + message
+    print(message, **kwargs)
+
+
+def pyKeOps_Warning(message):
+    message = "[pyKeOps] Warning : " + message
+    print(message)

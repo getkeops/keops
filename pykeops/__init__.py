@@ -15,6 +15,11 @@ with open(
 default_device_id = 0  # default Gpu device number
 
 import pykeops.config
+import keops.config
+
+if keops.config.config.use_cuda:
+    from pykeops.common.keops_io import compile_jit_binary
+    compile_jit_binary()
 
 
 def clean_pykeops():

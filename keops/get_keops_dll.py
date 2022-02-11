@@ -42,8 +42,6 @@ It can be used as a Python function or as a standalone Python script (in which c
       python get_keops_dll.py CpuReduc "Sum_Reduction((Exp(Minus(Sum(Square((Var(0,3,0) / Var(1,3,1)))))) * Var(2,1,1)),0)" 0 0 0 "[]" 3 float float block_sum 0 0 0 0 0
 """
 import inspect
-import os
-import pickle
 import sys
 
 import keops.config.config
@@ -60,6 +58,7 @@ from keops.config.chunks import (
 from keops.formulas import Zero_Reduction, Sum_Reduction
 from keops.formulas.GetReduction import GetReduction
 from keops.formulas.variables.Zero import Zero
+from keops.utils.Cache import Cache
 from keops.utils.code_gen_utils import KeOps_Error
 
 # Get every classes in mapreduce
@@ -79,9 +78,7 @@ def get_keops_dll_impl(
     use_chunk_mode = 0
     if "Gpu" in map_reduce_id:
         if not keops.config.config.use_cuda:
-            KeOps_Error(
-                "You selected a Gpu reduce scheme but KeOps is in Cpu only mode."
-            )
+            KeOps_Error("You selected a Gpu reduce scheme but KeOps is in Cpu only mode.")
         keops.config.config.use_cuda = 1
         keops.config.config.init_cudalibs()
         set_enable_chunk(enable_chunks)
@@ -135,6 +132,8 @@ def get_keops_dll_impl(
         res["dimsp"],
     )
 
+get_keops_dll = Cache(get_keops_dll_impl, use_cache_file=False, save_folder=keops.config.config.build_path)
+
 
 if __name__ == "__main__":
     argv = sys.argv[1:]
@@ -176,36 +175,3 @@ if __name__ == "__main__":
         print(item)
 
 
-class library:
-    def __init__(self, fun, use_cache_file=False, save_folder="."):
-        self.fun = fun
-        self.library = {}
-        self.use_cache_file = use_cache_file
-        if use_cache_file:
-            self.cache_file = os.path.join(save_folder, fun.__name__ + "_cache.pkl")
-            if os.path.isfile(self.cache_file):
-                f = open(self.cache_file, "rb")
-                self.library = pickle.load(f)
-                f.close()
-            import atexit
-
-            atexit.register(self.save_cache)
-
-    def __call__(self, *args):
-        str_id = "".join(list(str(arg) for arg in args))
-        if not str_id in self.library:
-            self.library[str_id] = self.fun(*args)
-        return self.library[str_id]
-
-    def reset(self):
-        self.library = {}
-
-    def save_cache(self):
-        f = open(self.cache_file, "wb")
-        pickle.dump(self.library, f)
-        f.close()
-
-
-get_keops_dll = library(
-    get_keops_dll_impl, use_cache_file=False, save_folder=keops.config.config.get_build_folder()
-)

@@ -14,7 +14,7 @@ use_OpenMP = True  # use OpenMP if possible
 # System Path
 base_dir_path = os.path.abspath(join(os.path.dirname(os.path.realpath(__file__)), ".."))
 template_path = join(base_dir_path, "templates")
-bindings_source_dir = join(base_dir_path, "include")
+bindings_source_dir = join(base_dir_path)
 keops_cache_folder = join(os.path.expanduser("~"), ".cache", "keops")
 os.makedirs(keops_cache_folder, exist_ok=True)
 default_build_path = join(keops_cache_folder, "build")
@@ -22,6 +22,7 @@ default_build_path = join(keops_cache_folder, "build")
 
 # build path setter/getter
 
+build_path = ""
 
 def set_build_folder(path=None, read_save_file=False):
     save_file = join(keops_cache_folder, "build_folder_location.txt")
@@ -37,16 +38,10 @@ def set_build_folder(path=None, read_save_file=False):
     os.makedirs(path, exist_ok=True)
     f = open(save_file, "w")
     f.write(path)
-    global jit_binary
-    jit_binary = join(build_path, "keops_nvrtc" + sysconfig.get_config_var('EXT_SUFFIX'))
-
-
-def get_build_folder():
-    return build_path
-
 
 set_build_folder(read_save_file=True)
 
+jit_binary = join(build_path, "keops_nvrtc.so")
 
 # Compiler
 cxx_compiler = "g++"

@@ -1,19 +1,22 @@
-from pykeops.common.parse_type import parse_dtype_acc
-from ctypes import c_int, c_void_p
-from functools import reduce
+import os
+import types
 from array import array
-import time
-from keops.get_keops_dll import get_keops_dll
+from ctypes import c_void_p
+from functools import reduce
+
 import cppyy
 import numpy as np
-from keops.config.config import get_build_folder
-import os
-import pickle
-import types
+
+import keops.config.config
+import pykeops
+from keops.binders.nvrtc.Gpu_link_compile import Gpu_link_compile
+from keops.get_keops_dll import get_keops_dll
+from keops.utils.Cache import Cache_partial
+from pykeops.common.parse_type import parse_dtype_acc
+from pykeops.common.utils import pyKeOps_Message
 
 
 class LoadKeOps_class:
-
     null_range = np.array([-1], dtype="int32")
     empty_ranges_new = tuple([null_range.__array_interface__["data"][0]] * 7)
     empty_ranges = [c_void_p(null_range.__array_interface__["data"][0])] * 7
@@ -28,18 +31,18 @@ class LoadKeOps_class:
         self.init_phase2()
 
     def init(
-        self,
-        tagCPUGPU,
-        tag1D2D,
-        tagHostDevice,
-        use_ranges,
-        device_id_request,
-        formula,
-        aliases,
-        nargs,
-        dtype,
-        lang,
-        optional_flags,
+            self,
+            tagCPUGPU,
+            tag1D2D,
+            tagHostDevice,
+            use_ranges,
+            device_id_request,
+            formula,
+            aliases,
+            nargs,
+            dtype,
+            lang,
+            optional_flags,
     ):
 
         aliases_new = []
@@ -156,9 +159,9 @@ class LoadKeOps_class:
         params.tagCPUGPU = tagCPUGPU
         params.device_id_request = device_id_request
         params.nargs = nargs
-        
+
         params.reduction_op = params.red_formula_string.split("(")[0]
-        params.axis = 1-params.tagI
+        params.axis = 1 - params.tagI
 
         self.params = params
 
@@ -174,9 +177,14 @@ class LoadKeOps_class:
             self.tools = numpytools
 
         if params.tagCPUGPU == 0:
+            # TODO: cpp implementation is broken for now
+            import importlib
+            mylib = importlib.import_module(params.dllname)
+            self.launch_keops_cpu = mylib.launch_keops_fun_name
+
             cppyy.load_library(params.dllname)
             launch_keops_fun_name = (
-                "launch_keops_cpu_" + os.path.basename(params.dllname).split(".")[0]
+                    "launch_keops_cpu_" + os.path.basename(params.dllname).split(".")[0]
             )
             cppyy.cppdef(
                 f"""
@@ -189,14 +197,16 @@ class LoadKeOps_class:
             )
             self.launch_keops_cpu = getattr(cppyy.gbl, launch_keops_fun_name)
         else:
-            import keops_nvrtc
+            import keops_io_nvrtc
             if params.c_dtype == "float":
-                self.launch_keops = keops_nvrtc.KeOps_module_float(params.device_id_request, params.nargs, params.low_level_code_file)
+                self.launch_keops = keops_io_nvrtc.KeOps_module_float(params.device_id_request, params.nargs,
+                                                                   params.low_level_code_file)
             elif params.c_dtype == "double":
-                self.launch_keops = keops_nvrtc.KeOps_module_double(params.device_id_request, params.nargs, params.low_level_code_file)
+                self.launch_keops = keops_io_nvrtc.KeOps_module_double(params.device_id_request, params.nargs,
+                                                                    params.low_level_code_file)
             elif params.c_dtype == "half2":
-                self.launch_keops = keops_nvrtc.KeOps_module_half2(params.device_id_request, params.nargs, params.low_level_code_file)
-
+                self.launch_keops = keops_io_nvrtc.KeOps_module_half2(params.device_id_request, params.nargs,
+                                                                   params.low_level_code_file)
 
     def genred(
         self, device_args, ranges, nx, ny, nbatchdims, out, *args,
@@ -306,49 +316,21 @@ class LoadKeOps_class:
         return self
 
 
-class library:
-    def __init__(self, cls, use_cache_file=False, save_folder="."):
-        self.cls = cls
-        self.library = {}
-        self.use_cache_file = use_cache_file
-        if self.use_cache_file:
-            self.cache_file = os.path.join(save_folder, cls.__name__ + "_cache.pkl")
-            if os.path.isfile(self.cache_file):
-                f = open(self.cache_file, "rb")
-                self.library_params = pickle.load(f)
-                f.close()
-            else:
-                self.library_params = {}
-            import atexit
-
-            atexit.register(self.save_cache)
-
-    def __call__(self, *args):
-        str_id = "".join(list(str(arg) for arg in args))
-        if not str_id in self.library:
-            if self.use_cache_file:
-                if str_id in self.library_params:
-                    params = self.library_params[str_id]
-                    self.library[str_id] = self.cls(params, fast_init=True)
-                else:
-                    obj = self.cls(*args)
-                    self.library_params[str_id] = obj.params
-                    self.library[str_id] = obj
-            else:
-                self.library[str_id] = self.cls(*args)
-        return self.library[str_id]
-
-    def reset(self):
-        self.library = {}
-        if self.use_cache_file:
-            self.library_params = {}
-
-    def save_cache(self):
-        f = open(self.cache_file, "wb")
-        pickle.dump(self.library_params, f)
-        f.close()
+def compile_jit_binary():
+    """
+    This function compile the main .so entry point to keops_nvrt binder...
+    """
+    compile_command = Gpu_link_compile.get_compile_command(
+        extra_flags="$(python3 -m pybind11 --includes)",
+        sourcename=os.path.join(os.path.dirname(os.path.realpath(__file__)), "keops_io_nvrtc.cpp"),
+        dllname=os.path.join(keops.config.config.build_path, pykeops.config.jit_binary_name)
+    )
+    if compile_command:
+        pyKeOps_Message("Compiling nvrtc binder for python ... ", flush=True, end="")
+        os.system(compile_command)
+        print("OK", flush=True)
 
 
-LoadKeOps = library(
-    LoadKeOps_class, use_cache_file=False, save_folder=get_build_folder()
+LoadKeOps = Cache_partial(
+    LoadKeOps_class, use_cache_file=True, save_folder=keops.config.config.build_path
 )

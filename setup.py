@@ -72,10 +72,13 @@ setup(
         "keops.utils",
     ],
     package_data={
-        "pykeops": ["readme.md", "licence.txt", "keops_version",],
+        "pykeops": ["readme.md",
+                    "licence.txt",
+                    "keops_version",
+                    "common/keops_io_nvrtc.cpp"],
         "keops": [
-            "binders/nvrtc/keops_nvrtc.h",
             "binders/nvrtc/keops_nvrtc.cpp",
+            "binders/nvrtc/Compile.cpp",
             "include/CudaSizes.h",
             "include/Ranges_no_template.h",
             "include/ranges_utils.h",
@@ -85,7 +88,7 @@ setup(
             "include/utils_pe.h",
         ],
     },
-    install_requires=["numpy", "cppyy"],
+    install_requires=["numpy", "pybind11"],
     extras_require={
         "colab": ["torch"],
         "full": [
