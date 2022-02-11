@@ -6,7 +6,6 @@ import numpy as np
 
 import keops.config.config
 import pykeops
-from keops.binders.nvrtc.Gpu_link_compile import Gpu_link_compile
 from keops.get_keops_dll import get_keops_dll
 from keops.utils.Cache import Cache_partial
 from pykeops.common.parse_type import parse_dtype_acc
@@ -369,6 +368,7 @@ def compile_jit_binary():
     """
     This function compile the main .so entry point to keops_nvrt binder...
     """
+    from keops.binders.nvrtc.Gpu_link_compile import Gpu_link_compile
     compile_command = Gpu_link_compile.get_compile_command(
         extra_flags=pykeops.config.python_includes,
         sourcename=os.path.join(os.path.dirname(os.path.realpath(__file__)), "keops_io_nvrtc.cpp"),
