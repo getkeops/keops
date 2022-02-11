@@ -187,7 +187,7 @@ class LoadKeOps_class:
 namespace py = pybind11;
 
 template < typename TYPE >
-int launch_keops_cpu(int nx, int ny, int tagI, int use_half,
+int launch_keops_{tag}_cpu(int nx, int ny, int tagI, int use_half,
                      py::tuple py_ranges,
                      long py_out, int nargs,
                      py::tuple py_arg,
@@ -229,10 +229,10 @@ int launch_keops_cpu(int nx, int ny, int tagI, int use_half,
 
 }}
 
-PYBIND11_MODULE({"keops_io_cpp_" + tag}, m) {{
+PYBIND11_MODULE(keops_io_cpp_{tag}, m) {{
     m.doc() = "pyKeOps: KeOps for pytorch through pybind11 (pytorch flavour).";
-    m.def("launch_keops_cpu_float", &launch_keops_cpu < float >, "Entry point to keops - float .");
-    m.def("launch_keops_cpu_double", &launch_keops_cpu < double >, "Entry point to keops - float .");
+    m.def("launch_keops_cpu_float", &launch_keops_{tag}_cpu < float >, "Entry point to keops - float .");
+    m.def("launch_keops_cpu_double", &launch_keops_{tag}_cpu < double >, "Entry point to keops - float .");
 }}                     
             """)
             f.close()
