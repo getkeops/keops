@@ -797,19 +797,20 @@ def varseq_to_array(vars, vars_ptr_name):
     return string
 
 
-def clean_keops(keep_jit_binary=False):
-    from keops.config.config import use_cuda
-    from keops.config.config import get_build_folder
-
-    build_path = get_build_folder()
-    if use_cuda and keep_jit_binary:
+def clean_keops(recompile_jit_binary=True):
+    import keops.config.config
+    build_path = keops.config.config.build_path
+    use_cuda = keops.config.config.use_cuda
+    if use_cuda:
         from keops.config.config import jit_binary
     else:
         jit_binary = None
     for f in os.scandir(build_path):
-        if f.path != jit_binary:
+        if recompile_jit_binary or f.path != jit_binary:
             os.remove(f.path)
     KeOps_Message(f"{build_path} has been cleaned.")
     from keops.get_keops_dll import get_keops_dll
-
     get_keops_dll.reset()
+    if use_cuda and recompile_jit_binary:
+        from keops.binders.nvrtc.Gpu_link_compile import Gpu_link_compile
+        Gpu_link_compile.compile_jit_compile_dll()
