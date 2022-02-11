@@ -1,7 +1,7 @@
-import os, time
+import os
 
+import keops.config.config
 from keops.utils.code_gen_utils import get_hash_name
-from keops.config.config import get_build_folder
 from keops.utils.misc_utils import KeOps_Error, KeOps_Message
 
 
@@ -31,12 +31,12 @@ class LinkCompile:
 
         # info_file is the name of the file that will contain some meta-information required by the bindings, e.g. 7b9a611f7e.nfo
         self.info_file = os.path.join(
-            get_build_folder(), self.gencode_filename + ".nfo"
+            keops.config.config.build_path, self.gencode_filename + ".nfo"
         )
 
         # gencode_file is the name of the source file to be created and then compiled, e.g. 7b9a611f7e.cpp or 7b9a611f7e.cu
         self.gencode_file = os.path.join(
-            get_build_folder(), self.gencode_filename + "." + self.source_code_extension
+            keops.config.config.build_path, self.gencode_filename + "." + self.source_code_extension
         )
 
     def save_info(self):
@@ -85,7 +85,7 @@ class LinkCompile:
         # main method of the class : it compiles - if needed - the code and returns the name of the dll to be run for
         # performing the reduction, e.g. 7b9a611f7e.so, or in the case of JIT compilation, the name of the main KeOps dll,
         # and the name of the assembly code file.
-        if not os.path.exists(self.file_to_check):
+        if not os.path.exists(self.file_to_check): # TODO : used only in cpu mode, should be removed
             KeOps_Message(
                 "Compiling formula " + self.red_formula.__str__() + " ... ",
                 flush=True,
