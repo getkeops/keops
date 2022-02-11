@@ -72,19 +72,19 @@ class Gpu_link_compile(LinkCompile):
     def get_compile_command(sourcename=jit_source_file, dllname=jit_binary, extra_flags=""):
         # This is about the main KeOps binary (dll) that will be used to JIT compile all formulas.
         # If the dll is not present, it compiles it from source, except if check_compile is False.
-        if not os.path.exists(dllname):
-            target_tag = (
-                "CUBIN" if Gpu_link_compile.target_prefix == "cubin_" else "PTX"
-            )
-            nvrtcGetTARGET = "nvrtcGet" + target_tag
-            nvrtcGetTARGETSize = nvrtcGetTARGET + "Size"
-            arch_tag = (
-                '\\"sm\\"'
-                if Gpu_link_compile.target_prefix == "cubin_"
-                else '\\"compute\\"'
-            )
-            target_type_define = f"-DnvrtcGetTARGET={nvrtcGetTARGET} -DnvrtcGetTARGETSize={nvrtcGetTARGETSize} -DARCHTAG={arch_tag}"
-            return f"{cxx_compiler} {nvrtc_flags} {extra_flags} {target_type_define} {nvrtc_include} {Gpu_link_compile.gpu_props_compile_flags} {sourcename} -o {dllname}"
+
+        target_tag = (
+            "CUBIN" if Gpu_link_compile.target_prefix == "cubin_" else "PTX"
+        )
+        nvrtcGetTARGET = "nvrtcGet" + target_tag
+        nvrtcGetTARGETSize = nvrtcGetTARGET + "Size"
+        arch_tag = (
+            '\\"sm\\"'
+            if Gpu_link_compile.target_prefix == "cubin_"
+            else '\\"compute\\"'
+        )
+        target_type_define = f"-DnvrtcGetTARGET={nvrtcGetTARGET} -DnvrtcGetTARGETSize={nvrtcGetTARGETSize} -DARCHTAG={arch_tag}"
+        return f"{cxx_compiler} {nvrtc_flags} {extra_flags} {target_type_define} {nvrtc_include} {Gpu_link_compile.gpu_props_compile_flags} {sourcename} -o {dllname}"
 
     @staticmethod
     def compile_jit_binary():
@@ -94,7 +94,7 @@ class Gpu_link_compile(LinkCompile):
         print("OK", flush=True)
 
     @staticmethod
-    def compile_ptx_binary():
+    def compile_jit_compile_dll():
         KeOps_Message("Compiling cuda jit compiler engine ... ", flush=True, end="")
         os.system(Gpu_link_compile.get_compile_command(
             sourcename=jit_compile_src,
