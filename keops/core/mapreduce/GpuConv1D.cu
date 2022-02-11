@@ -483,8 +483,12 @@ struct GpuConv1D_FromHost {
         static const int USE_CHUNK_MODE = ENABLECHUNK && ( FUN::F::template CHUNKED_FORMULAS<DIMCHUNK>::SIZE == 1 );
     #endif
     
-    static const int DIMY_SHARED = Get_DIMY_SHARED<FUN,USE_CHUNK_MODE>::Value;
-
+		#if USE_FINAL_CHUNKS==1
+				static const int DIMY_SHARED = Get_DIMY_SHARED<FUN_INTERNAL,USE_CHUNK_MODE>::Value;
+		#else
+				static const int DIMY_SHARED = Get_DIMY_SHARED<FUN,USE_CHUNK_MODE>::Value;
+		#endif
+				
     static const int BLOCKSIZE_CHUNKS = ::std::min(CUDA_BLOCK_SIZE,
                              ::std::min(1024,
                                         (int) (49152 / ::std::max(1,
@@ -586,7 +590,11 @@ struct GpuConv1D_FromDevice {
         static const int USE_CHUNK_MODE = ENABLECHUNK && ( FUN::F::template CHUNKED_FORMULAS<DIMCHUNK>::SIZE == 1 );
     #endif
     
-    static const int DIMY_SHARED = Get_DIMY_SHARED<FUN,USE_CHUNK_MODE>::Value;
+#if USE_FINAL_CHUNKS==1
+		static const int DIMY_SHARED = Get_DIMY_SHARED<FUN_INTERNAL,USE_CHUNK_MODE>::Value;
+#else
+		static const int DIMY_SHARED = Get_DIMY_SHARED<FUN,USE_CHUNK_MODE>::Value;
+#endif
 
     static const int BLOCKSIZE_CHUNKS = ::std::min(CUDA_BLOCK_SIZE,
                              ::std::min(1024,

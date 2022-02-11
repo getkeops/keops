@@ -84,7 +84,7 @@ struct Get_DIMY_SHARED<FUN,1> {
 
 template < class FUN >
 struct Get_DIMY_SHARED<FUN,2> {
-    static const int Value = DIMFINALCHUNK;
+    static const int Value = std::max(Chunk_Mode_Constants<FUN>::DIMY, DIMFINALCHUNK);
 };
 
 }
