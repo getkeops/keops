@@ -66,7 +66,13 @@ if use_OpenMP:
     else:
         cpp_flags += " -fopenmp -fno-fat-lto-objects"
 
+
+if platform.system() == "Darwin":
+    cpp_flags += " -undefined dynamic_lookup"
+
 cpp_flags += " -I" + bindings_source_dir
+
+
 
 
 from keops.utils.gpu_utils import get_gpu_props
