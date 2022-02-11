@@ -22,12 +22,14 @@ if keops.config.config.use_cuda:
     if not os.path.exists(pykeops.config.jit_binary_name):
         compile_jit_binary()
 
-
-def clean_pykeops():
+def clean_pykeops(recompile_jit_binaries=True):
     import keops
-
-    keops.clean_keops()
+    keops.clean_keops(recompile_jit_binary=recompile_jit_binaries)
     pykeops.common.keops_io.LoadKeOps.reset()
+    if recompile_jit_binaries and keops.config.config.use_cuda:
+        from pykeops.common.keops_io import compile_jit_binary
+        compile_jit_binary()
+
 
 
 if pykeops.config.numpy_found:

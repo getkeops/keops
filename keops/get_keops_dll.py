@@ -80,7 +80,6 @@ def get_keops_dll_impl(
         if not keops.config.config.use_cuda:
             KeOps_Error("You selected a Gpu reduce scheme but KeOps is in Cpu only mode.")
         keops.config.config.use_cuda = 1
-        keops.config.config.init_cudalibs()
         set_enable_chunk(enable_chunks)
         set_enable_finalchunk(enable_finalchunks)
         set_mult_var_highdim(mul_var_highdim)
