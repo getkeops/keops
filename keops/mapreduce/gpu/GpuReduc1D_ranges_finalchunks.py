@@ -122,7 +122,6 @@ class GpuReduc1D_ranges_finalchunks(MapReduce, Gpu_link_compile):
             self.red_formula.formula.children[0], self.red_formula.tagI
         )
         formula = fun_internal.formula
-        blocksize_chunks = self.blocksize_chunks
         varfinal = self.red_formula.formula.children[1]
         nchunks = 1 + (varfinal.dim - 1) // dimfinalchunk
         dimlastfinalchunk = varfinal.dim - (nchunks - 1) * dimfinalchunk
@@ -143,7 +142,7 @@ class GpuReduc1D_ranges_finalchunks(MapReduce, Gpu_link_compile):
         sum_scheme = self.sum_scheme
 
         self.dimy = max(dimfinalchunk, dimy)
-        self.blocksize_chunks = min(
+        blocksize_chunks = min(
             cuda_block_size, 1024, 49152 // max(1, self.dimy * sizeof(self.dtype))
         )
 
