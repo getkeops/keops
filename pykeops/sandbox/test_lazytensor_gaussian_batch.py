@@ -26,12 +26,7 @@ def fun(x, y, b, backend):
         raise ValueError("wrong backend")
     Dxy = ((x - y) ** 2).sum(dim=4)
     Kxy = (-Dxy).exp()
-    if backend == "keops":
-        out = LazyTensor.__matmul__(
-            Kxy, b, optional_flags=["-DENABLE_FINAL_CHUNKS=1", "-DDIMFINALCHUNK=64"]
-        )
-    else:
-        out = Kxy @ b
+    out = Kxy @ b
     if device_id != "cpu":
         torch.cuda.synchronize()
     # print("out:",out.flatten()[:10])
