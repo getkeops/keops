@@ -78,10 +78,6 @@ class GpuReduc1D_finalchunks(MapReduce, Gpu_link_compile):
     def __init__(self, *args):
         MapReduce.__init__(self, *args)
         Gpu_link_compile.__init__(self)
-        self.dimy = dimfinalchunk
-        self.blocksize_chunks = min(
-            cuda_block_size, 1024, 49152 // max(1, self.dimy * sizeof(self.dtype))
-        )
 
     def get_code(self):
 
@@ -103,7 +99,9 @@ class GpuReduc1D_finalchunks(MapReduce, Gpu_link_compile):
             self.red_formula.formula.children[0], self.red_formula.tagI
         )
         formula = fun_internal.formula
-        blocksize_chunks = self.blocksize_chunks
+        
+
+        
         varfinal = self.red_formula.formula.children[1]
         nchunks = 1 + (varfinal.dim - 1) // dimfinalchunk
         dimlastfinalchunk = varfinal.dim - (nchunks - 1) * dimfinalchunk
@@ -122,6 +120,12 @@ class GpuReduc1D_finalchunks(MapReduce, Gpu_link_compile):
         if dimfout != 1:
             KeOps_Error("dimfout should be 1")
         sum_scheme = self.sum_scheme
+
+        self.dimy = max(dimfinalchunk, dimy)
+        blocksize_chunks = min(
+            cuda_block_size, 1024, 49152 // max(1, self.dimy * sizeof(self.dtype))
+        )
+
         if not isinstance(sum_scheme, block_sum):
             KeOps_Error("only block_sum available")
         param_loc = c_array(dtype, dimp, "param_loc")
@@ -200,10 +204,9 @@ class GpuReduc1D_finalchunks(MapReduce, Gpu_link_compile):
                           {acc.declare()}
 
                           for (int jstart = 0, tile = 0; jstart < ny; jstart += blockDim.x, tile++) {{
-//printf("jstart=%d, blockDim.x=%d\\n", jstart, blockDim.x);
+
                               // get the current column
                               int j = tile * blockDim.x + threadIdx.x;
-
                               if (j < ny) {{ // we load yj from device global memory only if j<ny
                                   {load_vars(dimsy, indsj, yjloc, args, row_index=j)} // load yj variables from global memory to shared memory
                               }}
@@ -213,7 +216,6 @@ class GpuReduc1D_finalchunks(MapReduce, Gpu_link_compile):
                                   {dtype} * yjrel = yj; // Loop on the columns of the current block.
                                   for (int jrel = 0; (jrel < {blocksize_chunks}) && (jrel < ny - jstart); jrel++, yjrel += {dimy}) {{
                                       {formula(foutjrel, table)} // Call the function, which outputs results in fout
-//printf("nx=%d, ny=%d, j=%d, {blocksize_chunks}=%d, jrel=%d, {foutjrel.id}[0]=%f\\n", nx, ny, j, {blocksize_chunks}, jrel, {foutjrel.id}[0]);
                                   }}
                               }}
         

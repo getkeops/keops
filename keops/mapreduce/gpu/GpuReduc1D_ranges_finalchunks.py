@@ -100,10 +100,6 @@ class GpuReduc1D_ranges_finalchunks(MapReduce, Gpu_link_compile):
     def __init__(self, *args):
         MapReduce.__init__(self, *args)
         Gpu_link_compile.__init__(self)
-        self.dimy = dimfinalchunk
-        self.blocksize_chunks = min(
-            cuda_block_size, 1024, 49152 // max(1, self.dimy * sizeof(self.dtype))
-        )
 
     def get_code(self):
 
@@ -145,6 +141,12 @@ class GpuReduc1D_ranges_finalchunks(MapReduce, Gpu_link_compile):
         if dimfout != 1:
             KeOps_Error("dimfout should be 1")
         sum_scheme = self.sum_scheme
+
+        self.dimy = max(dimfinalchunk, dimy)
+        self.blocksize_chunks = min(
+            cuda_block_size, 1024, 49152 // max(1, self.dimy * sizeof(self.dtype))
+        )
+
         if not isinstance(sum_scheme, block_sum):
             KeOps_Error("only block_sum available")
         param_loc = c_array(dtype, dimp, "param_loc")
