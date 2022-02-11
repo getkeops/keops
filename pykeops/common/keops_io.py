@@ -323,12 +323,11 @@ def compile_jit_binary():
     compile_command = Gpu_link_compile.get_compile_command(
         extra_flags="$(python3 -m pybind11 --includes)",
         sourcename=os.path.join(os.path.dirname(os.path.realpath(__file__)), "keops_io_nvrtc.cpp"),
-        dllname=os.path.join(keops.config.config.build_path, pykeops.config.jit_binary_name)
+        dllname=pykeops.config.jit_binary_name
     )
-    if compile_command:
-        pyKeOps_Message("Compiling nvrtc binder for python ... ", flush=True, end="")
-        os.system(compile_command)
-        print("OK", flush=True)
+    pyKeOps_Message("Compiling nvrtc binder for python ... ", flush=True, end="")
+    os.system(compile_command)
+    print("OK", flush=True)
 
 
 LoadKeOps = Cache_partial(

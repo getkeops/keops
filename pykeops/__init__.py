@@ -19,7 +19,8 @@ import keops.config
 
 if keops.config.config.use_cuda:
     from pykeops.common.keops_io import compile_jit_binary
-    compile_jit_binary()
+    if not os.path.exists(pykeops.config.jit_binary_name):
+        compile_jit_binary()
 
 
 def clean_pykeops():
