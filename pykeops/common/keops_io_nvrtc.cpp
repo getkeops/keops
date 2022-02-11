@@ -13,19 +13,19 @@ public:
 using KeOps_module < TYPE >::KeOps_module;
 
 
- int operator () (int tagHostDevice, int dimY, int nx, int ny,
-                         int tagI, int tagZero, int use_half,
-                         int tag1D2D, int dimred,
-                         int cuda_block_size, int use_chunk_mode,
-                         py::tuple py_indsi, py::tuple py_indsj, py::tuple py_indsp,
-                         int dimout,
-                         py::tuple py_dimsx, py::tuple py_dimsy, py::tuple py_dimsp,
-                         py::tuple py_ranges,
-                         py::tuple py_shapeout,
-                         long out_void,
-                         py::tuple py_arg,
-                         py::tuple py_argshape
-                         ) {
+int operator () (int tagHostDevice, int dimY, int nx, int ny,
+                 int tagI, int tagZero, int use_half,
+                 int tag1D2D, int dimred,
+                 int cuda_block_size, int use_chunk_mode,
+                 py::tuple py_indsi, py::tuple py_indsj, py::tuple py_indsp,
+                 int dimout,
+                 py::tuple py_dimsx, py::tuple py_dimsy, py::tuple py_dimsp,
+                 py::tuple py_ranges,
+                 py::tuple py_shapeout,
+                 long out_void,
+                 py::tuple py_arg,
+                 py::tuple py_argshape
+                 ) {
 
         /*------------------------------------*/
         /*         Cast input args            */

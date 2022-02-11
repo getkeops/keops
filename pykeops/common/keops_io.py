@@ -1,10 +1,7 @@
 import os
 import types
-from array import array
-from ctypes import c_void_p
 from functools import reduce
 
-import cppyy
 import numpy as np
 
 import keops.config.config
@@ -19,7 +16,6 @@ from pykeops.common.utils import pyKeOps_Message
 class LoadKeOps_class:
     null_range = np.array([-1], dtype="int32")
     empty_ranges_new = tuple([null_range.__array_interface__["data"][0]] * 7)
-    empty_ranges = [c_void_p(null_range.__array_interface__["data"][0])] * 7
 
     def __init__(self, *args, fast_init=False):
         if fast_init:
@@ -177,25 +173,81 @@ class LoadKeOps_class:
             self.tools = numpytools
 
         if params.tagCPUGPU == 0:
-            # TODO: cpp implementation is broken for now
-            import importlib
-            mylib = importlib.import_module(params.dllname)
-            self.launch_keops_cpu = mylib.launch_keops_fun_name
+            tag = os.path.basename(params.dllname).split(".")[0]
+            launch_keops_fun_name = ("launch_keops_cpu_" + tag)
+            srcname = os.path.join(keops.config.config.build_path, "keops_io_cpp_" + tag + ".cpp")
+            import sysconfig
+            dllname = os.path.join(keops.config.config.build_path, "keops_io_cpp_" + tag + sysconfig.get_config_var('EXT_SUFFIX'))
 
-            cppyy.load_library(params.dllname)
-            launch_keops_fun_name = (
-                    "launch_keops_cpu_" + os.path.basename(params.dllname).split(".")[0]
-            )
-            cppyy.cppdef(
+            f = open(srcname, "w")
+            f.write(
                 f"""
-                           int {launch_keops_fun_name}(int nx, int ny, int tagI, int use_half,
-                                                     const std::vector<void*>& ranges_v,
-                                                     void *out_void, int nargs, 
-                                                     const std::vector<void*>& arg_v,
-                                                     const std::vector<int*>& argshape_v);                         
-            """
-            )
-            self.launch_keops_cpu = getattr(cppyy.gbl, launch_keops_fun_name)
+#include "{tag}.cpp"
+
+#include <pybind11/pybind11.h>
+namespace py = pybind11;
+
+template < typename TYPE >
+int launch_keops_cpu(int nx, int ny, int tagI, int use_half,
+                     py::tuple py_ranges,
+                     long py_out, int nargs,
+                     py::tuple py_arg,
+                     py::tuple py_argshape){{
+
+          // Cast the ranges arrays
+          std::vector< void* > ranges_v(py_ranges.size());
+          for (int i = 0; i < py_ranges.size(); i++)
+            ranges_v[i] = (void*) py::cast< long >(py_ranges[i]);
+          //int **ranges = (int**) ranges_v.data();
+
+        void *out_void = (void*) py_out;
+        // std::cout << "out_ptr : " << (long) out << std::endl;
+
+        std::vector< void* > arg_v(py_arg.size());
+          for (int i = 0; i < py_arg.size(); i++)
+            arg_v[i] = (void*) py::cast< long >(py_arg[i]);
+        //TYPE **arg = (TYPE**) arg_v.data();
+
+        std::vector< std::vector< int > > argshape_v(py_argshape.size());
+        std::vector< int* > argshape_ptr_v(py_argshape.size());
+        for (auto i = 0; i < py_argshape.size(); i++){{
+            py::tuple tmp = py_argshape[i];
+            std::vector< int > tmp_v(tmp.size());
+            for (auto j =0; j < tmp.size(); j++)
+                tmp_v[j] = py::cast< int >(tmp[j]);
+            argshape_v[i] = tmp_v;
+             argshape_ptr_v[i] = argshape_v[i].data();
+        }}
+
+        int **argshape = argshape_ptr_v.data();
+        
+        return {launch_keops_fun_name}(nx, ny, tagI, use_half,
+                     ranges_v,
+                     out_void, nargs,
+                     arg_v,
+                     argshape_ptr_v);
+
+
+}}
+
+PYBIND11_MODULE({"keops_io_cpp_" + tag}, m) {{
+    m.doc() = "pyKeOps: KeOps for pytorch through pybind11 (pytorch flavour).";
+    m.def("launch_keops_cpu_float", &launch_keops_cpu < float >, "Entry point to keops - float .");
+    m.def("launch_keops_cpu_double", &launch_keops_cpu < double >, "Entry point to keops - float .");
+}}                     
+            """)
+            f.close()
+
+            compile_command = f"{keops.config.config.cxx_compiler} {keops.config.config.cpp_flags} {pykeops.config.python_includes} {srcname} -o {dllname}"
+            os.system(compile_command)
+
+            import importlib
+            mylib = importlib.import_module("keops_io_cpp_" + tag)
+            if params.c_dtype == "float":
+                self.launch_keops_cpu = mylib.launch_keops_cpu_float
+            if params.c_dtype == "double":
+                self.launch_keops_cpu = mylib.launch_keops_cpu_double
+
         else:
             import keops_io_nvrtc
             if params.c_dtype == "float":
@@ -229,14 +281,11 @@ class LoadKeOps_class:
                 [r.shape[0] for r in ranges], dtype="int32", device="cpu"
             )
             ranges = [*ranges, ranges_shapes]
-            ranges_ptr = [c_void_p(self.tools.get_pointer(r)) for r in ranges]
             ranges_ptr_new = tuple([self.tools.get_pointer(r) for r in ranges])
 
-        args_ptr = [c_void_p(self.tools.get_pointer(arg)) for arg in args]
         args_ptr_new = tuple([self.tools.get_pointer(arg) for arg in args])
 
         # get all shapes of arguments
-        argshapes = [array("i", (len(arg.shape),) + arg.shape) for arg in args]
         argshapes_new = tuple([(len(arg.shape),) + arg.shape for arg in args])
 
         # initialize output array
@@ -269,11 +318,11 @@ class LoadKeOps_class:
                 ny,
                 params.tagI,
                 params.use_half,
-                ranges_ptr,
+                ranges_ptr_new,
                 out_ptr,
                 params.nargs,
-                args_ptr,
-                argshapes,
+                args_ptr_new,
+                argshapes_new,
             )
         else:
             self.launch_keops(
@@ -321,7 +370,7 @@ def compile_jit_binary():
     This function compile the main .so entry point to keops_nvrt binder...
     """
     compile_command = Gpu_link_compile.get_compile_command(
-        extra_flags="$(python3 -m pybind11 --includes)",
+        extra_flags=pykeops.config.python_includes,
         sourcename=os.path.join(os.path.dirname(os.path.realpath(__file__)), "keops_io_nvrtc.cpp"),
         dllname=pykeops.config.jit_binary_name
     )

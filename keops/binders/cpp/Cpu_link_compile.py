@@ -30,7 +30,7 @@ class Cpu_link_compile(LinkCompile):
         # write the code in the source file
         self.write_code()
         # call the compilation command
-        os.system(self.compile_command)
+        #os.system(self.compile_command)
         # retreive some parameters that will be saved into info_file.
         self.tagI = self.red_formula.tagI
         self.dim = self.red_formula.dim
