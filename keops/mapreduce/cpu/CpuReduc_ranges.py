@@ -81,8 +81,8 @@ class CpuReduc_ranges(MapReduce, Cpu_link_compile):
                         #define __INDEX__ int
                   
                         {binders_definitions(dtype, red_formula, varloader)}
-                        #include "Sizes_no_template.h"
-                        #include "Ranges_no_template.h"
+                        #include "include/Sizes_no_template.h"
+                        #include "include/Ranges_no_template.h"
                         
                         {define_fill_shapes_function(red_formula)}
                         {define_broadcast_index_function()}
