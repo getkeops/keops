@@ -14,46 +14,6 @@ pipeline {
   stages {
 
 // ----------------------------------------------------------------------------------------
-
-/* Skipping KeOps+ as C++ API is not available anymore in python_engine
-
-    stage('Test KeOps++') {
-      parallel {
-
-        stage('Build in Linux') {
-          agent { label 'ubuntu' }
-          steps {
-            echo 'Building..'
-              sh 'git submodule update --init'
-              sh 'cd keops/build && cmake ..'
-              sh 'cd keops/build && make VERBOSE=0'
-          }
-        }
-
-        stage('Build Mac') {
-          agent { label 'macos' }
-          steps {
-            echo 'Building..'
-              sh 'git submodule update --init'
-              sh 'cd keops/build && cmake ..'
-              sh 'cd keops/build && make VERBOSE=0'
-          }
-        }
-
-        stage('Build Cuda') {
-          agent { label 'cuda' }
-          steps {
-            echo 'Building..'
-              sh 'git submodule update --init'
-              sh 'cd keops/build && cmake ..'
-              sh 'cd keops/build && make -j15 VERBOSE=0'
-          }
-        }
-      }
-    }
-*/
-
-// ----------------------------------------------------------------------------------------
     stage('Test PyKeOps') {
       parallel {
 
@@ -61,9 +21,18 @@ pipeline {
           agent { label 'ubuntu' }
           steps {
             echo 'Testing..'
-						  sh 'cd keops/sandbox && python3 do_clean_keops.py'
-              sh 'cd pykeops/test && python3 unit_tests_pytorch.py'
-              sh 'cd pykeops/test && python3 unit_tests_numpy.py'
+			  sh 'rm -rf $HOME/.cache/keops'
+              sh '''#!/bin/bash
+                 eval "$(/builds/miniconda3/bin/conda shell.bash hook)"
+                 conda activate keops
+                 cd pykeops/test && python unit_tests_pytorch.py
+              '''
+              sh 'rm -rf $HOME/.cache/keops'
+              sh '''#!/bin/bash
+                 eval "$(/builds/miniconda3/bin/conda shell.bash hook)"
+                 conda activate keops
+                 cd pykeops/test && python unit_tests_numpy.py
+              '''
           }
         }
 
@@ -71,8 +40,38 @@ pipeline {
           agent { label 'macos' }
           steps {
             echo 'Testing...'
-              sh 'cd pykeops/test && /Users/ci/miniconda3/bin/python3 unit_tests_pytorch.py'
-              sh 'cd pykeops/test && /Users/ci/miniconda3/bin/python3 unit_tests_numpy.py'
+            sh 'rm -rf $HOME/.cache/keops'
+            sh '''#!/bin/zsh
+                __conda_setup="$('/Users/ci/miniconda3/bin/conda' 'shell.zsh' 'hook' 2> /dev/null)"
+                if [ $? -eq 0 ]; then
+                    eval "$__conda_setup"
+                else
+                    if [ -f "/Users/ci/miniconda3/etc/profile.d/conda.sh" ]; then
+                        . "/Users/ci/miniconda3/etc/profile.d/conda.sh"
+                    else
+                        export PATH="/Users/ci/miniconda3/bin:$PATH"
+                    fi
+                fi
+                unset __conda_setup
+                conda activate keops
+                cd pykeops/test && /Users/ci/miniconda3/bin/python3 unit_tests_pytorch.py
+            '''
+            sh 'rm -rf $HOME/.cache/keops'
+            sh '''#!/bin/zsh
+                __conda_setup="$('/Users/ci/miniconda3/bin/conda' 'shell.zsh' 'hook' 2> /dev/null)"
+                if [ $? -eq 0 ]; then
+                    eval "$__conda_setup"
+                else
+                    if [ -f "/Users/ci/miniconda3/etc/profile.d/conda.sh" ]; then
+                        . "/Users/ci/miniconda3/etc/profile.d/conda.sh"
+                    else
+                        export PATH="/Users/ci/miniconda3/bin:$PATH"
+                    fi
+                fi
+                unset __conda_setup
+                conda activate keops
+                cd pykeops/test && /Users/ci/miniconda3/bin/python3 unit_tests_numpy.py
+            '''
           }
         }
 
@@ -188,7 +187,7 @@ pipeline {
       }
     }
 */
-
+/*
 // ----------------------------------------------------------------------------------------
     stage('Deploy') {
       when { buildingTag() }
@@ -205,9 +204,10 @@ pipeline {
         '''
         withCredentials([usernamePassword(credentialsId: '8c7c609b-aa5e-4845-89bb-6db566236ca7', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
           sh 'cd build && twine upload --repository-url https://test.pypi.org/legacy/ -u ${USERNAME} -p ${PASSWORD} ./dist/pykeops-${TAG_NAME##v}.tar.gz'
-          }
+        }
       }
     }
+    */
 
   }
 }
