@@ -22,17 +22,9 @@ pipeline {
           steps {
             echo 'Testing..'
 			  sh 'rm -rf $HOME/.cache/keops'
-              sh '''#!/bin/bash
-                 eval "$(/builds/miniconda3/bin/conda shell.bash hook)"
-                 conda activate keops
-                 cd pykeops/test && python unit_tests_pytorch.py
-              '''
+              sh 'cd pykeops/test && python3 unit_tests_pytorch.py'
               sh 'rm -rf $HOME/.cache/keops'
-              sh '''#!/bin/bash
-                 eval "$(/builds/miniconda3/bin/conda shell.bash hook)"
-                 conda activate keops
-                 cd pykeops/test && python unit_tests_numpy.py
-              '''
+              sh 'cd pykeops/test && python3 unit_tests_numpy.py'
           }
         }
 
@@ -41,37 +33,9 @@ pipeline {
           steps {
             echo 'Testing...'
             sh 'rm -rf $HOME/.cache/keops'
-            sh '''#!/bin/zsh
-                __conda_setup="$('/Users/ci/miniconda3/bin/conda' 'shell.zsh' 'hook' 2> /dev/null)"
-                if [ $? -eq 0 ]; then
-                    eval "$__conda_setup"
-                else
-                    if [ -f "/Users/ci/miniconda3/etc/profile.d/conda.sh" ]; then
-                        . "/Users/ci/miniconda3/etc/profile.d/conda.sh"
-                    else
-                        export PATH="/Users/ci/miniconda3/bin:$PATH"
-                    fi
-                fi
-                unset __conda_setup
-                conda activate keops
-                cd pykeops/test && /Users/ci/miniconda3/bin/python3 unit_tests_pytorch.py
-            '''
+            sh 'cd pykeops/test && /Users/ci/miniconda3/bin/python3 unit_tests_pytorch.py'
             sh 'rm -rf $HOME/.cache/keops'
-            sh '''#!/bin/zsh
-                __conda_setup="$('/Users/ci/miniconda3/bin/conda' 'shell.zsh' 'hook' 2> /dev/null)"
-                if [ $? -eq 0 ]; then
-                    eval "$__conda_setup"
-                else
-                    if [ -f "/Users/ci/miniconda3/etc/profile.d/conda.sh" ]; then
-                        . "/Users/ci/miniconda3/etc/profile.d/conda.sh"
-                    else
-                        export PATH="/Users/ci/miniconda3/bin:$PATH"
-                    fi
-                fi
-                unset __conda_setup
-                conda activate keops
-                cd pykeops/test && /Users/ci/miniconda3/bin/python3 unit_tests_numpy.py
-            '''
+            sh 'cd pykeops/test && /Users/ci/miniconda3/bin/python3 unit_tests_numpy.py'
           }
         }
 
