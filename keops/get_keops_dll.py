@@ -79,7 +79,6 @@ def get_keops_dll_impl(
     if "Gpu" in map_reduce_id:
         if not keops.config.config.use_cuda:
             KeOps_Error("You selected a Gpu reduce scheme but KeOps is in Cpu only mode.")
-        keops.config.config.use_cuda = 1
         set_enable_chunk(enable_chunks)
         set_enable_finalchunk(enable_finalchunks)
         set_mult_var_highdim(mul_var_highdim)
@@ -91,8 +90,6 @@ def get_keops_dll_impl(
             if len(red_formula.formula.chunked_formulas(dimchunk)) == 1:
                 use_chunk_mode = 1
                 map_reduce_id += "_chunks"
-    else:
-        keops.config.config.use_cuda = 0
 
     # Instantiation of
     map_reduce_class = map_reduce[map_reduce_id]
