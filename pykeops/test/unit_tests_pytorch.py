@@ -672,6 +672,132 @@ class PytorchUnitTestCase(unittest.TestCase):
             torch.allclose(grad_keops.flatten(), grad_torch.flatten(), rtol=1e-4)
         )
 
+    ############################################################
+    def test_IVF(self):
+        ############################################################
+        from pykeops.torch import IVF
+        import torch
+
+        torch.manual_seed(0)
+        N, D, clusters, k, a = 10 ** 3, 3, 10, 5, 5
+
+        # Generate random datapoints x, y
+        x = torch.randn(N, D)
+        y = torch.randn(N, D)
+
+        x2 = x.unsqueeze(0)
+        y2 = y.unsqueeze(1)
+
+        # Metrics
+        metrics = ["euclidean", "manhattan", "angular", "angular_full", "hyperbolic"]
+
+        for metric in metrics:
+            # Inputs to IVF algorithm
+            normalise = False
+            approx = False
+
+            # Brute force distance calculation
+            if metric == "euclidean":
+                distance = ((y2 - x2) ** 2).sum(-1)
+            elif metric == "manhattan":
+                distance = ((y2 - x2).abs()).sum(-1)
+            elif metric in {"angular", "angular_full"}:
+                # Calculate normalised dot product (angular distances)
+                distance = (
+                    -y
+                    @ (x.T)
+                    / (
+                        (
+                            (x @ (x.T)).diag().unsqueeze(0)
+                            * (y @ (y.T)).diag().unsqueeze(1)
+                        ).sqrt()
+                    )
+                )
+                if metric == "angular":
+                    # Need to normalize data for angular metric
+                    normalise = True
+            elif metric == "hyperbolic":
+                # Need to ensure first dimension is positive for hyperbolic metric
+                x += 5
+                y += 5
+                approx = True
+                distance = ((y2 - x2) ** 2).sum(-1) / (
+                    x[:, 0].unsqueeze(0) * y[:, 0].unsqueeze(1)
+                )
+
+            # Ground truth K nearest neighbours
+            truth = torch.argsort(distance, dim=1)
+            truth = truth[:, :k]
+
+            # IVF K nearest neighbours
+            test = IVF(metric=metric, k=k, normalise=normalise)
+            test.fit(x, a=a, approx=approx, clusters=clusters)
+            ivf_fit = test.kneighbors(y)
+
+            # Calculate accuracy
+            accuracy = 0
+            for i in range(k):
+                accuracy += torch.sum(ivf_fit == truth).float() / N
+                truth = torch.roll(
+                    truth, 1, -1
+                )  # Create a rolling window (index positions may not match)
+
+            accuracy = float(accuracy / k)
+
+            self.assertTrue(accuracy >= 0.8, f"Failed at {a}, {accuracy}")
+
+    ############################################################
+    def test_Nystrom_K_approx(self):
+        ############################################################
+
+        from pykeops.torch import Nystrom
+        import torch
+
+        length = 100
+        num_sampling = 40
+        x = torch.rand((length, 3), dtype=torch.float32) * 10
+
+        kernels = ["rbf", "exp"]
+
+        for kernel in kernels:
+            # calculate the ground truth
+            N_truth = Nystrom(n_components=length, kernel=kernel, random_state=0).fit(x)
+            x_truth = N_truth.transform(x)
+            K = x_truth @ x_truth.T
+
+            # calculate an approximation
+            N_TK = Nystrom(
+                n_components=num_sampling, kernel=kernel, random_state=0
+            ).fit(x)
+
+            x_new = N_TK.transform(x)
+            K_approx = x_new @ x_new.T
+
+            error = torch.linalg.norm(K - K_approx) / (K.shape[0] * K.shape[1])
+
+            self.assertTrue(error < 0.01)
+
+    ############################################################
+    def test_Nystrom_K_shape(self):
+        ############################################################
+
+        from pykeops.torch import Nystrom
+        import torch
+
+        length = 100
+        num_sampling = 40
+        x = torch.rand(length, 3) * 100
+
+        kernels = ["rbf", "exp"]
+
+        for kernel in kernels:
+            N_NT = Nystrom(
+                n_components=num_sampling, kernel=kernel, random_state=0
+            ).fit(x)
+
+            self.assertTrue(N_NT.normalization_.shape == (num_sampling, num_sampling))
+            self.assertTrue(N_NT.transform(x).shape == (length, num_sampling))
+
 
 if __name__ == "__main__":
     """

@@ -437,6 +437,120 @@ class NumpyUnitTestCase(unittest.TestCase):
             self.assertTrue(res_keops.shape == res_numpy.shape)
             self.assertTrue(np.allclose(res_keops, res_numpy, atol=1e-3))
 
+    ############################################################
+    def test_IVF(self):
+        ###########################################################
+        from pykeops.numpy import IVF
+        import numpy as np
+
+        np.random.seed(0)
+        N, D, clusters, k, a = 10 ** 3, 3, 10, 5, 5
+
+        # Generate random datapoints x, y
+        x = np.random.normal(size=(N, D))
+        y = np.random.normal(size=(N, D))
+
+        x2 = np.expand_dims(x, 0)
+        y2 = np.expand_dims(y, 1)
+
+        # Metrics (hyperbolic metric not implemented for numpy)
+        metrics = ["euclidean", "manhattan", "angular", "angular_full"]
+
+        for metric in metrics:
+            # Inputs to IVF algorithm
+            normalise = False
+            approx = False
+
+            # Brute force distance calculation
+            if metric == "euclidean":
+                distance = ((y2 - x2) ** 2).sum(-1)
+            elif metric == "manhattan":
+                distance = np.abs(y2 - x2).sum(-1)
+            elif metric in {"angular", "angular_full"}:
+                x3 = x / np.linalg.norm(x, axis=1, keepdims=True)
+                y3 = y / np.linalg.norm(y, axis=1, keepdims=True)
+                distance = -y3 @ (x3.T)
+                if metric == "angular":
+                    # Need to normalize data for angular metric
+                    normalise = True
+            elif metric == "hyperbolic":
+                # Placeholder in case hyperbolic metric is implemented in future
+                # Need to ensure first dimension is positive for hyperbolic metric
+                x += 5
+                y += 5
+                approx = True
+                distance = ((y2 - x2) ** 2).sum(-1) / (
+                    np.expand_dims(x[:, 0], 0) * np.expand_dims(y[:, 0], 1)
+                )
+
+            # Ground truth K nearest neighbours
+            truth = np.argsort(distance, axis=1)
+            truth = truth[:, :k]
+
+            # IVF K nearest neighbours
+            test = IVF(metric=metric, k=k, normalise=normalise)
+            test.fit(x, a=a, approx=approx, clusters=clusters)
+            ivf_fit = test.kneighbors(y)
+
+            # Calculate accuracy
+            accuracy = 0
+            for i in range(k):
+                accuracy += float(np.sum(ivf_fit == truth)) / N
+                truth = np.roll(
+                    truth, 1, -1
+                )  # Create a rolling window (index positions may not match)
+
+            accuracy = float(accuracy / k)
+
+            self.assertTrue(accuracy >= 0.8, f"Failed at {a}, {accuracy}")
+
+    ############################################################
+    def test_Nystrom_k_approx(self):
+        ############################################################
+        from pykeops.numpy import Nystrom
+
+        length = 100
+        num_sampling = 20
+        x = np.random.randint(1, 10, (100, 3)).astype(np.float32)
+
+        kernels = ["rbf", "exp"]
+
+        for kernel in kernels:
+            # calculate the ground truth kernel
+            N_truth = Nystrom(n_components=length, kernel=kernel, random_state=0).fit(x)
+            x_truth = N_truth.transform(x)
+            K = x_truth @ x_truth.T
+
+            # calculate an approximation
+            N_NK = Nystrom(
+                n_components=num_sampling, kernel=kernel, random_state=0
+            ).fit(x)
+            x_new = N_NK.transform(x)
+            K_approx = x_new @ x_new.T
+
+            error = np.linalg.norm(K - K_approx) / K.size
+
+            self.assertTrue(error < 0.01)
+
+    ############################################################
+    def test_Nystrom_k_shape(self):
+        ############################################################
+        from pykeops.numpy import Nystrom
+
+        length = 100
+        num_sampling = 20
+        x = np.random.randint(1, 10, (length, 3)).astype(np.float32)
+
+        kernels = ["rbf", "exp"]
+
+        for kernel in kernels:
+            N_NK = Nystrom(
+                n_components=num_sampling, kernel=kernel, random_state=0
+            ).fit(x)
+
+            self.assertTrue(N_NK.normalization_.shape == (num_sampling, num_sampling))
+            self.assertTrue(N_NK.transform(x).shape == (length, num_sampling))
+
 
 if __name__ == "__main__":
     unittest.main()

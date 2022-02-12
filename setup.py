@@ -103,12 +103,16 @@ setup(
         "pykeops.numpy.generic",
         "pykeops.numpy.lazytensor",
         "pykeops.numpy.shape_distance",
+        "pykeops.numpy.knn",
+        "pykeops.numpy.nystrom",
         "pykeops.test",
         "pykeops.torch",
         "pykeops.torch.cluster",
         "pykeops.torch.generic",
         "pykeops.torch.lazytensor",
         "pykeops.torch.kernel_product",
+        "pykeops.torch.knn",
+        "pykeops.torch.nystrom",
     ],
     package_data={
         "pykeops": [
