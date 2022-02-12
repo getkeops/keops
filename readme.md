@@ -1,6 +1,6 @@
 ![logo](./doc/_static/logo/keops_logo.png)
 
-----------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
 
 [![Build status](https://ci.inria.fr/keops/buildStatus/icon?job=keops%2Fmaster)](https://ci.inria.fr/keops/job/keops/job/master/)
 [![PyPI version](https://img.shields.io/pypi/v/pykeops?color=blue)](https://pypi.org/project/pykeops/)
