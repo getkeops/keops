@@ -8,7 +8,7 @@ from pykeops.common.keops_io.LoadKeOps import LoadKeOps
 
 class LoadKeOps_cpp_class(LoadKeOps):
 
-    def __init__(self, *args, fast_init=True):
+    def __init__(self, *args, fast_init=False):
         super().__init__(*args, fast_init=fast_init)
 
     def init_phase2(self):

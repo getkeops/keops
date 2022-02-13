@@ -11,7 +11,7 @@ class LoadKeOps:
     null_range = np.array([-1], dtype="int32")
     empty_ranges_new = tuple([null_range.__array_interface__["data"][0]] * 7)
 
-    def __init__(self, *args, fast_init=True):
+    def __init__(self, *args, fast_init):
         if fast_init:
             self.params = args[0]
         else:
