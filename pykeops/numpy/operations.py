@@ -1,7 +1,7 @@
 import numpy as np
 
 from pykeops.common.get_options import get_tag_backend
-from pykeops.common.keops_io import LoadKeOps
+from pykeops.common.keops_io import keops_binder
 from pykeops.common.operations import ConjugateGradientSolver
 from pykeops.common.parse_type import get_sizes, complete_aliases, get_optional_flags
 from pykeops.common.utils import axis2cat
@@ -226,7 +226,7 @@ class KernelSolve:
 
         """
         # Get tags
-        tagCpuGpu, tag1D2D, tagHostDevice = get_tag_backend(backend, args)
+        tagCPUGPU, tag1D2D, tagHostDevice = get_tag_backend(backend, args)
 
         # number of batch dimensions
         # N.B. we assume here that there is at least a cat=0 or cat=1 variable in the formula...
@@ -236,10 +236,10 @@ class KernelSolve:
         dtype = args[0].dtype.__str__()
 
         if device_id == -1:
-            device_id = default_device_id if tagCpuGpu == 1 else -1
+            device_id = default_device_id if tagCPUGPU == 1 else -1
 
-        self.myconv = LoadKeOps(
-            tagCpuGpu,
+        self.myconv = keops_binder["nvrtc" if tagCPUGPU else "cpp"](
+            tagCPUGPU,
             tag1D2D,
             tagHostDevice,
             use_ranges,
