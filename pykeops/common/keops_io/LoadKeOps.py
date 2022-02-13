@@ -162,6 +162,11 @@ class LoadKeOps:
 
         self.params.reduction_op = self.params.red_formula_string.split("(")[0]
         self.params.axis = 1 - self.params.tagI
+        
+        self.init_phase1()
+    
+    def init_phase1(self):
+        pass
 
     def init_phase2(self):
         pass

@@ -4,26 +4,11 @@ import keops.config.config
 import pykeops
 from keops.utils.Cache import Cache_partial
 from pykeops.common.keops_io.LoadKeOps import LoadKeOps
+from pykeops.common.utils import pyKeOps_Message
 
 
-class LoadKeOps_cpp_class(LoadKeOps):
-
-    def __init__(self, *args, fast_init=False):
-        super().__init__(*args, fast_init=fast_init)
-
-    def init_phase2(self):
-
-        if self.params.tagCPUGPU == 0:
-            tag = os.path.basename(self.params.dllname).split(".")[0]
-            launch_keops_fun_name = ("launch_keops_cpu_" + tag)
-            srcname = os.path.join(keops.config.config.build_path, "keops_io_cpp_" + tag + ".cpp")
-            import sysconfig
-            dllname = os.path.join(keops.config.config.build_path,
-                                   "keops_io_cpp_" + tag + sysconfig.get_config_var('EXT_SUFFIX'))
-
-            f = open(srcname, "w")
-            f.write(
-                f"""
+def get_pybind11_code(tag, launch_keops_fun_name):
+    return f"""
         #include "{tag}.cpp"
 
         #include <pybind11/pybind11.h>
@@ -77,20 +62,41 @@ class LoadKeOps_cpp_class(LoadKeOps):
             m.def("launch_keops_cpu_float", &launch_keops_{tag}_cpu < float >, "Entry point to keops - float .");
             m.def("launch_keops_cpu_double", &launch_keops_{tag}_cpu < double >, "Entry point to keops - float .");
         }}                     
-                    """)
+            """
+                    
+                    
+                    
+
+class LoadKeOps_cpp_class(LoadKeOps):
+
+    def __init__(self, *args, fast_init=False):
+        super().__init__(*args, fast_init=fast_init)
+        
+    def init_phase1(self):
+        tag = os.path.basename(self.params.dllname).split(".")[0]
+        self.params.modulename = "keops_io_cpp_" + tag
+        launch_keops_fun_name = ("launch_keops_cpu_" + tag)
+        basename = os.path.join(keops.config.config.build_path, self.params.modulename)
+        srcname = basename + ".cpp"
+        import sysconfig
+        dllname = basename + sysconfig.get_config_var('EXT_SUFFIX')
+        if not os.path.exists(dllname):
+            f = open(srcname, "w")
+            f.write(get_pybind11_code(tag, launch_keops_fun_name))
             f.close()
-
             compile_command = f"{keops.config.config.cxx_compiler} {keops.config.config.cpp_flags} {pykeops.config.python_includes} {srcname} -o {dllname}"
-            print("cooooompile")
+            pyKeOps_Message("Compiling Pybind11 module ... ", flush=True, end="")
             os.system(compile_command)
+            print("OK", flush=True)
 
-            import importlib
-            mylib = importlib.import_module("keops_io_cpp_" + tag)
-            if self.params.c_dtype == "float":
-                self.launch_keops_cpu = mylib.launch_keops_cpu_float
-            if self.params.c_dtype == "double":
-                self.launch_keops_cpu = mylib.launch_keops_cpu_double
-
+    def init_phase2(self):
+        import importlib
+        mylib = importlib.import_module(self.params.modulename)
+        if self.params.c_dtype == "float":
+            self.launch_keops_cpu = mylib.launch_keops_cpu_float
+        if self.params.c_dtype == "double":
+            self.launch_keops_cpu = mylib.launch_keops_cpu_double
+            
     def call_keops(self, nx, ny):
         self.launch_keops_cpu(
             nx,
