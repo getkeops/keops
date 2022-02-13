@@ -43,6 +43,7 @@ setup(
     packages=[
         "pykeops",
         "pykeops.common",
+        "pykeops.common.keops_io",
         "pykeops.numpy",
         "pykeops.numpy.cluster",
         "pykeops.numpy.generic",
