@@ -52,7 +52,7 @@ void fill_shapes(int nbatchdims, int *shapes, int *shapes_i, int *shapes_j, int 
             shapes_i[k * (nbatchdims + 1) + l] = shapes[(1 + get_val(indsi, k)) * (nbatchdims + 3) + l];
         }
         shapes_i[k * (nbatchdims + 1) + nbatchdims] =
-                shapes[(1 + get_val(indsi, k)) * (nbatchdims + 3) + nbatchdims + 1 - tagIJ];
+            shapes[(1 + get_val(indsi, k)) * (nbatchdims + 3) + nbatchdims + 1 - tagIJ];
     }
 
     // Then, we do the same for shapes_j, but with "N" instead of "M":
@@ -61,7 +61,7 @@ void fill_shapes(int nbatchdims, int *shapes, int *shapes_i, int *shapes_j, int 
             shapes_j[k * (nbatchdims + 1) + l] = shapes[(1 + get_val(indsj, k)) * (nbatchdims + 3) + l];
         }
         shapes_j[k * (nbatchdims + 1) + nbatchdims] = shapes[(1 + get_val(indsj, k)) * (nbatchdims + 3) + nbatchdims +
-                                                             tagIJ];
+                tagIJ];
     }
 
     // And finally for the parameters, with "1" instead of "M":
@@ -133,9 +133,9 @@ int *build_offset_tables(int nbatchdims, int *shapes, int nblocks, __INDEX__ *lo
 
 
 void range_preprocess_from_device(int &nblocks, int tagI, int nranges_x, int nranges_y, __INDEX__ **castedranges,
-                      int nbatchdims, __INDEX__ *&slices_x_d, __INDEX__ *&ranges_y_d,
-                      __INDEX__ *&lookup_d, int *&offsets_d, int blockSize_x,
-                      int *indsi, int *indsj, int *indsp, int *shapes) {
+                                  int nbatchdims, __INDEX__ *&slices_x_d, __INDEX__ *&ranges_y_d,
+                                  __INDEX__ *&lookup_d, int *&offsets_d, int blockSize_x,
+                                  int *indsi, int *indsj, int *indsp, int *shapes) {
 
     // Ranges pre-processing... ==================================================================
 
@@ -231,9 +231,9 @@ void range_preprocess_from_device(int &nblocks, int tagI, int nranges_x, int nra
 
 
 void range_preprocess_from_host(int &nblocks, int tagI, int nranges_x, int nranges_y, int nredranges_x, int nredranges_y, __INDEX__ **castedranges,
-                      int nbatchdims, __INDEX__ *&slices_x_d, __INDEX__ *&ranges_y_d,
-                      __INDEX__ *&lookup_d, int *&offsets_d, int blockSize_x,
-                      int *indsi, int *indsj, int *indsp, int *shapes) {
+                                int nbatchdims, __INDEX__ *&slices_x_d, __INDEX__ *&ranges_y_d,
+                                __INDEX__ *&lookup_d, int *&offsets_d, int blockSize_x,
+                                int *indsi, int *indsj, int *indsp, int *shapes) {
 
     // Ranges pre-processing... ==================================================================
 
@@ -251,7 +251,7 @@ void range_preprocess_from_host(int &nblocks, int tagI, int nranges_x, int nrang
     __INDEX__ *ranges_x = tagJ ? castedranges[0] : castedranges[3];
     __INDEX__ *slices_x = tagJ ? castedranges[1] : castedranges[4];
     __INDEX__ *ranges_y = tagJ ? castedranges[2] : castedranges[5];
-    
+
     // Computes the number of blocks needed ---------------------------------------------
     nblocks = 0;
     int len_range = 0;
@@ -277,15 +277,15 @@ void range_preprocess_from_host(int &nblocks, int tagI, int nranges_x, int nrang
     // Load the table on the device -----------------------------------------------------
     cuMemAlloc((CUdeviceptr *) &lookup_d, sizeof(__INDEX__) * 3 * nblocks);
     cuMemcpyHtoD((CUdeviceptr) lookup_d, lookup_h, sizeof(__INDEX__) * 3 * nblocks);
-    
+
     // Send data from host to device:
     cuMemAlloc((CUdeviceptr *) &slices_x_d, sizeof(__INDEX__) * 2*nranges);
     cuMemcpyHtoD((CUdeviceptr) slices_x_d, slices_x, sizeof(__INDEX__) * 2*nranges);
 
     cuMemAlloc((CUdeviceptr *) &ranges_y_d, sizeof(__INDEX__) * 2*nredranges);
     cuMemcpyHtoD((CUdeviceptr) ranges_y_d, ranges_y, sizeof(__INDEX__) * 2*nredranges);
-    
-    
+
+
     // Support for broadcasting over batch dimensions =============================================
 
     // We create a lookup table, "offsets", of shape (nblock, SIZEVARS):

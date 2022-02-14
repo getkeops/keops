@@ -54,13 +54,13 @@ int get_val_batch(index_t shape, int nbatch, int b) {
 
 #else
 int get_val_batch(index_t shape, int nbatch, int b) {
-  return get_val(shape, nbatch - b);
+    return get_val(shape, nbatch - b);
 }
 #endif
 
 template<typename TYPE>
 class Sizes {
-public:
+  public:
     // constructors
     Sizes(int _nargs, TYPE **args, index_t*argshapes, int _nx, int _ny,
           int tagIJ_, int use_half_, int dimout_,
@@ -168,7 +168,7 @@ public:
 
     void switch_to_half2_indexing();
 
-private:
+  private:
     void fill_shape(int nargs, TYPE **args, index_t*argshapes);
 
     void check_ranges(int nargs, TYPE **args, index_t*argshapes);
@@ -185,13 +185,13 @@ void Sizes<TYPE>::fill_shape(int nargs, TYPE **args, index_t*argshapes) {
     if (pos > -1) {
         // Are we working in batch mode? Infer the answer from the first arg =============
         nbatchdims =
-                get_size(argshapes[pos]) - 2;  // number of batch dimensions = Number of dims of the first tensor - 2
+            get_size(argshapes[pos]) - 2;  // number of batch dimensions = Number of dims of the first tensor - 2
 
         if (nbatchdims < 0) {
 #if do_checks
             error("[KeOps] Wrong number of dimensions for arg at position 0: is "
-                        + std::to_string(get_size(argshapes[0])) + " but should be at least 2."
-            );
+                  + std::to_string(get_size(argshapes[0])) + " but should be at least 2."
+                 );
 #endif
         }
     } else {
@@ -249,15 +249,15 @@ void Sizes<TYPE>::check_ranges(int nargs, TYPE **args, index_t*argshapes) {
 
 #if do_checks
             if (ndims != nbatchdims + 2) {
-              error("[KeOps] Wrong number of dimensions for arg at position " + std::to_string(i)
-                          + " (i type): KeOps detected " + std::to_string(nbatchdims)
-                          + " batch dimensions from the first argument 0, and thus expected "
-                          + std::to_string(nbatchdims + 2)
-                          + " dimensions here, but only received "
-                          + std::to_string(ndims)
-                          + ". Note that KeOps supports broadcasting on batch dimensions, "
-                          + "but still expects 'dummy' unit dimensions in the input shapes, "
-                          + "for the sake of clarity.");
+                error("[KeOps] Wrong number of dimensions for arg at position " + std::to_string(i)
+                      + " (i type): KeOps detected " + std::to_string(nbatchdims)
+                      + " batch dimensions from the first argument 0, and thus expected "
+                      + std::to_string(nbatchdims + 2)
+                      + " dimensions here, but only received "
+                      + std::to_string(ndims)
+                      + ". Note that KeOps supports broadcasting on batch dimensions, "
+                      + "but still expects 'dummy' unit dimensions in the input shapes, "
+                      + "for the sake of clarity.");
             }
 #endif
 
@@ -275,11 +275,11 @@ void Sizes<TYPE>::check_ranges(int nargs, TYPE **args, index_t*argshapes) {
                     }
 #if do_checks
                     else if (shapes[b] != shapes[off_i + b]) {
-                      error("[KeOps] Wrong value of the batch dimension "
-                                  + std::to_string(b) + " for argument number " + std::to_string(i)
-                                  + " : is " + std::to_string(shapes[off_i + b])
-                                  + " but was " + std::to_string(shapes[b])
-                                  + " or 1 in previous arguments.");
+                        error("[KeOps] Wrong value of the batch dimension "
+                              + std::to_string(b) + " for argument number " + std::to_string(i)
+                              + " : is " + std::to_string(shapes[off_i + b])
+                              + " but was " + std::to_string(shapes[b])
+                              + " or 1 in previous arguments.");
                     }
 #endif
                 }
@@ -292,19 +292,19 @@ void Sizes<TYPE>::check_ranges(int nargs, TYPE **args, index_t*argshapes) {
 #if do_checks
             // Check the number of "lines":
             if (shapes[nbatchdims] != shapes[off_i + nbatchdims]) {
-              error("[KeOps] Wrong value of the 'i' dimension "
-                          + std::to_string(nbatchdims) + "for arg at position " + std::to_string(i)
-                          + " : is " + std::to_string(shapes[off_i + nbatchdims])
-                          + " but was " + std::to_string(shapes[nbatchdims])
-                          + " in previous 'i' arguments.");
+                error("[KeOps] Wrong value of the 'i' dimension "
+                      + std::to_string(nbatchdims) + "for arg at position " + std::to_string(i)
+                      + " : is " + std::to_string(shapes[off_i + nbatchdims])
+                      + " but was " + std::to_string(shapes[nbatchdims])
+                      + " in previous 'i' arguments.");
             }
 
             // And the number of "columns":
             if (shapes[off_i + nbatchdims + 2] != static_cast< int >(dimsX[k])) {
-              error("[KeOps] Wrong value of the 'vector size' dimension "
-                          + std::to_string(nbatchdims + 1) + " for arg at position " + std::to_string(i)
-                          + " : is " + std::to_string(shapes[off_i + nbatchdims + 2])
-                          + " but should be " + std::to_string(dimsX[k]));
+                error("[KeOps] Wrong value of the 'vector size' dimension "
+                      + std::to_string(nbatchdims + 1) + " for arg at position " + std::to_string(i)
+                      + " : is " + std::to_string(shapes[off_i + nbatchdims + 2])
+                      + " but should be " + std::to_string(dimsX[k]));
             }
 #endif
         }
@@ -319,15 +319,15 @@ void Sizes<TYPE>::check_ranges(int nargs, TYPE **args, index_t*argshapes) {
 
 #if do_checks
             if (ndims != nbatchdims + 2) {
-              error("[KeOps] Wrong number of dimensions for arg at position " + std::to_string(i)
-                          + " (j type): KeOps detected " + std::to_string(nbatchdims)
-                          + " batch dimensions from the first argument 0, and thus expected "
-                          + std::to_string(nbatchdims + 2)
-                          + " dimensions here, but only received "
-                          + std::to_string(ndims)
-                          + ". Note that KeOps supports broadcasting on batch dimensions, "
-                          + "but still expects 'dummy' unit dimensions in the input shapes, "
-                          + "for the sake of clarity.");
+                error("[KeOps] Wrong number of dimensions for arg at position " + std::to_string(i)
+                      + " (j type): KeOps detected " + std::to_string(nbatchdims)
+                      + " batch dimensions from the first argument 0, and thus expected "
+                      + std::to_string(nbatchdims + 2)
+                      + " dimensions here, but only received "
+                      + std::to_string(ndims)
+                      + ". Note that KeOps supports broadcasting on batch dimensions, "
+                      + "but still expects 'dummy' unit dimensions in the input shapes, "
+                      + "for the sake of clarity.");
             }
 #endif
 
@@ -346,11 +346,11 @@ void Sizes<TYPE>::check_ranges(int nargs, TYPE **args, index_t*argshapes) {
                     }
 #if do_checks
                     else if (shapes[b] != shapes[off_i + b]) {
-                      error("[KeOps] Wrong value of the batch dimension "
-                                  + std::to_string(b) + " for argument number " + std::to_string(i)
-                                  + " : is " + std::to_string(shapes[off_i + b])
-                                  + " but was " + std::to_string(shapes[b])
-                                  + " or 1 in previous arguments.");
+                        error("[KeOps] Wrong value of the batch dimension "
+                              + std::to_string(b) + " for argument number " + std::to_string(i)
+                              + " : is " + std::to_string(shapes[off_i + b])
+                              + " but was " + std::to_string(shapes[b])
+                              + " or 1 in previous arguments.");
                     }
 #endif
                 }
@@ -363,19 +363,19 @@ void Sizes<TYPE>::check_ranges(int nargs, TYPE **args, index_t*argshapes) {
 #if do_checks
             // Check the number of "lines":
             if (shapes[nbatchdims + 1] != shapes[off_i + nbatchdims + 1]) {
-              error("[KeOps] Wrong value of the 'j' dimension "
-                          + std::to_string(nbatchdims) + " for arg at position " + std::to_string(i)
-                          + " : is " + std::to_string(shapes[off_i + nbatchdims + 1])
-                          + " but was " + std::to_string(shapes[nbatchdims + 1])
-                          + " in previous 'j' arguments.");
+                error("[KeOps] Wrong value of the 'j' dimension "
+                      + std::to_string(nbatchdims) + " for arg at position " + std::to_string(i)
+                      + " : is " + std::to_string(shapes[off_i + nbatchdims + 1])
+                      + " but was " + std::to_string(shapes[nbatchdims + 1])
+                      + " in previous 'j' arguments.");
             }
 
             // And the number of "columns":
             if (shapes[off_i + nbatchdims + 2] != static_cast< int >(dimsY[k])) {
-              error("[KeOps] Wrong value of the 'vector size' dimension "
-                          + std::to_string(nbatchdims + 1) + " for arg at position " + std::to_string(i)
-                          + " : is " + std::to_string(shapes[off_i + nbatchdims + 2])
-                          + " but should be " + std::to_string(dimsY[k]));
+                error("[KeOps] Wrong value of the 'vector size' dimension "
+                      + std::to_string(nbatchdims + 1) + " for arg at position " + std::to_string(i)
+                      + " : is " + std::to_string(shapes[off_i + nbatchdims + 2])
+                      + " but should be " + std::to_string(dimsY[k]));
             }
 #endif
         }
@@ -393,14 +393,14 @@ void Sizes<TYPE>::check_ranges(int nargs, TYPE **args, index_t*argshapes) {
 #if do_checks
             int dim_param;
             if (use_half)
-              dim_param = shapes[off_i + nbatchdims + 2] / 2;
+                dim_param = shapes[off_i + nbatchdims + 2] / 2;
             else
-              dim_param = shapes[off_i + nbatchdims + 2];
+                dim_param = shapes[off_i + nbatchdims + 2];
             if (dim_param != static_cast< int >(dimsP[k])) {
-              error("[KeOps] Wrong value of the 'vector size' dimension "
-                          + std::to_string(nbatchdims) + " for arg at position " + std::to_string(i)
-                          + " : is " + std::to_string(dim_param)
-                          + " but should be " + std::to_string(dimsP[k]));
+                error("[KeOps] Wrong value of the 'vector size' dimension "
+                      + std::to_string(nbatchdims) + " for arg at position " + std::to_string(i)
+                      + " : is " + std::to_string(dim_param)
+                      + " but should be " + std::to_string(dimsP[k]));
             }
 #endif
         }

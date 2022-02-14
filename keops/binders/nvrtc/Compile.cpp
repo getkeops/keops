@@ -27,7 +27,7 @@
 
 
 extern "C" int Compile(const char *target_file_name, const char *cu_code, int use_half, int device_id,
-                        const char *cuda_include_path) {
+                       const char *cuda_include_path) {
 
     nvrtcProgram prog;
 
@@ -73,11 +73,11 @@ extern "C" int Compile(const char *target_file_name, const char *cu_code, int us
                                        numHeaders,      // numHeaders
                                        header_sources,  // headers
                                        header_names     // includeNames
-    ));
+                                      ));
 
     nvrtcResult compileResult = nvrtcCompileProgram(prog,     // prog
-                                              2,              // numOptions
-                                              opts);          // options
+                                2,              // numOptions
+                                opts);          // options
 
     delete[] arch_flag_char;
 
