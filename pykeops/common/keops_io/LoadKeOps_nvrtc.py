@@ -9,21 +9,30 @@ from pykeops.common.utils import pyKeOps_Message
 
 
 class LoadKeOps_nvrtc_class(LoadKeOps):
-
     def __init__(self, *args, fast_init=False):
         super().__init__(*args, fast_init=fast_init)
 
     def init_phase2(self):
         import keops_io_nvrtc
+
         if self.params.c_dtype == "float":
-            self.launch_keops = keops_io_nvrtc.KeOps_module_float(self.params.device_id_request, self.params.nargs,
-                                                                  self.params.low_level_code_file)
+            self.launch_keops = keops_io_nvrtc.KeOps_module_float(
+                self.params.device_id_request,
+                self.params.nargs,
+                self.params.low_level_code_file,
+            )
         elif self.params.c_dtype == "double":
-            self.launch_keops = keops_io_nvrtc.KeOps_module_double(self.params.device_id_request, self.params.nargs,
-                                                                   self.params.low_level_code_file)
+            self.launch_keops = keops_io_nvrtc.KeOps_module_double(
+                self.params.device_id_request,
+                self.params.nargs,
+                self.params.low_level_code_file,
+            )
         elif self.params.c_dtype == "half2":
-            self.launch_keops = keops_io_nvrtc.KeOps_module_half2(self.params.device_id_request, self.params.nargs,
-                                                                  self.params.low_level_code_file)
+            self.launch_keops = keops_io_nvrtc.KeOps_module_half2(
+                self.params.device_id_request,
+                self.params.nargs,
+                self.params.low_level_code_file,
+            )
 
     def call_keops(self, nx, ny):
         self.launch_keops(
@@ -62,8 +71,10 @@ def compile_jit_binary():
     """
     compile_command = Gpu_link_compile.get_compile_command(
         extra_flags=pykeops.config.python_includes,
-        sourcename=os.path.join(os.path.dirname(os.path.realpath(__file__)), "../keops_io_nvrtc.cpp"),
-        dllname=pykeops.config.jit_binary_name
+        sourcename=os.path.join(
+            os.path.dirname(os.path.realpath(__file__)), "../keops_io_nvrtc.cpp"
+        ),
+        dllname=pykeops.config.jit_binary_name,
     )
     pyKeOps_Message("Compiling nvrtc binder for python ... ", flush=True, end="")
     os.system(compile_command)
@@ -71,5 +82,7 @@ def compile_jit_binary():
 
 
 LoadKeOps_nvrtc = Cache_partial(
-    LoadKeOps_nvrtc_class, use_cache_file=True, save_folder=keops.config.config.build_path
+    LoadKeOps_nvrtc_class,
+    use_cache_file=True,
+    save_folder=keops.config.config.build_path,
 )

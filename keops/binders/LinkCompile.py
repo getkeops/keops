@@ -36,7 +36,8 @@ class LinkCompile:
 
         # gencode_file is the name of the source file to be created and then compiled, e.g. 7b9a611f7e.cpp or 7b9a611f7e.cu
         self.gencode_file = os.path.join(
-            keops.config.config.build_path, self.gencode_filename + "." + self.source_code_extension
+            keops.config.config.build_path,
+            self.gencode_filename + "." + self.source_code_extension,
         )
 
     def save_info(self):
@@ -85,7 +86,9 @@ class LinkCompile:
         # main method of the class : it compiles - if needed - the code and returns the name of the dll to be run for
         # performing the reduction, e.g. 7b9a611f7e.so, or in the case of JIT compilation, the name of the main KeOps dll,
         # and the name of the assembly code file.
-        if not os.path.exists(self.file_to_check): # TODO : used only in cpu mode, should be removed
+        if not os.path.exists(
+            self.file_to_check
+        ):  # TODO : used only in cpu mode, should be removed
             KeOps_Message(
                 "Compiling formula " + self.red_formula.__str__() + " ... ",
                 flush=True,

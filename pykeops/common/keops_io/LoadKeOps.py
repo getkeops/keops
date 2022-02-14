@@ -31,18 +31,18 @@ class LoadKeOps:
         self.init_phase2()
 
     def init(
-            self,
-            tagCPUGPU,
-            tag1D2D,
-            tagHostDevice,
-            use_ranges,
-            device_id_request,
-            formula,
-            aliases,
-            nargs,
-            dtype,
-            lang,
-            optional_flags,
+        self,
+        tagCPUGPU,
+        tag1D2D,
+        tagHostDevice,
+        use_ranges,
+        device_id_request,
+        formula,
+        aliases,
+        nargs,
+        dtype,
+        lang,
+        optional_flags,
     ):
 
         aliases_new = []
@@ -162,9 +162,9 @@ class LoadKeOps:
 
         self.params.reduction_op = self.params.red_formula_string.split("(")[0]
         self.params.axis = 1 - self.params.tagI
-        
+
         self.init_phase1()
-    
+
     def init_phase1(self):
         pass
 
@@ -172,7 +172,14 @@ class LoadKeOps:
         pass
 
     def genred(
-            self, device_args, ranges, nx, ny, nbatchdims, out, *args,
+        self,
+        device_args,
+        ranges,
+        nx,
+        ny,
+        nbatchdims,
+        out,
+        *args,
     ):
 
         if self.params.use_half:
@@ -238,4 +245,3 @@ class LoadKeOps:
 
     def import_module(self):
         return self
-

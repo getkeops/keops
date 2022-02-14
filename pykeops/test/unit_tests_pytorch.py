@@ -231,18 +231,18 @@ class PytorchUnitTestCase(unittest.TestCase):
 
         kernels = {
             "gaussian": lambda xc, yc, sigmac: (
-                -Pm(1 / sigmac ** 2) * Vi(xc).sqdist(Vj(yc))
+                -Pm(1 / sigmac**2) * Vi(xc).sqdist(Vj(yc))
             ),
             "laplacian": lambda xc, yc, sigmac: (
-                -(Pm(1 / sigmac ** 2) * Vi(xc).sqdist(Vj(yc))).sqrt()
+                -(Pm(1 / sigmac**2) * Vi(xc).sqdist(Vj(yc))).sqrt()
             ),
             "cauchy": lambda xc, yc, sigmac: (
-                1 + Pm(1 / sigmac ** 2) * Vi(xc).sqdist(Vj(yc))
+                1 + Pm(1 / sigmac**2) * Vi(xc).sqdist(Vj(yc))
             )
             .power(-1)
             .log(),
             "inverse_multiquadric": lambda xc, yc, sigmac: (
-                1 + Pm(1 / sigmac ** 2) * Vi(xc).sqdist(Vj(yc))
+                1 + Pm(1 / sigmac**2) * Vi(xc).sqdist(Vj(yc))
             )
             .sqrt()
             .power(-1)
@@ -494,9 +494,9 @@ class PytorchUnitTestCase(unittest.TestCase):
                 if use_keops:
                     a_i = a_i.squeeze(-1)
                 [g_x, g_y, g_s] = torch.autograd.grad(
-                    (a_i ** 2).sum(), [x, y, s], create_graph=True
+                    (a_i**2).sum(), [x, y, s], create_graph=True
                 )
-                [g_xx] = torch.autograd.grad((g_x ** 2).sum(), [x], create_graph=True)
+                [g_xx] = torch.autograd.grad((g_x**2).sum(), [x], create_graph=True)
 
                 results += [a_i, g_x, g_y, g_s, g_xx]
 
@@ -579,11 +579,11 @@ class PytorchUnitTestCase(unittest.TestCase):
         ############################################################
         from pykeops.torch import LazyTensor
         import torch
+
         X = np.random.rand(self.M, 990)
         Xc = torch.tensor(X, dtype=self.dtype, device=self.device)
         Y = np.random.rand(self.N, 990)
         Yc = torch.tensor(Y, dtype=self.dtype, device=self.device)
-
 
         full_results = []
         for use_keops in [True, False]:
@@ -602,9 +602,7 @@ class PytorchUnitTestCase(unittest.TestCase):
                         LazyTensor(y_j),
                     )
 
-                K_ij = (( -((x_i + y_j)) ** 2).exp()).sum(
-                    -1, keepdim=True
-                )
+                K_ij = ((-(((x_i + y_j)) ** 2)).exp()).sum(-1, keepdim=True)
 
                 if use_keops:
                     m, am = K_ij.min_argmin(dim=0)
@@ -624,7 +622,6 @@ class PytorchUnitTestCase(unittest.TestCase):
                     atol=1e-5,
                 )
             )
-
 
     ############################################################
     def test_LazyTensor_min(self):
@@ -655,7 +652,7 @@ class PytorchUnitTestCase(unittest.TestCase):
                 D_ij = ((1 + ((l_i * x_i + y_j).relu() * s_p) ** 2).log()).sum(
                     -1, keepdim=True
                 )
-                K_ij = (D_ij ** 1.5 + 1).cos() * (D_ij * (3.2 + s_p)).sin()
+                K_ij = (D_ij**1.5 + 1).cos() * (D_ij * (3.2 + s_p)).sin()
 
                 if use_keops:
                     m, am = K_ij.min_argmin(dim=self.nbatchdims)

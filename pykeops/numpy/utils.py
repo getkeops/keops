@@ -142,8 +142,8 @@ class numpytools:
 
 
 def squared_distances(x, y):
-    x_norm = (x ** 2).sum(1).reshape(-1, 1)
-    y_norm = (y ** 2).sum(1).reshape(1, -1)
+    x_norm = (x**2).sum(1).reshape(-1, 1)
+    y_norm = (y**2).sum(1).reshape(1, -1)
     dist = x_norm + y_norm - 2.0 * np.matmul(x, y.T)
     return dist
 
@@ -155,7 +155,7 @@ def differences(x, y):
 def np_kernel_sphere(nalpha, nbeta, s, kernel):
     prs = nalpha @ nbeta.T
     if kernel == "binet":
-        return prs ** 2
+        return prs**2
     elif kernel == "linear":
         return prs
     elif kernel == "gaussian_unoriented":
@@ -198,7 +198,7 @@ def grad_np_kernel(x, y, s, kernel):
     elif kernel == "cauchy":
         return -1.0 / (s * (sq / (s * s) + 1)) ** 2
     elif kernel == "inverse_multiquadric":
-        return -0.5 / ((s ** 2) * ((sq / (s * s) + 1) ** 1.5))
+        return -0.5 / ((s**2) * ((sq / (s * s) + 1) ** 1.5))
 
 
 def chain_rules(q, ax, by, Aa, p):

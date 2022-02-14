@@ -799,6 +799,7 @@ def varseq_to_array(vars, vars_ptr_name):
 
 def clean_keops(recompile_jit_binary=True):
     import keops.config.config
+
     build_path = keops.config.config.build_path
     use_cuda = keops.config.config.use_cuda
     if use_cuda:
@@ -810,7 +811,9 @@ def clean_keops(recompile_jit_binary=True):
             os.remove(f.path)
     KeOps_Message(f"{build_path} has been cleaned.")
     from keops.get_keops_dll import get_keops_dll
+
     get_keops_dll.reset()
     if use_cuda and recompile_jit_binary:
         from keops.binders.nvrtc.Gpu_link_compile import Gpu_link_compile
+
         Gpu_link_compile.compile_jit_compile_dll()

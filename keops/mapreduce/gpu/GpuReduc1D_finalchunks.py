@@ -99,9 +99,7 @@ class GpuReduc1D_finalchunks(MapReduce, Gpu_link_compile):
             self.red_formula.formula.children[0], self.red_formula.tagI
         )
         formula = fun_internal.formula
-        
 
-        
         varfinal = self.red_formula.formula.children[1]
         nchunks = 1 + (varfinal.dim - 1) // dimfinalchunk
         dimlastfinalchunk = varfinal.dim - (nchunks - 1) * dimfinalchunk

@@ -78,7 +78,9 @@ def get_keops_dll_impl(
     use_chunk_mode = 0
     if "Gpu" in map_reduce_id:
         if not keops.config.config.use_cuda:
-            KeOps_Error("You selected a Gpu reduce scheme but KeOps is in Cpu only mode.")
+            KeOps_Error(
+                "You selected a Gpu reduce scheme but KeOps is in Cpu only mode."
+            )
         set_enable_chunk(enable_chunks)
         set_enable_finalchunk(enable_finalchunks)
         set_mult_var_highdim(mul_var_highdim)
@@ -128,7 +130,10 @@ def get_keops_dll_impl(
         res["dimsp"],
     )
 
-get_keops_dll = Cache(get_keops_dll_impl, use_cache_file=False, save_folder=keops.config.config.build_path)
+
+get_keops_dll = Cache(
+    get_keops_dll_impl, use_cache_file=False, save_folder=keops.config.config.build_path
+)
 
 
 if __name__ == "__main__":
@@ -169,5 +174,3 @@ if __name__ == "__main__":
     res = get_keops_dll(argdict["map_reduce_id"], *list(argdict.values())[1:])
     for item in res:
         print(item)
-
-

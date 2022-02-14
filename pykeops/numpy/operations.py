@@ -258,13 +258,7 @@ class KernelSolve:
             newargs = args[: self.varinvpos] + (var,) + args[self.varinvpos + 1 :]
             nx, ny = get_sizes(self.aliases, *newargs)
             res = self.myconv.genred_numpy(
-                -1,
-                ranges,
-                nx,
-                ny,
-                nbatchdims,
-                None,
-                *newargs
+                -1, ranges, nx, ny, nbatchdims, None, *newargs
             )
             if alpha:
                 res += alpha * var

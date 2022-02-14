@@ -63,23 +63,21 @@ def get_pybind11_code(tag, launch_keops_fun_name):
             m.def("launch_keops_cpu_double", &launch_keops_{tag}_cpu < double >, "Entry point to keops - float .");
         }}                     
             """
-                    
-                    
-                    
+
 
 class LoadKeOps_cpp_class(LoadKeOps):
-
     def __init__(self, *args, fast_init=False):
         super().__init__(*args, fast_init=fast_init)
-        
+
     def init_phase1(self):
         tag = os.path.basename(self.params.dllname).split(".")[0]
         self.params.modulename = "keops_io_cpp_" + tag
-        launch_keops_fun_name = ("launch_keops_cpu_" + tag)
+        launch_keops_fun_name = "launch_keops_cpu_" + tag
         basename = os.path.join(keops.config.config.build_path, self.params.modulename)
         srcname = basename + ".cpp"
         import sysconfig
-        dllname = basename + sysconfig.get_config_var('EXT_SUFFIX')
+
+        dllname = basename + sysconfig.get_config_var("EXT_SUFFIX")
         if not os.path.exists(dllname):
             f = open(srcname, "w")
             f.write(get_pybind11_code(tag, launch_keops_fun_name))
@@ -91,12 +89,13 @@ class LoadKeOps_cpp_class(LoadKeOps):
 
     def init_phase2(self):
         import importlib
+
         mylib = importlib.import_module(self.params.modulename)
         if self.params.c_dtype == "float":
             self.launch_keops_cpu = mylib.launch_keops_cpu_float
         if self.params.c_dtype == "double":
             self.launch_keops_cpu = mylib.launch_keops_cpu_double
-            
+
     def call_keops(self, nx, ny):
         self.launch_keops_cpu(
             nx,

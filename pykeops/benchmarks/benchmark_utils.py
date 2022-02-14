@@ -277,7 +277,13 @@ def train_test_loop(N, loops, routine, max_time, args, kwargs):
 
 
 def benchmark(
-    routine, label, N, max_time, loops=10, generate_samples=None, **kwargs,
+    routine,
+    label,
+    N,
+    max_time,
+    loops=10,
+    generate_samples=None,
+    **kwargs,
 ):
 
     importlib.reload(torch)  # In case we had a memory overflow just before...

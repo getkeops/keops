@@ -21,7 +21,7 @@ def generic_sum(formula, output, *aliases, **kwargs):
         *aliases (strings): List of identifiers, as in :class:`torch.Genred <pykeops.torch.Genred>`.
 
     Keyword Args:
-        
+
 
     Returns:
         A generic reduction that can be called on arbitrary
@@ -115,7 +115,7 @@ def generic_argkmin(formula, output, *aliases, **kwargs):
         *aliases (strings): List of identifiers, as in :class:`torch.Genred <pykeops.torch.Genred>`.
 
     Keyword Args:
-        
+
 
     Returns:
         A generic reduction that can be called on arbitrary
@@ -169,7 +169,7 @@ def generic_argmin(formula, output, *aliases, **kwargs):
         *aliases (strings): List of identifiers, as in :class:`torch.Genred <pykeops.torch.Genred>`.
 
     Keyword Args:
-        
+
 
     Returns:
         A generic reduction that can be called on arbitrary

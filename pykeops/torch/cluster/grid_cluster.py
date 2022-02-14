@@ -26,11 +26,15 @@ def grid_cluster(x, size):
     with torch.no_grad():
         # Quantize the points' positions
         if x.shape[1] == 1:
-            weights = torch.IntTensor([1],).to(x.device)
+            weights = torch.IntTensor(
+                [1],
+            ).to(x.device)
         elif x.shape[1] == 2:
-            weights = torch.IntTensor([2 ** 10, 1],).to(x.device)
+            weights = torch.IntTensor(
+                [2**10, 1],
+            ).to(x.device)
         elif x.shape[1] == 3:
-            weights = torch.IntTensor([2 ** 20, 2 ** 10, 1]).to(x.device)
+            weights = torch.IntTensor([2**20, 2**10, 1]).to(x.device)
         else:
             raise NotImplementedError()
         x_ = (x / size).floor().int()

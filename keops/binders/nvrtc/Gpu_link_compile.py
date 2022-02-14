@@ -16,8 +16,11 @@ from keops.config.config import (
 from keops.utils.misc_utils import KeOps_Error, KeOps_Message
 from keops.utils.gpu_utils import get_gpu_props, cuda_include_fp16_path
 
-jit_compile_src = os.path.join(os.path.abspath(os.path.dirname(__file__)), "Compile.cpp")
+jit_compile_src = os.path.join(
+    os.path.abspath(os.path.dirname(__file__)), "Compile.cpp"
+)
 jit_compile_dll = os.path.join(keops.config.config.build_path, "Compile.so")
+
 
 class Gpu_link_compile(LinkCompile):
     source_code_extension = "cu"
@@ -62,20 +65,22 @@ class Gpu_link_compile(LinkCompile):
             create_string_buffer(self.code.encode("utf-8")),
             c_int(self.use_half),
             c_int(self.device_id),
-            create_string_buffer((cuda_include_fp16_path()+os.path.sep).encode("utf-8")),
+            create_string_buffer(
+                (cuda_include_fp16_path() + os.path.sep).encode("utf-8")
+            ),
         )
         # retreive some parameters that will be saved into info_file.
         self.tagI = self.red_formula.tagI
         self.dim = self.red_formula.dim
 
     @staticmethod
-    def get_compile_command(sourcename=jit_source_file, dllname=jit_binary, extra_flags=""):
+    def get_compile_command(
+        sourcename=jit_source_file, dllname=jit_binary, extra_flags=""
+    ):
         # This is about the main KeOps binary (dll) that will be used to JIT compile all formulas.
         # If the dll is not present, it compiles it from source, except if check_compile is False.
 
-        target_tag = (
-            "CUBIN" if Gpu_link_compile.target_prefix == "cubin_" else "PTX"
-        )
+        target_tag = "CUBIN" if Gpu_link_compile.target_prefix == "cubin_" else "PTX"
         nvrtcGetTARGET = "nvrtcGet" + target_tag
         nvrtcGetTARGETSize = nvrtcGetTARGET + "Size"
         arch_tag = (
@@ -96,8 +101,10 @@ class Gpu_link_compile(LinkCompile):
     @staticmethod
     def compile_jit_compile_dll():
         KeOps_Message("Compiling cuda jit compiler engine ... ", flush=True, end="")
-        os.system(Gpu_link_compile.get_compile_command(
-            sourcename=jit_compile_src,
-            dllname=jit_compile_dll,
-        ))
+        os.system(
+            Gpu_link_compile.get_compile_command(
+                sourcename=jit_compile_src,
+                dllname=jit_compile_dll,
+            )
+        )
         print("OK", flush=True)

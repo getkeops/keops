@@ -15,5 +15,6 @@ sys.path.append(keops.config.config.build_path)
 if keops.config.config.use_cuda:
     keops.config.config.init_cudalibs()
     from keops.binders.nvrtc.Gpu_link_compile import Gpu_link_compile, jit_compile_dll
+
     if not os.path.exists(jit_compile_dll):
         Gpu_link_compile.compile_jit_compile_dll()

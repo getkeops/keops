@@ -28,7 +28,7 @@ def fun(x, y, a, b, backend):
         y = LazyTensor(y)
     elif backend != "torch":
         raise ValueError("wrong backend")
-    Dxy = (x-y).sum(dim=2)
+    Dxy = (x - y).sum(dim=2)
     Kxy = Dxy
     return Kxy.sum(dim=0)
 

@@ -72,7 +72,7 @@ class GenredAutograd(torch.autograd.Function):
                     raise ValueError(
                         "[KeOps] Gpu device id of arrays is different from device id requested for computation."
                     )
-        
+
         myconv = keops_binder["nvrtc" if tagCPUGPU else "cpp"](
             tagCPUGPU,
             tag1D2D,
@@ -440,10 +440,10 @@ class Genred:
 
             enable_chunks (bool, default True): for Gpu mode only, enable automatic selection of special "chunked" computation mode for accelerating reductions
                                 with formulas involving large dimension variables.
-            
+
             rec_multVar_highdim (bool, default False): for Gpu mode only, enable special "final chunked" computation mode for accelerating reductions
                                 with formulas involving large dimension variables. Beware ! This will only work if the formula has the very special form
-                                that allows such computation mode. 
+                                that allows such computation mode.
 
         """
 
@@ -460,7 +460,11 @@ class Genred:
         reduction_op_internal, formula2 = preprocess(reduction_op, formula2)
 
         self.optional_flags = get_optional_flags(
-            reduction_op_internal, dtype_acc, use_double_acc, sum_scheme, enable_chunks,
+            reduction_op_internal,
+            dtype_acc,
+            use_double_acc,
+            sum_scheme,
+            enable_chunks,
         )
 
         str_opt_arg = "," + str(opt_arg) if opt_arg else ""
@@ -580,7 +584,7 @@ class Genred:
                 should be computed using a Map-Reduce scheme over
                 indices ``i in Union( range( redranges_i[l, 0], redranges_i[l, 1] ))``
                 for ``l in range( slices_j[k-1], slices_j[k] )``.
-            
+
             out (2d Tensor, None by default): The output numerical array, for in-place computation.
                 If provided, the output array should all have the same ``dtype``, be **contiguous** and be stored on
                 the **same device** as the arguments. Moreover it should have the correct shape for the output.

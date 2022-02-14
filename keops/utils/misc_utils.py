@@ -26,7 +26,7 @@ def KeOps_Error(message, show_line_number=True):
 def find_library_abspath(lib):
     """
     wrapper around ctypes find_library that returns the full path
-    of the library. 
+    of the library.
     Warning : it also opens the shared library !
     Adapted from
     https://stackoverflow.com/questions/35682600/get-absolute-path-of-shared-library-in-python/35683698

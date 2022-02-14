@@ -10,12 +10,13 @@ M, N, D, DV = 1000, 1000, 3, 1
 
 dtype = torch.float32
 
-device_id = "cpu" #"cuda:1" if torch.cuda.is_available() else "cpu"
+device_id = "cpu"  # "cuda:1" if torch.cuda.is_available() else "cpu"
 do_warmup = True
 
 x = torch.rand(M, 1, D, device=device_id, dtype=dtype) / math.sqrt(D)
 y = torch.rand(1, N, D, device=device_id, dtype=dtype) / math.sqrt(D)
 b = torch.randn(N, DV, device=device_id, dtype=dtype)
+
 
 def fun(x, y, b, backend):
     if "keops" in backend:
@@ -49,6 +50,8 @@ for backend in backends:
     end = time.time()
     print("time for " + backend + ":", end - start)
 
-for k in range(1,len(out)):
-    print(f"relative error for {backends[k]}:", (torch.norm(out[0] - out[k]) / torch.norm(out[0])).item())
-
+for k in range(1, len(out)):
+    print(
+        f"relative error for {backends[k]}:",
+        (torch.norm(out[0] - out[k]) / torch.norm(out[0])).item(),
+    )

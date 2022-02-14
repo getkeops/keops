@@ -1341,7 +1341,7 @@ class GenericLazyTensor:
 
         ``pow(x,y)`` is equivalent to ``x**y``.
         """
-        return self ** other
+        return self**other
 
     def square(self):
         r"""
@@ -1480,7 +1480,7 @@ class GenericLazyTensor:
         if not hasattr(other, "__GenericLazyTensor__"):
             other = self.lt_constructor(other)
 
-        if other.ndim not in (1, self.ndim, self.ndim ** 2):
+        if other.ndim not in (1, self.ndim, self.ndim**2):
             raise ValueError(
                 "Squared norm weights should be of size 1 (scalar), "
                 + "D (diagonal) or D^2 (full symmetric tensor), but received "
@@ -2259,11 +2259,15 @@ class GenericLazyTensor:
             # now we replace all occurrences of old ids by new ids in formulas
             if res.formula is not None:
                 res.formula = re.sub(
-                    r"(Var|VarSymb)\({},(\d+),(\d+)\)".format(id(x)), r"\1({},\2,\2)".format(id(y)), res.formula
+                    r"(Var|VarSymb)\({},(\d+),(\d+)\)".format(id(x)),
+                    r"\1({},\2,\2)".format(id(y)),
+                    res.formula,
                 )
             if res.formula2 is not None:
                 res.formula2 = re.sub(
-                    r"(Var|VarSymb)\({},(\d+),(\d+)\)".format(id(x)), r"\1({},\2,\3)".format(id(y)), res.formula2
+                    r"(Var|VarSymb)\({},(\d+),(\d+)\)".format(id(x)),
+                    r"\1({},\2,\3)".format(id(y)),
+                    res.formula2,
                 )
         res.variables = tuple(newvars)
         return res

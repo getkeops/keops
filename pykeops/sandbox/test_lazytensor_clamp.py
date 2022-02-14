@@ -27,7 +27,7 @@ def fun(x, y, a, b, backend):
     elif backend != "torch":
         raise ValueError("wrong backend")
     Dxy = ((x * y).clamp(a, b)).sum(dim=2)
-    Kxy = (-(Dxy ** 2)).exp()
+    Kxy = (-(Dxy**2)).exp()
     return Kxy.sum(dim=1)
 
 

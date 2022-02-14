@@ -33,8 +33,8 @@ class Cache:
 
 
 class Cache_partial:
-    """
-    """
+    """ """
+
     def __init__(self, cls, use_cache_file=False, save_folder="."):
         self.cls = cls
         self.library = {}

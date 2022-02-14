@@ -130,7 +130,7 @@ class Genred:
 
             enable_chunks (bool, default True): enable automatic selection of special "chunked" computation mode for accelerating reductions
                                 with formulas involving large dimension variables.
-            
+
             rec_multVar_highdim (bool, default False): for Gpu mode only, enable special "final chunked" computation mode for accelerating reductions
                                 with formulas involving large dimension variables. Beware ! This will only work if the formula has the very special form
                                 that allows such computation mode.
@@ -150,7 +150,11 @@ class Genred:
         reduction_op_internal, formula2 = preprocess(reduction_op, formula2)
 
         self.optional_flags = get_optional_flags(
-            reduction_op_internal, dtype_acc, use_double_acc, sum_scheme, enable_chunks,
+            reduction_op_internal,
+            dtype_acc,
+            use_double_acc,
+            sum_scheme,
+            enable_chunks,
         )
 
         if rec_multVar_highdim:
@@ -266,7 +270,7 @@ class Genred:
                 these integer arrays allow us to say that ``for k in range(Nc)``, the output values for
                 indices ``j in range( ranges_j[k,0], ranges_j[k,1] )`` should be computed using a Map-Reduce scheme over
                 indices ``i in Union( range( redranges_i[l, 0], redranges_i[l, 1] ))`` for ``l in range( slices_j[k-1], slices_j[k] )``.
-            
+
             out (2d array, None by default): The output numerical array, for in-place computation.
                 If provided, the output array should all have the same ``dtype``, be **contiguous** and be stored on
                 the **same device** as the arguments. Moreover it should have the correct shape for the output.
@@ -338,8 +342,6 @@ class Genred:
                     "size of input array is too large for Arg type reduction with float16 dtype.."
                 )
 
-        out = self.myconv.genred_numpy(
-            -1, ranges, nx, ny, nbatchdims, out, *args
-        )
+        out = self.myconv.genred_numpy(-1, ranges, nx, ny, nbatchdims, out, *args)
 
         return postprocess(out, "numpy", self.reduction_op, nout, self.opt_arg, dtype)

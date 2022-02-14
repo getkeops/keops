@@ -79,16 +79,16 @@ except:
 kernel_to_test = ["gaussian", "laplacian", "cauchy", "inverse_multiquadric"]
 kernels = {
     "gaussian": lambda xc, yc, sigmac: (
-        -Pm(1 / sigmac ** 2) * Vi(xc).sqdist(Vj(yc))
+        -Pm(1 / sigmac**2) * Vi(xc).sqdist(Vj(yc))
     ).exp(),
     "laplacian": lambda xc, yc, sigmac: (
-        -(Pm(1 / sigmac ** 2) * Vi(xc).sqdist(Vj(yc))).sqrt()
+        -(Pm(1 / sigmac**2) * Vi(xc).sqdist(Vj(yc))).sqrt()
     ).exp(),
     "cauchy": lambda xc, yc, sigmac: (
-        1 + Pm(1 / sigmac ** 2) * Vi(xc).sqdist(Vj(yc))
+        1 + Pm(1 / sigmac**2) * Vi(xc).sqdist(Vj(yc))
     ).power(-1),
     "inverse_multiquadric": lambda xc, yc, sigmac: (
-        1 + Pm(1 / sigmac ** 2) * Vi(xc).sqdist(Vj(yc))
+        1 + Pm(1 / sigmac**2) * Vi(xc).sqdist(Vj(yc))
     )
     .sqrt()
     .power(-1),
@@ -213,16 +213,24 @@ for k in kernel_to_test:
 
 # plot violin plot
 plt.violinplot(
-    list(speed_numpy.values()), showmeans=False, showmedians=True,
+    list(speed_numpy.values()),
+    showmeans=False,
+    showmedians=True,
 )
 plt.violinplot(
-    list(speed_pytorch.values()), showmeans=False, showmedians=True,
+    list(speed_pytorch.values()),
+    showmeans=False,
+    showmedians=True,
 )
 plt.violinplot(
-    list(speed_pykeops_specific.values()), showmeans=False, showmedians=True,
+    list(speed_pykeops_specific.values()),
+    showmeans=False,
+    showmedians=True,
 )
 plt.violinplot(
-    list(speed_pykeops.values()), showmeans=False, showmedians=True,
+    list(speed_pykeops.values()),
+    showmeans=False,
+    showmedians=True,
 )
 
 plt.xticks([1, 2, 3, 4], kernel_to_test)

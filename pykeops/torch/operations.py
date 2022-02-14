@@ -112,13 +112,7 @@ class KernelSolveAutograd(torch.autograd.Function):
         def linop(var):
             newargs = args[:varinvpos] + (var,) + args[varinvpos + 1 :]
             res = myconv.genred_pytorch(
-                device_args,
-                ranges,
-                nx,
-                ny,
-                nbatchdims,
-                None,
-                *newargs
+                device_args, ranges, nx, ny, nbatchdims, None, *newargs
             )
             if alpha:
                 res += alpha * var
@@ -439,7 +433,11 @@ class KernelSolve:
         self.reduction_op = "Sum"
 
         self.optional_flags = get_optional_flags(
-            self.reduction_op, dtype_acc, use_double_acc, sum_scheme, enable_chunks,
+            self.reduction_op,
+            dtype_acc,
+            use_double_acc,
+            sum_scheme,
+            enable_chunks,
         )
 
         self.formula = (

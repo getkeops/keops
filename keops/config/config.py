@@ -24,6 +24,7 @@ default_build_path = join(keops_cache_folder, "build")
 
 build_path = ""
 
+
 def set_build_folder(path=None, read_save_file=False):
     save_file = join(keops_cache_folder, "build_folder_location.txt")
     if not path:
@@ -38,6 +39,7 @@ def set_build_folder(path=None, read_save_file=False):
     os.makedirs(path, exist_ok=True)
     f = open(save_file, "w")
     f.write(path)
+
 
 set_build_folder(read_save_file=True)
 
@@ -71,8 +73,6 @@ if platform.system() == "Darwin":
     cpp_flags += " -undefined dynamic_lookup"
 
 cpp_flags += " -I" + bindings_source_dir
-
-
 
 
 from keops.utils.gpu_utils import get_gpu_props
