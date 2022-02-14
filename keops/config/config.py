@@ -10,20 +10,38 @@ from keops.utils.misc_utils import KeOps_Warning, KeOps_Error
 use_cuda = True  # use cuda if possible
 use_OpenMP = True  # use OpenMP if possible
 
-
 # System Path
 base_dir_path = os.path.abspath(join(os.path.dirname(os.path.realpath(__file__)), ".."))
 template_path = join(base_dir_path, "templates")
 bindings_source_dir = join(base_dir_path)
 keops_cache_folder = join(os.path.expanduser("~"), ".cache", "keops")
-os.makedirs(keops_cache_folder, exist_ok=True)
 default_build_path = join(keops_cache_folder, "build")
+
+# init cache folder
+version_cache_file = join(keops_cache_folder,"keops_version")
+if os.path.exists(keops_cache_folder):
+    v = open(version_cache_file, encoding="utf-8")
+    cache_version = v.read().rstrip()
+    if cache_version != keops.__version__:
+        v.close()
+        import shutil
+        shutil.rmtree(keops_cache_folder)
+        test_init_cache = True
+    else:
+        v.close()
+        test_init_cache = False
+else:
+    test_init_cache = True
+if test_init_cache:
+    os.makedirs(keops_cache_folder)
+    v = open(version_cache_file, "w", encoding="utf-8")
+    v.write(keops.__version__)
+    v.close()
 
 
 # build path setter/getter
 
 build_path = ""
-
 
 def set_build_folder(path=None, read_save_file=False):
     save_file = join(keops_cache_folder, "build_folder_location.txt")
@@ -40,8 +58,10 @@ def set_build_folder(path=None, read_save_file=False):
     f = open(save_file, "w")
     f.write(path)
 
-
 set_build_folder(read_save_file=True)
+
+
+
 
 jit_binary = join(build_path, "keops_nvrtc.so")
 

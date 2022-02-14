@@ -1,4 +1,9 @@
 import sys, os
+from os import path
+
+here = path.abspath(path.dirname(__file__))
+with open(os.path.join(here, "keops_version"), encoding="utf-8") as v:
+    __version__ = v.read().rstrip()
 
 import keops.config
 from keops.config.config import set_build_folder
