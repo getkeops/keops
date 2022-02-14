@@ -35,7 +35,7 @@ sigma = 0.1  # Radius of our RBF kernel
 dtype = "float32"
 x = np.random.rand(N, D).astype(dtype)
 b = np.random.rand(N, Dv).astype(dtype)
-g = np.array([0.5 / sigma ** 2]).astype(dtype)  # Parameter of the Gaussian RBF kernel
+g = np.array([0.5 / sigma**2]).astype(dtype)  # Parameter of the Gaussian RBF kernel
 
 ###############################################################################
 # KeOps kernel

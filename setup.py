@@ -73,10 +73,12 @@ setup(
         "keops.utils",
     ],
     package_data={
-        "pykeops": ["readme.md",
-                    "licence.txt",
-                    "keops_version",
-                    "common/keops_io_nvrtc.cpp"],
+        "pykeops": [
+            "readme.md",
+            "licence.txt",
+            "keops_version",
+            "common/keops_io_nvrtc.cpp",
+        ],
         "keops": [
             "binders/nvrtc/keops_nvrtc.cpp",
             "binders/nvrtc/Compile.cpp",
