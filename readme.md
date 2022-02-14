@@ -125,7 +125,7 @@ K_ij = (- D_ij).exp()               # Symbolic (1e6,2e6,1) Gaussian kernel matri
 a_i = K_ij.sum(dim=1)  # Genuine torch.cuda.FloatTensor, a_i.shape = (1e6, 1), 
 
 # Crucially, KeOps fully supports automatic differentiation!
-g_x = torch.autograd.grad((a_i ** 2).sum(), [x])```
+g_x = torch.autograd.grad((a_i ** 2).sum(), [x])
 ```
 
 KeOps allows you to **get the most out of your hardware** without compromising on **usability**.
