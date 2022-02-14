@@ -43,12 +43,14 @@ pipeline {
           agent { label 'cuda' }
           steps {
             echo 'Testing..'
+			  sh 'rm -rf $HOME/.cache/keops'
               sh '''#!/bin/bash
                  eval "$(/opt/miniconda3/bin/conda shell.bash hook)"
                  conda activate keops
                  cd pykeops/test
                  python unit_tests_pytorch.py
               '''
+			  sh 'rm -rf $HOME/.cache/keops'
               sh '''#!/bin/bash
                  eval "$(/opt/miniconda3/bin/conda shell.bash hook)"
                  conda activate keops
