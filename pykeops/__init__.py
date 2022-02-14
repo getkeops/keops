@@ -28,7 +28,9 @@ def clean_pykeops(recompile_jit_binaries=True):
     import keops
 
     keops.clean_keops(recompile_jit_binary=recompile_jit_binaries)
-    pykeops.common.loadkeops.LoadKeOps.LoadKeOps.reset()
+    keops_binder = pykeops.common.keops_io.keops_binder
+    for key in keops_binder:
+        keops_binder[key].reset()
     if recompile_jit_binaries and keops.config.config.use_cuda:
         from pykeops.common.keops_io.LoadKeOps_nvrtc import compile_jit_binary
 
@@ -42,4 +44,4 @@ if pykeops.config.torch_found:
     from .test.install import test_torch_bindings
 
 # next line is to ensure that cache file for formulas is loaded at import
-import pykeops.common.keops_io.LoadKeOps  # TODO: Check that!!
+import pykeops.common.keops_io
