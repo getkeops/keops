@@ -132,7 +132,7 @@ def get_keops_dll_impl(
 
 
 get_keops_dll = Cache(
-    get_keops_dll_impl, use_cache_file=False, save_folder=keops.config.config.build_path
+    get_keops_dll_impl, use_cache_file=True, save_folder=keops.config.config.build_path
 )
 
 
