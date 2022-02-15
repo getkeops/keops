@@ -6,6 +6,7 @@ from pykeops.common.operations import ConjugateGradientSolver
 from pykeops.common.parse_type import get_sizes, complete_aliases, get_optional_flags
 from pykeops.common.utils import axis2cat
 from pykeops import default_device_id
+from pykeops.common.utils import pyKeOps_Warning
 
 
 class KernelSolve:
@@ -121,8 +122,8 @@ class KernelSolve:
 
         """
         if dtype:
-            print(
-                "[pyKeOps] Warning: keyword argument dtype in KernelSolve is deprecated ; argument is ignored."
+            pyKeOps_Warning(
+                "keyword argument dtype in KernelSolve is deprecated ; argument is ignored."
             )
 
         reduction_op = "Sum"

@@ -1,6 +1,17 @@
 import os
 
 ###########################################################
+# Verbosity level
+verbose = True
+if os.getenv('PYKEOPS_VERBOSE')=="0":
+    verbose = False
+    os.environ['KEOPS_VERBOSE'] = "0"
+def set_verbose(val):
+    global verbose
+    verbose = val
+    keops.verbose = val
+    
+###########################################################
 # Set version
 
 with open(

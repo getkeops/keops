@@ -38,7 +38,7 @@ In a new `Colab notebook <https://colab.research.google.com>`_, typing:
 
 .. code-block:: bash
 
-    !pip install pykeops[colab] > install.log
+    !pip install pykeops > install.log
 
 should allow you to get a working version of KeOps in less than twenty seconds.
 
@@ -98,19 +98,12 @@ You can use the following test functions to compile and run simple KeOps formula
   .. code-block:: python
 
     import pykeops
-    pykeops.clean_pykeops()          # just in case old build files are still present 
     pykeops.test_numpy_bindings()    # perform the compilation
         
   should return:
 
   .. code-block:: console
 
-    Compiling libKeOpsnumpyb10acd1892 in /path/to/build_dir/build-libKeOpsnumpyb10acd1892:
-       formula: Sum_Reduction(SqNorm2(x - y),1)
-       aliases: x = Vi(0,3); y = Vj(1,3); 
-       dtype  : float64
-    ... Done.
-    
     pyKeOps with numpy bindings is working!
 
 2. If you use PyTorch, the following code:
@@ -118,18 +111,11 @@ You can use the following test functions to compile and run simple KeOps formula
   .. code-block:: python
 
     import pykeops
-    pykeops.clean_pykeops()          # just in case old build files are still present
     pykeops.test_torch_bindings()    # perform the compilation
   
   should return:
 
   .. code-block:: console
-
-    Compiling libKeOpstorch2ee7a43993 in /path/to/build_dir/build-libKeOpstorch2ee7a43993:
-       formula: Sum_Reduction(SqNorm2(x - y),1)
-       aliases: x = Vi(0,3); y = Vj(1,3); 
-       dtype  : float32
-    ... Done.
 
     pyKeOps with torch bindings is working!
 
@@ -140,7 +126,7 @@ Troubleshooting
 Compilation issues
 ------------------
 
-First of all, make sure that you are using a C++ compiler which is compatible with the **C++11 revision** and/or your **nvcc** (CUDA) compiler. Otherwise, compilation of formulas may fail in unexpected ways. A table of supported combinations is available at `this address <https://gist.github.com/ax3l/9489132>`_. Depending on your system, you can:
+First of all, make sure that you are using a C++ compiler which is compatible with the **C++11 revision**. Otherwise, compilation of formulas may fail in unexpected ways. Depending on your system, you can:
 
 1. Install a compiler **system-wide**: for instance, on Debian-based Linux distributions, you can install g++ with apt and then use `update-alternatives <https://askubuntu.com/questions/26498/choose-gcc-and-g-version>`_ to choose a suitable compiler as default. Don't forget to pick compatible versions for both **gcc** and **g++**.  
 
@@ -170,48 +156,20 @@ You can change the build folder by using the ``set_build_folder()`` function:
 
 Note that the command ``set_build_folder()`` without any argument will reset the location to the default one (``~/.keops/build`` on unix-like systems)
 
-.. warning::
-    Setting the build folder must be done at the beginning of a Python session.
-    That is, **before** importing any pykeops modules.
-
-
-
 Verbosity level
 ---------------
 
-To help debugging, you can activate a **verbose** compilation mode. This can be done by stting the environment variable `PYKEOPS_VERBOSE` to 1. In a terminal, type:
+You can deactivate all messages and warnings by setting the environment variable `PYKEOPS_VERBOSE` to 0. In a terminal, type:
 
 .. code-block:: bash
 
-  export PYKEOPS_VERBOSE=1
+  export PYKEOPS_VERBOSE=0
   python my_script_calling_pykeops.py
 
-Alternatively, you can enable verbose compilation from your python script by setting the flag ``pykeops.verbose`` to ``True`` **after** your KeOps imports. In a python shell, type:
+Alternatively, you can disable verbose compilation from your python script using the function ``pykeops.set_verbose``. In a python shell, type:
 
 .. code-block:: python
 
   import pykeops
-  pykeops.config.verbose = True
+  pykeops.set_verbose(False)
 
-
-Build type
-----------
-
-To force the (re)compilation of KeOps shared objects, you can change the KeOps build type from ``Release`` (default) to ``Debug``. This is done by changing the value of the environment variable ``PYKEOPS_BUILD_TYPE``, either in a terminal:
-
-.. code-block:: bash
-
-  export PYKEOPS_BUILD_TYPE="Debug"
-  python my_script_calling_pykeops.py
-
-Or directly in your python script, altering the value of the (string) variable ``pykeops.build_type`` right **after** your KeOps imports. In a python shell, simply type: 
-
-.. code-block:: python
-
-  import pykeops
-  pykeops.config.build_type = 'Debug'
-
-.. warning::
-  Beware! The shared objects generated in debug mode are **not optimized for speed**
-  and should thus be deleted at the end of your debugging session. 
-  In order to do so, please **flush your cache directory** as described in the :ref:`previous section <part.cache>`.

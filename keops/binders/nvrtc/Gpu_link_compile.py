@@ -98,7 +98,7 @@ class Gpu_link_compile(LinkCompile):
         """Legacy compilation from keops"""
         KeOps_Message("Compiling main dll ... ", flush=True, end="")
         os.system(Gpu_link_compile.get_compile_command())
-        print("OK", flush=True)
+        KeOps_Message("OK", use_tag=False, flush=True)
 
     @staticmethod
     def compile_jit_compile_dll():
@@ -109,4 +109,4 @@ class Gpu_link_compile(LinkCompile):
                 dllname=jit_compile_dll(),
             )
         )
-        print("OK", flush=True)
+        KeOps_Message("OK", use_tag=False, flush=True)
