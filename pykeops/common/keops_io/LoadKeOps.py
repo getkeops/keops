@@ -105,7 +105,8 @@ class LoadKeOps:
             map_reduce_id += "_ranges"
 
         (
-            self.params.dllname,
+            self.params.tag,
+            self.params.source_name,
             self.params.low_level_code_file,
             self.params.tagI,
             self.params.tagZero,

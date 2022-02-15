@@ -111,8 +111,9 @@ def get_keops_dll_impl(
     res = map_reduce_obj.get_dll_and_params()
 
     return (
-        res["dllname"],
-        res["target_file"],
+        res["tag"],
+        res["source_file"],
+        res["low_level_code_file"],
         res["tagI"],
         tagZero,
         res["use_half"],
