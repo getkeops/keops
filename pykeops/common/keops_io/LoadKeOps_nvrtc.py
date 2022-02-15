@@ -74,7 +74,7 @@ def compile_jit_binary():
         sourcename=os.path.join(
             os.path.dirname(os.path.realpath(__file__)), "../keops_io_nvrtc.cpp"
         ),
-        dllname=pykeops.config.jit_binary_name(),
+        dllname=pykeops.config.pykeops_nvrtc_name(),
     )
     pyKeOps_Message("Compiling nvrtc binder for python ... ", flush=True, end="")
     os.system(compile_command)

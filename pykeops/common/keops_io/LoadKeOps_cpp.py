@@ -5,6 +5,7 @@ import pykeops
 from keops.utils.Cache import Cache_partial
 from pykeops.common.keops_io.LoadKeOps import LoadKeOps
 from pykeops.common.utils import pyKeOps_Message
+from pykeops.config import pykeops_cpp_basename
 
 
 def get_pybind11_code(tag, launch_keops_fun_name):
@@ -73,7 +74,7 @@ class LoadKeOps_cpp_class(LoadKeOps):
         tag = os.path.basename(self.params.dllname).split(".")[0]
         self.params.modulename = "keops_io_cpp_" + tag
         launch_keops_fun_name = "launch_keops_cpu_" + tag
-        basename = os.path.join(keops.config.config.build_path, self.params.modulename)
+        basename = pykeops_cpp_basename(tag=self.params.modulename)
         srcname = basename + ".cpp"
         import sysconfig
 
@@ -83,7 +84,7 @@ class LoadKeOps_cpp_class(LoadKeOps):
             f.write(get_pybind11_code(tag, launch_keops_fun_name))
             f.close()
             compile_command = f"{keops.config.config.cxx_compiler} {keops.config.config.cpp_flags} {pykeops.config.python_includes} {srcname} -o {dllname}"
-            pyKeOps_Message("Compiling Pybind11 module ... ", flush=True, end="")
+            pyKeOps_Message("Compiling pykeops cpp " + tag + " module ... ", flush=True, end="")
             os.system(compile_command)
             print("OK", flush=True)
 

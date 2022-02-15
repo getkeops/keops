@@ -11,10 +11,19 @@ torch_found = importlib.util.find_spec("torch") is not None
 
 from keops.config.config import use_cuda as gpu_available
 
-def jit_binary_name():
+def pykeops_nvrtc_name():
+    basename = "pykeops_nvrtc"
+    extension = sysconfig.get_config_var("EXT_SUFFIX")
     return join(
         keops.config.config.build_path,
-        "keops_io_nvrtc" + sysconfig.get_config_var("EXT_SUFFIX"),
+        basename + extension,
+        )
+
+def pykeops_cpp_basename(tag=None):
+    basename = "pykeops_cpp_"
+    return join(
+        keops.config.config.build_path,
+        basename + tag,
         )
 
 python_includes = "$(python3 -m pybind11 --includes)"
