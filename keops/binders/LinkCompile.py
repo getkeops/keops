@@ -96,7 +96,7 @@ class LinkCompile:
             )
             self.compile_code()
             self.save_info()
-            print("OK", flush=True)
+            KeOps_Message("OK", use_tag=False, flush=True)
         else:
             self.read_info()
         return dict(

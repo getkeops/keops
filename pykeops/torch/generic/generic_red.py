@@ -11,6 +11,7 @@ from pykeops.common.parse_type import (
 )
 from pykeops.common.utils import axis2cat
 from pykeops import default_device_id
+from pykeops.common.utils import pyKeOps_Warning
 
 
 class GenredAutograd(torch.autograd.Function):
@@ -102,8 +103,8 @@ class GenredAutograd(torch.autograd.Function):
         # N.B.: KeOps C++ expects contiguous data arrays
         test_contig = all(arg.is_contiguous() for arg in args)
         if not test_contig:
-            print(
-                "[pyKeOps] Warning : at least one of the input tensors is not contiguous. "
+            pyKeOps_Warning(
+                "at least one of the input tensors is not contiguous. "
                 + "Consider using contiguous data arrays to avoid unnecessary copies."
             )
             args = tuple(arg.contiguous() for arg in args)
@@ -448,12 +449,12 @@ class Genred:
         """
 
         if dtype:
-            print(
-                "[pyKeOps] Warning: keyword argument dtype in Genred is deprecated ; argument is ignored."
+            pyKeOps_Warning(
+                "keyword argument dtype in Genred is deprecated ; argument is ignored."
             )
         if cuda_type:
-            print(
-                "[pyKeOps] Warning: keyword argument cuda_type in Genred is deprecated ; argument is ignored."
+            pyKeOps_Warning(
+                "keyword argument cuda_type in Genred is deprecated ; argument is ignored."
             )
 
         self.reduction_op = reduction_op

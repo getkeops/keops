@@ -217,7 +217,7 @@ def c_for_loop(start, end, incr, pragma_unroll=False):
     start, end, incr = map(to_string, (start, end, incr))
     k = c_variable("int", new_c_varname("k"))
 
-    def print(body_code):
+    def printfun(body_code):
         string = ""
         if pragma_unroll:
             string += use_pragma_unroll()
@@ -227,7 +227,7 @@ def c_for_loop(start, end, incr, pragma_unroll=False):
                     """
         return string
 
-    return print, k
+    return printfun, k
 
 
 c_zero_int = c_variable("int", "0")

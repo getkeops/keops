@@ -86,7 +86,7 @@ class LoadKeOps_cpp_class(LoadKeOps):
             compile_command = f"{keops.config.config.cxx_compiler} {keops.config.config.cpp_flags} {pykeops.config.python_includes} {srcname} -o {dllname}"
             pyKeOps_Message("Compiling pykeops cpp " + tag + " module ... ", flush=True, end="")
             os.system(compile_command)
-            print("OK", flush=True)
+            pyKeOps_Message("OK", use_tag=False, flush=True)
 
     def init_phase2(self):
         import importlib

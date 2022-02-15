@@ -1,6 +1,17 @@
 import os
 
 ###########################################################
+# Verbosity level
+verbose = True
+if os.getenv('PYKEOPS_VERBOSE')=="0":
+    verbose = False
+    os.environ['KEOPS_VERBOSE'] = "0"
+def set_verbose(val):
+    global verbose
+    verbose = val
+    keops.verbose = val
+    
+###########################################################
 # Set version
 
 with open(
@@ -40,7 +51,9 @@ def set_build_folder(path=None):
         keops_binder[key].reset(new_save_folder=keops.config.config.build_path)
     if keops.config.config.use_cuda and not os.path.exists(pykeops.config.pykeops_nvrtc_name()):
         pykeops.common.keops_io.LoadKeOps_nvrtc.compile_jit_binary()
-    
+
+def get_build_folder():
+    return keops.config.config.build_path    
 
 if pykeops.config.numpy_found:
     from .test.install import test_numpy_bindings

@@ -1,6 +1,12 @@
 import sys, os
 from os import path
 
+###########################################################
+# Verbosity level
+verbose = True
+if os.getenv('KEOPS_VERBOSE')=="0":
+    verbose = False
+
 here = path.abspath(path.dirname(__file__))
 with open(os.path.join(here, "keops_version"), encoding="utf-8") as v:
     __version__ = v.read().rstrip()

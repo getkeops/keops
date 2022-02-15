@@ -2,15 +2,19 @@
 # .  Warnings, Errors, etc.
 #######################################################################
 
+import keops
 
-def KeOps_Message(message, **kwargs):
-    message = "[KeOps] " + message
-    print(message, **kwargs)
+def KeOps_Message(message, use_tag=True, **kwargs):
+    if keops.verbose:
+        tag = "[KeOps] " if use_tag else ""
+        message = tag + message
+        print(message, **kwargs)
 
 
 def KeOps_Warning(message):
-    message = "[KeOps] Warning : " + message
-    print(message)
+    if keops.verbose:
+        message = "[KeOps] Warning : " + message
+        print(message)
 
 
 def KeOps_Error(message, show_line_number=True):

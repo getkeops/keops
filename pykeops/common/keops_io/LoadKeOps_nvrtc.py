@@ -78,7 +78,7 @@ def compile_jit_binary():
     )
     pyKeOps_Message("Compiling nvrtc binder for python ... ", flush=True, end="")
     os.system(compile_command)
-    print("OK", flush=True)
+    pyKeOps_Message("OK", use_tag=False, flush=True)
 
 
 LoadKeOps_nvrtc = Cache_partial(

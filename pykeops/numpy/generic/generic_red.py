@@ -6,6 +6,7 @@ from pykeops.common.operations import preprocess, postprocess
 from pykeops.common.parse_type import get_sizes, complete_aliases, get_optional_flags
 from pykeops.common.utils import axis2cat
 from pykeops import default_device_id
+from pykeops.common.utils import pyKeOps_Warning
 
 
 class Genred:
@@ -138,12 +139,12 @@ class Genred:
         """
 
         if dtype:
-            print(
-                "[pyKeOps] Warning: keyword argument dtype in Genred is deprecated ; argument is ignored."
+            pyKeOps_Warning(
+                "keyword argument dtype in Genred is deprecated ; argument is ignored."
             )
         if cuda_type:
-            print(
-                "[pyKeOps] Warning: keyword argument cuda_type in Genred is deprecated ; argument is ignored."
+            pyKeOps_Warning(
+                "keyword argument cuda_type in Genred is deprecated ; argument is ignored."
             )
 
         self.reduction_op = reduction_op
@@ -315,8 +316,8 @@ class Genred:
         # N.B.: KeOps C++ expects contiguous data arrays
         test_contig = all(arg.flags["C_CONTIGUOUS"] for arg in args)
         if not test_contig:
-            print(
-                "[pyKeOps] Warning : at least one of the input tensors is not contiguous. "
+            pyKeOps_Warning(
+                "at least one of the input tensors is not contiguous. "
                 + "Consider using contiguous data arrays to avoid unnecessary copies."
             )
             args = tuple(np.ascontiguousarray(arg) for arg in args)

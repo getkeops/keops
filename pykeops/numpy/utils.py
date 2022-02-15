@@ -231,7 +231,8 @@ def log_sum_exp(mat, axis=0):
 
 def WarmUpGpu():
     # dummy first calls for accurate timing in case of GPU use
-    print("Warming up the Gpu (numpy bindings) !!!")
+    from pykeops.common.utils import pyKeOps_Message
+    pyKeOps_Message("Warming up the Gpu (numpy bindings) !!!")
     if pykeops.config.gpu_available:
         formula = "Exp(-oos2*SqDist(x,y))*b"
         aliases = [

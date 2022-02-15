@@ -12,6 +12,7 @@ from pykeops.common.parse_type import (
 from pykeops.common.utils import axis2cat
 from pykeops.torch.generic.generic_red import GenredAutograd
 from pykeops import default_device_id
+from pykeops.common.utils import pyKeOps_Warning
 
 
 class KernelSolveAutograd(torch.autograd.Function):
@@ -422,12 +423,12 @@ class KernelSolve:
         """
 
         if dtype:
-            print(
-                "[pyKeOps] Warning: keyword argument dtype in Genred is deprecated ; argument is ignored."
+            pyKeOps_Warning(
+                "keyword argument dtype in Genred is deprecated ; argument is ignored."
             )
         if cuda_type:
-            print(
-                "[pyKeOps] Warning: keyword argument cuda_type in Genred is deprecated ; argument is ignored."
+            pyKeOps_Warning(
+                "keyword argument cuda_type in Genred is deprecated ; argument is ignored."
             )
 
         self.reduction_op = "Sum"
