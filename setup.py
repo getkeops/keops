@@ -93,7 +93,6 @@ setup(
     },
     install_requires=["numpy", "pybind11"],
     extras_require={
-        "colab": ["torch"],
         "full": [
             "sphinx",
             "sphinx-gallery",
@@ -106,6 +105,8 @@ setup(
             "torch",
             "gpytorch",
             "scikit-learn",
+            "multiprocess",
+            "faiss",
         ],
     },
 )
