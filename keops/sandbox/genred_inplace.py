@@ -30,6 +30,6 @@ if do_warmup:
 
 for k in range(10):
     start = time.time()
-    fun(x, y, b, out)
+    fun(x, y, b, out=out)
     end = time.time()
     print("time for genred:", end - start)
