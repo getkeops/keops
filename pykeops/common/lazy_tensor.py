@@ -684,8 +684,11 @@ class GenericLazyTensor:
                 in the output. This improves accuracy for large sized data.
               - **sum_scheme** =  ``"kahan_scheme"``: use Kahan summation algorithm to compensate for round-off errors. This improves
                 accuracy for large sized data.
-            enable_chunks (bool, default True): enable automatic selection of special "chunked" computation mode for accelerating reductions
+          enable_chunks (bool, default True): enable automatic selection of special "chunked" computation mode for accelerating reductions
                                 with formulas involving large dimension variables.
+          out (2d NumPy array or PyTorch Tensor, None by default): The output numerical array, for in-place computation.
+              If provided, the output array should all have the same ``dtype``, be **contiguous** and be stored on
+              the **same device** as the arguments. Moreover it should have the correct shape for the output.
         """
 
         if is_complex is None:
