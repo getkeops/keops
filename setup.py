@@ -93,6 +93,7 @@ setup(
     },
     install_requires=["numpy", "pybind11"],
     extras_require={
+        "colab": [],
         "full": [
             "sphinx",
             "sphinx-gallery",
