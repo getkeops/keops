@@ -82,26 +82,28 @@ class LinkCompile:
         f.write(self.code)
         f.close()
 
+    def generate_code(self):
+        pass
+
     def get_dll_and_params(self):
-        # main method of the class : it compiles - if needed - the code and returns the name of the dll to be run for
+        # main method of the class : it generates - if needed - the code and returns the name of the dll to be run for
         # performing the reduction, e.g. 7b9a611f7e.so, or in the case of JIT compilation, the name of the main KeOps dll,
         # and the name of the assembly code file.
-        if not os.path.exists(
-            self.file_to_check
-        ):  # TODO : used only in cpu mode, should be removed
+        if not os.path.exists(self.file_to_check):
             KeOps_Message(
-                "Compiling formula " + self.red_formula.__str__() + " ... ",
+                "Generating code for formula " + self.red_formula.__str__() + " ... ",
                 flush=True,
                 end="",
             )
-            self.compile_code()
+            self.generate_code()
             self.save_info()
             KeOps_Message("OK", use_tag=False, flush=True)
         else:
             self.read_info()
         return dict(
-            dllname=self.true_dllname,
-            target_file=self.target_file,
+            tag=self.gencode_filename,
+            source_file=self.true_dllname,
+            low_level_code_file=self.low_level_code_file,
             tagI=self.tagI,
             use_half=self.use_half,
             tag1D2D=self.tag1D2D,

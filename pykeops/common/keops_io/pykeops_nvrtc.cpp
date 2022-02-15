@@ -127,7 +127,7 @@ int operator () (int tagHostDevice, int dimY, int nx, int ny,
 /////////////////////////////////////////////////////////////////////////////////
 
 
-PYBIND11_MODULE(keops_io_nvrtc, m) {
+PYBIND11_MODULE(pykeops_nvrtc, m) {
 m.doc() = "pyKeOps: KeOps for pytorch through pybind11 (pytorch flavour).";
 
 py::class_< KeOps_module_python< float > >(m, "KeOps_module_float")

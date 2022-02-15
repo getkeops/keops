@@ -18,8 +18,8 @@ keops_cache_folder = join(os.path.expanduser("~"), ".cache", "keops")
 default_build_path = join(keops_cache_folder, "build")
 
 # init cache folder
-version_cache_file = join(keops_cache_folder,"keops_version")
-if os.path.exists(keops_cache_folder):
+version_cache_file = join(keops_cache_folder, "keops_version")
+if os.path.exists(version_cache_file):
     v = open(version_cache_file, encoding="utf-8")
     cache_version = v.read().rstrip()
     if cache_version != keops.__version__:
@@ -33,7 +33,7 @@ if os.path.exists(keops_cache_folder):
 else:
     test_init_cache = True
 if test_init_cache:
-    os.makedirs(keops_cache_folder)
+    os.makedirs(keops_cache_folder, exist_ok=True)
     v = open(version_cache_file, "w", encoding="utf-8")
     v.write(keops.__version__)
     v.close()

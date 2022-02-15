@@ -77,11 +77,11 @@ setup(
             "readme.md",
             "licence.txt",
             "keops_version",
-            "common/keops_io_nvrtc.cpp",
+            "common/keops_io/keops_nvrtc.cpp",
         ],
         "keops": [
             "binders/nvrtc/keops_nvrtc.cpp",
-            "binders/nvrtc/Compile.cpp",
+            "binders/nvrtc/nvrtc_jit.cpp",
             "include/CudaSizes.h",
             "include/Ranges_no_template.h",
             "include/ranges_utils.h",
@@ -93,7 +93,6 @@ setup(
     },
     install_requires=["numpy", "pybind11"],
     extras_require={
-        "colab": ["torch"],
         "full": [
             "sphinx",
             "sphinx-gallery",
@@ -106,6 +105,8 @@ setup(
             "torch",
             "gpytorch",
             "scikit-learn",
+            "multiprocess",
+            "faiss",
         ],
     },
 )
