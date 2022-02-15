@@ -33,6 +33,8 @@ pipeline {
           steps {
             echo 'Testing...'
             sh 'rm -rf $HOME/.cache/keops'
+						
+						sh 'pip3 install pybind11'
             sh 'cd pykeops/test && /Users/ci/miniconda3/bin/python3 unit_tests_pytorch.py'
             sh 'rm -rf $HOME/.cache/keops'
             sh 'cd pykeops/test && /Users/ci/miniconda3/bin/python3 unit_tests_numpy.py'
