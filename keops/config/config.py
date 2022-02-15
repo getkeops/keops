@@ -62,7 +62,7 @@ def set_build_folder(path=None, read_save_file=False, reset_all=True):
         if keops.config.config.use_cuda:
             from keops.binders.nvrtc.Gpu_link_compile import Gpu_link_compile, jit_compile_dll
 
-            if not os.path.exists(jit_compile_dll):
+            if not os.path.exists(jit_compile_dll()):
                 Gpu_link_compile.compile_jit_compile_dll()
 
 set_build_folder(read_save_file=True, reset_all=False)
