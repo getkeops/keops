@@ -16,9 +16,14 @@ This is the main entry point for all binders. It takes as inputs :
   - use_half : 0 or 1, for Gpu mode only, enable special routines for half-precision data type
   - device_id : integer, for Gpu mode only, id of Gpu device to build the code for
 
-It returns :
-      - dllname : string, file name of the dll to be called for performing the reduction
-      - target_file : string, file name of the low level code or binary file to be passed to the dll if JIT is enabled, or "none" otherwise
+It returns
+      - tag : string, hash code used as id for the input formula and parameters
+      - source_file : string, either :
+            - in CPU mode : name of the source file to be compiled
+            - in GPU mode : name of the main dll to be called
+      - low_level_code_file : string, either :
+            - in CPU mode : the empty string ""
+            - in GPU mode : name of the low level code (ptx) or binary file (cubin) to be passed to the main dll.
       - tagI : integer, 0 or 1, specifying if reduction must be performed over i or j indices,
       - tagZero : integer, 0 or 1, specifying if reduction just consists in filling output with zeros,
       - use_half : 0 or 1, enable special routines for half-precision data type,
