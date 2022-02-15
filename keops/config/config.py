@@ -43,7 +43,7 @@ if test_init_cache:
 
 build_path = ""
 
-def set_build_folder(path=None, read_save_file=False):
+def set_build_folder(path=None, read_save_file=False, reset_all=True):
     save_file = join(keops_cache_folder, "build_folder_location.txt")
     if not path:
         if read_save_file and os.path.isfile(save_file):
@@ -56,9 +56,16 @@ def set_build_folder(path=None, read_save_file=False):
     build_path = path
     os.makedirs(path, exist_ok=True)
     f = open(save_file, "w")
-    f.write(path)
+    f.write(path)   
+    if reset_all:
+        keops.get_keops_dll.get_keops_dll.reset(new_save_folder=build_path)
+        if keops.config.config.use_cuda:
+            from keops.binders.nvrtc.Gpu_link_compile import Gpu_link_compile, jit_compile_dll
 
-set_build_folder(read_save_file=True)
+            if not os.path.exists(jit_compile_dll):
+                Gpu_link_compile.compile_jit_compile_dll()
+
+set_build_folder(read_save_file=True, reset_all=False)
 
 
 

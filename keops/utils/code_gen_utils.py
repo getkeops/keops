@@ -797,7 +797,7 @@ def varseq_to_array(vars, vars_ptr_name):
     return string
 
 
-def clean_keops(recompile_jit_binary=True):
+def clean_keops(recompile_jit_binary=True, verbose=True):
     import keops.config.config
 
     build_path = keops.config.config.build_path
@@ -809,7 +809,8 @@ def clean_keops(recompile_jit_binary=True):
     for f in os.scandir(build_path):
         if recompile_jit_binary or f.path != jit_binary:
             os.remove(f.path)
-    KeOps_Message(f"{build_path} has been cleaned.")
+    if verbose:
+        KeOps_Message(f"{build_path} has been cleaned.")
     from keops.get_keops_dll import get_keops_dll
 
     get_keops_dll.reset()
