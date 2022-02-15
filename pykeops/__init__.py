@@ -18,9 +18,8 @@ import pykeops.config
 import keops.config
 
 if keops.config.config.use_cuda:
-    from pykeops.common.keops_io.LoadKeOps_nvrtc import compile_jit_binary
-
-    if not os.path.exists(pykeops.config.jit_binary_name):
+    if not os.path.exists(pykeops.config.jit_binary_name()):
+        from pykeops.common.keops_io.LoadKeOps_nvrtc import compile_jit_binary
         compile_jit_binary()
 
 
@@ -32,10 +31,16 @@ def clean_pykeops(recompile_jit_binaries=True):
     for key in keops_binder:
         keops_binder[key].reset()
     if recompile_jit_binaries and keops.config.config.use_cuda:
-        from pykeops.common.keops_io.LoadKeOps_nvrtc import compile_jit_binary
+        pykeops.common.keops_io.LoadKeOps_nvrtc.compile_jit_binary()
 
-        compile_jit_binary()
-
+def set_build_folder(path=None):
+    keops.set_build_folder(path)
+    keops_binder = pykeops.common.keops_io.keops_binder
+    for key in keops_binder:
+        keops_binder[key].reset(new_save_folder=keops.config.config.build_path)
+    if keops.config.config.use_cuda and not os.path.exists(pykeops.config.jit_binary_name()):
+        pykeops.common.keops_io.LoadKeOps_nvrtc.compile_jit_binary()
+    
 
 if pykeops.config.numpy_found:
     from .test.install import test_numpy_bindings

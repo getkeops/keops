@@ -23,8 +23,11 @@ class Cache:
             self.library[str_id] = self.fun(*args)
         return self.library[str_id]
 
-    def reset(self):
+    def reset(self, new_save_folder=None):
         self.library = {}
+        if new_save_folder:
+            self.save_folder = new_save_folder
+            
 
     def save_cache(self):
         f = open(self.cache_file, "wb")
@@ -66,10 +69,12 @@ class Cache_partial:
                 self.library[str_id] = self.cls(*args)
         return self.library[str_id]
 
-    def reset(self):
+    def reset(self, new_save_folder=None):
         self.library = {}
         if self.use_cache_file:
             self.library_params = {}
+        if new_save_folder:
+            self.save_folder = new_save_folder
 
     def save_cache(self):
         f = open(self.cache_file, "wb")

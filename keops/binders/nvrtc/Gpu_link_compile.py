@@ -19,7 +19,9 @@ from keops.utils.gpu_utils import get_gpu_props, cuda_include_fp16_path
 jit_compile_src = os.path.join(
     os.path.abspath(os.path.dirname(__file__)), "Compile.cpp"
 )
-jit_compile_dll = os.path.join(keops.config.config.build_path, "Compile.so")
+
+def jit_compile_dll():
+    return os.path.join(keops.config.config.build_path, "Compile.so")
 
 
 class Gpu_link_compile(LinkCompile):
@@ -47,7 +49,7 @@ class Gpu_link_compile(LinkCompile):
             keops.config.config.build_path, self.target_prefix + self.gencode_filename
         ).encode("utf-8")
 
-        self.my_c_dll = CDLL(jit_compile_dll, mode=RTLD_LAZY)
+        self.my_c_dll = CDLL(jit_compile_dll(), mode=RTLD_LAZY)
         # actual dll to be called is the jit binary, TODO: check if this is relevent
         self.true_dllname = jit_binary
         # file to check for existence to detect compilation is needed
@@ -104,7 +106,7 @@ class Gpu_link_compile(LinkCompile):
         os.system(
             Gpu_link_compile.get_compile_command(
                 sourcename=jit_compile_src,
-                dllname=jit_compile_dll,
+                dllname=jit_compile_dll(),
             )
         )
         print("OK", flush=True)
