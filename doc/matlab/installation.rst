@@ -1,6 +1,12 @@
 Matlab Install
 ==============
 
+Warning !!
+----------
+
+Matlab bindings for KeOps are currently available for KeOps versions up to 1.5 only. The following instructions allow you to install
+and use Matlab bindings for KeOps 1.5.
+
 Requirements
 ------------
 
@@ -17,13 +23,14 @@ Packaged version (recommended)
 .. code-block:: bash
 
     cd /path/to
-    wget https://github.com/getkeops/keops/archive/master.zip
-    unzip master.zip
+    wget https://github.com/getkeops/keops/archive/refs/tags/v1.5.zip
+    unzip v1.5.zip
+    mv keops-1.5 keops
 
 
-Note that temporary files will be written into the ``/path/to/keops-master/keopslab/build`` folder: this directory must have write permissions.
+Note that temporary files will be written into the ``/path/to/keops/keopslab/build`` folder: this directory must have write permissions.
 
-2. Manually add the directory ``/path/to/keops-master/keopslab`` to your Matlab path, as documented :ref:`below <part.path>`.
+2. Manually add the directory ``/path/to/keops/keopslab`` to your Matlab path, as documented :ref:`below <part.path>`.
 
 3. :ref:`Test your installation <part.test>`.
 
@@ -100,7 +107,7 @@ For debugging purposes, you can force a "verbose" compilation mode by setting
 
     verbosity=1
 
-in the file `/path/to/keops/keopslab/default_options.m <https://github.com/getkeops/keops/blob/master/keopslab/default_options.m>`_.
+in the file `/path/to/keops/keopslab/default_options.m`_.
 
 Old versions of Cuda
 ^^^^^^^^^^^^^^^^^^^^
