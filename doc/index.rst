@@ -248,7 +248,7 @@ a report on our `GitHub issue tracker <https://github.com/getkeops/keops/issues>
 
 - `François-David Collin <https://github.com/fradav>`_, from the University of Montpellier: Tensordot operation, CI setup.
 - `Tanguy Lefort <https://github.com/tanglef>`_, from the University of Montpellier: conjugate gradient solver.
-- `Mauricio Diaz <https://github.com/mdiazmel>`_, from the University of Montpellier: CI setup.
+- `Mauricio Diaz <https://github.com/mdiazmel>`_, from Inria of Paris: CI setup.
 - `Benoît Martin <https://github.com/benoitmartin88>`_, from the Aramis Inria team: multi-GPU support.
 - `Francis Williams <https://www.fwilliams.info>`_, from New York University: maths operations.
 - `Kshiteej Kalambarkar <https://github.com/kshitij12345>`_, from Quansight: maths operations.
