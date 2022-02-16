@@ -1,12 +1,18 @@
 # Test for gaussian kernel operation using LazyTensors.
 
+import os.path
+import sys
+
+sys.path.append(os.path.dirname(os.path.abspath(__file__)) + (os.path.sep + "..") * 3)
+
+
 import time
 
 import math
 import torch
 from pykeops.torch import LazyTensor
 
-M, N, D, DV = 10000, 10000, 3, 1
+M, N, D, DV = 1000, 1000, 3, 1
 
 dtype = torch.float32
 

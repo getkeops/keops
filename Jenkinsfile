@@ -25,6 +25,7 @@ pipeline {
               sh 'cd pykeops/test && python3 unit_tests_pytorch.py'
               sh 'rm -rf $HOME/.cache/keops'
               sh 'cd pykeops/test && python3 unit_tests_numpy.py'
+							sh 'cd pykeops/test/more_tests_cpu && for f in *.py; do python3 $f; done'
           }
         }
 
@@ -38,6 +39,7 @@ pipeline {
             sh 'cd pykeops/test && /Users/ci/miniconda3/bin/python3 unit_tests_pytorch.py'
             sh 'rm -rf $HOME/.cache/keops'
             sh 'cd pykeops/test && /Users/ci/miniconda3/bin/python3 unit_tests_numpy.py'
+						sh 'cd pykeops/test/more_tests_cpu && for f in *.py; do /Users/ci/miniconda3/bin/python3 $f; done'
           }
         }
 
@@ -51,13 +53,8 @@ pipeline {
                  conda activate keops
                  cd pykeops/test
                  python unit_tests_pytorch.py
-              '''
-			  sh 'rm -rf $HOME/.cache/keops'
-              sh '''#!/bin/bash
-                 eval "$(/opt/miniconda3/bin/conda shell.bash hook)"
-                 conda activate keops
-                 cd pykeops/test
-                 python unit_tests_numpy.py
+								 python unit_tests_numpy.py
+								 for f in more_tests_gpu/*.py; do python $f; done
               '''
           }
         }
