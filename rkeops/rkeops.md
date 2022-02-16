@@ -124,6 +124,7 @@ install.packages("rkeops")
 * Install directly from Github (requires `git`)
 ```R
 devtools::install_git("https://github.com/getkeops/keops", 
+                      ref = "v1.5",
                       subdir = "rkeops", 
                       args="--recursive")
 # not possible to use `devtools::intall_github()` because of the required submodule
@@ -133,9 +134,9 @@ devtools::install_git("https://github.com/getkeops/keops",
 
 * Get KeOps sources (bash command)
 ```bash
-git clone --recurse-submodules="keops/lib/sequences" https://github.com/getkeops/keops
+git clone --recurse-submodules="keops/lib/sequences" -b v1.5 https://github.com/getkeops/keops
 # or
-git clone https://github.com/getkeops/keops
+git clone -b v1.5 https://github.com/getkeops/keops
 cd keops
 git submodule update --init -- keops/lib/sequences
 # other submodules are not necessary for RKeOps
