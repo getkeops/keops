@@ -65,7 +65,7 @@ def gaussian_kernel(x, y, sigma=0.1):
     x_i = LazyTensor(x[:, None, :])  # (M, 1, 1)
     y_j = LazyTensor(y[None, :, :])  # (1, N, 1)
     D_ij = ((x_i - y_j) ** 2).sum(-1)  # (M, N) symbolic matrix of squared distances
-    return (-D_ij / (2 * sigma**2)).exp()  # (M, N) symbolic Gaussian kernel matrix
+    return (-D_ij / (2 * sigma ** 2)).exp()  # (M, N) symbolic Gaussian kernel matrix
 
 
 #######################################################################
@@ -119,9 +119,9 @@ x = np.random.rand(N, 2).astype(dtype)
 
 # Some random-ish 2D signal:
 b = np.sum((x - 0.5) ** 2, axis=1)[:, None]
-b[b > 0.4**2] = 0
-b[b < 0.3**2] = 0
-b[b >= 0.3**2] = 1
+b[b > 0.4 ** 2] = 0
+b[b < 0.3 ** 2] = 0
+b[b >= 0.3 ** 2] = 1
 b = b + 0.05 * np.random.randn(N, 1).astype(dtype)
 
 # Add 25% of outliers:

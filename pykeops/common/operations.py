@@ -85,10 +85,10 @@ def ConjugateGradientSolver(binding, linop, b, eps=1e-6):
     # Ma=b where linop is a linear operation corresponding
     # to a symmetric and positive definite matrix
     tools = get_tools(binding)
-    delta = tools.size(b) * eps**2
+    delta = tools.size(b) * eps ** 2
     a = 0
     r = tools.copy(b)
-    nr2 = (r**2).sum()
+    nr2 = (r ** 2).sum()
     if nr2 < delta:
         return 0 * r
     p = tools.copy(r)
@@ -98,7 +98,7 @@ def ConjugateGradientSolver(binding, linop, b, eps=1e-6):
         alp = nr2 / (p * Mp).sum()
         a += alp * p
         r -= alp * Mp
-        nr2new = (r**2).sum()
+        nr2new = (r ** 2).sum()
         if nr2new < delta:
             break
         p = r + (nr2new / nr2) * p
@@ -128,7 +128,7 @@ def KernelLinearSolver(
             alp = rz / (p * linop(p)).sum()
             a += alp * p
             r -= alp * linop(p)
-            if (r**2).sum() < eps**2:
+            if (r ** 2).sum() < eps ** 2:
                 break
             z = invprecondop(r)
             rznew = (r * z).sum()
@@ -166,7 +166,7 @@ def KernelLinearSolver(
         my_routine = tools.Genred(
             formula, variables, reduction_op="Sum", axis=1, dtype=dtype
         )
-        oos2 = tools.array([1.0 / sigma**2], dtype=dtype)
+        oos2 = tools.array([1.0 / sigma ** 2], dtype=dtype)
         KernelMatrix = GaussKernelMatrix(sigma)
 
         def K(x, y, b=None):
@@ -188,7 +188,7 @@ def KernelLinearSolver(
         my_routine = tools.Genred(
             formula, variables, reduction_op="Sum", axis=1, dtype=tools.dtypename(dtype)
         )
-        oos2 = tools.array([1.0 / sigma**2], dtype=dtype)
+        oos2 = tools.array([1.0 / sigma ** 2], dtype=dtype)
         KernelMatrix = GaussKernelMatrix(sigma)
 
         def K(u, v, x):
@@ -197,7 +197,7 @@ def KernelLinearSolver(
         return K
 
     def GaussKernelMatrix(sigma):
-        oos2 = 1.0 / sigma**2
+        oos2 = 1.0 / sigma ** 2
 
         def f(x, y):
             D = x.shape[1]

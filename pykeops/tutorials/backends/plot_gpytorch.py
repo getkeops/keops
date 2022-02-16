@@ -203,10 +203,7 @@ likelihood.train()
 
 # Use the adam optimizer
 optimizer = torch.optim.Adam(
-    [
-        {"params": model.parameters()},
-    ],
-    lr=0.1,  # Includes GaussianLikelihood parameters
+    [{"params": model.parameters()},], lr=0.1,  # Includes GaussianLikelihood parameters
 )
 
 # "Loss" for GPs - the marginal log likelihood

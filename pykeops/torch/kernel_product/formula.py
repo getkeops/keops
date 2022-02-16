@@ -2,8 +2,8 @@ import torch
 
 
 def _squared_distances(x, y):
-    x_norm = (x**2).sum(1).view(-1, 1)
-    y_norm = (y**2).sum(1).view(1, -1)
+    x_norm = (x ** 2).sum(1).view(-1, 1)
+    y_norm = (y ** 2).sum(1).view(1, -1)
     dist = x_norm + y_norm - 2.0 * torch.mm(x, torch.transpose(y, 0, 1))
     return dist
 
@@ -95,7 +95,7 @@ def _weighted_squared_distances(g, x, y):
                 2
             )  # N-by-M matrix, xmy[i,j] =  \sum_d g_d * (x_i,d-y_j,d)^2
 
-        elif g_dim == D**2:  # G is a symmetric matrix
+        elif g_dim == D ** 2:  # G is a symmetric matrix
             G = g.view(1, 1, D, D)  # Shape (D**2) -> Shape (1,1,D,D)
             xmy = x_i - y_j  # Shape (N,M,D)
             xmy_ = xmy.unsqueeze(2)  #  Shape (N,M,1,D)
@@ -120,7 +120,7 @@ def _weighted_squared_distances(g, x, y):
                 2
             )  # N-by-M matrix, xmy[i,j] =  \sum_d g_i,d * (x_i,d-y_j,d)^2
 
-        elif g_dim == D**2:  # G_i is a symmetric matrix
+        elif g_dim == D ** 2:  # G_i is a symmetric matrix
             G_i = g.view(-1, 1, D, D)  # Shape (N,D**2) -> Shape (N,1,D,D)
             xmy = x_i - y_j  # Shape (N,M,D)
             xmy_ = xmy.unsqueeze(2)  # Shape (N,M,1,D)
@@ -146,7 +146,7 @@ def _weighted_squared_distances(g, x, y):
                 2
             )  # N-by-M matrix, xmy[i,j] =  \sum_d g_j,d * (x_i,d-y_j,d)^2
 
-        elif g_dim == D**2:  # G_j is a symmetric matrix
+        elif g_dim == D ** 2:  # G_j is a symmetric matrix
             G_j = g.view(1, -1, D, D)  # Shape (M,D**2) -> Shape (1,M,D,D)
             xmy = x_i - y_j  # Shape (N,M,D)
             xmy_ = xmy.unsqueeze(2)  # Shape (N,M,1,D)

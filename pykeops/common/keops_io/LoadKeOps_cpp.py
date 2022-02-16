@@ -74,21 +74,29 @@ class LoadKeOps_cpp_class(LoadKeOps):
     def init_phase1(self):
         srcname = pykeops_cpp_name(tag=self.params.tag, extension=".cpp")
 
-        dllname = pykeops_cpp_name(tag=self.params.tag, extension=sysconfig.get_config_var("EXT_SUFFIX"))
+        dllname = pykeops_cpp_name(
+            tag=self.params.tag, extension=sysconfig.get_config_var("EXT_SUFFIX")
+        )
 
         if not os.path.exists(dllname):
             f = open(srcname, "w")
             f.write(get_pybind11_code(self.params.tag, self.params.source_name))
             f.close()
             compile_command = f"{keops.config.config.cxx_compiler} {keops.config.config.cpp_flags} {pykeops.config.python_includes} {srcname} -o {dllname}"
-            pyKeOps_Message("Compiling pykeops cpp " + self.params.tag + " module ... ", flush=True, end="")
+            pyKeOps_Message(
+                "Compiling pykeops cpp " + self.params.tag + " module ... ",
+                flush=True,
+                end="",
+            )
             os.system(compile_command)
             pyKeOps_Message("OK", use_tag=False, flush=True)
 
     def init_phase2(self):
         import importlib
 
-        mylib = importlib.import_module(os.path.basename(pykeops_cpp_name(tag=self.params.tag)))
+        mylib = importlib.import_module(
+            os.path.basename(pykeops_cpp_name(tag=self.params.tag))
+        )
         if self.params.c_dtype == "float":
             self.launch_keops_cpu = mylib.launch_keops_cpu_float
         if self.params.c_dtype == "double":

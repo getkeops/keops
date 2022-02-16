@@ -3,9 +3,9 @@ import os
 ###########################################################
 # Verbosity level
 verbose = True
-if os.getenv('PYKEOPS_VERBOSE') == "0":
+if os.getenv("PYKEOPS_VERBOSE") == "0":
     verbose = False
-    os.environ['KEOPS_VERBOSE'] = "0"
+    os.environ["KEOPS_VERBOSE"] = "0"
 
 
 def set_verbose(val):
@@ -18,8 +18,8 @@ def set_verbose(val):
 # Set version
 
 with open(
-        os.path.join(os.path.abspath(os.path.dirname(__file__)), "keops_version"),
-        encoding="utf-8",
+    os.path.join(os.path.abspath(os.path.dirname(__file__)), "keops_version"),
+    encoding="utf-8",
 ) as v:
     __version__ = v.read().rstrip()
 
@@ -34,6 +34,7 @@ import keops.config
 if keops.config.config.use_cuda:
     if not os.path.exists(pykeops.config.pykeops_nvrtc_name(type="target")):
         from pykeops.common.keops_io.LoadKeOps_nvrtc import compile_jit_binary
+
         compile_jit_binary()
 
 
@@ -53,7 +54,9 @@ def set_build_folder(path=None):
     keops_binder = pykeops.common.keops_io.keops_binder
     for key in keops_binder:
         keops_binder[key].reset(new_save_folder=keops.config.config.build_path)
-    if keops.config.config.use_cuda and not os.path.exists(pykeops.config.pykeops_nvrtc_name(type="target")):
+    if keops.config.config.use_cuda and not os.path.exists(
+        pykeops.config.pykeops_nvrtc_name(type="target")
+    ):
         pykeops.common.keops_io.LoadKeOps_nvrtc.compile_jit_binary()
 
 

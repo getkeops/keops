@@ -94,7 +94,7 @@ e_i = Vi(torch.rand(M, D).type(tensor))
 x_j = Vj(x)
 D2xx = LazyTensor.sum((x_i - x_j) ** 2)
 sigma = 0.25
-Kxx = (-D2xx / sigma**2).exp()
+Kxx = (-D2xx / sigma ** 2).exp()
 res = LazyTensor.solve(Kxx, e_i, alpha=0.1)
 
 #########################################################################
@@ -109,7 +109,7 @@ sigmas = tensor([0.5, 1.0, 2.0, 4.0])
 b_j = Vj(torch.rand(N, D).type(tensor))
 Kxy = 0
 for sigma in sigmas:
-    Kxy += LazyTensor.exp(-D2xy / sigma**2)
+    Kxy += LazyTensor.exp(-D2xy / sigma ** 2)
 gamma = (Kxy * b_j).sum_reduction(axis=1)
 
 ###############################################################################
@@ -119,7 +119,7 @@ gamma = (Kxy * b_j).sum_reduction(axis=1)
 #
 # Ok, this was just to showcase the use of a for loop,
 # however in this case there is no need for a for loop, we can do simply:
-Kxy = LazyTensor.exp(-D2xy / sigmas**2).sum()
+Kxy = LazyTensor.exp(-D2xy / sigmas ** 2).sum()
 gamma = (Kxy * b_j).sum_reduction(axis=1)
 
 ###############################################################################
@@ -149,7 +149,7 @@ b_j = Vj(b)  # (1, N, D) LazyTensor, equivalent to LazyTensor( b[None,:,:] )
 
 D2xy = ((x_i - y_j) ** 2).sum(-1)
 
-Kxy = LazyTensor.exp(-D2xy / sigmas**2).sum()
+Kxy = LazyTensor.exp(-D2xy / sigmas ** 2).sum()
 
 gammafun = (Kxy * b_j).sum_reduction(axis=1, call=False)
 
@@ -176,7 +176,7 @@ Niter = 1000
 
 start = time.time()
 for k in range(Niter):
-    Kxyb = LazyTensor.exp(-dxy2 / sigmas**2).sum() * bj
+    Kxyb = LazyTensor.exp(-dxy2 / sigmas ** 2).sum() * bj
     gamma = Kxyb.sum_reduction(axis=1)
 end = time.time()
 print(
@@ -186,7 +186,7 @@ print(
 )
 
 start = time.time()
-Kxyb = LazyTensor.exp(-dxy2 / sigmas**2).sum() * bj
+Kxyb = LazyTensor.exp(-dxy2 / sigmas ** 2).sum() * bj
 gammafun = Kxyb.sum_reduction(axis=1, call=False)
 for k in range(Niter):
     gamma = gammafun()
@@ -217,7 +217,7 @@ Sigmas = Pm(3, 4)
 ###########################################################################
 # Now we build the formula as before
 dxy2 = LazyTensor.sum((xi - yj) ** 2)
-Kxyb = LazyTensor.exp(-dxy2 / Sigmas**2).sum() * bj
+Kxyb = LazyTensor.exp(-dxy2 / Sigmas ** 2).sum() * bj
 gammafun = Kxyb.sum_reduction(axis=1)
 
 ###############################################################################
@@ -236,7 +236,7 @@ yj = Vj(0, D)
 bj = Vj(beta)
 
 dxy2 = LazyTensor.sum((xi - yj) ** 2)
-Kxyb = LazyTensor.exp(-dxy2 / sigmas**2).sum() * bj
+Kxyb = LazyTensor.exp(-dxy2 / sigmas ** 2).sum() * bj
 gammafun = Kxyb.sum_reduction(axis=1)
 print(gammafun)
 

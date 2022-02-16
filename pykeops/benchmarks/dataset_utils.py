@@ -10,15 +10,15 @@ import urllib.request
 
 synthetic = {
     # Key   :  metric,    Ntrain, Ntest, D,
-    "R^D a": ("euclidean", 10**4, 10**4, 3),
-    "R^D b": ("euclidean", 10**6, 10**4, 3),
-    "R^D c": ("euclidean", 10**6, 10**4, 10),
-    "R^D d": ("euclidean", 10**6, 10**4, 100),
-    "R^D e": ("euclidean", 10**7, 10**4, 100),
-    "R^D f": ("manhattan", 10**6, 10**4, 10),
-    "R^D g": ("manhattan", 10**6, 10**4, 100),
-    "S^{D-1}": ("angular", 10**6, 10**4, 10),
-    "H^D": ("hyperbolic", 10**6, 10**4, 10),
+    "R^D a": ("euclidean", 10 ** 4, 10 ** 4, 3),
+    "R^D b": ("euclidean", 10 ** 6, 10 ** 4, 3),
+    "R^D c": ("euclidean", 10 ** 6, 10 ** 4, 10),
+    "R^D d": ("euclidean", 10 ** 6, 10 ** 4, 100),
+    "R^D e": ("euclidean", 10 ** 7, 10 ** 4, 100),
+    "R^D f": ("manhattan", 10 ** 6, 10 ** 4, 10),
+    "R^D g": ("manhattan", 10 ** 6, 10 ** 4, 100),
+    "S^{D-1}": ("angular", 10 ** 6, 10 ** 4, 10),
+    "H^D": ("hyperbolic", 10 ** 6, 10 ** 4, 10),
 }
 
 downloaded = {

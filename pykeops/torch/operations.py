@@ -434,11 +434,7 @@ class KernelSolve:
         self.reduction_op = "Sum"
 
         self.optional_flags = get_optional_flags(
-            self.reduction_op,
-            dtype_acc,
-            use_double_acc,
-            sum_scheme,
-            enable_chunks,
+            self.reduction_op, dtype_acc, use_double_acc, sum_scheme, enable_chunks,
         )
 
         self.formula = (

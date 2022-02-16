@@ -27,7 +27,6 @@ class Cache:
         self.library = {}
         if new_save_folder:
             self.save_folder = new_save_folder
-            
 
     def save_cache(self):
         f = open(self.cache_file, "wb")

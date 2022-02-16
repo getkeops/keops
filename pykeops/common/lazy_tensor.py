@@ -1344,7 +1344,7 @@ class GenericLazyTensor:
 
         ``pow(x,y)`` is equivalent to ``x**y``.
         """
-        return self**other
+        return self ** other
 
     def square(self):
         r"""
@@ -1483,7 +1483,7 @@ class GenericLazyTensor:
         if not hasattr(other, "__GenericLazyTensor__"):
             other = self.lt_constructor(other)
 
-        if other.ndim not in (1, self.ndim, self.ndim**2):
+        if other.ndim not in (1, self.ndim, self.ndim ** 2):
             raise ValueError(
                 "Squared norm weights should be of size 1 (scalar), "
                 + "D (diagonal) or D^2 (full symmetric tensor), but received "

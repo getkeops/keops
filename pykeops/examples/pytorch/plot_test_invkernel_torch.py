@@ -39,7 +39,7 @@ sigma = 0.1  # Radius of our RBF kernel
 
 x = torch.rand(N, D, requires_grad=True)
 b = torch.rand(N, Dv)
-g = torch.Tensor([0.5 / sigma**2])  # Parameter of the Gaussian RBF kernel
+g = torch.Tensor([0.5 / sigma ** 2])  # Parameter of the Gaussian RBF kernel
 
 if torch.cuda.is_available():
     sync = torch.cuda.synchronize
@@ -97,7 +97,7 @@ print("Timing (KeOps implementation):", round(end - start, 5), "s")
 sync()
 start = time.time()
 K_xx = alpha * torch.eye(N) + torch.exp(
-    -torch.sum((x[:, None, :] - x[None, :, :]) ** 2, dim=2) / (2 * sigma**2)
+    -torch.sum((x[:, None, :] - x[None, :, :]) ** 2, dim=2) / (2 * sigma ** 2)
 )
 c_py = torchsolve(K_xx, b)
 sync()

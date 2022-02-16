@@ -34,7 +34,7 @@ sigma = 0.1  # Radius of our RBF kernel
 
 x = np.random.rand(N, D)
 b = np.random.rand(N, Dv)
-g = np.array([0.5 / sigma**2])  # Parameter of the Gaussian RBF kernel
+g = np.array([0.5 / sigma ** 2])  # Parameter of the Gaussian RBF kernel
 
 alpha = 0.01
 

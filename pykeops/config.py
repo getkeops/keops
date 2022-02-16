@@ -16,17 +16,16 @@ def pykeops_nvrtc_name(type="src"):
     basename = "pykeops_nvrtc"
     extension = ".cpp" if type == "src" else sysconfig.get_config_var("EXT_SUFFIX")
     return join(
-        join(dirname(realpath(__file__)), "common", "keops_io") if type == "src" else keops.config.config.build_path,
+        join(dirname(realpath(__file__)), "common", "keops_io")
+        if type == "src"
+        else keops.config.config.build_path,
         basename + extension,
     )
 
 
 def pykeops_cpp_name(tag="", extension=""):
     basename = "pykeops_cpp_"
-    return join(
-        keops.config.config.build_path,
-        basename + tag + extension,
-    )
+    return join(keops.config.config.build_path, basename + tag + extension,)
 
 
 python_includes = "$(python3 -m pybind11 --includes)"

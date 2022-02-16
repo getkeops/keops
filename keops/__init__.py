@@ -4,7 +4,7 @@ from os import path
 ###########################################################
 # Verbosity level
 verbose = True
-if os.getenv('KEOPS_VERBOSE')=="0":
+if os.getenv("KEOPS_VERBOSE") == "0":
     verbose = False
 
 here = path.abspath(path.dirname(__file__))

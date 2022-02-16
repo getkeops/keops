@@ -23,6 +23,7 @@ def test_numpy_bindings():
     else:
         pyKeOps_Message("outputs wrong values...", use_tag=False)
 
+
 def test_torch_bindings():
     """
     This function try to compile a simple keops formula using the pytorch binder.

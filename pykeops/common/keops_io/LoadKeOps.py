@@ -173,14 +173,7 @@ class LoadKeOps:
         pass
 
     def genred(
-        self,
-        device_args,
-        ranges,
-        nx,
-        ny,
-        nbatchdims,
-        out,
-        *args,
+        self, device_args, ranges, nx, ny, nbatchdims, out, *args,
     ):
 
         if self.params.use_half:
