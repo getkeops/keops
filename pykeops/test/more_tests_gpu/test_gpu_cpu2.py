@@ -8,6 +8,12 @@ to compute block-sparse reductions with **sub-quadratic time complexity**.
  
 """
 
+import os.path
+import sys
+
+sys.path.append(os.path.dirname(os.path.abspath(__file__)) + (os.path.sep + "..") * 3)
+
+
 ########################################################################
 # Setup
 # ------------
