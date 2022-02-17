@@ -25,7 +25,10 @@ def pykeops_nvrtc_name(type="src"):
 
 def pykeops_cpp_name(tag="", extension=""):
     basename = "pykeops_cpp_"
-    return join(keops.config.config.build_path, basename + tag + extension,)
+    return join(
+        keops.config.config.build_path,
+        basename + tag + extension,
+    )
 
 
 python_includes = "$(python3 -m pybind11 --includes)"

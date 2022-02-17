@@ -101,7 +101,8 @@ class Gpu_link_compile(LinkCompile):
         KeOps_Message("Compiling cuda jit compiler engine ... ", flush=True, end="")
         os.system(
             Gpu_link_compile.get_compile_command(
-                sourcename=jit_compile_src, dllname=jit_compile_dll(),
+                sourcename=jit_compile_src,
+                dllname=jit_compile_dll(),
             )
         )
         KeOps_Message("OK", use_tag=False, flush=True)

@@ -261,7 +261,11 @@ class NumpyUnitTestCase(unittest.TestCase):
         ]  # Second arg  : j-variable, of size D
 
         my_routine = Genred(
-            formula, variables, reduction_op="ArgKMin", axis=1, opt_arg=3,
+            formula,
+            variables,
+            reduction_op="ArgKMin",
+            axis=1,
+            opt_arg=3,
         )
 
         c = my_routine(self.x, self.y, backend="auto").astype(int)

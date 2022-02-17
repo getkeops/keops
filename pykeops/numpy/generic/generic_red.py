@@ -151,7 +151,11 @@ class Genred:
         reduction_op_internal, formula2 = preprocess(reduction_op, formula2)
 
         self.optional_flags = get_optional_flags(
-            reduction_op_internal, dtype_acc, use_double_acc, sum_scheme, enable_chunks,
+            reduction_op_internal,
+            dtype_acc,
+            use_double_acc,
+            sum_scheme,
+            enable_chunks,
         )
 
         if rec_multVar_highdim:

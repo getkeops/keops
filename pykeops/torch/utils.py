@@ -2,7 +2,6 @@ import torch
 
 from pykeops.torch import Genred, KernelSolve
 from pykeops.torch.cluster import swap_axes as torch_swap_axes
-from ctypes import c_float, c_double, c_void_p, POINTER
 
 
 # from pykeops.torch.generic.generic_red import GenredLowlevel
@@ -131,10 +130,6 @@ class torchtools:
             )
 
     @staticmethod
-    def ctypes(x):
-        return dict(data=c_void_p(x.data_ptr()), type=c_void_p)
-
-    @staticmethod
     def rand(m, n, dtype, device):
         return torch.rand(m, n, dtype=dtype, device=device)
 
@@ -144,7 +139,10 @@ class torchtools:
 
     @staticmethod
     def zeros(
-        shape, dtype, device, requires_grad=False,
+        shape,
+        dtype,
+        device,
+        requires_grad=False,
     ):
         return torch.zeros(
             *shape, dtype=dtype, device=device, requires_grad=requires_grad
@@ -152,7 +150,10 @@ class torchtools:
 
     @staticmethod
     def empty(
-        shape, dtype, device, requires_grad=False,
+        shape,
+        dtype,
+        device,
+        requires_grad=False,
     ):
         return torch.empty(
             *shape, dtype=dtype, device=device, requires_grad=requires_grad
@@ -203,8 +204,8 @@ class torchtools:
 
 
 def squared_distances(x, y):
-    x_norm = (x ** 2).sum(1).reshape(-1, 1)
-    y_norm = (y ** 2).sum(1).reshape(1, -1)
+    x_norm = (x**2).sum(1).reshape(-1, 1)
+    y_norm = (y**2).sum(1).reshape(1, -1)
     dist = x_norm + y_norm - 2.0 * torch.matmul(x, torch.transpose(y, 0, 1))
     return dist
 

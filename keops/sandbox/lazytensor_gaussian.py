@@ -11,7 +11,12 @@ M, N, D, DV = 20, 30, 3, 1
 dtype = torch.float32
 sum_scheme = "block_sum"
 
-device_id = "cuda:0" if torch.cuda.is_available() else "cpu"
+import pykeops
+
+pykeops.config.gpu_available = 0
+
+
+device_id = "cuda:0" if pykeops.config.gpu_available else "cpu"
 do_warmup = True
 
 x = torch.rand(M, 1, D, device=device_id, dtype=dtype) / math.sqrt(D)

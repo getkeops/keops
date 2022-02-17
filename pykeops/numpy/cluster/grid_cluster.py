@@ -27,9 +27,9 @@ def grid_cluster(x, size):
     if x.shape[1] == 1:
         weights = np.array([1], dtype=int)
     elif x.shape[1] == 2:
-        weights = np.array([2 ** 10, 1], dtype=int)
+        weights = np.array([2**10, 1], dtype=int)
     elif x.shape[1] == 3:
-        weights = np.array([2 ** 20, 2 ** 10, 1], dtype=int)
+        weights = np.array([2**20, 2**10, 1], dtype=int)
     else:
         raise NotImplementedError()
     x_ = np.floor(x / size).astype(int)

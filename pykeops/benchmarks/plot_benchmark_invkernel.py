@@ -64,7 +64,7 @@ Dv = 1  # Dimension of the vectors (= number of linear problems to solve)
 
 # Numbers of samples that we'll loop upon:
 problem_sizes = flatten(
-    [[1 * 10 ** k, 2 * 10 ** k, 5 * 10 ** k] for k in [1, 2, 3, 4, 5]] + [[10 ** 6]]
+    [[1 * 10**k, 2 * 10**k, 5 * 10**k] for k in [1, 2, 3, 4, 5]] + [[10**6]]
 )
 D = 3  # We work with 3D points
 Dv = 1  # and solve one problem at a time.
@@ -91,7 +91,7 @@ def generate_samples(N, device="cuda", lang="torch", **kwargs):
 
     x = randn((N, D))
     b = randn((N, Dv))
-    gamma = ones((1,)) / (2 * 0.01 ** 2)  # kernel bandwidth
+    gamma = ones((1,)) / (2 * 0.01**2)  # kernel bandwidth
     alpha = ones((1,)) * 0.8  # regularization
     return x, b, gamma, alpha
 
