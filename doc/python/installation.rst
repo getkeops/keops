@@ -8,9 +8,8 @@ Requirements
 ============
 
 - **Python 3** with packages **numpy**.
-- A C++ compiler compatible with std=c++14: **g++** version >=7 or **clang++** version >=8.
-- The **Cmake** build system, version >= 3.10.
-- The **Cuda** toolkit, including the **nvcc** compiler (optional): version >=10.0 is recommended. Make sure that your C++ compiler is compatible with the installed nvcc.
+- A C++ compiler compatible with ``std=c++11``: **g++** version >=7 or **clang++** version >=8.
+- The **Cuda** toolkit: version >=10.0 is recommended.
 - **PyTorch** (optional): version >= 1.5.
 
 
@@ -25,7 +24,7 @@ Using pip (recommended)
 
     pip install pykeops
 
-  Note that compiled shared objects (``*.so`` files) will be stored in the folder  ``~/.cache/libkeops-$version``, where ``~`` is the path to your home folder and ``$version`` is the package version number.
+  Note that compiled shared objects (``.so`` files on Unix, ``.dylib`` on macOS) will be stored in the folder  ``~/.cache/keops/``, where ``~`` is the path to your home folder.
 
 3. Test your installation, as described in the :ref:`next section <part.checkPython>`.
 
@@ -60,7 +59,7 @@ Alternatively, you may:
 
 1. Clone the KeOps repo at a location of your choice (denoted here as ``/path/to``):
 
-  .. code-block:: console
+  .. code-block:: bash
 
     git clone --recursive https://github.com/getkeops/keops.git /path/to/libkeops
 
@@ -102,7 +101,7 @@ You can use the following test functions to compile and run simple KeOps formula
         
   should return:
 
-  .. code-block:: console
+  .. code-block:: bash
 
     pyKeOps with numpy bindings is working!
 
@@ -115,7 +114,7 @@ You can use the following test functions to compile and run simple KeOps formula
   
   should return:
 
-  .. code-block:: console
+  .. code-block:: bash
 
     pyKeOps with torch bindings is working!
 

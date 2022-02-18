@@ -12,9 +12,9 @@ principles that are exposed in the reference
 `CUDA programming guide <https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#shared-memory>`_
 
 In a nutshell, this scheme may be described as a 
-**tiled “for” loop on the reduction index**  :math:`j`, 
+**tiled “for” loop on the reduction index** :math:`j`,
 parallelized over the sole
-index :math:`i` – hence the “1D” denomination – which reduces the
+index :math:`i` – hence the “1D” denomination – which reduces the
 computed values of :math:`F(p^1,\dots, x^1_i, \dots, y^1_j, \dots)`
 **on-the-fly, without ever storing or sending them to the Device
 memory.**

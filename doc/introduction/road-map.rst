@@ -83,7 +83,7 @@ for 2021-2023 in three main axes.
    `tensor cores <https://github.com/getkeops/keops/issues/100>`_
    and quantized numerical types
    after the release of our new compilation engine.
-   |br| |br|
+   |br|
 
 #. **Compatibility with the NumPy API.** 
    The :mod:`LazyTensor <pykeops.torch.LazyTensor>` module
