@@ -1,7 +1,6 @@
 import numpy as np
 
 from pykeops.common.get_options import get_tag_backend
-from pykeops.common.keops_io import keops_binder
 from pykeops.common.operations import preprocess, postprocess
 from pykeops.common.parse_type import get_sizes, complete_aliases, get_optional_flags
 from pykeops.common.utils import axis2cat
@@ -299,6 +298,7 @@ class Genred:
         if device_id == -1:
             device_id = default_device_id if tagCPUGPU == 1 else -1
 
+        from pykeops.common.keops_io import keops_binder
         self.myconv = keops_binder["nvrtc" if tagCPUGPU else "cpp"](
             tagCPUGPU,
             tag1D2D,

@@ -190,7 +190,7 @@ KeOps provides core routines for the following packages:
 
 
 Licensing, citation, academic use
------------------------
+---------------------------------
 
 This library is licensed under the permissive `MIT license <https://en.wikipedia.org/wiki/MIT_License>`_,
 which is fully compatible with both **academic** and **commercial** applications.

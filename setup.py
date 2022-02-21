@@ -77,9 +77,10 @@ setup(
             "readme.md",
             "licence.txt",
             "keops_version",
-            "common/keops_io/keops_nvrtc.cpp",
+            "common/keops_io/pykeops_nvrtc.cpp",
         ],
         "keops": [
+            "keops_version",
             "binders/nvrtc/keops_nvrtc.cpp",
             "binders/nvrtc/nvrtc_jit.cpp",
             "include/CudaSizes.h",
@@ -93,7 +94,6 @@ setup(
     },
     install_requires=["numpy", "pybind11"],
     extras_require={
-        "colab": [],
         "full": [
             "sphinx",
             "sphinx-gallery",
