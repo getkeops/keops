@@ -53,7 +53,6 @@ setup(
         "pykeops.torch.cluster",
         "pykeops.torch.generic",
         "pykeops.torch.lazytensor",
-        "pykeops.torch.kernel_product",
         "keops",
         "keops.binders",
         "keops.binders.cpp",
