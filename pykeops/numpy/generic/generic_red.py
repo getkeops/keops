@@ -299,6 +299,7 @@ class Genred:
             device_id = default_device_id if tagCPUGPU == 1 else -1
 
         from pykeops.common.keops_io import keops_binder
+
         self.myconv = keops_binder["nvrtc" if tagCPUGPU else "cpp"](
             tagCPUGPU,
             tag1D2D,

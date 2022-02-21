@@ -74,6 +74,7 @@ class GenredAutograd(torch.autograd.Function):
                     )
 
         from pykeops.common.keops_io import keops_binder
+
         myconv = keops_binder["nvrtc" if tagCPUGPU else "cpp"](
             tagCPUGPU,
             tag1D2D,
