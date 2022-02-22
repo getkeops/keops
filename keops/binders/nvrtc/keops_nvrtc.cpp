@@ -101,7 +101,7 @@ class KeOps_module {
                        int tagI, int tagZero, int use_half,
                        int tag1D2D, int dimred,
                        int cuda_block_size, int use_chunk_mode,
-                       int *indsi, int *indsj, int *indsp,
+                       std::vector< int > indsi, std::vector< int > indsj, std::vector< int > indsp,
                        int dimout,
                        int *dimsx, int *dimsy, int *dimsp,
                        int **ranges,
@@ -164,13 +164,15 @@ class KeOps_module {
         // and in the core code. Clearly we could do better if we
         // carefully rewrite some parts of the code
         if (tagI == 1) {
-            int *tmp;
+            std::vector< int > tmp;
             tmp = indsj;
             indsj = indsi;
             indsi = tmp;
-            tmp = dimsy;
+
+            int *tmp2;
+            tmp2 = dimsy;
             dimsy = dimsx;
-            dimsx = tmp;
+            dimsx = tmp2;
         }
 
 

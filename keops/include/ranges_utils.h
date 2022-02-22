@@ -22,7 +22,11 @@ void vect_broadcast_index(int i, int nbatchdims, int nvars, int *full_shape,
 }
 
 void fill_shapes(int nbatchdims, int *shapes, int *shapes_i, int *shapes_j, int *shapes_p,
-                 int tagJ, int sizei, int sizej, int sizep, int *indsi, int *indsj, int *indsp) {
+                 int tagJ, std::vector< int > indsi, std::vector< int > indsj, std::vector< int > indsp) {
+
+    int sizei = indsi.size();
+    int sizej = indsj.size();
+    int sizep = indsp.size();
 
     sizei += 1;
 
@@ -49,25 +53,25 @@ void fill_shapes(int nbatchdims, int *shapes, int *shapes_i, int *shapes_j, int 
     // [ A, .., A, M]
     for (int k = 0; k < (sizei - 1); k++) {  // k-th line
         for (int l = 0; l < nbatchdims; l++) {  // l-th column
-            shapes_i[k * (nbatchdims + 1) + l] = shapes[(1 + get_val(indsi, k)) * (nbatchdims + 3) + l];
+            shapes_i[k * (nbatchdims + 1) + l] = shapes[(1 + indsi[k]) * (nbatchdims + 3) + l];
         }
         shapes_i[k * (nbatchdims + 1) + nbatchdims] =
-            shapes[(1 + get_val(indsi, k)) * (nbatchdims + 3) + nbatchdims + 1 - tagIJ];
+            shapes[(1 + indsi[k]) * (nbatchdims + 3) + nbatchdims + 1 - tagIJ];
     }
 
     // Then, we do the same for shapes_j, but with "N" instead of "M":
     for (int k = 0; k < sizej; k++) {  // k-th line
         for (int l = 0; l < nbatchdims; l++) {  // l-th column
-            shapes_j[k * (nbatchdims + 1) + l] = shapes[(1 + get_val(indsj, k)) * (nbatchdims + 3) + l];
+            shapes_j[k * (nbatchdims + 1) + l] = shapes[(1 + indsj[k]) * (nbatchdims + 3) + l];
         }
-        shapes_j[k * (nbatchdims + 1) + nbatchdims] = shapes[(1 + get_val(indsj, k)) * (nbatchdims + 3) + nbatchdims +
+        shapes_j[k * (nbatchdims + 1) + nbatchdims] = shapes[(1 + indsj[k]) * (nbatchdims + 3) + nbatchdims +
                 tagIJ];
     }
 
     // And finally for the parameters, with "1" instead of "M":
     for (int k = 0; k < sizep; k++) {  // k-th line
         for (int l = 0; l < nbatchdims; l++) {  // l-th column
-            shapes_p[k * (nbatchdims + 1) + l] = shapes[(1 + get_val(indsp, k)) * (nbatchdims + 3) + l];
+            shapes_p[k * (nbatchdims + 1) + l] = shapes[(1 + indsp[k]) * (nbatchdims + 3) + l];
         }
         shapes_p[k * (nbatchdims + 1) + nbatchdims] = 1;
     }
@@ -76,8 +80,12 @@ void fill_shapes(int nbatchdims, int *shapes, int *shapes_i, int *shapes_j, int 
 
 
 int *build_offset_tables(int nbatchdims, int *shapes, int nblocks, __INDEX__ *lookup_h,
-                         int sizei, int sizej, int sizep, int *indsi, int *indsj, int *indsp,
+                         std::vector< int > indsi, std::vector< int > indsj, std::vector< int > indsp,
                          int tagJ) {
+
+    int sizei = indsi.size();
+    int sizej = indsj.size();
+    int sizep = indsp.size();
 
     // Support for broadcasting over batch dimensions =============================================
 
@@ -102,7 +110,7 @@ int *build_offset_tables(int nbatchdims, int *shapes, int nblocks, __INDEX__ *lo
     // [ A, .., A, M]
     // Then, we do the same for shapes_j, but with "N" instead of "M".
     // And finally for the parameters, with "1" instead of "M".
-    fill_shapes(nbatchdims, shapes, shapes_i, shapes_j, shapes_p, tagJ, sizei, sizej, sizep, indsi, indsj, indsp);
+    fill_shapes(nbatchdims, shapes, shapes_i, shapes_j, shapes_p, tagJ, indsi, indsj, indsp);
 
     int tagIJ = tagJ; // 1 if the reduction is made "over j", 0 if it is made "over i"
     int M = shapes[nbatchdims], N = shapes[nbatchdims + 1];
@@ -135,7 +143,7 @@ int *build_offset_tables(int nbatchdims, int *shapes, int nblocks, __INDEX__ *lo
 void range_preprocess_from_device(int &nblocks, int tagI, int nranges_x, int nranges_y, __INDEX__ **castedranges,
                                   int nbatchdims, __INDEX__ *&slices_x_d, __INDEX__ *&ranges_y_d,
                                   __INDEX__ *&lookup_d, int *&offsets_d, int blockSize_x,
-                                  int *indsi, int *indsj, int *indsp, int *shapes) {
+                                  std::vector< int > indsi, std::vector< int > indsj, std::vector< int > indsp, int *shapes) {
 
     // Ranges pre-processing... ==================================================================
 
@@ -213,13 +221,9 @@ void range_preprocess_from_device(int &nblocks, int tagI, int nranges_x, int nra
 
     // We create a lookup table, "offsets", of shape (nblock, SIZEVARS):
 
-    int sizei = indsi[0];
-    int sizej = indsj[0];
-    int sizep = indsp[0];
-
     if (nbatchdims > 0) {
         offsets_d = build_offset_tables(nbatchdims, shapes, nblocks, lookup_h,
-                                        sizei, sizej, sizep, indsi, indsj, indsp, tagJ);
+                                        indsi, indsj, indsp, tagJ);
     }
 
 
@@ -233,7 +237,7 @@ void range_preprocess_from_device(int &nblocks, int tagI, int nranges_x, int nra
 void range_preprocess_from_host(int &nblocks, int tagI, int nranges_x, int nranges_y, int nredranges_x, int nredranges_y, __INDEX__ **castedranges,
                                 int nbatchdims, __INDEX__ *&slices_x_d, __INDEX__ *&ranges_y_d,
                                 __INDEX__ *&lookup_d, int *&offsets_d, int blockSize_x,
-                                int *indsi, int *indsj, int *indsp, int *shapes) {
+                                std::vector< int > indsi, std::vector< int > indsj, std::vector< int > indsp, int *shapes) {
 
     // Ranges pre-processing... ==================================================================
 
@@ -290,13 +294,9 @@ void range_preprocess_from_host(int &nblocks, int tagI, int nranges_x, int nrang
 
     // We create a lookup table, "offsets", of shape (nblock, SIZEVARS):
 
-    int sizei = indsi[0];
-    int sizej = indsj[0];
-    int sizep = indsp[0];
-
     if (nbatchdims > 0) {
         offsets_d = build_offset_tables(nbatchdims, shapes, nblocks, lookup_h,
-                                        sizei, sizej, sizep, indsi, indsj, indsp, tagJ);
+                                        indsi, indsj, indsp, tagJ);
     }
 
 
