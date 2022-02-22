@@ -149,13 +149,13 @@ class LoadKeOps:
         if self.params.tagI == 1:
             indsi, indsj = indsj, indsi
             dimsx, dimsy = dimsy, dimsx
-        # TODO: the tuple length is added at the beginning. Should be remove with Pybind11
+
         self.params.indsi = indsi
         self.params.indsj = indsj
         self.params.indsp = indsp
-        self.params.dimsx = (len(dimsx),) + dimsx
-        self.params.dimsy = (len(dimsy),) + dimsy
-        self.params.dimsp = (len(dimsp),) + dimsp
+        self.params.dimsx = dimsx
+        self.params.dimsy = dimsy
+        self.params.dimsp = dimsp
 
         self.params.tagCPUGPU = tagCPUGPU
         self.params.device_id_request = device_id_request
@@ -203,7 +203,7 @@ class LoadKeOps:
         self.args_ptr_new = tuple([self.tools.get_pointer(arg) for arg in args])
 
         # get all shapes of arguments
-        self.argshapes_new = tuple([(len(arg.shape),) + arg.shape for arg in args])
+        self.argshapes_new = tuple([arg.shape for arg in args])
 
         # initialize output array
 
@@ -227,7 +227,7 @@ class LoadKeOps:
             out = self.tools.empty(shapeout, dtype=args[0].dtype, device=device_args)
         self.out_ptr = self.tools.get_pointer(out)
 
-        self.outshape = (len(out.shape),) + out.shape
+        self.outshape = out.shape
 
         self.call_keops(nx, ny)
 

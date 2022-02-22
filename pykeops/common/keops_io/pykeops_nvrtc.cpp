@@ -34,34 +34,32 @@ int operator () (int tagHostDevice, int dimY, int nx, int ny,
         std::vector< int > indsi_v(py_indsi.size());
          for (auto i = 0; i < py_indsi.size(); i++)
            indsi_v[i] = py::cast< int >(py_indsi[i]);
-         int *indsi = &indsi_v[0];
-         // std::cout << "indsi " << (long) indsi << std::endl;
+
 
          std::vector< int > indsj_v(py_indsj.size());
          for (auto i = 0; i < py_indsj.size(); i++)
             indsj_v[i] = py::cast< int >(py_indsj[i]);
-         int *indsj = &indsj_v[0];
+
 
          std::vector< int > indsp_v(py_indsp.size());
          for (auto i = 0; i < py_indsp.size(); i++)
             indsp_v[i] = py::cast< int >(py_indsp[i]);
-         int *indsp = &indsp_v[0];
+
 
          std::vector< int > dimsx_v(py_dimsx.size());
          for (auto i = 0; i < py_dimsx.size(); i++)
            dimsx_v[i] = py::cast< int >(py_dimsx[i]);
-         int *dimsx = &dimsx_v[0];
 
 
          std::vector< int > dimsy_v(py_dimsy.size());
          for (auto i = 0; i < py_dimsy.size(); i++)
             dimsy_v[i] = py::cast< int >(py_dimsy[i]);
-         int* dimsy = &dimsy_v[0];
+
 
          std::vector< int > dimsp_v(py_dimsp.size());
          for (auto i = 0; i < py_dimsp.size(); i++)
             dimsp_v[i] = py::cast< int >(py_dimsp[i]);
-         int *dimsp = &dimsp_v[0];
+
 
           // Cast the ranges arrays
           std::vector< int* > ranges_v(py_ranges.size());
@@ -72,8 +70,6 @@ int operator () (int tagHostDevice, int dimY, int nx, int ny,
          std::vector< int > shapeout_v(py_shapeout.size());
          for (auto i = 0; i < py_shapeout.size(); i++)
             shapeout_v[i] = py::cast< int >(py_shapeout[i]);
-         int *shapeout = &shapeout_v[0];
-         // std::cout << "shapeout : " << shapeout_v[0] << shapeout_v[1]  << shapeout_v[2] << std::endl;
 
         TYPE *out = (TYPE*) out_void;
         // std::cout << "out_ptr : " << (long) out << std::endl;
@@ -84,17 +80,17 @@ int operator () (int tagHostDevice, int dimY, int nx, int ny,
         TYPE **arg = (TYPE**) arg_v.data();
 
         std::vector< std::vector< int > > argshape_v(py_argshape.size());
-        std::vector< int* > argshape_ptr_v(py_argshape.size());
         for (auto i = 0; i < py_argshape.size(); i++){
             py::tuple tmp = py_argshape[i];
             std::vector< int > tmp_v(tmp.size());
             for (auto j =0; j < tmp.size(); j++)
                 tmp_v[j] = py::cast< int >(tmp[j]);
             argshape_v[i] = tmp_v;
-             argshape_ptr_v[i] = argshape_v[i].data();
         }
 
-        int **argshape = argshape_ptr_v.data();
+//        for (auto i : argshape_v)
+//            for (auto j : i)
+//                std::cout << j << " " ;
 
         return KeOps_module< TYPE >::launch_kernel(tagHostDevice,
                     dimY,
@@ -111,14 +107,14 @@ int operator () (int tagHostDevice, int dimY, int nx, int ny,
                     indsj_v,
                     indsp_v,
                     dimout,
-                    dimsx,
-                    dimsy,
-                    dimsp,
+                    dimsx_v,
+                    dimsy_v,
+                    dimsp_v,
                     ranges,
-                    shapeout,
+                    shapeout_v,
                     out,
                     arg,
-                    argshape);
+                    argshape_v);
 }
 
 };

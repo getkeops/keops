@@ -1,3 +1,4 @@
+#include <numeric>
 #include <cuda.h>
 
 #define NVRTC_SAFE_CALL(x)                                        \
@@ -41,14 +42,6 @@ char *read_text_file(char const *path) {
     return buffer;
 }
 
-template<typename TYPE>
-int get_sum(TYPE *shape) {
-    int ndims = shape[0];
-    int size = 1;
-    for (int k = 0; k < ndims; k++)
-        size *= shape[k + 1];
-    return size;
-}
 
 
 template<typename TYPE>
@@ -63,12 +56,12 @@ void load_args_FromDevice(CUdeviceptr &p_data, TYPE *out, TYPE *&out_d, int narg
 
 template<typename TYPE>
 void
-load_args_FromHost(CUdeviceptr &p_data, TYPE *out, TYPE *&out_d, int nargs, TYPE **arg, TYPE **&arg_d, int **argshape,
+load_args_FromHost(CUdeviceptr &p_data, TYPE *out, TYPE *&out_d, int nargs, TYPE **arg, TYPE **&arg_d, std::vector< std::vector< int > > argshape,
                    int sizeout) {
     int sizes[nargs];
     int totsize = sizeout;
     for (int k = 0; k < nargs; k++) {
-        sizes[k] = get_sum(argshape[k]);
+        sizes[k] = std::accumulate(argshape[k].begin(), argshape[k].end(), 1, std::multiplies< int >());
         totsize += sizes[k];
     }
 
