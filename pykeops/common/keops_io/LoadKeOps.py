@@ -150,9 +150,9 @@ class LoadKeOps:
             indsi, indsj = indsj, indsi
             dimsx, dimsy = dimsy, dimsx
         # TODO: the tuple length is added at the beginning. Should be remove with Pybind11
-        self.params.indsi = (len(indsi),) + indsi
-        self.params.indsj = (len(indsj),) + indsj
-        self.params.indsp = (len(indsp),) + indsp
+        self.params.indsi = indsi
+        self.params.indsj = indsj
+        self.params.indsp = indsp
         self.params.dimsx = (len(dimsx),) + dimsx
         self.params.dimsy = (len(dimsy),) + dimsy
         self.params.dimsp = (len(dimsp),) + dimsp
