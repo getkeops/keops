@@ -11,6 +11,7 @@
 #include <sstream>
 #include <stdarg.h>
 #include <vector>
+#include <numeric>
 //#include <ctime>
 
 #define __INDEX__ int
@@ -103,11 +104,11 @@ class KeOps_module {
                        int cuda_block_size, int use_chunk_mode,
                        std::vector< int > indsi, std::vector< int > indsj, std::vector< int > indsp,
                        int dimout,
-                       int *dimsx, int *dimsy, int *dimsp,
+                       std::vector< int > dimsx, std::vector< int > dimsy, std::vector< int > dimsp,
                        int **ranges,
-                       int *shapeout, TYPE *out,
+                       std::vector< int > shapeout, TYPE *out,
                        TYPE **arg,
-                       int **argshape
+                       std::vector< std::vector< int > > argshape
                       ) {
 
 
@@ -165,14 +166,14 @@ class KeOps_module {
         // carefully rewrite some parts of the code
         if (tagI == 1) {
             std::vector< int > tmp;
+
             tmp = indsj;
             indsj = indsi;
             indsi = tmp;
 
-            int *tmp2;
-            tmp2 = dimsy;
+            tmp = dimsy;
             dimsy = dimsx;
-            dimsx = tmp2;
+            dimsx = tmp;
         }
 
 
@@ -220,7 +221,7 @@ class KeOps_module {
         CUdeviceptr p_data;
         TYPE *out_d;
         TYPE **arg_d;
-        int sizeout = get_sum(shapeout);
+        int sizeout = std::accumulate(shapeout.begin(), shapeout.end(), 1, std::multiplies< int >());
 
         if (tagHostDevice == 1) {
             p_data = buffer;

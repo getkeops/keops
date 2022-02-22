@@ -15,48 +15,16 @@ void error(std::string message) {
 }
 #endif
 
-int get_min(int *v) {
-    int size = v[0];
-    if (size == 0)
-        return -1;
-    else {
-        int res = v[1];
-        for (int i = 2; i < size + 1; i++)
-            res = MIN(v[i], res);
-        return res;
-    }
-}
-
-int get_max(int *v) {
-    int size = v[0];
-    if (size == 0)
-        return -1;
-    else {
-        int res = v[1];
-        for (int i = 2; i < size + 1; i++) {
-            res = MAX(v[i], res);
-        }
-        return res;
-    }
-}
-
-int get_size(index_t shape) {
-    return shape[0];
-}
-
-int get_val(index_t shape, int pos) {
-    return shape[pos + 1];
-}
 
 #if C_CONTIGUOUS
 
-int get_val_batch(index_t shape, int nbatch, int b) {
-    return get_val(shape, b);
+int get_val_batch(std::vector< int > shape, int nbatch, int b) {
+    return shape[b];
 }
 
 #else
-int get_val_batch(index_t shape, int nbatch, int b) {
-    return get_val(shape, nbatch - b);
+int get_val_batch(std::vector< int > shape, int nbatch, int b) {
+    return shape[nbatch - b];
 }
 #endif
 
@@ -86,15 +54,15 @@ class Sizes {
     int nvarsI;
     int nvarsJ;
     int nvarsP;
-    int *dimsX;
-    int *dimsY;
-    int *dimsP;
+    std::vector< int > dimsX;
+    std::vector< int > dimsY;
+    std::vector< int > dimsP;
 
     // constructors
-    Sizes(int _nargs, TYPE **args, index_t*argshapes, int _nx, int _ny,
+    Sizes(int _nargs, TYPE **args, std::vector< std::vector< int > > argshapes, int _nx, int _ny,
           int tagIJ_, int use_half_, int dimout_,
           std::vector< int > indsI_, std::vector< int > indsJ_, std::vector< int > indsP_,
-          int *dimsX_, int *dimsY_, int *dimsP_) {
+          std::vector< int > dimsX_,  std::vector< int > dimsY_,  std::vector< int > dimsP_) {
         tagIJ = tagIJ_;
         use_half = use_half_;
         indsI = indsI_;
@@ -109,9 +77,9 @@ class Sizes {
         pos_first_argI = (nvarsI > 0) ? *std::min_element(indsI.begin(), indsI.end()) : -1;
         pos_first_argJ = (nvarsJ > 0) ? *std::min_element(indsJ.begin(), indsJ.end()) : -1;
 
-        int max_i = (nvarsI > 0) ? *std::max_element(indsI.begin(), indsI.end()) : 0;
-        int max_j = (nvarsJ > 0) ? *std::max_element(indsJ.begin(), indsJ.end()) : 0;
-        int max_p = (nvarsP > 0) ? *std::max_element(indsP.begin(), indsP.end()) : 0;
+        int max_i = (nvarsI > 0) ? *std::max_element(indsI.begin(), indsI.end()) : -1;
+        int max_j = (nvarsJ > 0) ? *std::max_element(indsJ.begin(), indsJ.end()) : -1;
+        int max_p = (nvarsP > 0) ? *std::max_element(indsP.begin(), indsP.end()) : -1;
 
         nminargs = 1 + MAX3(max_i, max_j, max_p);
         dimsX = dimsX_;
@@ -129,9 +97,9 @@ class Sizes {
         // [ A, .., B, 1, 1, D_3  ]  -> "parameter"
         // [ A, .., 1, M, 1, D_4  ]  -> N.B.: we support broadcasting on the batch dimensions!
         // [ 1, .., 1, M, 1, D_5  ]  ->      (we'll just ask users to fill in the shapes with *explicit* ones)
-        fill_shape(_nargs, args, argshapes);
+        fill_shape(nargs, argshapes);
 
-        check_ranges(_nargs, args, argshapes);
+        check_ranges(argshapes);
 
         // fill shape_out
         shape_out = (int *) malloc(sizeof(int) * (nbatchdims + 2));
@@ -178,28 +146,27 @@ class Sizes {
     void switch_to_half2_indexing();
 
   private:
-    void fill_shape(int nargs, TYPE **args, index_t*argshapes);
+    void fill_shape(int nargs, std::vector< std::vector< int > > argshapes);
 
-    void check_ranges(int nargs, TYPE **args, index_t*argshapes);
+    void check_ranges(std::vector< std::vector< int > > argshapes);
 
     int MN_pos, D_pos;
 };
 
 
 template<typename TYPE>
-void Sizes<TYPE>::fill_shape(int nargs, TYPE **args, index_t*argshapes) {
+void Sizes<TYPE>::fill_shape(int nargs, std::vector< std::vector< int > > argshapes) {
 
     int pos = (pos_first_argI > pos_first_argJ) ? pos_first_argI : pos_first_argJ;
 
     if (pos > -1) {
         // Are we working in batch mode? Infer the answer from the first arg =============
-        nbatchdims =
-            get_size(argshapes[pos]) - 2;  // number of batch dimensions = Number of dims of the first tensor - 2
+        nbatchdims = argshapes[pos].size() - 2;  // number of batch dimensions = Number of dims of the first tensor - 2
 
         if (nbatchdims < 0) {
 #if do_checks
             error("[KeOps] Wrong number of dimensions for arg at position 0: is "
-                  + std::to_string(get_size(argshapes[0])) + " but should be at least 2."
+                  + std::to_string(argshapes[0].size()) + " but should be at least 2."
                  );
 #endif
         }
@@ -241,7 +208,7 @@ void Sizes<TYPE>::fill_shape(int nargs, TYPE **args, index_t*argshapes) {
 }
 
 template<typename TYPE>
-void Sizes<TYPE>::check_ranges(int nargs, TYPE **args, index_t*argshapes) {
+void Sizes<TYPE>::check_ranges(std::vector< std::vector< int > > argshapes) {
 
     // Check the compatibility of all tensor shapes ==================================
     if (nminargs > 0) {
@@ -254,7 +221,7 @@ void Sizes<TYPE>::check_ranges(int nargs, TYPE **args, index_t*argshapes) {
             int off_i = (i + 1) * (nbatchdims + 3);
 
             // Check the number of dimensions --------------------------------------------
-            int ndims = get_size(argshapes[i]);  // Number of dims of the i-th tensor
+            int ndims = argshapes[i].size();  // Number of dims of the i-th tensor
 
 #if do_checks
             if (ndims != nbatchdims + 2) {
@@ -294,8 +261,8 @@ void Sizes<TYPE>::check_ranges(int nargs, TYPE **args, index_t*argshapes) {
                 }
             }
 
-            shapes[off_i + nbatchdims] = get_val(argshapes[i], MN_pos);  // = "M"
-            shapes[off_i + nbatchdims + 2] = get_val(argshapes[i], D_pos);  // = "D"
+            shapes[off_i + nbatchdims] = argshapes[i][MN_pos];  // = "M"
+            shapes[off_i + nbatchdims + 2] = argshapes[i][D_pos];  // = "D"
 
 
 #if do_checks
@@ -324,7 +291,7 @@ void Sizes<TYPE>::check_ranges(int nargs, TYPE **args, index_t*argshapes) {
             int i = indsJ[k];
 
             // Check the number of dimensions --------------------------------------------
-            int ndims = get_size(argshapes[i]);  // Number of dims of the i-th tensor
+            int ndims = argshapes[i].size();  // Number of dims of the i-th tensor
 
 #if do_checks
             if (ndims != nbatchdims + 2) {
@@ -365,8 +332,8 @@ void Sizes<TYPE>::check_ranges(int nargs, TYPE **args, index_t*argshapes) {
                 }
             }
 
-            shapes[off_i + nbatchdims + 1] = get_val(argshapes[i], MN_pos);  // = "N"
-            shapes[off_i + nbatchdims + 2] = get_val(argshapes[i], D_pos);  // = "D"
+            shapes[off_i + nbatchdims + 1] = argshapes[i][MN_pos];  // = "N"
+            shapes[off_i + nbatchdims + 2] = argshapes[i][D_pos];  // = "D"
 
 
 #if do_checks
@@ -398,7 +365,7 @@ void Sizes<TYPE>::check_ranges(int nargs, TYPE **args, index_t*argshapes) {
             for (int b = 0; b < nbatchdims; b++) {
                 shapes[off_i + b] = get_val_batch(argshapes[i], nbatchdims + 2, b);
             }
-            shapes[off_i + nbatchdims + 2] = get_val(argshapes[i], nbatchdims);  // = "D"
+            shapes[off_i + nbatchdims + 2] = argshapes[i][nbatchdims];  // = "D"
 #if do_checks
             int dim_param;
             if (use_half)
