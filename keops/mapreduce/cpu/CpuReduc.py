@@ -66,7 +66,8 @@ class CpuReduc(MapReduce, Cpu_link_compile):
                     #include "stdarg.h"
                     #include <vector>
                     
-                    int launch_keops_{self.gencode_filename}(int nx, int ny, int tagI, {dtype} *out, {dtype} **arg) {{
+                    template < typename TYPE > 
+                    int launch_keops_{self.gencode_filename}(int nx, int ny, int tagI, TYPE *out, TYPE **arg) {{
                         
                         if (tagI==1) {{
                             int tmp = ny;
@@ -77,39 +78,25 @@ class CpuReduc(MapReduce, Cpu_link_compile):
                         return CpuConv_{self.gencode_filename}(nx, ny, out, arg);
 
                     }}
+                    template < typename TYPE >
+                    int launch_keops_cpu_{self.gencode_filename}(int dimY,
+                                                                 int nx,
+                                                                 int ny,
+                                                                 int tagI,
+                                                                 int tagZero,
+                                                                 int use_half,
+                                                                 int dimred,
+                                                                 int use_chunk_mode,
+                                                                 std::vector< int > indsi, std::vector< int > indsj, std::vector< int > indsp,
+                                                                 int dimout,
+                                                                 std::vector< int > dimsx, std::vector< int > dimsy, std::vector< int > dimsp,
+                                                                 int **ranges,
+                                                                 std::vector< int > shapeout, TYPE *out,
+                                                                 TYPE **arg,
+                                                                 std::vector< std::vector< int > > argshape) {{
                     
-                    int launch_keops_cpu_{self.gencode_filename}(int nx, int ny, int tagI, int use_half, 
-                                             const std::vector<void*>& ranges_v,
-                                             void *out_void, int nargs, 
-                                             const std::vector<void*>& arg_v,
-                                             const std::vector<int*>& argshape_v) {{
                         
-                        {dtype} **arg = ({dtype}**) arg_v.data();
-                        {dtype} *out = ({dtype}*) out_void;
-                        
-                        return launch_keops_{self.gencode_filename}(nx, ny, tagI, out, arg);
+                        return launch_keops_{self.gencode_filename} < TYPE >(nx, ny, tagI, out, arg);
 
                     }}
-                                                                        
-                    extern "C" int launch_keops_{dtype}(const char* target_file_name, int tagHostDevice, int dimY, int nx, int ny, 
-                                                        int device_id, int tagI, int tagZero, int use_half, 
-                                                        int tag1D2D, int dimred,
-                                                        int cuda_block_size, int use_chunk_mode,
-                                                        int *indsi, int *indsj, int *indsp, 
-                                                        int dimout, 
-                                                        int *dimsx, int *dimsy, int *dimsp, 
-                                                        int **ranges, int *shapeout, {dtype} *out, int nargs, ...) {{
-                                                    
-                        // reading arguments
-                        va_list ap;
-                        va_start(ap, nargs);
-                        {dtype} *arg[nargs];
-                        for (int i=0; i<nargs; i++)
-                            arg[i] = va_arg(ap, {dtype}*);
-                        va_end(ap);
-                        
-                        return launch_keops_{self.gencode_filename}(nx, ny, tagI, out, arg);
-
-                    }}
-                    
                 """
