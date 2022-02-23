@@ -50,6 +50,7 @@ import inspect
 import sys
 
 import keops.config.config
+from keops.config.config import get_build_folder
 import keops.mapreduce
 from keops import cuda_block_size
 from keops.config.chunks import (
@@ -138,7 +139,7 @@ def get_keops_dll_impl(
 
 
 get_keops_dll = Cache(
-    get_keops_dll_impl, use_cache_file=True, save_folder=keops.config.config.build_path
+    get_keops_dll_impl, use_cache_file=True, save_folder=get_build_folder()
 )
 
 

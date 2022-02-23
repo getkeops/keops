@@ -799,8 +799,9 @@ def varseq_to_array(vars, vars_ptr_name):
 
 def clean_keops(recompile_jit_binary=True, verbose=True):
     import keops.config.config
+    from keops.config.config import get_build_folder
 
-    build_path = keops.config.config.build_path
+    build_path = get_build_folder()
     use_cuda = keops.config.config.use_cuda
     if use_cuda:
         from keops.config.config import jit_binary

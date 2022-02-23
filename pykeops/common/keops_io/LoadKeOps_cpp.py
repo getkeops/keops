@@ -2,6 +2,7 @@ import os
 import sysconfig
 
 import keops.config.config
+from keops.config.config import get_build_folder
 import pykeops
 from keops.utils.Cache import Cache_partial
 from pykeops.common.keops_io.LoadKeOps import LoadKeOps
@@ -117,5 +118,5 @@ class LoadKeOps_cpp_class(LoadKeOps):
 
 
 LoadKeOps_cpp = Cache_partial(
-    LoadKeOps_cpp_class, use_cache_file=True, save_folder=keops.config.config.build_path
+    LoadKeOps_cpp_class, use_cache_file=True, save_folder=get_build_folder()
 )

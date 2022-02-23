@@ -1,6 +1,7 @@
 import os
 
 import keops.config.config
+from keops.config.config import get_build_folder
 import pykeops
 from keops.binders.nvrtc.Gpu_link_compile import Gpu_link_compile
 from keops.utils.Cache import Cache_partial
@@ -84,5 +85,5 @@ def compile_jit_binary():
 LoadKeOps_nvrtc = Cache_partial(
     LoadKeOps_nvrtc_class,
     use_cache_file=True,
-    save_folder=keops.config.config.build_path,
+    save_folder=get_build_folder(),
 )
