@@ -1,11 +1,7 @@
 from keops import debug_ops
 from keops.binders.cpp.Cpu_link_compile import Cpu_link_compile
 from keops.binders.binders_definitions import binders_definitions
-from keops.broadcast_batch_dimensions import (
-    define_fill_shapes_function,
-    define_broadcast_index_function,
-    define_vect_broadcast_index_function,
-)
+
 from keops.mapreduce.cpu.CpuAssignZero import CpuAssignZero
 from keops.mapreduce.MapReduce import MapReduce
 from keops.utils.code_gen_utils import (
@@ -81,18 +77,20 @@ class CpuReduc_ranges(MapReduce, Cpu_link_compile):
                         #define __INDEX__ int
                   
                         {binders_definitions(dtype, red_formula, varloader)}
-                        #include "include/Sizes_no_template.h"
-                        #include "include/Ranges_no_template.h"
-                        
-                        {define_fill_shapes_function(red_formula)}
-                        {define_broadcast_index_function()}
-                        {define_vect_broadcast_index_function()}
-                        
+                        #include "include/Sizes.h"
+                        #include "include/ranges_utils.h"
+                        #include "include/Ranges.h"
+                                                
                         int CpuConv_ranges_{self.gencode_filename}(int nx, int ny, 
                                             int nbatchdims, int* shapes,
+                         std::vector< int > indsi, std::vector< int > indsj, std::vector< int > indsp,
                                             int nranges_x, int nranges_y, __INDEX__** ranges,
                                             {dtype}* out, {dtype} **{arg.id}) {{
                                                 
+                            int sizei = indsi.size();
+                            int sizej = indsj.size();
+                            int sizep = indsp.size();
+                        
                             // Separate and store the shapes of the "i" and "j" variables + parameters --------------
                             //
                             // shapes is an array of size (1+nargs)*(nbatchdims+3), which looks like:
@@ -102,9 +100,9 @@ class CpuReduc_ranges(MapReduce, Cpu_link_compile):
                             // [ A, .., B, 1, 1, D_3  ]  -> "parameter"
                             // [ A, .., 1, M, 1, D_4  ]  -> N.B.: we support broadcasting on the batch dimensions!
                             // [ 1, .., 1, M, 1, D_5  ]  ->      (we'll just ask users to fill in the shapes with *explicit* ones)
-    
-                            int shapes_i[({nvarsi}) * (nbatchdims + 1)], shapes_j[{nvarsj} * (nbatchdims + 1)],
-                                    shapes_p[{nvarsp} * (nbatchdims + 1)];
+                                    
+                            int shapes_i[sizei * (nbatchdims + 1)], shapes_j[sizej * (nbatchdims + 1)], shapes_p[sizep * (nbatchdims + 1)];
+
                             
                             // First, we fill shapes_i with the "relevant" shapes of the "i" variables,
                             // making it look like, say:
@@ -113,7 +111,7 @@ class CpuReduc_ranges(MapReduce, Cpu_link_compile):
                             // [ A, .., A, M]
                             // Then, we do the same for shapes_j, but with "N" instead of "M".
                             // And finally for the parameters, with "1" instead of "M".
-                            fill_shapes(nbatchdims, shapes, shapes_i, shapes_j, shapes_p);
+                            fill_shapes(nbatchdims, shapes, shapes_i, shapes_j, shapes_p,  {red_formula.tagJ}, indsi, indsj, indsp);
                             
                             // Actual for-for loop -----------------------------------------------------
 
@@ -211,14 +209,26 @@ class CpuReduc_ranges(MapReduce, Cpu_link_compile):
                     #include "stdarg.h"
                     #include <vector>
                     
-                    int launch_keops_{self.gencode_filename}(int nx, int ny, int tagI, int use_half, int **ranges, {dtype}* out, int nargs, {dtype}** arg, int** argshape) {{
+                    template < typename TYPE >
+                    int launch_keops_{self.gencode_filename}(int nx, int ny, 
+                                                             int tagI, int use_half, int  dimred,
+                                                                 int use_chunk_mode,
+                                                                 std::vector< int > indsi, std::vector< int > indsj, std::vector< int > indsp,
+                                                                 int dimout,
+                                                                 std::vector< int > dimsx, std::vector< int > dimsy, std::vector< int > dimsp,
+                                                             int **ranges, 
+                                                             {dtype}* out, int nargs, {dtype}** arg,
+                                                             std::vector<std::vector< int >> argshape) {{
                         
-                        Sizes SS(nargs, arg, argshape, nx, ny);
+                        Sizes< TYPE > SS (nargs, arg, argshape, nx, ny,tagI, use_half,
+                       dimout,
+                       indsi, indsj, indsp,
+                       dimsx, dimsy, dimsp);
                         
                         if (use_half)
                           SS.switch_to_half2_indexing();
 
-                        Ranges RR(SS, ranges);
+                        Ranges < TYPE > RR(SS, ranges);
                         
                         nx = SS.nx;
                         ny = SS.ny;
@@ -230,46 +240,44 @@ class CpuReduc_ranges(MapReduce, Cpu_link_compile):
                         }}
                         
                         return CpuConv_ranges_{self.gencode_filename}(nx, ny, SS.nbatchdims, SS.shapes,
+                                                indsi, indsj, indsp,
                                                 RR.nranges_x, RR.nranges_y, RR.castedranges,
                                                 out, arg);
                     }}
                     
-                    int launch_keops_cpu_{self.gencode_filename}(int nx, int ny, int tagI, int use_half, 
-                                             const std::vector<void*>& ranges_v,
-                                             void *out_void, int nargs, 
-                                             const std::vector<void*>& arg_v,
-                                             const std::vector<int*>& argshape_v) {{
+                    template < typename TYPE >
+                    int launch_keops_cpu_{self.gencode_filename}(int dimY,
+                                                                 int nx,
+                                                                 int ny,
+                                                                 int tagI,
+                                                                 int tagZero,
+                                                                 int use_half,
+                                                                 int dimred,
+                                                                 int use_chunk_mode,
+                                                                 std::vector< int > indsi, std::vector< int > indsj, std::vector< int > indsp,
+                                                                 int dimout,
+                                                                 std::vector< int > dimsx, std::vector< int > dimsy, std::vector< int > dimsp,
+                                                                 int **ranges,
+                                                                 std::vector< int > shapeout, TYPE *out,
+                                                                 TYPE **arg,
+                                                                 std::vector< std::vector< int > > argshape) {{
                         
-                        int **ranges = (int**) ranges_v.data();
-                        {dtype} **arg = ({dtype}**) arg_v.data();
-                        {dtype} *out = ({dtype}*) out_void;
-                        int **argshape = (int**) argshape_v.data();
+                
                         
-                        return launch_keops_{self.gencode_filename}(nx, ny, tagI, use_half, ranges, out, nargs, arg, argshape);
+                        return launch_keops_{self.gencode_filename}< TYPE >(nx,
+                                                                    ny,
+                                                                    tagI,
+                                                                    use_half,
+                                                                    dimred,
+                                                                    use_chunk_mode,
+                                                                    indsi, indsj, indsp,
+                                                                    dimout,
+                                                                    dimsx, dimsy, dimsp,
+                                                                    ranges,
+                                                                    out, 
+                                                                    argshape.size(), 
+                                                                    arg, 
+                                                                    argshape);
                     }}
                         
-                    
-                    extern "C" int launch_keops_{dtype}(const char* target_file_name, int tagHostDevice, int dimY, int nx, int ny, 
-                                                        int device_id, int tagI, int tagZero, int use_half, 
-                                                        int tag1D2D, int dimred,
-                                                        int cuda_block_size, int use_chunk_mode,
-                                                        int *indsi, int *indsj, int *indsp, 
-                                                        int dimout, 
-                                                        int *dimsx, int *dimsy, int *dimsp,
-                                                        int **ranges, int *shapeout, {dtype}* out, int nargs, ...) {{
-                        
-                        // reading arguments
-                        va_list ap;
-                        va_start(ap, nargs);
-                        {dtype} *arg[nargs];
-                        for (int i=0; i<nargs; i++)
-                            arg[i] = va_arg(ap, {dtype}*);
-                        int *argshape[nargs];
-                        for (int i=0; i<nargs; i++)
-                            argshape[i] = va_arg(ap, int*);
-                        va_end(ap);
-                        
-                        return launch_keops_{self.gencode_filename}(nx, ny, tagI, use_half, ranges, out, nargs, arg, argshape);
-                        
-                    }}
                 """

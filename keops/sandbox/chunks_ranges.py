@@ -11,7 +11,12 @@ B1, B2, M, N, D, DV = 2, 3, 200, 300, 300, 1
 dtype = torch.float32
 sum_scheme = "block_sum"
 
-device_id = "cuda:0" if torch.cuda.is_available() else "cpu"
+import pykeops
+
+pykeops.config.gpu_available = 0
+
+
+device_id = "cuda:0" if pykeops.config.gpu_available else "cpu"
 do_warmup = False
 
 x = torch.rand(B1, B2, M, 1, D, device=device_id, dtype=dtype) / math.sqrt(D)
@@ -59,3 +64,5 @@ for backend in backends:
 
 if len(out) > 1:
     print("relative error:", (torch.norm(out[0] - out[1]) / torch.norm(out[0])).item())
+    print(out[0])
+    print(out[1])
