@@ -35,7 +35,8 @@ class CpuAssignZero(MapReduce, Cpu_link_compile):
         self.code = f"""
                         {self.headers}
 
-                        extern "C" int AssignZeroCpu_{self.gencode_filename}(int nx, int ny, {dtype}* out, {dtype} **{arg.id}) {{
+                        template < typename TYPE >
+                        extern "C" int AssignZeroCpu_{self.gencode_filename}(int nx, int ny, TYPE* out,  TYPE **{arg.id}) {{
                             #pragma omp parallel for
                             for (int i = 0; i < nx; i++) {{
                                 {outi.assign(c_zero_float)}
@@ -46,7 +47,8 @@ class CpuAssignZero(MapReduce, Cpu_link_compile):
                         #include "stdarg.h"
                         #include <vector>
                         
-                        int launch_keops_{self.gencode_filename}(int nx, int ny, int tagI, {dtype} *out, {dtype} **arg) {{
+                        template < typename TYPE >
+                        int launch_keops_{self.gencode_filename}(int nx, int ny, int tagI, TYPE *out, TYPE **arg) {{
                         
                             if (tagI==1) {{
                                 int tmp = ny;
@@ -54,10 +56,11 @@ class CpuAssignZero(MapReduce, Cpu_link_compile):
                                 nx = tmp;
                             }}
                         
-                            return AssignZeroCpu_{self.gencode_filename}(nx, ny, out, arg);
+                            return AssignZeroCpu_{self.gencode_filename}< TYPE > (nx, ny, out, arg);
 
                         }}
                         
+                        template < typename TYPE >
                         int launch_keops_cpu_{self.gencode_filename}(int dimY,
                                                                  int nx,
                                                                  int ny,
@@ -75,7 +78,7 @@ class CpuAssignZero(MapReduce, Cpu_link_compile):
                                                                  std::vector< std::vector< int > > argshape) {{
                     
                         
-                            return launch_keops_{self.gencode_filename}(nx, ny, tagI, out, arg);
+                            return launch_keops_{self.gencode_filename}< TYPE > (nx, ny, tagI, out, arg);
 
                         }}
 

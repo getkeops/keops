@@ -118,7 +118,7 @@ def get_pybind11_code(tag, include):
         PYBIND11_MODULE(pykeops_cpp_{tag}, m) {{
             m.doc() = "pyKeOps: KeOps for pytorch through pybind11 (pytorch flavour).";
             m.def("launch_pykeops_cpu_float", &launch_pykeops_{tag}_cpu < float >, "Entry point to keops - float .");
-            //m.def("launch_pykeops_cpu_double", &launch_pykeops_{tag}_cpu < double >, "Entry point to keops - float .");
+            m.def("launch_pykeops_cpu_double", &launch_pykeops_{tag}_cpu < double >, "Entry point to keops - float .");
         }}                     
             """
 
@@ -155,8 +155,8 @@ class LoadKeOps_cpp_class(LoadKeOps):
         )
         if self.params.c_dtype == "float":
             self.launch_keops_cpu = mylib.launch_pykeops_cpu_float
-        #if self.params.c_dtype == "double":
-        #    self.launch_keops_cpu = mylib.launch_pykeops_cpu_double
+        if self.params.c_dtype == "double":
+            self.launch_keops_cpu = mylib.launch_pykeops_cpu_double
 
     def call_keops(self, nx, ny):
         self.launch_keops_cpu(

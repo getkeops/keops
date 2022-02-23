@@ -80,12 +80,13 @@ class CpuReduc_ranges(MapReduce, Cpu_link_compile):
                         #include "include/Sizes.h"
                         #include "include/ranges_utils.h"
                         #include "include/Ranges.h"
-                                                
+                        
+                        template< typename TYPE>                 
                         int CpuConv_ranges_{self.gencode_filename}(int nx, int ny, 
                                             int nbatchdims, int* shapes,
                          std::vector< int > indsi, std::vector< int > indsj, std::vector< int > indsp,
                                             int nranges_x, int nranges_y, __INDEX__** ranges,
-                                            {dtype}* out, {dtype} **{arg.id}) {{
+                                            TYPE* out, TYPE **{arg.id}) {{
                                                 
                             int sizei = indsi.size();
                             int sizej = indsj.size();
@@ -217,7 +218,7 @@ class CpuReduc_ranges(MapReduce, Cpu_link_compile):
                                                                  int dimout,
                                                                  std::vector< int > dimsx, std::vector< int > dimsy, std::vector< int > dimsp,
                                                              int **ranges, 
-                                                             {dtype}* out, int nargs, {dtype}** arg,
+                                                             TYPE *out, int nargs, TYPE** arg,
                                                              std::vector<std::vector< int >> argshape) {{
                         
                         Sizes< TYPE > SS (nargs, arg, argshape, nx, ny,tagI, use_half,
@@ -239,7 +240,7 @@ class CpuReduc_ranges(MapReduce, Cpu_link_compile):
                             nx = tmp;
                         }}
                         
-                        return CpuConv_ranges_{self.gencode_filename}(nx, ny, SS.nbatchdims, SS.shapes,
+                        return CpuConv_ranges_{self.gencode_filename}< TYPE> (nx, ny, SS.nbatchdims, SS.shapes,
                                                 indsi, indsj, indsp,
                                                 RR.nranges_x, RR.nranges_y, RR.castedranges,
                                                 out, arg);

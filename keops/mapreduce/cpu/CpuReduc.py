@@ -41,7 +41,8 @@ class CpuReduc(MapReduce, Cpu_link_compile):
 
         self.code = f"""
                         {self.headers}
-                        int CpuConv_{self.gencode_filename}(int nx, int ny, {dtype}* out, {dtype} **{arg.id}) {{
+                        template < typename TYPE > 
+                        int CpuConv_{self.gencode_filename}(int nx, int ny, TYPE* out, TYPE **{arg.id}) {{
                             #pragma omp parallel for
                             for (int i = 0; i < nx; i++) {{
                                 {fout.declare()}
@@ -75,7 +76,7 @@ class CpuReduc(MapReduce, Cpu_link_compile):
                             nx = tmp;
                         }}
                         
-                        return CpuConv_{self.gencode_filename}(nx, ny, out, arg);
+                        return CpuConv_{self.gencode_filename}< TYPE >(nx, ny, out, arg);
 
                     }}
                     template < typename TYPE >
