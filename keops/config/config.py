@@ -1,6 +1,7 @@
 import os
 from os.path import join
 import sysconfig
+import shutil
 from ctypes import CDLL, RTLD_GLOBAL
 import keops
 from ctypes.util import find_library
@@ -24,8 +25,6 @@ if os.path.exists(version_cache_file):
     cache_version = v.read().rstrip()
     if cache_version != keops.__version__:
         v.close()
-        import shutil
-
         shutil.rmtree(keops_cache_folder)
         test_init_cache = True
     else:
@@ -79,7 +78,22 @@ def get_build_folder():
 jit_binary = join(_build_path, "keops_nvrtc.so")
 
 # Compiler
-cxx_compiler = "g++"
+cxx_compiler = os.getenv("CXX")
+if cxx_compiler is None:
+    cxx_compiler = "g++"
+if shutil.which(cxx_compiler) is None:
+    KeOps_Warning(
+        """
+    The default C++ compiler could not be found on your system.
+    You need to either define the CXX environment variable or a symlink to the g++ command.
+    For example if g++-8 is the command you can do
+      import os
+      os.environ['CXX'] = 'g++-8'
+    """
+    )
+    
+    
+
 compile_options = " -shared -fPIC -O3 -std=c++11"
 
 
