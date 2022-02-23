@@ -76,7 +76,7 @@ keops_rcp = math_function(cpu_code=lambda x: f"(1.0f/({x}))", gpu_half2_code="h2
 keops_rsqrt = math_function(
     cpu_code=lambda x: f"(1.0f/sqrt({x}))", gpu_code="rsqrt", gpu_half2_code="h2rsqrt"
 )
-keops_sqrt = math_function(cpu_code="sqrt")
+keops_sqrt = math_function(cpu_code="sqrt", gpu_half2_code="h2sqrt")
 
 keops_relu = math_function(cpu_code=lambda x: f"(({x}<0.0f)? 0.0f : {x})")
 keops_step = math_function(cpu_code=lambda x: f"(({x}<0.0f)? 0.0f : 1.0f)")
