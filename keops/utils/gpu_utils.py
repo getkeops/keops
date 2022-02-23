@@ -78,7 +78,6 @@ def get_cuda_include_path():
     if these files are in /vol/cuda/10.2.89-cudnn7.6.4.38/include you can do :
       import os
       os.environ['CUDA_PATH'] = '/vol/cuda/10.2.89-cudnn7.6.4.38'
-      import pykeops
     """
     )
 
