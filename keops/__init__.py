@@ -12,7 +12,7 @@ with open(os.path.join(here, "keops_version"), encoding="utf-8") as v:
     __version__ = v.read().rstrip()
 
 import keops.config
-from keops.config.config import set_build_folder
+from keops.config.config import set_build_folder, get_build_folder
 from keops.utils.code_gen_utils import clean_keops
 
 # flag for debugging : adds C++ code for printing all input and output values
@@ -21,7 +21,7 @@ debug_ops = False
 
 cuda_block_size = 192
 
-sys.path.append(keops.config.config.build_path)
+sys.path.append(get_build_folder())
 
 if keops.config.config.use_cuda:
     keops.config.config.init_cudalibs()

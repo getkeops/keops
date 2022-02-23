@@ -10,7 +10,8 @@ numpy_found = importlib.util.find_spec("numpy") is not None
 torch_found = importlib.util.find_spec("torch") is not None
 
 from keops.config.config import use_cuda as gpu_available
-
+import keops.config.config
+from keops.config.config import get_build_folder
 
 def pykeops_nvrtc_name(type="src"):
     basename = "pykeops_nvrtc"
@@ -18,7 +19,7 @@ def pykeops_nvrtc_name(type="src"):
     return join(
         join(dirname(realpath(__file__)), "common", "keops_io")
         if type == "src"
-        else keops.config.config.build_path,
+        else get_build_folder(),
         basename + extension,
     )
 
@@ -26,7 +27,7 @@ def pykeops_nvrtc_name(type="src"):
 def pykeops_cpp_name(tag="", extension=""):
     basename = "pykeops_cpp_"
     return join(
-        keops.config.config.build_path,
+        get_build_folder(),
         basename + tag + extension,
     )
 

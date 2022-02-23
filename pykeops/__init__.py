@@ -30,6 +30,8 @@ default_device_id = 0  # default Gpu device number
 
 import pykeops.config
 import keops.config
+import keops.config.config
+from keops.config.config import get_build_folder as keops_get_build_folder
 
 if keops.config.config.use_cuda:
     if not os.path.exists(pykeops.config.pykeops_nvrtc_name(type="target")):
@@ -53,7 +55,7 @@ def set_build_folder(path=None):
     keops.set_build_folder(path)
     keops_binder = pykeops.common.keops_io.keops_binder
     for key in keops_binder:
-        keops_binder[key].reset(new_save_folder=keops.config.config.build_path)
+        keops_binder[key].reset(new_save_folder=get_build_folder())
     if keops.config.config.use_cuda and not os.path.exists(
         pykeops.config.pykeops_nvrtc_name(type="target")
     ):
@@ -61,7 +63,7 @@ def set_build_folder(path=None):
 
 
 def get_build_folder():
-    return keops.config.config.build_path
+    return keops_get_build_folder()
 
 
 if pykeops.config.numpy_found:

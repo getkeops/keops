@@ -42,7 +42,7 @@ if test_init_cache:
 
 # build path setter/getter
 
-build_path = ""
+_build_path = ""
 
 
 def set_build_folder(path=None, read_save_file=False, reset_all=True):
@@ -54,13 +54,13 @@ def set_build_folder(path=None, read_save_file=False, reset_all=True):
             f.close()
         else:
             path = default_build_path
-    global build_path
-    build_path = path
+    global _build_path
+    _build_path = path
     os.makedirs(path, exist_ok=True)
     f = open(save_file, "w")
     f.write(path)
     if reset_all:
-        keops.get_keops_dll.get_keops_dll.reset(new_save_folder=build_path)
+        keops.get_keops_dll.get_keops_dll.reset(new_save_folder=_build_path)
         if keops.config.config.use_cuda:
             from keops.binders.nvrtc.Gpu_link_compile import (
                 Gpu_link_compile,
@@ -73,8 +73,10 @@ def set_build_folder(path=None, read_save_file=False, reset_all=True):
 
 set_build_folder(read_save_file=True, reset_all=False)
 
-
-jit_binary = join(build_path, "keops_nvrtc.so")
+def get_build_folder():
+    return _build_path
+    
+jit_binary = join(_build_path, "keops_nvrtc.so")
 
 # Compiler
 cxx_compiler = "g++"
