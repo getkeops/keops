@@ -73,7 +73,6 @@ class CpuReduc_ranges(MapReduce, Cpu_link_compile):
 
         self.code = f"""
 {self.headers}
-#define __INDEX__ int
 
 #define do_keops_checks 0
 #if do_keops_checks
@@ -87,8 +86,6 @@ class CpuReduc_ranges(MapReduce, Cpu_link_compile):
     	throw std::runtime_error(message);
     }}
 #endif
-
-#define index_t int*
 
 #if do_keops_checks
 void check_nargs(int nargs, int nminargs) {{
@@ -106,7 +103,7 @@ template< typename TYPE>
 int CpuConv_ranges_{self.gencode_filename}(int nx, int ny, 
                     int nbatchdims, int* shapes,
                     std::vector< int > indsi, std::vector< int > indsj, std::vector< int > indsp,
-                    int nranges_x, int nranges_y, __INDEX__** ranges,
+                    int nranges_x, int nranges_y, int **ranges,
                     TYPE* out, TYPE **{arg.id}) {{
                         
     int sizei = indsi.size();
@@ -156,9 +153,9 @@ int CpuConv_ranges_{self.gencode_filename}(int nx, int ny,
     //    FUN::tagJ = 0 for a reduction over i, result indexed by j
 
     int nranges = {red_formula.tagJ} ? nranges_x : nranges_y;
-    __INDEX__* ranges_x = {red_formula.tagJ} ? ranges[0] : ranges[3];
-    __INDEX__* slices_x = {red_formula.tagJ} ? ranges[1] : ranges[4];
-    __INDEX__* ranges_y = {red_formula.tagJ} ? ranges[2] : ranges[5];
+    int* ranges_x = {red_formula.tagJ} ? ranges[0] : ranges[3];
+    int* slices_x = {red_formula.tagJ} ? ranges[1] : ranges[4];
+    int* ranges_y = {red_formula.tagJ} ? ranges[2] : ranges[5];
 
     int indices_i[sizei], indices_j[sizej], indices_p[sizep];  // Buffers for the "broadcasted indices"
     for (int k = 0; k < sizei; k++) {{ indices_i[k] = 0; }}  // Fill the "offsets" with zeroes,
@@ -167,10 +164,10 @@ int CpuConv_ranges_{self.gencode_filename}(int nx, int ny,
     
     
     for (int range_index = 0; range_index < nranges; range_index++) {{
-        __INDEX__ start_x = ranges_x[2 * range_index];
-        __INDEX__ end_x = ranges_x[2 * range_index + 1];
-        __INDEX__ start_slice = (range_index < 1) ? 0 : slices_x[range_index - 1];
-        __INDEX__ end_slice = slices_x[range_index];
+        int start_x = ranges_x[2 * range_index];
+        int end_x = ranges_x[2 * range_index + 1];
+        int start_slice = (range_index < 1) ? 0 : slices_x[range_index - 1];
+        int end_slice = slices_x[range_index];
 
         // If needed, compute the "true" start indices of the range, turning
         // the "abstract" index start_x into an array of actual "pointers/offsets" stored in indices_i:
@@ -182,7 +179,7 @@ int CpuConv_ranges_{self.gencode_filename}(int nx, int ny,
         }}
     
         #pragma omp parallel for   
-        for (__INDEX__ i = start_x; i < end_x; i++) {{
+        for (int i = start_x; i < end_x; i++) {{
             {xi.declare()}
             {yj.declare()}
             {fout.declare()}
@@ -195,9 +192,9 @@ int CpuConv_ranges_{self.gencode_filename}(int nx, int ny,
             }}
             {red_formula.InitializeReduction(acc)}
             {sum_scheme.initialize_temporary_accumulator()}
-            for (__INDEX__ slice = start_slice; slice < end_slice; slice++) {{
-                 __INDEX__ start_y = ranges_y[2 * slice];
-                 __INDEX__ end_y = ranges_y[2 * slice + 1];
+            for (int slice = start_slice; slice < end_slice; slice++) {{
+                 int start_y = ranges_y[2 * slice];
+                 int end_y = ranges_y[2 * slice + 1];
 
                 // If needed, compute the "true" start indices of the range, turning
                 // the "abstract" index start_y into an array of actual "pointers/offsets" stored in indices_j:

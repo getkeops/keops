@@ -12,7 +12,6 @@
 #include <vector>
 //#include <ctime>
 
-#define __INDEX__ int
 #define C_CONTIGUOUS 1
 #define USE_HALF 0
 

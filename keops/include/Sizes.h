@@ -3,7 +3,6 @@
 #include <algorithm>
 #include <vector>
 
-#define index_t int*
 
 #define MIN(a, b) (((a)<(b))?(a):(b))
 #define MAX(a, b) (((a)<(b))?(b):(a))

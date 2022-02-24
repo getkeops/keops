@@ -14,7 +14,6 @@
 #include <numeric>
 //#include <ctime>
 
-#define __INDEX__ int
 #define C_CONTIGUOUS 1
 #define USE_HALF 0
 
@@ -28,7 +27,7 @@
 #include <cuda_fp16.h>
 
 
-int *build_offset_tables(int nbatchdims, int *shapes, int nblocks, __INDEX__ *lookup_h,
+int *build_offset_tables(int nbatchdims, int *shapes, int nblocks, int *lookup_h,
                          std::vector< int > indsi, std::vector< int > indsj, std::vector< int > indsp,
                          int tagJ) {
 
@@ -81,7 +80,7 @@ int *build_offset_tables(int nbatchdims, int *shapes, int nblocks, __INDEX__ *lo
         vect_broadcast_index(range_id, nbatchdims, sizep, shapes, shapes_p, offsets_h + k * sizevars + sizei + sizej);
     }
 
-    cuMemAlloc((CUdeviceptr *) &offsets_d, sizeof(int) * nblocks * sizevars);
+    cuMemAlloc((CUdeviceptr * ) & offsets_d, sizeof(int) * nblocks * sizevars);
     cuMemcpyHtoD((CUdeviceptr) offsets_d, offsets_h, sizeof(int) * nblocks * sizevars);
 
     delete[] offsets_h;
@@ -89,10 +88,11 @@ int *build_offset_tables(int nbatchdims, int *shapes, int nblocks, __INDEX__ *lo
 }
 
 
-void range_preprocess_from_device(int &nblocks, int tagI, int nranges_x, int nranges_y, __INDEX__ **castedranges,
-                                  int nbatchdims, __INDEX__ *&slices_x_d, __INDEX__ *&ranges_y_d,
-                                  __INDEX__ *&lookup_d, int *&offsets_d, int blockSize_x,
-                                  std::vector< int > indsi, std::vector< int > indsj, std::vector< int > indsp, int *shapes) {
+void range_preprocess_from_device(int &nblocks, int tagI, int nranges_x, int nranges_y, int **castedranges,
+                                  int nbatchdims, int *&slices_x_d, int *&ranges_y_d,
+                                  int *&lookup_d, int *&offsets_d, int blockSize_x,
+                                  std::vector< int > indsi, std::vector< int > indsj, std::vector< int > indsp,
+                                  int *shapes) {
 
     // Ranges pre-processing... ==================================================================
 
@@ -106,11 +106,11 @@ void range_preprocess_from_device(int &nblocks, int tagI, int nranges_x, int nra
     int tagJ = 1 - tagI;
     int nranges = tagJ ? nranges_x : nranges_y;
 
-    __INDEX__ *ranges_x = tagJ ? castedranges[0] : castedranges[3];
-    __INDEX__ *slices_x = tagJ ? castedranges[1] : castedranges[4];
-    __INDEX__ *ranges_y = tagJ ? castedranges[2] : castedranges[5];
+    int *ranges_x = tagJ ? castedranges[0] : castedranges[3];
+    int *slices_x = tagJ ? castedranges[1] : castedranges[4];
+    int *ranges_y = tagJ ? castedranges[2] : castedranges[5];
 
-    __INDEX__ *ranges_x_h = NULL;
+    int *ranges_x_h = NULL;
 
     // The code below needs a pointer to ranges_x on *host* memory,  -------------------
     // as well as pointers to slices_x and ranges_y on *device* memory.
@@ -121,9 +121,9 @@ void range_preprocess_from_device(int &nblocks, int tagI, int nranges_x, int nra
     //       to emulate block-sparse reductions.
 
     if (ranges_on_device) {  // The ranges are on the device
-        ranges_x_h = new __INDEX__[2 * nranges];
+        ranges_x_h = new int[2 * nranges];
         // Send data from device to host.
-        cuMemcpyDtoH(ranges_x_h, (CUdeviceptr) ranges_x, sizeof(__INDEX__) * 2 * nranges);
+        cuMemcpyDtoH(ranges_x_h, (CUdeviceptr) ranges_x, sizeof(int) * 2 * nranges);
         slices_x_d = slices_x;
         ranges_y_d = ranges_y;
     } else {  // The ranges are on host memory; this is typically what happens with **batch processing**,
@@ -131,12 +131,12 @@ void range_preprocess_from_device(int &nblocks, int tagI, int nranges_x, int nra
         ranges_x_h = ranges_x;
         // Copy "slices_x" to the device:
 
-        cuMemAlloc((CUdeviceptr *) &slices_x_d, sizeof(__INDEX__) * nranges);
-        cuMemcpyHtoD((CUdeviceptr) slices_x_d, slices_x, sizeof(__INDEX__) * nranges);
+        cuMemAlloc((CUdeviceptr * ) & slices_x_d, sizeof(int) * nranges);
+        cuMemcpyHtoD((CUdeviceptr) slices_x_d, slices_x, sizeof(int) * nranges);
 
         // Copy "redranges_y" to the device: with batch processing, we KNOW that they have the same shape as ranges_x
-        cuMemAlloc((CUdeviceptr *) &ranges_y_d, sizeof(__INDEX__) * 2 * nranges);
-        cuMemcpyHtoD((CUdeviceptr) ranges_y_d, ranges_y, sizeof(__INDEX__) * 2 * nranges);
+        cuMemAlloc((CUdeviceptr * ) & ranges_y_d, sizeof(int) * 2 * nranges);
+        cuMemcpyHtoD((CUdeviceptr) ranges_y_d, ranges_y, sizeof(int) * 2 * nranges);
     }
 
     // Computes the number of blocks needed ---------------------------------------------
@@ -148,8 +148,8 @@ void range_preprocess_from_device(int &nblocks, int tagI, int nranges_x, int nra
     }
 
     // Create a lookup table for the blocks --------------------------------------------
-    __INDEX__ *lookup_h = NULL;
-    lookup_h = new __INDEX__[3 * nblocks];
+    int *lookup_h = NULL;
+    lookup_h = new int[3 * nblocks];
     int index = 0;
     for (int i = 0; i < nranges; i++) {
         len_range = ranges_x_h[2 * i + 1] - ranges_x_h[2 * i];
@@ -162,8 +162,8 @@ void range_preprocess_from_device(int &nblocks, int tagI, int nranges_x, int nra
     }
 
     // Load the table on the device -----------------------------------------------------
-    cuMemAlloc((CUdeviceptr *) &lookup_d, sizeof(__INDEX__) * 3 * nblocks);
-    cuMemcpyHtoD((CUdeviceptr) lookup_d, lookup_h, sizeof(__INDEX__) * 3 * nblocks);
+    cuMemAlloc((CUdeviceptr * ) & lookup_d, sizeof(int) * 3 * nblocks);
+    cuMemcpyHtoD((CUdeviceptr) lookup_d, lookup_h, sizeof(int) * 3 * nblocks);
 
 
     // Support for broadcasting over batch dimensions =============================================
@@ -179,14 +179,12 @@ void range_preprocess_from_device(int &nblocks, int tagI, int nranges_x, int nra
 }
 
 
-
-
-
-
-void range_preprocess_from_host(int &nblocks, int tagI, int nranges_x, int nranges_y, int nredranges_x, int nredranges_y, __INDEX__ **castedranges,
-                                int nbatchdims, __INDEX__ *&slices_x_d, __INDEX__ *&ranges_y_d,
-                                __INDEX__ *&lookup_d, int *&offsets_d, int blockSize_x,
-                                std::vector< int > indsi, std::vector< int > indsj, std::vector< int > indsp, int *shapes) {
+void
+range_preprocess_from_host(int &nblocks, int tagI, int nranges_x, int nranges_y, int nredranges_x, int nredranges_y,
+                           int **castedranges,
+                           int nbatchdims, int *&slices_x_d, int *&ranges_y_d,
+                           int *&lookup_d, int *&offsets_d, int blockSize_x,
+                           std::vector< int > indsi, std::vector< int > indsj, std::vector< int > indsp, int *shapes) {
 
     // Ranges pre-processing... ==================================================================
 
@@ -201,9 +199,9 @@ void range_preprocess_from_host(int &nblocks, int tagI, int nranges_x, int nrang
     int nranges = tagJ ? nranges_x : nranges_y;
     int nredranges = tagJ ? nredranges_y : nredranges_x;
 
-    __INDEX__ *ranges_x = tagJ ? castedranges[0] : castedranges[3];
-    __INDEX__ *slices_x = tagJ ? castedranges[1] : castedranges[4];
-    __INDEX__ *ranges_y = tagJ ? castedranges[2] : castedranges[5];
+    int *ranges_x = tagJ ? castedranges[0] : castedranges[3];
+    int *slices_x = tagJ ? castedranges[1] : castedranges[4];
+    int *ranges_y = tagJ ? castedranges[2] : castedranges[5];
 
     // Computes the number of blocks needed ---------------------------------------------
     nblocks = 0;
@@ -214,8 +212,8 @@ void range_preprocess_from_host(int &nblocks, int tagI, int nranges_x, int nrang
     }
 
     // Create a lookup table for the blocks --------------------------------------------
-    __INDEX__ *lookup_h = NULL;
-    lookup_h = new __INDEX__[3 * nblocks];
+    int *lookup_h = NULL;
+    lookup_h = new int[3 * nblocks];
     int index = 0;
     for (int i = 0; i < nranges; i++) {
         len_range = ranges_x[2 * i + 1] - ranges_x[2 * i];
@@ -228,15 +226,15 @@ void range_preprocess_from_host(int &nblocks, int tagI, int nranges_x, int nrang
     }
 
     // Load the table on the device -----------------------------------------------------
-    cuMemAlloc((CUdeviceptr *) &lookup_d, sizeof(__INDEX__) * 3 * nblocks);
-    cuMemcpyHtoD((CUdeviceptr) lookup_d, lookup_h, sizeof(__INDEX__) * 3 * nblocks);
+    cuMemAlloc((CUdeviceptr * ) & lookup_d, sizeof(int) * 3 * nblocks);
+    cuMemcpyHtoD((CUdeviceptr) lookup_d, lookup_h, sizeof(int) * 3 * nblocks);
 
     // Send data from host to device:
-    cuMemAlloc((CUdeviceptr *) &slices_x_d, sizeof(__INDEX__) * 2*nranges);
-    cuMemcpyHtoD((CUdeviceptr) slices_x_d, slices_x, sizeof(__INDEX__) * 2*nranges);
+    cuMemAlloc((CUdeviceptr * ) & slices_x_d, sizeof(int) * 2 * nranges);
+    cuMemcpyHtoD((CUdeviceptr) slices_x_d, slices_x, sizeof(int) * 2 * nranges);
 
-    cuMemAlloc((CUdeviceptr *) &ranges_y_d, sizeof(__INDEX__) * 2*nredranges);
-    cuMemcpyHtoD((CUdeviceptr) ranges_y_d, ranges_y, sizeof(__INDEX__) * 2*nredranges);
+    cuMemAlloc((CUdeviceptr * ) & ranges_y_d, sizeof(int) * 2 * nredranges);
+    cuMemcpyHtoD((CUdeviceptr) ranges_y_d, ranges_y, sizeof(int) * 2 * nredranges);
 
 
     // Support for broadcasting over batch dimensions =============================================
@@ -252,12 +250,9 @@ void range_preprocess_from_host(int &nblocks, int tagI, int nranges_x, int nrang
 }
 
 
-
-
-
-template<typename TYPE>
+template< typename TYPE >
 class KeOps_module {
-  public :
+public :
 
     CUdevice cuDevice;
     CUcontext ctx;
@@ -278,7 +273,7 @@ class KeOps_module {
     void Read_Target(const char *target_file_name) {
         std::ifstream rf(target_file_name, std::ifstream::binary);
         size_t targetSize;
-        rf.read((char*)&targetSize, sizeof(size_t));
+        rf.read((char *) &targetSize, sizeof(size_t));
         target = new char[targetSize];
         rf.read(target, targetSize);
         rf.close();
@@ -312,7 +307,7 @@ class KeOps_module {
         // This is just used for storing the list of pointers to device data
         // as a device array ; it is better to allocate it here once for all,
         // otherwise allocating it at each call may cause a small overhead.
-        CUDA_SAFE_CALL(cuMemAlloc(&buffer, nargs*sizeof(TYPE*)));
+        CUDA_SAFE_CALL(cuMemAlloc(&buffer, nargs * sizeof(TYPE *)));
 
     }
 
@@ -325,18 +320,18 @@ class KeOps_module {
         delete[] target;
     }
 
-    int launch_kernel (int tagHostDevice, int dimY, int nx, int ny,
-                       int tagI, int tagZero, int use_half,
-                       int tag1D2D, int dimred,
-                       int cuda_block_size, int use_chunk_mode,
-                       std::vector< int > indsi, std::vector< int > indsj, std::vector< int > indsp,
-                       int dimout,
-                       std::vector< int > dimsx, std::vector< int > dimsy, std::vector< int > dimsp,
-                       int **ranges,
-                       std::vector< int > shapeout, TYPE *out,
-                       TYPE **arg,
-                       std::vector< std::vector< int > > argshape
-                      ) {
+    int launch_kernel(int tagHostDevice, int dimY, int nx, int ny,
+                      int tagI, int tagZero, int use_half,
+                      int tag1D2D, int dimred,
+                      int cuda_block_size, int use_chunk_mode,
+                      std::vector< int > indsi, std::vector< int > indsj, std::vector< int > indsp,
+                      int dimout,
+                      std::vector< int > dimsx, std::vector< int > dimsy, std::vector< int > dimsp,
+                      int **ranges,
+                      std::vector< int > shapeout, TYPE *out,
+                      TYPE **arg,
+                      std::vector <std::vector< int >> argshape
+    ) {
 
 
         //std::cout << nx << " " << ny << " " << dimsy[0] << " " << argshape[0][0] << " " << argshape[0][1]<< " " << argshape_ptr_v[1][1]<< std::endl;
@@ -365,11 +360,11 @@ class KeOps_module {
         ////std::cout << "  time for set device : " << double(//end_ - start_) / CLOCKS_PER_SEC << std::endl;
         //start_ = clock();
 
-        Sizes<TYPE> SS(nargs, arg, argshape, nx, ny,
-                       tagI, use_half,
-                       dimout,
-                       indsi, indsj, indsp,
-                       dimsx, dimsy, dimsp);
+        Sizes <TYPE> SS(nargs, arg, argshape, nx, ny,
+                        tagI, use_half,
+                        dimout,
+                        indsi, indsj, indsp,
+                        dimsx, dimsy, dimsp);
 
         //end_ = clock();
         //std::cout << "  time for Sizes : " << double(//end_ - start_) / CLOCKS_PER_SEC << std::endl;
@@ -378,7 +373,7 @@ class KeOps_module {
         if (use_half)
             SS.switch_to_half2_indexing();
 
-        Ranges<TYPE> RR(SS, ranges);
+        Ranges <TYPE> RR(SS, ranges);
         nx = SS.nx;
         ny = SS.ny;
 
@@ -408,7 +403,9 @@ class KeOps_module {
 
         if (use_chunk_mode == 0) {
             // warning : blockSize.x was previously set to CUDA_BLOCK_SIZE; currently CUDA_BLOCK_SIZE value is used as a bound.
-            blockSize_x = std::min(cuda_block_size, std::min(maxThreadsPerBlock, (int) (sharedMemPerBlock / std::max(1, (int) (dimY * sizeof(TYPE)))))); // number of threads in each block
+            blockSize_x = std::min(cuda_block_size, std::min(maxThreadsPerBlock, (int) (sharedMemPerBlock / std::max(1,
+                                                                                                                     (int) (dimY *
+                                                                                                                            sizeof(TYPE)))))); // number of threads in each block
         } else {
             // warning : the value here must match the one which is set in file GpuReduc1D_chunks.py, line 59
             // and file GpuReduc1D_finalchunks.py, line 67
@@ -424,17 +421,18 @@ class KeOps_module {
             nx = tmp;
         }
 
-        __INDEX__ *lookup_d = NULL, *slices_x_d = NULL, *ranges_y_d = NULL;
+        int *lookup_d = NULL, *slices_x_d = NULL, *ranges_y_d = NULL;
         int *offsets_d = NULL;
 
-        if (RR.tagRanges==1) {
-            if (tagHostDevice==1) {
+        if (RR.tagRanges == 1) {
+            if (tagHostDevice == 1) {
                 range_preprocess_from_device(nblocks, tagI, RR.nranges_x, RR.nranges_y, RR.castedranges,
                                              SS.nbatchdims, slices_x_d, ranges_y_d, lookup_d,
                                              offsets_d,
                                              blockSize_x, indsi, indsj, indsp, SS.shapes);
             } else { // tagHostDevice==0
-                range_preprocess_from_host(nblocks, tagI, RR.nranges_x, RR.nranges_y, RR.nredranges_x, RR.nredranges_y, RR.castedranges,
+                range_preprocess_from_host(nblocks, tagI, RR.nranges_x, RR.nranges_y, RR.nredranges_x, RR.nredranges_y,
+                                           RR.castedranges,
                                            SS.nbatchdims, slices_x_d, ranges_y_d, lookup_d,
                                            offsets_d,
                                            blockSize_x, indsi, indsj, indsp, SS.shapes);
@@ -596,6 +594,11 @@ class KeOps_module {
 };
 
 
-template class KeOps_module<float>;
-template class KeOps_module<double>;
-template class KeOps_module<half2>;
+template
+class KeOps_module< float >;
+
+template
+class KeOps_module< double >;
+
+template
+class KeOps_module< half2 >;
