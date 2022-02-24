@@ -9,15 +9,74 @@ from pykeops.common.utils import pyKeOps_Message
 from pykeops.config import pykeops_cpp_name
 
 
-def get_pybind11_code(tag, include):
-    return f"""
-        #include "{include}"
+
+class LoadKeOps_cpp_class(LoadKeOps):
+    def __init__(self, *args, fast_init=False):
+        super().__init__(*args, fast_init=fast_init)
+
+    def init_phase1(self):
+        srcname = pykeops_cpp_name(tag=self.params.tag, extension=".cpp")
+
+        dllname = pykeops_cpp_name(
+            tag=self.params.tag, extension=sysconfig.get_config_var("EXT_SUFFIX")
+        )
+
+        if not os.path.exists(dllname):
+            f = open(srcname, "w")
+            f.write(self.get_pybind11_code())
+            f.close()
+            compile_command = f"{keops.config.config.cxx_compiler} {keops.config.config.cpp_flags} {pykeops.config.python_includes} {srcname} -o {dllname}"
+            pyKeOps_Message(
+                "Compiling pykeops cpp " + self.params.tag + " module ... ",
+                flush=True,
+                end="",
+            )
+            os.system(compile_command)
+            pyKeOps_Message("OK", use_tag=False, flush=True)
+
+    def init_phase2(self):
+        import importlib
+
+        mylib = importlib.import_module(
+            os.path.basename(pykeops_cpp_name(tag=self.params.tag))
+        )
+
+        self.launch_keops_cpu = mylib.launch_pykeops_cpu
+
+
+    def call_keops(self, nx, ny):
+        self.launch_keops_cpu(
+            self.params.dimy,
+            nx,
+            ny,
+            self.params.tagI,
+            self.params.tagZero,
+            self.params.use_half,
+            self.params.dimred,
+            self.params.use_chunk_mode,
+            self.params.indsi,
+            self.params.indsj,
+            self.params.indsp,
+            self.params.dim,
+            self.params.dimsx,
+            self.params.dimsy,
+            self.params.dimsp,
+            self.ranges_ptr_new,
+            self.outshape,
+            self.out_ptr,
+            self.args_ptr_new,
+            self.argshapes_new,
+        )
+
+    def get_pybind11_code(self):
+        return f"""
+        #include "{self.params.source_name}"
 
         #include <pybind11/pybind11.h>
         namespace py = pybind11;
 
         template < typename TYPE >
-        int launch_pykeops_{tag}_cpu(int dimY, int nx, int ny,
+        int launch_pykeops_{self.params.tag}_cpu(int dimY, int nx, int ny,
                  int tagI, int tagZero, int use_half,
                  int dimred,
                  int use_chunk_mode,
@@ -92,7 +151,7 @@ def get_pybind11_code(tag, include):
         }}
 
 
-                return launch_keops_cpu_{tag}< TYPE >(dimY,
+                return launch_keops_cpu_{self.params.tag}< TYPE >(dimY,
                     nx,
                     ny,
                     tagI,
@@ -115,74 +174,15 @@ def get_pybind11_code(tag, include):
 
         }}
 
-        PYBIND11_MODULE(pykeops_cpp_{tag}, m) {{
+        PYBIND11_MODULE(pykeops_cpp_{self.params.tag}, m) {{
             m.doc() = "pyKeOps: KeOps for pytorch through pybind11 (pytorch flavour).";
-            m.def("launch_pykeops_cpu_float", &launch_pykeops_{tag}_cpu < float >, "Entry point to keops - float .");
-            m.def("launch_pykeops_cpu_double", &launch_pykeops_{tag}_cpu < double >, "Entry point to keops - float .");
+            m.def("launch_pykeops_cpu", &launch_pykeops_{self.params.tag}_cpu < {cpp_dtype[self.params.dtype]} >, "Entry point to keops - float .");
         }}                     
             """
-
-
-class LoadKeOps_cpp_class(LoadKeOps):
-    def __init__(self, *args, fast_init=False):
-        super().__init__(*args, fast_init=fast_init)
-
-    def init_phase1(self):
-        srcname = pykeops_cpp_name(tag=self.params.tag, extension=".cpp")
-
-        dllname = pykeops_cpp_name(
-            tag=self.params.tag, extension=sysconfig.get_config_var("EXT_SUFFIX")
-        )
-
-        if not os.path.exists(dllname):
-            f = open(srcname, "w")
-            f.write(get_pybind11_code(self.params.tag, self.params.source_name))
-            f.close()
-            compile_command = f"{keops.config.config.cxx_compiler} {keops.config.config.cpp_flags} {pykeops.config.python_includes} {srcname} -o {dllname}"
-            pyKeOps_Message(
-                "Compiling pykeops cpp " + self.params.tag + " module ... ",
-                flush=True,
-                end="",
-            )
-            os.system(compile_command)
-            pyKeOps_Message("OK", use_tag=False, flush=True)
-
-    def init_phase2(self):
-        import importlib
-
-        mylib = importlib.import_module(
-            os.path.basename(pykeops_cpp_name(tag=self.params.tag))
-        )
-        if self.params.c_dtype == "float":
-            self.launch_keops_cpu = mylib.launch_pykeops_cpu_float
-        if self.params.c_dtype == "double":
-            self.launch_keops_cpu = mylib.launch_pykeops_cpu_double
-
-    def call_keops(self, nx, ny):
-        self.launch_keops_cpu(
-            self.params.dimy,
-            nx,
-            ny,
-            self.params.tagI,
-            self.params.tagZero,
-            self.params.use_half,
-            self.params.dimred,
-            self.params.use_chunk_mode,
-            self.params.indsi,
-            self.params.indsj,
-            self.params.indsp,
-            self.params.dim,
-            self.params.dimsx,
-            self.params.dimsy,
-            self.params.dimsp,
-            self.ranges_ptr_new,
-            self.outshape,
-            self.out_ptr,
-            self.args_ptr_new,
-            self.argshapes_new,
-        )
 
 
 LoadKeOps_cpp = Cache_partial(
     LoadKeOps_cpp_class, use_cache_file=True, save_folder=keops.config.config.build_path
 )
+
+cpp_dtype = {"float": "float", "float32": "float", "double": "double", "float64": "double"}
