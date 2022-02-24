@@ -10,6 +10,7 @@ class CpuReduc(MapReduce, Cpu_link_compile):
     """
     class for generating the final C++ code, Cpu version
     """
+
     AssignZero = CpuAssignZero
 
     def __init__(self, *args):

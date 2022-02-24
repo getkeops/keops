@@ -1,6 +1,5 @@
 import os
 from os.path import join
-import sysconfig
 import shutil
 from ctypes import CDLL, RTLD_GLOBAL
 import keops
@@ -72,9 +71,11 @@ def set_build_folder(path=None, read_save_file=False, reset_all=True):
 
 set_build_folder(read_save_file=True, reset_all=False)
 
+
 def get_build_folder():
     return _build_path
-    
+
+
 jit_binary = join(_build_path, "keops_nvrtc.so")
 
 # Compiler
@@ -91,8 +92,7 @@ if shutil.which(cxx_compiler) is None:
       os.environ['CXX'] = 'g++-8'
     """
     )
-    
-    
+
 
 compile_options = " -shared -fPIC -O3 -std=c++11"
 
