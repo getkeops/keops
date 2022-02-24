@@ -556,10 +556,8 @@ class PytorchUnitTestCase(unittest.TestCase):
                 # N.B. (Joan, sept 2020) commenting out the 2nd order gradient computation here,
                 # since it slows down too much the compilation currently, when using Cuda 11.
                 #
-                # [g_xs] = torch.autograd.grad((g_x.abs()).sum(), [s], create_graph=True)
-                # results += [a_i, g_x, g_y, g_s, g_xs]
-
-                results += [a_i, g_x, g_y, g_s]
+                [g_xs] = torch.autograd.grad((g_x.abs()).sum(), [s], create_graph=True)
+                results += [a_i, g_x, g_y, g_s, g_xs]
 
             full_results.append(results)
 
