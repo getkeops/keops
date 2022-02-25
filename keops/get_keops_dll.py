@@ -96,9 +96,11 @@ def get_keops_dll_impl(
             map_reduce_id += "_finalchunks"
         elif get_enable_chunk():
             if len(red_formula.formula.chunked_formulas(dimchunk)) == 1:
-                use_chunk_mode = 1
-                map_reduce_id += "_chunks"
-
+                from keops.mapreduce.Chunk_Mode_Constants import Chunk_Mode_Constants
+                chk = Chunk_Mode_Constants(red_formula)
+                if not chk.chunk_postchunk_mix:
+                    use_chunk_mode = 1
+                    map_reduce_id += "_chunks"
     # Instantiation of
     map_reduce_class = map_reduce[map_reduce_id]
 
