@@ -48,6 +48,12 @@ class Operation(Tree):
 
         string = f"\n{{\n// Starting code block for {self.__repr__()}.\n\n"
         if debug_ops:
+            print(f"Building code block for {self.__repr__()}")
+            print("out=", out)
+            print("dim of out : ", out.dim)
+            print("table=", table)
+            for v in table:
+                print(f"dim of {v} : ", v.dim)
             string += f'std::cout << std::endl << std::endl << "Computing {self.__repr__()} :" << std::endl;\n'
         args = []
         # Evaluation of the child operations
@@ -78,6 +84,7 @@ class Operation(Tree):
                 string += arg.c_print
             string += out.c_print
             string += f"std::cout << std::endl << std::endl;\n"
+            print(f"Finished building code block for {self.__repr__()}")
 
         string += f"\n\n// Finished code block for {self.__repr__()}.\n}}\n\n"
         return string

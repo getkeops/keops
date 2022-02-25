@@ -345,10 +345,10 @@ class c_array:
     def c_print(self):
         if self.dtype in ["float", "double"]:
             tag = "%f, " * self.dim
-        elif self.dtype == "int":
+        elif self.dtype in ["int", "float*", "double*"]:
             tag = "%d, " * self.dim
         else:
-            KeOps_Error("not implemented")
+            KeOps_Error(f"c_print not implemented for dtype={self.dtype}")
         string = f'printf("{self.id} = {tag}\\n"'
         for i in range(self.dim):
             string += f", {self[i].id}"
@@ -626,6 +626,7 @@ def table4(
         for u in range(len(dims)):
             res[inds[u]] = c_array(xloc.dtype, dims[u], f"({xloc.id}+{k})")
             k += dims[u]
+    
     return res
 
 
