@@ -3,7 +3,7 @@ from functools import reduce
 
 import numpy as np
 
-from keops.get_keops_dll import get_keops_dll
+from keopscore.get_keops_dll import get_keops_dll
 from pykeops.common.parse_type import parse_dtype_acc
 
 

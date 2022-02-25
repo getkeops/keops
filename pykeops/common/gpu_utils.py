@@ -1,4 +1,4 @@
-from keops.utils.gpu_utils import get_gpu_props
+from keopscore.utils.gpu_utils import get_gpu_props
 
 
 def get_gpu_number():

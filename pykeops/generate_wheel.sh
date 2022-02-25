@@ -22,8 +22,12 @@ find -name "*.pyc*" -exec rm {} \-rf \;
 set -o errexit
 set -e
 # generate wheel
+cp setup_pykeops.py setup.py
 python3 setup.py sdist --dist-dir build/dist
-# python3 setup.py bdist_wheel --python-tag py3 --dist-dir build/wheel #--plat-name manylinux1_x86_64
+cp setup_keopscore.py setup.py
+python3 setup.py sdist --dist-dir build/dist
+rm setup.py
+# python3 setup_pykeops.py bdist_wheel --python-tag py3 --dist-dir build/wheel #--plat-name manylinux1_x86_64
 
 # comes back to directory of 
 cd $CURRENT_DIR

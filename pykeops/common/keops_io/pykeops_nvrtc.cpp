@@ -1,4 +1,4 @@
-// g++ -std=c++11  -shared -fPIC -O3 -fpermissive -lcuda -lnvrtc  -L/usr/lib -L/opt/cuda/lib64 -L/opt/cuda/targets/x86_64-linux/lib/ -I/opt/cuda/targets/x86_64-linux/include/ -I/home/bcharlier/projets/keops/keops/keops/include -I /home/bcharlier/projets/keops/keops/keops/ -I/usr/include/python3.10/ -DnvrtcGetTARGET=nvrtcGetCUBIN -DnvrtcGetTARGETSize=nvrtcGetCUBINSize -DARCHTAG=\"sm\"  keops_io.cpp -o keops_io.cpython-310-x86_64-linux-gnu.so
+// g++ -std=c++11  -shared -fPIC -O3 -fpermissive -lcuda -lnvrtc  -L/usr/lib -L/opt/cuda/lib64 -L/opt/cuda/targets/x86_64-linux/lib/ -I/opt/cuda/targets/x86_64-linux/include/ -I /home/bcharlier/projets/keops/keops/keopscore/ -I/usr/include/python3.10/ -DnvrtcGetTARGET=nvrtcGetCUBIN -DnvrtcGetTARGETSize=nvrtcGetCUBINSize -DARCHTAG=\"sm\"  keops_io.cpp -o keops_io.cpython-310-x86_64-linux-gnu.so
 
 
 #include <binders/nvrtc/keops_nvrtc.cpp>

@@ -1,9 +1,9 @@
 import os
 import sysconfig
 
-import keops.config.config
-from keops.config.config import get_build_folder
-from keops.utils.Cache import Cache_partial
+import keopscore.config.config
+from keopscore.config.config import get_build_folder
+from keopscore.utils.Cache import Cache_partial
 from pykeops.common.keops_io.LoadKeOps import LoadKeOps
 from pykeops.common.utils import pyKeOps_Message
 from pykeops.config import pykeops_cpp_name, python_includes
@@ -24,7 +24,7 @@ class LoadKeOps_cpp_class(LoadKeOps):
             f = open(srcname, "w")
             f.write(self.get_pybind11_code())
             f.close()
-            compile_command = f"{keops.config.config.cxx_compiler} {keops.config.config.cpp_flags} {python_includes} {srcname} -o {dllname}"
+            compile_command = f"{keopscore.config.config.cxx_compiler} {keopscore.config.config.cpp_flags} {python_includes} {srcname} -o {dllname}"
             pyKeOps_Message(
                 "Compiling pykeops cpp " + self.params.tag + " module ... ",
                 flush=True,
@@ -174,7 +174,7 @@ int launch_pykeops_{self.params.tag}_cpu(int dimY, int nx, int ny,
 
 PYBIND11_MODULE(pykeops_cpp_{self.params.tag}, m) {{
     m.doc() = "pyKeOps: KeOps for pytorch through pybind11 (pytorch flavour).";
-    m.def("launch_pykeops_cpu", &launch_pykeops_{self.params.tag}_cpu < {cpp_dtype[self.params.dtype]} >, "Entry point to keops - float .");
+    m.def("launch_pykeops_cpu", &launch_pykeops_{self.params.tag}_cpu < {cpp_dtype[self.params.dtype]} >, "Entry point to keops.");
 }}                     
             """
 

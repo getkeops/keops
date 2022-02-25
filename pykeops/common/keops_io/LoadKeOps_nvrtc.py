@@ -1,10 +1,10 @@
 import os
 
-import keops.config.config
-from keops.config.config import get_build_folder
+import keopscore.config.config
+from keopscore.config.config import get_build_folder
 import pykeops
-from keops.binders.nvrtc.Gpu_link_compile import Gpu_link_compile
-from keops.utils.Cache import Cache_partial
+from keopscore.binders.nvrtc.Gpu_link_compile import Gpu_link_compile
+from keopscore.utils.Cache import Cache_partial
 from pykeops.common.keops_io.LoadKeOps import LoadKeOps
 from pykeops.common.utils import pyKeOps_Message
 
