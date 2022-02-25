@@ -14,28 +14,11 @@ use_OpenMP = True  # use OpenMP if possible
 base_dir_path = os.path.abspath(join(os.path.dirname(os.path.realpath(__file__)), ".."))
 template_path = join(base_dir_path, "templates")
 bindings_source_dir = join(base_dir_path)
-keops_cache_folder = join(os.path.expanduser("~"), ".cache", "keops")
+keops_cache_folder = join(os.path.expanduser("~"), ".cache", f"keops{keopscore.__version__}")
 default_build_path = join(keops_cache_folder, "build")
 
 # init cache folder
-version_cache_file = join(keops_cache_folder, "keops_version")
-if os.path.exists(version_cache_file):
-    v = open(version_cache_file, encoding="utf-8")
-    cache_version = v.read().rstrip()
-    if cache_version != keopscore.__version__:
-        v.close()
-        shutil.rmtree(keops_cache_folder)
-        test_init_cache = True
-    else:
-        v.close()
-        test_init_cache = False
-else:
-    test_init_cache = True
-if test_init_cache:
-    os.makedirs(keops_cache_folder, exist_ok=True)
-    v = open(version_cache_file, "w", encoding="utf-8")
-    v.write(keopscore.__version__)
-    v.close()
+os.makedirs(keops_cache_folder, exist_ok=True)
 
 
 # build path setter/getter
