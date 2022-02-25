@@ -8,17 +8,17 @@ from setuptools import setup
 
 here = path.abspath(path.dirname(__file__))
 
-with open(os.path.join(here, "pykeops", "keops_version"), encoding="utf-8") as v:
+with open(os.path.join(here, "keopscore", "keops_version"), encoding="utf-8") as v:
     current_version = v.read().rstrip()
 
 # Get the long description from the README file
-with open(path.join(here, "pykeops", "readme.md"), encoding="utf-8") as f:
+with open(path.join(here, "keopscore", "readme.md"), encoding="utf-8") as f:
     long_description = f.read()
 
 setup(
-    name="pykeops",
+    name="keopscore",
     version=current_version,
-    description="Python bindings of KeOps: KErnel OPerationS, on CPUs and GPUs, with autodiff and without memory overflows",  # Required
+    description="keopscore is the KeOps meta programming engine. This python module should be used through a binder (e.g. pykeops or rkeops)",  # Required
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="http://www.kernel-operations.io/",
@@ -41,18 +41,6 @@ setup(
     ],
     keywords="kernels gpu autodiff",
     packages=[
-        "pykeops",
-        "pykeops.common",
-        "pykeops.common.keops_io",
-        "pykeops.numpy",
-        "pykeops.numpy.cluster",
-        "pykeops.numpy.generic",
-        "pykeops.numpy.lazytensor",
-        "pykeops.test",
-        "pykeops.torch",
-        "pykeops.torch.cluster",
-        "pykeops.torch.generic",
-        "pykeops.torch.lazytensor",
         "keopscore",
         "keopscore.binders",
         "keopscore.binders.cpp",
@@ -72,13 +60,10 @@ setup(
         "keopscore.utils",
     ],
     package_data={
-        "pykeops": [
+        "keopscore": [
             "readme.md",
             "licence.txt",
             "keops_version",
-            "common/keops_io/pykeops_nvrtc.cpp",
-        ],
-        "keopscore": [
             "keops_version",
             "binders/nvrtc/keops_nvrtc.cpp",
             "binders/nvrtc/nvrtc_jit.cpp",
@@ -89,22 +74,6 @@ setup(
             "include/utils_pe.h",
         ],
     },
-    install_requires=["numpy", "pybind11"],
-    extras_require={
-        "full": [
-            "sphinx",
-            "sphinx-gallery",
-            "recommonmark",
-            "sphinxcontrib-httpdomain",
-            "sphinx_rtd_theme",
-            "breathe",
-            "matplotlib",
-            "imageio",
-            "torch",
-            "gpytorch",
-            "scikit-learn",
-            "multiprocess",
-            "faiss",
-        ],
-    },
+    install_requires=[],
+    extras_require={},
 )

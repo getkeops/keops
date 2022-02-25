@@ -241,7 +241,7 @@ class GenredAutograd(torch.autograd.Function):
                 if (
                     cat == 2
                 ):  # we're referring to a parameter, so we'll have to sum both wrt 'i' and 'j'
-                    # WARNING !! : here we rely on the implementation of DiffT in files in folder keops/core/formulas/reductions
+                    # WARNING !! : here we rely on the implementation of DiffT in files in folder keopscore/core/formulas/reductions
                     # if tagI==cat of V is 2, then reduction is done wrt j, so we need to further sum output wrt i
                     grad = genconv(
                         formula_g,

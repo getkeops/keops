@@ -1,6 +1,6 @@
-import keops.config
+import keopscore.config
 
-if keops.config.config.use_cuda:
+if keopscore.config.config.use_cuda:
     import pykeops.common.keops_io.LoadKeOps_nvrtc
     import pykeops.common.keops_io.LoadKeOps_cpp
 
