@@ -59,5 +59,18 @@ def Mult(arg0, arg1):
         return (arg1.children[0] * arg0) * arg1.children[1]
     elif arg0 == arg1:
         return Square(arg0)
+    elif isinstance(arg0, SumT_Impl):
+        if isinstance(arg1, SumT_Impl):
+            if arg0.dim != arg1.dim:
+                KeOps_Error("dimensions are not compatible for Mult operation")
+            return SumT(arg0.children[0]*arg1.children[0], arg0.dim)
+        elif arg1.dim == 1:
+            return SumT(arg0.children[0]*arg1, arg0.dim)
+        elif arg1.dim == arg0.dim:
+            return arg0.children[0]*arg1
+        else:
+            KeOps_Error("dimensions are not compatible for Mult operation")
+    elif isinstance(arg1, SumT_Impl):
+        return arg1*arg0
     else:
         return Mult_Impl(arg0, arg1)
