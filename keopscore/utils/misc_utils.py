@@ -46,7 +46,6 @@ def KeOps_OS_Run(command):
         subprocess.run(
                     command,
                     shell=True,
-                    capture_output=True
                     )
     else:
         import os
