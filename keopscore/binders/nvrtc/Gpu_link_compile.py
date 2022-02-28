@@ -2,6 +2,7 @@ import os
 from ctypes import create_string_buffer, CDLL, c_int
 from os import RTLD_LAZY
 import sysconfig
+import subprocess
 
 from keopscore.binders.LinkCompile import LinkCompile
 import keopscore.config
@@ -100,10 +101,13 @@ class Gpu_link_compile(LinkCompile):
     @staticmethod
     def compile_jit_compile_dll():
         KeOps_Message("Compiling cuda jit compiler engine ... ", flush=True, end="")
-        os.system(
+        out = subprocess.run(
             Gpu_link_compile.get_compile_command(
                 sourcename=jit_compile_src,
                 dllname=jit_compile_dll(),
-            )
+            ),
+            shell=True,
+            capture_output=True
         )
+        print(out.stderr.decode("utf-8"))
         KeOps_Message("OK", use_tag=False, flush=True)

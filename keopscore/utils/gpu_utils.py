@@ -6,6 +6,7 @@ from keopscore.utils.misc_utils import KeOps_Error, KeOps_Warning, find_library_
 from keopscore.config.config import cxx_compiler, get_build_folder
 import os
 from os.path import join
+import subprocess
 
 # Some constants taken from cuda.h
 CUDA_SUCCESS = 0
@@ -84,9 +85,12 @@ def get_cuda_include_path():
 
 def get_include_file_abspath(filename):
     tmp_file = join(get_build_folder(), "tmp.txt")
-    os.system(
-        f'echo "#include <{filename}>" | {cxx_compiler} -M -E -x c++ - | head -n 2 > {tmp_file}'
+    out = subprocess.run(
+        f'echo "#include <{filename}>" | {cxx_compiler} -M -E -x c++ - | head -n 2 > {tmp_file}',
+        shell=True,
+        capture_output=True
     )
+    print(out.stderr.decode("utf-8"))
     strings = open(tmp_file).read().split()
     abspath = None
     for s in strings:

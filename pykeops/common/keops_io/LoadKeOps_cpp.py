@@ -1,5 +1,6 @@
 import os
 import sysconfig
+import subprocess
 
 import keopscore.config.config
 from keopscore.config.config import get_build_folder
@@ -30,7 +31,8 @@ class LoadKeOps_cpp_class(LoadKeOps):
                 flush=True,
                 end="",
             )
-            os.system(compile_command)
+            out = subprocess.run(compile_command, shell=True, capture_output=True)
+            print(out.stderr.decode("utf-8"))
             pyKeOps_Message("OK", use_tag=False, flush=True)
 
     def init_phase2(self):

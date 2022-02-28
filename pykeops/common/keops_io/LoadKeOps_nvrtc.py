@@ -1,4 +1,5 @@
 import os
+import subprocess
 
 import keopscore.config.config
 from keopscore.config.config import get_build_folder
@@ -78,7 +79,8 @@ def compile_jit_binary():
         dllname=pykeops.config.pykeops_nvrtc_name(type="target"),
     )
     pyKeOps_Message("Compiling nvrtc binder for python ... ", flush=True, end="")
-    os.system(compile_command)
+    out = subprocess.run(compile_command, shell=True, capture_output=True)
+    print(out.stderr.decode("utf-8"))
     pyKeOps_Message("OK", use_tag=False, flush=True)
 
 
