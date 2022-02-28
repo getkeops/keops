@@ -2,7 +2,6 @@ import fcntl
 import functools
 import importlib.util
 import os
-import subprocess
 
 import pykeops.config
 
