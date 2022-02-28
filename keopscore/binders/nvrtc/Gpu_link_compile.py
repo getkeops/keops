@@ -2,7 +2,6 @@ import os
 from ctypes import create_string_buffer, CDLL, c_int
 from os import RTLD_LAZY
 import sysconfig
-import subprocess
 
 from keopscore.binders.LinkCompile import LinkCompile
 import keopscore.config
@@ -16,7 +15,7 @@ from keopscore.config.config import (
     cuda_available,
     get_build_folder,
 )
-from keopscore.utils.misc_utils import KeOps_Error, KeOps_Message
+from keopscore.utils.misc_utils import KeOps_Error, KeOps_Message, KeOps_OS_Run
 from keopscore.utils.gpu_utils import get_gpu_props, cuda_include_fp16_path
 
 jit_compile_src = os.path.join(
@@ -101,13 +100,10 @@ class Gpu_link_compile(LinkCompile):
     @staticmethod
     def compile_jit_compile_dll():
         KeOps_Message("Compiling cuda jit compiler engine ... ", flush=True, end="")
-        out = subprocess.run(
+        KeOps_OS_Run(
             Gpu_link_compile.get_compile_command(
                 sourcename=jit_compile_src,
                 dllname=jit_compile_dll(),
             ),
-            shell=True,
-            capture_output=True
         )
-        print(out.stderr.decode("utf-8"))
         KeOps_Message("OK", use_tag=False, flush=True)

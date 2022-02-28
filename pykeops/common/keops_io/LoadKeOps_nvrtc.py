@@ -1,5 +1,4 @@
 import os
-import subprocess
 
 import keopscore.config.config
 from keopscore.config.config import get_build_folder
@@ -8,6 +7,7 @@ from keopscore.binders.nvrtc.Gpu_link_compile import Gpu_link_compile
 from keopscore.utils.Cache import Cache_partial
 from pykeops.common.keops_io.LoadKeOps import LoadKeOps
 from pykeops.common.utils import pyKeOps_Message
+from keopscore.utils.misc_utils import KeOps_OS_Run
 
 
 class LoadKeOps_nvrtc_class(LoadKeOps):
@@ -79,8 +79,7 @@ def compile_jit_binary():
         dllname=pykeops.config.pykeops_nvrtc_name(type="target"),
     )
     pyKeOps_Message("Compiling nvrtc binder for python ... ", flush=True, end="")
-    out = subprocess.run(compile_command, shell=True, capture_output=True)
-    print(out.stderr.decode("utf-8"))
+    KeOps_OS_Run(compile_command)
     pyKeOps_Message("OK", use_tag=False, flush=True)
 
 
