@@ -17,7 +17,7 @@ class Inv(VectorizedScalarOp):
 
     @staticmethod
     def Derivative(f):
-        return -1 / f**2
+        return -1 / f ** 2
 
     # parameters for testing the operation (optional)
     torch_op = "lambda x : 1 / x"

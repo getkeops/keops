@@ -86,16 +86,16 @@ except:
 kernel_to_test = ["gaussian", "laplacian", "cauchy", "inverse_multiquadric"]
 kernels = {
     "gaussian": lambda xc, yc, sigmac: (
-        -Pm(1 / sigmac**2) * Vi(xc).sqdist(Vj(yc))
+        -Pm(1 / sigmac ** 2) * Vi(xc).sqdist(Vj(yc))
     ).exp(),
     "laplacian": lambda xc, yc, sigmac: (
-        -(Pm(1 / sigmac**2) * Vi(xc).sqdist(Vj(yc))).sqrt()
+        -(Pm(1 / sigmac ** 2) * Vi(xc).sqdist(Vj(yc))).sqrt()
     ).exp(),
     "cauchy": lambda xc, yc, sigmac: (
-        1 + Pm(1 / sigmac**2) * Vi(xc).sqdist(Vj(yc))
+        1 + Pm(1 / sigmac ** 2) * Vi(xc).sqdist(Vj(yc))
     ).power(-1),
     "inverse_multiquadric": lambda xc, yc, sigmac: (
-        1 + Pm(1 / sigmac**2) * Vi(xc).sqdist(Vj(yc))
+        1 + Pm(1 / sigmac ** 2) * Vi(xc).sqdist(Vj(yc))
     )
     .sqrt()
     .power(-1),

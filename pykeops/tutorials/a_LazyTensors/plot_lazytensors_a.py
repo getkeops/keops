@@ -197,7 +197,7 @@ print("a_i is now a {} of shape {}.".format(type(a_i), a_i.shape))
 #
 # with:
 
-[g_i] = torch.autograd.grad((a_i**2).sum(), [x], create_graph=True)
+[g_i] = torch.autograd.grad((a_i ** 2).sum(), [x], create_graph=True)
 print("g_i is now a {} of shape {}.".format(type(g_i), g_i.shape))
 
 #############################################################################
@@ -271,7 +271,7 @@ y_j = LazyTensor(torch.randn(1, B, 1, N, D))
 s = LazyTensor(torch.rand(A, 1, 1, 1, 1))
 
 D_ij = ((l_i * x_i - y_j) ** 2).sum(-1)  # Symbolic (A, B, M, N, 1) LazyTensor
-K_ij = -1.6 * D_ij / (1 + s**2)  # Some arbitrary (A, B, M, N, 1) Kernel matrix
+K_ij = -1.6 * D_ij / (1 + s ** 2)  # Some arbitrary (A, B, M, N, 1) Kernel matrix
 
 a_i = K_ij.sum(dim=3)
 print("a_i is now a {} of shape {}.".format(type(a_i), a_i.shape))
@@ -319,7 +319,7 @@ y_j = LazyTensor(torch.randn(1, B, 1, N, D))
 s = LazyTensor(torch.rand(A, 1, 1, 1, 1))
 
 F_ij = (
-    (x_i**1.5 + y_j / l_i).cos() - (x_i | y_j) + (x_i[:, :, :, :, 2] * s.relu() * y_j)
+    (x_i ** 1.5 + y_j / l_i).cos() - (x_i | y_j) + (x_i[:, :, :, :, 2] * s.relu() * y_j)
 )
 print(F_ij)
 

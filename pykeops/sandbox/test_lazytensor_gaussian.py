@@ -15,7 +15,9 @@ test_grad2 = False
 device_id = "cuda:1" if torch.cuda.is_available() else "cpu"
 do_warmup = True
 
-x = torch.rand(M, 1, D, requires_grad=test_grad, device=device_id, dtype=dtype) / math.sqrt(D)
+x = torch.rand(
+    M, 1, D, requires_grad=test_grad, device=device_id, dtype=dtype
+) / math.sqrt(D)
 y = torch.rand(1, N, D, device=device_id, dtype=dtype) / math.sqrt(D)
 b = torch.randn(N, DV, device=device_id, dtype=dtype)
 

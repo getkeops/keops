@@ -53,11 +53,13 @@ class Chunk_Mode_Constants:
         )
 
         # Here we detect if chunked variables are also used in the postchunk formula
-        # Currently the code in GpuReduc1D_chunks.py does not handle this case, so 
-        # we will use the "chunk_postchunk_mix" tag defined below 
+        # Currently the code in GpuReduc1D_chunks.py does not handle this case, so
+        # we will use the "chunk_postchunk_mix" tag defined below
         # in get_keops_dll to disable the chunked mode for the formula.
-        self.chunk_postchunk_mix = (len(set.intersection(set(self.indsi_postchunk),set(self.indsi_chunked)))
-                                    +len(set.intersection(set(self.indsj_postchunk),set(self.indsj_chunked))))>0        
+        self.chunk_postchunk_mix = (
+            len(set.intersection(set(self.indsi_postchunk), set(self.indsi_chunked)))
+            + len(set.intersection(set(self.indsj_postchunk), set(self.indsj_chunked)))
+        ) > 0
 
         self.indsi_notchunked = GetInds(self.varsi_notchunked)
         self.dimsx_notchunked = GetDims(self.varsi_notchunked)

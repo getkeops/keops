@@ -109,7 +109,7 @@ def plot_kernel(gamma):
 # Providing a single scalar we get uniform kernels
 
 sigma = torch.tensor([0.1]).type(dtype)
-gamma = 1.0 / sigma**2
+gamma = 1.0 / sigma ** 2
 plt.plot()
 plot_kernel(gamma)
 
@@ -120,7 +120,7 @@ plot_kernel(gamma)
 # Providing a list of scalar we get variable kernels
 
 sigma = torch.tensor([[0.15], [0.07], [0.3]]).type(dtype)
-gamma = 1.0 / sigma**2
+gamma = 1.0 / sigma ** 2
 plot_kernel(gamma)
 
 
@@ -141,7 +141,7 @@ plot_kernel(gamma)
 # Providing a single vector we get uniform kernels
 
 sigma = torch.tensor([0.2, 0.1]).type(dtype)
-gamma = 1.0 / sigma**2
+gamma = 1.0 / sigma ** 2
 plot_kernel(gamma)
 
 ###############################################
@@ -151,7 +151,7 @@ plot_kernel(gamma)
 # Providing a list of vector (ie a 2d-tensor) we get variable kernels
 
 sigma = torch.tensor([[0.2, 0.1], [0.05, 0.15], [0.2, 0.2]]).type(dtype)
-gamma = 1.0 / sigma**2
+gamma = 1.0 / sigma ** 2
 plot_kernel(gamma)
 
 
@@ -172,7 +172,7 @@ plot_kernel(gamma)
 #
 # Providing a single vector we get uniform kernels
 
-Sigma = torch.tensor([1 / 0.2**2, 1 / 0.25**2, 1 / 0.25**2, 1 / 0.1**2]).type(
+Sigma = torch.tensor([1 / 0.2 ** 2, 1 / 0.25 ** 2, 1 / 0.25 ** 2, 1 / 0.1 ** 2]).type(
     dtype
 )
 gamma = Sigma
@@ -186,9 +186,9 @@ plot_kernel(gamma)
 
 Sigma = torch.tensor(
     [
-        [1 / 0.2**2, 1 / 0.25**2, 1 / 0.25**2, 1 / 0.1**2],
-        [1 / 0.1**2, 0, 0, 1 / 0.12**2],
-        [1 / 0.3**2, -1 / 0.25**2, -1 / 0.25**2, 1 / 0.12**2],
+        [1 / 0.2 ** 2, 1 / 0.25 ** 2, 1 / 0.25 ** 2, 1 / 0.1 ** 2],
+        [1 / 0.1 ** 2, 0, 0, 1 / 0.12 ** 2],
+        [1 / 0.3 ** 2, -1 / 0.25 ** 2, -1 / 0.25 ** 2, 1 / 0.12 ** 2],
     ]
 ).type(dtype)
 

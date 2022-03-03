@@ -47,4 +47,7 @@ for backend in backends:
     print("time for " + backend + ":", end - start)
 
 if len(out) > 1:
-    print("relative error:", (np.linalg.norm(out[0] - out[1]) / np.linalg.norm(out[0])).item())
+    print(
+        "relative error:",
+        (np.linalg.norm(out[0] - out[1]) / np.linalg.norm(out[0])).item(),
+    )

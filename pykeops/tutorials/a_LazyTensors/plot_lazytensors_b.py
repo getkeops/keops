@@ -42,7 +42,7 @@ x_i = LazyTensor(x[:, None, :])  # (M, 1, D) LazyTensor
 y_j = LazyTensor(y[None, :, :])  # (1, N, D) LazyTensor
 
 V_ij = x_i - y_j  # (M, N, D) symbolic tensor of differences
-S_ij = (V_ij**2).sum(-1)  # (M, N, 1) = (M, N) symbolic matrix of squared distances
+S_ij = (V_ij ** 2).sum(-1)  # (M, N, 1) = (M, N) symbolic matrix of squared distances
 
 print(S_ij)
 print(V_ij)
@@ -178,7 +178,7 @@ print("Mean squared reconstruction error: {:.2e}".format(((c_i - b_i) ** 2).mean
 # Please note that just like (nearly) all the other :class:`LazyTensor <pykeops.torch.LazyTensor>` methods,
 # :meth:`pykeops.torch.LazyTensor.solve` fully supports the :mod:`torch.autograd` module:
 
-[g_i] = torch.autograd.grad((a_i**2).sum(), [x])
+[g_i] = torch.autograd.grad((a_i ** 2).sum(), [x])
 
 print("g_i is now a {} of shape {}.".format(type(g_i), g_i.shape))
 
