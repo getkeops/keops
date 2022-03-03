@@ -2263,7 +2263,7 @@ class GenericLazyTensor:
             if res.formula is not None:
                 res.formula = re.sub(
                     r"(Var|VarSymb)\({},(\d+),(\d+)\)".format(id(x)),
-                    r"\1({},\2,\2)".format(id(y)),
+                    r"\1({},\2,\3)".format(id(y)),
                     res.formula,
                 )
             if res.formula2 is not None:
