@@ -11,4 +11,4 @@ class Atan(VectorizedScalarOp):
 
     @staticmethod
     def Derivative(f):
-        return 1 / (1 + f ** 2)
+        return 1 / (1 + f**2)

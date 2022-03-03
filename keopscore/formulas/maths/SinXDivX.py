@@ -15,4 +15,4 @@ class SinXDivX(VectorizedScalarOp):
 
     @staticmethod
     def Derivative(f):
-        return Cos(f) / f - Sin(f) / f ** 2
+        return Cos(f) / f - Sin(f) / f**2

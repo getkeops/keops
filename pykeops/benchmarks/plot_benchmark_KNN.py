@@ -100,7 +100,7 @@ def KNN_torch_fun(x_train, x_train_norm, x_test, K, metric):
     largest = False  # Default behaviour is to look for the smallest values
 
     if metric == "euclidean":
-        x_test_norm = (x_test ** 2).sum(-1)
+        x_test_norm = (x_test**2).sum(-1)
         diss = (
             x_test_norm.view(-1, 1)
             + x_train_norm.view(1, -1)
@@ -115,7 +115,7 @@ def KNN_torch_fun(x_train, x_train_norm, x_test, K, metric):
         largest = True
 
     elif metric == "hyperbolic":
-        x_test_norm = (x_test ** 2).sum(-1)
+        x_test_norm = (x_test**2).sum(-1)
         diss = (
             x_test_norm.view(-1, 1)
             + x_train_norm.view(1, -1)
@@ -140,7 +140,7 @@ def KNN_torch(K, metric="euclidean", **kwargs):
         x_train = tensor(x_train)
         start = timer()
         # The "training" time here should be negligible:
-        x_train_norm = (x_train ** 2).sum(-1)
+        x_train_norm = (x_train**2).sum(-1)
         elapsed = timer() - start
 
         def f(x_test):
@@ -174,7 +174,7 @@ def KNN_torch_batch_loop(K, metric="euclidean", **kwargs):
         Ntrain, D = x_train.shape
         start = timer()
         # The "training" time here should be negligible:
-        x_train_norm = (x_train ** 2).sum(-1)
+        x_train_norm = (x_train**2).sum(-1)
         elapsed = timer() - start
 
         def f(x_test):
@@ -234,8 +234,8 @@ def knn_jax_fun(x_train, x_test, K, metric):
 
     if metric == "euclidean":
         diss = (
-            (x_test ** 2).sum(-1)[:, None]
-            + (x_train ** 2).sum(-1)[None, :]
+            (x_test**2).sum(-1)[:, None]
+            + (x_train**2).sum(-1)[None, :]
             - 2 * x_test @ x_train.T
         )
 
@@ -247,8 +247,8 @@ def knn_jax_fun(x_train, x_test, K, metric):
 
     elif metric == "hyperbolic":
         diss = (
-            (x_test ** 2).sum(-1)[:, None]
-            + (x_train ** 2).sum(-1)[None, :]
+            (x_test**2).sum(-1)[:, None]
+            + (x_train**2).sum(-1)[None, :]
             - 2 * x_test @ x_train.T
         )
         diss = diss / (x_test[:, 0][:, None] * x_train[:, 0][None, :])

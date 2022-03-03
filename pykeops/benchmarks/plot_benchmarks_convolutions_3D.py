@@ -35,7 +35,7 @@ use_cuda = torch.cuda.is_available()
 
 # Numbers of samples that we'll loop upon:
 problem_sizes = flatten(
-    [[1 * 10 ** k, 2 * 10 ** k, 5 * 10 ** k] for k in [2, 3, 4, 5]] + [[10 ** 6]]
+    [[1 * 10**k, 2 * 10**k, 5 * 10**k] for k in [2, 3, 4, 5]] + [[10**6]]
 )
 D = 3  # We work with 3D points
 
@@ -81,9 +81,9 @@ def gaussianconv_numpy(x, y, b, **kwargs):
     # N.B.: NumPy does not really support batch matrix multiplications:
     x, y, b = x.squeeze(0), y.squeeze(0), b.squeeze(0)
 
-    D_xx = np.sum((x ** 2), axis=-1)[:, None]  # (N,1)
+    D_xx = np.sum((x**2), axis=-1)[:, None]  # (N,1)
     D_xy = x @ y.T  # (N,D) @ (D,M) = (N,M)
-    D_yy = np.sum((y ** 2), axis=-1)[None, :]  # (1,M)
+    D_yy = np.sum((y**2), axis=-1)[None, :]  # (1,M)
     D_xy = D_xx - 2 * D_xy + D_yy  # (N,M)
     K_xy = np.exp(-D_xy)  # (B,N,M)
 
