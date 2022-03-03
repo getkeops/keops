@@ -15,9 +15,9 @@ test_grad2 = False
 device_id = "cuda:1" if torch.cuda.is_available() else "cpu"
 do_warmup = True
 
-x = torch.rand(M, 1, D, device=device_id, dtype=dtype) / math.sqrt(D)
+x = torch.rand(M, 1, D, requires_grad=test_grad, device=device_id, dtype=dtype) / math.sqrt(D)
 y = torch.rand(1, N, D, device=device_id, dtype=dtype) / math.sqrt(D)
-b = torch.randn(N, DV, requires_grad=test_grad, device=device_id, dtype=dtype)
+b = torch.randn(N, DV, device=device_id, dtype=dtype)
 
 
 def fun(x, y, b, backend):
@@ -60,7 +60,7 @@ if test_grad:
     for k, backend in enumerate(backends):
         start = time.time()
         out_g.append(
-            torch.autograd.grad((out[k] ** 2).sum(), [b], create_graph=True)[0]
+            torch.autograd.grad((out[k] ** 2).sum(), [x], create_graph=True)[0]
         )
         end = time.time()
         print("time for " + backend + " (grad):", end - start)
@@ -75,7 +75,7 @@ if test_grad2:
     out_g2 = []
     for k, backend in enumerate(backends):
         start = time.time()
-        out_g2.append(torch.autograd.grad((out_g[k] ** 2).sum(), [b])[0])
+        out_g2.append(torch.autograd.grad((out_g[k] ** 2).sum(), [x])[0])
         end = time.time()
         print("time for " + backend + " (grad):", end - start)
 

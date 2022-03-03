@@ -26,7 +26,31 @@ def KeOps_Error(message, show_line_number=True):
         frameinfo = getframeinfo(currentframe().f_back)
         message += f" (error at line {frameinfo.lineno} in file {frameinfo.filename})"
     raise ValueError(message)
-
+    
+    
+def KeOps_OS_Run(command):
+    import sys
+    python_version = sys.version_info
+    if python_version >= (3, 7):
+        import subprocess
+        out = subprocess.run(
+            command,
+            shell=True,
+            capture_output=True
+            )
+        if out.stderr != b'':
+            print(out.stderr.decode("utf-8"))
+            KeOps_Error("Error compiling formula.")
+    elif python_version >= (3, 5):
+        import subprocess
+        subprocess.run(
+                    command,
+                    shell=True,
+                    )
+    else:
+        import os
+        os.system(command)
+    
 
 def find_library_abspath(lib):
     """
