@@ -97,6 +97,7 @@ def get_keops_dll_impl(
         elif get_enable_chunk():
             if len(red_formula.formula.chunked_formulas(dimchunk)) == 1:
                 from keops.mapreduce.Chunk_Mode_Constants import Chunk_Mode_Constants
+
                 chk = Chunk_Mode_Constants(red_formula)
                 if not chk.chunk_postchunk_mix:
                     use_chunk_mode = 1

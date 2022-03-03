@@ -2,7 +2,12 @@ import ctypes
 from ctypes.util import find_library
 
 import keopscore.config.config
-from keopscore.utils.misc_utils import KeOps_Error, KeOps_Warning, find_library_abspath, KeOps_OS_Run
+from keopscore.utils.misc_utils import (
+    KeOps_Error,
+    KeOps_Warning,
+    find_library_abspath,
+    KeOps_OS_Run,
+)
 from keopscore.config.config import cxx_compiler, get_build_folder
 import os
 from os.path import join
@@ -84,7 +89,9 @@ def get_cuda_include_path():
 
 def get_include_file_abspath(filename):
     tmp_file = join(get_build_folder(), "tmp.txt")
-    KeOps_OS_Run(f'echo "#include <{filename}>" | {cxx_compiler} -M -E -x c++ - | head -n 2 > {tmp_file}')
+    KeOps_OS_Run(
+        f'echo "#include <{filename}>" | {cxx_compiler} -M -E -x c++ - | head -n 2 > {tmp_file}'
+    )
     strings = open(tmp_file).read().split()
     abspath = None
     for s in strings:

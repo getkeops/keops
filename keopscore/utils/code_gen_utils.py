@@ -626,7 +626,7 @@ def table4(
         for u in range(len(dims)):
             res[inds[u]] = c_array(xloc.dtype, dims[u], f"({xloc.id}+{k})")
             k += dims[u]
-    
+
     return res
 
 

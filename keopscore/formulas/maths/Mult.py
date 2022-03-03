@@ -66,19 +66,19 @@ def Mult(arg0, arg1):
         # f*SumT(g)
         if isinstance(arg0, SumT_Impl):
             # SumT(f)*SumT(g) -> SumT(f*g)
-            if arg0.dim != arg1.dim: # should never happen...
+            if arg0.dim != arg1.dim:  # should never happen...
                 KeOps_Error("dimensions are not compatible for Mult operation")
-            return SumT(arg0.children[0]*arg1.children[0], arg0.dim)
+            return SumT(arg0.children[0] * arg1.children[0], arg0.dim)
         elif arg0.dim == 1:
             # f*SumT(g) -> SumT(f*g)
-            return SumT(arg0*arg1.children[0], arg1.dim)
+            return SumT(arg0 * arg1.children[0], arg1.dim)
         elif arg1.dim == arg0.dim:
             # f*SumT(g) -> f*g (broadcasted)
-            return arg0*arg1.children[0]
+            return arg0 * arg1.children[0]
         else:
             KeOps_Error("dimensions are not compatible for Mult operation")
     elif isinstance(arg0, SumT_Impl):
         # SumT(f)*g -> g*SumT(f)
-        return arg1*arg0
+        return arg1 * arg0
     else:
         return Mult_Impl(arg0, arg1)

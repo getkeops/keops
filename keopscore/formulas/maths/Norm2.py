@@ -1,4 +1,4 @@
-from keopscore.formulas.maths import Sqrt
+from keopscore.formulas.maths.Sqrt import Sqrt
 from keopscore.formulas.maths.Scalprod import Scalprod
 
 

@@ -25,7 +25,10 @@ sys.path.append(get_build_folder())
 
 if keopscore.config.config.use_cuda:
     keopscore.config.config.init_cudalibs()
-    from keopscore.binders.nvrtc.Gpu_link_compile import Gpu_link_compile, jit_compile_dll
+    from keopscore.binders.nvrtc.Gpu_link_compile import (
+        Gpu_link_compile,
+        jit_compile_dll,
+    )
 
     if not os.path.exists(jit_compile_dll()):
         Gpu_link_compile.compile_jit_compile_dll()

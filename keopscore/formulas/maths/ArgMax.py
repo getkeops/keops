@@ -1,6 +1,12 @@
 from keopscore.formulas.Operation import Operation
 from keopscore.formulas.variables.Zero import Zero
-from keopscore.utils.code_gen_utils import c_zero_float, c_for_loop, c_if, value, c_variable
+from keopscore.utils.code_gen_utils import (
+    c_zero_float,
+    c_for_loop,
+    c_if,
+    value,
+    c_variable,
+)
 from keopscore.utils.misc_utils import KeOps_Error
 
 ############################
