@@ -73,9 +73,13 @@ keops_powf = math_function(
     cpu_code="powf", gpu_half2_code=lambda x, y: f"h2exp({y}*h2log({x}))"
 )
 keops_rcp = math_function(cpu_code=lambda x: f"(1.0f/({x}))", gpu_half2_code="h2rcp")
+
 keops_rsqrt = math_function(
-    cpu_code=lambda x: f"(1.0f/sqrt({x}))", gpu_code="rsqrt", gpu_half2_code="h2rsqrt"
+    cpu_code=lambda x: f"(({x}<0.0f)? 0.0f : 1.0f/sqrt({x}))", 
+    gpu_code=lambda x: f"(({x}<0.0f)? 0.0f : rsqrt({x}))", 
+    gpu_half2_code=lambda x: f"h2rsqrt({x}+__heq2({x},__float2half2_rn(0.0f))) * (__float2half2_rn(1.0f)-__heq2({x},__float2half2_rn(0.0f)))"
 )
+
 keops_sqrt = math_function(cpu_code="sqrt", gpu_half2_code="h2sqrt")
 
 keops_relu = math_function(cpu_code=lambda x: f"(({x}<0.0f)? 0.0f : {x})")
