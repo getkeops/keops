@@ -54,7 +54,7 @@ class Operation(Tree):
             print("table=", table)
             for v in table:
                 print(f"dim of {v} : ", v.dim)
-            string += f'std::cout << std::endl << std::endl << "Computing {self.__repr__()} :" << std::endl;\n'
+            string += f'printf("\\n\\nComputing {self.__repr__()} :\\n");\n'
         args = []
         # Evaluation of the child operations
         for child in self.children:
@@ -83,7 +83,7 @@ class Operation(Tree):
             for arg in args:
                 string += arg.c_print
             string += out.c_print
-            string += f"std::cout << std::endl << std::endl;\n"
+            string += f'printf("\\n\\n");\n'
             print(f"Finished building code block for {self.__repr__()}")
 
         string += f"\n\n// Finished code block for {self.__repr__()}.\n}}\n\n"
