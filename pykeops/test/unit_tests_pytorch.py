@@ -434,9 +434,14 @@ class PytorchUnitTestCase(unittest.TestCase):
         cc -= torch.max(cc, dim=1)[0][:, None]  # subtract the max for robustness
         cc = torch.exp(cc) @ self.bc / torch.sum(torch.exp(cc), dim=1)[:, None]
 
+        c_ = c.cpu().data.numpy().ravel()
+        cc_ = cc.cpu().data.numpy().ravel()
+
         print("******************")
-        print("c=", c.cpu().data.numpy().ravel())
-        print("cc=", cc.cpu().data.numpy().ravel())
+        print("c=", c_)
+        print("cc=", cc_)
+        print("max(abs(cc-c))=", np.max(np.abs(c_-cc_)))
+        print("mean(abs(cc-c))=", np.mean(np.abs(c_-cc_)))
         print("******************")
 
         self.assertTrue(
