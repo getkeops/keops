@@ -17,31 +17,6 @@ pipeline {
     stage('Test PyKeOps') {
       parallel {
 
-        stage('Test Linux') {
-          agent { label 'ubuntu' }
-          steps {
-            echo 'Testing..'
-			  sh 'rm -rf $HOME/.cache/keops*'
-              sh 'cd pykeops/test && python3 unit_tests_pytorch.py'
-              sh 'rm -rf $HOME/.cache/keops*'
-              sh 'cd pykeops/test && python3 unit_tests_numpy.py'
-							sh 'cd pykeops/test/more_tests_cpu && for f in *.py; do python3 $f; done'
-          }
-        }
-
-        stage('Test Mac') {
-          agent { label 'macos' }
-          steps {
-            echo 'Testing...'
-            sh 'rm -rf $HOME/.cache/keops*'
-						
-						sh 'pip3 install pybind11'
-            sh 'cd pykeops/test && /Users/ci/miniconda3/bin/python3 unit_tests_pytorch.py'
-            sh 'rm -rf $HOME/.cache/keops*'
-            sh 'cd pykeops/test && /Users/ci/miniconda3/bin/python3 unit_tests_numpy.py'
-						sh 'cd pykeops/test/more_tests_cpu && for f in *.py; do /Users/ci/miniconda3/bin/python3 $f; done'
-          }
-        }
 
         stage('Test Cuda') {
           agent { label 'cuda' }
@@ -53,8 +28,6 @@ pipeline {
                  conda activate keops
                  cd pykeops/test
                  python unit_tests_pytorch.py
-								 python unit_tests_numpy.py
-								 for f in more_tests_gpu/*.py; do python $f; done
               '''
           }
         }
