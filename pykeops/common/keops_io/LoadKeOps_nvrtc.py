@@ -83,8 +83,9 @@ def compile_jit_binary():
     pyKeOps_Message("OK", use_tag=False, flush=True)
 
 
-LoadKeOps_nvrtc = Cache_partial(
-    LoadKeOps_nvrtc_class,
-    use_cache_file=True,
-    save_folder=get_build_folder(),
-)
+LoadKeOps_nvrtc = LoadKeOps_nvrtc_class
+#Cache_partial(
+#    LoadKeOps_nvrtc_class,
+#    use_cache_file=True,
+#    save_folder=get_build_folder(),
+#)

@@ -120,6 +120,11 @@ void range_preprocess_from_device(int &nblocks, int tagI, int nranges_x, int nra
     // N.B.: We only support Host ranges with Device data when these ranges were created
     //       to emulate block-sparse reductions.
 
+    printf("************\n");
+    printf("In range_preprocess_from_device !!\n");
+    printf("ranges_on_device=%d, nranges=%d\n", ranges_on_device, nranges);
+    printf("************\n");
+
     if (ranges_on_device) {  // The ranges are on the device
         ranges_x_h = new int[2 * nranges];
         // Send data from device to host.
@@ -301,7 +306,14 @@ public :
         Read_Target(target_file_name);
 
         // load the corresponding module
-        CUDA_SAFE_CALL(cuModuleLoadDataEx(&module, target, 0, NULL, NULL));
+
+        const unsigned int jitNumOptions = 1;
+        CUjit_option *jitOptions = new CUjit_option[jitNumOptions];
+        int *jitOptVals = new int[jitNumOptions];
+        jitOptions[0] = CU_JIT_GENERATE_DEBUG_INFO;
+        jitOptVals[0] = 1;
+
+        CUDA_SAFE_CALL(cuModuleLoadDataEx(&module, target, jitNumOptions, jitOptions, (void **)jitOptVals));
 
         // allocate a small memory buffer for "on device" computation mode,
         // This is just used for storing the list of pointers to device data

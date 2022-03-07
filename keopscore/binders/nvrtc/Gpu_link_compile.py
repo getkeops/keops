@@ -32,7 +32,7 @@ def jit_compile_dll():
 
 class Gpu_link_compile(LinkCompile):
     source_code_extension = "cu"
-    low_level_code_prefix = "cubin_" if cuda_version >= 11010 else "ptx_"
+    low_level_code_prefix = "ptx_" #"cubin_" if cuda_version >= 11010 else "ptx_"
     ngpu, gpu_props_compile_flags = get_gpu_props()
 
     def __init__(self):
@@ -104,6 +104,7 @@ class Gpu_link_compile(LinkCompile):
             Gpu_link_compile.get_compile_command(
                 sourcename=jit_compile_src,
                 dllname=jit_compile_dll(),
+                extra_flags="-g",
             ),
         )
         KeOps_Message("OK", use_tag=False, flush=True)

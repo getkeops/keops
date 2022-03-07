@@ -141,9 +141,10 @@ def get_keops_dll_impl(
     )
 
 
-get_keops_dll = Cache(
-    get_keops_dll_impl, use_cache_file=True, save_folder=get_build_folder()
-)
+get_keops_dll = get_keops_dll_impl
+#Cache(
+#    get_keops_dll_impl, use_cache_file=True, save_folder=get_build_folder()
+#)
 
 
 if __name__ == "__main__":
