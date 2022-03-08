@@ -3,13 +3,16 @@
 
 template < typename TYPE >
 class Ranges {
-  public:
+public:
     int tagRanges, nranges_x, nranges_y, nredranges_x, nredranges_y;
 
+    std::vector< int > ranges_i, slices_i, redranges_j;
+    std::vector< int* > _castedranges;
     int **castedranges;
-    int *ranges_i, *slices_i, *redranges_j;
 
     Ranges(Sizes<TYPE> sizes, int **ranges) {
+
+        _castedranges.resize(6);
 
         // Sparsity: should we handle ranges? ======================================
         if (sizes.nbatchdims == 0) {  // Standard M-by-N computation
@@ -30,9 +33,8 @@ class Ranges {
                 nredranges_y = ranges[6][2];
 
                 // get the pointers to data to avoid a copy
-                castedranges = (int**) malloc(sizeof(int*)*6);
                 for (int i = 0; i < 6; i++) {
-                    castedranges[i] = ranges[i];
+                    _castedranges[i] = ranges[i];
                 }
             }
 
@@ -48,23 +50,16 @@ class Ranges {
             // - slices_i    = slices_j    = [    1,     2,   ...,   nbatches-1,   nbatches    ]
             // - redranges_j = ranges_j    = [ [0,N], [N,2N], ..., [(nbatches-1)N, nbatches*N] ]
 
-            //int* castedranges[6];
-            castedranges = (int**) malloc(sizeof(int*)*6);
 
             //int ranges_i[2 * sizes.nbatches];  // ranges_i
-            ranges_i = (int*) malloc(sizeof(int)*(2 * sizes.nbatches));
-            for(int i=0; i<2 * sizes.nbatches; i++)
-                ranges_i[i] = 0;
+            ranges_i.resize(2 * sizes.nbatches, 0);
 
             //int slices_i[sizes.nbatches];    // slices_i
-            slices_i = (int*) malloc(sizeof(int)*(sizes.nbatches));
-            for(int i=0; i<sizes.nbatches; i++)
-                slices_i[i] = 0;
+            slices_i.resize(sizes.nbatches, 0);
 
             //int redranges_j[2 * sizes.nbatches];  // redranges_j
-            redranges_j = (int*) malloc(sizeof(int)*(2 * sizes.nbatches));
-            for(int i=0; i<2 * sizes.nbatches; i++)
-                redranges_j[i] = 0;
+            redranges_j.resize(2 * sizes.nbatches, 0);
+
             for (int b = 0; b < sizes.nbatches; b++) {
                 ranges_i[2 * b] = b * sizes.M;
                 ranges_i[2 * b + 1] = (b + 1) * sizes.M;
@@ -73,19 +68,21 @@ class Ranges {
                 redranges_j[2 * b + 1] = (b + 1) * sizes.N;
             }
 
-            castedranges[0] = &ranges_i[0];
-            castedranges[1] = &slices_i[0];
-            castedranges[2] = &redranges_j[0];
-            castedranges[3] = &redranges_j[0];            // ranges_j
-            castedranges[4] = &slices_i[0];            // slices_j
-            castedranges[5] = &ranges_i[0];            // redranges_i
+            _castedranges[0] = &ranges_i[0];
+            _castedranges[1] = &slices_i[0];
+            _castedranges[2] = &redranges_j[0];
+            _castedranges[3] = &redranges_j[0];            // ranges_j
+            _castedranges[4] = &slices_i[0];            // slices_j
+            _castedranges[5] = &ranges_i[0];            // redranges_i
 
             nranges_x = sizes.nbatches;
             nredranges_x = sizes.nbatches;
             nranges_y = sizes.nbatches;
             nredranges_y = sizes.nbatches;
-
         }
+
+        castedranges = &_castedranges[0];
+
 #if do_checks
         else {
             throw std::runtime_error(
