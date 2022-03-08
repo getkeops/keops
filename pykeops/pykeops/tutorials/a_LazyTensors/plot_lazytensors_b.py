@@ -190,4 +190,4 @@ print("g_i is now a {} of shape {}.".format(type(g_i), g_i.shape))
 #   To solve generic systems, you could either
 #   :doc:`interface KeOps with the routines of the SciPy package <../backends/plot_scipy>`
 #   or implement your own solver, mimicking our
-#   `reference implementation. <https://github.com/getkeops/keops/blob/master/pykeops/common/operations.py>`_
+#   `reference implementation. <https://github.com/getkeops/keops/blob/main/pykeops/common/operations.py>`_

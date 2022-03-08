@@ -47,8 +47,8 @@ you may help us to develop KeOps as follows:
    its flexibility.
    In order to add a new example or tutorial to this website, 
    you should simply write a new Python file in
-   the `pykeops/tutorials <https://github.com/getkeops/keops/tree/master/pykeops/tutorials>`_
-   or `pykeops/examples <https://github.com/getkeops/keops/tree/master/pykeops/examples>`_
+   the `pykeops/tutorials <https://github.com/getkeops/keops/tree/main/pykeops/tutorials>`_
+   or `pykeops/examples <https://github.com/getkeops/keops/tree/main/pykeops/examples>`_
    folders with 
    `detailed comments <https://sphinx-gallery.github.io/stable/index.html>`_
    and submit your `pull request <https://github.com/getkeops/keops/pulls>`_.

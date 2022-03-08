@@ -52,8 +52,8 @@ of KeOps is to use `some advanced pip syntax <https://pip.pypa.io/en/stable/refe
 
 .. code-block:: bash
 
-    pip install git+https://github.com/getkeops/keops.git@master#subdirectory=keopscore
-    pip install git+https://github.com/getkeops/keops.git@master#subdirectory=pykeops
+    pip install git+https://github.com/getkeops/keops.git@main#subdirectory=keopscore
+    pip install git+https://github.com/getkeops/keops.git@main#subdirectory=pykeops
 
 
 Alternatively, you may:

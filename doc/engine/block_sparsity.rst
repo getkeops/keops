@@ -144,7 +144,7 @@ This block-wise approach to sparse reductions may seem a bit too coarse,
 as some negligible coefficients get computed with little to no impact on
 the final result... But in practice, the **GPU speed-ups** on contiguous
 memory operations more than make up for it: implemented in the
-`GpuConv1D_ranges.cu <https://github.com/getkeops/keops/blob/master/keops/core/mapreduce/GpuConv1D_ranges.cu>`_ 
+`GpuConv1D_ranges.cu <https://github.com/getkeops/keops/blob/main/keops/core/mapreduce/GpuConv1D_ranges.cu>`_ 
 CUDA file, our block-sparse Map-Reduce scheme is
 the workhorse of the **multiscale Sinkhorn algorithm** showcased in
 the `GeomLoss library <https://www.kernel-operations.io/geomloss/>`_.

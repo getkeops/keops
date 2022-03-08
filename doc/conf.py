@@ -59,7 +59,7 @@ extensions = [
 def linkcode_resolve(domain, info):
     def find_source():
         # try to find the file and line number, based on code from numpy:
-        # https://github.com/numpy/numpy/blob/master/doc/source/conf.py#L286
+        # https://github.com/numpy/numpy/blob/main/doc/source/conf.py#L286
         obj = sys.modules[info["module"]]
         for part in info["fullname"].split("."):
             obj = getattr(obj, part)
@@ -78,7 +78,7 @@ def linkcode_resolve(domain, info):
     except Exception:
         filename = info["module"].replace(".", "/") + ".py"
 
-    return "https://github.com/getkeops/keops/tree/master/%s" % filename
+    return "https://github.com/getkeops/keops/tree/main/%s" % filename
 
 
 # def linkcode_resolve(domain, info):
@@ -88,7 +88,7 @@ def linkcode_resolve(domain, info):
 # if not info['module']:
 # return None
 # filename = get_full_modname(info['module'], info['fullname']).replace('.', '/')
-# return "https://github.com/getkeops/keops/tree/master/%s.py" % filename
+# return "https://github.com/getkeops/keops/tree/main/%s.py" % filename
 
 from sphinx_gallery.sorting import FileNameSortKey
 
@@ -214,7 +214,7 @@ html_context = {
     "display_github": True,  # Integrate Github
     "github_user": "getkeops",  # Username
     "github_repo": "keops",  # Repo name
-    "github_version": "master",  # Version
+    "github_version": "main",  # Version
     "conf_py_path": "/doc/",  # Path in the checkout to the docs root
 }
 # The name for this set of Sphinx documents.  If None, it defaults to

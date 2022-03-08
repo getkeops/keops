@@ -4,8 +4,8 @@ Math-friendly syntax
 The :class:`Genred` operator provides a pythonic interface for the KeOps library.
 To let users code with maximum efficiency, we also propose
 some math-friendly **syntactic sugar** for 
-`NumPy <https://github.com/getkeops/keops/blob/master/pykeops/numpy/generic/generic_ops.py>`_ and
-`PyTorch <https://github.com/getkeops/keops/blob/master/pykeops/torch/generic/generic_ops.py>`_:
+`NumPy <https://github.com/getkeops/keops/blob/main/pykeops/numpy/generic/generic_ops.py>`_ and
+`PyTorch <https://github.com/getkeops/keops/blob/main/pykeops/torch/generic/generic_ops.py>`_:
 
 
 .. code-block:: python
