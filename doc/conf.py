@@ -142,7 +142,7 @@ source_parsers = {
 #
 source_suffix = [".rst", ".md"]
 
-# The master toctree document.
+# The root toctree document.
 root_doc = "index"
 
 # General information about the project.
