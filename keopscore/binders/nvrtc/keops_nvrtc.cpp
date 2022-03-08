@@ -307,6 +307,7 @@ public :
 
         // load the corresponding module
 
+        /*
         const unsigned int jitNumOptions = 1;
         CUjit_option *jitOptions = new CUjit_option[jitNumOptions];
         int *jitOptVals = new int[jitNumOptions];
@@ -314,6 +315,9 @@ public :
         jitOptVals[0] = 1;
 
         CUDA_SAFE_CALL(cuModuleLoadDataEx(&module, target, jitNumOptions, jitOptions, (void **)jitOptVals));
+        */
+
+        CUDA_SAFE_CALL(cuModuleLoadDataEx(&module, target, 0, NULL, NULL));
 
         // allocate a small memory buffer for "on device" computation mode,
         // This is just used for storing the list of pointers to device data
