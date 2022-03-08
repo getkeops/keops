@@ -51,8 +51,22 @@ pipeline {
                  eval "$(/opt/miniconda3/bin/conda shell.bash hook)"
                  conda activate keops
                  cd pykeops/pykeops/test
+                 export CUDA_VISIBLE_DEVICES=2,3   # selecting RTX 2080 cards on Oban (temporary fix for issue #224)
                  python unit_tests_pytorch.py
+              '''
+              sh '''#!/bin/bash
+                 eval "$(/opt/miniconda3/bin/conda shell.bash hook)"
+                 conda activate keops
+                 cd pykeops/pykeops/test
+                 export CUDA_VISIBLE_DEVICES=2,3   # selecting RTX 2080 cards on Oban (temporary fix for issue #224)
                  python unit_tests_numpy.py
+                 for f in more_tests_gpu/*.py; do python $f; done
+              '''
+              sh '''#!/bin/bash
+                 eval "$(/opt/miniconda3/bin/conda shell.bash hook)"
+                 conda activate keops
+                 cd pykeops/pykeops/test
+                 export CUDA_VISIBLE_DEVICES=2,3   # selecting RTX 2080 cards on Oban (temporary fix for issue #224)
                  for f in more_tests_gpu/*.py; do python $f; done
               '''
           }
