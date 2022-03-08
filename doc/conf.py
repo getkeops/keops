@@ -26,7 +26,7 @@ sys.path.insert(0, os.path.abspath("sphinxext"))
 try:
     import pykeops
 except:
-    sys.path.insert(0, os.path.abspath(".."))
+    sys.path.insert(0, os.path.join(os.path.abspath(os.pardir), "pykeops"))
     import pykeops
 
 from pykeops import __version__
@@ -95,16 +95,16 @@ from sphinx_gallery.sorting import FileNameSortKey
 sphinx_gallery_conf = {
     # path to your examples scripts
     "examples_dirs": [
-        "../pykeops/tutorials",
-        "../pykeops/benchmarks",
-        "../pykeops/examples",
+        "../pykeops/pykeops/tutorials",
+        "../pykeops/pykeops/benchmarks",
+        "../pykeops/pykeops/examples",
     ],
     # path where to save gallery generated examples
     "gallery_dirs": ["_auto_tutorials", "_auto_benchmarks", "./_auto_examples"],
     # order of the Gallery
     "within_subsection_order": FileNameSortKey,
     # Add patterns
-    # 'filename_pattern': r'../pykeops/tutorials/*',
+    # 'filename_pattern': r'../pykeops/pykeops/tutorials/*',
 }
 
 # Generate the API documentation when building
