@@ -143,7 +143,7 @@ source_parsers = {
 source_suffix = [".rst", ".md"]
 
 # The master toctree document.
-master_doc = "index"
+root_doc = "index"
 
 # General information about the project.
 project = "KeOps"
@@ -270,7 +270,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
     (
-        master_doc,
+        root_doc,
         "KeOps.tex",
         "KeOps Documentation",
         "Benjamin Charlier, Jean Feydy, Joan A. Glaunès",
@@ -283,7 +283,7 @@ latex_documents = [
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [(master_doc, "keops", "KeOps Documentation", [author], 1)]
+man_pages = [(root_doc, "keops", "KeOps Documentation", [author], 1)]
 
 
 # -- Options for Texinfo output -------------------------------------------
@@ -293,7 +293,7 @@ man_pages = [(master_doc, "keops", "KeOps Documentation", [author], 1)]
 #  dir menu entry, description, category)
 texinfo_documents = [
     (
-        master_doc,
+        root_doc,
         "KeOps",
         "KeOps Documentation",
         author,
