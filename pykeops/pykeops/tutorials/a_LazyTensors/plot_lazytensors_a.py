@@ -127,7 +127,7 @@ print(D_ij)
 #
 # We can then perform a :meth:`pykeops.torch.LazyTensor.argmin` reduction with
 # an efficient Map-Reduce scheme, implemented
-# as a `templated CUDA kernel <https://github.com/getkeops/keops/blob/master/keops/core/GpuConv1D.cu>`_ around
+# as a `templated CUDA kernel <https://github.com/getkeops/keops/blob/main/keops/core/GpuConv1D.cu>`_ around
 # our custom formula.
 # As evidenced by our :doc:`benchmarks <../../_auto_benchmarks/index>`,
 # the KeOps routines have a **linear memory footprint**

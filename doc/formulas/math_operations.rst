@@ -7,31 +7,31 @@ As detailed
 our parsing grammar for symbolic formulas is
 described in terms of **abstract C++ types** 
 implemented in the 
-`keops/core/formulas/*/*.h <https://github.com/getkeops/keops/tree/master/keops/core/formulas>`_
+`keops/core/formulas/*/*.h <https://github.com/getkeops/keops/tree/main/keops/core/formulas>`_
 headers. These files provide a **comprehensive list of mathematical
 operators** and rely on the primitives implemented in the
-`keops/core/pack <https://github.com/getkeops/keops/tree/master/keops/core/pack>`_ 
+`keops/core/pack <https://github.com/getkeops/keops/tree/main/keops/core/pack>`_ 
 and 
-`keops/core/autodiff <https://github.com/getkeops/keops/tree/master/keops/core/autodiff>`_ 
+`keops/core/autodiff <https://github.com/getkeops/keops/tree/main/keops/core/autodiff>`_ 
 subfolders: 
 abstract
-`unary <https://github.com/getkeops/keops/blob/master/keops/core/autodiff/UnaryOp.h>`_
+`unary <https://github.com/getkeops/keops/blob/main/keops/core/autodiff/UnaryOp.h>`_
 and 
-`binary <https://github.com/getkeops/keops/blob/master/keops/core/autodiff/BinaryOp.h>`_ 
+`binary <https://github.com/getkeops/keops/blob/main/keops/core/autodiff/BinaryOp.h>`_ 
 operators, 
-`tuples <https://github.com/getkeops/keops/blob/master/keops/core/pack/Pack.h>`_  of variables and parameters, 
-`variables <https://github.com/getkeops/keops/tree/master/keops/core/autodiff>`_, 
-`gradients <https://github.com/getkeops/keops/blob/master/keops/core/autodiff/Grad.h>`_.
+`tuples <https://github.com/getkeops/keops/blob/main/keops/core/pack/Pack.h>`_  of variables and parameters, 
+`variables <https://github.com/getkeops/keops/tree/main/keops/core/autodiff>`_, 
+`gradients <https://github.com/getkeops/keops/blob/main/keops/core/autodiff/Grad.h>`_.
 
 In practice
 -----------------
 
 To give a glimpse of **how KeOps works under the hood**, let us present
 a small excerpt from the 
-`formulas/maths/ <https://github.com/getkeops/keops/tree/master/keops/core/formulas/maths>`_ 
+`formulas/maths/ <https://github.com/getkeops/keops/tree/main/keops/core/formulas/maths>`_ 
 subfolder – the declaration
 of the :mod:`Log(...)` operator
-in the `Log.h <https://github.com/getkeops/keops/blob/master/keops/core/formulas/maths/Log.h>`_ 
+in the `Log.h <https://github.com/getkeops/keops/blob/main/keops/core/formulas/maths/Log.h>`_ 
 header:
 
 .. code-block:: cpp
@@ -70,7 +70,7 @@ As evidenced here, the implementation of a new operator goes through
 
 #. The **declaration** of a new operation as an instance of the abstract
    :mod:`UnaryOp` or :mod:`BinaryOp` templates. These are defined in the
-   `keops/core/autodiff <https://github.com/getkeops/keops/tree/master/keops/core/autodiff>`_ 
+   `keops/core/autodiff <https://github.com/getkeops/keops/tree/main/keops/core/autodiff>`_ 
    folder with a set of standard methods and
    attributes. The operand :mod:`F` of :mod:`Log<F>` is an arbitrary formula,
    **recursively encoded as a templated structure**.
@@ -140,7 +140,7 @@ As evidenced here, the implementation of a new operator goes through
 #. **Declare a convenient alias for the operation.**
    This arcane formulation relies on classes
    defined in the
-   `keops/core/pre_headers.h <https://github.com/getkeops/keops/blob/master/keops/core/pre_headers.h>`_
+   `keops/core/pre_headers.h <https://github.com/getkeops/keops/blob/main/keops/core/pre_headers.h>`_
    header.
 
 Contributing with a new operation
@@ -151,19 +151,19 @@ operators**, injecting their C++ code within the KeOps
 Map-Reduce kernels. Doing so is now relatively easy: 
 having implemented a
 custom instance of the :mod:`UnaryOp` or :mod:`BinaryOp` templates in 
-a new `keops/core/formulas/*/*.h <https://github.com/getkeops/keops/tree/master/keops/core/formulas>`_ header, 
+a new `keops/core/formulas/*/*.h <https://github.com/getkeops/keops/tree/main/keops/core/formulas>`_ header, 
 contributors should simply
 remember to add their file to the
-`list of KeOps includes <https://github.com/getkeops/keops/blob/master/keops/keops_includes.h>`_
+`list of KeOps includes <https://github.com/getkeops/keops/blob/main/keops/keops_includes.h>`_
 and write a LazyTensor method in the
-`pykeops/common/lazy_tensor.py <https://github.com/getkeops/keops/blob/master/pykeops/common/lazy_tensor.py>`_ 
+`pykeops/common/lazy_tensor.py <https://github.com/getkeops/keops/blob/main/pykeops/common/lazy_tensor.py>`_ 
 module. 
 
 To **get merged** in the 
 `main KeOps repository <https://github.com/getkeops/keops>`_, 
 which is hosted on GitHub, writing a simple 
 **unit test** in the 
-`pykeops/test/ <https://github.com/getkeops/keops/tree/master/pykeops/test>`_ 
+`pykeops/test/ <https://github.com/getkeops/keops/tree/main/pykeops/test>`_ 
 folder and an **adequate description** in the
 **pull request** should then be enough.
 

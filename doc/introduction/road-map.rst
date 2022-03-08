@@ -227,5 +227,5 @@ but we'd be happy to diversify the team!
 Changelog
 ---------
 
-Our `Changelog <https://github.com/getkeops/keops/blob/master/CHANGELOG.md>`_
+Our `Changelog <https://github.com/getkeops/keops/blob/main/CHANGELOG.md>`_
 can be found on the `KeOps Github repository <https://github.com/getkeops/keops/>`_.

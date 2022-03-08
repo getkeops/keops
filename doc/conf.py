@@ -26,7 +26,7 @@ sys.path.insert(0, os.path.abspath("sphinxext"))
 try:
     import pykeops
 except:
-    sys.path.insert(0, os.path.abspath(".."))
+    sys.path.insert(0, os.path.join(os.path.abspath(os.pardir), "pykeops"))
     import pykeops
 
 from pykeops import __version__
@@ -59,7 +59,7 @@ extensions = [
 def linkcode_resolve(domain, info):
     def find_source():
         # try to find the file and line number, based on code from numpy:
-        # https://github.com/numpy/numpy/blob/master/doc/source/conf.py#L286
+        # https://github.com/numpy/numpy/blob/main/doc/source/conf.py#L286
         obj = sys.modules[info["module"]]
         for part in info["fullname"].split("."):
             obj = getattr(obj, part)
@@ -78,7 +78,7 @@ def linkcode_resolve(domain, info):
     except Exception:
         filename = info["module"].replace(".", "/") + ".py"
 
-    return "https://github.com/getkeops/keops/tree/master/%s" % filename
+    return "https://github.com/getkeops/keops/tree/main/%s" % filename
 
 
 # def linkcode_resolve(domain, info):
@@ -88,23 +88,23 @@ def linkcode_resolve(domain, info):
 # if not info['module']:
 # return None
 # filename = get_full_modname(info['module'], info['fullname']).replace('.', '/')
-# return "https://github.com/getkeops/keops/tree/master/%s.py" % filename
+# return "https://github.com/getkeops/keops/tree/main/%s.py" % filename
 
 from sphinx_gallery.sorting import FileNameSortKey
 
 sphinx_gallery_conf = {
     # path to your examples scripts
     "examples_dirs": [
-        "../pykeops/tutorials",
-        "../pykeops/benchmarks",
-        "../pykeops/examples",
+        "../pykeops/pykeops/tutorials",
+        "../pykeops/pykeops/benchmarks",
+        "../pykeops/pykeops/examples",
     ],
     # path where to save gallery generated examples
     "gallery_dirs": ["_auto_tutorials", "_auto_benchmarks", "./_auto_examples"],
     # order of the Gallery
     "within_subsection_order": FileNameSortKey,
     # Add patterns
-    # 'filename_pattern': r'../pykeops/tutorials/*',
+    # 'filename_pattern': r'../pykeops/pykeops/tutorials/*',
 }
 
 # Generate the API documentation when building
@@ -142,8 +142,8 @@ source_parsers = {
 #
 source_suffix = [".rst", ".md"]
 
-# The master toctree document.
-master_doc = "index"
+# The root toctree document.
+root_doc = "index"
 
 # General information about the project.
 project = "KeOps"
@@ -214,7 +214,7 @@ html_context = {
     "display_github": True,  # Integrate Github
     "github_user": "getkeops",  # Username
     "github_repo": "keops",  # Repo name
-    "github_version": "master",  # Version
+    "github_version": "main",  # Version
     "conf_py_path": "/doc/",  # Path in the checkout to the docs root
 }
 # The name for this set of Sphinx documents.  If None, it defaults to
@@ -270,7 +270,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
     (
-        master_doc,
+        root_doc,
         "KeOps.tex",
         "KeOps Documentation",
         "Benjamin Charlier, Jean Feydy, Joan A. Glaunès",
@@ -283,7 +283,7 @@ latex_documents = [
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [(master_doc, "keops", "KeOps Documentation", [author], 1)]
+man_pages = [(root_doc, "keops", "KeOps Documentation", [author], 1)]
 
 
 # -- Options for Texinfo output -------------------------------------------
@@ -293,7 +293,7 @@ man_pages = [(master_doc, "keops", "KeOps Documentation", [author], 1)]
 #  dir menu entry, description, category)
 texinfo_documents = [
     (
-        master_doc,
+        root_doc,
         "KeOps",
         "KeOps Documentation",
         author,

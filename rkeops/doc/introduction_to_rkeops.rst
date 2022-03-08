@@ -30,7 +30,7 @@ Introduction to RKeOps
 -  URL: https://www.kernel-operations.io/
 -  Source: https://github.com/getkeops/keops
 -  Licence and Copyright: see
-   https://github.com/getkeops/keops/blob/master/licence.txt
+   https://github.com/getkeops/keops/blob/main/licence.txt
 
 .. raw:: html
 
