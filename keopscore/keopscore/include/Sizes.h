@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <vector>
 #include <numeric>
+#include <functional>
 
 
 #define MIN(a, b) (((a)<(b))?(a):(b))
@@ -64,10 +65,11 @@ public:
     std::vector< int > dimsP;
 
     // constructors
-    Sizes(int _nargs, TYPE **args, std::vector <std::vector< int >> argshapes, int _nx, int _ny,
+    Sizes(int _nargs, TYPE **args, const std::vector <std::vector< int >> &argshapes, int _nx, int _ny,
           int tagIJ_, int use_half_, int dimout_,
-          std::vector< int > indsI_, std::vector< int > indsJ_, std::vector< int > indsP_,
-          std::vector< int > dimsX_, std::vector< int > dimsY_, std::vector< int > dimsP_) {
+          const std::vector< int > &indsI_, std::vector< int > indsJ_, const std::vector< int > &indsP_,
+          const std::vector< int > &dimsX_, std::vector< int > dimsY_, const std::vector< int > &dimsP_) {
+
         tagIJ = tagIJ_;
         use_half = use_half_;
         indsI = indsI_;
@@ -141,16 +143,16 @@ public:
     void switch_to_half2_indexing();
 
 private:
-    void fill_shape(int nargs, std::vector <std::vector< int >> argshapes);
+    void fill_shape(const int nargs, const std::vector <std::vector< int >> &argshapes);
 
-    void check_ranges(std::vector <std::vector< int >> argshapes);
+    void check_ranges(const std::vector <std::vector< int >> &argshapes);
 
     int MN_pos, D_pos;
 };
 
 
 template< typename TYPE >
-void Sizes< TYPE >::fill_shape(int nargs, std::vector <std::vector< int >> argshapes) {
+void Sizes< TYPE >::fill_shape(const int nargs, const std::vector <std::vector< int >> &argshapes) {
 
     int pos = std::max(pos_first_argI, pos_first_argJ);
 
@@ -198,7 +200,7 @@ void Sizes< TYPE >::fill_shape(int nargs, std::vector <std::vector< int >> argsh
 }
 
 template< typename TYPE >
-void Sizes< TYPE >::check_ranges(std::vector <std::vector< int >> argshapes) {
+void Sizes< TYPE >::check_ranges(const std::vector <std::vector< int >> &argshapes) {
 
     // Check the compatibility of all tensor shapes ==================================
     if (nminargs > 0) {

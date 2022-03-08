@@ -56,7 +56,9 @@ void load_args_FromDevice(CUdeviceptr &p_data, TYPE *out, TYPE *&out_d, int narg
 
 template<typename TYPE>
 void
-load_args_FromHost(CUdeviceptr &p_data, TYPE *out, TYPE *&out_d, int nargs, TYPE **arg, TYPE **&arg_d, std::vector< std::vector< int > > argshape,
+load_args_FromHost(CUdeviceptr &p_data, TYPE *out, TYPE *&out_d, int nargs,
+                   TYPE **arg, TYPE **&arg_d,
+                   const std::vector< std::vector< int > > &argshape,
                    int sizeout) {
     int sizes[nargs];
     int totsize = sizeout;

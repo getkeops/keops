@@ -22,7 +22,10 @@ void vect_broadcast_index(int i, int nbatchdims, int nvars, int *full_shape,
 }
 
 void fill_shapes(int nbatchdims, int *shapes, int *shapes_i, int *shapes_j, int *shapes_p,
-                 int tagJ, std::vector< int > indsi, std::vector< int > indsj, std::vector< int > indsp) {
+                 int tagJ,
+                 const std::vector< int > &indsi,
+                 const std::vector< int > &indsj,
+                 const std::vector< int > &indsp) {
 
     int sizei = indsi.size();
     int sizej = indsj.size();
