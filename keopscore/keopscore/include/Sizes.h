@@ -24,12 +24,14 @@ int get_val_batch(std::vector< int > _shape, int nbatch, int b) {
 }
 
 #else
+
 int get_val_batch(std::vector< int > _shape, int nbatch, int b) {
     return _shape[nbatch - b];
 }
+
 #endif
 
-template<typename TYPE>
+template< typename TYPE >
 class Sizes {
 public:
 
@@ -62,10 +64,10 @@ public:
     std::vector< int > dimsP;
 
     // constructors
-    Sizes(int _nargs, TYPE **args, std::vector< std::vector< int > > argshapes, int _nx, int _ny,
+    Sizes(int _nargs, TYPE **args, std::vector <std::vector< int >> argshapes, int _nx, int _ny,
           int tagIJ_, int use_half_, int dimout_,
           std::vector< int > indsI_, std::vector< int > indsJ_, std::vector< int > indsP_,
-          std::vector< int > dimsX_,  std::vector< int > dimsY_,  std::vector< int > dimsP_) {
+          std::vector< int > dimsX_, std::vector< int > dimsY_, std::vector< int > dimsP_) {
         tagIJ = tagIJ_;
         use_half = use_half_;
         indsI = indsI_;
@@ -114,7 +116,8 @@ public:
 #else
         std::reverse_copy(_shapes.begin(), _shapes.begin() + nbatchdims + 3,
                           _shape_out.begin());// Copy the "batch dimensions"
-        _shape_out.erase(_shape_out.begin() + 1 tagIJ);
+        _shape_out.erase(_shape_out.begin() + 1
+        tagIJ);
 
 #endif
 
@@ -138,16 +141,16 @@ public:
     void switch_to_half2_indexing();
 
 private:
-    void fill_shape(int nargs, std::vector< std::vector< int > > argshapes);
+    void fill_shape(int nargs, std::vector <std::vector< int >> argshapes);
 
-    void check_ranges(std::vector< std::vector< int > > argshapes);
+    void check_ranges(std::vector <std::vector< int >> argshapes);
 
     int MN_pos, D_pos;
 };
 
 
-template<typename TYPE>
-void Sizes<TYPE>::fill_shape(int nargs, std::vector< std::vector< int > > argshapes) {
+template< typename TYPE >
+void Sizes< TYPE >::fill_shape(int nargs, std::vector <std::vector< int >> argshapes) {
 
     int pos = std::max(pos_first_argI, pos_first_argJ);
 
@@ -194,8 +197,8 @@ void Sizes<TYPE>::fill_shape(int nargs, std::vector< std::vector< int > > argsha
 
 }
 
-template<typename TYPE>
-void Sizes<TYPE>::check_ranges(std::vector< std::vector< int > > argshapes) {
+template< typename TYPE >
+void Sizes< TYPE >::check_ranges(std::vector <std::vector< int >> argshapes) {
 
     // Check the compatibility of all tensor shapes ==================================
     if (nminargs > 0) {
@@ -371,8 +374,8 @@ void Sizes<TYPE>::check_ranges(std::vector< std::vector< int > > argshapes) {
 
 }
 
-template<typename TYPE>
-void Sizes<TYPE>::switch_to_half2_indexing() {
+template< typename TYPE >
+void Sizes< TYPE >::switch_to_half2_indexing() {
     // special case of float16 inputs : because we use half2 type in Cuda codes, we need to divide by two nx, ny, and M, N, or D
     // values inside the shapes vector.
     nx = nx / 2;

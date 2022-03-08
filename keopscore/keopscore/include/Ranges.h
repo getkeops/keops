@@ -1,16 +1,17 @@
 #pragma once
+
 #include "Sizes.h"
 
-template < typename TYPE >
+template< typename TYPE >
 class Ranges {
 public:
     int tagRanges, nranges_x, nranges_y, nredranges_x, nredranges_y;
 
     std::vector< int > ranges_i, slices_i, redranges_j;
-    std::vector< int* > _castedranges;
+    std::vector< int * > _castedranges;
     int **castedranges;
 
-    Ranges(Sizes<TYPE> sizes, int **ranges) {
+    Ranges(Sizes< TYPE > sizes, int **ranges) {
 
         _castedranges.resize(6);
 
@@ -71,7 +72,7 @@ public:
             _castedranges[0] = &ranges_i[0];
             _castedranges[1] = &slices_i[0];
             _castedranges[2] = &redranges_j[0];
-            _castedranges[3] = &redranges_j[0];            // ranges_j
+            _castedranges[3] = &redranges_j[0];         // ranges_j
             _castedranges[4] = &slices_i[0];            // slices_j
             _castedranges[5] = &ranges_i[0];            // redranges_i
 
@@ -91,7 +92,6 @@ public:
             );
         }
 #endif
-
 
 
     };

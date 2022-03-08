@@ -56,7 +56,7 @@ void fill_shapes(int nbatchdims, int *shapes, int *shapes_i, int *shapes_j, int 
             shapes_i[k * (nbatchdims + 1) + l] = shapes[(1 + indsi[k]) * (nbatchdims + 3) + l];
         }
         shapes_i[k * (nbatchdims + 1) + nbatchdims] =
-            shapes[(1 + indsi[k]) * (nbatchdims + 3) + nbatchdims + 1 - tagIJ];
+                shapes[(1 + indsi[k]) * (nbatchdims + 3) + nbatchdims + 1 - tagIJ];
     }
 
     // Then, we do the same for shapes_j, but with "N" instead of "M":
@@ -65,7 +65,7 @@ void fill_shapes(int nbatchdims, int *shapes, int *shapes_i, int *shapes_j, int 
             shapes_j[k * (nbatchdims + 1) + l] = shapes[(1 + indsj[k]) * (nbatchdims + 3) + l];
         }
         shapes_j[k * (nbatchdims + 1) + nbatchdims] = shapes[(1 + indsj[k]) * (nbatchdims + 3) + nbatchdims +
-                tagIJ];
+                                                             tagIJ];
     }
 
     // And finally for the parameters, with "1" instead of "M":
