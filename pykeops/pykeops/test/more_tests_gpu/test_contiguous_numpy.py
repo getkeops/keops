@@ -1,14 +1,18 @@
 import os.path
 import sys
 
-sys.path.append(os.path.join(
-    os.path.dirname(os.path.abspath(__file__)), 
-    os.path.sep.join([os.pardir] * 3)
-))
-sys.path.append(os.path.join(
-    os.path.dirname(os.path.abspath(__file__)), 
-    os.path.sep.join([os.pardir] * 4), "keopscore"
-))
+sys.path.append(
+    os.path.join(
+        os.path.dirname(os.path.abspath(__file__)), os.path.sep.join([os.pardir] * 3)
+    )
+)
+sys.path.append(
+    os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        os.path.sep.join([os.pardir] * 4),
+        "keopscore",
+    )
+)
 
 from pykeops.numpy import LazyTensor
 import numpy as np
