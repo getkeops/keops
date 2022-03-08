@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <vector>
+#include <numeric>
 
 
 #define MIN(a, b) (((a)<(b))?(a):(b))
@@ -18,19 +19,19 @@ void error(std::string message) {
 
 #if C_CONTIGUOUS
 
-int get_val_batch(std::vector< int > shape, int nbatch, int b) {
-    return shape[b];
+int get_val_batch(std::vector< int > _shape, int nbatch, int b) {
+    return _shape[b];
 }
 
 #else
-int get_val_batch(std::vector< int > shape, int nbatch, int b) {
-    return shape[nbatch - b];
+int get_val_batch(std::vector< int > _shape, int nbatch, int b) {
+    return _shape[nbatch - b];
 }
 #endif
 
 template<typename TYPE>
 class Sizes {
-  public:
+public:
 
     // attributs
     int nargs;
@@ -39,7 +40,9 @@ class Sizes {
     int nbatchdims;
     int nbatches;
 
+    std::vector< int > _shapes;
     int *shapes;
+    std::vector< int > _shape_out;
     int *shape_out;
 
     int tagIJ;
@@ -102,42 +105,31 @@ class Sizes {
         check_ranges(argshapes);
 
         // fill shape_out
-        shape_out = (int *) malloc(sizeof(int) * (nbatchdims + 2));
-        // Copy the "batch dimensions":
+        _shape_out.resize(nbatchdims + 3);
+
 #if C_CONTIGUOUS
-        for (int i = 0; i < nbatchdims; i++)
-            shape_out[i] = shapes[i];
-        if (tagIJ == 0)
-            shape_out[nbatchdims] = shapes[nbatchdims];
-        else
-            shape_out[nbatchdims] = shapes[nbatchdims + 1];
-        shape_out[nbatchdims + 1] = shapes[nbatchdims + 2];
+        std::copy(_shapes.begin(), _shapes.begin() + nbatchdims + 3, _shape_out.begin());// Copy the "batch dimensions"
+        _shape_out.erase(_shape_out.begin() + nbatchdims + (1 - tagIJ));
+
 #else
-        for(int i=0; i<nbatchdims; i++)
-            shape_out[nbatchdims+1-i] = shapes[i];
-        if(tagIJ==0)
-            shape_out[1] = shapes[nbatchdims];
-        else
-            shape_out[1] = shapes[nbatchdims+1];
-        shape_out[0] = shapes[nbatchdims+2];
+        std::reverse_copy(_shapes.begin(), _shapes.begin() + nbatchdims + 3,
+                          _shape_out.begin());// Copy the "batch dimensions"
+        _shape_out.erase(_shape_out.begin() + 1 tagIJ);
+
 #endif
 
         // fill nx and ny
-        M = shapes[nbatchdims];      // = M
-        N = shapes[nbatchdims + 1];  // = N
+        M = _shapes[nbatchdims];      // = M
+        N = _shapes[nbatchdims + 1];  // = N
 
         // Compute the product of all "batch dimensions"
-        nbatches = 1;
-
-        for (int b = 0; b < nbatchdims; b++) {
-            nbatches *= shapes[b];
-        }
-
-        //int nbatches = std::accumulate(shapes, shapes + nbatchdims, 1, std::multiplies< int >());
+        nbatches = std::accumulate(_shapes.begin(), _shapes.begin() + nbatchdims, 1, std::multiplies< int >());
 
         nx = nbatches * M;  // = A * ... * B * M
         ny = nbatches * N;  // = A * ... * B * N
 
+        shapes = &_shapes[0];
+        shape_out = &_shape_out[0];
     }
 
 
@@ -145,7 +137,7 @@ class Sizes {
 
     void switch_to_half2_indexing();
 
-  private:
+private:
     void fill_shape(int nargs, std::vector< std::vector< int > > argshapes);
 
     void check_ranges(std::vector< std::vector< int > > argshapes);
@@ -157,7 +149,7 @@ class Sizes {
 template<typename TYPE>
 void Sizes<TYPE>::fill_shape(int nargs, std::vector< std::vector< int > > argshapes) {
 
-    int pos = (pos_first_argI > pos_first_argJ) ? pos_first_argI : pos_first_argJ;
+    int pos = std::max(pos_first_argI, pos_first_argJ);
 
     if (pos > -1) {
         // Are we working in batch mode? Infer the answer from the first arg =============
@@ -183,27 +175,22 @@ void Sizes<TYPE>::fill_shape(int nargs, std::vector< std::vector< int > > argsha
 #endif
 
     // Now, we'll keep track of the output + all arguments' shapes in a large array:
-    shapes = (int *) malloc(sizeof(int) * ((nargs + 1) * (nbatchdims + 3)));
-
-
-    for (int i = 0; i < (nargs + 1) * (nbatchdims + 3); i++)
-        shapes[i] = 1;
-
+    _shapes.resize((nargs + 1) * (nbatchdims + 3), 1);
 
     if (use_half) {
         if (tagIJ == 0) {
-            shapes[nbatchdims] = nx % 2 ? nx + 1 : nx;
-            shapes[nbatchdims + 1] = 2 * ny;
+            _shapes[nbatchdims] = nx % 2 ? nx + 1 : nx;
+            _shapes[nbatchdims + 1] = 2 * ny;
         } else {
-            shapes[nbatchdims] = 2 * nx;
-            shapes[nbatchdims + 1] = ny % 2 ? ny + 1 : ny;
+            _shapes[nbatchdims] = 2 * nx;
+            _shapes[nbatchdims + 1] = ny % 2 ? ny + 1 : ny;
         }
     } else {
-        shapes[nbatchdims] = nx;
-        shapes[nbatchdims + 1] = ny;
+        _shapes[nbatchdims] = nx;
+        _shapes[nbatchdims + 1] = ny;
     }
 
-    shapes[nbatchdims + 2] = dimout;   // Top right corner: dimension of the output
+    _shapes[nbatchdims + 2] = dimout;   // Top right corner: dimension of the output
 
 }
 
@@ -241,45 +228,45 @@ void Sizes<TYPE>::check_ranges(std::vector< std::vector< int > > argshapes) {
 
             // First, the batch dimensions:
             for (int b = 0; b < nbatchdims; b++) {
-                shapes[off_i + b] = get_val_batch(argshapes[i], nbatchdims + 2, b);
+                _shapes[off_i + b] = get_val_batch(argshapes[i], nbatchdims + 2, b);
 
                 // Check that the current value is compatible with what
                 // we've encountered so far, as stored in the first line of "shapes"
-                if (shapes[off_i + b] != 1) {  // This dimension is not "broadcasted"
-                    if (shapes[b] == 1) {
-                        shapes[b] = shapes[off_i + b];  // -> it becomes the new standard
+                if (_shapes[off_i + b] != 1) {  // This dimension is not "broadcasted"
+                    if (_shapes[b] == 1) {
+                        _shapes[b] = _shapes[off_i + b];  // -> it becomes the new standard
                     }
 #if do_checks
-                    else if (shapes[b] != shapes[off_i + b]) {
+                    else if (_shapes[b] != _shapes[off_i + b]) {
                         error("[KeOps] Wrong value of the batch dimension "
                               + std::to_string(b) + " for argument number " + std::to_string(i)
-                              + " : is " + std::to_string(shapes[off_i + b])
-                              + " but was " + std::to_string(shapes[b])
+                              + " : is " + std::to_string(_shapes[off_i + b])
+                              + " but was " + std::to_string(_shapes[b])
                               + " or 1 in previous arguments.");
                     }
 #endif
                 }
             }
 
-            shapes[off_i + nbatchdims] = argshapes[i][MN_pos];  // = "M"
-            shapes[off_i + nbatchdims + 2] = argshapes[i][D_pos];  // = "D"
+            _shapes[off_i + nbatchdims] = argshapes[i][MN_pos];  // = "M"
+            _shapes[off_i + nbatchdims + 2] = argshapes[i][D_pos];  // = "D"
 
 
 #if do_checks
             // Check the number of "lines":
-            if (shapes[nbatchdims] != shapes[off_i + nbatchdims]) {
+            if (_shapes[nbatchdims] != _shapes[off_i + nbatchdims]) {
                 error("[KeOps] Wrong value of the 'i' dimension "
                       + std::to_string(nbatchdims) + "for arg at position " + std::to_string(i)
-                      + " : is " + std::to_string(shapes[off_i + nbatchdims])
-                      + " but was " + std::to_string(shapes[nbatchdims])
+                      + " : is " + std::to_string(_shapes[off_i + nbatchdims])
+                      + " but was " + std::to_string(_shapes[nbatchdims])
                       + " in previous 'i' arguments.");
             }
 
             // And the number of "columns":
-            if (shapes[off_i + nbatchdims + 2] != static_cast< int >(dimsX[k])) {
+            if (_shapes[off_i + nbatchdims + 2] != static_cast< int >(dimsX[k])) {
                 error("[KeOps] Wrong value of the 'vector size' dimension "
                       + std::to_string(nbatchdims + 1) + " for arg at position " + std::to_string(i)
-                      + " : is " + std::to_string(shapes[off_i + nbatchdims + 2])
+                      + " : is " + std::to_string(_shapes[off_i + nbatchdims + 2])
                       + " but should be " + std::to_string(dimsX[k]));
             }
 #endif
@@ -312,45 +299,45 @@ void Sizes<TYPE>::check_ranges(std::vector< std::vector< int > > argshapes) {
 
             // First, the batch dimensions:
             for (int b = 0; b < nbatchdims; b++) {
-                shapes[off_i + b] = get_val_batch(argshapes[i], nbatchdims + 2, b);
+                _shapes[off_i + b] = get_val_batch(argshapes[i], nbatchdims + 2, b);
 
                 // Check that the current value is compatible with what
                 // we've encountered so far, as stored in the first line of "shapes"
-                if (shapes[off_i + b] != 1) {  // This dimension is not "broadcasted"
-                    if (shapes[b] == 1) {
-                        shapes[b] = shapes[off_i + b];  // -> it becomes the new standard
+                if (_shapes[off_i + b] != 1) {  // This dimension is not "broadcasted"
+                    if (_shapes[b] == 1) {
+                        _shapes[b] = _shapes[off_i + b];  // -> it becomes the new standard
                     }
 #if do_checks
-                    else if (shapes[b] != shapes[off_i + b]) {
+                    else if (_shapes[b] != _shapes[off_i + b]) {
                         error("[KeOps] Wrong value of the batch dimension "
                               + std::to_string(b) + " for argument number " + std::to_string(i)
-                              + " : is " + std::to_string(shapes[off_i + b])
-                              + " but was " + std::to_string(shapes[b])
+                              + " : is " + std::to_string(_shapes[off_i + b])
+                              + " but was " + std::to_string(_shapes[b])
                               + " or 1 in previous arguments.");
                     }
 #endif
                 }
             }
 
-            shapes[off_i + nbatchdims + 1] = argshapes[i][MN_pos];  // = "N"
-            shapes[off_i + nbatchdims + 2] = argshapes[i][D_pos];  // = "D"
+            _shapes[off_i + nbatchdims + 1] = argshapes[i][MN_pos];  // = "N"
+            _shapes[off_i + nbatchdims + 2] = argshapes[i][D_pos];  // = "D"
 
 
 #if do_checks
             // Check the number of "lines":
-            if (shapes[nbatchdims + 1] != shapes[off_i + nbatchdims + 1]) {
+            if (_shapes[nbatchdims + 1] != _shapes[off_i + nbatchdims + 1]) {
                 error("[KeOps] Wrong value of the 'j' dimension "
                       + std::to_string(nbatchdims) + " for arg at position " + std::to_string(i)
-                      + " : is " + std::to_string(shapes[off_i + nbatchdims + 1])
-                      + " but was " + std::to_string(shapes[nbatchdims + 1])
+                      + " : is " + std::to_string(_shapes[off_i + nbatchdims + 1])
+                      + " but was " + std::to_string(_shapes[nbatchdims + 1])
                       + " in previous 'j' arguments.");
             }
 
             // And the number of "columns":
-            if (shapes[off_i + nbatchdims + 2] != static_cast< int >(dimsY[k])) {
+            if (_shapes[off_i + nbatchdims + 2] != static_cast< int >(dimsY[k])) {
                 error("[KeOps] Wrong value of the 'vector size' dimension "
                       + std::to_string(nbatchdims + 1) + " for arg at position " + std::to_string(i)
-                      + " : is " + std::to_string(shapes[off_i + nbatchdims + 2])
+                      + " : is " + std::to_string(_shapes[off_i + nbatchdims + 2])
                       + " but should be " + std::to_string(dimsY[k]));
             }
 #endif
@@ -363,15 +350,15 @@ void Sizes<TYPE>::check_ranges(std::vector< std::vector< int > > argshapes) {
             int off_i = (i + 1) * (nbatchdims + 3);
             // First, the batch dimensions:
             for (int b = 0; b < nbatchdims; b++) {
-                shapes[off_i + b] = get_val_batch(argshapes[i], nbatchdims + 2, b);
+                _shapes[off_i + b] = get_val_batch(argshapes[i], nbatchdims + 2, b);
             }
-            shapes[off_i + nbatchdims + 2] = argshapes[i][nbatchdims];  // = "D"
+            _shapes[off_i + nbatchdims + 2] = argshapes[i][nbatchdims];  // = "D"
 #if do_checks
             int dim_param;
             if (use_half)
-                dim_param = shapes[off_i + nbatchdims + 2] / 2;
+                dim_param = _shapes[off_i + nbatchdims + 2] / 2;
             else
-                dim_param = shapes[off_i + nbatchdims + 2];
+                dim_param = _shapes[off_i + nbatchdims + 2];
             if (dim_param != static_cast< int >(dimsP[k])) {
                 error("[KeOps] Wrong value of the 'vector size' dimension "
                       + std::to_string(nbatchdims) + " for arg at position " + std::to_string(i)
@@ -392,19 +379,19 @@ void Sizes<TYPE>::switch_to_half2_indexing() {
     ny = ny / 2;
     M = M / 2;
     N = N / 2;
-    shapes[nbatchdims] = shapes[nbatchdims] / 2;
-    shapes[nbatchdims + 1] = shapes[nbatchdims + 1] / 2;
+    _shapes[nbatchdims] = _shapes[nbatchdims] / 2;
+    _shapes[nbatchdims + 1] = _shapes[nbatchdims + 1] / 2;
     for (int i = 0; i < nargs; i++) {
         int off_i = (i + 1) * (nbatchdims + 3);
         // we don't have anymore the category information...
         // the last three dimensions are either of the form (M,1,D), (1,N,D), or (1,1,D)
         // where M or N are even in the 2 first cases, or D is even in the third case.
-        if (shapes[off_i + nbatchdims] > 1)
-            shapes[off_i + nbatchdims] = shapes[off_i + nbatchdims] / 2;
-        else if (shapes[off_i + nbatchdims + 1] > 1)
-            shapes[off_i + nbatchdims + 1] = shapes[off_i + nbatchdims + 1] / 2;
+        if (_shapes[off_i + nbatchdims] > 1)
+            _shapes[off_i + nbatchdims] = _shapes[off_i + nbatchdims] / 2;
+        else if (_shapes[off_i + nbatchdims + 1] > 1)
+            _shapes[off_i + nbatchdims + 1] = _shapes[off_i + nbatchdims + 1] / 2;
         else
-            shapes[off_i + nbatchdims + 2] = shapes[off_i + nbatchdims + 2] / 2;
+            _shapes[off_i + nbatchdims + 2] = _shapes[off_i + nbatchdims + 2] / 2;
     }
 }
 
