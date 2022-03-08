@@ -5,7 +5,7 @@ it generates the c++/cuda code executed on the fly.
 
 # Usage 
 
-This modules is for developper only and should be used only through 
+This modules is for developers only and should be used only through 
 bindings (e.g. [pykeops](https://pypi.org/project/pykeops/) or [Rkeops](https://cran.r-project.org/web/packages/rkeops/index.html))
 
 * [Documentation](https://www.kernel-operations.io/)
