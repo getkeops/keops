@@ -62,7 +62,7 @@ setup(
             "common/keops_io/pykeops_nvrtc.cpp",
         ],
     },
-    install_requires=["numpy", "pybind11", "keopscore==" + current_version],
+    install_requires=["numpy", "pybind11", "keopscore"],
     extras_require={
         "full": [
             "sphinx",
