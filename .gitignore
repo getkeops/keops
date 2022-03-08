@@ -6,6 +6,7 @@
 
 # virtual env
 *venv*
+.pyenv
 
 # Build junk
 *build*
@@ -44,11 +45,11 @@ htmlcov
 .pytest_cache
 
 # Setuptools distribution folder.
-/dist/
+*/dist/
 
 # Python egg metadata, regenerated from source files by setuptools.
-/*.egg-info
-/*.egg
+*/*.egg-info
+*/*.egg
 
 keopslab/generic/pathtocmake
 
