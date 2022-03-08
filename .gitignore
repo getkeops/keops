@@ -6,6 +6,7 @@
 
 # virtual env
 *venv*
+.pyenv
 
 # Build junk
 *build*
