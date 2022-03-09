@@ -2255,23 +2255,28 @@ class GenericLazyTensor:
                 r"(Var|VarSymb)\((\d+),(\d+),i\)", r"\1(\2,\3,1)", res.formula2
             )
         # we need also to make copies of references for all variables in the formula
+        # that were switched
         newvars = []
         for x in self.variables:
-            y = self.tools.view(x, x.shape)
-            newvars.append(y)
-            # now we replace all occurrences of old ids by new ids in formulas
-            if res.formula is not None:
-                res.formula = re.sub(
-                    r"(Var|VarSymb)\({},(\d+),(\d+)\)".format(id(x)),
-                    r"\1({},\2,\3)".format(id(y)),
-                    res.formula,
-                )
-            if res.formula2 is not None:
-                res.formula2 = re.sub(
-                    r"(Var|VarSymb)\({},(\d+),(\d+)\)".format(id(x)),
-                    r"\1({},\2,\3)".format(id(y)),
-                    res.formula2,
-                )
+            if type(x) == list:
+                # here we are dealing with a parameter variable, so no need to do any copy
+                newvars.append(x)
+            else:
+                y = self.tools.view(x, x.shape)
+                newvars.append(y)
+                # now we replace all occurrences of old ids by new ids in formulas
+                if res.formula is not None:
+                    res.formula = re.sub(
+                        r"(Var|VarSymb)\({},(\d+),(\d+)\)".format(id(x)),
+                        r"\1({},\2,\3)".format(id(y)),
+                        res.formula,
+                    )
+                if res.formula2 is not None:
+                    res.formula2 = re.sub(
+                        r"(Var|VarSymb)\({},(\d+),(\d+)\)".format(id(x)),
+                        r"\1({},\2,\3)".format(id(y)),
+                        res.formula2,
+                    )
         res.variables = tuple(newvars)
         return res
 
