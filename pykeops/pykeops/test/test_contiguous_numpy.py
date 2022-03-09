@@ -1,19 +1,3 @@
-import os.path
-import sys
-
-sys.path.append(
-    os.path.join(
-        os.path.dirname(os.path.abspath(__file__)), os.path.sep.join([os.pardir] * 3)
-    )
-)
-sys.path.append(
-    os.path.join(
-        os.path.dirname(os.path.abspath(__file__)),
-        os.path.sep.join([os.pardir] * 4),
-        "keopscore",
-    )
-)
-
 from pykeops.numpy import LazyTensor
 import numpy as np
 
@@ -35,4 +19,5 @@ dist2 = a2_i.sqdist(b_j)
 kernel2 = dist2.exp()
 d2 = kernel2 @ c
 
-print(np.linalg.norm(d2 - d1))
+def test_contiguous_numpy():
+    assert np.allclose(d2, d1)

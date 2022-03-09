@@ -1,24 +1,3 @@
-# Test for gaussian kernel operation using LazyTensors.
-
-import os.path
-import sys
-
-sys.path.append(
-    os.path.join(
-        os.path.dirname(os.path.abspath(__file__)), os.path.sep.join([os.pardir] * 3)
-    )
-)
-sys.path.append(
-    os.path.join(
-        os.path.dirname(os.path.abspath(__file__)),
-        os.path.sep.join([os.pardir] * 4),
-        "keopscore",
-    )
-)
-
-
-import time
-
 import math
 import torch
 from pykeops.torch import LazyTensor
@@ -29,7 +8,6 @@ dtype = torch.float32
 sum_scheme = "block_sum"
 
 device_id = "cuda:0" if torch.cuda.is_available() else "cpu"
-do_warmup = True
 
 x = torch.rand(M, 1, D, device=device_id, dtype=dtype) / math.sqrt(D)
 y = torch.rand(1, N, D, device=device_id, dtype=dtype) / math.sqrt(D)
@@ -53,21 +31,9 @@ def fun(x, y, b, backend, out=None):
     return out
 
 
-backends = ["keops", "torch"]
-
 out = []
-for backend in backends:
-    if do_warmup:
-        fun(
-            x[: min(M, 100), :, :], y[:, : min(N, 100), :], b[: min(N, 100), :], backend
-        )
-        fun(
-            x[: min(M, 100), :, :], y[:, : min(N, 100), :], b[: min(N, 100), :], backend
-        )
-    start = time.time()
+for backend in ["keops", "torch"]:
     out.append(fun(x, y, b, backend, out=a).squeeze())
-    end = time.time()
-    print("time for " + backend + ":", end - start)
 
-if len(out) > 1:
-    print("relative error:", (torch.norm(out[0] - out[1]) / torch.norm(out[0])).item())
+def test_lazytensor_gaussian_inplace():
+    assert torch.allclose(out[0], out[1])
