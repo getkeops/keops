@@ -7,6 +7,7 @@ M, N, D, DV = 1000, 1000, 3, 1
 dtype = torch.float32
 device_id = "cpu"
 
+torch.manual_seed(0)
 x = torch.rand(M, 1, D, device=device_id, dtype=dtype) / math.sqrt(D)
 y = torch.rand(1, N, D, device=device_id, dtype=dtype) / math.sqrt(D)
 b = torch.randn(N, DV, device=device_id, dtype=dtype)
@@ -32,9 +33,9 @@ out = []
 for backend in ["torch", "keops_cpu", "keops_gpu"]:
     out.append(fun(x, y, b, backend).squeeze())
 
+class TestCase:
+    def test_torch_keops_cpu(self):
+        assert torch.allclose(out[0], out[1])
 
-def test_torch_keops_cpu():
-    assert torch.allclose(out[0], out[1])
-
-def test_torch_keops_gpu():
-    assert torch.allclose(out[0], out[2])
+    def test_torch_keops_gpu(self):
+        assert torch.allclose(out[0], out[2])

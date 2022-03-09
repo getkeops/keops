@@ -9,6 +9,7 @@ sum_scheme = "block_sum"
 
 device_id = "cuda:0" if torch.cuda.is_available() else "cpu"
 
+torch.manual_seed(0)
 x = torch.rand(B1, B2, M, 1, D, device=device_id, dtype=dtype) / math.sqrt(D)
 y = torch.rand(B1, 1, 1, N, D, device=device_id, dtype=dtype) / math.sqrt(D)
 b = torch.randn(1, B2, N, DV, device=device_id, dtype=dtype)

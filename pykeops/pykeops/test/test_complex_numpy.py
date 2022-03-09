@@ -5,6 +5,7 @@ M, N, D = 1000, 1000, 3
 
 dtype = "float32"
 
+np.random.seed(0)
 x = np.random.rand(M, 1, D).astype(dtype) + 1j * np.random.rand(M, 1, D).astype(dtype)
 y = np.random.rand(1, N, D).astype(dtype) + 1j * np.random.rand(1, N, D).astype(dtype)
 

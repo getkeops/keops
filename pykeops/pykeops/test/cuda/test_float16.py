@@ -9,6 +9,7 @@ M, N, D = 5, 5, 1
 
 device_id = "cuda" if torch.cuda.is_available() else "cpu"
 
+torch.manual_seed(0)
 x = torch.randn(M, 1, D, dtype=dtype, requires_grad=True, device=device_id)
 y = torch.randn(1, N, D, dtype=dtype, device=device_id)
 
@@ -32,10 +33,9 @@ out_g = []
 for k, backend in enumerate(["torch", "keops"]):
     out_g.append(torch.autograd.grad(out[k][0], [x])[0])
 
+class TestCase:
+    def test_float16_fw(self):
+        assert torch.allclose(out[0], out[1], atol=.001, rtol=.001)
 
-def test_float16_fw():
-    assert torch.allclose(out[0], out[1], atol=.001, rtol=.001)
-
-
-def test_float16_bw():
-    assert torch.allclose(out_g[0], out_g[1])
+    def test_float16_bw(self):
+        assert torch.allclose(out_g[0], out_g[1])

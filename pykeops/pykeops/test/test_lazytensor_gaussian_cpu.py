@@ -1,24 +1,3 @@
-# Test for gaussian kernel operation using LazyTensors.
-
-import os.path
-import sys
-
-sys.path.append(
-    os.path.join(
-        os.path.dirname(os.path.abspath(__file__)), os.path.sep.join([os.pardir] * 3)
-    )
-)
-sys.path.append(
-    os.path.join(
-        os.path.dirname(os.path.abspath(__file__)),
-        os.path.sep.join([os.pardir] * 4),
-        "keopscore",
-    )
-)
-
-
-import time
-
 import math
 import torch
 from pykeops.torch import LazyTensor
@@ -27,14 +6,12 @@ M, N, D, DV = 1000, 1000, 3, 1
 
 dtype = torch.float32
 
-test_grad = True
-test_grad2 = False
 device_id = "cpu"  # "cuda" if torch.cuda.is_available() else "cpu"
-do_warmup = True
 
+torch.manual_seed(0)
 x = torch.rand(M, 1, D, device=device_id, dtype=dtype) / math.sqrt(D)
 y = torch.rand(1, N, D, device=device_id, dtype=dtype) / math.sqrt(D)
-b = torch.randn(N, DV, requires_grad=test_grad, device=device_id, dtype=dtype)
+b = torch.randn(N, DV, requires_grad=True, device=device_id, dtype=dtype)
 
 
 def fun(x, y, b, backend):
@@ -69,13 +46,14 @@ out_g2 = []
 for k, backend in enumerate(backends):
     out_g2.append(torch.autograd.grad((out_g[k] ** 2).sum(), [b])[0])
 
-def test_lazytensor_gaussian_cpu():
-    assert torch.allclose(out[0], out[1])
+class TestClass:
+    def test_lazytensor_gaussian_cpu(self):
+        assert torch.allclose(out[0], out[1])
 
 
-def test_lazytensor_gaussian_cpu_bw1():
-    assert torch.allclose(out_g[0], out_g[1])
+    def test_lazytensor_gaussian_cpu_bw1(self):
+        assert torch.allclose(out_g[0], out_g[1])
 
 
-def test_lazytensor_gaussian_cpu_bw2():
-    assert torch.allclose(out_g2[0], out_g2[1])
+    def test_lazytensor_gaussian_cpu_bw2(self):
+        assert torch.allclose(out_g2[0], out_g2[1])

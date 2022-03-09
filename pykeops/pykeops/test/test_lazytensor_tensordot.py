@@ -7,6 +7,7 @@ M, N = 2, 10
 
 device_id = "cuda:0" if torch.cuda.is_available() else "cpu"
 
+torch.manual_seed(0)
 a = torch.randn(4 * 7, requires_grad=True, device=device_id, dtype=torch.float64)
 b = torch.randn(7, requires_grad=True, device=device_id, dtype=torch.float64)
 c = a.reshape(4, 7) @ b

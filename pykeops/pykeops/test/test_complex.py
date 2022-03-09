@@ -11,6 +11,7 @@ M, N, D = 1000, 1000, 1
 
 device_id = "cuda" if torch.cuda.is_available() else "cpu"
 
+torch.manual_seed(0)
 x = torch.rand(1, N, D, dtype=dtype_c, requires_grad=True, device=device_id)
 p = torch.rand(1, N, D, dtype=dtype, device=device_id)
 f = torch.rand(M, 1, D, dtype=dtype, device=device_id)

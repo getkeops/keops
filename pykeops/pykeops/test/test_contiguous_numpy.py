@@ -1,6 +1,7 @@
 from pykeops.numpy import LazyTensor
 import numpy as np
 
+np.random.seed(0)
 a1 = np.random.rand(2, 1000, 5)
 a2 = np.ascontiguousarray(a1.transpose(2, 0, 1)).transpose(1, 2, 0)
 

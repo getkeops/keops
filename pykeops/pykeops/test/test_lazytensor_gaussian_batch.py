@@ -4,9 +4,9 @@ from pykeops.torch import LazyTensor
 
 B1, B2, M, N, D, DV = 3, 4, 20, 25, 3, 2
 
-
 device_id = "cuda" if torch.cuda.is_available() else "cpu"
 
+torch.manual_seed(1)
 x = torch.rand(1, B2, M, 1, D, device=device_id) / math.sqrt(D)
 y = torch.rand(B1, B2, 1, N, D, device=device_id) / math.sqrt(D)
 b = torch.randn(B1, 1, N, DV, requires_grad=True, device=device_id)
@@ -36,9 +36,10 @@ out_g = []
 for k, backend in enumerate(backends):
     out_g.append(torch.autograd.grad((out[k] ** 2).sum(), [b])[0])
 
-def test_lazytensor_gaussian_batch_fw():
-    # print(out[0]- out[1])
-    assert torch.allclose(out[0], out[1], rtol=.0001)
+class TestCase:
+    def test_lazytensor_gaussian_batch_fw(self):
+        # print(out[0]- out[1])
+        assert torch.allclose(out[0], out[1], rtol=.0001)
 
-def test_lazytensor_gaussian_batch_bw():
-    assert torch.allclose(out_g[0], out_g[1])
+    def test_lazytensor_gaussian_batch_bw(self):
+        assert torch.allclose(out_g[0], out_g[1])

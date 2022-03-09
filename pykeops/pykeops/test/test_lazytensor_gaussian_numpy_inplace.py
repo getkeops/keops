@@ -6,6 +6,7 @@ M, N, D, DV = 3000, 2000, 3, 1
 
 dtype = np.float32
 
+np.random.seed(0)
 x = np.random.rand(M, 1, D).astype(dtype) / math.sqrt(D)
 y = np.random.rand(1, N, D).astype(dtype) / math.sqrt(D)
 b = np.random.randn(N, DV).astype(dtype)
