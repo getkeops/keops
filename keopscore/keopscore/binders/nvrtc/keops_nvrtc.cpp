@@ -585,10 +585,11 @@ public :
         }
         if (RR.tagRanges == 1) {
             cuMemFree((CUdeviceptr) lookup_d);
-            cuMemFree((CUdeviceptr) slices_x_d);
-            cuMemFree((CUdeviceptr) ranges_y_d);
-            if (SS.nbatchdims > 0)
+            if (SS.nbatchdims > 0) {
+                cuMemFree((CUdeviceptr) slices_x_d);
+                cuMemFree((CUdeviceptr) ranges_y_d);
                 cuMemFree((CUdeviceptr) offsets_d);
+            }
         }
 
         //end_ = end = clock();
