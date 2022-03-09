@@ -28,7 +28,9 @@
 
 
 int *build_offset_tables(int nbatchdims, int *shapes, int nblocks, int *lookup_h,
-                         std::vector< int > indsi, std::vector< int > indsj, std::vector< int > indsp,
+                         const std::vector< int > &indsi,
+                         const std::vector< int > &indsj,
+                         const std::vector< int > &indsp,
                          int tagJ) {
 
     int sizei = indsi.size();
@@ -91,7 +93,9 @@ int *build_offset_tables(int nbatchdims, int *shapes, int nblocks, int *lookup_h
 void range_preprocess_from_device(int &nblocks, int tagI, int nranges_x, int nranges_y, int **castedranges,
                                   int nbatchdims, int *&slices_x_d, int *&ranges_y_d,
                                   int *&lookup_d, int *&offsets_d, int blockSize_x,
-                                  std::vector< int > indsi, std::vector< int > indsj, std::vector< int > indsp,
+                                  const std::vector< int > &indsi,
+                                  const std::vector< int > &indsj,
+                                  const std::vector< int > &indsp,
                                   int *shapes) {
 
     // Ranges pre-processing... ==================================================================
@@ -156,13 +160,13 @@ void range_preprocess_from_device(int &nblocks, int tagI, int nranges_x, int nra
         for (int j = 0; j < len_range; j += blockSize_x) {
             lookup_h[3 * index] = i;
             lookup_h[3 * index + 1] = ranges_x_h[2 * i] + j;
-            lookup_h[3 * index + 2] = ranges_x_h[2 * i] + j + ::std::min((int) blockSize_x, len_range - j);
+            lookup_h[3 * index + 2] = ranges_x_h[2 * i] + j + std::min((int) blockSize_x, len_range - j);
             index++;
         }
     }
 
     // Load the table on the device -----------------------------------------------------
-    cuMemAlloc((CUdeviceptr * ) & lookup_d, sizeof(int) * 3 * nblocks);
+    cuMemAlloc((CUdeviceptr * ) &lookup_d, sizeof(int) * 3 * nblocks);
     cuMemcpyHtoD((CUdeviceptr) lookup_d, lookup_h, sizeof(int) * 3 * nblocks);
 
 
@@ -184,7 +188,10 @@ range_preprocess_from_host(int &nblocks, int tagI, int nranges_x, int nranges_y,
                            int **castedranges,
                            int nbatchdims, int *&slices_x_d, int *&ranges_y_d,
                            int *&lookup_d, int *&offsets_d, int blockSize_x,
-                           std::vector< int > indsi, std::vector< int > indsj, std::vector< int > indsp, int *shapes) {
+                           const std::vector< int > &indsi,
+                           const std::vector< int > &indsj,
+                           const std::vector< int > &indsp,
+                           int *shapes) {
 
     // Ranges pre-processing... ==================================================================
 
@@ -220,7 +227,7 @@ range_preprocess_from_host(int &nblocks, int tagI, int nranges_x, int nranges_y,
         for (int j = 0; j < len_range; j += blockSize_x) {
             lookup_h[3 * index] = i;
             lookup_h[3 * index + 1] = ranges_x[2 * i] + j;
-            lookup_h[3 * index + 2] = ranges_x[2 * i] + j + ::std::min((int) blockSize_x, len_range - j);
+            lookup_h[3 * index + 2] = ranges_x[2 * i] + j + std::min((int) blockSize_x, len_range - j);
             index++;
         }
     }
