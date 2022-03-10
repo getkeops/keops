@@ -144,7 +144,9 @@ def get_optional_flags(
         "Max_SumShiftExpWeight",
     ):
         raise ValueError(
-            pyKeOps_Message("parameter dtype_acc should be set to 'auto' for no-sum type reductions (Min, Max, ArgMin, etc.)")
+            pyKeOps_Message(
+                "parameter dtype_acc should be set to 'auto' for no-sum type reductions (Min, Max, ArgMin, etc.)"
+            )
         )
 
     if sum_scheme == "auto":
@@ -159,7 +161,9 @@ def get_optional_flags(
             "Max_SumShiftExpWeight",
         ):
             raise ValueError(
-                pyKeOps_Message('sum_scheme="block_sum" is only valid for sum type reductions.')
+                pyKeOps_Message(
+                    'sum_scheme="block_sum" is only valid for sum type reductions.'
+                )
             )
     elif sum_scheme == "kahan_scheme":
         if reduction_op_internal not in (
@@ -168,11 +172,15 @@ def get_optional_flags(
             "Max_SumShiftExpWeight",
         ):
             raise ValueError(
-                pyKeOps_Message('sum_scheme="kahan_scheme" is only valid for sum type reductions.')
+                pyKeOps_Message(
+                    'sum_scheme="kahan_scheme" is only valid for sum type reductions.'
+                )
             )
     elif sum_scheme != "direct_sum":
         raise ValueError(
-            pyKeOps_Message('invalid value for option sum_scheme : should be one of "auto", "direct_sum", "block_sum" or "kahan_scheme".')
+            pyKeOps_Message(
+                'invalid value for option sum_scheme : should be one of "auto", "direct_sum", "block_sum" or "kahan_scheme".'
+            )
         )
 
     optional_flags = dict()

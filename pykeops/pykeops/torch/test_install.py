@@ -6,6 +6,7 @@ formula = "SqNorm2(x - y)"
 var = ["x = Vi(3)", "y = Vj(3)"]
 expected_res = [63.0, 90.0]
 
+
 def test_torch_bindings():
     """
     This function try to compile a simple keops formula using the pytorch binder.
