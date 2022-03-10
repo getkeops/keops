@@ -1,4 +1,5 @@
 import math
+import pytest
 import torch
 from pykeops.torch import LazyTensor
 
@@ -30,12 +31,13 @@ def fun(x, y, b, backend):
 
 
 out = []
-for backend in ["torch", "keops_cpu", "keops_gpu"]:
+for backend in ["torch", "keops_cpu"]:
     out.append(fun(x, y, b, backend).squeeze())
 
 class TestCase:
     def test_torch_keops_cpu(self):
         assert torch.allclose(out[0], out[1])
 
+    @pytest.mark.skipif(not torch.cuda.is_available(), reason="Requires a GPU")
     def test_torch_keops_gpu(self):
-        assert torch.allclose(out[0], out[2])
+        assert torch.allclose(out[0], fun(x, y, b, ["keops_gpu"]).squeeze())

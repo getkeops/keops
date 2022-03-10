@@ -1,5 +1,5 @@
 # Test for Clamp operation using LazyTensors
-
+import pytest
 import torch
 from pykeops.torch import LazyTensor
 
@@ -25,17 +25,20 @@ def fun(x, y, backend):
     return Kxy.sum(dim=0)
 
 
-out = []
-for backend in ["torch", "keops"]:
-    out.append(fun(x, y, backend).squeeze())
-
-out_g = []
-for k, backend in enumerate(["torch", "keops"]):
-    out_g.append(torch.autograd.grad(out[k][0], [x])[0])
-
 class TestCase:
-    def test_float16_fw(self):
-        assert torch.allclose(out[0], out[1], atol=.001, rtol=.001)
+    out = []
 
+    @pytest.mark.skipif(not torch.cuda.is_available(), reason="Requires a GPU")
+    def test_float16_fw(self):
+        for backend in ["torch", "keops"]:
+            self.out.append(fun(x, y, backend).squeeze())
+
+        assert torch.allclose(self.out[0], self.out[1], atol=.001, rtol=.001)
+
+    @pytest.mark.skipif(not torch.cuda.is_available(), reason="Requires a GPU")
     def test_float16_bw(self):
+        out_g = []
+        for k, backend in enumerate(["torch", "keops"]):
+            out_g.append(torch.autograd.grad(self.out[k][0], [x])[0])
+
         assert torch.allclose(out_g[0], out_g[1])
