@@ -20,54 +20,40 @@ pipeline {
         stage('Test Linux') {
           agent { label 'ubuntu' }
           steps {
-            echo 'Testing..'
-              sh 'rm -rf $HOME/.cache/keops*'
-              sh 'cd pykeops/pykeops/test && python3 unit_tests_pytorch.py'
-              sh 'rm -rf $HOME/.cache/keops*'
-              sh 'cd pykeops/pykeops/test && python3 unit_tests_numpy.py'
-              sh 'cd pykeops/pykeops/test/more_tests_cpu && for f in *.py; do python3 $f; done'
+            echo 'Clean KeOps Cache...'
+            sh 'rm -rf $HOME/.cache/keops*'
+            echo 'Testing...'
+            sh '''#!/bin/bash
+               export PYTHONPATH="$PWD/pykeops":"$PWD/keopscore"
+               pytest -v pykeops/pykeops/test/
+               '''
           }
         }
 
         stage('Test Mac') {
           agent { label 'macos' }
           steps {
+            echo 'Clean KeOps Cache...'
+            sh 'rm -rf $HOME/.cache/keops*'
             echo 'Testing...'
-            sh 'rm -rf $HOME/.cache/keops*'
-            sh 'pip3 install pybind11'
-            sh 'cd pykeops/pykeops/test && /Users/ci/miniconda3/bin/python3 unit_tests_pytorch.py'
-            sh 'rm -rf $HOME/.cache/keops*'
-            sh 'cd pykeops/pykeops/test && /Users/ci/miniconda3/bin/python3 unit_tests_numpy.py'
-            sh 'cd pykeops/pykeops/test/more_tests_cpu && for f in *.py; do /Users/ci/miniconda3/bin/python3 $f; done'
+            sh '''
+               export PYTHONPATH="$PWD/pykeops":"$PWD/keopscore"
+               /Users/ci/miniconda3/bin/pytest -v pykeops/pykeops/test
+            '''
           }
         }
 
         stage('Test Cuda') {
           agent { label 'cuda' }
           steps {
+            echo 'Clean KeOps Cache...'
+            sh 'rm -rf $HOME/.cache/keops*'
             echo 'Testing..'
-              sh 'rm -rf $HOME/.cache/keops*'
-              sh '''#!/bin/bash
-                 eval "$(/opt/miniconda3/bin/conda shell.bash hook)"
-                 conda activate keops
-                 cd pykeops/pykeops/test
-                 export CUDA_VISIBLE_DEVICES=2,3   # selecting RTX 2080 cards on Oban (temporary fix for issue #224)
-                 python unit_tests_pytorch.py
-              '''
-              sh '''#!/bin/bash
-                 eval "$(/opt/miniconda3/bin/conda shell.bash hook)"
-                 conda activate keops
-                 cd pykeops/pykeops/test
-                 export CUDA_VISIBLE_DEVICES=2,3   # selecting RTX 2080 cards on Oban (temporary fix for issue #224)
-                 python unit_tests_numpy.py
-                 for f in more_tests_gpu/*.py; do python $f; done
-              '''
-              sh '''#!/bin/bash
-                 eval "$(/opt/miniconda3/bin/conda shell.bash hook)"
-                 conda activate keops
-                 cd pykeops/pykeops/test
-                 export CUDA_VISIBLE_DEVICES=2,3   # selecting RTX 2080 cards on Oban (temporary fix for issue #224)
-                 for f in more_tests_gpu/*.py; do python $f; done
+            sh '''#!/bin/bash
+               eval "$(/opt/miniconda3/bin/conda shell.bash hook)"
+               conda activate keops
+               export PYTHONPATH="$PWD/pykeops":"$PWD/keopscore"
+               pytest -v pykeops/pykeops/test/
               '''
           }
         }
