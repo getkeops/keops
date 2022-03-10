@@ -33,7 +33,7 @@ class TestCase:
         for backend in ["torch", "keops"]:
             self.out.append(fun(x, y, backend).squeeze())
 
-        assert torch.allclose(self.out[0], self.out[1], atol=.001, rtol=.001)
+        assert torch.allclose(self.out[0], self.out[1], atol=0.001, rtol=0.001)
 
     @pytest.mark.skipif(not torch.cuda.is_available(), reason="Requires a GPU")
     def test_float16_bw(self):

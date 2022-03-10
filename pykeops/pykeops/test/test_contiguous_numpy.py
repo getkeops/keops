@@ -20,5 +20,6 @@ dist2 = a2_i.sqdist(b_j)
 kernel2 = dist2.exp()
 d2 = kernel2 @ c
 
+
 def test_contiguous_numpy():
     assert np.allclose(d2, d1)

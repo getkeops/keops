@@ -37,20 +37,19 @@ for backend in backends:
 
 out_g = []
 for k, backend in enumerate(backends):
-    out_g.append(
-        torch.autograd.grad((out[k] ** 2).sum(), [x], create_graph=True)[0]
-    )
+    out_g.append(torch.autograd.grad((out[k] ** 2).sum(), [x], create_graph=True)[0])
 
 out_g2 = []
 for k, backend in enumerate(backends):
     out_g2.append(torch.autograd.grad((out_g[k] ** 2).sum(), [x])[0])
 
+
 class TestClass:
     def test_lazytensor_grad(self):
-        assert torch.allclose(out[0], out[1], rtol=.0001)
+        assert torch.allclose(out[0], out[1], rtol=0.0001)
 
     def test_lazytensor_grad_bw1(self):
-        assert torch.allclose(out_g[0], out_g[1], rtol=.0001)
+        assert torch.allclose(out_g[0], out_g[1], rtol=0.0001)
 
     def test_lazytensor_grad_bw2(self):
-        assert torch.allclose(out_g2[0], out_g2[1], rtol=.001)
+        assert torch.allclose(out_g2[0], out_g2[1], rtol=0.001)

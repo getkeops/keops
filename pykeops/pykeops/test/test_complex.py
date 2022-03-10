@@ -32,6 +32,7 @@ def fun(x, p, f, backend):
     X = x * (-2 * math.pi * 1j * p * f).exp()
     return X.sum(dim=0)
 
+
 out = []
 for backend in ["keops", "torch"]:
     out.append(fun(x, p, f, backend).squeeze())
@@ -39,6 +40,7 @@ for backend in ["keops", "torch"]:
 
 def test_complex_fw():
     assert torch.allclose(out[0], out[1])
+
 
 # out_g = []
 # for k, backend in enumerate(["keops", "torch"]):

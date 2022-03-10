@@ -37,13 +37,12 @@ for backend in backends:
 
 out_g = []
 for k, backend in enumerate(backends):
-    out_g.append(
-        torch.autograd.grad((out[k] ** 2).sum(), [b], create_graph=True)[0]
-    )
+    out_g.append(torch.autograd.grad((out[k] ** 2).sum(), [b], create_graph=True)[0])
 
 out_g2 = []
 for k, backend in enumerate(backends):
     out_g2.append(torch.autograd.grad((out_g[k] ** 2).sum(), [b])[0])
+
 
 class TestCase:
     def test_conv2d_fw(self):

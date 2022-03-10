@@ -36,5 +36,6 @@ out = []
 for backend in ["keops", "torch"]:
     out.append(fun(x, y, b, backend, out=a).squeeze())
 
+
 def test_lazytensor_gaussian_inplace():
     assert torch.allclose(out[0], out[1])

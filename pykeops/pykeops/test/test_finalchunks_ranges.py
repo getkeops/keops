@@ -37,4 +37,4 @@ for backend in ["keops", "torch"]:
 
 
 def test_finalchunks_ranges():
-    assert torch.allclose(out[0], out[1], atol=.0001)
+    assert torch.allclose(out[0], out[1], atol=0.0001)

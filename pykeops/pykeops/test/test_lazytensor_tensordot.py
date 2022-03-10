@@ -16,6 +16,6 @@ A = LazyTensor(a[None, None, :])
 B = LazyTensor(b[None, None, :])
 C = A.keops_tensordot(B, (4, 7), (7,), (1,), (0,)).sum_reduction(dim=1)
 
+
 def test_tensordot():
     assert torch.allclose(c.flatten(), C.flatten())
-

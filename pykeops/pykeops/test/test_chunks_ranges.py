@@ -30,9 +30,11 @@ def fun(x, y, b, backend):
     # print("out:",out)
     return out
 
+
 out = []
 for backend in ["keops", "torch"]:
     out.append(fun(x, y, b, backend).squeeze())
 
+
 def test_chunk_ranges():
-    assert torch.allclose(out[0], out[1], rtol=.0001, atol=.0001)
+    assert torch.allclose(out[0], out[1], rtol=0.0001, atol=0.0001)

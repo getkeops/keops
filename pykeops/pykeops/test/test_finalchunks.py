@@ -36,6 +36,7 @@ out = []
 for backend in backends:
     out.append(fun(x, y, b, backend).squeeze())
 
+
 def test_finalchunk():
     # print(out[0] - out[1])
-    assert torch.allclose(out[0], out[1], atol=.0001)
+    assert torch.allclose(out[0], out[1], atol=0.0001)
