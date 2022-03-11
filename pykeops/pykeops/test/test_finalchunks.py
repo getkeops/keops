@@ -7,8 +7,8 @@ M, N, D, DV = 200, 300, 3, 300
 dtype = torch.float32
 sum_scheme = "block_sum"
 
-device_id = "cuda:0" if torch.cuda.is_available() else "cpu"
 torch.backends.cuda.matmul.allow_tf32 = False
+device_id = "cuda:0" if torch.cuda.is_available() else "cpu"
 
 torch.manual_seed(0)
 x = torch.rand(M, 1, D, device=device_id, dtype=dtype) / math.sqrt(D)

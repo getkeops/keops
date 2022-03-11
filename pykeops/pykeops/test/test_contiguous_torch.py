@@ -1,7 +1,9 @@
 from pykeops.torch import LazyTensor
 import torch
 
+torch.backends.cuda.matmul.allow_tf32 = False
 torch.manual_seed(0)
+
 a1 = torch.rand(2, 1000, 5)
 a2 = ((a1.permute(2, 0, 1)).contiguous()).permute(1, 2, 0)
 

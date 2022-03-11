@@ -7,6 +7,7 @@ B1, B2, M, N, D, DV = 2, 3, 200, 300, 3, 300
 dtype = torch.float32
 sum_scheme = "block_sum"
 
+torch.backends.cuda.matmul.allow_tf32 = False
 device_id = "cuda:0" if torch.cuda.is_available() else "cpu"
 
 torch.manual_seed(0)

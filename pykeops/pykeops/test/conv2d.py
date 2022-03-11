@@ -6,6 +6,7 @@ M, N, D, DV = 2000, 3000, 3, 1
 
 dtype = torch.float32
 
+torch.backends.cuda.matmul.allow_tf32 = False
 device_id = "cuda:0" if torch.cuda.is_available() else "cpu"
 
 x = torch.rand(M, 1, D, device=device_id, dtype=dtype) / math.sqrt(D)

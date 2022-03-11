@@ -4,7 +4,7 @@ from pykeops.torch import LazyTensor
 M, N = 2, 10
 
 # Matrix multiplication as a special case of Tensordot
-
+torch.backends.cuda.matmul.allow_tf32 = False
 device_id = "cuda:0" if torch.cuda.is_available() else "cpu"
 
 torch.manual_seed(0)

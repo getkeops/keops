@@ -7,6 +7,7 @@ dtype = torch.float16
 
 M, N, D = 5, 5, 1
 
+torch.backends.cuda.matmul.allow_tf32 = False
 device_id = "cuda" if torch.cuda.is_available() else "cpu"
 
 torch.manual_seed(0)

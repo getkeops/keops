@@ -7,8 +7,9 @@ M, N, D, DV = 1000, 1000, 3, 1
 dtype = torch.float32
 
 device_id = "cpu"  # "cuda" if torch.cuda.is_available() else "cpu"
-
+torch.backends.cuda.matmul.allow_tf32 = False
 torch.manual_seed(0)
+
 x = torch.rand(M, 1, D, device=device_id, dtype=dtype) / math.sqrt(D)
 y = torch.rand(1, N, D, device=device_id, dtype=dtype) / math.sqrt(D)
 b = torch.randn(N, DV, requires_grad=True, device=device_id, dtype=dtype)

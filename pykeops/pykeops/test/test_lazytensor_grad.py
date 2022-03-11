@@ -5,14 +5,12 @@ from pykeops.torch import LazyTensor
 M, N, D, DV = 100, 100, 3, 1
 
 dtype = torch.float32
-torch.backends.cuda.matmul.allow_tf32 = False
 
-test_grad = True
-test_grad2 = False
+torch.backends.cuda.matmul.allow_tf32 = False
 device_id = "cuda:0" if torch.cuda.is_available() else "cpu"
 
 torch.manual_seed(0)
-x = torch.rand(M, 1, D, requires_grad=test_grad, device=device_id, dtype=dtype)
+x = torch.rand(M, 1, D, requires_grad=True, device=device_id, dtype=dtype)
 y = torch.rand(1, N, 1, device=device_id, dtype=dtype)
 b = torch.randn(N, DV, device=device_id, dtype=dtype)
 
