@@ -1,6 +1,6 @@
 from keopscore.utils.code_gen_utils import new_c_varname, c_array
 from keopscore.utils.Tree import Tree
-from keopscore import debug_ops
+from keopscore import debug_ops, debug_ops_at_exec
 from keopscore.utils.misc_utils import KeOps_Error
 
 ###################
@@ -15,15 +15,18 @@ class Operation(Tree):
         # *args are other instances of Operation, they are the child operations of self
         self.children = args
         self.params = params
+
         # The variables in the current formula is the union of the variables in the child operations.
-        # Note that this requires implementing properly __eq__ and __hash__ methods in Var class
-        self.Vars_ = set.union(*(arg.Vars_ for arg in args)) if len(args) > 0 else set()
+        # Note that this requires implementing properly __eq__ and __hash__ methods in Var class.
+        # N.B. We need to sort according to ind.
+        set_vars = set.union(*(set(arg.Vars_) for arg in args)) if len(args) > 0 else set()
+        self.Vars_ = sorted(list(set_vars), key=lambda v: v.ind)
 
     def Vars(self, cat="all"):
         # if cat=="all", returns the list of all variables in a formula, stored in self.Vars_
         # if cat is an integer between 0 and 2, returns the list of variables v such that v.cat=cat
         if cat == "all":
-            return list(self.Vars_)
+            return self.Vars_
         else:
             res = []
             for v in self.Vars_:
@@ -54,6 +57,7 @@ class Operation(Tree):
             print("table=", table)
             for v in table:
                 print(f"dim of {v} : ", v.dim)
+        if debug_ops_at_exec:
             string += f'printf("\\n\\nComputing {self.__repr__()} :\\n");\n'
         args = []
         # Evaluation of the child operations
@@ -79,11 +83,12 @@ class Operation(Tree):
         string += self.Op(out, table, *args)
 
         # some debugging helper :
-        if debug_ops:
+        if debug_ops_at_exec:
             for arg in args:
                 string += arg.c_print
             string += out.c_print
             string += f'printf("\\n\\n");\n'
+        if debug_ops:
             print(f"Finished building code block for {self.__repr__()}")
 
         string += f"\n\n// Finished code block for {self.__repr__()}.\n}}\n\n"
