@@ -1,19 +1,3 @@
-import os.path
-import sys
-
-sys.path.append(
-    os.path.join(
-        os.path.dirname(os.path.abspath(__file__)), os.path.sep.join([os.pardir] * 2)
-    )
-)
-sys.path.append(
-    os.path.join(
-        os.path.dirname(os.path.abspath(__file__)),
-        os.path.sep.join([os.pardir] * 3),
-        "keopscore",
-    )
-)
-
 import unittest
 import itertools
 import numpy as np
@@ -60,6 +44,7 @@ class PytorchUnitTestCase(unittest.TestCase):
 
         use_cuda = torch.cuda.is_available()
         device = "cuda" if use_cuda else "cpu"
+        torch.backends.cuda.matmul.allow_tf32 = False
 
         dtype = torch.float32
         xc = torch.tensor(x, dtype=dtype, device=device, requires_grad=True)

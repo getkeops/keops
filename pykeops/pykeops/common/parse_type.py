@@ -1,6 +1,8 @@
 import re
 from collections import OrderedDict
 
+from pykeops.common.utils import pyKeOps_Message
+
 categories = OrderedDict([("Vi", 0), ("Vj", 1), ("Pm", 2)])
 
 
@@ -84,15 +86,15 @@ def get_type(type_str, position_in_list=None):
         warnings.warn("'Vx' and 'Vy' variables types are now renamed 'Vi' and 'Vj'")
 
     m = re.match(
-        "([a-zA-Z_][a-zA-Z_0-9]*)=(Vi|Vj|Pm)\(([0-9]*?),?([0-9]*)\)",
+        r"([a-zA-Z_][a-zA-Z_0-9]*)=(Vi|Vj|Pm)\(([0-9]*?),?([0-9]*)\)",
         type_str.replace(" ", ""),
     )
 
     if m is None:
-        m = re.match("(Vi|Vj|Pm)\(([0-9]*?),?([0-9]*)\)", type_str.replace(" ", ""))
+        m = re.match(r"(Vi|Vj|Pm)\(([0-9]*?),?([0-9]*)\)", type_str.replace(" ", ""))
         if m is None:
             m = re.match(
-                "Var\(([0-9]*?),?([0-9]*),?([0-9]*)\)", type_str.replace(" ", "")
+                r"Var\(([0-9]*?),?([0-9]*),?([0-9]*)\)", type_str.replace(" ", "")
             )
             if m is None:
                 raise ValueError(
@@ -132,7 +134,7 @@ def get_optional_flags(
 
     if dtype_acc != "auto" and use_double_acc:
         raise ValueError(
-            "[KeOps] you cannot set both options use_double_acc and dtype_acc."
+            pyKeOps_Message("you cannot set both options use_double_acc and dtype_acc.")
         )
     if use_double_acc:
         dtype_acc = "float64"
@@ -142,7 +144,9 @@ def get_optional_flags(
         "Max_SumShiftExpWeight",
     ):
         raise ValueError(
-            "[KeOps] parameter dtype_acc should be set to 'auto' for no-sum type reductions (Min, Max, ArgMin, etc.)"
+            pyKeOps_Message(
+                "parameter dtype_acc should be set to 'auto' for no-sum type reductions (Min, Max, ArgMin, etc.)"
+            )
         )
 
     if sum_scheme == "auto":
@@ -157,7 +161,9 @@ def get_optional_flags(
             "Max_SumShiftExpWeight",
         ):
             raise ValueError(
-                '[KeOps] sum_scheme="block_sum" is only valid for sum type reductions.'
+                pyKeOps_Message(
+                    'sum_scheme="block_sum" is only valid for sum type reductions.'
+                )
             )
     elif sum_scheme == "kahan_scheme":
         if reduction_op_internal not in (
@@ -166,11 +172,15 @@ def get_optional_flags(
             "Max_SumShiftExpWeight",
         ):
             raise ValueError(
-                '[KeOps] sum_scheme="kahan_scheme" is only valid for sum type reductions.'
+                pyKeOps_Message(
+                    'sum_scheme="kahan_scheme" is only valid for sum type reductions.'
+                )
             )
     elif sum_scheme != "direct_sum":
         raise ValueError(
-            '[KeOps] invalid value for option sum_scheme : should be one of "auto", "direct_sum", "block_sum" or "kahan_scheme".'
+            pyKeOps_Message(
+                'invalid value for option sum_scheme : should be one of "auto", "direct_sum", "block_sum" or "kahan_scheme".'
+            )
         )
 
     optional_flags = dict()

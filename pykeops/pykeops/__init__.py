@@ -67,10 +67,10 @@ def get_build_folder():
 
 
 if pykeops.config.numpy_found:
-    from .test.install import test_numpy_bindings
+    from pykeops.numpy.test_install import test_numpy_bindings
 
 if pykeops.config.torch_found:
-    from .test.install import test_torch_bindings
+    from pykeops.torch.test_install import test_torch_bindings
 
 # next line is to ensure that cache file for formulas is loaded at import
 import pykeops.common.keops_io
