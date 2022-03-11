@@ -17,7 +17,14 @@ bindings_source_dir = join(base_dir_path)
 keops_cache_folder = join(
     os.path.expanduser("~"), ".cache", f"keops{keopscore.__version__}"
 )
-default_build_path = join(keops_cache_folder, "build")
+default_build_folder_name = "build"
+# In case user has specified CUDA_VISIBLE_DEVICES environment variable, 
+# it is better to set the build folder name accordingly.
+specific_gpus = os.getenv("CUDA_VISIBLE_DEVICES")
+if specific_gpus:
+    specific_gpus = specific_gpus.replace(",","_")
+    default_build_folder_name += "_CUDA_VISIBLE_DEVICES_" + specific_gpus
+default_build_path = join(keops_cache_folder, default_build_folder_name)
 
 # init cache folder
 os.makedirs(keops_cache_folder, exist_ok=True)
@@ -40,8 +47,10 @@ def set_build_folder(path=None, read_save_file=False, reset_all=True):
     global _build_path
     _build_path = path
     os.makedirs(path, exist_ok=True)
-    f = open(save_file, "w")
-    f.write(path)
+    if path != default_build_path:
+        f = open(save_file, "w")
+        f.write(path)
+        f.close()
     if reset_all:
         keopscore.get_keops_dll.get_keops_dll.reset(new_save_folder=_build_path)
         if keopscore.config.config.use_cuda:
