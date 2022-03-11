@@ -66,9 +66,9 @@ int *build_offset_tables(int nbatchdims, int *shapes, int nblocks, int *lookup_h
     int M = shapes[nbatchdims], N = shapes[nbatchdims + 1];
 
     // We create a lookup table, "offsets", of shape (nblocks, SIZEVARS) --------
-    int *offsets_h = NULL, *offsets_d = NULL;
+    int *offsets_d = NULL;
 
-    offsets_h = new int[nblocks * sizevars];
+    int offsets_h[nblocks * sizevars];
 
     for (int k = 0; k < nblocks; k++) {
         int range_id = (int) lookup_h[3 * k];
@@ -85,7 +85,6 @@ int *build_offset_tables(int nbatchdims, int *shapes, int nblocks, int *lookup_h
     cuMemAlloc((CUdeviceptr * ) & offsets_d, sizeof(int) * nblocks * sizevars);
     cuMemcpyHtoD((CUdeviceptr) offsets_d, offsets_h, sizeof(int) * nblocks * sizevars);
 
-    delete[] offsets_h;
     return offsets_d;
 }
 
@@ -152,9 +151,9 @@ void range_preprocess_from_device(int &nblocks, int tagI, int nranges_x, int nra
     }
 
     // Create a lookup table for the blocks --------------------------------------------
-    int *lookup_h = NULL;
-    lookup_h = new int[3 * nblocks];
+    int lookup_h[3 * nblocks];
     int index = 0;
+
     for (int i = 0; i < nranges; i++) {
         len_range = ranges_x_h[2 * i + 1] - ranges_x_h[2 * i];
         for (int j = 0; j < len_range; j += blockSize_x) {
@@ -219,9 +218,9 @@ range_preprocess_from_host(int &nblocks, int tagI, int nranges_x, int nranges_y,
     }
 
     // Create a lookup table for the blocks --------------------------------------------
-    int *lookup_h = NULL;
-    lookup_h = new int[3 * nblocks];
+    int lookup_h[3 * nblocks];
     int index = 0;
+
     for (int i = 0; i < nranges; i++) {
         len_range = ranges_x[2 * i + 1] - ranges_x[2 * i];
         for (int j = 0; j < len_range; j += blockSize_x) {
@@ -284,6 +283,7 @@ public :
         target = new char[targetSize];
         rf.read(target, targetSize);
         rf.close();
+
     }
 
 
@@ -341,26 +341,6 @@ public :
     ) {
 
 
-        //std::cout << nx << " " << ny << " " << dimsy[0] << " " << argshape[0][0] << " " << argshape[0][1]<< " " << argshape_ptr_v[1][1]<< std::endl;
-
-        //clock_t start, end, start_, //end_;
-        //start_ = start = clock();
-
-        ////std::cout << "Entering launch_keops inner" << std::endl;
-
-        //int **ranges = (int**) ranges_v.data();
-        //TYPE **arg = (TYPE**) arg_v.data();
-        //int **argshape = (int**) argshape_v.data();
-        //TYPE *out = (TYPE*) out_void;
-
-        ////end_ = clock();
-        ////std::cout << "  time for converting std::vector : " << double(//end_ - start_) / CLOCKS_PER_SEC << std::endl;
-        //start_ = clock();
-
-        /*------------------------------------*/
-        /*      End cast input args           */
-        /*------------------------------------*/
-
         SetContext();
 
         ////end_ = clock();
@@ -410,14 +390,17 @@ public :
 
         if (use_chunk_mode == 0) {
             // warning : blockSize.x was previously set to CUDA_BLOCK_SIZE; currently CUDA_BLOCK_SIZE value is used as a bound.
-            blockSize_x = std::min(cuda_block_size, std::min(maxThreadsPerBlock, (int) (sharedMemPerBlock / std::max(1,
-                                                                                                                     (int) (dimY *
-                                                                                                                            sizeof(TYPE)))))); // number of threads in each block
+            blockSize_x = std::min(cuda_block_size,
+                                   std::min(maxThreadsPerBlock,
+                                            (int) (sharedMemPerBlock / std::max(1, (int) (dimY * sizeof(TYPE))))
+                                           )
+                                  ); // number of threads in each block
         } else {
             // warning : the value here must match the one which is set in file GpuReduc1D_chunks.py, line 59
             // and file GpuReduc1D_finalchunks.py, line 67
             blockSize_x = std::min(cuda_block_size,
-                                   std::min(1024, (int) (49152 / std::max(1, (int) (dimY * sizeof(TYPE))))));
+                                   std::min(1024, (int) (49152 / std::max(1, (int) (dimY * sizeof(TYPE)))))
+                                  );
         }
 
         int nblocks;
@@ -453,6 +436,7 @@ public :
         CUdeviceptr p_data;
         TYPE *out_d;
         TYPE **arg_d;
+
         int sizeout = std::accumulate(shapeout.begin(), shapeout.end(), 1, std::multiplies< int >());
 
         if (tagHostDevice == 1) {
@@ -583,6 +567,7 @@ public :
             cuMemcpyDtoH(out, (CUdeviceptr) out_d, sizeof(TYPE) * sizeout);
             cuMemFree(p_data);
         }
+
         if (RR.tagRanges == 1) {
             cuMemFree((CUdeviceptr) lookup_d);
             if (SS.nbatchdims > 0) {
