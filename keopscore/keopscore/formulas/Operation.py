@@ -15,15 +15,18 @@ class Operation(Tree):
         # *args are other instances of Operation, they are the child operations of self
         self.children = args
         self.params = params
+
         # The variables in the current formula is the union of the variables in the child operations.
-        # Note that this requires implementing properly __eq__ and __hash__ methods in Var class
-        self.Vars_ = set.union(*(arg.Vars_ for arg in args)) if len(args) > 0 else set()
+        # Note that this requires implementing properly __eq__ and __hash__ methods in Var class.
+        # N.B. We need to sort according to ind.
+        set_vars = set.union(*(set(arg.Vars_) for arg in args)) if len(args) > 0 else set()
+        self.Vars_ = sorted(list(set_vars), key=lambda v: v.ind)
 
     def Vars(self, cat="all"):
         # if cat=="all", returns the list of all variables in a formula, stored in self.Vars_
         # if cat is an integer between 0 and 2, returns the list of variables v such that v.cat=cat
         if cat == "all":
-            return list(self.Vars_)
+            return self.Vars_
         else:
             res = []
             for v in self.Vars_:
