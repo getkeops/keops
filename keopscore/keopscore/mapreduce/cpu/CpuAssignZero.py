@@ -1,4 +1,4 @@
-from keopscore import debug_ops
+from keopscore import debug_ops_at_exec
 from keopscore.binders.cpp.Cpu_link_compile import Cpu_link_compile
 from keopscore.mapreduce.MapReduce import MapReduce
 from keopscore.utils.code_gen_utils import (
@@ -28,7 +28,7 @@ class CpuAssignZero(MapReduce, Cpu_link_compile):
         headers = ["stdlib.h"]
         if use_OpenMP:
             headers.append("omp.h")
-        if debug_ops:
+        if debug_ops_at_exec:
             headers.append("iostream")
         self.headers += c_include(*headers)
 
