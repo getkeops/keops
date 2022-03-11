@@ -5,6 +5,7 @@ from pykeops.torch import LazyTensor
 M, N, D, DV = 100, 100, 3, 1
 
 dtype = torch.float32
+torch.backends.cuda.matmul.allow_tf32 = False
 
 test_grad = True
 test_grad2 = False

@@ -4,6 +4,7 @@ from pykeops.torch import LazyTensor
 
 B1, B2, M, N, D, DV = 3, 4, 20, 25, 3, 2
 
+torch.backends.cuda.matmul.allow_tf32 = False
 device_id = "cuda" if torch.cuda.is_available() else "cpu"
 
 torch.manual_seed(1)
