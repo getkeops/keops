@@ -19,7 +19,9 @@ class Operation(Tree):
         # The variables in the current formula is the union of the variables in the child operations.
         # Note that this requires implementing properly __eq__ and __hash__ methods in Var class.
         # N.B. We need to sort according to ind.
-        set_vars = set.union(*(set(arg.Vars_) for arg in args)) if len(args) > 0 else set()
+        set_vars = (
+            set.union(*(set(arg.Vars_) for arg in args)) if len(args) > 0 else set()
+        )
         self.Vars_ = sorted(list(set_vars), key=lambda v: v.ind)
 
     def Vars(self, cat="all"):

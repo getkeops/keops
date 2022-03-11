@@ -15,7 +15,7 @@ import keopscore.config
 from keopscore.config.config import set_build_folder, get_build_folder
 from keopscore.utils.code_gen_utils import clean_keops
 
-# flags for debugging : 
+# flags for debugging :
 # prints information about atomic operations during code building
 debug_ops = False
 # adds C++ code for printing all input and output values
