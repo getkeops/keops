@@ -18,11 +18,11 @@ keops_cache_folder = join(
     os.path.expanduser("~"), ".cache", f"keops{keopscore.__version__}"
 )
 default_build_folder_name = "build"
-# In case user has specified CUDA_VISIBLE_DEVICES environment variable, 
+# In case user has specified CUDA_VISIBLE_DEVICES environment variable,
 # it is better to set the build folder name accordingly.
 specific_gpus = os.getenv("CUDA_VISIBLE_DEVICES")
 if specific_gpus:
-    specific_gpus = specific_gpus.replace(",","_")
+    specific_gpus = specific_gpus.replace(",", "_")
     default_build_folder_name += "_CUDA_VISIBLE_DEVICES_" + specific_gpus
 default_build_path = join(keops_cache_folder, default_build_folder_name)
 
