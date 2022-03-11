@@ -12,7 +12,7 @@ dtype = torch.float32
 
 test_grad = True
 test_grad2 = False
-device_id = "cuda:1" if torch.cuda.is_available() else "cpu"
+device_id = "cuda:0" if torch.cuda.is_available() else "cpu"
 do_warmup = True
 
 x = torch.rand(
