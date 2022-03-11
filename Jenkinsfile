@@ -25,7 +25,7 @@ pipeline {
             echo 'Testing...'
             sh '''#!/bin/bash
                export PYTHONPATH="$PWD/pykeops":"$PWD/keopscore"
-               pytest -v pykeops/pykeops/test/
+               /builds/miniconda3/bin/pytest -v pykeops/pykeops/test/
                '''
           }
         }
