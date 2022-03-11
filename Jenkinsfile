@@ -40,7 +40,7 @@ pipeline {
             echo 'Testing...'
             sh '''
                export PYTHONPATH="$PWD/pykeops":"$PWD/keopscore"
-               pytest -v pykeops/pykeops/test
+               /usr/local/bin/pytest -v pykeops/pykeops/test
             '''
           }
         }
