@@ -52,10 +52,8 @@ pipeline {
             sh 'rm -rf $HOME/.cache/keops*'
             echo 'Testing..'
             sh '''#!/bin/bash
-               eval "$(/opt/miniconda3/bin/conda shell.bash hook)"
-               conda activate keops
                export PYTHONPATH="$PWD/pykeops":"$PWD/keopscore"
-               pytest -v pykeops/pykeops/test/
+               $HOME/.local/bin/pytest -v pykeops/pykeops/test/
               '''
           }
         }
