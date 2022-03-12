@@ -98,14 +98,20 @@ disable_pragma_unrolls = True
 if use_OpenMP:
     import platform
 
-    if platform.system() == "Darwin":
-        if not os.getenv("KMP_DUPLICATE_LIB_OK") == "TRUE":
-            KeOps_Warning(
-                "OpenMP support is disabled on Mac by default, see the doc for enabling it."
-            )
-            use_OpenMP = False
+    if platform.system() == "Darwin":        
+        import subprocess
+        
+        pid = os.getpid()
+        loaded_libs = {}
+        for lib in ["libomp", "libiomp"]:
+            res = subprocess.run(f"lsof -p {pid} | grep {lib}", stdout=subprocess.PIPE, shell=True)
+            loaded_libs[lib] = os.path.dirname(res.stdout.split(b" ")[-1]).decode('utf-8') if res.returncode==0 else None
+        if loaded_libs["libiomp"]:
+            cpp_flags += f' -Xclang -fopenmp -liomp5 -L{loaded_libs["libiomp"]}'
+        elif loaded_libs["libomp"]:
+            cpp_flags += f' -Xclang -fopenmp -lomp -L{loaded_libs["libomp"]}'
         else:
-            cpp_flags += " -Xclang -fopenmp -lomp "
+            cpp_flags += f' -Xclang -fopenmp -liomp5 -L{os.path.dirname(os.path.realpath(__file__))}'
     else:
         cpp_flags += " -fopenmp -fno-fat-lto-objects"
 

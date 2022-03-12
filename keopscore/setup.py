@@ -64,6 +64,7 @@ setup(
             "readme.md",
             "licence.txt",
             "keops_version",
+            "config/libiomp5.dylib",
             "binders/nvrtc/keops_nvrtc.cpp",
             "binders/nvrtc/nvrtc_jit.cpp",
             "include/CudaSizes.h",
