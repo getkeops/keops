@@ -74,3 +74,6 @@ if pykeops.config.torch_found:
 
 # next line is to ensure that cache file for formulas is loaded at import
 import pykeops.common.keops_io
+
+# set OpenMP flags in keopscore if available
+keopscore.config.config.set_OpenMP()

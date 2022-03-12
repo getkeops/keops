@@ -5,10 +5,11 @@ from ctypes import CDLL, RTLD_GLOBAL
 import keopscore
 from ctypes.util import find_library
 from keopscore.utils.misc_utils import KeOps_Warning, KeOps_Error
+import platform
 
 # global parameters can be set here :
 use_cuda = True  # use cuda if possible
-use_OpenMP = True  # use OpenMP if possible
+use_OpenMP = True  # use OpenMP if possible (see function set_OpenMP below)
 
 # System Path
 base_dir_path = os.path.abspath(join(os.path.dirname(os.path.realpath(__file__)), ".."))
@@ -95,25 +96,36 @@ compile_options = " -shared -fPIC -O3 -std=c++11"
 cpp_flags = compile_options + " -flto"
 disable_pragma_unrolls = True
 
-if use_OpenMP:
-    import platform
+# OpenMP setting
 
-    if platform.system() == "Darwin":        
-        import subprocess
+_set_OpenMP = False # flag for preventing using twice the function set_OpenMp
+def set_OpenMP():
+    # adds compile flags for OpenMP support.
+    # This function needs to be run once only.
+    # In pykeops we do it at the end of the __init__,
+    # when libmkl_rt, libomp and/or libiomp are already loaded.
+    global _set_OpenMP, cpp_flags
+    if use_OpenMP and not _set_OpenMP:
+        if platform.system() == "Darwin":        
+            import subprocess
         
-        pid = os.getpid()
-        loaded_libs = {}
-        for lib in ["libomp", "libiomp"]:
-            res = subprocess.run(f"lsof -p {pid} | grep {lib}", stdout=subprocess.PIPE, shell=True)
-            loaded_libs[lib] = os.path.dirname(res.stdout.split(b" ")[-1]).decode('utf-8') if res.returncode==0 else None
-        if loaded_libs["libiomp"]:
-            cpp_flags += f' -Xclang -fopenmp -liomp5 -L{loaded_libs["libiomp"]}'
-        elif loaded_libs["libomp"]:
-            cpp_flags += f' -Xclang -fopenmp -lomp -L{loaded_libs["libomp"]}'
+            pid = os.getpid()
+            loaded_libs = {}
+            for lib in ["libomp", "libiomp", "libmkl_rt"]:
+                res = subprocess.run(f"lsof -p {pid} | grep {lib}", stdout=subprocess.PIPE, shell=True)
+                loaded_libs[lib] = os.path.dirname(res.stdout.split(b" ")[-1]).decode('utf-8') if res.returncode==0 else None
+            if loaded_libs["libmkl_rt"]:
+                cpp_flags += f' -Xclang -fopenmp -lmkl_rt -L{loaded_libs["libmkl_rt"]}'
+            elif loaded_libs["libiomp"]:
+                cpp_flags += f' -Xclang -fopenmp -liomp5 -L{loaded_libs["libiomp"]}'
+            elif loaded_libs["libomp"]:
+                cpp_flags += f' -Xclang -fopenmp -lomp -L{loaded_libs["libomp"]}'
+            else:
+                KeOps_Warning("OpenMP shared libraries not loaded, disabling OpenMP.")
+                use_OpenMP = False
         else:
-            cpp_flags += f' -Xclang -fopenmp -liomp5 -L{os.path.dirname(os.path.realpath(__file__))}'
-    else:
-        cpp_flags += " -fopenmp -fno-fat-lto-objects"
+            cpp_flags += " -fopenmp -fno-fat-lto-objects"
+    _set_OpenMP = True
 
 
 if platform.system() == "Darwin":
