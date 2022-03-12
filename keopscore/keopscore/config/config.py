@@ -104,7 +104,7 @@ def set_OpenMP():
     # This function needs to be run once only.
     # In pykeops we do it at the end of the __init__,
     # when libmkl_rt, libomp and/or libiomp are already loaded.
-    global _set_OpenMP, cpp_flags
+    global use_OpenMP, _set_OpenMP, cpp_flags
     if use_OpenMP and not _set_OpenMP:
         if platform.system() == "Darwin":        
             import subprocess
