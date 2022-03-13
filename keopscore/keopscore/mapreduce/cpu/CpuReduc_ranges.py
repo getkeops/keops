@@ -8,6 +8,7 @@ from keopscore.utils.code_gen_utils import (
     c_array,
     c_include,
 )
+import keopscore
 
 
 class CpuReduc_ranges(MapReduce, Cpu_link_compile):

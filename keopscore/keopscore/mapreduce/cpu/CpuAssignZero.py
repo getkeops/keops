@@ -5,6 +5,7 @@ from keopscore.utils.code_gen_utils import (
     c_include,
     c_zero_float,
 )
+import keopscore
 
 
 class CpuAssignZero(MapReduce, Cpu_link_compile):

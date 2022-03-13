@@ -3,6 +3,7 @@ from keopscore.binders.cpp.Cpu_link_compile import Cpu_link_compile
 from keopscore.mapreduce.cpu.CpuAssignZero import CpuAssignZero
 from keopscore.mapreduce.MapReduce import MapReduce
 from keopscore.utils.code_gen_utils import c_include
+import keopscore
 
 class CpuReduc(MapReduce, Cpu_link_compile):
     """
