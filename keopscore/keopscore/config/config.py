@@ -108,21 +108,26 @@ def set_OpenMP():
     if use_OpenMP and not _set_OpenMP:
         if platform.system() == "Darwin":        
             import subprocess
-        
-            pid = os.getpid()
-            loaded_libs = {}
-            for lib in ["libomp", "libiomp", "libmkl_rt"]:
-                res = subprocess.run(f"lsof -p {pid} | grep {lib}", stdout=subprocess.PIPE, shell=True)
-                loaded_libs[lib] = os.path.dirname(res.stdout.split(b" ")[-1]).decode('utf-8') if res.returncode==0 else None
-            if loaded_libs["libmkl_rt"]:
-                cpp_flags += f' -Xclang -fopenmp -lmkl_rt -L{loaded_libs["libmkl_rt"]}'
-            elif loaded_libs["libiomp"]:
-                cpp_flags += f' -Xclang -fopenmp -liomp5 -L{loaded_libs["libiomp"]}'
-            elif loaded_libs["libomp"]:
-                cpp_flags += f' -Xclang -fopenmp -lomp -L{loaded_libs["libomp"]}'
-            else:
-                KeOps_Warning("OpenMP shared libraries not loaded, disabling OpenMP.")
+            
+            res = subprocess.run('echo "#include <omp.h>" | g++ -E - -o /dev/null', stdout=subprocess.PIPE, shell=True)
+            if res.returncode!=0:
+                KeOps_Warning("omp.h header is not in the path, disabling OpenMP.")
                 use_OpenMP = False
+            else:
+                pid = os.getpid()
+                loaded_libs = {}
+                for lib in ["libomp", "libiomp", "libmkl_rt"]:
+                    res = subprocess.run(f"lsof -p {pid} | grep {lib}", stdout=subprocess.PIPE, shell=True)
+                    loaded_libs[lib] = os.path.dirname(res.stdout.split(b" ")[-1]).decode('utf-8') if res.returncode==0 else None
+                if loaded_libs["libmkl_rt"]:
+                    cpp_flags += f' -Xclang -fopenmp -lmkl_rt -L{loaded_libs["libmkl_rt"]}'
+                elif loaded_libs["libiomp"]:
+                    cpp_flags += f' -Xclang -fopenmp -liomp5 -L{loaded_libs["libiomp"]}'
+                elif loaded_libs["libomp"]:
+                    cpp_flags += f' -Xclang -fopenmp -lomp -L{loaded_libs["libomp"]}'
+                else:
+                    KeOps_Warning("OpenMP shared libraries not loaded, disabling OpenMP.")
+                    use_OpenMP = False
         else:
             cpp_flags += " -fopenmp -fno-fat-lto-objects"
     _set_OpenMP = True
