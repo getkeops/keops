@@ -99,26 +99,36 @@ disable_pragma_unrolls = True
 # OpenMP setting
 # adds compile flags for OpenMP support.
 if use_OpenMP:
-    if platform.system() == "Darwin":  
+    if platform.system() == "Darwin":
         import subprocess, importlib
-        
-        res = subprocess.run('echo "#include <omp.h>" | g++ -E - -o /dev/null', stdout=subprocess.PIPE, shell=True)
-        if res.returncode!=0:
+
+        res = subprocess.run(
+            'echo "#include <omp.h>" | g++ -E - -o /dev/null',
+            stdout=subprocess.PIPE,
+            shell=True,
+        )
+        if res.returncode != 0:
             KeOps_Warning("omp.h header is not in the path, disabling OpenMP.")
             use_OpenMP = False
         else:
-            # we try to import either mkl or numpy, because it will load 
+            # we try to import either mkl or numpy, because it will load
             # the shared libraries for OpenMP.
             if importlib.util.find_spec("mkl"):
                 import mkl
             elif importlib.util.find_spec("numpy"):
-                import numpy           
+                import numpy
             # Now we can look if one of libmkl_rt, libomp and/or libiomp is loaded.
             pid = os.getpid()
             loaded_libs = {}
             for lib in ["libomp", "libiomp", "libmkl_rt"]:
-                res = subprocess.run(f"lsof -p {pid} | grep {lib}", stdout=subprocess.PIPE, shell=True)
-                loaded_libs[lib] = os.path.dirname(res.stdout.split(b" ")[-1]).decode('utf-8') if res.returncode==0 else None
+                res = subprocess.run(
+                    f"lsof -p {pid} | grep {lib}", stdout=subprocess.PIPE, shell=True
+                )
+                loaded_libs[lib] = (
+                    os.path.dirname(res.stdout.split(b" ")[-1]).decode("utf-8")
+                    if res.returncode == 0
+                    else None
+                )
             if loaded_libs["libmkl_rt"]:
                 cpp_flags += f' -Xclang -fopenmp -lmkl_rt -L{loaded_libs["libmkl_rt"]}'
             elif loaded_libs["libiomp"]:
@@ -129,7 +139,7 @@ if use_OpenMP:
                 KeOps_Warning("OpenMP shared libraries not loaded, disabling OpenMP.")
                 use_OpenMP = False
     else:
-        cpp_flags += " -fopenmp -fno-fat-lto-objects"    
+        cpp_flags += " -fopenmp -fno-fat-lto-objects"
 
 if platform.system() == "Darwin":
     cpp_flags += " -undefined dynamic_lookup"

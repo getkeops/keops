@@ -149,7 +149,10 @@ def get_keops_dll_impl(
 
 
 get_keops_dll = Cache(
-    get_keops_dll_impl, use_cache_file=True, save_folder=get_build_folder(), env_param = cpp_flags
+    get_keops_dll_impl,
+    use_cache_file=True,
+    save_folder=get_build_folder(),
+    env_param=cpp_flags,
 )
 
 

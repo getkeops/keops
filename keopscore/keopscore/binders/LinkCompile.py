@@ -6,6 +6,7 @@ from keopscore.utils.code_gen_utils import get_hash_name
 from keopscore.utils.misc_utils import KeOps_Error, KeOps_Message
 from keopscore.config.config import cpp_flags
 
+
 class LinkCompile:
     """
     Base class for compiling the map_reduce schemes and providing the dll to KeOps bindings.

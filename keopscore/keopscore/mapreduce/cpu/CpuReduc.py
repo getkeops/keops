@@ -5,6 +5,7 @@ from keopscore.mapreduce.MapReduce import MapReduce
 from keopscore.utils.code_gen_utils import c_include
 import keopscore
 
+
 class CpuReduc(MapReduce, Cpu_link_compile):
     """
     class for generating the final C++ code, Cpu version

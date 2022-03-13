@@ -74,4 +74,3 @@ if pykeops.config.torch_found:
 
 # next line is to ensure that cache file for formulas is loaded at import
 import pykeops.common.keops_io
-
