@@ -4,6 +4,7 @@ import keopscore.config.config
 from keopscore.config.config import get_build_folder
 from keopscore.utils.code_gen_utils import get_hash_name
 from keopscore.utils.misc_utils import KeOps_Error, KeOps_Message
+from keopscore.config.config import cpp_flags
 
 
 class LinkCompile:
@@ -28,6 +29,7 @@ class LinkCompile:
             self.tag1D2D,
             self.use_half,
             self.device_id,
+            cpp_flags,
         )
 
         # info_file is the name of the file that will contain some meta-information required by the bindings, e.g. 7b9a611f7e.nfo

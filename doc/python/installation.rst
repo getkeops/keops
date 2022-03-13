@@ -173,24 +173,3 @@ Alternatively, you can disable verbose compilation from your python script using
   import pykeops
   pykeops.set_verbose(False)
 
-Open MP support on Mac
-----------------------
-
-Computations on Cpu make use of the Open MP library for parallelization on Linux systems. However, On Mac computers, it is disabled by default because there seems to be no clean way to use it.
-If you want to enable Open MP on Mac, you need to set the environment variable `KMP_DUPLICATE_LIB_OK` to `TRUE`, either in the shell before calling Python :
-
-.. code-block:: bash
-
-  export KMP_DUPLICATE_LIB_OK=TRUE
-  python my_script_calling_pykeops.py
-
-or inside Python, before importing the KeOps library :
-
-.. code-block:: python
-
-  import os
-  os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
-  import pykeops
-  ...
-	
-Note that this is considered as unsafe. KeOps formulas might fail to compile or produce wrong results. In practice it appears to work well with KeOps NumPy bindings, and to fail (returning segfaults) when used together with PyTorch. If you have any suggestion on how to enable correctly the Open MP library on Mac, or any other method for Cpu parallelization, your help is welcome !
