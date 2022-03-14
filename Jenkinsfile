@@ -18,7 +18,7 @@ pipeline {
       parallel {
         
         stage("Preliminary cleanup") {
-          agent any
+          agent { label 'ubuntu && macos && cuda' }
           steps {
             echo 'Clean KeOps Cache...'
             sh 'rm -rf $HOME/.cache/keops*'
