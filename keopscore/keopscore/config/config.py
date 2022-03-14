@@ -36,7 +36,7 @@ os.makedirs(keops_cache_folder, exist_ok=True)
 _build_path = ""
 
 
-def set_build_folder(path=None, read_save_file=False, reset_all=True):
+def set_build_folder(path=None, read_save_file=False, write_save_file=True, reset_all=True):
     save_file = join(keops_cache_folder, "build_folder_location.txt")
     if not path:
         if read_save_file and os.path.isfile(save_file):
@@ -48,7 +48,7 @@ def set_build_folder(path=None, read_save_file=False, reset_all=True):
     global _build_path
     _build_path = path
     os.makedirs(path, exist_ok=True)
-    if path != default_build_path:
+    if write_save_file:
         f = open(save_file, "w")
         f.write(path)
         f.close()
@@ -64,7 +64,7 @@ def set_build_folder(path=None, read_save_file=False, reset_all=True):
                 Gpu_link_compile.compile_jit_compile_dll()
 
 
-set_build_folder(read_save_file=True, reset_all=False)
+set_build_folder(read_save_file=True, write_save_file=False, reset_all=False)
 
 
 def get_build_folder():
