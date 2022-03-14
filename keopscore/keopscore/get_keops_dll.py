@@ -66,7 +66,6 @@ from keopscore.formulas.GetReduction import GetReduction
 from keopscore.formulas.variables.Zero import Zero
 from keopscore.utils.Cache import Cache
 from keopscore.utils.code_gen_utils import KeOps_Error
-from keopscore.config.config import cpp_flags
 
 # Get every classes in mapreduce
 map_reduce = dict(inspect.getmembers(keopscore.mapreduce, inspect.isclass))
@@ -152,7 +151,6 @@ get_keops_dll = Cache(
     get_keops_dll_impl,
     use_cache_file=True,
     save_folder=get_build_folder(),
-    env_param=cpp_flags,
 )
 
 

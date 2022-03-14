@@ -1,13 +1,16 @@
 import os
 import pickle
+import keopscore
+
+# global configuration parameter to be added for the lookup :
+env_param = keopscore.config.config.cpp_flags
 
 
 class Cache:
-    def __init__(self, fun, use_cache_file=False, save_folder=".", env_param=None):
+    def __init__(self, fun, use_cache_file=False, save_folder="."):
         self.fun = fun
         self.library = {}
         self.use_cache_file = use_cache_file
-        self.env_param = env_param
         if use_cache_file:
             self.cache_file = os.path.join(save_folder, fun.__name__ + "_cache.pkl")
             if os.path.isfile(self.cache_file):
@@ -19,7 +22,7 @@ class Cache:
             atexit.register(self.save_cache)
 
     def __call__(self, *args):
-        str_id = "".join(list(str(arg) for arg in args)) + str(self.env_param)
+        str_id = "".join(list(str(arg) for arg in args)) + str(env_param)
         if not str_id in self.library:
             self.library[str_id] = self.fun(*args)
         return self.library[str_id]
@@ -55,7 +58,7 @@ class Cache_partial:
             atexit.register(self.save_cache)
 
     def __call__(self, *args):
-        str_id = "".join(list(str(arg) for arg in args))
+        str_id = "".join(list(str(arg) for arg in args)) + str(env_param)
         if not str_id in self.library:
             if self.use_cache_file:
                 if str_id in self.library_params:
