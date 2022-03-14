@@ -12,44 +12,68 @@ node {
 pipeline {
   agent none 
   stages {
+  
+// -------------------------------------------------------------------------- //
+    stage("Preparation") {
+      parallel {
+        
+        stage("Preliminary cleanup") {
+          agent any
+          steps {
+            echo 'Clean KeOps Cache...'
+            sh 'rm -rf $HOME/.cache/keops*'
+          }
+        }
+      
+        stage("Prepare Linux") {
+          agent { label 'ubuntu' }
+          steps {
+            sh '''#!/bin/bash
+              eval "$(/builds/miniconda3/bin/conda shell.bash hook)"
+              python -m venv --clear .test_venv
+              source .test_venv/bin/activate
+              python -m pip install -U pip pytest
+            '''
+          }
+        }
+        
+        stage("Prepare MacOS") {
+          agent { label 'macos' }
+          steps {
+            sh '''#!/bin/bash
+              python3 -m venv --clear .test_venv
+              source .test_venv/bin/activate
+              python -m pip install -U pip pytest
+            '''
+          }
+        }
+        
+        stage("Prepare Cuda") {
+          agent { label 'cuda' }
+          steps {
+            sh '''#!/bin/bash
+              python3 -m venv --clear .test_venv
+              source .test_venv/bin/activate
+              python -m pip install -U pip pytest
+            '''
+          }
+        }
+      }
+    }
 
 // -------------------------------------------------------------------------- //
     stage('Test Jenkins CI') {
       parallel {
 
-        stage('Test Linux') {
-          agent { label 'ubuntu' }
+        stage('Check config') {
+          agent any
           steps {
             echo 'Testing...'
             sh '''#!/bin/bash
-              echo "Python path = $(which python)"
-              echo "Python version = $(python -V)"
-              eval "$(/builds/miniconda3/bin/conda shell.bash hook)"
-              echo "Python path after conda init = $(which python)"
-              echo "Python version = $(python -V)"
-              '''
-          }
-        }
-
-        stage('Test Mac') {
-          agent { label 'macos' }
-          steps {
-            echo 'Testing...'
-            sh '''
+              source .test_venv/bin/activate
               echo "Python path = $(which python)"
               echo "Python version = $(python -V)"
             '''
-          }
-        }
-
-        stage('Test Cuda') {
-          agent { label 'cuda' }
-          steps {
-            echo 'Testing..'
-            sh '''#!/bin/bash
-              echo "Python path = $(which python)"
-              echo "Python version = $(python -V)"
-              '''
           }
         }
       }
@@ -68,11 +92,12 @@ pipeline {
             sh 'rm -rf $HOME/.cache/keops*'
             echo 'Testing...'
             sh '''#!/bin/bash
-               eval "$(/builds/miniconda3/bin/conda shell.bash hook)"
-               conda activate
-               export PYTHONPATH="$PWD/pykeops":"$PWD/keopscore"
-               /builds/miniconda3/bin/pytest -v pykeops/pykeops/test/
-               '''
+              eval "$(/builds/miniconda3/bin/conda shell.bash hook)"
+              source .test_venv/bin/activate
+              python -m pip install ./keopscore
+              python -m pip install ./pykeops
+              pytest -v pykeops/pykeops/test/
+            '''
           }
         }
 
@@ -83,8 +108,10 @@ pipeline {
             sh 'rm -rf $HOME/.cache/keops*'
             echo 'Testing...'
             sh '''
-               export PYTHONPATH="$PWD/pykeops":"$PWD/keopscore"
-               /usr/local/bin/pytest -v pykeops/pykeops/test
+              source .test_venv/bin/activate
+              python -m pip install ./keopscore
+              python -m pip install ./pykeops
+              pytest -v pykeops/pykeops/test/
             '''
           }
         }
@@ -96,9 +123,11 @@ pipeline {
             sh 'rm -rf $HOME/.cache/keops*'
             echo 'Testing..'
             sh '''#!/bin/bash
-               export PYTHONPATH="$PWD/pykeops":"$PWD/keopscore"
-               $HOME/.local/bin/pytest -v pykeops/pykeops/test/
-              '''
+              source .test_venv/bin/activate
+              python -m pip install ./keopscore
+              python -m pip install ./pykeops
+              pytest -v pykeops/pykeops/test/
+            '''
           }
         }
       }
