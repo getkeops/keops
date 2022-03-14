@@ -8,6 +8,7 @@ from setuptools import setup
 
 here = path.abspath(path.dirname(__file__))
 
+# get keops version
 with open(os.path.join(here, "pykeops", "keops_version"), encoding="utf-8") as v:
     current_version = v.read().rstrip()
 
@@ -15,6 +16,7 @@ with open(os.path.join(here, "pykeops", "keops_version"), encoding="utf-8") as v
 with open(path.join(here, "pykeops", "readme.md"), encoding="utf-8") as f:
     long_description = f.read()
 
+# package setup
 setup(
     name="pykeops",
     version=current_version,
