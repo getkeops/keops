@@ -13,7 +13,51 @@ pipeline {
   agent none 
   stages {
 
-// ----------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------- //
+    stage('Test Jenkins CI') {
+      parallel {
+
+        stage('Test Linux') {
+          agent { label 'ubuntu' }
+          steps {
+            echo 'Testing...'
+            sh '''#!/bin/bash
+              echo "Python path = $(which python)"
+              echo "Python version = $(python -V)"
+              eval "$(/builds/miniconda3/bin/conda shell.bash hook)"
+              echo "Python path after conda init = $(which python)"
+              echo "Python version = $(python -V)"
+              '''
+          }
+        }
+
+        stage('Test Mac') {
+          agent { label 'macos' }
+          steps {
+            echo 'Testing...'
+            sh '''
+              echo "Python path = $(which python)"
+              echo "Python version = $(python -V)"
+            '''
+          }
+        }
+
+        stage('Test Cuda') {
+          agent { label 'cuda' }
+          steps {
+            echo 'Testing..'
+            sh '''#!/bin/bash
+              echo "Python path = $(which python)"
+              echo "Python version = $(python -V)"
+              '''
+          }
+        }
+      }
+    }
+
+// -------------------------------------------------------------------------- //
+
+/* Skipping PyKeOps test because of Jenkinsfile rewriting in progress
     stage('Test PyKeOps') {
       parallel {
 
@@ -59,8 +103,9 @@ pipeline {
         }
       }
     }
+*/
 
-// ----------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------- //
 
 /* Skipping RKeOps because not available yet in python_engine
     stage('Test RKeOps') {
@@ -102,7 +147,7 @@ pipeline {
 
       }
     }
-/*
+*/
 
 // ----------------------------------------------------------------------------------------
 
