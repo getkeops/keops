@@ -130,6 +130,7 @@ if use_OpenMP:
         else:
             # we try to import either mkl or numpy, because it will load
             # the shared libraries for OpenMP.
+            import importlib.util
             if importlib.util.find_spec("mkl"):
                 import mkl
             elif importlib.util.find_spec("numpy"):

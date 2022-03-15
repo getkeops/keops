@@ -1,9 +1,11 @@
 import os
 
-import pykeops.config
+import keopscore
 import keopscore.config
 import keopscore.config.config
 from keopscore.config.config import get_build_folder as keops_get_build_folder
+
+from . import config as pykeopsconfig
 
 ###########################################################
 # Verbosity level
@@ -34,15 +36,14 @@ with open(
 default_device_id = 0  # default Gpu device number
 
 if keopscore.config.config.use_cuda:
-    if not os.path.exists(pykeops.config.pykeops_nvrtc_name(type="target")):
-        from pykeops.common.keops_io.LoadKeOps_nvrtc import compile_jit_binary
+    
+    if not os.path.exists(pykeopsconfig.pykeops_nvrtc_name(type="target")):
+        from .common.keops_io.LoadKeOps_nvrtc import compile_jit_binary
 
         compile_jit_binary()
 
 
 def clean_pykeops(recompile_jit_binaries=True):
-    import keopscore
-
     keopscore.clean_keops(recompile_jit_binary=recompile_jit_binaries)
     keops_binder = pykeops.common.keops_io.keops_binder
     for key in keops_binder:
@@ -66,11 +67,11 @@ def get_build_folder():
     return keops_get_build_folder()
 
 
-if pykeops.config.numpy_found:
-    from pykeops.numpy.test_install import test_numpy_bindings
+if pykeopsconfig.numpy_found:
+    from .numpy.test_install import test_numpy_bindings
 
-if pykeops.config.torch_found:
-    from pykeops.torch.test_install import test_torch_bindings
+if pykeopsconfig.torch_found:
+    from .torch.test_install import test_torch_bindings
 
 # next line is to ensure that cache file for formulas is loaded at import
-import pykeops.common.keops_io
+from .common import keops_io
