@@ -131,7 +131,7 @@ pyclean ${PROJDIR}/pykeops
 
 logging "-- Building keopscore..."
 
-${PYTHON} -m build --sdist --outdir ${PROJDIR}/build/dist ${PROJDIR}/keopscore
+python -m build --sdist --outdir ${PROJDIR}/build/dist ${PROJDIR}/keopscore
 
 ################################################################################
 # build pykeops                                                                #
@@ -139,4 +139,4 @@ ${PYTHON} -m build --sdist --outdir ${PROJDIR}/build/dist ${PROJDIR}/keopscore
 
 logging "-- Building pykeops..."
 
-${PYTHON} -m build --sdist --outdir ${PROJDIR}/build/dist ${PROJDIR}/pykeops
+python -m build --sdist --outdir ${PROJDIR}/build/dist ${PROJDIR}/pykeops
