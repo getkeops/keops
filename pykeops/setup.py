@@ -81,9 +81,6 @@ setup(
             "multiprocess",
             "faiss",
         ],
-        "test:": [
-            "pytest",
-            "torch"
-        ]
+        "test:": ["pytest", "torch"],
     },
 )
