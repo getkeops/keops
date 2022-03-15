@@ -1,2 +1,2 @@
-from keopscore.formulas.autodiff.Grad import Grad
-from keopscore.formulas.autodiff.Grad_WithSavedForward import Grad_WithSavedForward
+from .Grad import Grad
+from .Grad_WithSavedForward import Grad_WithSavedForward

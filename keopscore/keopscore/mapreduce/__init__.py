@@ -1,5 +1,5 @@
-from keopscore.mapreduce.cpu import *
-from keopscore.config.config import use_cuda
+from .cpu import *
+from ..config.config import use_cuda
 
 if use_cuda:
-    from keopscore.mapreduce.gpu import *
+    from .gpu import *

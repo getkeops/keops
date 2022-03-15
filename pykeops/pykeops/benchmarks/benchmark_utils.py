@@ -89,8 +89,10 @@ def int_tensor(*x):
     else:
         return torch.LongTensor(*x)
 
+
 def jax_tensor(*x):
     import jax
+
     return jax.device_put(*x)
 
 
