@@ -16,21 +16,16 @@ pipeline {
 // -------------------------------------------------------------------------- //
     stage("Preparation") {
       parallel {
-        
-        stage("Preliminary cleanup") {
-          agent { label 'all' }
-          steps {
-            echo 'Clean KeOps Cache...'
-            sh 'rm -rf $HOME/.cache/keops*'
-          }
-        }
       
         stage("Prepare Linux") {
           agent { label 'ubuntu' }
           steps {
+            echo 'Clean KeOps Cache...'
+            sh 'rm -rf $HOME/.cache/keops*'
             sh '''#!/bin/bash
               eval "$(/builds/miniconda3/bin/conda shell.bash hook)"
-              python -m venv --clear .test_venv
+              echo "WD=$(pwd)"
+              python3 -m venv --clear .test_venv
               source .test_venv/bin/activate
               python -m pip install -U pip pytest
             '''
@@ -40,7 +35,10 @@ pipeline {
         stage("Prepare MacOS") {
           agent { label 'macos' }
           steps {
+            echo 'Clean KeOps Cache...'
+            sh 'rm -rf $HOME/.cache/keops*'
             sh '''#!/bin/bash
+              echo "WD=$(pwd)"
               python3 -m venv --clear .test_venv
               source .test_venv/bin/activate
               python -m pip install -U pip pytest
@@ -51,7 +49,10 @@ pipeline {
         stage("Prepare Cuda") {
           agent { label 'cuda' }
           steps {
+            echo 'Clean KeOps Cache...'
+            sh 'rm -rf $HOME/.cache/keops*'
             sh '''#!/bin/bash
+              echo "WD=$(pwd)"
               python3 -m venv --clear .test_venv
               source .test_venv/bin/activate
               python -m pip install -U pip pytest
@@ -65,11 +66,38 @@ pipeline {
     stage('Test Jenkins CI') {
       parallel {
 
-        stage('Check config') {
-          agent { label 'all' }
+        stage('Check Linux config') {
+          agent { label 'ubuntu' }
           steps {
             echo 'Testing...'
             sh '''#!/bin/bash
+              echo "WD=$(pwd)"
+              source .test_venv/bin/activate
+              echo "Python path = $(which python)"
+              echo "Python version = $(python -V)"
+            '''
+          }
+        }
+        
+        stage('Check MacOs config') {
+          agent { label 'macos' }
+          steps {
+            echo 'Testing...'
+            sh '''#!/bin/bash
+              echo "WD=$(pwd)"
+              source .test_venv/bin/activate
+              echo "Python path = $(which python)"
+              echo "Python version = $(python -V)"
+            '''
+          }
+        }
+        
+        stage('Check Cuda config') {
+          agent { label 'cuda' }
+          steps {
+            echo 'Testing...'
+            sh '''#!/bin/bash
+              echo "WD=$(pwd)"
               source .test_venv/bin/activate
               echo "Python path = $(which python)"
               echo "Python version = $(python -V)"
