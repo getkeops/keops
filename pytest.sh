@@ -82,6 +82,12 @@ source ${TEST_VENV}/bin/activate
 
 pip install -U ${TEST_REQ}
 
+
+# FIXME Temp fix: pytorch compatible with Cuda 11.3 is not available on PyPI
+if [[ $(hostname) == "oban" ]]; then
+    pip install -U torch==1.11.0+cu113 -f https://download.pytorch.org/whl/cu113/torch_stable.html
+fi
+
 ################################################################################
 # Installing keopscore                                                         #
 ################################################################################
