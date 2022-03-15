@@ -37,7 +37,7 @@ try:
 except ImportError:
     raise ImportError("This tutorial requires Scikit Learn version >= 0.20.")
 
-mnist = fetch_openml("mnist_784", cache=False)
+mnist = fetch_openml("mnist_784", cache=False, as_frame=False)
 
 x = tensor(mnist.data.astype("float32"))
 y = tensor(mnist.target.astype("int64"))

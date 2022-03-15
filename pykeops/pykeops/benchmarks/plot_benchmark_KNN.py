@@ -512,7 +512,6 @@ KNN_faiss_HNSW_slow = partial(KNN_faiss_HNSW, M=36)
 # (The library pre-allocates a cache file of around ~1Gb on the device.)
 res = faiss.StandardGpuResources()
 deviceId = 0
-res.initializeForDevice(deviceId)
 
 
 def KNN_faiss_gpu(
@@ -642,7 +641,7 @@ def run_KNN_benchmark(name, loops=[1]):
             (KNN_faiss_HNSW_slow, "FAISS-HNSW (CPU, M=36)", {}),
             (KNN_sklearn_ball_tree, "sklearn, Ball-tree (CPU)", {}),
             (KNN_sklearn_kd_tree, "sklearn, KD-tree (CPU)", {}),
-            (KNN_sklearn_brute, "sklearn, bruteforce (CPU)", {}),
+            # (KNN_sklearn_brute, "sklearn, bruteforce (CPU)", {}),
         ]
 
     # Actual run:
@@ -670,7 +669,7 @@ def run_KNN_benchmark(name, loops=[1]):
             "p--",
             "s-.",
             "^-.",
-            "<-.",
+            # "<-.",
         ],
     )
 

@@ -78,6 +78,9 @@ setup(
             "scikit-learn",
             "multiprocess",
             "faiss",
+            "h5py",
+            "jaxlib",
+            "jax",
         ],
     },
 )
