@@ -1,5 +1,5 @@
 import torch
-import pykeops.config
+from .. import config as pykeopsconfig
 
 ##########################################################
 # Check Pytorch install
@@ -15,7 +15,7 @@ if torch.__version__ < torch_version_required:
 ##########################################################
 # Get GPU informations
 
-pykeops.config.gpu_available = torch.cuda.is_available()  # use torch to detect gpu
+pykeopsconfig.gpu_available = torch.cuda.is_available()  # use torch to detect gpu
 
 ##########################################################
 # Import pyKeOps routines
