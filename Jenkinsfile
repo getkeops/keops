@@ -26,7 +26,7 @@ pipeline {
             echo 'Testing...'
             sh '''#!/bin/bash
               eval "$(/builds/miniconda3/bin/conda shell.bash hook)"
-              bash pytest.sh
+              bash pytest.sh -v
             '''
           }
         }
@@ -38,7 +38,7 @@ pipeline {
             sh 'rm -rf $HOME/.cache/keops*'
             echo 'Testing...'
             sh '''
-              bash pytest.sh
+              bash pytest.sh -v
             '''
           }
         }
@@ -50,7 +50,7 @@ pipeline {
             sh 'rm -rf $HOME/.cache/keops*'
             echo 'Testing..'
             sh '''#!/bin/bash
-              bash pytest.sh
+              bash pytest.sh -v
             '''
           }
         }
