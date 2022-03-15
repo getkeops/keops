@@ -59,12 +59,14 @@ PROJDIR=$(git rev-parse --show-toplevel)
 
 # python exec
 PYTHON="python3"
+# check python exec
+echo -e "Python exec = $(which $PYTHON)"
 
 # python environment for test
 TEST_VENV=${PROJDIR}/.test_venv
 
 # python test requirements (names of packages to be installed with pip)
-TEST_REQ="pip pyclean pytest torch"
+TEST_REQ="pip"
 
 ################################################################################
 # prepare python environment                                                   #
@@ -76,16 +78,6 @@ ${PYTHON} -m venv --clear ${TEST_VENV}
 source ${TEST_VENV}/bin/activate
 
 pip install -U ${TEST_REQ}
-
-################################################################################
-# clean before build                                                           #
-################################################################################
-
-logging "-- Cleaning Python sources before test..."
-
-# remove __pycache__ *.pyc
-pyclean ${PROJDIR}/keopscore
-pyclean ${PROJDIR}/pykeops
 
 ################################################################################
 # Installing keopscore                                                         #
@@ -101,7 +93,7 @@ pip install -e ${PROJDIR}/keopscore
 
 logging "-- Installing pykeops..."
 
-pip install -e ${PROJDIR}/pykeops
+pip install -e "${PROJDIR}/pykeops[test]"
 
 ################################################################################
 # Running pykeops tests                                                        #
