@@ -24,8 +24,6 @@ debug_ops_at_exec = False
 
 cuda_block_size = 192
 
-sys.path.append(get_build_folder())
-
 if keopscore.config.config.use_cuda:
     keopscore.config.config.init_cudalibs()
     from keopscore.binders.nvrtc.Gpu_link_compile import (
