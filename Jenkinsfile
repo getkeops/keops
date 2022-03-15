@@ -28,6 +28,7 @@ pipeline {
               python3 -m venv --clear .test_venv
               source .test_venv/bin/activate
               python -m pip install -U pip pytest
+              ls -la
             '''
           }
         }
@@ -42,6 +43,7 @@ pipeline {
               python3 -m venv --clear .test_venv
               source .test_venv/bin/activate
               python -m pip install -U pip pytest
+              ls -la
             '''
           }
         }
@@ -56,6 +58,7 @@ pipeline {
               python3 -m venv --clear .test_venv
               source .test_venv/bin/activate
               python -m pip install -U pip pytest
+              ls -la
             '''
           }
         }
@@ -72,6 +75,7 @@ pipeline {
             echo 'Testing...'
             sh '''#!/bin/bash
               echo "WD=$(pwd)"
+              ls -la
               source .test_venv/bin/activate
               echo "Python path = $(which python)"
               echo "Python version = $(python -V)"
@@ -85,6 +89,7 @@ pipeline {
             echo 'Testing...'
             sh '''#!/bin/bash
               echo "WD=$(pwd)"
+              ls -la
               source .test_venv/bin/activate
               echo "Python path = $(which python)"
               echo "Python version = $(python -V)"
@@ -98,6 +103,7 @@ pipeline {
             echo 'Testing...'
             sh '''#!/bin/bash
               echo "WD=$(pwd)"
+              ls -la
               source .test_venv/bin/activate
               echo "Python path = $(which python)"
               echo "Python version = $(python -V)"
