@@ -13,7 +13,8 @@ pipeline {
   agent none 
   stages {
 
-// ----------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------- //
+
     stage('Test PyKeOps') {
       parallel {
 
@@ -24,11 +25,9 @@ pipeline {
             sh 'rm -rf $HOME/.cache/keops*'
             echo 'Testing...'
             sh '''#!/bin/bash
-               eval "$(/builds/miniconda3/bin/conda shell.bash hook)"
-               conda activate
-               export PYTHONPATH="$PWD/pykeops":"$PWD/keopscore"
-               /builds/miniconda3/bin/pytest -v pykeops/pykeops/test/
-               '''
+              eval "$(/builds/miniconda3/bin/conda shell.bash hook)"
+              bash pytest.sh -v
+            '''
           }
         }
 
@@ -39,8 +38,7 @@ pipeline {
             sh 'rm -rf $HOME/.cache/keops*'
             echo 'Testing...'
             sh '''
-               export PYTHONPATH="$PWD/pykeops":"$PWD/keopscore"
-               /usr/local/bin/pytest -v pykeops/pykeops/test
+              bash pytest.sh -v
             '''
           }
         }
@@ -52,15 +50,15 @@ pipeline {
             sh 'rm -rf $HOME/.cache/keops*'
             echo 'Testing..'
             sh '''#!/bin/bash
-               export PYTHONPATH="$PWD/pykeops":"$PWD/keopscore"
-               $HOME/.local/bin/pytest -v pykeops/pykeops/test/
-              '''
+              srun -n 1 -c 16 --mem=8G --gpus=1 --gres-flags=enforce-binding \
+              -J keops_ci pytest.sh -v
+            '''
           }
         }
       }
     }
 
-// ----------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------- //
 
 /* Skipping RKeOps because not available yet in python_engine
     stage('Test RKeOps') {
@@ -102,7 +100,7 @@ pipeline {
 
       }
     }
-/*
+*/
 
 // ----------------------------------------------------------------------------------------
 

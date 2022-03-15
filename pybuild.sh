@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# exit in case of any errors
+set -e
+
 ################################################################################
 # help                                                                         #
 ################################################################################
@@ -110,8 +113,7 @@ trap cleanup_setup EXIT
 
 logging "-- Preparing python environment for build..."
 
-if [[ -d ${BUILD_VENV} ]]; then rm -rf ${BUILD_VENV}; fi
-${PYTHON} -m venv ${BUILD_VENV}
+${PYTHON} -m venv --clear ${BUILD_VENV}
 source ${BUILD_VENV}/bin/activate
 
 pip install -U ${BUILD_REQ}
@@ -132,8 +134,7 @@ pyclean ${PROJDIR}/pykeops
 
 logging "-- Building keopscore..."
 
-${PYTHON} -m build --sdist --outdir ${PROJDIR}/build/dist ${PROJDIR}/keopscore
-
+python -m build --sdist --outdir ${PROJDIR}/build/dist ${PROJDIR}/keopscore
 
 ################################################################################
 # build pykeops                                                                #
@@ -141,4 +142,4 @@ ${PYTHON} -m build --sdist --outdir ${PROJDIR}/build/dist ${PROJDIR}/keopscore
 
 logging "-- Building pykeops..."
 
-${PYTHON} -m build --sdist --outdir ${PROJDIR}/build/dist ${PROJDIR}/pykeops
+python -m build --sdist --outdir ${PROJDIR}/build/dist ${PROJDIR}/pykeops
