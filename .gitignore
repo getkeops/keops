@@ -10,6 +10,7 @@
 
 # Build junk
 *build*
+!pybuild.sh
 *output*
 !*input_output.py
 /build/*
