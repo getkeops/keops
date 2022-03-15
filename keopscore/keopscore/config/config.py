@@ -36,8 +36,10 @@ os.makedirs(keops_cache_folder, exist_ok=True)
 _build_path = None
 
 
-def set_build_folder(path=None, read_save_file=False, write_save_file=True, reset_all=True):
-    
+def set_build_folder(
+    path=None, read_save_file=False, write_save_file=True, reset_all=True
+):
+
     # if path is not given, we either read the save file or use the default build path
     save_file = join(keops_cache_folder, "build_folder_location.txt")
     if not path:
@@ -47,25 +49,25 @@ def set_build_folder(path=None, read_save_file=False, write_save_file=True, rese
             f.close()
         else:
             path = default_build_path
-    
+
     # create the folder if not yet done
     os.makedirs(path, exist_ok=True)
-    
+
     # _build_path contains the current build folder path (or None if not yet set). We need
     # to remove this _build_path from the sys.path, replace the value of _build_path
-    # and update the sys.path 
+    # and update the sys.path
     global _build_path
     if _build_path in sys.path:
         sys.path.remove(_build_path)
     _build_path = path
     sys.path.append(path)
-    
+
     # saving the location of the build path in a file
     if write_save_file:
         f = open(save_file, "w")
         f.write(path)
         f.close()
-    
+
     # reset all cached formulas if needed
     if reset_all:
         keopscore.get_keops_dll.get_keops_dll.reset(new_save_folder=_build_path)
