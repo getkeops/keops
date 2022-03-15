@@ -12,110 +12,9 @@ node {
 pipeline {
   agent none 
   stages {
-  
-// -------------------------------------------------------------------------- //
-    stage("Preparation") {
-      parallel {
-      
-        stage("Prepare Linux") {
-          agent { label 'ubuntu' }
-          steps {
-            echo 'Clean KeOps Cache...'
-            sh 'rm -rf $HOME/.cache/keops*'
-            sh '''#!/bin/bash
-              eval "$(/builds/miniconda3/bin/conda shell.bash hook)"
-              echo "WD=$(pwd)"
-              python3 -m venv --clear .test_venv
-              source .test_venv/bin/activate
-              python -m pip install -U pip pytest
-              ls -la
-            '''
-          }
-        }
-        
-        stage("Prepare MacOS") {
-          agent { label 'macos' }
-          steps {
-            echo 'Clean KeOps Cache...'
-            sh 'rm -rf $HOME/.cache/keops*'
-            sh '''#!/bin/bash
-              echo "WD=$(pwd)"
-              python3 -m venv --clear .test_venv
-              source .test_venv/bin/activate
-              python -m pip install -U pip pytest
-              ls -la
-            '''
-          }
-        }
-        
-        stage("Prepare Cuda") {
-          agent { label 'cuda' }
-          steps {
-            echo 'Clean KeOps Cache...'
-            sh 'rm -rf $HOME/.cache/keops*'
-            sh '''#!/bin/bash
-              echo "WD=$(pwd)"
-              python3 -m venv --clear .test_venv
-              source .test_venv/bin/activate
-              python -m pip install -U pip pytest
-              ls -la
-            '''
-          }
-        }
-      }
-    }
-
-// -------------------------------------------------------------------------- //
-    stage('Test Jenkins CI') {
-      parallel {
-
-        stage('Check Linux config') {
-          agent { label 'ubuntu' }
-          steps {
-            echo 'Testing...'
-            sh '''#!/bin/bash
-              echo "WD=$(pwd)"
-              ls -la
-              source .test_venv/bin/activate
-              echo "Python path = $(which python)"
-              echo "Python version = $(python -V)"
-            '''
-          }
-        }
-        
-        stage('Check MacOs config') {
-          agent { label 'macos' }
-          steps {
-            echo 'Testing...'
-            sh '''#!/bin/bash
-              echo "WD=$(pwd)"
-              ls -la
-              source .test_venv/bin/activate
-              echo "Python path = $(which python)"
-              echo "Python version = $(python -V)"
-            '''
-          }
-        }
-        
-        stage('Check Cuda config') {
-          agent { label 'cuda' }
-          steps {
-            echo 'Testing...'
-            sh '''#!/bin/bash
-              echo "WD=$(pwd)"
-              ls -la
-              source .test_venv/bin/activate
-              echo "Python path = $(which python)"
-              echo "Python version = $(python -V)"
-            '''
-          }
-        }
-      }
-    }
 
 // -------------------------------------------------------------------------- //
 
-/* Skipping PyKeOps test because of Jenkinsfile rewriting in progress
     stage('Test PyKeOps') {
       parallel {
 
@@ -127,10 +26,7 @@ pipeline {
             echo 'Testing...'
             sh '''#!/bin/bash
               eval "$(/builds/miniconda3/bin/conda shell.bash hook)"
-              source .test_venv/bin/activate
-              python -m pip install ./keopscore
-              python -m pip install ./pykeops
-              pytest -v pykeops/pykeops/test/
+              bash pytest.sh
             '''
           }
         }
@@ -142,10 +38,7 @@ pipeline {
             sh 'rm -rf $HOME/.cache/keops*'
             echo 'Testing...'
             sh '''
-              source .test_venv/bin/activate
-              python -m pip install ./keopscore
-              python -m pip install ./pykeops
-              pytest -v pykeops/pykeops/test/
+              bash pytest.sh
             '''
           }
         }
@@ -157,16 +50,12 @@ pipeline {
             sh 'rm -rf $HOME/.cache/keops*'
             echo 'Testing..'
             sh '''#!/bin/bash
-              source .test_venv/bin/activate
-              python -m pip install ./keopscore
-              python -m pip install ./pykeops
-              pytest -v pykeops/pykeops/test/
+              bash pytest.sh
             '''
           }
         }
       }
     }
-*/
 
 // -------------------------------------------------------------------------- //
 
