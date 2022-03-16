@@ -116,6 +116,8 @@ logging "-- Preparing python environment for build..."
 ${PYTHON} -m venv --clear ${BUILD_VENV}
 source ${BUILD_VENV}/bin/activate
 
+logging "---- Python version = $(python -V)"
+
 pip install -U ${BUILD_REQ}
 
 ################################################################################

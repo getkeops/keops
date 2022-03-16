@@ -62,8 +62,6 @@ PROJDIR=$(git rev-parse --show-toplevel)
 
 # python exec
 PYTHON="python3"
-# check python exec
-echo -e "Python exec = $(which $PYTHON)"
 
 # python environment for test
 TEST_VENV=${PROJDIR}/.test_venv
@@ -79,6 +77,8 @@ logging "-- Preparing python environment for test..."
 
 ${PYTHON} -m venv --clear ${TEST_VENV}
 source ${TEST_VENV}/bin/activate
+
+logging "---- Python version = $(python -V)"
 
 pip install -U ${TEST_REQ}
 
