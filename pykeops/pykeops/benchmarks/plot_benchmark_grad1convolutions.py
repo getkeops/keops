@@ -186,7 +186,6 @@ for k in kernel_to_test:
         print("Time for KeOps LazyTensors:       Not Done")
 
 
-
 ####################################################################
 # Display results
 # ---------------
