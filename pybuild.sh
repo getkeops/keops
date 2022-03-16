@@ -80,12 +80,6 @@ BUILD_REQ="pip build pyclean"
 # KeOps current version
 VERSION=$(cat ./keops_version)
 
-# setup config file
-CFG=${PROJDIR}/pykeops/setup.cfg
-
-# requirements
-REQ="[options]\ninstall_requires =\n numpy\n pybind11\n keopscore == \"${VERSION}\""
-
 ################################################################################
 # prepare build (and cleanup after)                                            #
 ################################################################################
@@ -94,14 +88,14 @@ REQ="[options]\ninstall_requires =\n numpy\n pybind11\n keopscore == \"${VERSION
 function prepare_setup() {
     logging "-- Preparing setup..."
     # hard-code keopscore requirements
-    if [[ ! ${LOCAL_PYBUILD} == 1 ]]; then
-        echo -e ${REQ} > ${CFG}
+    if [[ ${LOCAL_PYBUILD} == 0 ]]; then
+        sed -i -e "s/\"keopscore\"/\"keopscore==\" + current_version/" ${PROJDIR}/pykeops/setup.py
     fi
 }
 
 function cleanup_setup() {
     logging "-- Cleaning up setup..."
-    rm -f ${CFG}
+    git checkout HEAD -- ${PROJDIR}/pykeops/setup.py
 }
 
 prepare_setup
