@@ -88,7 +88,7 @@ void SetGpuProps(int device) {
     SET_GPU_PROPS_MACRO(11)
 #endif
     fprintf( stderr, "invalid Gpu device number. If the number of available Gpus is > 12, add required lines at the end of function SetGpuProps and recompile.\n");
-    exit( -1 );
+    throw std::runtime_error("[KeOps] Cuda error.");
 #endif
 
 }
