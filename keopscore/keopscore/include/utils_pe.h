@@ -6,20 +6,32 @@
     nvrtcResult result = x;                                       \
     if (result != NVRTC_SUCCESS) {                                \
       std::cerr << "\nerror: " #x " failed with error "           \
-                << nvrtcGetErrorString(result) << '\n';           \
-      exit(1);                                                    \
+                << nvrtcGetErrorString(result) << '\n' << '\n';   \
+      throw std::runtime_error("[KeOps] NVRTC error.");           \
     }                                                             \
   } while(0)
 
-#define CUDA_SAFE_CALL(x)                                         \
+#define CUDA_SAFE_CALL_NO_EXCEPTION(x)                            \
   do {                                                            \
     CUresult result = x;                                          \
     if (result != CUDA_SUCCESS) {                                 \
       const char *msg;                                            \
       cuGetErrorName(result, &msg);                               \
-      std::cerr << "\nerror: " #x " failed with error "           \
-                << msg << '\n';                                   \
-      exit(1);                                                    \
+      std::cerr << "\n[KeOps] error: " #x " failed with error "   \
+                << msg << '\n' << '\n';                           \
+      exit(1);                                                     \
+    }                                                             \
+  } while(0)
+
+#define CUDA_SAFE_CALL(x)                                        \
+  do {                                                            \
+    CUresult result = x;                                          \
+    if (result != CUDA_SUCCESS) {                                 \
+      const char *msg;                                            \
+      cuGetErrorName(result, &msg);                               \
+      std::cerr << "\n[KeOps] error: " #x " failed with error "   \
+                << msg << '\n' << '\n';                           \
+      throw std::runtime_error("[KeOps] Cuda error.");            \
     }                                                             \
   } while(0)
 
@@ -46,11 +58,11 @@ char *read_text_file(char const *path) {
 
 template<typename TYPE>
 void load_args_FromDevice(CUdeviceptr &p_data, TYPE *out, TYPE *&out_d, int nargs, TYPE **arg, TYPE **&arg_d) {
-    cuMemAlloc(&p_data, sizeof(TYPE *) * nargs);
+    CUDA_SAFE_CALL(cuMemAlloc(&p_data, sizeof(TYPE *) * nargs));
     out_d = out;
     arg_d = (TYPE **) p_data;
     // copy array of pointers
-    cuMemcpyHtoD((CUdeviceptr) arg_d, arg, nargs * sizeof(TYPE *));
+    CUDA_SAFE_CALL(cuMemcpyHtoD((CUdeviceptr) arg_d, arg, nargs * sizeof(TYPE *)));
 }
 
 
@@ -67,7 +79,7 @@ load_args_FromHost(CUdeviceptr &p_data, TYPE *out, TYPE *&out_d, int nargs,
         totsize += sizes[k];
     }
 
-    cuMemAlloc(&p_data, sizeof(TYPE *) * nargs + sizeof(TYPE) * totsize);
+    CUDA_SAFE_CALL(cuMemAlloc(&p_data, sizeof(TYPE *) * nargs + sizeof(TYPE) * totsize));
 
     arg_d = (TYPE **) p_data;
     TYPE *dataloc = (TYPE *) (arg_d + nargs);
@@ -79,10 +91,10 @@ load_args_FromHost(CUdeviceptr &p_data, TYPE *out, TYPE *&out_d, int nargs,
     dataloc += sizeout;
     for (int k = 0; k < nargs; k++) {
         ph[k] = dataloc;
-        cuMemcpyHtoD((CUdeviceptr) dataloc, arg[k], sizeof(TYPE) * sizes[k]);
+        CUDA_SAFE_CALL(cuMemcpyHtoD((CUdeviceptr) dataloc, arg[k], sizeof(TYPE) * sizes[k]));
         dataloc += sizes[k];
     }
 
     // copy array of pointers
-    cuMemcpyHtoD((CUdeviceptr) arg_d, ph, nargs * sizeof(TYPE *));
+    CUDA_SAFE_CALL(cuMemcpyHtoD((CUdeviceptr) arg_d, ph, nargs * sizeof(TYPE *)));
 }

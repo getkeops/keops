@@ -52,12 +52,12 @@ extern "C" int Compile(const char *target_file_name, const char *cu_code, int us
 
     // Get device id from Driver API
     CUdevice cuDevice;
-    cuDeviceGet(&cuDevice, device_id);
+    CUDA_SAFE_CALL(cuDeviceGet(&cuDevice, device_id));
 
     // Get Compute Capability from Driver API
     int deviceProp_major, deviceProp_minor;
-    cuDeviceGetAttribute(&deviceProp_major, CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MAJOR, cuDevice);
-    cuDeviceGetAttribute(&deviceProp_minor, CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MINOR, cuDevice);
+    CUDA_SAFE_CALL(cuDeviceGetAttribute(&deviceProp_major, CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MAJOR, cuDevice));
+    CUDA_SAFE_CALL(cuDeviceGetAttribute(&deviceProp_minor, CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MINOR, cuDevice));
 
     std::ostringstream arch_flag;
     arch_flag << "-arch=" << ARCHTAG << "_" << deviceProp_major << deviceProp_minor;
@@ -78,12 +78,11 @@ extern "C" int Compile(const char *target_file_name, const char *cu_code, int us
                                 2,              // numOptions
                                 opts);          // options
 
-    delete[] arch_flag_char;
-
     if (compileResult != NVRTC_SUCCESS) {
-        std::cout << std::endl << "[KeOps] Error when compiling formula." << std::endl;
-        exit(1);
+        throw std::runtime_error("[KeOps] Error when compiling formula (error in nvrtcCompileProgram).");
     }
+
+    delete[] arch_flag_char;
 
     // Obtain PTX or CUBIN from the program.
     size_t targetSize;
