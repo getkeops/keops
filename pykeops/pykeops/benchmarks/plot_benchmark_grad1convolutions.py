@@ -109,7 +109,6 @@ kernels = {
 speed_numpy = {i: np.nan for i in kernel_to_test}
 speed_pykeops = {i: np.nan for i in kernel_to_test}
 speed_pytorch = {i: np.nan for i in kernel_to_test}
-speed_pykeops_specific = {i: np.nan for i in kernel_to_test}
 
 print("Timings for {}x{} convolution gradients:".format(M, N))
 
@@ -186,30 +185,6 @@ for k in kernel_to_test:
     except:
         print("Time for KeOps LazyTensors:       Not Done")
 
-    # Specific cuda tiled implementation (if cuda is available)
-    try:
-        from pykeops.numpy import RadialKernelGrad1conv
-
-        my_conv = RadialKernelGrad1conv(dtype)
-        g1 = my_conv(a, x, y, b, sigma, kernel=k)
-        torch.cuda.synchronize()
-        speed_pykeops_specific[k] = np.array(
-            timeit.repeat(
-                "g1 = my_conv(a, x, y, b, sigma, kernel=k)",
-                globals=globals(),
-                repeat=REPEAT,
-                number=1,
-            )
-        )
-        print(
-            "Time for KeOps cuda specific: {:.4f}s".format(
-                np.median(speed_pykeops_specific[k])
-            ),
-            end="",
-        )
-        print("   (absolute error:       ", np.max(np.abs(g1 - gnumpy)), ")")
-    except:
-        print("Time for KeOps cuda specific: Not Done")
 
 
 ####################################################################
@@ -233,11 +208,6 @@ plt.violinplot(
     showmeans=False,
     showmedians=True,
 )
-plt.violinplot(
-    list(speed_pykeops_specific.values()),
-    showmeans=False,
-    showmedians=True,
-)
 
 plt.xticks([1, 2, 3, 4], kernel_to_test)
 plt.yscale("log")
@@ -252,7 +222,7 @@ fake_handles = [matplotlib.patches.Patch(color=cmap(i)) for i in range(4)]
 
 plt.legend(
     fake_handles,
-    ["NumPy", "PyTorch", "KeOps LazyTensors", "KeOps specific"],
+    ["NumPy", "PyTorch", "KeOps LazyTensors"],
     loc="best",
 )
 
