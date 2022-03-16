@@ -67,21 +67,26 @@ Alternatively, you may:
   Note that compiled **.so** routines will be stored in the folder ``/path/to/libkeops/pykeops/build``: this directory must have **write permission**. 
 
 
-2. Manually add the directory ``/path/to/libkeops`` (and **not** ``/path/to/libkeops/pykeops/``) to your python path.
-   
-  + This can be done once and for all, by adding the path to to your ``~/.bashrc``. In a terminal, type:
+2. Install via pip in editable mode as follows :
+           
+    .. code-block:: bash
+
+      pip install -e /path/to/libkeops/keopscore -e /path/to/libkeops/pykeops
+
+  + Otherwise you may add the directories ``/path/to/libkeops/keopscore`` and ``/path/to/libkeops/pykeops`` to your python path. This can be done once and for all, by adding the path to to your ``~/.bashrc``. In a terminal, type:
         
     .. code-block:: bash
 
-      echo "export PYTHONPATH=$PYTHONPATH:/path/to/libkeops/" >> ~/.bashrc
+      echo "export PYTHONPATH=$PYTHONPATH:/path/to/libkeops/keopscore:/path/to/libkeops/pykeops" >> ~/.bashrc
 
-  + Otherwise, you may add the following line to the beginning of your python scripts:
+  + Alternatively, you may add the following line to the beginning of your python scripts:
     
     .. code-block:: python
 
       import os.path
       import sys
-      sys.path.append('/path/to/libkeops')
+      sys.path.append('/path/to/libkeops/keopscore')
+			sys.path.append('/path/to/libkeops/pykeops')
 
 3. Test your installation, as described in the :ref:`next section. <part.checkPython>`
 
