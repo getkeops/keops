@@ -89,13 +89,15 @@ function prepare_setup() {
     logging "-- Preparing setup..."
     # hard-code keopscore requirements
     if [[ ${LOCAL_PYBUILD} == 0 ]]; then
+        cp ${PROJDIR}/pykeops/setup.py ${PROJDIR}/pykeops/setup.py.pybuild.bak
         sed -i -e "s/\"keopscore\"/\"keopscore==\" + current_version/" ${PROJDIR}/pykeops/setup.py
     fi
 }
 
 function cleanup_setup() {
     logging "-- Cleaning up setup..."
-    git checkout HEAD -- ${PROJDIR}/pykeops/setup.py
+    cp ${PROJDIR}/pykeops/setup.py.pybuild.bak ${PROJDIR}/pykeops/setup.py
+    rm ${PROJDIR}/pykeops/setup.py.pybuild.bak
 }
 
 prepare_setup
