@@ -1,3 +1,10 @@
+* v2.0 - Mar 17, 2022
+    - Complete rewritting of meta-programming engine: compilation times are divided by 10-100
+    - JIT compilation of cuda kernels
+    - keopsLab is now deprecated
+    - improve unit test framework
+    - Many bug fixing
+
 * v1.5 - Mar 22, 2021
     - Add multiple operations: acos, asin, atan, atan2, sinc, if-else, round, modulo.
     - Complex numbers: full python support, pairs of float/double for other languages.

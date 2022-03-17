@@ -50,7 +50,7 @@ if [ $build_step = true ]; then
 for i in 1 .. number_of_build
 do
   make clean
-  CXX=g++-8 CC=gcc-8 make html
+  make html
 done
 
 fi
