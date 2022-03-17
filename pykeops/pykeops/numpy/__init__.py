@@ -1,6 +1,3 @@
-import pykeops.config
-
-
 ##########################################################
 # Import pyKeOps routines
 

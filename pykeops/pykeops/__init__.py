@@ -44,6 +44,8 @@ if keopscore.config.config.use_cuda:
 
 
 def clean_pykeops(recompile_jit_binaries=True):
+    import pykeops
+
     keopscore.clean_keops(recompile_jit_binary=recompile_jit_binaries)
     keops_binder = pykeops.common.keops_io.keops_binder
     for key in keops_binder:
@@ -53,6 +55,8 @@ def clean_pykeops(recompile_jit_binaries=True):
 
 
 def set_build_folder(path=None):
+    import pykeops
+
     keopscore.set_build_folder(path)
     keops_binder = pykeops.common.keops_io.keops_binder
     for key in keops_binder:
