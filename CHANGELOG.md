@@ -1,6 +1,7 @@
 * v2.0 - Mar 17, 2022
     - Complete rewritting of meta-programming engine: compilation times are divided by 10-100
     - JIT compilation of cuda kernels
+    - added support for in-place operations.
     - keopsLab is now deprecated
     - improve unit test framework
     - Many bug fixing
