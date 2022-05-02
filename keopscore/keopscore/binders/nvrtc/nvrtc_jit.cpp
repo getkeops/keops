@@ -9,6 +9,7 @@
 #include <fstream>
 #include <sstream>
 #include <stdarg.h>
+#include <string.h>
 #include <vector>
 //#include <ctime>
 
