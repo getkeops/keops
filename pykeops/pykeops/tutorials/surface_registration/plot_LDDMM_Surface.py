@@ -226,7 +226,7 @@ it, jt, kt = (
     FT[:, 2].detach().cpu().numpy(),
 )
 
-save_folder = "../../../doc/_build/html/_images/"
+save_folder = os.path.join("..", "..", "..", "..", "doc", "_build", "html", "_images")
 os.makedirs(save_folder, exist_ok=True)
 
 fig = go.Figure(
@@ -235,7 +235,7 @@ fig = go.Figure(
         go.Mesh3d(x=x, y=y, z=z, i=i, j=j, k=k, color="red", opacity=0.50),
     ]
 )
-fig.write_html(save_folder + "data.html", auto_open=False)
+fig.write_html(os.path.join(save_folder, "data.html"), auto_open=False)
 # sphinx_gallery_thumbnail_path = '_static/plot_LDDMM_Surface_thumb.png'
 
 
@@ -347,4 +347,4 @@ sliders = [
 
 fig.update_layout(sliders=sliders)
 
-fig.write_html(save_folder + "results.html", auto_open=False)
+fig.write_html(os.path.join(save_folder, "results.html"), auto_open=False)
