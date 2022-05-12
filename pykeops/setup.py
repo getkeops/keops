@@ -72,6 +72,7 @@ setup(
             "recommonmark",
             "sphinxcontrib-httpdomain",
             "sphinx_rtd_theme",
+            "sphinx-prompt",
             "breathe",
             "matplotlib",
             "imageio",

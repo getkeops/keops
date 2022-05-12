@@ -41,6 +41,7 @@ from pykeops import __version__
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
+    "sphinx-prompt",
     "sphinx.ext.autodoc",
     "sphinx.ext.doctest",
     "sphinx.ext.coverage",

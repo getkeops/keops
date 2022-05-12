@@ -20,7 +20,7 @@ Using pip (recommended)
 
 2. In a terminal, type:
 
-  .. code-block:: bash
+  .. prompt:: bash $
 
     pip install pykeops
 
@@ -35,7 +35,7 @@ Google provides free virtual machines where KeOps runs
 out-of-the-box. 
 In a new `Colab notebook <https://colab.research.google.com>`_, typing:
 
-.. code-block:: bash
+.. prompt:: bash $
 
     !pip install pykeops > install.log
 
@@ -50,7 +50,7 @@ The simplest way of installing a specific version
 of KeOps is to use `some advanced pip syntax <https://pip.pypa.io/en/stable/reference/pip_install/#git>`_:
 
 
-.. code-block:: bash
+.. prompt:: bash $
 
     pip install git+https://github.com/getkeops/keops.git@main#subdirectory=keopscore
     pip install git+https://github.com/getkeops/keops.git@main#subdirectory=pykeops
@@ -60,7 +60,7 @@ Alternatively, you may:
 
 1. Clone the KeOps repo at a location of your choice (denoted here as ``/path/to``):
 
-  .. code-block:: bash
+  .. prompt:: bash $
 
     git clone --recursive https://github.com/getkeops/keops.git /path/to/libkeops
 
@@ -69,13 +69,13 @@ Alternatively, you may:
 
 2. Install via pip in editable mode as follows :
            
-    .. code-block:: bash
+    .. prompt:: bash $
 
       pip install -e /path/to/libkeops/keopscore -e /path/to/libkeops/pykeops
 
   + Otherwise you may add the directories ``/path/to/libkeops/keopscore`` and ``/path/to/libkeops/pykeops`` to your python path. This can be done once and for all, by adding the path to to your ``~/.bashrc``. In a terminal, type:
         
-    .. code-block:: bash
+    .. prompt:: bash $
 
       echo "export PYTHONPATH=$PYTHONPATH:/path/to/libkeops/keopscore:/path/to/libkeops/pykeops" >> ~/.bashrc
 
@@ -86,7 +86,7 @@ Alternatively, you may:
       import os.path
       import sys
       sys.path.append('/path/to/libkeops/keopscore')
-			sys.path.append('/path/to/libkeops/pykeops')
+            sys.path.append('/path/to/libkeops/pykeops')
 
 3. Test your installation, as described in the :ref:`next section. <part.checkPython>`
 
@@ -107,7 +107,7 @@ You can use the following test functions to compile and run simple KeOps formula
         
   should return:
 
-  .. code-block:: bash
+  .. code-block:: text
 
     pyKeOps with numpy bindings is working!
 
@@ -120,7 +120,7 @@ You can use the following test functions to compile and run simple KeOps formula
   
   should return:
 
-  .. code-block:: bash
+  .. code-block:: text
 
     pyKeOps with torch bindings is working!
 
@@ -166,7 +166,7 @@ Verbosity level
 
 You can deactivate all messages and warnings by setting the environment variable `PYKEOPS_VERBOSE` to 0. In a terminal, type:
 
-.. code-block:: bash
+.. prompt:: bash $
 
   export PYKEOPS_VERBOSE=0
   python my_script_calling_pykeops.py

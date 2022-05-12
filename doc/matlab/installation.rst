@@ -20,7 +20,7 @@ Packaged version (recommended)
 
 1. Download and unzip the KeOps library at a location of your choice (denoted here by ``/path/to``):
 
-.. code-block:: bash
+.. prompt:: bash $
 
     cd /path/to
     wget https://github.com/getkeops/keops/archive/refs/tags/v1.5.zip
@@ -40,7 +40,7 @@ From source using git
 1. Clone the KeOps repository at a location of your choice (denoted here by ``/path/to``):
     
 
-.. code-block:: bash
+.. prompt:: bash $
 
     git clone https://github.com/getkeops/keops.git /path/to/keops
 
@@ -121,7 +121,7 @@ Cmake is not found
 
 If an error involving ``cmake`` appears, it may be due to an incorrect linking of ``libstdc++``. Try the following: exit Matlab, then type in a terminal 
 
-.. code-block:: bash
+.. prompt:: bash $
 
     export LD_PRELOAD=$(ldd $( which cmake ) | grep libstdc++ | tr ' ' '\n' | grep /)
     matlab
