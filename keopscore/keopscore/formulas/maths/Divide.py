@@ -25,13 +25,13 @@ class Divide_Impl(VectorizedScalarOp):
     def DiffT(self, v, gradin):
         fa, fb = self.children
         if fa.dim == 1 and fb.dim > 1:
-            return fa.DiffT(v, Sum(gradin/fb)) - fb.DiffT(v, fa * gradin / Square(fb))
+            return fa.DiffT(v, Sum(gradin / fb)) - fb.DiffT(v, fa * gradin / Square(fb))
         elif fb.dim == 1 and fa.dim > 1:
             return (
                 fa.DiffT(v, fb * gradin) - fb.DiffT(v, Scalprod(gradin, fa))
             ) / Square(fb)
         else:
-            return (fa.DiffT(v, gradin / fb) - fb.DiffT(v, fa * gradin / Square(fb))) 
+            return fa.DiffT(v, gradin / fb) - fb.DiffT(v, fa * gradin / Square(fb))
 
     # parameters for testing the operation (optional)
     nargs = 2  # number of arguments
