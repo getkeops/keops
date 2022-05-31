@@ -39,6 +39,7 @@ def do_chunk_sub(
     fout,
     xi,
     yj,
+    yjrel,
     param_loc,
 ):
     chk = Chunk_Mode_Constants(red_formula)
@@ -67,7 +68,6 @@ def do_chunk_sub(
         chunk,
         row_index=j,
     )
-    yjrel = c_variable(pointer(dtype), "yjrel")
     chktable = table(
         chk.nminargs,
         dimsx,
@@ -182,6 +182,7 @@ class GpuReduc1D_chunks(MapReduce, Gpu_link_compile):
             fout_chunk,
             xi,
             yj,
+            yjrel,
             param_loc,
         )
 
@@ -209,6 +210,7 @@ class GpuReduc1D_chunks(MapReduce, Gpu_link_compile):
             fout_chunk,
             xi,
             yj,
+            yjrel,
             param_loc,
         )
 

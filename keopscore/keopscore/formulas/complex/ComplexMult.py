@@ -17,8 +17,6 @@ class ComplexMult(VectorizedComplexScalarOp):
 
     def DiffT(self, v, gradin):
         f, g = self.children
-        DiffTF = f.DiffT(v, gradin)
-        DiffTG = g.DiffT(v, gradin)
-        return DiffTF(v, ComplexMult(Conj(g), gradin)) + DiffTG(
+        return f.DiffT(v, ComplexMult(Conj(g), gradin)) + g.DiffT(
             v, ComplexMult(Conj(f), gradin)
         )
