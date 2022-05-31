@@ -2,16 +2,17 @@ import pykeops
 import torch
 from pykeops.torch import Genred
 
+
 def cauchy(v, z, w):
-    expr = 'ComplexDivide(v, z-w)'
+    expr = "ComplexDivide(v, z-w)"
     cauchy_mult = Genred(
         expr,
         [
-            'v = Vj(2)',
-            'z = Vi(2)',
-            'w = Vj(2)',
+            "v = Vj(2)",
+            "z = Vi(2)",
+            "w = Vj(2)",
         ],
-        reduction_op='Sum',
+        reduction_op="Sum",
         axis=1,
     )
 
@@ -19,16 +20,19 @@ def cauchy(v, z, w):
     z = torch.view_as_real(z)
     w = torch.view_as_real(w)
 
-    r = cauchy_mult(v, z, w, backend='GPU')
+    r = cauchy_mult(v, z, w, backend="GPU")
     return torch.view_as_complex(r)
 
-def convert_data(*tensors, device='cuda'):
-    """ Prepare tensors for backwards pass """
+
+def convert_data(*tensors, device="cuda"):
+    """Prepare tensors for backwards pass"""
     tensors = tuple(t.to(device) for t in tensors)
     for t in tensors:
-        if t.is_leaf: t.requires_grad = True
+        if t.is_leaf:
+            t.requires_grad = True
         t.retain_grad()
     return tensors
+
 
 def data(B, N, L):
     w = torch.randn(B, N, dtype=torch.cfloat)
@@ -37,6 +41,7 @@ def data(B, N, L):
 
     w, v, z = convert_data(w, v, z)
     return w, v, z
+
 
 def test():
     B = 4
@@ -52,5 +57,6 @@ def test():
 
     print(grad.shape, grad.dtype)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     test()
