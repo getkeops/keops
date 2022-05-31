@@ -2,7 +2,7 @@
 
 ---------------------------------------------------------------------------------
 
-[![Build status](https://ci.inria.fr/keops-qualif/buildStatus/icon?job=KeOps_ci%2Fmain)](https://ci.inria.fr/keops-qualif/job/KeOps_ci/job/main/)
+[![Build status](https://ci.inria.fr/keops-qualif/buildStatus/icon?job=keops%2Fmain)](https://ci.inria.fr/keops-qualif/job/keops/job/main/)
 [![PyPI version](https://img.shields.io/pypi/v/pykeops?color=blue)](https://pypi.org/project/pykeops/)
 [![PyPI downloads](https://pepy.tech/badge/pykeops?color=green)](https://pypi.org/project/pykeops/)
 [![CRAN version](https://img.shields.io/cran/v/rkeops?color=yellowgreen)](https://cran.r-project.org/web/packages/rkeops/index.html)
