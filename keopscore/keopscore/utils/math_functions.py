@@ -32,15 +32,21 @@ def math_function(
         # N.B. first argument gives main dtype
         dtype = args[0].dtype
         if dtype == "half2":
-            code_fun = convert_to_fun(gpu_half2_code)
-        elif keopscore.config.config.use_cuda:
-            if dtype == "float":
-                code_fun = convert_to_fun(gpu_float_code)
-            else:
-                code_fun = convert_to_fun(gpu_code)
+            code_fun_gpu = convert_to_fun(gpu_half2_code)
+        elif dtype == "float":
+            code_fun_gpu = convert_to_fun(gpu_float_code)
         else:
-            code_fun = convert_to_fun(cpu_code)
-        string = code_fun(*(arg.id for arg in args))
+            code_fun_gpu = convert_to_fun(gpu_code)
+        string_gpu = code_fun_gpu(*(arg.id for arg in args))
+        code_fun_cpu = convert_to_fun(cpu_code)
+        string_cpu = code_fun_cpu(*(arg.id for arg in args))
+        string = f"""
+                    #ifdef __CUDACC__
+                        {string_gpu}
+                    #else
+                        {string_cpu}
+                    #endif
+                """
         if void:
             return string
         else:
