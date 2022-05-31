@@ -13,7 +13,7 @@ class Cache:
         self.use_cache_file = use_cache_file
         if use_cache_file:
             self.cache_file = os.path.join(save_folder, fun.__name__ + "_cache.pkl")
-            if os.path.isfile(self.cache_file):
+            if os.path.isfile(self.cache_file) and os.path.getsize(self.cache_file) > 0:
                 f = open(self.cache_file, "rb")
                 self.library = pickle.load(f)
                 f.close()
