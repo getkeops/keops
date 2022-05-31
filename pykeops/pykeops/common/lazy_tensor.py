@@ -1711,7 +1711,9 @@ class GenericLazyTensor:
         """
 
         if is_complex_lazytensor(other):
-            raise ValueError("keops_tensordot is not implemented for complex LazyTensors")
+            raise ValueError(
+                "keops_tensordot is not implemented for complex LazyTensors"
+            )
 
         # permute = tuple(range(len(dimfa) + len(dimfb) - 2 * len(contfa)))
         opt_arg = ""
