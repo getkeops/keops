@@ -903,7 +903,6 @@ class GenericLazyTensor:
                     [],
                     self.formula2,
                     self.axis,
-                    self._dtype,
                     **kwargs_init,
                     rec_multVar_highdim=self.rec_multVar_highdim
                 )
@@ -913,9 +912,8 @@ class GenericLazyTensor:
                     [],
                     self.reduction_op,
                     self.axis,
-                    self._dtype,
-                    self.opt_arg,
-                    self.formula2,
+                    opt_arg=self.opt_arg,
+                    formula2=self.formula2,
                     **kwargs_init,
                     rec_multVar_highdim=self.rec_multVar_highdim
                 )
