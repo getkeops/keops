@@ -135,6 +135,19 @@ def get_cuda_version(out_type="single_value"):
     elif out_type == "string":
         return f"{cuda_version_major}.{cuda_version_minor}"
 
+def get_nvrtc_version(out_type="single_value"):
+    nvrtc = ctypes.CDLL(find_library("nvrtc"))
+    major, minor = ctypes.c_int(), ctypes.c_int()
+    nvrtc.nvrtcVersion(ctypes.byref(major), ctypes.byref(minor))
+    major, minor = int(major.value), int(minor.value)
+    if out_type == "single_value":
+        return major*1000 + minor*10
+    elif out_type == "major,minor":
+        return major, minor
+    elif out_type == "string":
+        return f"{major}.{minor}"
+
+
 
 def get_gpu_props():
     """
