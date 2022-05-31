@@ -1709,6 +1709,10 @@ class GenericLazyTensor:
         :param args: a tuple of int containing the graph of a permutation of the output
         :return:
         """
+
+        if is_complex_lazytensor(other):
+            raise ValueError("keops_tensordot is not implemented for complex LazyTensors")
+
         # permute = tuple(range(len(dimfa) + len(dimfb) - 2 * len(contfa)))
         opt_arg = ""
         for intseq in (dimfa, dimfb, contfa, contfb) + args:
@@ -2384,7 +2388,7 @@ class ComplexGenericLazyTensor(GenericLazyTensor):
         else:
             return s
 
-    # List of supported operations  ============================================
+    # List of supported (or not supported) operations  ============================================
 
     @property
     def real(self):
@@ -2492,6 +2496,9 @@ class ComplexGenericLazyTensor(GenericLazyTensor):
 
     def exp1j(self):
         raise ValueError("exp1j cannot be applied to a complex LazyTensor.")
+
+    def keops_tensordot(self, *args):
+        raise ValueError("keops_tensordot is not implemented for complex LazyTensors")
 
     def __call__(self, *args, **kwargs):
         res = super().__call__(*args, **kwargs)
