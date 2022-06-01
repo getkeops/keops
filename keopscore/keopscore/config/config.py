@@ -110,7 +110,7 @@ compile_options = " -shared -fPIC -O3 -std=c++11"
 
 
 # cpp options
-cpp_flags = compile_options + " -flto"
+cpp_flags = compile_options + " -flto=auto"
 disable_pragma_unrolls = True
 
 # OpenMP setting
