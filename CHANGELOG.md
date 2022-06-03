@@ -1,3 +1,9 @@
+* v2.1 - Jun 3, 2022
+    - fix for gradient formula of divide operation (issue #246)
+    - fix for special chunked computation mode (issue #243)
+    - fix for the gradient formula for complex multiplication operation (issue #238)
+    - Other minor bug fixes (issues #242, #240, #248, #241, #233)
+
 * v2.0 - Mar 17, 2022
     - Complete rewritting of meta-programming engine: compilation times are divided by 10-100
     - JIT compilation of cuda kernels
