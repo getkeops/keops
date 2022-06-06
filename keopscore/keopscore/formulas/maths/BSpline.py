@@ -119,4 +119,3 @@ else:
             return Extract(BSpline_Impl(knots, x, order), 0, knots.dim - order - 1)
 
         enable_test = False
-
