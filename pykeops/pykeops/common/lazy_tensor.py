@@ -643,7 +643,7 @@ class GenericLazyTensor:
         dim=None,
         call=True,
         is_complex=None,
-        **kwargs
+        **kwargs,
     ):
         r"""
         Applies a reduction to a :class:`LazyTensor`. This method is used internally by the LazyTensor class.
@@ -749,7 +749,7 @@ class GenericLazyTensor:
                 opt_arg=res.opt_arg,
                 formula2=res.formula2,
                 **kwargs_init,
-                rec_multVar_highdim=res.rec_multVar_highdim
+                rec_multVar_highdim=res.rec_multVar_highdim,
             )
         if call and len(res.symbolic_variables) == 0 and res._dtype is not None:
             return res()
@@ -868,7 +868,7 @@ class GenericLazyTensor:
                 res.varformula,
                 res.axis,
                 **kwargs_init,
-                rec_multVar_highdim=res.rec_multVar_highdim
+                rec_multVar_highdim=res.rec_multVar_highdim,
             )
 
         # we call if call=True, if other is not symbolic, and if the dtype is set
@@ -913,7 +913,7 @@ class GenericLazyTensor:
                     self.formula2,
                     self.axis,
                     **kwargs_init,
-                    rec_multVar_highdim=self.rec_multVar_highdim
+                    rec_multVar_highdim=self.rec_multVar_highdim,
                 )
             else:
                 self.callfun = self.Genred(
@@ -924,7 +924,7 @@ class GenericLazyTensor:
                     opt_arg=self.opt_arg,
                     formula2=self.formula2,
                     **kwargs_init,
-                    rec_multVar_highdim=self.rec_multVar_highdim
+                    rec_multVar_highdim=self.rec_multVar_highdim,
                 )
 
         if self.reduction_op == "Solve" and len(self.other.symbolic_variables) == 0:
@@ -1612,8 +1612,9 @@ class GenericLazyTensor:
         :param x: a LazyTensor of dimension 1.
         :param k: a non-negative integer.
         """
-        return self.binary(x, "BSpline", dimres=(self.ndim - k - 1), dimcheck="vecand1", opt_arg=f"{k}")
-
+        return self.binary(
+            x, "BSpline", dimres=(self.ndim - k - 1), dimcheck="vecand1", opt_arg=f"{k}"
+        )
 
     def concat(self, other):
         r"""

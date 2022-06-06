@@ -14,6 +14,7 @@ from keopscore.utils.misc_utils import KeOps_Error
 # In the final BSpline operation, we simply use "extract" to discard
 # the "order" irrelevant coefficients.
 
+
 class BSpline_Impl(Operation):
     string_id = "BSpline_Impl"
 
@@ -22,12 +23,16 @@ class BSpline_Impl(Operation):
             KeOps_Error(f"The order of a BSpline must be >= 0, but received {order}.")
 
         if x.dim != 1:
-            KeOps_Error(f"BSplines must be sampled at scalar values, "
-                f"but received a vector of size {x.dim}.")
+            KeOps_Error(
+                f"BSplines must be sampled at scalar values, "
+                f"but received a vector of size {x.dim}."
+            )
 
         if knots.dim < order + 2:
-            KeOps_Error(f"BSplines of order {order} require at least {order+2} knots, "
-            f"but only received a vector of size {knots.dim}.")
+            KeOps_Error(
+                f"BSplines of order {order} require at least {order+2} knots, "
+                f"but only received a vector of size {knots.dim}."
+            )
 
         super().__init__(knots, x, params=(order,))
         self.order = order
@@ -41,7 +46,9 @@ class BSpline_Impl(Operation):
         ratio_2 = c_variable("float")
         init_loop, j = c_for_loop(0, self.dim, 1, pragma_unroll=True)
         outer_loop, k = c_for_loop(1, self.order + 1, 1, pragma_unroll=True)
-        inner_loop, i = c_for_loop(0, c_variable("int", self.dim) - k, 1, pragma_unroll=True)
+        inner_loop, i = c_for_loop(
+            0, c_variable("int", self.dim) - k, 1, pragma_unroll=True
+        )
 
         inner_loop_code = f"""
         // Compute the second ratio "omega_i+1,k" = (x - t_i+1) / (t_i+k+1 - t_i+1):
@@ -84,10 +91,12 @@ class BSpline_Impl(Operation):
         return code
 
     def DiffT(self, v, gradin):
-        raise NotImplementedError("KeOps BSplines are not yet differentiable."
-        "Please consider disabling autograd for the relevant variables"
-        "with 'x.detach()' "
-        "or submit a feature request at https://github.com/getkeops/keops/issues.")
+        raise NotImplementedError(
+            "KeOps BSplines are not yet differentiable."
+            "Please consider disabling autograd for the relevant variables"
+            "with 'x.detach()' "
+            "or submit a feature request at https://github.com/getkeops/keops/issues."
+        )
 
     # parameters for testing the operation (optional)
     enable_test = True  # enable testing for this operation
@@ -100,10 +109,12 @@ class BSpline_Impl(Operation):
 # TODO Jean: The two ways of defining an alias seem equivalent to me...
 #            Which one should we use?
 if True:
+
     def BSpline(knots, x, order):
         return Extract(BSpline_Impl(knots, x, order), 0, knots.dim - order - 1)
 
 else:
+
     class BSpline:
         def __new__(cls, knots, x, order):
             return Extract(BSpline_Impl(knots, x, order), 0, knots.dim - order - 1)

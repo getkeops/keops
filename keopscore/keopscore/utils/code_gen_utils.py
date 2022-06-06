@@ -121,45 +121,45 @@ class c_variable:
             KeOps_Error("not implemented")
 
     def __add__(self, other):
-        python_op = lambda x, y: x+y
+        python_op = lambda x, y: x + y
         return self.binary_op(other, python_op, "+", "addition")
 
     def __mul__(self, other):
-        python_op = lambda x, y: x*y
+        python_op = lambda x, y: x * y
         return self.binary_op(other, python_op, "*", "product")
 
     def __sub__(self, other):
-        python_op = lambda x, y: x-y
+        python_op = lambda x, y: x - y
         return self.binary_op(other, python_op, "-", "subtraction")
 
     def __truediv__(self, other):
-        python_op = lambda x, y: x/y
+        python_op = lambda x, y: x / y
         return self.binary_op(other, python_op, "/", "division")
 
     def __lt__(self, other):
-        python_op = lambda x,y : x < y
+        python_op = lambda x, y: x < y
         return self.binary_op(other, python_op, "<", "comparison", dtype="bool")
 
     def __le__(self, other):
-        python_op = lambda x,y : x <= y
+        python_op = lambda x, y: x <= y
         return self.binary_op(other, python_op, "<=", "comparison", dtype="bool")
 
     def __gt__(self, other):
-        python_op = lambda x,y : x > y
+        python_op = lambda x, y: x > y
         return self.binary_op(other, python_op, ">", "comparison", dtype="bool")
 
     def __ge__(self, other):
-        python_op = lambda x,y : x >= y
+        python_op = lambda x, y: x >= y
         return self.binary_op(other, python_op, ">=", "comparison", dtype="bool")
 
     # N.B.: The & symbol (__and__) denotes the bitwise operator, not the logical one
     def logical_and(self, other):
-        python_op = lambda x,y : x and y
+        python_op = lambda x, y: x and y
         return self.binary_op(other, python_op, "&&", "comparison", dtype="bool")
 
     # N.B.: The | symbol (__or__) denotes the bitwise operator, not the logical one
     def logical_or(self, other):
-        python_op = lambda x,y : x or y
+        python_op = lambda x, y: x or y
         return self.binary_op(other, python_op, "||", "comparison", dtype="bool")
 
     def ternary(self, out_true, out_false):
@@ -173,8 +173,9 @@ class c_variable:
                 f"The two possible output of a ternary operator should have the same dtype, "
                 f"found {out_true.dtype} and {out_false.dtype}."
             )
-        return c_variable(out_true.dtype, f"({self.id} ? {out_true.id} : {out_false.id})")
-
+        return c_variable(
+            out_true.dtype, f"({self.id} ? {out_true.id} : {out_false.id})"
+        )
 
     def __neg__(self):
         return c_variable(self.dtype, f"(-{self.id})")
