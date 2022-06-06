@@ -6,6 +6,7 @@ from .ArgMin import ArgMin
 from .Asin import Asin
 from .Atan import Atan
 from .Atan2 import Atan2
+from .BSpline import BSpline
 from .Clamp import Clamp
 from .ClampInt import ClampInt
 from .Concat import Concat
@@ -67,6 +68,7 @@ __all__ = [
     "Asin",
     "Atan",
     "Atan2",
+    "BSpline",
     "Clamp",
     "ClampInt",
     "Concat",
