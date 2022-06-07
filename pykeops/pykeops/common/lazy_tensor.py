@@ -467,7 +467,7 @@ class GenericLazyTensor:
           - is_operator (bool, default=False): May be used to specify if **operation** is
             an operator like ``+``, ``-`` or a "genuine" function.
           - dimcheck (string): shall we check the input dimensions?
-            Supported values are ``"same"``, ``"sameor1"``, or **None**.
+            Supported values are ``"same"``, ``"sameor1"``, ``"vecand1"`` or **None**.
           - rversion (Boolean): shall we invert lhs and rhs of the binary op, e.g. as in __radd__, __rmut__, etc...
         """
 
@@ -507,8 +507,17 @@ class GenericLazyTensor:
                     + "Received {} and {}.".format(self.ndim, other.ndim)
                 )
 
+        elif dimcheck == "vecand1":
+            if other.ndim != 1:
+                raise ValueError(
+                    "Operation {} expects a vector and a scalar input (of dimension 1). ".format(
+                        operation
+                    )
+                    + "Received {} and {}.".format(self.ndim, other.ndim)
+                )
+
         elif dimcheck != None:
-            raise ValueError("incorrect dimcheck keyword in binary operation")
+            raise ValueError("Incorrect dimcheck keyword in binary operation")
 
         res = self.join(
             other, is_complex=is_complex
@@ -634,7 +643,7 @@ class GenericLazyTensor:
         dim=None,
         call=True,
         is_complex=None,
-        **kwargs
+        **kwargs,
     ):
         r"""
         Applies a reduction to a :class:`LazyTensor`. This method is used internally by the LazyTensor class.
@@ -740,7 +749,7 @@ class GenericLazyTensor:
                 opt_arg=res.opt_arg,
                 formula2=res.formula2,
                 **kwargs_init,
-                rec_multVar_highdim=res.rec_multVar_highdim
+                rec_multVar_highdim=res.rec_multVar_highdim,
             )
         if call and len(res.symbolic_variables) == 0 and res._dtype is not None:
             return res()
@@ -859,7 +868,7 @@ class GenericLazyTensor:
                 res.varformula,
                 res.axis,
                 **kwargs_init,
-                rec_multVar_highdim=res.rec_multVar_highdim
+                rec_multVar_highdim=res.rec_multVar_highdim,
             )
 
         # we call if call=True, if other is not symbolic, and if the dtype is set
@@ -904,7 +913,7 @@ class GenericLazyTensor:
                     self.formula2,
                     self.axis,
                     **kwargs_init,
-                    rec_multVar_highdim=self.rec_multVar_highdim
+                    rec_multVar_highdim=self.rec_multVar_highdim,
                 )
             else:
                 self.callfun = self.Genred(
@@ -915,7 +924,7 @@ class GenericLazyTensor:
                     opt_arg=self.opt_arg,
                     formula2=self.formula2,
                     **kwargs_init,
-                    rec_multVar_highdim=self.rec_multVar_highdim
+                    rec_multVar_highdim=self.rec_multVar_highdim,
                 )
 
         if self.reduction_op == "Solve" and len(self.other.symbolic_variables) == 0:
@@ -1596,6 +1605,16 @@ class GenericLazyTensor:
             raise ValueError("One-hot encoding is only supported for scalar formulas.")
 
         return self.unary("OneHot", dimres=D, opt_arg=D)
+
+    def bspline(self, x, k=0):
+        """Vector of BSpline functions of order k for the knots (self), evaluated at x.
+
+        :param x: a LazyTensor of dimension 1.
+        :param k: a non-negative integer.
+        """
+        return self.binary(
+            x, "BSpline", dimres=(self.ndim - k - 1), dimcheck="vecand1", opt_arg=f"{k}"
+        )
 
     def concat(self, other):
         r"""

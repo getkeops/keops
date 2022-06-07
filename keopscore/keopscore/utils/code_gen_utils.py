@@ -105,79 +105,77 @@ class c_variable:
         else:
             return f"{self.id} += ({value.id});\n"
 
-    def __add__(self, other):
+    def binary_op(self, other, python_op, c_op, name, dtype=None):
         if type(other) in (int, float):
             dtype = "int" if type(other) == int else "float"
-            return self + c_variable(dtype, str(other))
+            return python_op(self, c_variable(dtype, str(other)))
         elif type(other) == c_variable:
             if self.dtype != other.dtype:
-                KeOps_Error("addition of two c_variable only possible with same dtype")
-            return c_variable(self.dtype, f"({self.id}+{other.id})")
+                KeOps_Error(
+                    f"{name} of two c_variable is only possible with same dtype"
+                )
+            if dtype is None:
+                dtype = self.dtype
+            return c_variable(dtype, f"({self.id}{c_op}{other.id})")
         else:
             KeOps_Error("not implemented")
+
+    def __add__(self, other):
+        python_op = lambda x, y: x + y
+        return self.binary_op(other, python_op, "+", "addition")
 
     def __mul__(self, other):
-        if type(other) in (int, float):
-            dtype = "int" if type(other) == int else "float"
-            return self * c_variable(dtype, str(other))
-        elif type(other) == c_variable:
-            if self.dtype != other.dtype:
-                KeOps_Error(
-                    "multiplication of two c_variable only possible with same dtype"
-                )
-            return c_variable(self.dtype, f"({self.id}*{other.id})")
-        else:
-            KeOps_Error("not implemented")
+        python_op = lambda x, y: x * y
+        return self.binary_op(other, python_op, "*", "product")
 
     def __sub__(self, other):
-        if type(other) in (int, float):
-            dtype = "int" if type(other) == int else "float"
-            return self - c_variable(dtype, str(other))
-        elif type(other) == c_variable:
-            if self.dtype != other.dtype:
-                KeOps_Error(
-                    "subtraction of two c_variable only possible with same dtype"
-                )
-            return c_variable(self.dtype, f"({self.id}-{other.id})")
-        else:
-            KeOps_Error("not implemented")
+        python_op = lambda x, y: x - y
+        return self.binary_op(other, python_op, "-", "subtraction")
 
     def __truediv__(self, other):
-        if type(other) in (int, float):
-            dtype = "int" if type(other) == int else "float"
-            return self / c_variable(dtype, str(other))
-        elif type(other) == c_variable:
-            if self.dtype != other.dtype:
-                KeOps_Error("division of two c_variable only possible with same dtype")
-            return c_variable(self.dtype, f"({self.id}/{other.id})")
-        else:
-            KeOps_Error("not implemented")
+        python_op = lambda x, y: x / y
+        return self.binary_op(other, python_op, "/", "division")
 
     def __lt__(self, other):
-        if type(other) in (int, float):
-            dtype = "int" if type(other) == int else "float"
-            return self < c_variable(dtype, str(other))
-        elif type(other) == c_variable:
-            if self.dtype != other.dtype:
-                KeOps_Error(
-                    "comparison of two c_variable only possible with same dtype"
-                )
-            return c_variable("bool", f"({self.id}<{other.id})")
-        else:
-            KeOps_Error("not implemented")
+        python_op = lambda x, y: x < y
+        return self.binary_op(other, python_op, "<", "comparison", dtype="bool")
+
+    def __le__(self, other):
+        python_op = lambda x, y: x <= y
+        return self.binary_op(other, python_op, "<=", "comparison", dtype="bool")
 
     def __gt__(self, other):
-        if type(other) in (int, float):
-            dtype = "int" if type(other) == int else "float"
-            return self > c_variable(dtype, str(other))
-        elif type(other) == c_variable:
-            if self.dtype != other.dtype:
-                KeOps_Error(
-                    "comparison of two c_variable only possible with same dtype"
-                )
-            return c_variable("bool", f"({self.id}>{other.id})")
-        else:
-            KeOps_Error("not implemented")
+        python_op = lambda x, y: x > y
+        return self.binary_op(other, python_op, ">", "comparison", dtype="bool")
+
+    def __ge__(self, other):
+        python_op = lambda x, y: x >= y
+        return self.binary_op(other, python_op, ">=", "comparison", dtype="bool")
+
+    # N.B.: The & symbol (__and__) denotes the bitwise operator, not the logical one
+    def logical_and(self, other):
+        python_op = lambda x, y: x and y
+        return self.binary_op(other, python_op, "&&", "comparison", dtype="bool")
+
+    # N.B.: The | symbol (__or__) denotes the bitwise operator, not the logical one
+    def logical_or(self, other):
+        python_op = lambda x, y: x or y
+        return self.binary_op(other, python_op, "||", "comparison", dtype="bool")
+
+    def ternary(self, out_true, out_false):
+        if self.dtype != "bool":
+            KeOps_Error(
+                f"The input of a ternary operator should have bool dtype, "
+                f"found {self.dtype}."
+            )
+        if out_true.dtype != out_false.dtype:
+            KeOps_Error(
+                f"The two possible output of a ternary operator should have the same dtype, "
+                f"found {out_true.dtype} and {out_false.dtype}."
+            )
+        return c_variable(
+            out_true.dtype, f"({self.id} ? {out_true.id} : {out_false.id})"
+        )
 
     def __neg__(self):
         return c_variable(self.dtype, f"(-{self.id})")
@@ -252,7 +250,7 @@ def infinity(dtype):
 
 def cast_to(dtype, var):
     # returns C++ code string to do a cast ; e.g. "(float)" if dtype is "float" for example
-    simple_dtypes = ["float", "double", "int"]
+    simple_dtypes = ["float", "double", "int", "bool"]
     if (dtype in simple_dtypes) and (var.dtype in simple_dtypes):
         return f"({dtype})({var.id})"
     elif dtype == "half2" and var.dtype == "float":
