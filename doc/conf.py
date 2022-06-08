@@ -106,7 +106,7 @@ sphinx_gallery_conf = {
     "within_subsection_order": FileNameSortKey,
     # Add patterns
     # 'filename_pattern': r'../pykeops/pykeops/tutorials/*',
-    'ignore_pattern': r'__init__\.py|benchmark_utils\.py| dataset_utils\.py',
+    "ignore_pattern": r"__init__\.py|benchmark_utils\.py| dataset_utils\.py",
 }
 
 # Generate the API documentation when building
