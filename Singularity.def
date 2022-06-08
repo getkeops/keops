@@ -1,0 +1,94 @@
+# Build with:
+# sudo singularity build keops.sif keops.def
+# Exec with:
+# singularity shell -H $HOME:/home --nv keops.sif
+# (the --nv flag stands for "nvidia": omit it if you don't have access to a GPU)
+
+# In order to insulate all the cache files (e.g. the binaries that KeOps stores
+# in ~/.cache/keops2.x/...), you may wish to use a command like:
+# singularity shell -H ~/singularity_homes/keops/:/home --bind ~/code/:/home/code --bind ~/code/active/keops:/home/keops ~/containers/keops.sif
+# To connect to a singularity image in VSCode, please read:
+# https://medium.com/@dcat52/vs-code-intellisense-inside-an-apptainer-container-2526380a4673
+
+BootStrap: docker
+From: ubuntu:22.04
+
+%post
+    export PYTHON_VERSION=3.8
+    export CUDA_VERSION=11.3
+    export CUDA_CHANNEL=nvidia
+    export PYTORCH_CHANNEL=pytorch
+    export CONDA_OVERRIDE_CUDA=${CUDA_VERSION}
+
+    # Dev-base:
+    apt-get update
+    apt-get install -y --no-install-recommends \
+        build-essential \
+        ca-certificates \
+        curl \
+        git \
+        libjpeg-dev \
+        libpng-dev \
+        wget \
+        libxml2-dev \
+        openssh-client \
+        libssl-dev \
+        libcurl4-openssl-dev
+    
+    # Conda:
+    curl -fsSL -v -o ~/miniconda.sh -O  https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+    chmod +x ~/miniconda.sh
+    ~/miniconda.sh -b -p /opt/conda
+    rm ~/miniconda.sh
+    /opt/conda/bin/conda install -y python=${PYTHON_VERSION} conda-build pyyaml numpy ipython matplotlib ipykernel
+    /opt/conda/bin/conda clean -ya
+
+    # CUDA headers for KeOps ("cuda.h", etc.):
+    /opt/conda/bin/conda install -c conda-forge -y "cudatoolkit-dev=${CUDA_VERSION}"
+
+    # PyTorch:
+    /opt/conda/bin/conda install -c "${PYTORCH_CHANNEL}" -c "${CUDA_CHANNEL}" -y python=${PYTHON_VERSION} pytorch torchvision torchtext "cudatoolkit=${CUDA_VERSION}"
+    /opt/conda/bin/conda clean -ya
+
+    # PyBind11 for KeOps:
+    /opt/conda/bin/conda install -y pybind11 -c conda-forge
+    
+    # The black formatter for pretty code:
+    /opt/conda/bin/pip install black
+
+    # Make sure that all files in /opt/conda can be read by non-root users.
+    # Some packages (esp. cuda-toolkit) are faulty, and may not be
+    # accessible when they have been installed by the root user as we do here.
+    chmod -R a+rx /opt/conda/
+
+    # Install R - the explicit non-interactive tag is needed to skip
+    # the time zone prompt from the tzdata package:
+    DEBIAN_FRONTEND=noninteractive apt-get install -y r-base r-base-dev
+    Rscript -e 'install.packages(c("rmarkdown", "reticulate", "languageserver", "formatR", "tidyverse", "profvis", "plyr", "Matrix", "tictoc"))'
+
+    # Work around a compatibility bug for KeOps, caused by the fact that conda 
+    # currently ships a version of libstdc++ that is slightly older than
+    # that of Ubuntu 22.04:
+    rm /opt/conda/lib/libstdc++.so.6
+    ln -s /usr/lib/x86_64-linux-gnu/libstdc++.so.6 /opt/conda/lib/libstdc++.so.6
+
+
+%environment
+    export PATH=/opt/conda/bin:$PATH
+
+    # Put the path to our Git installation of KeOps:
+    # N.B.: Use --bind /host/path/to/keops:/home/keops
+    # in the singularity shell command.     
+    export PYTHONPATH=/home/keops/pykeops/:/home/keops/keopscore/:$PYTHONPATH
+    
+    # Tell KeOps that the CUDA headers can be found in /opt/conda/include/...
+    export CUDA_PATH=/opt/conda/
+
+    # Encoding for R:
+    export LC_ALL=C.UTF-8
+
+%runscript
+    python "$@"
+
+%labels
+    Author Jean Feydy
