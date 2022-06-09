@@ -1,4 +1,5 @@
 import importlib.util
+import sys
 import sysconfig
 from os.path import join, dirname, realpath
 
@@ -31,4 +32,4 @@ def pykeops_cpp_name(tag="", extension=""):
     )
 
 
-python_includes = "$(python3 -m pybind11 --includes)"
+python_includes = "$({python3} -m pybind11 --includes)".format(python3=sys.executable)
