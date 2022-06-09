@@ -108,7 +108,7 @@ def perform_test(op_str, tol=1e-4, dtype="float32"):
 
     # print("Testing operation " + op_str)
 
-    my_routine = Genred(formula, variables, reduction_op="Sum", axis=1, dtype=dtype)
+    my_routine = Genred(formula, variables, reduction_op="Sum", axis=1)
     c = my_routine(*args)
 
     # print("ok, no error")
@@ -117,6 +117,8 @@ def perform_test(op_str, tol=1e-4, dtype="float32"):
     ####################################################################
     # Compute the gradient
     # -----------------------
+    
+    if keops_op_class.enable_testgrad:
 
     e = torch.rand_like(c)
 
