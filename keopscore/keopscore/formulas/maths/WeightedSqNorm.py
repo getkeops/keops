@@ -19,5 +19,6 @@ class WeightedSqNorm:
             return SymSqNorm(A, X)
 
     enable_test = True
+    disable_testgrad = False
     nargs = 2  # number of arguments
     test_argdims = [5, 5]  # dimensions of arguments for testing
