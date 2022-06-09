@@ -99,6 +99,7 @@ class BSpline_Impl(Operation):
 
     # parameters for testing the operation (optional)
     enable_test = True  # enable testing for this operation
+    disable_testgrad = True  # disable testing of the gradient
     nargs = 2  # number of arguments
     test_argdims = [5, 1]  # dimensions of arguments for testing
     test_params = [3]  # values of parameters for testing

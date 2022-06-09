@@ -54,8 +54,8 @@ def perform_test(op_str, tol=1e-4, dtype="float32"):
     #####################################################################
     # Declare random inputs:
 
-    M = 3000
-    N = 5000
+    M = 300
+    N = 500
 
     # Choose the storage place for our data : CPU (host) or GPU (device) memory.
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -108,7 +108,7 @@ def perform_test(op_str, tol=1e-4, dtype="float32"):
 
     # print("Testing operation " + op_str)
 
-    my_routine = Genred(formula, variables, reduction_op="Sum", axis=1, dtype=dtype)
+    my_routine = Genred(formula, variables, reduction_op="Sum", axis=1)
     c = my_routine(*args)
 
     # print("ok, no error")
@@ -118,16 +118,14 @@ def perform_test(op_str, tol=1e-4, dtype="float32"):
     # Compute the gradient
     # -----------------------
 
-    e = torch.rand_like(c)
-
-    # print("Testing gradient of operation " + op_str)
-
-    g = grad(c, args, e)
-
-    # print("ok, no error")
-    # for k in range(nargs):
-    #    app_str = f"number {k}" if len(args) > 1 else ""
-    #    print(f"5 first values for gradient {app_str}:", *g[k].flatten()[:5].tolist())
+    if not keops_op_class.disable_testgrad:
+        e = torch.rand_like(c)
+        # print("Testing gradient of operation " + op_str)
+        g = grad(c, args, e)
+        # print("ok, no error")
+        # for k in range(nargs):
+        #    app_str = f"number {k}" if len(args) > 1 else ""
+        #    print(f"5 first values for gradient {app_str}:", *g[k].flatten()[:5].tolist())
 
     if not hasattr(keops_op_class, "torch_op"):
         torch_op_str = keops_op_class.string_id.lower()
@@ -158,6 +156,9 @@ def perform_test(op_str, tol=1e-4, dtype="float32"):
     err_op = torch.allclose(c, c_torch, atol=tol, rtol=tol)
     print("relative error for operation :", err_op)
 
+    if keops_op_class.disable_testgrad:
+        return [err_op]
+
     if not hasattr(keops_op_class, "no_torch_grad") or not keops_op_class.no_torch_grad:
         g_torch = grad(c_torch, args, e)
 
@@ -171,7 +172,6 @@ def perform_test(op_str, tol=1e-4, dtype="float32"):
     else:
         print("no gradient for torch")
         return [err_op]
-
     return [err_op] + err_gr
 
 
