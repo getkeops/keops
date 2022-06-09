@@ -117,7 +117,7 @@ def perform_test(op_str, tol=1e-4, dtype="float32"):
     ####################################################################
     # Compute the gradient
     # -----------------------
-    
+
     if not keops_op_class.disable_testgrad:
         e = torch.rand_like(c)
         # print("Testing gradient of operation " + op_str)
@@ -155,10 +155,10 @@ def perform_test(op_str, tol=1e-4, dtype="float32"):
     # err_op = torch.norm(c - c_torch).item() / torch.norm(c_torch).item()
     err_op = torch.allclose(c, c_torch, atol=tol, rtol=tol)
     print("relative error for operation :", err_op)
-    
+
     if keops_op_class.disable_testgrad:
         return [err_op]
-        
+
     if not hasattr(keops_op_class, "no_torch_grad") or not keops_op_class.no_torch_grad:
         g_torch = grad(c_torch, args, e)
 
@@ -173,8 +173,6 @@ def perform_test(op_str, tol=1e-4, dtype="float32"):
         print("no gradient for torch")
         return [err_op]
     return [err_op] + err_gr
-    
-    
 
 
 class OperationUnitTestCase(unittest.TestCase):
