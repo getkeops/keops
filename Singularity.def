@@ -27,9 +27,11 @@ From: ubuntu:22.04
         ca-certificates \
         curl \
         git \
+        tmux \
+        zip \
+        wget \
         libjpeg-dev \
         libpng-dev \
-        wget \
         libxml2-dev \
         openssh-client \
         libssl-dev \
@@ -64,10 +66,10 @@ From: ubuntu:22.04
     # PyBind11 for KeOps:
     /opt/conda/bin/conda install -y pybind11 -c conda-forge
     
-    # PyTest for automated tests, the black formatter for pretty code:
+    # (Optional:) PyTest for automated tests, the black formatter for pretty code:
     /opt/conda/bin/pip install pytest black
 
-    # (Optional:) install the dependencies to build the documentation website:
+    # (Optional:) Install the dependencies to build the documentation website:
     /opt/conda/bin/pip install \
         sphinx \
         sphinx-gallery \
@@ -79,18 +81,34 @@ From: ubuntu:22.04
         breathe \
         imageio \
         gpytorch \
+        plotly \
+        si_prefix \
         scikit-learn \
         multiprocess
 
+    
+    # (Optional:) The dependencies below are required by the GeomLoss doc.
+    # We include them in this container for convenience's sake. 
+    # (We render both the KeOps and GeomLoss doc on the same cloud instance.)
+    /opt/conda/bin/pip install \
+        plyfile \
+        SimpleITK \
+        scikit-image \
+        pyvtk \
+        pyvista
+
+    # (Optional:) Install R and a collection of basic libraries.
+    # The explicit non-interactive tag is needed to skip
+    # the time zone prompt from the tzdata package:
+    DEBIAN_FRONTEND=noninteractive apt-get install -y r-base r-base-dev
+    Rscript -e 'install.packages(c("rmarkdown", "reticulate", "languageserver", "formatR", "tidyverse", "profvis", "plyr", "Matrix", "tictoc", "testthat"))'
+
+
+    # Workarounds:
     # Make sure that all files in /opt/conda can be read by non-root users.
     # Some packages (esp. cuda-toolkit) are faulty, and may not be
     # accessible when they have been installed by the root user as we do here.
     chmod -R a+rx /opt/conda/
-
-    # Install R - the explicit non-interactive tag is needed to skip
-    # the time zone prompt from the tzdata package:
-    DEBIAN_FRONTEND=noninteractive apt-get install -y r-base r-base-dev
-    Rscript -e 'install.packages(c("rmarkdown", "reticulate", "languageserver", "formatR", "tidyverse", "profvis", "plyr", "Matrix", "tictoc", "testthat"))'
 
     # Work around a compatibility bug for KeOps, caused by the fact that conda 
     # currently ships a version of libstdc++ that is slightly older than
