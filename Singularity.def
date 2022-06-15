@@ -40,21 +40,47 @@ From: ubuntu:22.04
     chmod +x ~/miniconda.sh
     ~/miniconda.sh -b -p /opt/conda
     rm ~/miniconda.sh
-    /opt/conda/bin/conda install -y python=${PYTHON_VERSION} conda-build pyyaml numpy ipython matplotlib ipykernel
+    /opt/conda/bin/conda install -y python=${PYTHON_VERSION} \
+        conda-build \
+        pyyaml \
+        numpy \
+        ipython \
+        matplotlib \
+        ipykernel
     /opt/conda/bin/conda clean -ya
 
     # CUDA headers for KeOps ("cuda.h", etc.):
     /opt/conda/bin/conda install -c conda-forge -y "cudatoolkit-dev=${CUDA_VERSION}"
 
     # PyTorch:
-    /opt/conda/bin/conda install -c "${PYTORCH_CHANNEL}" -c "${CUDA_CHANNEL}" -y python=${PYTHON_VERSION} pytorch torchvision torchtext "cudatoolkit=${CUDA_VERSION}"
+    /opt/conda/bin/conda install -c "${PYTORCH_CHANNEL}" -c "${CUDA_CHANNEL}" -y \
+        python=${PYTHON_VERSION} \
+        pytorch \
+        torchvision \
+        torchtext \
+        "cudatoolkit=${CUDA_VERSION}"
     /opt/conda/bin/conda clean -ya
 
     # PyBind11 for KeOps:
     /opt/conda/bin/conda install -y pybind11 -c conda-forge
     
-    # The black formatter for pretty code:
-    /opt/conda/bin/pip install black
+    # PyTest for automated tests, the black formatter for pretty code:
+    /opt/conda/bin/pip install pytest black
+
+    # (Optional:) install the dependencies to build the documentation website:
+    /opt/conda/bin/pip install \
+        sphinx \
+        sphinx-gallery \
+        recommonmark \
+        myst-parser \
+        sphinxcontrib-httpdomain \
+        sphinx_rtd_theme \
+        sphinx-prompt \
+        breathe \
+        imageio \
+        gpytorch \
+        scikit-learn \
+        multiprocess
 
     # Make sure that all files in /opt/conda can be read by non-root users.
     # Some packages (esp. cuda-toolkit) are faulty, and may not be
@@ -64,7 +90,7 @@ From: ubuntu:22.04
     # Install R - the explicit non-interactive tag is needed to skip
     # the time zone prompt from the tzdata package:
     DEBIAN_FRONTEND=noninteractive apt-get install -y r-base r-base-dev
-    Rscript -e 'install.packages(c("rmarkdown", "reticulate", "languageserver", "formatR", "tidyverse", "profvis", "plyr", "Matrix", "tictoc"))'
+    Rscript -e 'install.packages(c("rmarkdown", "reticulate", "languageserver", "formatR", "tidyverse", "profvis", "plyr", "Matrix", "tictoc", "testthat"))'
 
     # Work around a compatibility bug for KeOps, caused by the fact that conda 
     # currently ships a version of libstdc++ that is slightly older than
@@ -76,10 +102,10 @@ From: ubuntu:22.04
 %environment
     export PATH=/opt/conda/bin:$PATH
 
-    # Put the path to our Git installation of KeOps:
+    # Put the path to our Git installation of KeOps (+ GeomLoss is available):
     # N.B.: Use --bind /host/path/to/keops:/home/keops
     # in the singularity shell command.     
-    export PYTHONPATH=/home/keops/pykeops/:/home/keops/keopscore/:$PYTHONPATH
+    export PYTHONPATH=/home/geomloss/:/home/keops/pykeops/:/home/keops/keopscore/:$PYTHONPATH
     
     # Tell KeOps that the CUDA headers can be found in /opt/conda/include/...
     export CUDA_PATH=/opt/conda/
