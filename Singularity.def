@@ -15,10 +15,19 @@ From: ubuntu:22.04
 
 %post
     export PYTHON_VERSION=3.8
+
     export CUDA_VERSION=11.3
-    export CUDA_CHANNEL=nvidia
-    export PYTORCH_CHANNEL=pytorch
+    export CUDA_CHANNEL=nvidia/label/cuda-11.3.1
     export CONDA_OVERRIDE_CUDA=${CUDA_VERSION}
+
+    export PYTORCH_VERSION=1.11.0
+    export TORCHVISION_VERSION=0.12.0
+    export TORCHAUDIO_VERSION=0.11.0
+    
+    export KEOPS_VERSION=2.1
+    export PYTEST_VERSION=7.1.2
+    export BLACK_VERSION=22.6.0
+
 
     # Dev-base:
     apt-get update
@@ -51,23 +60,28 @@ From: ubuntu:22.04
         ipykernel
     /opt/conda/bin/conda clean -ya
 
-    # CUDA headers for KeOps ("cuda.h", etc.):
-    /opt/conda/bin/conda install -c conda-forge -y "cudatoolkit-dev=${CUDA_VERSION}"
+    # CUDA headers for KeOps ("cuda.h", etc.) from the community repository:
+    # /opt/conda/bin/conda install -c conda-forge -y "cudatoolkit-dev=${CUDA_VERSION}"
 
-    # PyTorch:
-    /opt/conda/bin/conda install -c "${PYTORCH_CHANNEL}" -c "${CUDA_CHANNEL}" -y \
-        python=${PYTHON_VERSION} \
-        pytorch \
-        torchvision \
-        torchtext \
-        "cudatoolkit=${CUDA_VERSION}"
+    # Full CUDA installation, with the headers, from the official Nvidia repository:
+    /opt/conda/bin/conda install -y -c "${CUDA_CHANNEL}" cuda
     /opt/conda/bin/conda clean -ya
 
-    # PyBind11 for KeOps:
-    /opt/conda/bin/conda install -y pybind11 -c conda-forge
+    # PyTorch:
+    /opt/conda/bin/conda install -y -c pytorch \
+        pytorch==${PYTORCH_VERSION} \
+        torchvision==${TORCHVISION_VERSION} \
+        torchaudio==${TORCHAUDIO_VERSION} \
+        python=${PYTHON_VERSION} \
+        cudatoolkit=${CUDA_VERSION}
+    /opt/conda/bin/conda clean -ya
+
+
+    # PyBind11 for KeOps if we use git instead of the pip version:
+    # /opt/conda/bin/conda install -y pybind11 -c conda-forge
     
-    # (Optional:) PyTest for automated tests, the black formatter for pretty code:
-    /opt/conda/bin/pip install pytest black
+    # KeOps, PyTest for automated tests, the black formatter for pretty code:
+    /opt/conda/bin/pip install pykeops==${KEOPS_VERSION} pytest==${PYTEST_VERSION} black==${BLACK_VERSION}
 
     # (Optional:) Install the dependencies to build the documentation website:
     /opt/conda/bin/pip install \
