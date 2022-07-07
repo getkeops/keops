@@ -10,8 +10,7 @@ as the number of samples grows from 100 to 1,000,000.
     In this demo, we use exact **bruteforce** computations 
     (tensorized for PyTorch and online for KeOps), without leveraging any multiscale
     or low-rank (Nystroem/multipole) decomposition of the Kernel matrix.
-    First support for these approximation schemes is scheduled for
-    May-June 2021.
+    We are working on providing transport support for these approximations in KeOps.
 
 
 """
