@@ -62,7 +62,7 @@ you may help us to develop KeOps as follows:
    of our C++ engine, KeOps
    is fairly easy to extend with custom operations
    and reductions.
-   If you these instructions unclear, please let us know.
+   If you find these instructions unclear, please let us know.
    |br| |br|
 
 
