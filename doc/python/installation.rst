@@ -1,13 +1,13 @@
 Python install
 ##############
 
-PyKeOps is a **Python 3 wrapper** around the low-level KeOps library, which is written in **C++/CUDA**. 
+PyKeOps is a **Python 3 wrapper** around the low-level KeOpsCore library which is written in **C++/CUDA**. 
 It provides functions that can be used in any **NumPy** or **PyTorch** script.
 
 Requirements
 ============
 
-- **Python 3** with packages **numpy**.
+- **Python 3** with the **numpy** package.
 - A C++ compiler compatible with ``std=c++11``: **g++** version >=7 or **clang++** version >=8.
 - The **Cuda** toolkit: version >=10.0 is recommended.
 - **PyTorch** (optional): version >= 1.5.
@@ -40,6 +40,117 @@ In a new `Colab notebook <https://colab.research.google.com>`_, typing:
     !pip install pykeops > install.log
 
 should allow you to get a working version of KeOps in less than twenty seconds.
+
+
+Using Docker or Singularity
+============================
+
+We provide a reference 
+`Dockerfile <https://github.com/getkeops/keops/blob/main/Dockerfile>`_ 
+and publish full containers on our 
+`DockerHub channel <https://hub.docker.com/repository/docker/getkeops/keops-full>`_ 
+using the 
+`docker-images.sh <https://github.com/getkeops/keops/blob/main/docker-images.sh>`_ script.
+These environments contain a full installation of CUDA, NumPy, PyTorch, R, KeOps and GeomLoss.
+Their PYTHONPATH are configured to ensure that git installations of KeOps or GeomLoss 
+mounted in `/opt/keops` or `/opt/geomloss` take precedence over the 
+pre-installed Pip versions.
+
+As an example, please note that we render this website on our slurm cluster using the following commands:
+
+.. code-block:: bash
+
+  # First, clone the latest release of the KeOps code in ~/code/keops:
+  mkdir ~/code 
+  cd ~/code 
+  git clone git@github.com:getkeops/keops.git
+
+  # Load singularity in our environment:
+  module load singularity
+
+  # Create a folder to store our Singularity files:
+  mkdir -p ~/scratch/containers
+  cd ~/scratch/containers
+
+  # Download the Docker image and store it as an immutable Singularity Image File:
+  # N.B.: Our image is pretty heavy (~6 Gb), so it is safer to create
+  #       a tmp folder on the hard drive instead of relying on the RAM-only tmpfs:
+  # N.B.: This step may take 15mn to 60mn, so you may prefer to execute it in an
+  #       interactive compute session.
+  mkdir tmp
+  SINGULARITY_TMPDIR=`pwd`/tmp singularity build keops-full.sif docker://getkeops/keops-full:latest
+  
+  # Create a separate home folder for this image. This is to ensure
+  # that we won't see any conflict between different versions of the KeOps binaries,
+  # stored in the ~/.cache folder of the virtual machine:
+  mkdir -p ~/containers/singularity_homes/keops-full
+
+  # Ask the slurm scheduler to render our documentation.
+  sbatch keops-doc.batch
+
+
+Where `keops-doc.batch` is an executable file that contains:
+
+.. code-block:: bash
+
+  #!/bin/bash
+
+  #SBATCH --job-name=keops_doc    # create a short name for your job
+  #SBATCH --mail-type=ALL         # Mail events (NONE, BEGIN, END, FAIL, ALL)
+  #SBATCH --mail-user=name@mail.com   # Where to send mail	
+  #SBATCH --nodes=1                # node count
+  #SBATCH --ntasks=1               # total number of tasks across all nodes
+  #SBATCH --cpus-per-task=16       # cpu-cores per task (>1 if multi-threaded tasks)
+  #SBATCH --partition=gpu          # Name of the partition
+  #SBATCH --gres=gpu:rtx6000:1     # GPU nodes are only available in gpu partition
+  #SBATCH --mem=40G                # Total memory allocated
+  #SBATCH --hint=multithread       # we get physical cores not logical
+  #SBATCH --time=03:00:00          # total run time limit (HH:MM:SS)
+  #SBATCH --output=logs/keops_doc_%j.out   # output file name
+  #SBATCH --error=logs/keops_doc_%j.err    # error file name
+
+  echo "### Running $SLURM_JOB_NAME ###"
+
+  set -x
+  cd ${SLURM_SUBMIT_DIR}
+
+  module purge
+  module load singularity
+
+  singularity exec \
+  -H ~/containers/singularity_homes/keops-full/:/home \
+  --bind ~/keops-doc.sh:/home/keops-doc.sh \
+  --bind ~/code:/home/code \
+  --bind ~/code/keops:/opt/keops \
+  --bind ~/.gitconfig:/home/.gitconfig \
+  --bind ~/.ssh:/home/.ssh \
+  --nv \
+  ~/scratch/containers/keops-full.sif \
+  ~/keops-doc.sh
+
+
+And `keops-doc.sh` is an executable file that contains:
+
+.. code-block:: bash
+
+  #!/bin/bash
+  echo "Rendering the KeOps documentation"
+
+  # First of all, make sure that all unit tests pass:
+  cd /home/code/keops
+  pytest -v
+
+  # Then, render the doc properly:
+  cd /home/code/keops/doc
+  # Remove the previous built pages:
+  make clean
+  # Render the website:
+  make html
+
+  # Re-render the doc to remove compilation messages:
+  make clean
+  make html
+
 
 
 From source using git
@@ -123,6 +234,10 @@ You can use the following test functions to compile and run simple KeOps formula
   .. code-block:: text
 
     pyKeOps with torch bindings is working!
+
+
+Please note that running `pytest -v` in a copy of our git repository will also
+let you perform an in-depth test of the entire KeOps codebase.
 
 
 Troubleshooting

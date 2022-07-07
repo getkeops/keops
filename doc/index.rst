@@ -237,7 +237,7 @@ a report on our `GitHub issue tracker <https://github.com/getkeops/keops/issues>
 **Core library - KeOps, PyKeOps, KeOpsLab:**
 
 - `Benjamin Charlier <http://imag.umontpellier.fr/~charlier/>`_, from the University of Montpellier.
-- `Jean Feydy <https://www.jeanfeydy.com/>`_, from Imperial College London.
+- `Jean Feydy <https://www.jeanfeydy.com/>`_, from Inria Paris.
 - `Joan Alexis Glaunès <http://www.mi.parisdescartes.fr/~glaunes/>`_, from the University of Paris.
 
 **R bindings - RKeOps:**
@@ -248,13 +248,15 @@ a report on our `GitHub issue tracker <https://github.com/getkeops/keops/issues>
 
 - `François-David Collin <https://github.com/fradav>`_, from the University of Montpellier: Tensordot operation, CI setup.
 - `Tanguy Lefort <https://github.com/tanglef>`_, from the University of Montpellier: conjugate gradient solver.
+- `Amélie Vernay <https://github.com/AmelieVernay>` and `Chloé Serre-Combe <https://github.com/chloesrcb>`, from the University of Montpellier: support for LazyTensors in RKeOps.
 - `Mauricio Diaz <https://github.com/mdiazmel>`_, from Inria of Paris: CI setup.
 - `Benoît Martin <https://github.com/benoitmartin88>`_, from the Aramis Inria team: multi-GPU support.
 - `Francis Williams <https://www.fwilliams.info>`_, from New York University: maths operations.
 - `Kshiteej Kalambarkar <https://github.com/kshitij12345>`_, from Quansight: maths operations.
+- `Hugo Aguettaz <https://github.com/haguettaz>`, from ETH Zürich: trigonometric functions.
 - `D. J. Sutherland <https://djsutherland.ml>`_, from the TTI-Chicago: bug fix in the Python package.
 - `David Völgyes <https://scholar.google.no/citations?user=ngT2GvMAAAAJ&hl=en>`_, from the Norwegian Institute of Science and Technology: bug fix in the formula parser.
-
+- `Jean-Baptiste Keck <https://www.keckj.fr/>`, from the Univeristy Grenoble-Alpes: bug fix in the Python package.
 
 Beyond explicit code contributions, KeOps has grown out of numerous discussions with applied mathematicians and machine learning experts. We would especially like to thank 
 `Alain Trouvé <https://atrouve.perso.math.cnrs.fr/>`_, 
@@ -274,13 +276,6 @@ Table of contents
    introduction/installation
    introduction/road-map
    introduction/contributing
-
-.. toctree::
-   :maxdepth: 2
-   :caption: KeOps
-
-   api/math-operations
-   api/autodiff
 
 .. toctree::
    :maxdepth: 2
@@ -309,6 +304,13 @@ Table of contents
    :caption: KeOps++
 
    cpp/index
+
+.. toctree::
+   :maxdepth: 2
+   :caption: KeOps formulas
+
+   api/math-operations
+   api/autodiff
 
 .. toctree::
    :maxdepth: 2
