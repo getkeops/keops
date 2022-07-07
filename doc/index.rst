@@ -248,15 +248,15 @@ a report on our `GitHub issue tracker <https://github.com/getkeops/keops/issues>
 
 - `François-David Collin <https://github.com/fradav>`_, from the University of Montpellier: Tensordot operation, CI setup.
 - `Tanguy Lefort <https://github.com/tanglef>`_, from the University of Montpellier: conjugate gradient solver.
-- `Amélie Vernay <https://github.com/AmelieVernay>` and `Chloé Serre-Combe <https://github.com/chloesrcb>`, from the University of Montpellier: support for LazyTensors in RKeOps.
+- `Amélie Vernay <https://github.com/AmelieVernay>`_ and `Chloé Serre-Combe <https://github.com/chloesrcb>`_, from the University of Montpellier: support for LazyTensors in RKeOps.
 - `Mauricio Diaz <https://github.com/mdiazmel>`_, from Inria of Paris: CI setup.
 - `Benoît Martin <https://github.com/benoitmartin88>`_, from the Aramis Inria team: multi-GPU support.
 - `Francis Williams <https://www.fwilliams.info>`_, from New York University: maths operations.
 - `Kshiteej Kalambarkar <https://github.com/kshitij12345>`_, from Quansight: maths operations.
-- `Hugo Aguettaz <https://github.com/haguettaz>`, from ETH Zürich: trigonometric functions.
+- `Hugo Aguettaz <https://github.com/haguettaz>`_, from ETH Zürich: trigonometric functions.
 - `D. J. Sutherland <https://djsutherland.ml>`_, from the TTI-Chicago: bug fix in the Python package.
 - `David Völgyes <https://scholar.google.no/citations?user=ngT2GvMAAAAJ&hl=en>`_, from the Norwegian Institute of Science and Technology: bug fix in the formula parser.
-- `Jean-Baptiste Keck <https://www.keckj.fr/>`, from the Univeristy Grenoble-Alpes: bug fix in the Python package.
+- `Jean-Baptiste Keck <https://www.keckj.fr/>`_, from the Univeristy Grenoble-Alpes: bug fix in the Python package.
 
 Beyond explicit code contributions, KeOps has grown out of numerous discussions with applied mathematicians and machine learning experts. We would especially like to thank 
 `Alain Trouvé <https://atrouve.perso.math.cnrs.fr/>`_, 
