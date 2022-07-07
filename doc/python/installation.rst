@@ -53,14 +53,14 @@ using the
 `docker-images.sh <https://github.com/getkeops/keops/blob/main/docker-images.sh>`_ script.
 These environments contain a full installation of CUDA, NumPy, PyTorch, R, KeOps and GeomLoss.
 Their PYTHONPATH are configured to ensure that git installations of KeOps or GeomLoss 
-mounted in `/opt/keops` or `/opt/geomloss` take precedence over the 
+mounted in ``/opt/keops`` or ``/opt/geomloss`` take precedence over the 
 pre-installed Pip versions.
 
-As an example, please note that we render this website on our slurm cluster using the following commands:
+As an example, here is the script that we use to render this website on our slurm cluster:
 
 .. code-block:: bash
 
-  # First, clone the latest release of the KeOps code in ~/code/keops:
+  # First, clone the latest release of the KeOps repository in ~/code/keops:
   mkdir ~/code 
   cd ~/code 
   git clone git@github.com:getkeops/keops.git
@@ -89,7 +89,7 @@ As an example, please note that we render this website on our slurm cluster usin
   sbatch keops-doc.batch
 
 
-Where `keops-doc.batch` is an executable file that contains:
+Where ``keops-doc.batch`` is an executable file that contains:
 
 .. code-block:: bash
 
@@ -126,10 +126,10 @@ Where `keops-doc.batch` is an executable file that contains:
   --bind ~/.ssh:/home/.ssh \
   --nv \
   ~/scratch/containers/keops-full.sif \
-  ~/keops-doc.sh
+  /home/keops-doc.sh
 
 
-And `keops-doc.sh` is an executable file that contains:
+And ``keops-doc.sh`` is an executable file that contains:
 
 .. code-block:: bash
 
@@ -236,7 +236,7 @@ You can use the following test functions to compile and run simple KeOps formula
     pyKeOps with torch bindings is working!
 
 
-Please note that running `pytest -v` in a copy of our git repository will also
+Please note that running ``pytest -v`` in a copy of our git repository will also
 let you perform an in-depth test of the entire KeOps codebase.
 
 
