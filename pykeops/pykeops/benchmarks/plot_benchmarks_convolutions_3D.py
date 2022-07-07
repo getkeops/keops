@@ -155,6 +155,7 @@ if use_cuda:
         routines,
         generate_samples,
         problem_sizes=problem_sizes,
+        max_time=1,
     )
 
 
@@ -173,6 +174,7 @@ full_benchmark(
     routines,
     generate_samples,
     problem_sizes=problem_sizes,
+    max_time=1,
 )
 
 
@@ -196,6 +198,7 @@ if use_cuda:
         routines,
         generate_samples,
         problem_sizes=problem_sizes,
+        max_time=1,
     )
 
 
