@@ -266,7 +266,7 @@ Beyond explicit code contributions, KeOps has grown out of numerous discussions 
 for their valuable suggestions and financial support.
 
 
-This website was rendered on the `Jean Zay <http://www.idris.fr/eng/jean-zay/index.html>`_ scientific cluster (A100 GPU).
+This website was rendered on the `Jean Zay <http://www.idris.fr/eng/jean-zay/index.html>`_ scientific cluster with a Nvidia A100 GPU and 8 cores of an AMD Milan EPYC 7543.
 Access to the HPC resources of IDRIS was granted to Jean Feydy under the allocation 2022-AD011013722 made by GENCI.
 
 Table of contents
