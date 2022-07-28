@@ -101,7 +101,7 @@ Where ``keops-doc.batch`` is an executable file that contains:
   #SBATCH --partition=gpu_p5
   #SBATCH --job-name=keops_doc    # create a short name for your job
   #SBATCH --mail-type=ALL         # Mail events (NONE, BEGIN, END, FAIL, ALL)
-  #SBATCH --mail-user=jean.feydy@inria.fr   # Where to send mail	
+  #SBATCH --mail-user=your.name@inria.fr   # Where to send mail	
   #SBATCH --nodes=1               # node count
   #SBATCH --ntasks=1              # total number of tasks across all nodes
   #SBATCH --cpus-per-task=8       # cpu-cores per task (>1 if multi-threaded tasks)
