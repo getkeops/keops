@@ -56,7 +56,8 @@ Their PYTHONPATH are configured to ensure that git installations of KeOps or Geo
 mounted in ``/opt/keops`` or ``/opt/geomloss`` take precedence over the 
 pre-installed Pip versions.
 
-As an example, here is the script that we use to render this website on our slurm cluster:
+As an example, here is the script that we use to render this website on the 
+`Jean Zay <http://www.idris.fr/eng/jean-zay/index.html>`_ scientific cluster:
 
 .. code-block:: bash
 
@@ -95,19 +96,17 @@ Where ``keops-doc.batch`` is an executable file that contains:
 
   #!/bin/bash
 
+  #SBATCH -A dvd@a100  # Use a A100 GPU - dvd@v100 is also available
   #SBATCH --job-name=keops_doc    # create a short name for your job
   #SBATCH --mail-type=ALL         # Mail events (NONE, BEGIN, END, FAIL, ALL)
-  #SBATCH --mail-user=name@mail.com   # Where to send mail	
+  #SBATCH --mail-user=your.name@inria.fr   # Where to send mail	
   #SBATCH --nodes=1                # node count
   #SBATCH --ntasks=1               # total number of tasks across all nodes
   #SBATCH --cpus-per-task=16       # cpu-cores per task (>1 if multi-threaded tasks)
-  #SBATCH --partition=gpu          # Name of the partition
-  #SBATCH --gres=gpu:rtx6000:1     # GPU nodes are only available in gpu partition
-  #SBATCH --mem=40G                # Total memory allocated
-  #SBATCH --hint=multithread       # we get physical cores not logical
+  #SBATCH --gres=gpu:1     # GPU nodes are only available in gpu partition
   #SBATCH --time=03:00:00          # total run time limit (HH:MM:SS)
-  #SBATCH --output=logs/keops_doc_%j.out   # output file name
-  #SBATCH --error=logs/keops_doc_%j.err    # error file name
+  #SBATCH --output=logs/keops_doc.out   # output file name
+  #SBATCH --error=logs/keops_doc.err    # error file name
 
   echo "### Running $SLURM_JOB_NAME ###"
 
@@ -117,16 +116,25 @@ Where ``keops-doc.batch`` is an executable file that contains:
   module purge
   module load singularity
 
+  # The Jean Zay compute nodes don't have access to the internet,
+  # which means that they cannot fetch data as required by e.g. the MNIST tutorial.
+  # A workaround is to run:
+  # from sklearn.datasets import fetch_openml
+  # fetch_openml("mnist_784", cache=True, as_frame=False)
+  # on the front-end node or on your laptop, copy
+  # ~/scikit_learn_data to $WORK/data/scikit_learn_data
+  # and then rely on the --bind option as detailed below:
+
   singularity exec \
-  -H ~/containers/singularity_homes/keops-full/:/home \
+  -H $WORK/containers/singularity_homes/keops-full/:/home \
   --bind ~/keops-doc.sh:/home/keops-doc.sh \
-  --bind ~/code:/home/code \
-  --bind ~/code/keops:/opt/keops \
-  --bind ~/.gitconfig:/home/.gitconfig \
-  --bind ~/.ssh:/home/.ssh \
+  --bind $WORK/code:/home/code \
+  --bind $WORK/code/keops:/opt/keops \
+  --bind $WORK/data/scikit_learn_data:/home/scikit_learn_data \
   --nv \
-  ~/scratch/containers/keops-full.sif \
+  $SINGULARITY_ALLOWED_DIR/keops-full.sif \
   /home/keops-doc.sh
+
 
 
 And ``keops-doc.sh`` is an executable file that contains:
@@ -141,7 +149,7 @@ And ``keops-doc.sh`` is an executable file that contains:
   pytest -v
 
   # Then, render the doc properly:
-  cd /home/code/keops/doc
+  cd doc
   # Remove the previous built pages:
   make clean
   # Render the website:
