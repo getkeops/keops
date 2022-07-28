@@ -97,12 +97,14 @@ Where ``keops-doc.batch`` is an executable file that contains:
   #!/bin/bash
 
   #SBATCH -A dvd@a100  # Use a A100 GPU - dvd@v100 is also available
+  #SBATCH -C a100 
+  #SBATCH --partition=gpu_p5
   #SBATCH --job-name=keops_doc    # create a short name for your job
   #SBATCH --mail-type=ALL         # Mail events (NONE, BEGIN, END, FAIL, ALL)
-  #SBATCH --mail-user=your.name@inria.fr   # Where to send mail	
-  #SBATCH --nodes=1                # node count
-  #SBATCH --ntasks=1               # total number of tasks across all nodes
-  #SBATCH --cpus-per-task=16       # cpu-cores per task (>1 if multi-threaded tasks)
+  #SBATCH --mail-user=jean.feydy@inria.fr   # Where to send mail	
+  #SBATCH --nodes=1               # node count
+  #SBATCH --ntasks=1              # total number of tasks across all nodes
+  #SBATCH --cpus-per-task=8       # cpu-cores per task (>1 if multi-threaded tasks)
   #SBATCH --gres=gpu:1     # GPU nodes are only available in gpu partition
   #SBATCH --time=03:00:00          # total run time limit (HH:MM:SS)
   #SBATCH --output=logs/keops_doc.out   # output file name
@@ -142,7 +144,11 @@ And ``keops-doc.sh`` is an executable file that contains:
 .. code-block:: bash
 
   #!/bin/bash
+
   echo "Rendering the KeOps documentation"
+
+  # Clean the cache folder of binaries:
+  python -c "import pykeops; pykeops.clean_pykeops()"
 
   # First of all, make sure that all unit tests pass:
   cd /home/code/keops
