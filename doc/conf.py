@@ -79,7 +79,7 @@ def linkcode_resolve(domain, info):
     except Exception:
         filename = info["module"].replace(".", "/") + ".py"
 
-    return "https://github.com/getkeops/keops/tree/main/%s" % filename
+    return "https://github.com/getkeops/keops/tree/main/pykeops/%s" % filename
 
 
 # def linkcode_resolve(domain, info):
