@@ -1,12 +1,12 @@
-from keopscore.formulas.maths.SqNorm2 import SqNorm2
+from keopscore.formulas.maths.WeightedSqNorm import WeightedSqNorm
 
 
 class WeightedSqDist:
     """
-    WEIGHTED SQUARED DISTANCE : WeightedSqDist(S,A)
+    WEIGHTED SQUARED DISTANCE : WeightedSqDist(S,F,G)
     """
 
-    def __new__(cls, S, A):
-        return S * SqNorm2(A)
+    def __new__(cls, S, F, G):
+        return WeightedSqNorm(S, F - G)
 
     enable_test = False
