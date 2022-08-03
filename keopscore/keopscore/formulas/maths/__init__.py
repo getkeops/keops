@@ -32,6 +32,7 @@ from .Mod import Mod
 from .Mult import Mult
 from .Norm2 import Norm2
 from .Normalize import Normalize
+from .OneHot import OneHot
 from .Pow import Pow
 from .Powf import Powf
 from .ReLU import ReLU
@@ -94,6 +95,7 @@ __all__ = [
     "Mult",
     "Norm2",
     "Normalize",
+    "OneHot",
     "Pow",
     "Powf",
     "ReLU",
