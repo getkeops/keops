@@ -546,10 +546,6 @@ class GenericLazyTensor:
         else:
             res.formula = "{}({}, {})".format(operation, lformula, rformula)
 
-        # special case of multiplication with a variable V : we define a special tag to enable factorization in case
-        # the user requires a sum reduction over the opposite index (or any index if V is a parameter):
-        # for example sum_i V_j k(x_i,y_j) = V_j sum_i k(x_i,y_j), so we will use KeOps reduction for the kernel
-        # k(x_i,y_j) only, then multiply the result with V.
         if operation == "*" and other.formula[:3] == "Var" and other.ndim > 100:
             res.rec_multVar_highdim = (self, other)
 
@@ -730,12 +726,19 @@ class GenericLazyTensor:
         res.kwargs = kwargs_call
         res.ndim = self.ndim
         if reduction_op == "Sum" and hasattr(self, "rec_multVar_highdim"):
+            # this means we have detected that the reduction is of the form Sum(F*V) with V a high dimension variable. 
             if res.axis != self.rec_multVar_highdim[1].axis:
+                # special case of multiplication with a variable V : we define a special tag to enable factorization in case
+                # the user requires a sum reduction over the opposite index (or any index if V is a parameter):
+                # for example sum_i V_j k(x_i,y_j) = V_j sum_i k(x_i,y_j), so we will use KeOps reduction for the kernel
+                # k(x_i,y_j) only, then multiply the result with V.
                 return (
                     self.rec_multVar_highdim[0].sum(axis=axis)
                     * self.rec_multVar_highdim[1].variables[0]
                 )
-            res.rec_multVar_highdim = id(self.rec_multVar_highdim[1].variables[0])
+            else:
+                # here we are in the case where we may use the "finalchunk" mode 
+                res.rec_multVar_highdim = id(self.rec_multVar_highdim[1].variables[0])
         else:
             res.rec_multVar_highdim = None
         if res._dtype is not None:
