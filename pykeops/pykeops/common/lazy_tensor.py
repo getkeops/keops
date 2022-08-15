@@ -726,7 +726,7 @@ class GenericLazyTensor:
         res.kwargs = kwargs_call
         res.ndim = self.ndim
         if reduction_op == "Sum" and hasattr(self, "rec_multVar_highdim"):
-            # this means we have detected that the reduction is of the form Sum(F*V) with V a high dimension variable. 
+            # this means we have detected that the reduction is of the form Sum(F*V) with V a high dimension variable.
             if res.axis != self.rec_multVar_highdim[1].axis:
                 # special case of multiplication with a variable V : we define a special tag to enable factorization in case
                 # the user requires a sum reduction over the opposite index (or any index if V is a parameter):
@@ -737,7 +737,7 @@ class GenericLazyTensor:
                     * self.rec_multVar_highdim[1].variables[0]
                 )
             else:
-                # here we are in the case where we may use the "finalchunk" mode 
+                # here we are in the case where we may use the "finalchunk" mode
                 res.rec_multVar_highdim = id(self.rec_multVar_highdim[1].variables[0])
         else:
             res.rec_multVar_highdim = None
