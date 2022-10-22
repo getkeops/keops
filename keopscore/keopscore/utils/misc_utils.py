@@ -12,9 +12,9 @@ def KeOps_Message(message, use_tag=True, **kwargs):
         print(message, **kwargs)
 
 
-def KeOps_Warning(message):
+def KeOps_Warning(message, newline=False):
     if keopscore.verbose:
-        message = "[KeOps] Warning : " + message
+        message = ("\n" if newline else "") + "[KeOps] Warning : " + message
         print(message)
 
 
@@ -37,8 +37,8 @@ def KeOps_OS_Run(command):
 
         out = subprocess.run(command, shell=True, capture_output=True)
         if out.stderr != b"":
+            KeOps_Warning("There were warnings or errors compiling formula :", newline=True)
             print(out.stderr.decode("utf-8"))
-            KeOps_Error("Error compiling formula.")
     elif python_version >= (3, 5):
         import subprocess
 
