@@ -17,6 +17,7 @@ dev
 examples
 tests
 TODO
+TODOs.md
 lib/benchmark
 lib/gtest
 lib/sequences/.appveyor.yml
