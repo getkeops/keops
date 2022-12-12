@@ -117,7 +117,7 @@ class Gpu_link_compile(LinkCompile):
         PYBIND11_DIR = subprocess.check_output('python -m pybind11 --cmakedir', shell=True).decode('gbk')
         PYBIND11_DIR = PYBIND11_DIR.replace('\r', '').replace('\n', '')
 
-        command = '"%s/build.bat" "%s" "%s"' % (jit_compile_dir, VCVARS64, PYBIND11_DIR)
+        command = '"%s/compile-win64.bat" "%s" "%s"' % (jit_compile_dir, VCVARS64, PYBIND11_DIR)
 
         return command
 
