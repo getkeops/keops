@@ -12,14 +12,16 @@ torch_found = importlib.util.find_spec("torch") is not None
 from keopscore.config.config import use_cuda as gpu_available
 from keopscore.config.config import get_build_folder
 
+def pykeops_nvrtc_dir(type="src"):
+    return join(dirname(realpath(__file__)), "common", "keops_io") \
+        if type == "src" \
+        else get_build_folder()
 
 def pykeops_nvrtc_name(type="src"):
     basename = "pykeops_nvrtc"
     extension = ".cpp" if type == "src" else sysconfig.get_config_var("EXT_SUFFIX")
     return join(
-        join(dirname(realpath(__file__)), "common", "keops_io")
-        if type == "src"
-        else get_build_folder(),
+        pykeops_nvrtc_dir(type),
         basename + extension,
     )
 

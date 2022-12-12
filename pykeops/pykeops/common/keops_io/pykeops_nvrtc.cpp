@@ -22,7 +22,7 @@ public:
                    py::tuple py_dimsx, py::tuple py_dimsy, py::tuple py_dimsp,
                    py::tuple py_ranges,
                    py::tuple py_shapeout,
-                   long out_void,
+                   py::tuple out_void,
                    py::tuple py_arg,
                    py::tuple py_argshape
     ) {
@@ -64,7 +64,7 @@ public:
         // Cast the ranges arrays
         std::vector< int * > ranges_v(py_ranges.size());
         for (int i = 0; i < py_ranges.size(); i++)
-            ranges_v[i] = (int *) py::cast< long >(py_ranges[i]);
+            ranges_v[i] = (int *) py::cast< int64_t >(py_ranges[i]);
         int **ranges = (int **) ranges_v.data();
 
         // for (auto i: ranges_v)
@@ -79,12 +79,12 @@ public:
         for (auto i = 0; i < py_shapeout.size(); i++)
             shapeout_v[i] = py::cast< int >(py_shapeout[i]);
 
-        TYPE *out = (TYPE *) out_void;
+        TYPE *out = (TYPE *)py::cast< int64_t >(out_void[0]);
         // std::cout << "out_ptr : " << (long) out << std::endl;
 
         std::vector < TYPE * > arg_v(py_arg.size());
         for (int i = 0; i < py_arg.size(); i++)
-            arg_v[i] = (TYPE *) py::cast< long >(py_arg[i]);
+            arg_v[i] = (TYPE *) py::cast< int64_t >(py_arg[i]);
         TYPE **arg = (TYPE **) arg_v.data();
 
         std::vector <std::vector< int >> argshape_v(py_argshape.size());

@@ -11,6 +11,10 @@ here = path.abspath(path.dirname(__file__))
 with open(os.path.join(here, "keops_version"), encoding="utf-8") as v:
     __version__ = v.read().rstrip()
 
+if __version__.startswith('../'):
+    with open(os.path.join(here, __version__), encoding="utf-8") as v:
+        __version__ = v.read().rstrip()
+
 from .config.config import set_build_folder, get_build_folder
 from .utils.code_gen_utils import clean_keops
 

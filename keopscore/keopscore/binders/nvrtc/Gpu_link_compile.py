@@ -1,6 +1,5 @@
 import os
 from ctypes import create_string_buffer, CDLL, c_int
-from os import RTLD_LAZY
 import sysconfig
 
 from keopscore.binders.LinkCompile import LinkCompile
@@ -18,16 +17,21 @@ from keopscore.config.config import (
 from keopscore.utils.misc_utils import KeOps_Error, KeOps_Message, KeOps_OS_Run
 from keopscore.utils.gpu_utils import get_gpu_props, cuda_include_fp16_path
 
-jit_compile_src = os.path.join(
-    os.path.abspath(os.path.dirname(__file__)), "nvrtc_jit.cpp"
-)
+jit_compile_dir = os.path.abspath(os.path.dirname(__file__))
+jit_compile_src = os.path.join(jit_compile_dir, "nvrtc_jit.cpp")
 
 
 def jit_compile_dll():
-    return os.path.join(
-        get_build_folder(),
-        "nvrtc_jit" + sysconfig.get_config_var("SHLIB_SUFFIX"),
-    )
+    if os.name == 'nt':
+        return os.path.join(
+            get_build_folder(),
+            "nvrtc_jit.dll",
+        )
+    else:
+        return os.path.join(
+            get_build_folder(),
+            "nvrtc_jit" + sysconfig.get_config_var("SHLIB_SUFFIX"),
+        )
 
 
 class Gpu_link_compile(LinkCompile):
@@ -51,7 +55,10 @@ class Gpu_link_compile(LinkCompile):
             self.low_level_code_prefix + self.gencode_filename,
         ).encode("utf-8")
 
-        self.my_c_dll = CDLL(jit_compile_dll(), mode=RTLD_LAZY)
+        if os.name == "nt":
+            self.my_c_dll = CDLL(jit_compile_dll())
+        else:
+            self.my_c_dll = CDLL(jit_compile_dll(), mode=os.RTLD_LAZY)
         # actual dll to be called is the jit binary, TODO: check if this is relevent
         self.true_dllname = jit_binary
         # file to check for existence to detect compilation is needed
@@ -95,15 +102,52 @@ class Gpu_link_compile(LinkCompile):
             else '\\"compute\\"'
         )
         target_type_define = f"-DnvrtcGetTARGET={nvrtcGetTARGET} -DnvrtcGetTARGETSize={nvrtcGetTARGETSize} -DARCHTAG={arch_tag}"
-        return f"{cxx_compiler} {nvrtc_flags} {extra_flags} {target_type_define} {nvrtc_include} {Gpu_link_compile.gpu_props_compile_flags} {sourcename} -o {dllname}"
+        return f'"{cxx_compiler}" {nvrtc_flags} {extra_flags} {target_type_define} {nvrtc_include} {Gpu_link_compile.gpu_props_compile_flags} "{sourcename}" -o "{dllname}"'
+
+    @staticmethod
+    def get_compile_command_ninja(jit_compile_dir=jit_compile_dir):
+        VCVARS64 = os.environ['VCVARS64'] if 'VCVARS64' in os.environ else ''
+        if not VCVARS64:
+            KeOps_Message(
+                "Please set environ variable VCVARS64 to the path of vcvars64.bat"
+            )
+            VCVARS64 = "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\BuildTools\\VC\\Auxiliary\\Build\\vcvars64.bat"
+
+        import subprocess
+        PYBIND11_DIR = subprocess.check_output('python -m pybind11 --cmakedir', shell=True).decode('gbk')
+        PYBIND11_DIR = PYBIND11_DIR.replace('\r', '').replace('\n', '')
+
+        command = '"%s/compile-win64.bat" "%s" "%s"' % (jit_compile_dir, VCVARS64, PYBIND11_DIR)
+
+        return command
 
     @staticmethod
     def compile_jit_compile_dll():
         KeOps_Message("Compiling cuda jit compiler engine ... ", flush=True, end="")
-        KeOps_OS_Run(
-            Gpu_link_compile.get_compile_command(
-                sourcename=jit_compile_src,
-                dllname=jit_compile_dll(),
-            ),
-        )
+
+        if os.name == 'nt':
+            build_dir = jit_compile_dir + "/build"
+            os.makedirs(build_dir, exist_ok=True)
+
+            compile_command = Gpu_link_compile.get_compile_command_ninja(
+                jit_compile_dir=jit_compile_dir
+            )
+            KeOps_OS_Run(compile_command)
+
+            import shutil
+
+            files = ['nvrtc_jit.dll', 'nvrtc_jit.lib', 'nvrtc_jit.exp']
+            for fn in files:
+                src_fn = '%s/build/%s' % (jit_compile_dir, fn)
+                dst_fn = '%s/%s' % (get_build_folder(), fn)
+                shutil.copyfile(src_fn, dst_fn)
+
+        else:
+            KeOps_OS_Run(
+                Gpu_link_compile.get_compile_command(
+                    sourcename=jit_compile_src,
+                    dllname=jit_compile_dll(),
+                ),
+            )
+
         KeOps_Message("OK", use_tag=False, flush=True)

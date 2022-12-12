@@ -3,6 +3,7 @@
 *.idea*
 *~
 *.swp
+.vs
 
 # virtual env
 *venv*
