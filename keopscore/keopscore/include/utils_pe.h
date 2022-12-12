@@ -72,7 +72,7 @@ load_args_FromHost(CUdeviceptr &p_data, TYPE *out, TYPE *&out_d, int nargs,
                    TYPE **arg, TYPE **&arg_d,
                    const std::vector< std::vector< int > > &argshape,
                    int sizeout) {
-    int sizes[nargs];
+    std::vector<int> sizes(nargs);
     int totsize = sizeout;
     for (int k = 0; k < nargs; k++) {
         sizes[k] = std::accumulate(argshape[k].begin(), argshape[k].end(), 1, std::multiplies< int >());
@@ -85,7 +85,7 @@ load_args_FromHost(CUdeviceptr &p_data, TYPE *out, TYPE *&out_d, int nargs,
     TYPE *dataloc = (TYPE *) (arg_d + nargs);
 
     // host array of pointers to device data
-    TYPE *ph[nargs];
+    std::vector<TYPE *> ph(nargs);
 
     out_d = dataloc;
     dataloc += sizeout;
@@ -96,5 +96,5 @@ load_args_FromHost(CUdeviceptr &p_data, TYPE *out, TYPE *&out_d, int nargs,
     }
 
     // copy array of pointers
-    CUDA_SAFE_CALL(cuMemcpyHtoD((CUdeviceptr) arg_d, ph, nargs * sizeof(TYPE *)));
+    CUDA_SAFE_CALL(cuMemcpyHtoD((CUdeviceptr) arg_d, ph.data(), nargs * sizeof(TYPE *)));
 }

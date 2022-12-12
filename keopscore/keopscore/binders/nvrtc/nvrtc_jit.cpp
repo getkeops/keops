@@ -16,6 +16,12 @@
 #define C_CONTIGUOUS 1
 #define USE_HALF 0
 
+#ifdef _WIN32
+#define DLL_EXPORT extern "C" __declspec(dllexport)
+#else
+#define DLL_EXPORT extern "C"
+#endif
+
 #include "include/Sizes.h"
 #include "include/Ranges.h"
 #include "include/utils_pe.h"
@@ -25,8 +31,8 @@
 #include "include/CudaSizes.h"
 #include <cuda_fp16.h>
 
-
-extern "C" int Compile(const char *target_file_name, const char *cu_code, int use_half, int device_id,
+DLL_EXPORT
+int Compile(const char *target_file_name, const char *cu_code, int use_half, int device_id,
                        const char *cuda_include_path) {
 
     nvrtcProgram prog;

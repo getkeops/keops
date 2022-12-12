@@ -46,7 +46,7 @@ class LoadKeOps_nvrtc_class(LoadKeOps):
             ny,
             self.params.tagI,
             self.params.tagZero,
-            self.params.use_half,
+            int(self.params.use_half),
             self.params.tag1D2D,
             self.params.dimred,
             self.params.cuda_block_size,
@@ -60,10 +60,12 @@ class LoadKeOps_nvrtc_class(LoadKeOps):
             self.params.dimsp,
             self.ranges_ptr_new,
             self.outshape,
-            self.out_ptr,
+            (self.out_ptr, ),
             self.args_ptr_new,
             self.argshapes_new,
         )
+
+        pass
 
     def import_module(self):
         return self
@@ -73,13 +75,34 @@ def compile_jit_binary():
     """
     This function compile the main .so entry point to keops_nvrt binder...
     """
-    compile_command = Gpu_link_compile.get_compile_command(
-        extra_flags=pykeops.config.python_includes,
-        sourcename=pykeops.config.pykeops_nvrtc_name(type="src"),
-        dllname=pykeops.config.pykeops_nvrtc_name(type="target"),
-    )
-    pyKeOps_Message("Compiling nvrtc binder for python ... ", flush=True, end="")
-    KeOps_OS_Run(compile_command)
+
+    if os.name == 'nt':
+        nvrtc_dir = pykeops.config.pykeops_nvrtc_dir(type='src')
+        build_dir = nvrtc_dir + "/build"
+        os.makedirs(build_dir, exist_ok=True)
+
+        compile_command = Gpu_link_compile.get_compile_command_ninja(
+            jit_compile_dir=nvrtc_dir
+        )
+        KeOps_OS_Run(compile_command)
+
+        import shutil
+
+        files = ['pykeops_nvrtc.pyd', 'pykeops_nvrtc.lib', 'pykeops_nvrtc.exp']
+        for fn in files:
+            src_fn = '%s/build/%s' % (nvrtc_dir, fn)
+            dst_fn = '%s/%s' % (get_build_folder(), fn)
+            shutil.copyfile(src_fn, dst_fn)
+
+    else:
+        compile_command = Gpu_link_compile.get_compile_command(
+            extra_flags=pykeops.config.python_includes,
+            sourcename=pykeops.config.pykeops_nvrtc_name(type="src"),
+            dllname=pykeops.config.pykeops_nvrtc_name(type="target"),
+        )
+        pyKeOps_Message("Compiling nvrtc binder for python ... ", flush=True, end="")
+        KeOps_OS_Run(compile_command)
+
     pyKeOps_Message("OK", use_tag=False, flush=True)
 
 

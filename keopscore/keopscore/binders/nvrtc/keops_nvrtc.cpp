@@ -51,7 +51,10 @@ int *build_offset_tables(int nbatchdims, int *shapes, int nblocks, int *lookup_h
     // [ A, .., 1, M, 1, D_4  ]  -> N.B.: we support broadcasting on the batch dimensions!
     // [ 1, .., 1, M, 1, D_5  ]  ->      (we'll just ask users to fill in the shapes with *explicit* ones)
 
-    int shapes_i[sizei * (nbatchdims + 1)], shapes_j[sizej * (nbatchdims + 1)], shapes_p[sizep * (nbatchdims + 1)];
+    //int shapes_i[sizei * (nbatchdims + 1)], shapes_j[sizej * (nbatchdims + 1)], shapes_p[sizep * (nbatchdims + 1)];
+    std::vector<int> shapes_i(sizei * (nbatchdims + 1));
+    std::vector<int> shapes_j(sizej * (nbatchdims + 1));
+    std::vector<int> shapes_p(sizep * (nbatchdims + 1));
 
     // First, we fill shapes_i with the "relevant" shapes of the "i" variables,
     // making it look like, say:
@@ -60,15 +63,16 @@ int *build_offset_tables(int nbatchdims, int *shapes, int nblocks, int *lookup_h
     // [ A, .., A, M]
     // Then, we do the same for shapes_j, but with "N" instead of "M".
     // And finally for the parameters, with "1" instead of "M".
-    fill_shapes(nbatchdims, shapes, shapes_i, shapes_j, shapes_p, tagJ, indsi, indsj, indsp);
+    fill_shapes(nbatchdims, shapes, shapes_i.data(), shapes_j.data(), shapes_p.data(), tagJ, indsi, indsj, indsp);
 
     int tagIJ = tagJ; // 1 if the reduction is made "over j", 0 if it is made "over i"
-    int M = shapes[nbatchdims], N = shapes[nbatchdims + 1];
+	int M = shapes[nbatchdims], N = shapes[nbatchdims + 1];
 
     // We create a lookup table, "offsets", of shape (nblocks, SIZEVARS) --------
     int *offsets_d = NULL;
 
-    int offsets_h[nblocks * sizevars];
+	//int offsets_h[nblocks * sizevars];
+    std::vector<int> offsets_h(nblocks * sizevars);
 
     for (int k = 0; k < nblocks; k++) {
         int range_id = (int) lookup_h[3 * k];
@@ -77,13 +81,13 @@ int *build_offset_tables(int nbatchdims, int *shapes, int nblocks, int *lookup_h
 
         int patch_offset = (int) (lookup_h[3 * k + 1] - start_x);
 
-        vect_broadcast_index(start_x, nbatchdims, sizei, shapes, shapes_i, offsets_h + k * sizevars, patch_offset);
-        vect_broadcast_index(start_y, nbatchdims, sizej, shapes, shapes_j, offsets_h + k * sizevars + sizei);
-        vect_broadcast_index(range_id, nbatchdims, sizep, shapes, shapes_p, offsets_h + k * sizevars + sizei + sizej);
+        vect_broadcast_index(start_x, nbatchdims, sizei, shapes, shapes_i.data(), offsets_h.data() + k * sizevars, patch_offset);
+        vect_broadcast_index(start_y, nbatchdims, sizej, shapes, shapes_j.data(), offsets_h.data() + k * sizevars + sizei);
+        vect_broadcast_index(range_id, nbatchdims, sizep, shapes, shapes_p.data(), offsets_h.data() + k * sizevars + sizei + sizej);
     }
 
     CUDA_SAFE_CALL(cuMemAlloc((CUdeviceptr * ) & offsets_d, sizeof(int) * nblocks * sizevars));
-    CUDA_SAFE_CALL(cuMemcpyHtoD((CUdeviceptr) offsets_d, offsets_h, sizeof(int) * nblocks * sizevars));
+    CUDA_SAFE_CALL(cuMemcpyHtoD((CUdeviceptr) offsets_d, offsets_h.data(), sizeof(int) * nblocks * sizevars));
 
     return offsets_d;
 }
@@ -113,7 +117,7 @@ void range_preprocess_from_device(int &nblocks, int tagI, int nranges_x, int nra
     int *slices_x = tagJ ? castedranges[1] : castedranges[4];
     int *ranges_y = tagJ ? castedranges[2] : castedranges[5];
 
-    int ranges_x_h_arr[2 * nranges];
+	std::vector<int> ranges_x_h_arr(2 * nranges);
     int* ranges_x_h;
 
     // The code below needs a pointer to ranges_x on *host* memory,  -------------------
@@ -151,7 +155,7 @@ void range_preprocess_from_device(int &nblocks, int tagI, int nranges_x, int nra
     }
 
     // Create a lookup table for the blocks --------------------------------------------
-    int lookup_h[3 * nblocks];
+    std::vector<int> lookup_h(3 * nblocks);
     int index = 0;
 
     for (int i = 0; i < nranges; i++) {
@@ -166,7 +170,7 @@ void range_preprocess_from_device(int &nblocks, int tagI, int nranges_x, int nra
 
     // Load the table on the device -----------------------------------------------------
     CUDA_SAFE_CALL(cuMemAlloc((CUdeviceptr * ) &lookup_d, sizeof(int) * 3 * nblocks));
-    CUDA_SAFE_CALL(cuMemcpyHtoD((CUdeviceptr) lookup_d, lookup_h, sizeof(int) * 3 * nblocks));
+    CUDA_SAFE_CALL(cuMemcpyHtoD((CUdeviceptr) lookup_d, lookup_h.data(), sizeof(int) * 3 * nblocks));
 
 
     // Support for broadcasting over batch dimensions =============================================
@@ -174,7 +178,7 @@ void range_preprocess_from_device(int &nblocks, int tagI, int nranges_x, int nra
     // We create a lookup table, "offsets", of shape (nblock, SIZEVARS):
 
     if (nbatchdims > 0) {
-        offsets_d = build_offset_tables(nbatchdims, shapes, nblocks, lookup_h,
+        offsets_d = build_offset_tables(nbatchdims, shapes, nblocks, lookup_h.data(),
                                         indsi, indsj, indsp, tagJ);
     }
 
@@ -218,7 +222,7 @@ range_preprocess_from_host(int &nblocks, int tagI, int nranges_x, int nranges_y,
     }
 
     // Create a lookup table for the blocks --------------------------------------------
-    int lookup_h[3 * nblocks];
+    std::vector<int> lookup_h(3 * nblocks);
     int index = 0;
 
     for (int i = 0; i < nranges; i++) {
@@ -233,7 +237,7 @@ range_preprocess_from_host(int &nblocks, int tagI, int nranges_x, int nranges_y,
 
     // Load the table on the device -----------------------------------------------------
     CUDA_SAFE_CALL(cuMemAlloc((CUdeviceptr * ) & lookup_d, sizeof(int) * 3 * nblocks));
-    CUDA_SAFE_CALL(cuMemcpyHtoD((CUdeviceptr) lookup_d, lookup_h, sizeof(int) * 3 * nblocks));
+    CUDA_SAFE_CALL(cuMemcpyHtoD((CUdeviceptr) lookup_d, lookup_h.data(), sizeof(int) * 3 * nblocks));
 
     // Send data from host to device:
     CUDA_SAFE_CALL(cuMemAlloc((CUdeviceptr * ) & slices_x_d, sizeof(int) * 2 * nranges));
@@ -248,7 +252,7 @@ range_preprocess_from_host(int &nblocks, int tagI, int nranges_x, int nranges_y,
     // We create a lookup table, "offsets", of shape (nblock, SIZEVARS):
 
     if (nbatchdims > 0) {
-        offsets_d = build_offset_tables(nbatchdims, shapes, nblocks, lookup_h,
+        offsets_d = build_offset_tables(nbatchdims, shapes, nblocks, lookup_h.data(),
                                         indsi, indsj, indsp, tagJ);
     }
 
