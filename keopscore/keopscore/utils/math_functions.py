@@ -113,5 +113,5 @@ keops_diffclampint = math_function(
 keops_ifelse = math_function(cpu_code=lambda x, a, b: f"(({x}>=0.0f) ? {a} : {b})")
 
 keops_sincos = math_function(
-    cpu_code=lambda x, s, c: f"*{s}=sin(x); *{c}=cos(x);", void=True
+    cpu_code=lambda x, s, c: f"*{s}=sin({x}); *{c}=cos({x});", void=True
 )
