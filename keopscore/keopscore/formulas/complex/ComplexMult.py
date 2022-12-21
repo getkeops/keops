@@ -1,5 +1,6 @@
 from keopscore.formulas.VectorizedComplexScalarOp import VectorizedComplexScalarOp
 from keopscore.formulas.complex.Conj import Conj
+from keopscore.formulas.complex.ComplexAdd import ComplexAdd
 
 # /////////////////////////////////////////////////////////////////////////
 # ////      ComplexMult                           ////
@@ -16,7 +17,21 @@ class ComplexMult(VectorizedComplexScalarOp):
         return string
 
     def DiffT(self, v, gradin):
+        from keopscore.formulas.complex.ComplexSum import ComplexSum
         f, g = self.children
-        return f.DiffT(v, ComplexMult(Conj(g), gradin)) + g.DiffT(
-            v, ComplexMult(Conj(f), gradin)
+        if f.dim == 2 and g.dim > 2:
+            return ComplexAdd(
+                f.DiffT(v, ComplexSum(ComplexMult(Conj(g), gradin))), 
+                g.DiffT(v, ComplexMult(Conj(f), gradin))
         )
+        elif g.dim == 2 and f.dim > 2:
+            return ComplexAdd(
+                f.DiffT(v, ComplexMult(Conj(g), gradin)), 
+                g.DiffT(v, ComplexSum(ComplexMult(Conj(f), gradin)))
+        )
+        else:
+            return ComplexAdd(
+                f.DiffT(v, ComplexMult(Conj(g), gradin)), 
+                g.DiffT(v, ComplexMult(Conj(f), gradin))
+        )
+
