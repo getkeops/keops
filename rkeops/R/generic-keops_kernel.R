@@ -1,3 +1,7 @@
+library("reticulate")
+np <- import("numpy")
+pknp <- import("pykeops.numpy")
+source("dev/utils.R")
 #' Defines a new operators
 #' @description
 #' This function is the core of the KeOps library, it allows you to create 
@@ -121,21 +125,21 @@ keops_kernel <- function(formula, args, keops_grad_call = FALSE) {
     # check formula and args formating
     var_aliases <- format_var_aliases(args)
     
-    # hash name to compile formula in a shared library file
-    dllname <- create_dllname(formula, args)
-    dllfilename <- file.path(get_build_dir(), 
-                             paste0("librkeops", dllname, .Platform$dynlib.ext))
-    
-    # compile operator if necessary
-    if(!file.exists(dllfilename) | get_rkeops_option("verbosity")) {
-        compile_formula(formula, var_aliases$var_aliases, dllname)
-    }
-    
-    # load shared library
-    r_genred <- load_dll(path = get_build_dir(),
-                         dllname = paste0("librkeops", dllname), 
-                         object = "r_genred",
-                         genred=TRUE)
+    ## hash name to compile formula in a shared library file
+    #dllname <- create_dllname(formula, args)
+    #dllfilename <- file.path(get_build_dir(), 
+    #                         paste0("librkeops", dllname, .Platform$dynlib.ext))
+    #
+    ## compile operator if necessary
+    #if(!file.exists(dllfilename) | get_rkeops_option("verbosity")) {
+    #    compile_formula(formula, var_aliases$var_aliases, dllname)
+    #}
+    #
+    ## load shared library
+    #r_genred <- load_dll(path = get_build_dir(),
+    #                     dllname = paste0("librkeops", dllname), 
+    #                     object = "r_genred",
+    #                     genred=TRUE)
     
     # reordering var_aliases (to correspond to operator input)
     var_aliases <- lapply(
@@ -165,6 +169,7 @@ keops_kernel <- function(formula, args, keops_grad_call = FALSE) {
                     inner_dim=inner_dim,
                     keops_grad_call = keops_grad_call)
         
+        # TODO: the same is done in PyKeOps, but the names differ. Choose which one to keep.
         if(missing(input) | is.null(input))
             return(env)
         
@@ -175,6 +180,7 @@ keops_kernel <- function(formula, args, keops_grad_call = FALSE) {
                 "corresponding to the formula input arguments."
             ))
         
+        # TODO: ditto
         # check input length
         add_var_length <- ifelse(env$keops_grad_call, 1, 0)
         if(length(input) != (length(env$args) + add_var_length))
@@ -184,70 +190,100 @@ keops_kernel <- function(formula, args, keops_grad_call = FALSE) {
                 "in the formula."
             ))
         
-        ## reorder input if names are supplied (if not list order is used)
-        # check that all input args are named
-        if(sum(str_length(names(input)) > 0) == length(input)) {
-            # expected order
-            expected_order <- env$var_aliases$var_name
-            # check if names are consistent
-            if(all(names(input) %in% expected_order))
-                if(any(names(input) != expected_order))
-                    input <- input[expected_order]
-        }
-        
-        ## transform non-matrix args (scalar/vectors) to matrix
-        # (generally parameters)
-        check_not_matrix <- sapply(
-            1:length(input), 
-            function(ind) return(!is.matrix(input[[ind]]))
-        )
-        if(any(check_not_matrix)) {
-            tmp_names <- names(input)
-            input[check_not_matrix] <- lapply(
-                which(check_not_matrix),
-                function(ind) {
-                    return(t(as.matrix(input[[ind]])))
-                }
-            )
-            names(input) <- tmp_names
-        }
-        
-        ## dimension
-        nx <- 1
-        if("Vi" %in% env$var_aliases$var_type) {
-            ind_Vi <- head(which(env$var_aliases$var_type == "Vi"), 1)
-            dim_Vi <- dim(input[[ind_Vi]])
-            if(env$inner_dim == 1) {
-                # inner dim = columns
-                nx <- dim_Vi[1]
-            } else {
-                # inner dim = rows
-                nx <- dim_Vi[2]
-            }
-        }
-        
-        ny <- 1
-        if("Vj" %in% env$var_aliases$var_type) {
-            ind_Vj <- head(which(env$var_aliases$var_type == "Vj"), 1)
-            dim_Vj <- dim(input[[ind_Vj]])
-            if(env$inner_dim == 1) {
-                # inner dim = columns
-                ny <- dim_Vj[1]
-            } else {
-                # inner dim = rows
-                ny <- dim_Vj[2]
-            }
-        }
-        
-        ## run
-        param <- c(get_rkeops_options("runtime"),
-                   list(inner_dim=inner_dim, nx=nx, ny=ny))
-        out <- r_genred(input, param)
-        ## transpose if necessary
-        if(inner_dim) {
-            return(t(out))
-        } else {
-            return(out)
-        }
+        ### reorder input if names are supplied (if not list order is used)
+        ## check that all input args are named
+        #if(sum(str_length(names(input)) > 0) == length(input)) {
+        #    # expected order
+        #    expected_order <- env$var_aliases$var_name
+        #    # check if names are consistent
+        #    if(all(names(input) %in% expected_order))
+        #        if(any(names(input) != expected_order))
+        #            input <- input[expected_order]
+        #}
+        #
+        ### transform non-matrix args (scalar/vectors) to matrix
+        ## (generally parameters)
+        #check_not_matrix <- sapply(
+        #    1:length(input), 
+        #    function(ind) return(!is.matrix(input[[ind]]))
+        #)
+        #if(any(check_not_matrix)) {
+        #    tmp_names <- names(input)
+        #    input[check_not_matrix] <- lapply(
+        #        which(check_not_matrix),
+        #        function(ind) {
+        #            return(t(as.matrix(input[[ind]])))
+        #        }
+        #    )
+        #    names(input) <- tmp_names
+        #}
+        #
+        ### dimension
+        #nx <- 1
+        #if("Vi" %in% env$var_aliases$var_type) {
+        #    ind_Vi <- head(which(env$var_aliases$var_type == "Vi"), 1)
+        #    dim_Vi <- dim(input[[ind_Vi]])
+        #    if(env$inner_dim == 1) {
+        #        # inner dim = columns
+        #        nx <- dim_Vi[1]
+        #    } else {
+        #        # inner dim = rows
+        #        nx <- dim_Vi[2]
+        #    }
+        #}
+        #
+        #ny <- 1
+        #if("Vj" %in% env$var_aliases$var_type) {
+        #    ind_Vj <- head(which(env$var_aliases$var_type == "Vj"), 1)
+        #    dim_Vj <- dim(input[[ind_Vj]])
+        #    if(env$inner_dim == 1) {
+        #        # inner dim = columns
+        #        ny <- dim_Vj[1]
+        #    } else {
+        #        # inner dim = rows
+        #        ny <- dim_Vj[2]
+        #    }
+        #}
+        #
+        ### run
+        #param <- c(get_rkeops_options("runtime"),
+        #           list(inner_dim=inner_dim, nx=nx, ny=ny))
+        #out <- r_genred(input, param)
+        ### transpose if necessary
+        #if(inner_dim) {
+        #    return(t(out))
+        #} else {
+        #    return(out)
+        #}
+        # --------------- Use numpy.Genred instead -----------------
+        # It is not possible to use <Reduction>_Reduction(..., axis)
+        # syntax with PyKeOps --> need to format formula from RKeOps to PyKeOps:
+        pykeops_formula <- get_pykeops_formula(formula)
+        routine <- pknp$Genred(
+                        formula=pykeops_formula$main_formula,
+                        aliases=args,
+                        reduction_op=pykeops_formula$reduction_op,
+                        axis=pykeops_formula$axis,
+                        opt_arg=pykeops_formula$opt_arg
+                   )
+
+        # FIXME: `get_rkeops_option` throws an error in rkeops v. 1.5 dev.
+        # uncomment below when fixed.
+        #dtype <- ifelse(get_rkeops_option("precision") == "double", "float64", "float32")
+        dtype <- "float64"
+
+        # FIXME: ditto
+        #backend <- get_rkeops_option(...)
+
+        # TODO: should we take into account `get_rkeops_option("col_major")`
+        # together with inner_dim?
+        # "C": column-major, "F": row-major
+        order <- ifelse(inner_dim, "C", "F")
+
+        # change R arrays into numpy arrays
+        input <- lapply(input, function(x) np_array(x, dtype=dtype, order=order))
+        res <- routine(input, backend="CPU")
+        return(res)
+        # ----------------------------------------------------------
     }
 }

@@ -284,6 +284,11 @@ class Genred:
             that is inferred from the **formula**.
         """
 
+        # FIX: RKeOps needs to pass a list to *args, which is changed into
+        # tuple inside Genred. So with RKeOps we get a list inside a tuple
+        if isinstance(args[0], list):
+            args = args[0]
+
         # Get tags
         tagCPUGPU, tag1D2D, tagHostDevice = get_tag_backend(backend, args)
 
