@@ -259,7 +259,7 @@ keops_kernel <- function(formula, args, keops_grad_call = FALSE) {
         # It is not possible to use <Reduction>_Reduction(..., axis)
         # syntax with PyKeOps --> need to format formula from RKeOps to PyKeOps:
         pykeops_formula <- get_pykeops_formula(formula)
-        routine <- pknp$Genred(
+        routine <- pknp$GenredR(
                         formula=pykeops_formula$main_formula,
                         aliases=args,
                         reduction_op=pykeops_formula$reduction_op,
@@ -274,6 +274,7 @@ keops_kernel <- function(formula, args, keops_grad_call = FALSE) {
 
         # FIXME: ditto
         #backend <- get_rkeops_option(...)
+        backend = "CPU"
 
         # TODO: should we take into account `get_rkeops_option("col_major")`
         # together with inner_dim?
@@ -282,7 +283,7 @@ keops_kernel <- function(formula, args, keops_grad_call = FALSE) {
 
         # change R arrays into numpy arrays
         input <- lapply(input, function(x) np_array(x, dtype=dtype, order=order))
-        res <- routine(input, backend="CPU")
+        res <- routine(input, backend=backend)
         return(res)
         # ----------------------------------------------------------
     }
