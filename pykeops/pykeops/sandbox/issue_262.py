@@ -3,7 +3,9 @@ import typing
 import pykeops.torch as ktorch
 
 import pykeops
+
 pykeops.clean_pykeops()
+
 
 def cross_knn_search(
     A: torch.Tensor, B: torch.Tensor, k: int

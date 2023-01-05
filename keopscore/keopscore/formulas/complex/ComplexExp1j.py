@@ -21,7 +21,7 @@ class ComplexExp1j(Operation):
 
     def Op(self, out, table, inF):
         forloop, i = c_for_loop(0, self.dim, 2, pragma_unroll=True)
-        body = keops_sincos(inF[i / 2], pointer(out[i+1]), pointer(out[i]))
+        body = keops_sincos(inF[i / 2], pointer(out[i + 1]), pointer(out[i]))
         return forloop(body)
 
     def DiffT(self, v, gradin):

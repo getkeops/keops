@@ -1,4 +1,5 @@
 import pykeops
+
 pykeops.clean_pykeops()
 
 import torch
@@ -10,7 +11,7 @@ L = 5000
 D = 10
 
 dtype = torch.complex64
-#dtype = torch.float32
+# dtype = torch.float32
 
 # Complex
 x_i = LazyTensor(torch.randn(H, N, 1, 1, dtype=dtype, requires_grad=True))

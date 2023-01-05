@@ -16,6 +16,7 @@ class ComplexSubtract(VectorizedComplexScalarOp):
 
     def DiffT(self, v, gradin):
         from keopscore.formulas.complex.ComplexSum import ComplexSum
+
         f, g = self.children
         if f.dim == 2 and g.dim > 2:
             return ComplexSubtract(f.DiffT(v, ComplexSum(gradin)), g.DiffT(v, gradin))

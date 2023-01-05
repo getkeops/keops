@@ -78,11 +78,15 @@ class Chunk_Mode_Constants:
 
         self.fun_lastchunked = formula.chunked_formulas(self.dimlastchunk)[0]["formula"]
 
-        self.varsi_lastchunked = list(Var(v.ind,self.dimlastchunk,v.cat) for v in self.varsi_chunked)
+        self.varsi_lastchunked = list(
+            Var(v.ind, self.dimlastchunk, v.cat) for v in self.varsi_chunked
+        )
         self.indsi_lastchunked = GetInds(self.varsi_lastchunked)
         self.dimsx_lastchunked = GetDims(self.varsi_lastchunked)
 
-        self.varsj_lastchunked = list(Var(v.ind,self.dimlastchunk,v.cat) for v in self.varsj_chunked)
+        self.varsj_lastchunked = list(
+            Var(v.ind, self.dimlastchunk, v.cat) for v in self.varsj_chunked
+        )
         self.indsj_lastchunked = GetInds(self.varsj_lastchunked)
         self.dimsy_lastchunked = GetDims(self.varsj_lastchunked)
 
