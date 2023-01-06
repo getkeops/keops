@@ -1,7 +1,7 @@
 * v2.1.1 - Jan 6, 2023
     - Fixes for issues 220, 263, 256, 266, 275, 262, 282
     - Fixed an error caused by a compile warning on recent MacOs systems.
-		- Added an official image on DockerHub and updated instructions for Singularity and Docker.
+    - Added an official image on DockerHub and updated instructions for Singularity and Docker.
 
 * v2.1 - Jun 3, 2022
     - Fix for gradient formula of divide operation (issue #246).
