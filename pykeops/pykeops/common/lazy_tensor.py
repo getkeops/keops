@@ -285,7 +285,7 @@ class GenericLazyTensor:
             if type(v) == list and self._dtype is not None:
                 v = self.tools.array(v, self._dtype, device)
 
-            # Replace "Var(idv," by "Var(i," and increment 'i':
+            # Replace "Var(idv," by "Var(i," and increment 'i' :
             tag = "Var({},".format(idv)
             if tag in self.formula + self.formula2:
                 self.formula = self.formula.replace(tag, "Var({},".format(i))
