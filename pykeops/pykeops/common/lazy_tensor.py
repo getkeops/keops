@@ -263,10 +263,10 @@ class GenericLazyTensor:
         r"""This method is specialized in :class:`pykeops.numpy.LazyTensor` and :class:`pykeops.torch.LazyTensor`. It
         populates the tools class."""
         pass
-        
+
     def new_variable_index(self):
         sv = self.symbolic_variables
-        return 0 if len(sv)==0 else 1+max(v[0] for v in sv)
+        return 0 if len(sv) == 0 else 1 + max(v[0] for v in sv)
 
     def fixvariables(self):
         r"""If needed, assigns final labels to each variable and pads their batch dimensions prior to a :mod:`Genred()` call."""
@@ -290,13 +290,15 @@ class GenericLazyTensor:
             if tag in self.formula + self.formula2:
                 self.formula = self.formula.replace(tag, "Var({},".format(i))
                 self.formula2 = self.formula2.replace(tag, "Var({},".format(i))
-                if hasattr(v, "shape"): # (because v might still be a Python list of floats)
+                if hasattr(
+                    v, "shape"
+                ):  # (because v might still be a Python list of floats)
                     # here we add dummy dims to v ( i.e. replace v by v[None,..,None,...])
                     # if needed.
                     # First we detect if v is meant to be used as a variable or as a parameter:
                     str_cat_v = re.search(
                         r"Var\({},\d+,([012])\)".format(i), self.formula + self.formula2
-                        ).group(1)
+                    ).group(1)
                     is_variable = 1 if str_cat_v in ("0", "1") else 0
                     dims_to_pad = self.nbatchdims + 1 + is_variable - len(v.shape)
                     padded_v = self.tools.view(v, (1,) * dims_to_pad + v.shape)
