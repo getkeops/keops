@@ -1784,6 +1784,23 @@ class GenericLazyTensor:
             opt_pos="middle",
         )
 
+    def grad_matrix(self, other):
+        r"""
+        Symbolic gradient matrix operation.
+
+        ``z = x.grad_matrix(v)`` returns a :class:`LazyTensor`
+        which encodes, symbolically,
+        the gradient matrix (more precisely, the adjoint of the differential operator) of ``x``, with
+        respect to variable ``v``.
+        For details, please check the documentation of the KeOps operation ``"GradMatrix"`` in
+        the :doc:`main reference page <../../../api/math-operations>`.
+        """
+        return self.unary(
+            "GradMatrix",
+            dimres=self.ndim*other.ndim,
+            opt_arg=other,
+        )
+
         # List of supported reductions  ============================================
 
     def sum(self, axis=-1, dim=None, **kwargs):
