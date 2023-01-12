@@ -1801,6 +1801,14 @@ class GenericLazyTensor:
             opt_arg=other,
         )
 
+    def trace_operator(self, var):
+        return self.binary(
+            var,
+            "Trace_Operator",
+            dimres=1,
+            dimcheck="same",
+        )
+        
         # List of supported reductions  ============================================
 
     def sum(self, axis=-1, dim=None, **kwargs):
