@@ -1,5 +1,19 @@
 import os.path
 import sys
+
+sys.path.append(
+    os.path.join(
+        os.path.dirname(os.path.abspath(__file__)), os.path.sep.join([os.pardir] * 2)
+    )
+)
+sys.path.append(
+    os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        os.path.sep.join([os.pardir] * 3),
+        "pykeops",
+    )
+)
+
 import types
 
 import numpy as np
@@ -9,8 +23,6 @@ from torch.autograd import grad
 import keopscore
 from keopscore.utils.misc_utils import KeOps_Error
 from pykeops.torch import Genred
-
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".."))
 
 import pytest
 from keopscore.formulas.maths import *

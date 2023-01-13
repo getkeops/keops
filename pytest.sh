@@ -97,20 +97,20 @@ logging "-- Installing keopscore..."
 pip install -e ${PROJDIR}/keopscore
 
 ################################################################################
-# Running keopscore tests                                                     #
-################################################################################
-
-logging "-- Running keopscore tests..."
-
-pytest -v keopscore/keopscore/test/
-
-################################################################################
 # Installing pykeops                                                           #
 ################################################################################
 
 logging "-- Installing pykeops..."
 
 pip install -e "${PROJDIR}/pykeops[test]"
+
+################################################################################
+# Running keopscore tests                                                     #
+################################################################################
+
+logging "-- Running keopscore tests..."
+
+pytest -v keopscore/keopscore/test/
 
 ################################################################################
 # Running pykeops tests                                                        #
