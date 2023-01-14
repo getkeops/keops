@@ -13,6 +13,7 @@ from keopscore.utils.misc_utils import KeOps_Error
 
 class VecMatMult(Operation):
     string_id = "VecMatMult"
+    linearity_type = "one"
 
     def __init__(self, B, A):
         # A is vector of size n*p, interpreted as matrix, B is vector of size n, interpreted as row vector

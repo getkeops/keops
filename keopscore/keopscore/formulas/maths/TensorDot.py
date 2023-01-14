@@ -52,6 +52,7 @@ def permutation(perm, arr):
 
 class TensorDot(Operation):
     string_id = "TensorDot"
+    linearity_type = "one"
 
     def __init__(self, fa, fb, dimsfa, dimsfb, contfa, contfb, permute=None):
 

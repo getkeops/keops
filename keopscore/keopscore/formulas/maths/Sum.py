@@ -12,6 +12,7 @@ class Sum_Impl(Chunkable_Op):
     # the summation operation
 
     string_id = "Sum"
+    linearity_type = "all"
 
     dim = 1
 

@@ -15,6 +15,7 @@ from keopscore.utils.misc_utils import KeOps_Error
 class Scalprod_Impl(Chunkable_Op):
     string_id = "Scalprod"
     print_spec = "|", "mid", 3
+    linearity_type = "one"
 
     dim = 1
 

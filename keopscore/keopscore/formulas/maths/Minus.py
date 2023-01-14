@@ -12,6 +12,7 @@ class Minus_Impl(VectorizedScalarOp):
 
     string_id = "Minus"
     print_spec = "-", "pre", 2
+    linearity_type = "all"
 
     def ScalarOp(self, out, arg):
         # returns the atomic piece of c++ code to evaluate the function on arg and return

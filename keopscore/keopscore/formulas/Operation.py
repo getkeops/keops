@@ -10,6 +10,19 @@ from keopscore.utils.misc_utils import KeOps_Error
 
 class Operation(Tree):
     """Base class for all keops building block operations in a formula"""
+    
+    linearity_type = None
+    
+    def is_linear(self,v):
+        if self.linearity_type=="all":
+            return all(f.is_linear(v) for f in self.children)
+        elif self.linearity_type=="one":
+            return sum(f.is_linear(v) for f in self.children)==1
+        elif self.linearity_type=="first":
+            f, = self.children
+            return f.is_linear(v)
+        else:
+            return False
 
     def __init__(self, *args, params=()):
         # *args are other instances of Operation, they are the child operations of self

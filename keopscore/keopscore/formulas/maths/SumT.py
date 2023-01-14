@@ -12,6 +12,7 @@ class SumT_Impl(Operation):
     # the adjoint of the summation operation
 
     string_id = "SumT"
+    linearity_type = "all"
 
     def __init__(self, arg, dim):
         super().__init__(arg, params=(dim,))
