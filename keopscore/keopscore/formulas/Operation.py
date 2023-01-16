@@ -19,7 +19,7 @@ class Operation(Tree):
         elif self.linearity_type=="one":
             return sum(f.is_linear(v) for f in self.children)==1
         elif self.linearity_type=="first":
-            f, = self.children
+            f = self.children[0]
             return f.is_linear(v)
         else:
             return False

@@ -127,6 +127,7 @@ class GenericLazyTensor:
                     )
 
                 self.symbolic_variables = (x,)
+                self.ind = x[0]
                 self.ndim = x[1]
                 self.axis = x[2]
                 self.formula = "VarSymb({},{},{})".format(x[0], self.ndim, self.axis)
@@ -946,7 +947,7 @@ class GenericLazyTensor:
                 raise ValueError("no input required")
             # we replace by other
             args = (self.other.variables[0],)
-
+        
         return self.callfun(*args, *self.variables, **self.kwargs)
 
     def __str__(self):
@@ -1802,11 +1803,28 @@ class GenericLazyTensor:
         )
 
     def trace_operator(self, var):
-        return self.binary(
+        res = self.binary(
             var,
-            "Trace_Operator",
+            "TraceOperator",
             dimres=1,
             dimcheck="same",
+        )
+        # we need some trick here, because we are in the case where the variable var=Var(ind,dim,cat)
+        # will be present in the formula string, but will disappear after symbolic evaluation. So this
+        # var must be suppressed from the list of symbolic variables (because it will not need any actual
+        # tensor in the end), and we change its ind to a negative value, so that later it will not be
+        # considered when calling function "parse_type" that gets the list of actual variables.
+        res.symbolic_variables = list(set(res.symbolic_variables).difference(var.symbolic_variables))
+        if var.ind>=0:
+            res.formula = res.formula.replace(var.formula,f"VarSymb(-{var.ind}-1,{var.ndim},{var.axis})")
+        return res
+        
+    def laplacian(self, var):
+        return self.binary(
+            var,
+            "Laplacian",
+            dimres=1,
+            dimcheck=None,
         )
         
         # List of supported reductions  ============================================
