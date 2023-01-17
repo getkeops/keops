@@ -36,13 +36,19 @@ class Operation(Tree):
                     res.append(v)
             return res
 
-    def replace(self, old, new):
+    def replace(self, old, new, cnt=[0]):
         # replace all occurences of subformula old by new in self.
         if self == old:
+            cnt[0] += 1
             return new
         else:
-            new_children = [child.replace(old, new) for child in self.children]
+            new_children = [child.replace(old, new, cnt) for child in self.children]
             return type(self)(*new_children, *self.params)
+
+    def replace_and_count(self, old, new):
+        cnt = [0]
+        formula = self.replace(old, new, cnt)
+        return formula, cnt[0]
 
     def __call__(self, out, table):
         """returns the C++ code string corresponding to the evaluation of the formula
