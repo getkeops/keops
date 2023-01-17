@@ -37,18 +37,29 @@ _build_path = None
 
 
 def set_build_folder(
-    path=None, read_save_file=False, write_save_file=True, reset_all=True
+    path, write_save_file, reset_all
 ):
+    r"""
+    Set the build folder for KeOps.
+
+    :param path: (str) path to build folder
+    :param write_save_file: (bool) write the new build folder path name in the `keops_cache_folder/build_folder_location.txt`
+        file. To be used with `set_build_folder(path=None, read_save_file=True)`
+    :param reset_all: (bool) flush keops cache (.pkl files)
+    :return:
+    """
 
     # if path is not given, we either read the save file or use the default build path
     save_file = join(keops_cache_folder, "build_folder_location.txt")
-    if not path:
-        if read_save_file and os.path.isfile(save_file):
-            f = open(save_file, "r")
-            path = f.read()
-            f.close()
-        else:
-            path = default_build_path
+
+    if (path is None) and os.path.isfile(save_file):
+        f = open(save_file, "r")
+        path = f.read()
+        f.close()
+    elif (path is None):
+        path = default_build_path
+
+    path = os.path.expanduser(path)
 
     # create the folder if not yet done
     os.makedirs(path, exist_ok=True)
@@ -77,11 +88,11 @@ def set_build_folder(
                 jit_compile_dll,
             )
 
-            if not os.path.exists(jit_compile_dll()):
-                Gpu_link_compile.compile_jit_compile_dll()
+        if not os.path.exists(jit_compile_dll()):
+            Gpu_link_compile.compile_jit_compile_dll()
 
-
-set_build_folder(read_save_file=True, write_save_file=False, reset_all=False)
+# Default call : path=None, read_save_file=True, write_save_file
+set_build_folder(None, False, False)
 
 
 def get_build_folder():

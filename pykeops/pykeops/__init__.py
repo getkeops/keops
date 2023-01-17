@@ -54,10 +54,10 @@ def clean_pykeops(recompile_jit_binaries=True):
         pykeops.common.keops_io.LoadKeOps_nvrtc.compile_jit_binary()
 
 
-def set_build_folder(path=None):
+def set_build_folder(path=None, make_default=False, reset_all=True): # TODO: fix reset_all option with circular import in keopscore
     import pykeops
 
-    keopscore.set_build_folder(path)
+    keopscore.set_build_folder(path, make_default, reset_all)
     keops_binder = pykeops.common.keops_io.keops_binder
     for key in keops_binder:
         keops_binder[key].reset(new_save_folder=get_build_folder())
@@ -72,10 +72,10 @@ def get_build_folder():
 
 
 if pykeopsconfig.numpy_found:
-    from .numpy.test_install import test_numpy_bindings
+    from pykeops.numpy.test_install import test_numpy_bindings
 
 if pykeopsconfig.torch_found:
-    from .torch.test_install import test_torch_bindings
+    from pykeops.torch.test_install import test_torch_bindings
 
 # next line is to ensure that cache file for formulas is loaded at import
-from .common import keops_io
+from pykeops.common import keops_io
