@@ -9,6 +9,7 @@ from keopscore.utils.misc_utils import KeOps_Error
 
 class Elem(Operation):
     string_id = "Elem"
+    linearity_type = "all"
 
     def __init__(self, f, m):
         super().__init__(f, params=(m,))

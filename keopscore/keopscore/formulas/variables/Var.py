@@ -18,6 +18,9 @@ class Var(Operation):
     a "j"-indexed variable (cat=1), or a parameter variable (cat=2)"""
 
     string_id = "Var"
+    
+    def is_linear(self,v):
+        return self==v
 
     def __init__(self, ind, dim, cat):
         super().__init__()

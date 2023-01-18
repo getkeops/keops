@@ -10,6 +10,7 @@ from keopscore.utils.code_gen_utils import VectCopy
 
 class Concat(Operation):
     string_id = "Concat"
+    linearity_type = "all"
 
     def __init__(self, arg0, arg1):
         super().__init__(arg0, arg1)

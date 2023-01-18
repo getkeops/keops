@@ -15,6 +15,7 @@ class Subtract_Impl(VectorizedScalarOp):
 
     string_id = "Subtract"
     print_spec = "-", "mid", 4
+    linearity_type = "all"
 
     def ScalarOp(self, out, arg0, arg1):
         # returns the atomic piece of c++ code to evaluate the function on arg and return

@@ -12,6 +12,7 @@ class Sum_Impl(Chunkable_Op):
     # the summation operation
 
     string_id = "Sum"
+    linearity_type = "all"
 
     dim = 1
 
@@ -37,7 +38,9 @@ class Sum_Impl(Chunkable_Op):
 # N.B. The following separate function should theoretically be implemented
 # as a __new__ method of the previous class, but this can generate infinite recursion problems
 def Sum(arg):
-    if isinstance(arg, Zero):
+    if arg.dim==1:
+        return arg
+    elif isinstance(arg, Zero):
         return Zero(1)
     else:
         return Sum_Impl(arg)

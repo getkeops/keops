@@ -9,6 +9,7 @@ from keopscore.utils.misc_utils import KeOps_Error
 
 class Extract(Operation):
     string_id = "Extract"
+    linearity_type = "all"
 
     def __init__(self, arg0, start, dim):
         if arg0.dim < start + dim or start < 0:

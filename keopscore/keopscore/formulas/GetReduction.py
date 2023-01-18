@@ -7,6 +7,7 @@ from keopscore.formulas.maths import *
 from keopscore.formulas.complex import *
 from keopscore.formulas.variables import *
 from keopscore.formulas.autodiff import *
+from keopscore.formulas.LinearOperators import *
 from keopscore.formulas.factorization import *
 
 

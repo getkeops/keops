@@ -16,6 +16,7 @@ class Divide_Impl(VectorizedScalarOp):
 
     string_id = "Divide"
     print_spec = "/", "mid", 3
+    linearity_type = "first"
 
     def ScalarOp(self, out, arg0, arg1):
         """returns the atomic piece of c++ code to evaluate the function on arg and return the result in out"""

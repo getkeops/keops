@@ -18,6 +18,7 @@ class Mult_Impl(VectorizedScalarOp):
 
     string_id = "Mult"
     print_spec = "*", "mid", 3
+    linearity_type = "one"
 
     ScalarOpFun = keops_mul
 
