@@ -1783,7 +1783,24 @@ class GenericLazyTensor:
             opt_arg=other,
             opt_pos="middle",
         )
+    
+    def factorize(self, other):
+        r"""
+        Symbolic factorization operation.
 
+        ``z = x.factorize(y)`` returns a :class:`LazyTensor`
+        which encodes, symbolically,
+        a factorization of ``x`` with respect to ``y``.
+        For details, please check the documentation of the KeOps operation ``"Factorize"`` in
+        the :doc:`main reference page <../../../api/math-operations>`.
+        """
+        return self.binary(
+            other,
+            "Factorize",
+            dimres=self.ndim,
+            dimcheck=None,
+        )
+        
         # List of supported reductions  ============================================
 
     def sum(self, axis=-1, dim=None, **kwargs):

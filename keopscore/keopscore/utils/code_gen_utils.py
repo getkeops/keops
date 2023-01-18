@@ -519,6 +519,14 @@ class Var_loader:
         self.indsj = GetInds(self.Varsj)  # list indices of "j"-indexed variables
         self.pos_first_argJ = mymin(self.indsj)  # first index of "j"-indexed variables
         self.dimsy = GetDims(self.Varsj)  # list dimensions of "j"-indexed variables
+        
+        print("lijij")
+        print("formula:", formula)
+        print("tagJ:", tagJ)
+        print("self.Varsj:",self.Varsj)
+        print(self.dimsy)
+        input()
+        
         self.dimy = sum(self.dimsy)  # total dimension of "j"-indexed variables
 
         self.Varsp = formula.Vars(cat=2)  # list all parameter variables in the formula
@@ -569,7 +577,7 @@ class Var_loader:
         return load_vars(dims, inds, *args, **kwargs)
 
 
-def table(nminargs, dimsx, dimsy, dimsp, indsi, indsj, indsp, xi, yj, pp):
+def table(nminargs, dimsx, dimsy, dimsp, indsi, indsj, indsp, xi, yj, pp):    
     res = [None] * nminargs
     for (dims, inds, xloc) in (
         (dimsx, indsi, xi),
@@ -583,7 +591,7 @@ def table(nminargs, dimsx, dimsy, dimsp, indsi, indsj, indsp, xi, yj, pp):
     return res
 
 
-def direct_table(nminargs, dimsx, dimsy, dimsp, indsi, indsj, indsp, args, i, j):
+def direct_table(nminargs, dimsx, dimsy, dimsp, indsi, indsj, indsp, args, i, j):    
     res = [None] * nminargs
     for (dims, inds, row_index) in (
         (dimsx, indsi, i),
