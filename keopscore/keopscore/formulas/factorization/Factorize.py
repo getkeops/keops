@@ -43,19 +43,16 @@ class Factorize_Impl(Operation):
         # Now we evaluate g and append the result into string
         string += g(outg, table)
         
-        # we put a new entry for the temporary variable in the table
-        
-        print("v=",v)
-        print("table=", table)
-        
-        assert(v.ind>len(table))
-        newtable = [None]*v.ind
-        newtable[:len(table)] = table
-        newtable[v.ind] = outg
-        table = newtable
+        # we put a new entry for the temporary variable in the table. 
+        table.append(outg)
+        # This will fix the index for the temp variable. So we must finally
+        # change the index of this temp variable to match its position in table.
+        newind = len(table)-1
+        newv = Var(newind,v.dim,v.cat)
+        newf = f.replace(v,newv)
         
         # Evaluation of f
-        string += f(out, table)
+        string += newf(out, table)
 
         if debug_ops:
             print(f"Finished building code block for {self.__repr__()}")
@@ -72,7 +69,9 @@ class Factorize_Impl(Operation):
 
 def Factorize(formula, g):
     inds = GetInds(formula.Vars_)
-    newind = 1 + max(inds) if len(inds) > 0 else 0
+    # we get a new negative index (negative because it must not refer to an actual input tensor index)
+    minind = min(inds) if len(inds) > 0 else 0
+    newind = -1 if minind>=0 else minind-1
     v = Var(newind,g.dim,3)
     newformula, cnt = formula.replace_and_count(g, v)
     if cnt>1:
