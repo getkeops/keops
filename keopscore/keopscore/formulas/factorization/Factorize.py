@@ -1,4 +1,5 @@
-from keopscore.formulas import Var
+from keopscore.formulas.variables import Var, Zero
+from keopscore.formulas.variables.IntCst import IntCst_Impl
 from keopscore.utils.code_gen_utils import new_c_varname, c_array
 from keopscore.formulas.Operation import Operation, debug_ops, debug_ops_at_exec
 from keopscore.utils.code_gen_utils import GetInds
@@ -6,8 +7,8 @@ from keopscore.utils.code_gen_utils import GetInds
 class Factorize_Impl(Operation):
     string_id = "Factorize"
     
-    def __init__(self, f, g, v):
-        super().__init__(f, g, params=(v,))
+    def __init__(self, f, g, aliasvar):
+        super().__init__(f, g, params=(aliasvar,))
         self.dim = f.dim
 
     def __call__(self, out, table):
@@ -29,7 +30,7 @@ class Factorize_Impl(Operation):
             string += f'printf("\\n\\nComputing {self.__repr__()} :\\n");\n'
         
         f, g = self.children
-        v, = self.params
+        aliasvar, = self.params
         
         # Evaluation of g
         # We first create a new c_array to store the result of the child operation.
@@ -48,8 +49,8 @@ class Factorize_Impl(Operation):
         # This will fix the index for the temp variable. So we must finally
         # change the index of this temp variable to match its position in table.
         newind = len(table)-1
-        newv = Var(newind,v.dim,v.cat)
-        newf = f.replace(v,newv)
+        newaliasvar = Var(newind,aliasvar.dim,aliasvar.cat)
+        newf = f.replace(aliasvar,newaliasvar)
         
         # Evaluation of f
         string += newf(out, table)
@@ -60,7 +61,10 @@ class Factorize_Impl(Operation):
         string += f"\n\n// Finished code block for {self.__repr__()}.\n}}\n\n"
         return string
 
-    def DiffT(self, v, gradin):
+    def DiffT(self, v, gradin): 
+        f, g = self.children
+        aliasvar, = self.params
+        f = f.replace(aliasvar,g)
         return Factorize(f.DiffT(v, gradin), g)
 
     # parameters for testing the operation (optional)
@@ -68,6 +72,8 @@ class Factorize_Impl(Operation):
 
 
 def Factorize(formula, g):
+    if type(g) in (Var,Zero,IntCst_Impl):
+        return formula
     inds = GetInds(formula.Vars_)
     # we get a new negative index (negative because it must not refer to an actual input tensor index)
     minind = min(inds) if len(inds) > 0 else 0
@@ -80,4 +86,21 @@ def Factorize(formula, g):
         return formula
 
 
+def AutoFactorize(formula):
+    def RecSearch(formula,g):
+        formula = Factorize(formula,g)
+        for child in g.children:
+            formula = RecSearch(formula,child)
+        return formula
+    formula = RecSearch(formula,formula)
+    return formula
+
+
+    
+    
+    
+    
+    
+    
+    
             
