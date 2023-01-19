@@ -69,6 +69,9 @@ class TraceOperator_class(LinearOperator_class):
                 #   If fb.dim=v.dim, the matrix of fa*fb is diag(fb)xMa
                 #       if w.dim=1, w*tr(diag(fb)x1xMa) = tr(diag(w*fb)x1xMa)
                 #       if w.dim=d, tr(diag(w)xdiag(fb)x1xMa) = tr(diag(fb*w)x1xMa)
+                if fb.dim==1:
+                    # just better for formula simplification 
+                    return self(fa,v,w)*fb
                 return self(fa,v,fb*w)
             elif fb.is_linear(v):
                 return self(fb,v,fa*w)

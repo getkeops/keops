@@ -11,7 +11,7 @@ class Inv(VectorizedScalarOp):
     """the "Inv" vectorized operation"""
 
     string_id = "Inv"
-    print_spec = "1/", "pre", 2
+    print_spec = "1/", "pre", 3
 
     ScalarOpFun = keops_rcp
 

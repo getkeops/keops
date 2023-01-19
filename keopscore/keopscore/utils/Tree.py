@@ -62,4 +62,6 @@ class Tree:
             type(self) == type(other)
             and len(self.children) == len(other.children)
             and all([x == y for x, y in zip(self.children, other.children)])
+            and len(self.params) == len(other.params)
+            and all([p == q for p, q in zip(self.params, other.params)])
         )

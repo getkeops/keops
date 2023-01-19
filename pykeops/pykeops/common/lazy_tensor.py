@@ -1802,6 +1802,21 @@ class GenericLazyTensor:
             dimcheck=None,
         )
         
+    def auto_factorize(self):
+        r"""
+        Symbolic auto factorization operation.
+
+        ``z = x.auto_factorize()`` returns a :class:`LazyTensor`
+        which encodes, symbolically,
+        the automatic factorization of ``x``.
+        For details, please check the documentation of the KeOps operation ``"AutoFactorize"`` in
+        the :doc:`main reference page <../../../api/math-operations>`.
+        """
+        return self.unary(
+            "AutoFactorize",
+            dimres=self.ndim,
+        )
+        
     def grad_matrix(self, other):
         r"""
         Symbolic gradient matrix operation.

@@ -1,6 +1,7 @@
 from keopscore.formulas.Operation import Broadcast
 from keopscore.formulas.VectorizedScalarOp import VectorizedScalarOp
 from keopscore.formulas.maths.Mult import Mult_Impl
+from keopscore.formulas.maths.Minus import Minus_Impl
 from keopscore.formulas.maths.Sum import Sum
 from keopscore.formulas.variables.IntCst import IntCst, IntCst_Impl
 from keopscore.formulas.variables.Zero import Zero
@@ -65,4 +66,7 @@ def Add(arg0, arg1):
     ):
         #  factorization :  x + n*x = (n+1)*x
         return IntCst(arg1.children[0].val + 1) * arg0
+    if isinstance(arg0, Minus_Impl) and isinstance(arg1, Minus_Impl):
+        #(-x)+(-y) -> -(x+y)
+        return -(arg0.children[0]+arg0.children[1])
     return Add_Impl(arg0, arg1)
