@@ -25,13 +25,13 @@ class Mult_Impl(VectorizedScalarOp):
 
     #  \diff_V (A*B) = (\diff_V A) * B + A * (\diff_V B)
     def DiffT(self, v, gradin):
-        fa, fb = self.children            
+        fa, fb = self.children  
+        if isinstance(fb, Exp) and fb.dim==1:
+            u, = fb.children
+            return (fa.DiffT(v, gradin) + u.DiffT(v, Scalprod(gradin, fa))) * fb
         if fa.dim == 1 and fb.dim > 1:
             return fa.DiffT(v, Scalprod(gradin, fb)) + fb.DiffT(v, fa * gradin)
         elif fb.dim == 1 and fa.dim > 1:
-            if isinstance(fb, Exp):
-                u, = fb.children
-                return (fa.DiffT(v, gradin) + u.DiffT(v, Scalprod(gradin, fa))) * fb
             return fa.DiffT(v, fb * gradin) + fb.DiffT(v, Scalprod(gradin, fa))
         else:
             return fa.DiffT(v, fb * gradin) + fb.DiffT(v, fa * gradin)
@@ -44,6 +44,7 @@ class Mult_Impl(VectorizedScalarOp):
 # N.B. The following separate function should theoretically be implemented
 # as a __new__ method of the previous class, but this can generate infinite recursion problems
 def Mult(arg0, arg1):
+    from keopscore.formulas.maths.Minus import Minus_Impl
     if isinstance(arg0, Zero):
         return Broadcast(arg0, arg1.dim)
     elif isinstance(arg1, Zero):
@@ -64,12 +65,12 @@ def Mult(arg0, arg1):
     elif isinstance(arg1, Mult_Impl) and isinstance(arg1.children[0], IntCst_Impl):
         # f*(n*g) -> (n*f)*g
         return (arg1.children[0] * arg0) * arg1.children[1]
-    #elif isinstance(arg0, Minus_Impl) and isinstance(arg1, Minus_Impl):
-    #    # (-f)*(-g) -> f*g
-    #    return arg0.children[0] * arg1.children[0]
-    #elif isinstance(arg0, Minus_Impl):
-    #    # (-f)*g -> -(f*g)
-    #    return -(arg0.children[0] * arg1)
+    elif isinstance(arg0, Minus_Impl) and isinstance(arg1, Minus_Impl):
+        # (-f)*(-g) -> f*g
+        return arg0.children[0] * arg1.children[0]
+    elif isinstance(arg0, Minus_Impl):
+        # (-f)*g -> -(f*g)
+        return -(arg0.children[0] * arg1)
     elif arg0 == arg1:
         # f*f -> f^2
         return Square(arg0)
@@ -91,8 +92,17 @@ def Mult(arg0, arg1):
     elif isinstance(arg0, SumT_Impl):
         # SumT(f)*g -> g*SumT(f)
         return arg1 * arg0
+    elif isinstance(arg0, Exp) and isinstance(arg1, Exp):
+        # Exp(f)*Exp(g) -> Exp(f+g)
+        return Exp(arg0.children[0]+arg1.children[0])
     elif isinstance(arg0, Exp):
         # Exp(f)*g -> g*Exp(f)
         return arg1 * arg0
+    elif isinstance(arg0, Mult_Impl) and isinstance(arg0.children[1], Exp):
+        # (u*Exp(v))*g -> (u*g)*Exp(v)
+        return (arg0.children[0]*arg1)*arg0.children[1]
+    elif isinstance(arg1, Mult_Impl) and isinstance(arg1.children[1], Exp):
+        # f*(u*Exp(v)) -> (f*u)*Exp(v)
+        return (arg0*arg1.children[0])*arg1.children[1]
     else:
         return Mult_Impl(arg0, arg1)

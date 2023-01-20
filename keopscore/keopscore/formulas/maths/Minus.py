@@ -44,6 +44,6 @@ def Minus(arg):
     elif isinstance(arg, Mult_Impl) and isinstance(arg.children[0], IntCst_Impl):
         f, g = arg.children
         # -(n*g) -> (-n)*g
-        return IntCst(-f)*g
+        return IntCst(-f.params[0])*g
     else:
         return Minus_Impl(arg)

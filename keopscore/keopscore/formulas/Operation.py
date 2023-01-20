@@ -224,23 +224,6 @@ class Operation(Tree):
 
     enable_test = False
     disable_testgrad = False
-    
-    
-    def nice_print(self):
-        import os
-        formula_string = self.__repr__()
-        variables_string = "variables : "
-        varstrings = []
-        for i,v in enumerate(self.Vars_):
-            var_string = v.__str__()
-            alias = chr(ord("a")+i)
-            varstrings.append(f"{alias}={var_string}")
-            formula_string = formula_string.replace(var_string,alias)
-        string = "formula : " + formula_string + os.linesep
-        string += "variables : " + ", ".join(varstrings)
-        print(string)
-
-
         
         
 

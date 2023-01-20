@@ -35,7 +35,7 @@ class Tree:
         for k, param in enumerate(self.params):
             if k > 0 or len(self.children) > 0:
                 string += ","
-            string += str(param)
+            string += param.__repr__()
         string += post_string
         return string
 
@@ -49,9 +49,46 @@ class Tree:
         for param in self.params:
             string += "\n" + depth * 4 * " " + str(param)
         return string
+    
+    def nice_print(self):
+        import os
+        formula_string = self.__repr__()
+        variables_string = "variables : "
+        varstrings = []
+        for i,v in enumerate(self.Vars_):
+            var_string = v.__repr__()
+            alias = chr(ord("a")+i)
+            varstrings.append(f"{alias}={var_string}")
+            formula_string = formula_string.replace(var_string,alias)
+        string = "formula : " + formula_string + os.linesep
+        string += "variables : " + ", ".join(varstrings)
+        return string
+    
+    def make_dot(self, filename="tree.dot"):
+        import os
+        def recursive_fun(formula, rootindex, maxindex):
+            string = f"{rootindex} [label={formula.string_id}];" + os.linesep
+            for child in formula.children:
+                currindex = maxindex+1
+                maxindex += 1
+                string_child, maxindex = recursive_fun(child, currindex, maxindex)
+                string += string_child
+                string += f"{rootindex} -> {currindex};" + os.linesep
+            return string, maxindex   
+        string, maxindex = recursive_fun(self, 1, 1)             
+        string = f"""
+                        digraph G
+                        {{
+                            graph [rankdir=LR];
+                            {string}
+                        }}
+                  """   
+        text_file = open(filename, "w")
+        text_file.write(string)
+        text_file.close()
 
     def __str__(self):
-        return self.recursive_str()
+        return self.nice_print() #self.recursive_str()
 
     def __repr__(self):
         return self.recursive_str()
