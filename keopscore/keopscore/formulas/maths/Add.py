@@ -68,5 +68,5 @@ def Add(arg0, arg1):
         return IntCst(arg1.children[0].val + 1) * arg0
     if isinstance(arg0, Minus_Impl) and isinstance(arg1, Minus_Impl):
         #(-x)+(-y) -> -(x+y)
-        return -(arg0.children[0]+arg0.children[1])
+        return -(arg0.children[0]+arg1.children[0])
     return Add_Impl(arg0, arg1)
