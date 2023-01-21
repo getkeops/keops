@@ -61,9 +61,9 @@ class Tree:
         import os
         formula_string = self.__repr__()
         varstrings = []
-        for i,v in enumerate(self.Vars_):
+        for v in self.Vars_:
             var_string = v.__repr__()
-            alias = chr(ord("a")+i)
+            alias = chr(ord("a")+v.ind) if v.ind>=0 else chr(944-v.ind)
             formula_string = formula_string.replace(var_string,alias)
             if v.ind>=0:
                 varstrings.append(f"{alias}={var_string}")

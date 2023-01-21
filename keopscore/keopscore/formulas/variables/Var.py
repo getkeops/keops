@@ -23,12 +23,13 @@ class Var(Operation):
         return self==v
 
     def __init__(self, ind, dim, cat):
-        super().__init__()
+        if isinstance(ind,str):
+            ind = ord(ind)-ord("a")
+        super().__init__(params=(ind, dim, cat))
         self.ind = ind
         self.dim = dim
         self.cat = cat
         self.Vars_ = {self}
-        self.params = (ind, dim, cat)
 
     # custom __eq__ and __hash__ methods, required to handle properly the union of two sets of Var objects
     def __eq__(self, other):
