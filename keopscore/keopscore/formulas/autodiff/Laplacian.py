@@ -1,6 +1,7 @@
 from keopscore.formulas import Var
 from keopscore.formulas.LinearOperators import TraceOperator
 from keopscore.utils.code_gen_utils import GetInds
+from keopscore.formulas.variables.IntCst import IntCst
 from keopscore.utils.misc_utils import KeOps_Error
 
 # /////////////////////////////////////////////////////////////
@@ -15,7 +16,7 @@ def Laplacian(formula, v):
     if formula.dim != 1:
         KeOps_Error("Laplacian is only implemented for scalar formula.")
         
-    dFT = formula.DiffT(v, 1)
+    dFT = formula.DiffT(v, IntCst(1))
 
     # we define a temporary gradin to backpropagate a second time.
     # This gradin will disappear in the formula when we compute the trace.

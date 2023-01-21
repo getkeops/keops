@@ -37,7 +37,7 @@ class LinearOperator_class():
             return type(formula)(*newargs, *formula.params)
         elif isinstance(formula,Scalprod_Impl):
             fa, fb = formula.children
-            return self(Sum(fa*fb),v,*args, **kwargs)
+            return self(Sum_Impl(fa*fb),v,*args, **kwargs)
         
         res = self.call(formula, v, *args, **kwargs)
         if res is not None:

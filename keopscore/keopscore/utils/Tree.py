@@ -49,25 +49,35 @@ class Tree:
         for param in self.params:
             string += "\n" + depth * 4 * " " + str(param)
         return string
+        
+    def collect(self, attr, res=[]):
+        if hasattr(self, attr):
+            res.append(getattr(self,attr))
+        for child in self.children:
+            res = child.collect(attr, res)
+        return res
     
     def nice_print(self):
         import os
         formula_string = self.__repr__()
-        variables_string = "variables : "
         varstrings = []
         for i,v in enumerate(self.Vars_):
             var_string = v.__repr__()
             alias = chr(ord("a")+i)
-            varstrings.append(f"{alias}={var_string}")
             formula_string = formula_string.replace(var_string,alias)
-        string = "formula : " + formula_string + os.linesep
-        string += "variables : " + ", ".join(varstrings)
+            if v.ind>=0:
+                varstrings.append(f"{alias}={var_string}")
+        string = formula_string + " with " + ", ".join(varstrings)
         return string
     
     def make_dot(self, filename="tree.dot"):
         import os
         def recursive_fun(formula, rootindex, maxindex):
-            string = f"{rootindex} [label={formula.string_id}];" + os.linesep
+            label = formula.string_id 
+            if len(formula.params)>0:
+                label += " " + ",".join(x.__repr__() for x in formula.params)
+            label = '"' + label + '"'
+            string = f"{rootindex} [label={label}];" + os.linesep
             for child in formula.children:
                 currindex = maxindex+1
                 maxindex += 1

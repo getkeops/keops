@@ -51,23 +51,17 @@ def LapKernel_lap(K,D):
     x, y = Vi(0, D), Vj(1, D)
     return K(x-y).laplacian(x).sum_reduction(axis=1)   
 
+def LapKernel_lap_fact(K,D):
+    x, y = Vi(0, D), Vj(1, D)
+    return K(x-y).laplacian(x).auto_factorize().sum_reduction(axis=1)   
+
 sigma, D = 1.5, 3
 
 f1 = GaussLapKernel(sigma,D)
 f2 = LapKernel(GaussK(sigma),D)
 f3 = LapKernel_trace(GaussK(sigma),D)
 f4 = LapKernel_lap(GaussK(sigma),D)
-
-"""
-print("f1:")
-print(f1)
-
-print("f2:")
-print(f2)
-
-#print("f3:")
-#print(f3)
-"""
+f5 = LapKernel_lap_fact(GaussK(sigma),D)
 
 M, N = 15000, 10000
 x = torch.rand(M,D, requires_grad=True)
@@ -96,6 +90,12 @@ end = time()
 print("time for u4:", end-start)
 print("error:", torch.norm(u1-u4)/torch.norm(u1))
 
+start = time()
+u5 = f5(x,y)
+end = time()
+print("time for u5:", end-start)
+print("error:", torch.norm(u1-u5)/torch.norm(u1))
+
 
 
 
@@ -109,6 +109,7 @@ v1 = torch.norm(u1)
 v2 = torch.norm(u2)
 v3 = torch.norm(u3)
 v4 = torch.norm(u4)
+v5 = torch.norm(u5)
 
 start = time()
 g1 = torch.autograd.grad(v1,x)[0]
@@ -132,6 +133,12 @@ g4 = torch.autograd.grad(v4,x)[0]
 end = time()
 print("time for g4:", end-start)
 print("error:", torch.norm(g1-g4)/torch.norm(g1))
+
+start = time()
+g5 = torch.autograd.grad(v5,x)[0]
+end = time()
+print("time for g4:", end-start)
+print("error:", torch.norm(g1-g5)/torch.norm(g1))
 
 
 

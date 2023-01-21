@@ -9,14 +9,9 @@ class IntCst_Impl(Operation):
     print_spec = "", "pre", 0
 
     def __init__(self, val):
-        super().__init__()
+        super().__init__(params=(val,))
         self.val = val
         self.dim = 1
-        self.params = (val,)
-
-    # custom __eq__ method
-    def __eq__(self, other):
-        return type(self) == type(other) and self.val == other.val
 
     def Op(self, out, table):
         float_val = c_variable("float", f"(float){self.val}")

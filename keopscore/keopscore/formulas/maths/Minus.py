@@ -2,6 +2,7 @@ from keopscore.formulas.VectorizedScalarOp import VectorizedScalarOp
 from keopscore.formulas.variables.Zero import Zero
 from keopscore.formulas.maths.Mult import Mult_Impl
 from keopscore.formulas.variables.IntCst import IntCst_Impl, IntCst
+from keopscore.formulas.variables.RatCst import RatCst_Impl, RatCst
 
 
 ##########################
@@ -41,9 +42,13 @@ def Minus(arg):
     elif isinstance(arg, IntCst_Impl):
         # -(n) -> (-n)
         return IntCst(-arg.params[0])
-    elif isinstance(arg, Mult_Impl) and isinstance(arg.children[0], IntCst_Impl):
-        f, g = arg.children
-        # -(n*g) -> (-n)*g
-        return IntCst(-f.params[0])*g
+    elif isinstance(arg, RatCst_Impl):
+        # -(p/q) -> (-p)/q
+        p, q = arg.params
+        return RatCst(-p,q)
+    elif isinstance(arg, Mult_Impl) and isinstance(arg.children[0], (IntCst_Impl,RatCst_Impl)):
+        r, g = arg.children
+        # -(r*g) -> (-r)*g
+        return (-r)*g
     else:
         return Minus_Impl(arg)

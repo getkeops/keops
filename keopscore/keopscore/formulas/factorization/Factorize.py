@@ -7,6 +7,11 @@ from keopscore.utils.code_gen_utils import GetInds
 class Factorize_Impl(Operation):
     string_id = "Factorize"
     
+    def recursive_str(self):
+        f, g = self.children
+        aliasvar, = self.params
+        return f"{f.__repr__()} with {aliasvar.__repr__()}={g.__repr__()}"
+    
     def __init__(self, f, g, aliasvar):
         super().__init__(f, g, params=(aliasvar,))
         self.dim = f.dim

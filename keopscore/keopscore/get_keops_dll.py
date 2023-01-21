@@ -91,10 +91,6 @@ def get_keops_dll_impl(
         set_enable_finalchunk(enable_finalchunks)
         set_mult_var_highdim(mul_var_highdim)
         red_formula = GetReduction(red_formula_string, aliases)
-        
-        print(red_formula)
-        input()
-        
         if use_final_chunks(red_formula) and map_reduce_id != "GpuReduc2D":
             use_chunk_mode = 2
             map_reduce_id += "_finalchunks"

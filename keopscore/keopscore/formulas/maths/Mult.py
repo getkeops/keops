@@ -5,7 +5,8 @@ from keopscore.formulas.maths.Scalprod import Scalprod
 from keopscore.formulas.maths.Square import Square
 from keopscore.formulas.variables.Zero import Zero
 from keopscore.utils.math_functions import keops_mul
-from keopscore.formulas.variables.IntCst import IntCst_Impl
+from keopscore.formulas.variables.IntCst import IntCst_Impl, IntCst
+from keopscore.formulas.variables.RatCst import RatCst_Impl, RatCst
 from keopscore.formulas.maths.SumT import SumT, SumT_Impl
 from keopscore.utils.misc_utils import KeOps_Error
 
@@ -59,18 +60,40 @@ def Mult(arg0, arg1):
         elif isinstance(arg1, IntCst_Impl):
             # m*n -> mn
             return IntCst_Impl(arg0.val * arg1.val)
+        elif isinstance(arg1, RatCst_Impl):
+            # m*(p/q) -> (m*p)/q
+            return RatCst(arg0.val*arg1.p,arg1.q)
     if isinstance(arg1, IntCst_Impl):
         # f*n -> n*f (bringing integers to the left)
         return Mult(arg1, arg0)
+    if isinstance(arg0, RatCst_Impl) and isinstance(arg1, RatCst_Impl):
+        # (p/q)*(m/n) -> (pm)/(qn)
+        return RatCst(arg0.p*arg1.p, arg0.q*arg1.q)
     elif isinstance(arg1, Mult_Impl) and isinstance(arg1.children[0], IntCst_Impl):
-        # f*(n*g) -> (n*f)*g
-        return (arg1.children[0] * arg0) * arg1.children[1]
+        if isinstance(arg0, IntCst_Impl):
+            # m*(n*g) -> (m*n)*g
+            return IntCst(arg0.params[0]*arg1.children[0].params[0]) * arg1.children[1]
+        # f*(n*g) -> n*(f*g)
+        return arg1.children[0] * (arg0 * arg1.children[1])
+    elif isinstance(arg1, Mult_Impl) and isinstance(arg1.children[0], RatCst_Impl):
+        if isinstance(arg0, (IntCst_Impl,RatCst_Impl)):
+            # m*(r*g) -> (m*r)*g
+            m, r, g = arg0, *arg1.children
+            return (m*r)*g
+        # f*(n*g) -> n*(f*g)
+        return arg1.children[0] * (arg0 * arg1.children[1])
+    elif isinstance(arg0, Mult_Impl) and isinstance(arg0.children[0], (IntCst_Impl,RatCst_Impl)):
+        # (n*f)*g -> n*(f*g)
+        return arg0.children[0] * (arg0.children[1] * arg1)
     elif isinstance(arg0, Minus_Impl) and isinstance(arg1, Minus_Impl):
         # (-f)*(-g) -> f*g
         return arg0.children[0] * arg1.children[0]
     elif isinstance(arg0, Minus_Impl):
         # (-f)*g -> -(f*g)
         return -(arg0.children[0] * arg1)
+    elif isinstance(arg1, Minus_Impl):
+        # f*(-g) -> -(f*g)
+        return -(arg0 * arg1.children[0])
     elif arg0 == arg1:
         # f*f -> f^2
         return Square(arg0)
@@ -101,7 +124,7 @@ def Mult(arg0, arg1):
     elif isinstance(arg0, Mult_Impl) and isinstance(arg0.children[1], Exp):
         # (u*Exp(v))*g -> (u*g)*Exp(v)
         return (arg0.children[0]*arg1)*arg0.children[1]
-    elif isinstance(arg1, Mult_Impl) and isinstance(arg1.children[1], Exp):
+    elif isinstance(arg1, Mult_Impl) and isinstance(arg1.children[1], Exp) and not isinstance(arg0, IntCst_Impl):
         # f*(u*Exp(v)) -> (f*u)*Exp(v)
         return (arg0*arg1.children[0])*arg1.children[1]
     else:
