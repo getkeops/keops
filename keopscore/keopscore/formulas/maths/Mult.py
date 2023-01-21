@@ -83,8 +83,9 @@ def Mult(arg0, arg1):
         # f*(n*g) -> n*(f*g)
         return arg1.children[0] * (arg0 * arg1.children[1])
     elif isinstance(arg0, Mult_Impl) and isinstance(arg0.children[0], (IntCst_Impl,RatCst_Impl)):
-        # (n*f)*g -> n*(f*g)
-        return arg0.children[0] * (arg0.children[1] * arg1)
+        if not isinstance(arg1, Exp):
+            # (n*f)*g -> n*(f*g)
+            return arg0.children[0] * (arg0.children[1] * arg1)
     elif isinstance(arg0, Minus_Impl) and isinstance(arg1, Minus_Impl):
         # (-f)*(-g) -> f*g
         return arg0.children[0] * arg1.children[0]
@@ -127,5 +128,4 @@ def Mult(arg0, arg1):
     elif isinstance(arg1, Mult_Impl) and isinstance(arg1.children[1], Exp) and not isinstance(arg0, IntCst_Impl):
         # f*(u*Exp(v)) -> (f*u)*Exp(v)
         return (arg0*arg1.children[0])*arg1.children[1]
-    else:
-        return Mult_Impl(arg0, arg1)
+    return Mult_Impl(arg0, arg1)
