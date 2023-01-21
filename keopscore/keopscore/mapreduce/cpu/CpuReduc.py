@@ -1,4 +1,4 @@
-from keopscore import debug_ops_at_exec
+import keopscore
 from keopscore.binders.cpp.Cpu_link_compile import Cpu_link_compile
 from keopscore.mapreduce.cpu.CpuAssignZero import CpuAssignZero
 from keopscore.mapreduce.MapReduce import MapReduce
@@ -36,7 +36,7 @@ class CpuReduc(MapReduce, Cpu_link_compile):
         headers = ["cmath", "stdlib.h"]
         if keopscore.config.config.use_OpenMP:
             headers.append("omp.h")
-        if debug_ops_at_exec:
+        if keopscore.debug_ops_at_exec:
             headers.append("iostream")
         self.headers += c_include(*headers)
 

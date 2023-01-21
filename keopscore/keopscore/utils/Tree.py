@@ -70,7 +70,9 @@ class Tree:
         string = formula_string + " with " + ", ".join(varstrings)
         return string
     
-    def make_dot(self, filename="tree.dot"):
+    def make_dot(self, filename=None):
+        if filename is None:
+            filename = str(id(self))+".dot"
         import os
         def recursive_fun(formula, rootindex, maxindex):
             label = formula.string_id 
@@ -96,6 +98,7 @@ class Tree:
         text_file = open(filename, "w")
         text_file.write(string)
         text_file.close()
+        print(f"Saved formula graph to file {filename}.")
 
     def __str__(self):
         return self.nice_print() #self.recursive_str()

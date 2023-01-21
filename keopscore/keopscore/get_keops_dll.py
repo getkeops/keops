@@ -49,6 +49,7 @@ It can be used as a Python function or as a standalone Python script (in which c
 import inspect
 import sys
 
+import keopscore
 import keopscore.config.config
 from keopscore.config.config import get_build_folder
 import keopscore.mapreduce
@@ -108,6 +109,13 @@ def get_keops_dll_impl(
     map_reduce_class = map_reduce[map_reduce_id]
 
     map_reduce_obj = map_reduce_class(red_formula_string, aliases, *args)
+    
+    rf = map_reduce_obj.red_formula
+    
+    if keopscore.debug_ops:
+        print("In get_keops_dll, formula is :", rf)
+        print("formula.__repr__() is : ", rf.__repr__())
+        rf.make_dot()
 
     # detecting the case of formula being equal to zero, to bypass reduction.
     rf = map_reduce_obj.red_formula

@@ -1,4 +1,3 @@
-from keopscore.formulas.maths.Inv import Inv
 from keopscore.formulas.variables.RatCst import RatCst
 
 

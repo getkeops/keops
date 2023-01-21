@@ -3,12 +3,14 @@ import torch
 from time import time
 from keopscore.formulas import *
 
+#import keopscore
+#keopscore.debug_ops = True
+
 def GaussLapKernel(sigma,D):
     x, y = Vi(0, D), Vj(1, D)
     D2 = x.sqdist(y)
     K = (-D2 /(2*sigma**2)).exp()
     res = (K *(D2-D*sigma**2)/sigma**4).sum_reduction(axis=1)
-    print("res (hard-coded)")
     return res
 
 def GaussK(sigma):
@@ -23,7 +25,6 @@ def LapKernel(K,D):
     for i in range(1,D):
         Klap = Klap + K1.elem(i).grad(x,1).elem(i)
     res = Klap.sum_reduction(axis=1)
-    print("res (via generic)")
     return res
 
 def LapKernel_alt(K,D):
@@ -33,8 +34,7 @@ def LapKernel_alt(K,D):
     Klap = GK1.elem(0)
     for i in range(1,D**2,D):
         Klap = Klap + GK1.elem(i)
-    res = Klap.sum_reduction(axis=1)    
-    print("res (via generic alt)")
+    res = Klap.sum_reduction(axis=1)  
     return res
 
 def LapKernel_trace(K,D):
@@ -43,8 +43,7 @@ def LapKernel_trace(K,D):
     K1 = K(x-y).grad(x,1)
     GK1 = K1.grad(x,u)
     Klap = GK1.trace_operator(u)
-    res = Klap.sum_reduction(axis=1)   
-    print("res (via trace)")
+    res = Klap.sum_reduction(axis=1)
     return res
 
 def LapKernel_lap(K,D):
