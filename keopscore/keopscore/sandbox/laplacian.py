@@ -62,9 +62,12 @@ f3 = LapKernel_trace(GaussK(sigma),D)
 f4 = LapKernel_lap(GaussK(sigma),D)
 f5 = LapKernel_lap_fact(GaussK(sigma),D)
 
-M, N = 15000, 10000
+M, N = (150000, 100000) if torch.cuda.is_available() else (15000, 10000)
+
 x = torch.rand(M,D, requires_grad=True)
 y = torch.rand(N,D)
+
+u1 = f1(x,y) # warming up GPU...
 
 start = time()
 u1 = f1(x,y)
