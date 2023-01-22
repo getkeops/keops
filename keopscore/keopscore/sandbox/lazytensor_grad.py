@@ -7,7 +7,7 @@ import torch
 from pykeops.torch import LazyTensor
 
 import keopscore
-keopscore.auto_factorize = False
+keopscore.auto_factorize = True
 
 M, N, D, DV = 10000, 10000, 3, 1
 

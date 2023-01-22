@@ -54,9 +54,5 @@ def Sum(arg):
         # Sum(f*g) -> f|g
         f,g = arg.children
         return f|g
-    elif isinstance(arg, Square_Impl):
-        # Sum(f**2) -> f|f
-        f, = arg.children
-        return f|f
     else:
         return Sum_Impl(arg)

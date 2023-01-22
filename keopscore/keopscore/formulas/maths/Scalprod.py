@@ -49,6 +49,8 @@ def Scalprod(arg0, arg1):
         return arg0 * Sum(arg1)
     if arg1.dim == 1:
         return Sum(arg0) * arg1
+    if arg0==arg1:
+        return Sum(arg0**2)
     if isinstance(arg0, Mult_Impl):
         u,v = arg0.children
         if u.dim==1:
