@@ -7,14 +7,15 @@ import torch
 from pykeops.torch import LazyTensor
 
 import keopscore
-keopscore.auto_factorize = True
+keopscore.auto_factorize = False
 
-M, N, D, DV = 10000, 10000, 3, 1
+M, N, D, DV = (100000,100000, 3, 1) if torch.cuda.is_available() else (10000, 10000, 3, 1)
 
 dtype = torch.float32
 
 test_grad = True
 test_grad2 = True
+test_grad3 = True
 device_id = "cuda:0" if torch.cuda.is_available() else "cpu"
 
 x = torch.rand(M, 1, D, requires_grad=test_grad, device=device_id, dtype=dtype)
@@ -77,7 +78,7 @@ if test_grad2:
     out_g2 = []
     for k, backend in enumerate(backends):
         start = time.time()
-        out_g2.append(torch.autograd.grad((out_g[k] ** 2).sum(), [x])[0])
+        out_g2.append(torch.autograd.grad((out_g[k] ** 2).sum(), [x], create_graph=True)[0])
         end = time.time()
         print("time for " + backend + " (grad 2):", end - start)
 
@@ -85,6 +86,22 @@ if test_grad2:
         print(
             "relative error grad 2:",
             (torch.norm(out_g2[0] - out_g2[1]) / torch.norm(out_g2[0])).item(),
+        )
+
+print()
+
+if test_grad3:
+    out_g3 = []
+    for k, backend in enumerate(backends):
+        start = time.time()
+        out_g3.append(torch.autograd.grad((out_g2[k] ** 2).sum(), [x])[0])
+        end = time.time()
+        print("time for " + backend + " (grad 3):", end - start)
+
+    if len(out_g2) > 1:
+        print(
+            "relative error grad 3:",
+            (torch.norm(out_g3[0] - out_g3[1]) / torch.norm(out_g3[0])).item(),
         )
 
 print()

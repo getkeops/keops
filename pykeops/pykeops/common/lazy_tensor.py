@@ -1785,6 +1785,26 @@ class GenericLazyTensor:
             opt_pos="middle",
         )
     
+    def diff(self, other, diffin):
+        r"""
+        Symbolic differential operation (forward differentiation).
+
+        ``z = x.diff(v,e)`` returns a :class:`LazyTensor`
+        which encodes, symbolically,
+        the differential operator of ``x``, with
+        respect to variable ``v``, and applied to ``e``.
+        For details, please check the documentation of the KeOps operation ``"Diff"`` in
+        the :doc:`main reference page <../../../api/math-operations>`.
+        """
+        return self.binary(
+            diffin,
+            "Diff",
+            dimres=self.ndim,
+            dimcheck=None,
+            opt_arg=other,
+            opt_pos="middle",
+        )
+    
     def factorize(self, other):
         r"""
         Symbolic factorization operation.
@@ -1835,6 +1855,16 @@ class GenericLazyTensor:
         )
 
     def trace_operator(self, var):
+        r"""
+        Symbolic trace operation.
+
+        ``z = x.trace_operator(v)`` returns a :class:`LazyTensor`
+        which encodes, symbolically,
+        the trace of ``x``, with respect to variable ``v``.
+        ``x`` must be a linear function of ``v``.
+        For details, please check the documentation of the KeOps operation ``"TraceOperator"`` in
+        the :doc:`main reference page <../../../api/math-operations>`.
+        """
         res = self.binary(
             var,
             "TraceOperator",
@@ -1850,8 +1880,32 @@ class GenericLazyTensor:
         if var.ind>=0:
             res.formula = res.formula.replace(var.formula,f"VarSymb(-{var.ind}-1,{var.ndim},{var.axis})")
         return res
+    
+    def divergence(self, var):
+        r"""
+        Symbolic divergence operation.
+
+        ``z = x.divergence(v)`` returns a :class:`LazyTensor`
+        which encodes, symbolically,
+        the divergence of ``x``, with respect to variable ``v``.
+        Inner dimensions of ``x`` (``x.ndim``) and ``v`` (``v.ndim``) must match.
+        """
+        return self.binary(
+            var,
+            "Divergence",
+            dimres=1,
+            dimcheck="same",
+        )
         
     def laplacian(self, var):
+        r"""
+        Symbolic laplacian operation.
+
+        ``z = x.laplacian(v)`` returns a :class:`LazyTensor`
+        which encodes, symbolically,
+        the laplacian of ``x``, with respect to variable ``v``.
+        Inner dimension of ``x`` (``x.ndim``) must equal 1.
+        """
         return self.binary(
             var,
             "Laplacian",
