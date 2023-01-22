@@ -122,9 +122,18 @@ def Mult(arg0, arg1):
     elif isinstance(arg0, Exp):
         # Exp(f)*g -> g*Exp(f)
         return arg1 * arg0
-    elif isinstance(arg0, Mult_Impl) and isinstance(arg0.children[1], Exp):
-        # (u*Exp(v))*g -> (u*g)*Exp(v)
-        return (arg0.children[0]*arg1)*arg0.children[1]
+    elif isinstance(arg0, Mult_Impl):
+        u, v = arg0.children
+        # (u*v)*g
+        if isinstance(v, Exp):
+            a, = v.children
+            # (u*Exp(a))*g
+            if isinstance(arg1, Exp):
+                b, = arg1.children
+                # (u*Exp(a))*Exp(b) -> u*Exp(a+b)
+                return u*Exp(a+b) 
+            # (u*Exp(a))*g -> (u*g)*Exp(a)
+            return (u*arg1)*v
     elif isinstance(arg1, Mult_Impl) and isinstance(arg1.children[1], Exp) and not isinstance(arg0, IntCst_Impl):
         # f*(u*Exp(v)) -> (f*u)*Exp(v)
         return (arg0*arg1.children[0])*arg1.children[1]

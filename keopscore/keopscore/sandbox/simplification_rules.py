@@ -3,8 +3,8 @@
 from keopscore.formulas import *
 
 D = 3
-x = Var("x", D, 0)
-y = Var("y", D, 1)
+x = Var(0, D, 0, "x")
+y = Var(1, D, 1, "y")
 
 f = 3 * (x - y) ** 2 - 2 * (x - y) ** 2 * 2
 
@@ -12,19 +12,21 @@ print("testing simple simplification")
 print("f =", f)
 print()
 
-Dv = 2
-b = Var("b", Dv, 1)
+print("*******************")
+
+Dv = 3
+b = Var(2, Dv, 1, "b")
 f = SqDist(x,y)*b
 
 print("testing Grad and Diff")
 print("f =", f)
 print()
 
-e = Var("e", Dv, 0)
+e = Var(3, Dv, 0, "e")
 dfT = Grad(f,x,e)
 print("dfT=", dfT)
 
-u = Var("u", D, 0)
+u = Var(4, D, 0, "u")
 df = Diff(f,x,u)
 print("df=", df)
 
@@ -33,4 +35,13 @@ print("<df,e>", df|e)
 
 print("<df,e>-<dfT,u>", (df|e)-(dfT|u))
 
+print("*******************")
 
+divf = TraceOperator(dfT,e)
+print("divf=",divf)
+
+divf = TraceOperator(df,u)
+print("divf=",divf)
+
+divf = Divergence(f,x)
+print("divf=",divf)
