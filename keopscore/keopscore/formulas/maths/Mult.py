@@ -26,9 +26,9 @@ class Mult_Impl(VectorizedScalarOp):
 
     #  \diff_V (A*B) = (\diff_V A) * B + A * (\diff_V B)
     def DiffT(self, v, gradin):
-        fa, fb = self.children  
-        if isinstance(fb, Exp) and fb.dim==1:
-            u, = fb.children
+        fa, fb = self.children
+        if isinstance(fb, Exp) and fb.dim == 1:
+            (u,) = fb.children
             return (fa.DiffT(v, gradin) + u.DiffT(v, Scalprod(gradin, fa))) * fb
         if fa.dim == 1 and fb.dim > 1:
             return fa.DiffT(v, Scalprod(gradin, fb)) + fb.DiffT(v, fa * gradin)
@@ -46,6 +46,7 @@ class Mult_Impl(VectorizedScalarOp):
 # as a __new__ method of the previous class, but this can generate infinite recursion problems
 def Mult(arg0, arg1):
     from keopscore.formulas.maths.Minus import Minus_Impl
+
     if isinstance(arg0, Zero):
         return Broadcast(arg0, arg1.dim)
     elif isinstance(arg1, Zero):
@@ -62,27 +63,31 @@ def Mult(arg0, arg1):
             return IntCst_Impl(arg0.val * arg1.val)
         elif isinstance(arg1, RatCst_Impl):
             # m*(p/q) -> (m*p)/q
-            return RatCst(arg0.val*arg1.p,arg1.q)
+            return RatCst(arg0.val * arg1.p, arg1.q)
     if isinstance(arg1, IntCst_Impl):
         # f*n -> n*f (bringing integers to the left)
         return Mult(arg1, arg0)
     if isinstance(arg0, RatCst_Impl) and isinstance(arg1, RatCst_Impl):
         # (p/q)*(m/n) -> (pm)/(qn)
-        return RatCst(arg0.p*arg1.p, arg0.q*arg1.q)
+        return RatCst(arg0.p * arg1.p, arg0.q * arg1.q)
     elif isinstance(arg1, Mult_Impl) and isinstance(arg1.children[0], IntCst_Impl):
         if isinstance(arg0, IntCst_Impl):
             # m*(n*g) -> (m*n)*g
-            return IntCst(arg0.params[0]*arg1.children[0].params[0]) * arg1.children[1]
+            return (
+                IntCst(arg0.params[0] * arg1.children[0].params[0]) * arg1.children[1]
+            )
         # f*(n*g) -> n*(f*g)
         return arg1.children[0] * (arg0 * arg1.children[1])
     elif isinstance(arg1, Mult_Impl) and isinstance(arg1.children[0], RatCst_Impl):
-        if isinstance(arg0, (IntCst_Impl,RatCst_Impl)):
+        if isinstance(arg0, (IntCst_Impl, RatCst_Impl)):
             # m*(r*g) -> (m*r)*g
             m, r, g = arg0, *arg1.children
-            return (m*r)*g
+            return (m * r) * g
         # f*(n*g) -> n*(f*g)
         return arg1.children[0] * (arg0 * arg1.children[1])
-    elif isinstance(arg0, Mult_Impl) and isinstance(arg0.children[0], (IntCst_Impl,RatCst_Impl)):
+    elif isinstance(arg0, Mult_Impl) and isinstance(
+        arg0.children[0], (IntCst_Impl, RatCst_Impl)
+    ):
         if not isinstance(arg1, Exp):
             # (n*f)*g -> n*(f*g)
             return arg0.children[0] * (arg0.children[1] * arg1)
@@ -118,7 +123,7 @@ def Mult(arg0, arg1):
         return arg1 * arg0
     elif isinstance(arg0, Exp) and isinstance(arg1, Exp):
         # Exp(f)*Exp(g) -> Exp(f+g)
-        return Exp(arg0.children[0]+arg1.children[0])
+        return Exp(arg0.children[0] + arg1.children[0])
     elif isinstance(arg0, Exp):
         # Exp(f)*g -> g*Exp(f)
         return arg1 * arg0
@@ -126,15 +131,19 @@ def Mult(arg0, arg1):
         u, v = arg0.children
         # (u*v)*g
         if isinstance(v, Exp):
-            a, = v.children
+            (a,) = v.children
             # (u*Exp(a))*g
             if isinstance(arg1, Exp):
-                b, = arg1.children
+                (b,) = arg1.children
                 # (u*Exp(a))*Exp(b) -> u*Exp(a+b)
-                return u*Exp(a+b) 
+                return u * Exp(a + b)
             # (u*Exp(a))*g -> (u*g)*Exp(a)
-            return (u*arg1)*v
-    elif isinstance(arg1, Mult_Impl) and isinstance(arg1.children[1], Exp) and not isinstance(arg0, IntCst_Impl):
+            return (u * arg1) * v
+    elif (
+        isinstance(arg1, Mult_Impl)
+        and isinstance(arg1.children[1], Exp)
+        and not isinstance(arg0, IntCst_Impl)
+    ):
         # f*(u*Exp(v)) -> (f*u)*Exp(v)
-        return (arg0*arg1.children[0])*arg1.children[1]
+        return (arg0 * arg1.children[0]) * arg1.children[1]
     return Mult_Impl(arg0, arg1)

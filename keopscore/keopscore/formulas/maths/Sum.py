@@ -40,19 +40,20 @@ class Sum_Impl(Chunkable_Op):
 # as a __new__ method of the previous class, but this can generate infinite recursion problems
 def Sum(arg):
     from keopscore.formulas.maths.Mult import Mult_Impl
-    if arg.dim==1:
+
+    if arg.dim == 1:
         return arg
     elif isinstance(arg, Zero):
         return Zero(1)
-    elif isinstance(arg, Mult_Impl) and arg.children[0].dim==1:
+    elif isinstance(arg, Mult_Impl) and arg.children[0].dim == 1:
         # Sum(f*g) -> f*Sum(g) if f.dim=1
-        return arg.children[0]*Sum(arg.children[1])
-    elif isinstance(arg, Mult_Impl) and arg.children[1].dim==1:
+        return arg.children[0] * Sum(arg.children[1])
+    elif isinstance(arg, Mult_Impl) and arg.children[1].dim == 1:
         # Sum(f*g) -> Sum(f)*g if g.dim=1
-        return Sum(arg.children[0])*arg.children[1]
+        return Sum(arg.children[0]) * arg.children[1]
     elif isinstance(arg, Mult_Impl):
         # Sum(f*g) -> f|g
-        f,g = arg.children
-        return f|g
+        f, g = arg.children
+        return f | g
     else:
         return Sum_Impl(arg)

@@ -6,8 +6,8 @@ class Zero(Operation):
     """zero operation : encodes a vector of zeros"""
 
     string_id = "Zero"
-    
-    def is_linear(self,v):
+
+    def is_linear(self, v):
         return True
 
     def __init__(self, dim):

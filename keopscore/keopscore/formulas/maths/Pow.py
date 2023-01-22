@@ -30,8 +30,7 @@ class Pow_Impl(VectorizedScalarOp):
 # N.B. The following separate function could theoretically be implemented
 # as a __new__ method of the previous class, but this can generate infinite recursion problems
 def Pow(f, m):
-    if m==1:
+    if m == 1:
         return f
     else:
-        return Pow_Impl(f,m
-        )
+        return Pow_Impl(f, m)

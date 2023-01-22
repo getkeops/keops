@@ -23,7 +23,7 @@ def complete_aliases(formula, aliases):
         # we get the "position" of the variable as the first integer value in the string
         # (i.e. the "a" in "Var(a,b,c)")
         pos = int(re.search(r"[0-9]+", var).group(0))
-        if pos<0:
+        if pos < 0:
             # This means that this variable is fictious : it is used only for symbolic calculus
             # and will not appear in the actual formula (used in trace_operator)
             pass

@@ -18,49 +18,38 @@ from keopscore.formulas.maths.Scalprod import Scalprod_Impl
 from keopscore.formulas.Operation import Broadcast
 
 
-
 # /////////////////////////////////////////////////////////////
 # ///      ADJOINT OPERATOR       ////
 # /////////////////////////////////////////////////////////////
 
+
 class AdjointOperator_class(LinearOperator_class):
-    
+
     string_id = "AdjointOperator"
-    
+
     def call(self, formula, v, u):
         m, n = formula.dim, v.dim
-        if isinstance(formula,Mult_Impl):
+        if isinstance(formula, Mult_Impl):
             fa, fb = formula.children
             if fa.is_linear(v):
-                fa = Broadcast(fa,m)
-                return self(fa,v,fb*u)
+                fa = Broadcast(fa, m)
+                return self(fa, v, fb * u)
             elif fb.is_linear(v):
-                fb = Broadcast(fb,m)
-                return self(fb,v,fa*u)
-        elif isinstance(formula,Divide_Impl):
+                fb = Broadcast(fb, m)
+                return self(fb, v, fa * u)
+        elif isinstance(formula, Divide_Impl):
             fa, fb = formula.children
-            fa = Broadcast(fa,m)
-            return self(fa,v,u/fb)
-        elif isinstance(formula,Var):
-            return u # N.B. we must have v==formula here
-        elif isinstance(formula,SumT_Impl):
-            f, = formula.children
-            return self(f,v,Sum(u))
-        elif isinstance(formula,Sum_Impl):
-            f, = formula.children
-            return self(f,v,SumT(u, f.dim))
-            
+            fa = Broadcast(fa, m)
+            return self(fa, v, u / fb)
+        elif isinstance(formula, Var):
+            return u  # N.B. we must have v==formula here
+        elif isinstance(formula, SumT_Impl):
+            (f,) = formula.children
+            return self(f, v, Sum(u))
+        elif isinstance(formula, Sum_Impl):
+            (f,) = formula.children
+            return self(f, v, SumT(u, f.dim))
+
+
 def AdjointOperator(formula, v, u):
     return AdjointOperator_class()(formula, v, u)
-    
- 
-        
-        
-
-
-
-        
-
-
-
-

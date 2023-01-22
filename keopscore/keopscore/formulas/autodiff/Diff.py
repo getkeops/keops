@@ -9,8 +9,9 @@ from keopscore.utils.code_gen_utils import GetInds
 # Defines D_v(F).u, the differential of F with respect to v, applied to u
 # D_v(F) is the adjoint of the Gradient
 
+
 def Diff(formula, v, u):
-    
+
     # we define a temporary gradin to backpropagate.
     # This gradin will disappear in the formula when we compute the adjoint.
     # We define this temporary gradin as Var(ind,dim,cat)
@@ -24,5 +25,5 @@ def Diff(formula, v, u):
     gradin = Var(ind, dim, cat)
 
     dFT = formula.DiffT(v, gradin)
-    
+
     return AdjointOperator(dFT, gradin, u)

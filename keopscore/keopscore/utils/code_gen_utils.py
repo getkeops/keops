@@ -569,7 +569,7 @@ class Var_loader:
         return load_vars(dims, inds, *args, **kwargs)
 
 
-def table(nminargs, dimsx, dimsy, dimsp, indsi, indsj, indsp, xi, yj, pp):    
+def table(nminargs, dimsx, dimsy, dimsp, indsi, indsj, indsp, xi, yj, pp):
     res = [None] * nminargs
     for (dims, inds, xloc) in (
         (dimsx, indsi, xi),
@@ -583,7 +583,7 @@ def table(nminargs, dimsx, dimsy, dimsp, indsi, indsj, indsp, xi, yj, pp):
     return res
 
 
-def direct_table(nminargs, dimsx, dimsy, dimsp, indsi, indsj, indsp, args, i, j):    
+def direct_table(nminargs, dimsx, dimsy, dimsp, indsi, indsj, indsp, args, i, j):
     res = [None] * nminargs
     for (dims, inds, row_index) in (
         (dimsx, indsi, i),

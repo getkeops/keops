@@ -109,9 +109,9 @@ def get_keops_dll_impl(
     map_reduce_class = map_reduce[map_reduce_id]
 
     map_reduce_obj = map_reduce_class(red_formula_string, aliases, *args)
-    
+
     rf = map_reduce_obj.red_formula
-    
+
     if keopscore.debug_ops:
         print("In get_keops_dll, formula is :", rf)
         print("formula.__repr__() is : ", rf.__repr__())

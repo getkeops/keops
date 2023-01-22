@@ -31,6 +31,7 @@ from keopscore.formulas.maths import *
 # fix seed for reproducibility
 seed = 0
 
+
 def perform_test(op_str, tol=1e-4, dtype="float32", verbose=True):
     # N.B. dtype can be 'float32', 'float64' or 'float16'
 
@@ -200,7 +201,6 @@ def perform_test(op_str, tol=1e-4, dtype="float32", verbose=True):
             print("No gradient for torch")
         return [err_op]
     return [err_op] + err_gr
-
 
 
 @pytest.mark.parametrize("test_input", keopscore.formulas.maths.__all__)

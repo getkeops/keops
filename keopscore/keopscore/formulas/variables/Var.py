@@ -18,14 +18,14 @@ class Var(Operation):
     a "j"-indexed variable (cat=1), or a parameter variable (cat=2)"""
 
     string_id = "Var"
-    
-    def is_linear(self,v):
-        return self==v
+
+    def is_linear(self, v):
+        return self == v
 
     def __init__(self, ind, dim, cat, label=None):
         if label is None:
             # N.B. label is just a string used as an alias when printing the formulas ; it plays no role in computations.
-            label = chr(ord("a")+ind) if ind>=0 else chr(944-ind)
+            label = chr(ord("a") + ind) if ind >= 0 else chr(944 - ind)
         super().__init__(params=(ind, dim, cat))
         self.ind = ind
         self.dim = dim

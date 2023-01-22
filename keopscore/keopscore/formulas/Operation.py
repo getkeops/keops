@@ -1,6 +1,6 @@
 from keopscore.utils.code_gen_utils import new_c_varname, c_array
 from keopscore.utils.Tree import Tree
-import keopscore 
+import keopscore
 from keopscore.utils.misc_utils import KeOps_Error
 
 ###################
@@ -10,15 +10,15 @@ from keopscore.utils.misc_utils import KeOps_Error
 
 class Operation(Tree):
     """Base class for all keops building block operations in a formula"""
-    
+
     linearity_type = None
-    
-    def is_linear(self,v):
-        if self.linearity_type=="all":
+
+    def is_linear(self, v):
+        if self.linearity_type == "all":
             return all(f.is_linear(v) for f in self.children)
-        elif self.linearity_type=="one":
-            return sum(f.is_linear(v) for f in self.children)==1
-        elif self.linearity_type=="first":
+        elif self.linearity_type == "one":
+            return sum(f.is_linear(v) for f in self.children) == 1
+        elif self.linearity_type == "first":
             f = self.children[0]
             return f.is_linear(v)
         else:
@@ -224,8 +224,7 @@ class Operation(Tree):
 
     enable_test = False
     disable_testgrad = False
-        
-        
+
 
 def int2Op(x):
     if isinstance(x, int):

@@ -13,15 +13,15 @@ from keopscore.utils.misc_utils import KeOps_Error
 
 def Grad(formula, v, gradin=None):
     if gradin is None:
-        # TODO : check why we do this here. 
+        # TODO : check why we do this here.
         # Is this case gradin=None used anywhere in the code ??
-        # Why gradin.cat should be 1-v.cat ? 
+        # Why gradin.cat should be 1-v.cat ?
         # Why v.cat should not be 2 ?
         if v.cat == 2:
             KeOps_Error("not implemented")
         inds = GetInds(formula.Vars_)
         ind = 1 + max(inds) if len(inds) > 0 else 0
         dim = formula.dim
-        cat = 1 - v.cat   
+        cat = 1 - v.cat
         gradin = Var(ind, dim, cat)
     return formula.DiffT(v, gradin)

@@ -117,12 +117,12 @@ class GpuReduc1D_ranges_finalchunks(MapReduce, Gpu_link_compile):
         args = self.args
         yj = c_variable(pointer(dtype), "yj")
         out = c_variable(pointer(dtype), "out")
-        ind_fun_internal = 0 if self.red_formula.formula.children[0].dim==1 else 1
+        ind_fun_internal = 0 if self.red_formula.formula.children[0].dim == 1 else 1
         fun_internal = Sum_Reduction(
             self.red_formula.formula.children[ind_fun_internal], self.red_formula.tagI
         )
         formula = fun_internal.formula
-        varfinal = self.red_formula.formula.children[1-ind_fun_internal]
+        varfinal = self.red_formula.formula.children[1 - ind_fun_internal]
         nchunks = 1 + (varfinal.dim - 1) // dimfinalchunk
         dimlastfinalchunk = varfinal.dim - (nchunks - 1) * dimfinalchunk
         varloader = Var_loader(fun_internal)

@@ -4,15 +4,16 @@ from keopscore.formulas.variables.Zero import Zero
 from keopscore.formulas.variables.IntCst import IntCst
 from fractions import Fraction
 
+
 class RatCst_Impl(Operation):
     # constant rational number "operation"
     string_id = "RatCst"
-    
+
     def recursive_str(self):
         return f"{self.p}/{self.q}"
 
     def __init__(self, p, q):
-        super().__init__(params=(p,q))
+        super().__init__(params=(p, q))
         self.p = p
         self.q = q
         self.dim = 1
@@ -27,12 +28,12 @@ class RatCst_Impl(Operation):
 
 # N.B. The following separate function should theoretically be implemented
 # as a __new__ method of the previous class, but this can generate infinite recursion problems
-def RatCst(a,b):
-    r = Fraction(a,b)
+def RatCst(a, b):
+    r = Fraction(a, b)
     p, q = r.numerator, r.denominator
     if p == 0:
         return Zero(1)
-    elif q==1:
+    elif q == 1:
         return IntCst(p)
     else:
-        return RatCst_Impl(p,q)
+        return RatCst_Impl(p, q)

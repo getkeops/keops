@@ -8,16 +8,16 @@ y = Var(1, D, 1, "y")
 
 Dv = 3
 b = Var(2, Dv, 1, "b")
-f = SqNorm2(Exp(-SqDist(x,y))*b)
+f = SqNorm2(Exp(-SqDist(x, y)) * b)
 
 print("f =", f)
 print()
-g=AutoFactorize(f)
+g = AutoFactorize(f)
 
-for i in range(1,7):
+for i in range(1, 7):
     print("grad order", i)
-    f = Grad(f,x)
-    g = AutoFactorize(Grad(g,x))
+    f = Grad(f, x)
+    g = AutoFactorize(Grad(g, x))
     print()
     print(f)
     print()
@@ -29,22 +29,19 @@ for i in range(1,7):
     print()
     print(g)
     print()
-    
-    
-    
-    
-f = SqNorm2(Exp(-SqDist(x,y))*b)
+
+
+f = SqNorm2(Exp(-SqDist(x, y)) * b)
 
 print("f =", f)
 print()
-g=AutoFactorize(f)
+g = AutoFactorize(f)
 
-for i in range(1,9):
+for i in range(1, 9):
     print("grad order", i)
-    g = AutoFactorize(Grad(g,x))
+    g = AutoFactorize(Grad(g, x))
     print()
     print("with auto factorize iterated:")
     print()
     print(g)
     print()
-    

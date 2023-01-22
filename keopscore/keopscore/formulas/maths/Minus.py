@@ -45,10 +45,12 @@ def Minus(arg):
     elif isinstance(arg, RatCst_Impl):
         # -(p/q) -> (-p)/q
         p, q = arg.params
-        return RatCst(-p,q)
-    elif isinstance(arg, Mult_Impl) and isinstance(arg.children[0], (IntCst_Impl,RatCst_Impl)):
+        return RatCst(-p, q)
+    elif isinstance(arg, Mult_Impl) and isinstance(
+        arg.children[0], (IntCst_Impl, RatCst_Impl)
+    ):
         r, g = arg.children
         # -(r*g) -> (-r)*g
-        return (-r)*g
+        return (-r) * g
     else:
         return Minus_Impl(arg)

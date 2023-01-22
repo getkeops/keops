@@ -947,7 +947,7 @@ class GenericLazyTensor:
                 raise ValueError("no input required")
             # we replace by other
             args = (self.other.variables[0],)
-        
+
         return self.callfun(*args, *self.variables, **self.kwargs)
 
     def __str__(self):
@@ -1784,7 +1784,7 @@ class GenericLazyTensor:
             opt_arg=other,
             opt_pos="middle",
         )
-    
+
     def diff(self, other, diffin):
         r"""
         Symbolic differential operation (forward differentiation).
@@ -1804,7 +1804,7 @@ class GenericLazyTensor:
             opt_arg=other,
             opt_pos="middle",
         )
-    
+
     def factorize(self, other):
         r"""
         Symbolic factorization operation.
@@ -1821,7 +1821,7 @@ class GenericLazyTensor:
             dimres=self.ndim,
             dimcheck=None,
         )
-        
+
     def auto_factorize(self):
         r"""
         Symbolic auto factorization operation.
@@ -1836,7 +1836,7 @@ class GenericLazyTensor:
             "AutoFactorize",
             dimres=self.ndim,
         )
-        
+
     def grad_matrix(self, other):
         r"""
         Symbolic gradient matrix operation.
@@ -1850,7 +1850,7 @@ class GenericLazyTensor:
         """
         return self.unary(
             "GradMatrix",
-            dimres=self.ndim*other.ndim,
+            dimres=self.ndim * other.ndim,
             opt_arg=other,
         )
 
@@ -1876,11 +1876,15 @@ class GenericLazyTensor:
         # var must be suppressed from the list of symbolic variables (because it will not need any actual
         # tensor in the end), and we change its ind to a negative value, so that later it will not be
         # considered when calling function "parse_type" that gets the list of actual variables.
-        res.symbolic_variables = list(set(res.symbolic_variables).difference(var.symbolic_variables))
-        if var.ind>=0:
-            res.formula = res.formula.replace(var.formula,f"VarSymb(-{var.ind}-1,{var.ndim},{var.axis})")
+        res.symbolic_variables = list(
+            set(res.symbolic_variables).difference(var.symbolic_variables)
+        )
+        if var.ind >= 0:
+            res.formula = res.formula.replace(
+                var.formula, f"VarSymb(-{var.ind}-1,{var.ndim},{var.axis})"
+            )
         return res
-    
+
     def divergence(self, var):
         r"""
         Symbolic divergence operation.
@@ -1896,7 +1900,7 @@ class GenericLazyTensor:
             dimres=1,
             dimcheck="same",
         )
-        
+
     def laplacian(self, var):
         r"""
         Symbolic laplacian operation.
@@ -1912,7 +1916,7 @@ class GenericLazyTensor:
             dimres=1,
             dimcheck=None,
         )
-        
+
         # List of supported reductions  ============================================
 
     def sum(self, axis=-1, dim=None, **kwargs):

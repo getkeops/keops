@@ -11,10 +11,13 @@ from keopscore.utils.misc_utils import KeOps_Error
 # Defines Div_v(F), the divergence of F with respect to v
 # F and v must have same dimension.
 
+
 def Divergence(formula, v):
-    
+
     if formula.dim != v.dim:
-        KeOps_Error("Divergence requires formula and variable to have the same dimaension.")
+        KeOps_Error(
+            "Divergence requires formula and variable to have the same dimaension."
+        )
 
     # we define a temporary gradin to backpropagate.
     # This gradin will disappear in the formula when we compute the trace.
@@ -27,7 +30,7 @@ def Divergence(formula, v):
     dim = v.dim
     cat = -1
     gradin = Var(ind, dim, cat)
-    
+
     Gf = formula.DiffT(v, gradin)
-    
+
     return TraceOperator(Gf, gradin)

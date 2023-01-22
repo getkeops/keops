@@ -25,29 +25,24 @@ from keopscore.formulas.Operation import Broadcast
 # ///      BASE CLASS       ////
 # /////////////////////////////////////////////////////////////
 
-class LinearOperator_class():
-    
+
+class LinearOperator_class:
     def __call__(self, formula, v, *args, **kwargs):
         m, n = formula.dim, v.dim
         if not formula.is_linear(v):
             KeOps_Error("Formula is not linear with respect to variable.")
-            
+
         if type(formula) in [Add_Impl, Minus_Impl, Subtract_Impl]:
-            newargs = (self(Broadcast(f,m),v,*args, **kwargs) for f in formula.children)
+            newargs = (
+                self(Broadcast(f, m), v, *args, **kwargs) for f in formula.children
+            )
             return type(formula)(*newargs, *formula.params)
-        elif isinstance(formula,Scalprod_Impl):
+        elif isinstance(formula, Scalprod_Impl):
             fa, fb = formula.children
-            return self(Sum_Impl(fa*fb),v,*args, **kwargs)
-        
+            return self(Sum_Impl(fa * fb), v, *args, **kwargs)
+
         res = self.call(formula, v, *args, **kwargs)
         if res is not None:
             return res
         else:
             KeOps_Error(f"{self.string_id} not implemented for {formula.string_id}")
-
-
-        
-
-
-
-

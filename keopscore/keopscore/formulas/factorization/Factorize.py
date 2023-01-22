@@ -5,14 +5,15 @@ from keopscore.formulas.Operation import Operation
 import keopscore
 from keopscore.utils.code_gen_utils import GetInds
 
+
 class Factorize_Impl(Operation):
     string_id = "Factorize"
-    
+
     def recursive_str(self):
         f, g = self.children
-        aliasvar, = self.params
+        (aliasvar,) = self.params
         return f"{f.__repr__()} with {aliasvar.__repr__()}={g.__repr__()}"
-    
+
     def __init__(self, f, g, aliasvar):
         super().__init__(f, g, params=(aliasvar,))
         self.dim = f.dim
@@ -34,10 +35,10 @@ class Factorize_Impl(Operation):
                 print(f"dim of {v} : ", v.dim)
         if keopscore.debug_ops_at_exec:
             string += f'printf("\\n\\nComputing {self.__repr__()} :\\n");\n'
-        
+
         f, g = self.children
-        aliasvar, = self.params
-        
+        (aliasvar,) = self.params
+
         # Evaluation of g
         # We first create a new c_array to store the result of the child operation.
         # This c_array must have a unique name in the code, to avoid conflicts
@@ -49,15 +50,15 @@ class Factorize_Impl(Operation):
         string += f"{outg.declare()}\n"
         # Now we evaluate g and append the result into string
         string += g(outg, table)
-        
-        # we put a new entry for the temporary variable in the table. 
+
+        # we put a new entry for the temporary variable in the table.
         table.append(outg)
         # This will fix the index for the temp variable. So we must finally
         # change the index of this temp variable to match its position in table.
-        newind = len(table)-1
-        newaliasvar = Var(newind,aliasvar.dim,aliasvar.cat)
-        newf = f.replace(aliasvar,newaliasvar)
-        
+        newind = len(table) - 1
+        newaliasvar = Var(newind, aliasvar.dim, aliasvar.cat)
+        newf = f.replace(aliasvar, newaliasvar)
+
         # Evaluation of f
         string += newf(out, table)
 
@@ -67,10 +68,10 @@ class Factorize_Impl(Operation):
         string += f"\n\n// Finished code block for {self.__repr__()}.\n}}\n\n"
         return string
 
-    def DiffT(self, v, gradin): 
+    def DiffT(self, v, gradin):
         f, g = self.children
-        aliasvar, = self.params
-        f = f.replace(aliasvar,g)
+        (aliasvar,) = self.params
+        f = f.replace(aliasvar, g)
         return Factorize(f.DiffT(v, gradin), g)
 
     # parameters for testing the operation (optional)
@@ -78,35 +79,26 @@ class Factorize_Impl(Operation):
 
 
 def Factorize(formula, g):
-    if type(g) in (Var,Zero,IntCst_Impl):
+    if type(g) in (Var, Zero, IntCst_Impl):
         return formula
     inds = GetInds(formula.Vars_)
     # we get a new negative index (negative because it must not refer to an actual input tensor index)
     minind = min(inds) if len(inds) > 0 else 0
-    newind = -1 if minind>=0 else minind-1
-    v = Var(newind,g.dim,3)
+    newind = -1 if minind >= 0 else minind - 1
+    v = Var(newind, g.dim, 3)
     newformula, cnt = formula.replace_and_count(g, v)
-    if cnt>1:
-        return Factorize_Impl(newformula,g,v)
+    if cnt > 1:
+        return Factorize_Impl(newformula, g, v)
     else:
         return formula
 
 
 def AutoFactorize(formula):
-    def RecSearch(formula,g):
-        formula = Factorize(formula,g)
+    def RecSearch(formula, g):
+        formula = Factorize(formula, g)
         for child in g.children:
-            formula = RecSearch(formula,child)
+            formula = RecSearch(formula, child)
         return formula
-    formula = RecSearch(formula,formula)
+
+    formula = RecSearch(formula, formula)
     return formula
-
-
-    
-    
-    
-    
-    
-    
-    
-            

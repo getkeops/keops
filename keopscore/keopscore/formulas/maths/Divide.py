@@ -48,8 +48,8 @@ def Divide(arg0, arg1):
     elif isinstance(arg1, Zero):
         KeOps_Error("division by zero")
     elif isinstance(arg1, IntCst_Impl):
-        return RatCst(1,arg1.val) * arg0
+        return RatCst(1, arg1.val) * arg0
     elif isinstance(arg1, RatCst_Impl):
-        return RatCst(arg1.q,arg1.p) * arg0
+        return RatCst(arg1.q, arg1.p) * arg0
     else:
         return Divide_Impl(arg0, arg1)

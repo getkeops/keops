@@ -16,7 +16,9 @@ class GetReduction:
     library = {}
 
     def __new__(self, red_formula_string, aliases=[]):
-        string_id_hash = get_hash_name(red_formula_string, aliases, keopscore.auto_factorize)
+        string_id_hash = get_hash_name(
+            red_formula_string, aliases, keopscore.auto_factorize
+        )
         if string_id_hash in GetReduction.library:
             return GetReduction.library[string_id_hash]
         else:

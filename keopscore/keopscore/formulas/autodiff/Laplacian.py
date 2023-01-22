@@ -12,11 +12,12 @@ from keopscore.utils.misc_utils import KeOps_Error
 # Defines Delta_v(F), the laplacian of F with respect to v
 # F must be of dimension 1
 
+
 def Laplacian(formula, v):
-    
+
     if formula.dim != 1:
         KeOps_Error("Laplacian is only implemented for scalar formula.")
-        
+
     dFT = formula.DiffT(v, IntCst(1))
-    
-    return Divergence(dFT,v)
+
+    return Divergence(dFT, v)
