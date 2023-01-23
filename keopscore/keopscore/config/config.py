@@ -111,7 +111,7 @@ compile_options = " -shared -fPIC -O3 -std=c++11"
 
 # cpp options
 if platform.system() == "Darwin":
-    cpp_flags = compile_options + " -flto -Wl,-no_fixup_chains"
+    cpp_flags = compile_options + " -flto"
 else:
     cpp_flags = compile_options + " -flto=auto"
 
