@@ -18,6 +18,7 @@ class LinkCompile:
         # we create the hash string id corresponding to all parameters, e.g. 7b9a611f7e
         self.gencode_filename = get_hash_name(
             type(self),
+            self.red_formula,
             self.red_formula_string,
             self.aliases,
             self.nargs,
