@@ -65,7 +65,7 @@ class TensorDot(Operation):
         assert fa.dim == prod(dimsfa)
         assert fb.dim == prod(dimsfb)
 
-        super().__init__(fa, fb)
+        super().__init__(fa, fb, params=(dimsfa, dimsfb, contfa, contfb, permute))
 
         self.dimfa = dimsfa
         self.dimfb = dimsfb

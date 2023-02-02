@@ -4,6 +4,8 @@ import re
 import math
 
 import numpy as np
+
+from keopscore.utils.misc_utils import KeOps_Error
 from pykeops.common.utils import check_broadcasting
 
 
@@ -1733,13 +1735,13 @@ class GenericLazyTensor:
         """
         Tensor dot product (on KeOps internal dimensions) - a binary operation.
 
-        :param other: a LazyTensor
-        :param dimfa: tuple of int
-        :param dimfb: tuple of int
-        :param contfa: tuple of int listing contraction dimension of a (could be empty)
-        :param contfb: tuple of int listing contraction dimension of b (could be empty)
-        :param args: a tuple of int containing the graph of a permutation of the output
-        :return:
+        :param other: a :class:`LazyTensor`
+        :param dimfa: tuple/list of int
+        :param dimfb: tuple/list of int
+        :param contfa: tuple/list of int listing contraction dimension of a (could be empty)
+        :param contfb: tuple/list of int listing contraction dimension of b (could be empty)
+        :param args: a tuple/list of int containing the graph of a permutation of the output
+        :return: a :class:`LazyTensor`
         """
 
         if is_complex_lazytensor(other):
@@ -1754,7 +1756,7 @@ class GenericLazyTensor:
             if isinstance(intseq, int):
                 intseq = (intseq,)  # convert to tuple
             for item in intseq:
-                opt_arg += "{},".format(item)
+                opt_arg += f"{item},"
             opt_arg = opt_arg[:-1] if len(intseq) else opt_arg  # to remove last comma
             opt_arg += "], "
         opt_arg = opt_arg[:-2]  # to remove last comma and space
@@ -1763,6 +1765,67 @@ class GenericLazyTensor:
         return self.binary(
             other, "TensorDot", dimres=int(dimres), dimcheck=None, opt_arg=opt_arg
         )
+
+    def keops_kron(self, other, dimfself, dimfother):
+        r"""
+        Kronecker product (on KeOps internal dimensions) - a binary operation.
+
+        If ``self._shape[-1] == d0 * d1 * ... * dN`` and ``other._shape[-1] == D0 * D1 * ... * DN``,
+        ``z = x.keops_kron(y, [d0, d1, ..., dN], [D0, D1, ..., DN])`` returns a :class:`GenericLazyTensor` of shape
+        ``z._shape[-1] == d0 * D0 * d1 * D1 * ... * dN * DN`` which encodes, symbolically,
+        the (flattened version of) Kronecker product of ``self`` and ``other`` along their internal dimension.
+
+        :param other: a :class:`LazyTensor`
+        :param dimfself: tuple/list of int listing the dimensions of a (prod(dimfself) == self._shape[-1])
+                        and len(dimfself) == len(dimfother)
+        :param dimfother: tuple/list of int listing the dimensions of b (prod(dimfother) == y._shape[-1])
+                        and len(dimfself) == len(dimfother)
+        :return: a :class:`LazyTensor` of internal shape prod(dimfself) * prod(dimfother)
+
+            >>>  dimfb = [3, 3, 5, 1]
+            >>>  dimfa = [3, 5, 3, 2]
+            >>>
+            >>>  M, N, axis = 11, 150, 1
+            >>>
+            >>>  x = np.random.rand(M, np.array(dimfa).prod())
+            >>>  y = np.random.rand(N, np.array(dimfb).prod())
+            >>>
+            >>>  gamma_py = np.zeros((M, N, np.array(dimfa).prod() * np.array(dimfb).prod()))
+            >>>  for i in range(M):
+            >>>      for j in range(N):
+            >>>          gamma_py[i, j, :] = np.kron(x[i, :].reshape(*dimfa), y[j, :].reshape(*dimfb)).flatten()
+            >>>
+            >>>  gamma_py = gamma_py.sum(axis=axis)
+            >>>
+            >>>  X = LazyTensor(x[:, None, :])
+            >>>  Y = LazyTensor(y[None, :, :])
+            >>>
+            >>>  gamma_keops = (X.keops_kron(Y, dimfa, dimfb)).sum(axis=axis)
+            >>>
+            >>>  print(np.allclose(gamma_keops, gamma_py, atol=1e-6))
+        """
+
+        if is_complex_lazytensor(other):
+            raise ValueError(
+                "keops_kron is not implemented for complex LazyTensors"
+            )
+
+        # format args in a string
+        opt_arg = ""
+        for intseq in (dimfself, dimfother):
+            opt_arg += "["
+            if isinstance(intseq, int):
+                KeOps_Error("For keops_Kronecker, dimfself and dimfother must be tuple/list of int")
+            for item in intseq:
+                opt_arg += f"{item},"
+            opt_arg = opt_arg[:-1] if len(intseq) else opt_arg  # to remove last comma
+            opt_arg += "], "
+        opt_arg = opt_arg[:-2]  # to remove last comma and space
+
+        return self.binary(
+            other, "Kron", dimres=(other.ndim * self.ndim), dimcheck=None, opt_arg=opt_arg
+        )
+
 
     def grad(self, other, gradin):
         r"""

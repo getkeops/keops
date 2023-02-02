@@ -23,6 +23,7 @@ from .GradMatrix import GradMatrix
 from .IfElse import IfElse
 from .IntInv import IntInv
 from .Inv import Inv
+from .Kron import Kron
 from .Log import Log
 from .MatVecMult import MatVecMult
 from .Max import Max
@@ -86,6 +87,7 @@ __all__ = [
     "IfElse",
     "IntInv",
     "Inv",
+    "Kron",
     "Log",
     "MatVecMult",
     "Max",
