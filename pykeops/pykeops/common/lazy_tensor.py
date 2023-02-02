@@ -1782,8 +1782,11 @@ class GenericLazyTensor:
                         and len(dimfself) == len(dimfother)
         :return: a :class:`LazyTensor` of internal shape prod(dimfself) * prod(dimfother)
 
-            >>>  dimfb = [3, 3, 5, 1]
-            >>>  dimfa = [3, 5, 3, 2]
+            >>>  import numpy as np
+            >>>  from pykeops.numpy import LazyTensor
+            >>>
+            >>>  dimfb = [3, 3, 2, 1]
+            >>>  dimfa = [3, 1, 3, 2]
             >>>
             >>>  M, N, axis = 11, 150, 1
             >>>
