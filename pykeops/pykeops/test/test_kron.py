@@ -9,8 +9,8 @@ axis = 1
 
 ############################################################################
 
-dimfa = [3, 5, 3, 2]
-dimfb = [3, 3, 5, 4]
+dimfa = [3, 2, 1, 2]
+dimfb = [1, 2, 2, 3]
 
 x = np.random.rand(M, np.array(dimfa).prod())
 y = np.random.rand(N, np.array(dimfb).prod())
@@ -49,8 +49,8 @@ def test_kron_lazytensor_torch():
 
 
 ############################################################################
-Ddx = 4
-Ddx2 = 5
+Ddx = 2
+Ddx2 = 3
 Dx = Ddx * Ddx2
 Dy = Ddx * Ddx
 
