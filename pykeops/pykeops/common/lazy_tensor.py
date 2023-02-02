@@ -1806,16 +1806,16 @@ class GenericLazyTensor:
         """
 
         if is_complex_lazytensor(other):
-            raise ValueError(
-                "keops_kron is not implemented for complex LazyTensors"
-            )
+            raise ValueError("keops_kron is not implemented for complex LazyTensors")
 
         # format args in a string
         opt_arg = ""
         for intseq in (dimfself, dimfother):
             opt_arg += "["
             if isinstance(intseq, int):
-                KeOps_Error("For keops_Kronecker, dimfself and dimfother must be tuple/list of int")
+                KeOps_Error(
+                    "For keops_Kronecker, dimfself and dimfother must be tuple/list of int"
+                )
             for item in intseq:
                 opt_arg += f"{item},"
             opt_arg = opt_arg[:-1] if len(intseq) else opt_arg  # to remove last comma
@@ -1823,9 +1823,12 @@ class GenericLazyTensor:
         opt_arg = opt_arg[:-2]  # to remove last comma and space
 
         return self.binary(
-            other, "Kron", dimres=(other.ndim * self.ndim), dimcheck=None, opt_arg=opt_arg
+            other,
+            "Kron",
+            dimres=(other.ndim * self.ndim),
+            dimcheck=None,
+            opt_arg=opt_arg,
         )
-
 
     def grad(self, other, gradin):
         r"""
