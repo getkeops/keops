@@ -175,6 +175,9 @@ class Operation(Tree):
             and self.children == other.children
             and self.params == other.params
         )
+    
+    def __hash__(self):
+        return hash((type(self), self.children, self.params))
 
     def Op(self, out, table, param):
         pass
