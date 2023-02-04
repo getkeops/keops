@@ -17,6 +17,14 @@ class Tree:
                 pre_string = ""
                 middle_string = ","
                 post_string = idstr
+            elif mode == "brackets":
+                pre_string = idstr[0]
+                middle_string = ","
+                post_string = idstr[1]
+            elif mode == "item":
+                pre_string = ""
+                middle_string = idstr[0]
+                post_string = idstr[1]
         else:
             pre_string = self.string_id + "("
             middle_string = ","
@@ -34,7 +42,7 @@ class Tree:
             string += middle_string if k < len(self.children) - 1 else ""
         for k, param in enumerate(self.params):
             if k > 0 or len(self.children) > 0:
-                string += ","
+                string += middle_string
             string += param.__repr__()
         string += post_string
         return string
