@@ -17,8 +17,6 @@ where :math:`K_{x,x} = \Big[\exp(-\|x_i -x_j\|^2 / \sigma^2)\Big]_{i,j=1}^N`. Th
     In this demo, we implement the linear operator :math:`K_xx`
     using a **bruteforce** implementation and do not leverage any multiscale
     or low-rank (Nystroem/multipole) decomposition of the Kernel matrix.
-    First support for these approximation schemes is scheduled for
-    May-June 2021. 
     Going further, advanced strategies and solvers
     are now available through the 
     `GPyTorch <https://docs.gpytorch.ai/en/v1.1.1/examples/02_Scalable_Exact_GPs/KeOps_GP_Regression.html>`_
@@ -183,6 +181,7 @@ full_benchmark(
     routines,
     generate_samples,
     problem_sizes=problem_sizes,
+    max_time=1,
 )
 
 plt.show()

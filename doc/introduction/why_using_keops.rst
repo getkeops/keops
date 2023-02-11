@@ -423,12 +423,13 @@ of dimension D > 100.
 The problem is known as
 `register spilling <https://en.wikipedia.org/wiki/Register_allocation>`_,
 with some documented but non-trivial work-arounds.
+
 Another drawback is that we do not pre-ship binaries
 but instead rely on C++/CUDA compilers to run our kernels.
-
-As detailed in our :doc:`road map <road-map>`,
-mitigating these two issues is one of our main targets
-for future developments.
+Fortunately, this weakness is now mitigated by the
+ubiquitous deployment of fast compilers
+built in e.g. the CUDA drivers. With the release of KeOps 2.0 in March 2022,
+installation and compilation issues have (mostly) become a thing of the past.
 
 
 Main features

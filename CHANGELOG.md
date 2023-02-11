@@ -1,3 +1,15 @@
+* v2.1.1 - Jan 6, 2023
+    - Fixes for issues 220, 263, 256, 266, 275, 262, 282
+    - Fixed an error caused by a compile warning on recent MacOs systems.
+    - Added an official image on DockerHub and updated instructions for Singularity and Docker.
+
+* v2.1 - Jun 3, 2022
+    - Fix for gradient formula of divide operation (issue #246).
+    - Fix for special chunked computation mode (issue #243).
+    - Fix for the gradient formula for complex multiplication operation (issue #238).
+    - Other minor bug fixes (issues #242, #240, #248, #241, #233).
+    - Added support for BSpline kernels.
+
 * v2.0 - Mar 17, 2022
     - Complete rewritting of meta-programming engine: compilation times are divided by 10-100
     - JIT compilation of cuda kernels

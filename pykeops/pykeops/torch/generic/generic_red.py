@@ -231,7 +231,10 @@ class GenredAutograd(torch.autograd.Function):
                 # For a reduction of the type sum(F*b), with b a variable, and if we require the gradient
                 # with respect to b, the gradient will be of same type sum(F*eta). So we set again rec_multVar option
                 # in this case.
-                if pos == ctx.rec_multVar_highdim:
+                if (
+                    not isinstance(ctx.rec_multVar_highdim, bool)
+                    and pos == ctx.rec_multVar_highdim
+                ):
                     rec_multVar_highdim = (
                         nargs  # nargs is the position of variable eta.
                     )

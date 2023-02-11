@@ -6,6 +6,7 @@ from .ArgMin import ArgMin
 from .Asin import Asin
 from .Atan import Atan
 from .Atan2 import Atan2
+from .BSpline import BSpline
 from .Clamp import Clamp
 from .ClampInt import ClampInt
 from .Concat import Concat
@@ -22,6 +23,7 @@ from .GradMatrix import GradMatrix
 from .IfElse import IfElse
 from .IntInv import IntInv
 from .Inv import Inv
+from .Kron import Kron
 from .Log import Log
 from .MatVecMult import MatVecMult
 from .Max import Max
@@ -31,6 +33,7 @@ from .Mod import Mod
 from .Mult import Mult
 from .Norm2 import Norm2
 from .Normalize import Normalize
+from .OneHot import OneHot
 from .Pow import Pow
 from .Powf import Powf
 from .ReLU import ReLU
@@ -67,6 +70,7 @@ __all__ = [
     "Asin",
     "Atan",
     "Atan2",
+    "BSpline",
     "Clamp",
     "ClampInt",
     "Concat",
@@ -83,6 +87,7 @@ __all__ = [
     "IfElse",
     "IntInv",
     "Inv",
+    "Kron",
     "Log",
     "MatVecMult",
     "Max",
@@ -92,6 +97,7 @@ __all__ = [
     "Mult",
     "Norm2",
     "Normalize",
+    "OneHot",
     "Pow",
     "Powf",
     "ReLU",

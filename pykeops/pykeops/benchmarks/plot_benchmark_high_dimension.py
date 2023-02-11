@@ -14,15 +14,10 @@ as the dimension grows.
 # Setup
 # ---------------------
 
-import importlib
-import os
-import time
-
-import numpy as np
 import torch
 from matplotlib import pyplot as plt
 
-from benchmark_utils import flatten, random_normal, full_benchmark
+from benchmark_utils import random_normal, full_benchmark
 
 use_cuda = torch.cuda.is_available()
 
@@ -69,8 +64,12 @@ def generate_samples(D, device="cuda", lang="torch", batchsize=1, **kwargs):
 #
 
 
-def gaussianconv_pytorch(x, y, b, **kwargs):
+def gaussianconv_pytorch(x, y, b, tf32=False, **kwargs):
     """(B,N,D), (B,N,D), (B,N,1) -> (B,N,1)"""
+
+    # If False, we stick to float32 computations.
+    # If True, we use TensorFloat32 whenever possible.
+    torch.backends.cuda.matmul.allow_tf32 = tf32
 
     D_xx = (x * x).sum(-1).unsqueeze(2)  # (B,N,1)
     D_xy = torch.matmul(x, y.permute(0, 2, 1))  # (B,N,D) @ (B,D,M) = (B,N,M)
@@ -128,7 +127,8 @@ def gaussianconv_keops_nochunks(x, y, b, backend="GPU", **kwargs):
 
 
 routines = [
-    (gaussianconv_pytorch, "PyTorch (GPU)", {}),
+    (gaussianconv_pytorch, "PyTorch (GPU, TF32=False)", {"tf32": False}),
+    (gaussianconv_pytorch, "PyTorch (GPU, TF32=True)", {"tf32": True}),
     (gaussianconv_keops_nochunks, "KeOps < 1.4.2 (GPU)", {}),
     (gaussianconv_keops, "KeOps >= 1.4.2 (GPU)", {}),
 ]

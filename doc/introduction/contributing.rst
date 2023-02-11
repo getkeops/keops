@@ -62,17 +62,7 @@ you may help us to develop KeOps as follows:
    of our C++ engine, KeOps
    is fairly easy to extend with custom operations
    and reductions.
-   The pull requests that provided support for
-   the `arc-cosine <https://github.com/getkeops/keops/pull/105>`_
-   and `arc-sine <https://github.com/getkeops/keops/pull/129>`_
-   functions should be good starting points: if you
-   find them unclear, please let us know.
-   Note that this type of development 
-   will become significantly easier with the release
-   of the `Pythonic compilation engine <https://github.com/getkeops/keops/tree/python_engine/keops/python_engine>`_
-   that we are scheduling for the summer of 2021.
-   You may prefer to wait until then to start
-   dealing with KeOps++!
+   If you find these instructions unclear, please let us know.
    |br| |br|
 
 
@@ -104,10 +94,3 @@ you may help us to develop KeOps as follows:
    you to choose an appropriate topic and discuss
    possible collaborations.
    |br|
-
-As detailed in our :doc:`road map <road-map>`,
-helping new developers to contribute
-to KeOps is one of our main targets for 2021.
-With a simpler compilation engine and C++ code structure,
-KeOps should become much easier to extend and maintain
-in the long run.

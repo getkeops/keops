@@ -79,7 +79,7 @@ def linkcode_resolve(domain, info):
     except Exception:
         filename = info["module"].replace(".", "/") + ".py"
 
-    return "https://github.com/getkeops/keops/tree/main/%s" % filename
+    return "https://github.com/getkeops/keops/tree/main/pykeops/%s" % filename
 
 
 # def linkcode_resolve(domain, info):
@@ -106,6 +106,7 @@ sphinx_gallery_conf = {
     "within_subsection_order": FileNameSortKey,
     # Add patterns
     # 'filename_pattern': r'../pykeops/pykeops/tutorials/*',
+    "ignore_pattern": r"__init__\.py|benchmark_utils\.py| dataset_utils\.py",
 }
 
 # Generate the API documentation when building
@@ -152,7 +153,7 @@ project = "KeOps"
 # import time
 # copyright = '2018-{}, Benjamin Charlier, Jean Feydy, Joan A. Glaunès'.format(time.strftime("%Y"))
 
-copyright = "2018-2021, Benjamin Charlier, Jean Feydy, Joan A. Glaunès."
+copyright = "2018-2022, Benjamin Charlier, Jean Feydy, Joan A. Glaunès."
 author = "Benjamin Charlier, Jean Feydy, Joan A. Glaunès."
 
 # The version info for the project you're documenting, acts as replacement for
@@ -169,7 +170,7 @@ release = __version__
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = None
+language = "en"
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.

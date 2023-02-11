@@ -207,6 +207,7 @@ class Operation(Tree):
         return type(self)(*args, *self.params)
 
     enable_test = False
+    disable_testgrad = False
 
 
 def int2Op(x):

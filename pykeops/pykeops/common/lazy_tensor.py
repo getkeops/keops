@@ -4,6 +4,8 @@ import re
 import math
 
 import numpy as np
+
+from keopscore.utils.misc_utils import KeOps_Error
 from pykeops.common.utils import check_broadcasting
 
 
@@ -264,6 +266,10 @@ class GenericLazyTensor:
         populates the tools class."""
         pass
 
+    def new_variable_index(self):
+        sv = self.symbolic_variables
+        return 0 if len(sv) == 0 else 1 + max(v[0] for v in sv)
+
     def fixvariables(self):
         r"""If needed, assigns final labels to each variable and pads their batch dimensions prior to a :mod:`Genred()` call."""
         newvars = ()
@@ -274,27 +280,33 @@ class GenericLazyTensor:
             device = self.tools.device(v)
             if device is not None:
                 break
-        i = len(self.symbolic_variables)  # The first few labels are already taken...
-
+        i = self.new_variable_index()
         # So let's loop over our tensors, and give them labels:
         for v in self.variables:
             idv = id(v)
-            if type(v) == list:
+            if type(v) == list and self._dtype is not None:
                 v = self.tools.array(v, self._dtype, device)
 
-            # Replace "Var(idv," by "Var(i," and increment 'i':
+            # Replace "Var(idv," by "Var(i," and increment 'i' :
             tag = "Var({},".format(idv)
             if tag in self.formula + self.formula2:
                 self.formula = self.formula.replace(tag, "Var({},".format(i))
                 self.formula2 = self.formula2.replace(tag, "Var({},".format(i))
-                # Detect if v is meant to be used as a variable or as a parameter:
-                str_cat_v = re.search(
-                    r"Var\({},\d+,([012])\)".format(i), self.formula + self.formula2
-                ).group(1)
-                is_variable = 1 if str_cat_v in ("0", "1") else 0
-                dims_to_pad = self.nbatchdims + 1 + is_variable - len(v.shape)
-                padded_v = self.tools.view(v, (1,) * dims_to_pad + v.shape)
-                newvars += (padded_v,)
+                if hasattr(
+                    v, "shape"
+                ):  # (because v might still be a Python list of floats)
+                    # here we add dummy dims to v ( i.e. replace v by v[None,..,None,...])
+                    # if needed.
+                    # First we detect if v is meant to be used as a variable or as a parameter:
+                    str_cat_v = re.search(
+                        r"Var\({},\d+,([012])\)".format(i), self.formula + self.formula2
+                    ).group(1)
+                    is_variable = 1 if str_cat_v in ("0", "1") else 0
+                    dims_to_pad = self.nbatchdims + 1 + is_variable - len(v.shape)
+                    padded_v = self.tools.view(v, (1,) * dims_to_pad + v.shape)
+                    newvars += (padded_v,)
+                else:
+                    newvars += (v,)
                 if (
                     hasattr(self, "rec_multVar_highdim")
                     and self.rec_multVar_highdim == idv
@@ -467,7 +479,7 @@ class GenericLazyTensor:
           - is_operator (bool, default=False): May be used to specify if **operation** is
             an operator like ``+``, ``-`` or a "genuine" function.
           - dimcheck (string): shall we check the input dimensions?
-            Supported values are ``"same"``, ``"sameor1"``, or **None**.
+            Supported values are ``"same"``, ``"sameor1"``, ``"vecand1"`` or **None**.
           - rversion (Boolean): shall we invert lhs and rhs of the binary op, e.g. as in __radd__, __rmut__, etc...
         """
 
@@ -507,8 +519,17 @@ class GenericLazyTensor:
                     + "Received {} and {}.".format(self.ndim, other.ndim)
                 )
 
+        elif dimcheck == "vecand1":
+            if other.ndim != 1:
+                raise ValueError(
+                    "Operation {} expects a vector and a scalar input (of dimension 1). ".format(
+                        operation
+                    )
+                    + "Received {} and {}.".format(self.ndim, other.ndim)
+                )
+
         elif dimcheck != None:
-            raise ValueError("incorrect dimcheck keyword in binary operation")
+            raise ValueError("Incorrect dimcheck keyword in binary operation")
 
         res = self.join(
             other, is_complex=is_complex
@@ -537,10 +558,6 @@ class GenericLazyTensor:
         else:
             res.formula = "{}({}, {})".format(operation, lformula, rformula)
 
-        # special case of multiplication with a variable V : we define a special tag to enable factorization in case
-        # the user requires a sum reduction over the opposite index (or any index if V is a parameter):
-        # for example sum_i V_j k(x_i,y_j) = V_j sum_i k(x_i,y_j), so we will use KeOps reduction for the kernel
-        # k(x_i,y_j) only, then multiply the result with V.
         if operation == "*" and other.formula[:3] == "Var" and other.ndim > 100:
             res.rec_multVar_highdim = (self, other)
 
@@ -634,7 +651,7 @@ class GenericLazyTensor:
         dim=None,
         call=True,
         is_complex=None,
-        **kwargs
+        **kwargs,
     ):
         r"""
         Applies a reduction to a :class:`LazyTensor`. This method is used internally by the LazyTensor class.
@@ -721,12 +738,19 @@ class GenericLazyTensor:
         res.kwargs = kwargs_call
         res.ndim = self.ndim
         if reduction_op == "Sum" and hasattr(self, "rec_multVar_highdim"):
+            # this means we have detected that the reduction is of the form Sum(F*V) with V a high dimension variable.
             if res.axis != self.rec_multVar_highdim[1].axis:
+                # special case of multiplication with a variable V : we define a special tag to enable factorization in case
+                # the user requires a sum reduction over the opposite index (or any index if V is a parameter):
+                # for example sum_i V_j k(x_i,y_j) = V_j sum_i k(x_i,y_j), so we will use KeOps reduction for the kernel
+                # k(x_i,y_j) only, then multiply the result with V.
                 return (
                     self.rec_multVar_highdim[0].sum(axis=axis)
                     * self.rec_multVar_highdim[1].variables[0]
                 )
-            res.rec_multVar_highdim = id(self.rec_multVar_highdim[1].variables[0])
+            else:
+                # here we are in the case where we may use the "finalchunk" mode
+                res.rec_multVar_highdim = id(self.rec_multVar_highdim[1].variables[0])
         else:
             res.rec_multVar_highdim = None
         if res._dtype is not None:
@@ -740,7 +764,7 @@ class GenericLazyTensor:
                 opt_arg=res.opt_arg,
                 formula2=res.formula2,
                 **kwargs_init,
-                rec_multVar_highdim=res.rec_multVar_highdim
+                rec_multVar_highdim=res.rec_multVar_highdim,
             )
         if call and len(res.symbolic_variables) == 0 and res._dtype is not None:
             return res()
@@ -826,7 +850,7 @@ class GenericLazyTensor:
             # this is the classical mode: we want to invert sum(self*var) = other
             # we define var as a new symbolic variable with same dimension as other
             # and we assume axis of var is same as axis of reduction
-            varindex = len(self.symbolic_variables)
+            varindex = self.new_variable_index()
             var = self.lt_constructor((varindex, other.ndim, axis))
             res = self * var
         else:
@@ -859,7 +883,7 @@ class GenericLazyTensor:
                 res.varformula,
                 res.axis,
                 **kwargs_init,
-                rec_multVar_highdim=res.rec_multVar_highdim
+                rec_multVar_highdim=res.rec_multVar_highdim,
             )
 
         # we call if call=True, if other is not symbolic, and if the dtype is set
@@ -904,7 +928,7 @@ class GenericLazyTensor:
                     self.formula2,
                     self.axis,
                     **kwargs_init,
-                    rec_multVar_highdim=self.rec_multVar_highdim
+                    rec_multVar_highdim=self.rec_multVar_highdim,
                 )
             else:
                 self.callfun = self.Genred(
@@ -915,7 +939,7 @@ class GenericLazyTensor:
                     opt_arg=self.opt_arg,
                     formula2=self.formula2,
                     **kwargs_init,
-                    rec_multVar_highdim=self.rec_multVar_highdim
+                    rec_multVar_highdim=self.rec_multVar_highdim,
                 )
 
         if self.reduction_op == "Solve" and len(self.other.symbolic_variables) == 0:
@@ -1597,6 +1621,16 @@ class GenericLazyTensor:
 
         return self.unary("OneHot", dimres=D, opt_arg=D)
 
+    def bspline(self, x, k=0):
+        """Vector of BSpline functions of order k for the knots (self), evaluated at x.
+
+        :param x: a LazyTensor of dimension 1.
+        :param k: a non-negative integer.
+        """
+        return self.binary(
+            x, "BSpline", dimres=(self.ndim - k - 1), dimcheck="vecand1", opt_arg=f"{k}"
+        )
+
     def concat(self, other):
         r"""
         Concatenation of two :class:`LazyTensor` - a binary operation.
@@ -1701,13 +1735,13 @@ class GenericLazyTensor:
         """
         Tensor dot product (on KeOps internal dimensions) - a binary operation.
 
-        :param other: a LazyTensor
-        :param dimfa: tuple of int
-        :param dimfb: tuple of int
-        :param contfa: tuple of int listing contraction dimension of a (could be empty)
-        :param contfb: tuple of int listing contraction dimension of b (could be empty)
-        :param args: a tuple of int containing the graph of a permutation of the output
-        :return:
+        :param other: a :class:`LazyTensor`
+        :param dimfa: tuple/list of int
+        :param dimfb: tuple/list of int
+        :param contfa: tuple/list of int listing contraction dimension of a (could be empty)
+        :param contfb: tuple/list of int listing contraction dimension of b (could be empty)
+        :param args: a tuple/list of int containing the graph of a permutation of the output
+        :return: a :class:`LazyTensor`
         """
 
         if is_complex_lazytensor(other):
@@ -1722,7 +1756,7 @@ class GenericLazyTensor:
             if isinstance(intseq, int):
                 intseq = (intseq,)  # convert to tuple
             for item in intseq:
-                opt_arg += "{},".format(item)
+                opt_arg += f"{item},"
             opt_arg = opt_arg[:-1] if len(intseq) else opt_arg  # to remove last comma
             opt_arg += "], "
         opt_arg = opt_arg[:-2]  # to remove last comma and space
@@ -1730,6 +1764,70 @@ class GenericLazyTensor:
         dimres /= np.array(dimfa)[np.array(contfa)].prod() ** 2 if len(contfa) else 1
         return self.binary(
             other, "TensorDot", dimres=int(dimres), dimcheck=None, opt_arg=opt_arg
+        )
+
+    def keops_kron(self, other, dimfself, dimfother):
+        r"""
+        Kronecker product (on KeOps internal dimensions) - a binary operation.
+
+        If ``self._shape[-1] == d0 * d1 * ... * dN`` and ``other._shape[-1] == D0 * D1 * ... * DN``,
+        ``z = x.keops_kron(y, [d0, d1, ..., dN], [D0, D1, ..., DN])`` returns a :class:`GenericLazyTensor` of shape
+        ``z._shape[-1] == d0 * D0 * d1 * D1 * ... * dN * DN`` which encodes, symbolically,
+        the (flattened version of) Kronecker product of ``self`` and ``other`` along their internal dimension.
+
+        :param other: a :class:`LazyTensor`
+        :param dimfself: tuple/list of int listing the dimensions of a (prod(dimfself) == self._shape[-1])
+                        and len(dimfself) == len(dimfother)
+        :param dimfother: tuple/list of int listing the dimensions of b (prod(dimfother) == y._shape[-1])
+                        and len(dimfself) == len(dimfother)
+        :return: a :class:`LazyTensor` of internal shape prod(dimfself) * prod(dimfother)
+
+            >>>  dimfb = [3, 3, 5, 1]
+            >>>  dimfa = [3, 5, 3, 2]
+            >>>
+            >>>  M, N, axis = 11, 150, 1
+            >>>
+            >>>  x = np.random.rand(M, np.array(dimfa).prod())
+            >>>  y = np.random.rand(N, np.array(dimfb).prod())
+            >>>
+            >>>  gamma_py = np.zeros((M, N, np.array(dimfa).prod() * np.array(dimfb).prod()))
+            >>>  for i in range(M):
+            >>>      for j in range(N):
+            >>>          gamma_py[i, j, :] = np.kron(x[i, :].reshape(*dimfa), y[j, :].reshape(*dimfb)).flatten()
+            >>>
+            >>>  gamma_py = gamma_py.sum(axis=axis)
+            >>>
+            >>>  X = LazyTensor(x[:, None, :])
+            >>>  Y = LazyTensor(y[None, :, :])
+            >>>
+            >>>  gamma_keops = (X.keops_kron(Y, dimfa, dimfb)).sum(axis=axis)
+            >>>
+            >>>  print(np.allclose(gamma_keops, gamma_py, atol=1e-6))
+        """
+
+        if is_complex_lazytensor(other):
+            raise ValueError("keops_kron is not implemented for complex LazyTensors")
+
+        # format args in a string
+        opt_arg = ""
+        for intseq in (dimfself, dimfother):
+            opt_arg += "["
+            if isinstance(intseq, int):
+                KeOps_Error(
+                    "For keops_Kronecker, dimfself and dimfother must be tuple/list of int"
+                )
+            for item in intseq:
+                opt_arg += f"{item},"
+            opt_arg = opt_arg[:-1] if len(intseq) else opt_arg  # to remove last comma
+            opt_arg += "], "
+        opt_arg = opt_arg[:-2]  # to remove last comma and space
+
+        return self.binary(
+            other,
+            "Kron",
+            dimres=(other.ndim * self.ndim),
+            dimcheck=None,
+            opt_arg=opt_arg,
         )
 
     def grad(self, other, gradin):

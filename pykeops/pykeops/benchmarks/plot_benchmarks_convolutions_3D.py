@@ -10,8 +10,7 @@ as the number of samples grows from 100 to 1,000,000.
     In this demo, we use exact **bruteforce** computations 
     (tensorized for PyTorch and online for KeOps), without leveraging any multiscale
     or low-rank (Nystroem/multipole) decomposition of the Kernel matrix.
-    First support for these approximation schemes is scheduled for
-    May-June 2021.
+    We are working on providing transport support for these approximations in KeOps.
 
 
 """
@@ -90,8 +89,12 @@ def gaussianconv_numpy(x, y, b, **kwargs):
     return K_xy @ b
 
 
-def gaussianconv_pytorch(x, y, b, **kwargs):
+def gaussianconv_pytorch(x, y, b, tf32=False, **kwargs):
     """(B,N,D), (B,N,D), (B,N,1) -> (B,N,1)"""
+
+    # If False, we stick to float32 computations.
+    # If True, we use TensorFloat32 whenever possible.
+    torch.backends.cuda.matmul.allow_tf32 = tf32
 
     D_xx = (x * x).sum(-1).unsqueeze(2)  # (B,N,1)
     D_xy = torch.matmul(x, y.permute(0, 2, 1))  # (B,N,D) @ (B,D,M) = (B,N,M)
@@ -146,7 +149,8 @@ def gaussianconv_lazytensor(x, y, b, backend="GPU", **kwargs):
 if use_cuda:
     routines = [
         (gaussianconv_numpy, "Numpy (CPU)", {"lang": "numpy"}),
-        (gaussianconv_pytorch, "PyTorch (GPU)", {}),
+        (gaussianconv_pytorch, "PyTorch (GPU, TF32=False)", {"tf32": False}),
+        (gaussianconv_pytorch, "PyTorch (GPU, TF32=True)", {"tf32": True}),
         (gaussianconv_keops, "KeOps (GPU)", {}),
     ]
 
@@ -155,6 +159,7 @@ if use_cuda:
         routines,
         generate_samples,
         problem_sizes=problem_sizes,
+        max_time=1,
     )
 
 
@@ -173,6 +178,7 @@ full_benchmark(
     routines,
     generate_samples,
     problem_sizes=problem_sizes,
+    max_time=1,
 )
 
 
@@ -196,6 +202,7 @@ if use_cuda:
         routines,
         generate_samples,
         problem_sizes=problem_sizes,
+        max_time=1,
     )
 
 
