@@ -349,7 +349,7 @@ def SymbolicTensor(tensor, nbatchdims=0):
 #####################################################
 
 
-def keopsify(fun):
+def jit(fun):
     def newfun(*args, **kwargs):
         newargs = [SymbolicTensor(arg) for arg in args]
         res = fun(*newargs, **kwargs)
@@ -381,7 +381,7 @@ out1 = gauss_kernel(x, y, b)
 print(out1.shape)
 
 
-@keopsify
+@jit
 def gauss_kernel(x, y, b):
     D2 = ((x - y) ** 2).sum(axis=2)
     K = (-D2).exp()
