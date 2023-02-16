@@ -11,14 +11,17 @@ class OneHot(Operation):
 
     string_id = "OneHot"
 
-    def __init__(self, f, dim):
+    def __init__(self, f, dim=None, params=None):
+        # N.B. init via params keyword is used for compatibility with base class.
+        if dim is None:
+            # here params should be a tuple containing one single integer
+            dim, = params
         if f.dim != 1:
             KeOps_Error("One-hot representation is only supported for scalar formulas.")
         if dim < 1:
             KeOps_Error("A one-hot vector should have length >= 1.")
-        super().__init__(f)
+        super().__init__(f, params=(dim,))
         self.dim = dim
-        self.params = (dim,)
 
     def Op(self, out, table, arg0):
         if out.dtype == "half2" and arg0.dtype == "half2":

@@ -13,7 +13,10 @@ class ComplexRealScal_Impl(Operation):
 
     string_id = "ComplexRealScal"
 
-    def __init__(self, f, g):
+    def __init__(self, f, g, params=()):
+        # N.B. params keyword is used for compatibility with base class, but should always equal ()
+        if params != ():
+            KeOps_Error("There should be no parameter.")
         if f.dim != 1:
             KeOps_Error("Dimension of F must be 1")
         if g.dim % 2 != 0:

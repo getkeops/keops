@@ -19,13 +19,17 @@ class Var(Operation):
 
     string_id = "Var"
 
-    def __init__(self, ind, dim, cat):
-        super().__init__()
+    def __init__(self, ind=None, dim=None, cat=None, params=None):
+        # N.B. init via params keyword is used for compatibility with base class.
+        if ind is None:
+            # here we assume dim and cat are also None, and
+            # that params is a tuple containing ind, dim, cat
+            ind, dim, cat = params
+        super().__init__(params = (ind, dim, cat))
         self.ind = ind
         self.dim = dim
         self.cat = cat
         self.Vars_ = {self}
-        self.params = (ind, dim, cat)
 
     # custom __eq__ and __hash__ methods, required to handle properly the union of two sets of Var objects
     def __eq__(self, other):
