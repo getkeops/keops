@@ -23,10 +23,13 @@ def do_chunk_sub(
     dimchunk_curr,
     dimsx,
     dimsy,
+    dimsp,
     indsi,
     indsj,
+    indsp,
     indsi_chunked,
     indsj_chunked,
+    indsp_chunked,
     acc,
     tile,
     i,
@@ -68,14 +71,23 @@ def do_chunk_sub(
         chunk,
         row_index=j,
     )
+    load_chunks_routine_p = load_vars_chunks(
+        indsp_chunked,
+        dimchunk,
+        dimchunk_curr,
+        chk.dim_org,
+        param_loc,
+        arg,
+        chunk,
+    )
     chktable = table(
         chk.nminargs,
         dimsx,
         dimsy,
-        chk.dimsp,
+        dimsp,
         indsi,
         indsj,
-        chk.indsp,
+        indsp,
         xi,
         yjrel,
         param_loc,
@@ -91,6 +103,7 @@ def do_chunk_sub(
                 if (j < ny) {{ // we load yj from device global memory only if j<ny
                     {load_chunks_routine_j}
                 }}
+                {load_chunks_routine_p}
                 __syncthreads();
                 if ({i.id} < {nx.id}) {{ // we compute only if needed
                     {dtype} *yjrel = {yj.id}; // Loop on the columns of the current block.
@@ -166,10 +179,13 @@ class GpuReduc1D_chunks(MapReduce, Gpu_link_compile):
             dimchunk,
             chk.dimsx,
             chk.dimsy,
+            chk.dimsp,
             chk.indsi,
             chk.indsj,
+            chk.indsp,
             chk.indsi_chunked,
             chk.indsj_chunked,
+            chk.indsp_chunked,
             acc,
             tile,
             i,
@@ -194,10 +210,13 @@ class GpuReduc1D_chunks(MapReduce, Gpu_link_compile):
             chk.dimlastchunk,
             chk.dimsx_last,
             chk.dimsy_last,
+            chk.dimsp_last,
             chk.indsi,
             chk.indsj,
+            chk.indsp,
             chk.indsi_lastchunked,
             chk.indsj_lastchunked,
+            chk.indsp_lastchunked,
             acc,
             tile,
             i,
@@ -247,7 +266,7 @@ class GpuReduc1D_chunks(MapReduce, Gpu_link_compile):
 
                           // load parameters variables from global memory to local thread memory
                           {param_loc.declare()}
-                          {load_vars(chk.dimsp, chk.indsp, param_loc, args)}
+                          {load_vars(chk.dimsp_notchunked, chk.indsp_notchunked, param_loc, args)}
                           
                           {acc.declare()}
                           
