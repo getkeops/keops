@@ -12,7 +12,7 @@ class IntCst_Impl(Operation):
         # N.B. init via params keyword is used for compatibility with base class.
         if val is None:
             # here params should be a tuple containing one single integer
-            val, = params
+            (val,) = params
         super().__init__(params=(val,))
         self.val = val
         self.dim = 1

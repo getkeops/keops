@@ -53,7 +53,17 @@ def permutation(perm, arr):
 class TensorDot(Operation):
     string_id = "TensorDot"
 
-    def __init__(self, fa, fb, dimsfa=None, dimsfb=None, contfa=None, contfb=None, permute=None, params=None):
+    def __init__(
+        self,
+        fa,
+        fb,
+        dimsfa=None,
+        dimsfb=None,
+        contfa=None,
+        contfb=None,
+        permute=None,
+        params=None,
+    ):
 
         # N.B. init via params keyword is used for compatibility with base class.
         if dimsfa is None:

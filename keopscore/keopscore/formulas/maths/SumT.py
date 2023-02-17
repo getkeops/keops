@@ -17,7 +17,7 @@ class SumT_Impl(Operation):
         # N.B. init via params keyword is used for compatibility with base class.
         if dim is None:
             # here params should be a tuple containing one single integer
-            dim, = params
+            (dim,) = params
         super().__init__(arg, params=(dim,))
         self.dim = dim
 

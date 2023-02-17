@@ -15,7 +15,7 @@ class OneHot(Operation):
         # N.B. init via params keyword is used for compatibility with base class.
         if dim is None:
             # here params should be a tuple containing one single integer
-            dim, = params
+            (dim,) = params
         if f.dim != 1:
             KeOps_Error("One-hot representation is only supported for scalar formulas.")
         if dim < 1:

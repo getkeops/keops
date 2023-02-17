@@ -11,8 +11,8 @@ class Zero(Operation):
         # N.B. init via params keyword is used for compatibility with base class.
         if dim is None:
             # here params should be a tuple containing one single integer
-            dim, = params
-        super().__init__(params = (dim,))
+            (dim,) = params
+        super().__init__(params=(dim,))
         self.dim = dim
 
     # custom __eq__ method

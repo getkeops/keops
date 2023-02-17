@@ -14,7 +14,7 @@ class Elem(Operation):
         # N.B. init via params keyword is used for compatibility with base class.
         if m is None:
             # here params should be a tuple containing one single integer
-            m, = params
+            (m,) = params
         super().__init__(f, params=(m,))
         if f.dim <= m:
             KeOps_Error("Index out of bound in Elem")

@@ -25,7 +25,7 @@ class Var(Operation):
             # here we assume dim and cat are also None, and
             # that params is a tuple containing ind, dim, cat
             ind, dim, cat = params
-        super().__init__(params = (ind, dim, cat))
+        super().__init__(params=(ind, dim, cat))
         self.ind = ind
         self.dim = dim
         self.cat = cat

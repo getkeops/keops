@@ -6,12 +6,12 @@ X2 = torch.randn(5, 15).cuda().requires_grad_()
 v = torch.randn(5, 120).cuda().requires_grad_()
 sigma = torch.randn(15).cuda().requires_grad_()
 
-formula = 'Exp(SqDist(x1 / s, x2 / s) * IntInv(-2)) * v'
+formula = "Exp(SqDist(x1 / s, x2 / s) * IntInv(-2)) * v"
 aliases = [
-    'x1 = Vi(%d)' % (X1.shape[1]),
-    'x2 = Vj(%d)' % (X2.shape[1]),
-    'v = Vj(%d)' % (v.shape[1]),
-    's = Pm(%d)' % (sigma.shape[0])
+    "x1 = Vi(%d)" % (X1.shape[1]),
+    "x2 = Vj(%d)" % (X2.shape[1]),
+    "v = Vj(%d)" % (v.shape[1]),
+    "s = Pm(%d)" % (sigma.shape[0]),
 ]
 other_vars = [sigma]
 

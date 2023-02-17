@@ -12,7 +12,7 @@ class Round(VectorizedScalarOp):
         # N.B. init via params keyword is used for compatibility with base class.
         if d is None:
             # here params should be a tuple containing one single integer
-            d, = params
+            (d,) = params
         super().__init__(f, params=(d,))
 
     string_id = "Round"
