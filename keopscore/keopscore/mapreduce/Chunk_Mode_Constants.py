@@ -91,7 +91,6 @@ class Chunk_Mode_Constants:
         self.dimsp_notchunked = GetDims(self.varsp_notchunked)
         self.dimp_notchunked = sum(self.dimsp_notchunked)
 
-
         self.fun_lastchunked = formula.chunked_formulas(self.dimlastchunk)[0]["formula"]
 
         self.varsi_lastchunked = list(
