@@ -31,8 +31,9 @@ class GetReduction:
                     aliases_dict[varname] = eval(var)
             reduction = eval(red_formula_string, globals(), aliases_dict)
             if keopscore.auto_factorize:
-                inner_formula = AutoFactorize(reduction.children[0])
-                reduction = type(reduction)(inner_formula, *reduction.params)
+                formula = reduction.children[0]
+                new_formula = AutoFactorize(formula)
+                reduction.children[0] = new_formula
             GetReduction.library[string_id_hash] = reduction
             return reduction
 
