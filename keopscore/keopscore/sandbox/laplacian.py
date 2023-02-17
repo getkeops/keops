@@ -77,33 +77,45 @@ x = torch.rand(M, D, requires_grad=True)
 y = torch.rand(N, D)
 
 u1 = f1(x, y)  # warming up GPU...
+torch.cuda.synchronize()
 
 start = time()
 u1 = f1(x, y)
+torch.cuda.synchronize()
 end = time()
+print("f1 : ", f1.formula)
 print("time for u1:", end - start)
 
 start = time()
 u2 = f2(x, y)
+torch.cuda.synchronize()
 end = time()
+
+print("f2 : ", f2.formula)
 print("time for u2:", end - start)
 print("error:", torch.norm(u1 - u2) / torch.norm(u1))
 
 start = time()
 u3 = f3(x, y)
+torch.cuda.synchronize()
 end = time()
+print("f3 : ", f3.formula)
 print("time for u3:", end - start)
 print("error:", torch.norm(u1 - u3) / torch.norm(u1))
 
 start = time()
 u4 = f4(x, y)
+torch.cuda.synchronize()
 end = time()
+print("f4 : ", f4.formula)
 print("time for u4:", end - start)
 print("error:", torch.norm(u1 - u4) / torch.norm(u1))
 
 start = time()
 u5 = f5(x, y)
+torch.cuda.synchronize()
 end = time()
+print("f5 : ", f5.formula)
 print("time for u5:", end - start)
 print("error:", torch.norm(u1 - u5) / torch.norm(u1))
 
@@ -113,32 +125,38 @@ v2 = torch.norm(u2)
 v3 = torch.norm(u3)
 v4 = torch.norm(u4)
 v5 = torch.norm(u5)
+torch.cuda.synchronize()
 
 start = time()
 g1 = torch.autograd.grad(v1, x)[0]
+torch.cuda.synchronize()
 end = time()
 print("time for g1:", end - start)
 
 start = time()
 g2 = torch.autograd.grad(v2, x)[0]
+torch.cuda.synchronize()
 end = time()
 print("time for g2:", end - start)
 print("error:", torch.norm(g1 - g2) / torch.norm(g1))
 
 start = time()
 g3 = torch.autograd.grad(v3, x)[0]
+torch.cuda.synchronize()
 end = time()
 print("time for g3:", end - start)
 print("error:", torch.norm(g1 - g3) / torch.norm(g1))
 
 start = time()
 g4 = torch.autograd.grad(v4, x)[0]
+torch.cuda.synchronize()
 end = time()
 print("time for g4:", end - start)
 print("error:", torch.norm(g1 - g4) / torch.norm(g1))
 
 start = time()
 g5 = torch.autograd.grad(v5, x)[0]
+torch.cuda.synchronize()
 end = time()
-print("time for g4:", end - start)
+print("time for g5:", end - start)
 print("error:", torch.norm(g1 - g5) / torch.norm(g1))
