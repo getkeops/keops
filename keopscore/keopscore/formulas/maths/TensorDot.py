@@ -149,7 +149,7 @@ class TensorDot(Operation):
             )
 
         list_indices_keepdim = permutation(self.permute, range(len(self.keepdims)))
-        str_out_indices = ""
+        str_out_indices = "" if len(self.keepdims) != 0 else "0 +"
         for i, v in enumerate(list_indices_keepdim):
             str_out_indices += (
                 f"TD_var_{chr(70 + v)} * {self.list_strides_keepdim[i]} + "
