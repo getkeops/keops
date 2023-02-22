@@ -103,7 +103,7 @@ def preprocess_half2(args, aliases, axis, ranges, nx, ny):
             ranges = ranges[0:3] + ranges2half2(ranges[3:6], nx)
     newargs = len(aliases) * [None]
     tag_dummy = False
-    for (var_ind, sig) in enumerate(aliases):
+    for var_ind, sig in enumerate(aliases):
         _, cat, dim, pos = get_type(sig, position_in_list=var_ind)
         arg = args[
             pos

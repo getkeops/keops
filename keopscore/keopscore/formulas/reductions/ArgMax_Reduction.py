@@ -7,7 +7,8 @@ from keopscore.formulas.reductions.Zero_Reduction import Zero_Reduction
 
 class ArgMax_Reduction(Max_ArgMax_Reduction_Base):
     """Implements the argmax reduction operation : for each i or each j, find the index of the
-    maximal value of Fij operation is vectorized: if Fij is vector-valued, argmax is computed for each dimension."""
+    maximal value of Fij operation is vectorized: if Fij is vector-valued, argmax is computed for each dimension.
+    """
 
     string_id = "ArgMax_Reduction"
 

@@ -93,7 +93,6 @@ class SetBackend:
         ):  # Infer if we're working with numpy arrays or torch tensors:
             MemType = 0
         elif pykeops.config.torch_found:
-
             import torch
 
             if all(
@@ -102,7 +101,6 @@ class SetBackend:
                     for var in variables
                 ]
             ):
-
                 from pykeops.torch.utils import is_on_device
 
                 VarsAreOnGpu = tuple(map(is_on_device, tuple(variables)))

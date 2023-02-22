@@ -133,7 +133,6 @@ def Kinv_keops_numpy(x, b, gamma, alpha, **kwargs):
 
 
 def Kinv_scipy(x, b, gamma, alpha, **kwargs):
-
     x_i = LazyTensor(np.sqrt(gamma) * x[:, None, :])
     y_j = LazyTensor(np.sqrt(gamma) * x[None, :, :])
 

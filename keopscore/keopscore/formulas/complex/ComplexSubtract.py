@@ -6,7 +6,6 @@ from keopscore.formulas.VectorizedComplexScalarOp import VectorizedComplexScalar
 
 
 class ComplexSubtract(VectorizedComplexScalarOp):
-
     string_id = "ComplexSubtract"
 
     def ScalarOp(self, out, inF, inG):

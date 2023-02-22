@@ -5,7 +5,6 @@ from keopscore.formulas.variables.Var import Var
 
 class Chunk_Mode_Constants:
     def __init__(self, red_formula):
-
         varloader = Var_loader(red_formula)
 
         self.red_formula = red_formula

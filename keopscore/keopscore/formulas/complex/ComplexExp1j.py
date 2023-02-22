@@ -12,7 +12,6 @@ from keopscore.formulas.maths.Sin import Sin
 
 
 class ComplexExp1j(Operation):
-
     string_id = "ComplexExp1j"
 
     def __init__(self, f):

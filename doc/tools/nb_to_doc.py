@@ -8,7 +8,6 @@ from subprocess import check_call as sh
 
 
 def convert_nb(nbname):
-
     # Execute the notebook
     sh(["jupyter", "nbconvert", "--to", "notebook", "--execute", "--inplace", nbname])
 
@@ -44,6 +43,5 @@ def convert_nb(nbname):
 
 
 if __name__ == "__main__":
-
     for nbname in sys.argv[1:]:
         convert_nb(nbname)

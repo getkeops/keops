@@ -54,7 +54,6 @@ class TensorDot(Operation):
     string_id = "TensorDot"
 
     def __init__(self, fa, fb, dimsfa, dimsfb, contfa, contfb, permute=None):
-
         dimsfa = list(dimsfa)
         dimsfb = list(dimsfb)
         contfa = list(contfa)

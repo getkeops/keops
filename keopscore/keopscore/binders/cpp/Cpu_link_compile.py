@@ -2,7 +2,6 @@ from keopscore.binders.LinkCompile import LinkCompile
 
 
 class Cpu_link_compile(LinkCompile):
-
     source_code_extension = "cpp"
 
     def __init__(self):

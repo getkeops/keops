@@ -10,7 +10,6 @@ from keopscore.utils.misc_utils import KeOps_Error
 
 
 class ComplexRealScal_Impl(Operation):
-
     string_id = "ComplexRealScal"
 
     def __init__(self, f, g):

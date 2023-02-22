@@ -50,7 +50,6 @@ def KMeans(x, K=10, Niter=10, verbose=True):
     x_i = LazyTensor(x[:, None, :])  # (Npoints, 1, D)
 
     for i in range(Niter):
-
         c_j = LazyTensor(c[None, :, :])  # (1, Nclusters, D)
         D_ij = ((x_i - c_j) ** 2).sum(
             -1

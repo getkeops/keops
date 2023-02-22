@@ -108,7 +108,6 @@ class GenericLazyTensor:
 
         # A KeOps LazyTensor can be built from many different objects:
         if x is not None:
-
             # Stage 1: Are we dealing with simple numbers? ---------------------
             typex = type(x)
 

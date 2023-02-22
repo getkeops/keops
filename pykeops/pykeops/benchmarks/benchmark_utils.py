@@ -236,7 +236,6 @@ def recall(out_indices, true_indices):
 
 
 def train_test_loop(N, loops, routine, max_time, args, kwargs):
-
     x_train = args["train"]
     x_test = args["test"]
     ground_truth = args["output"]
@@ -287,7 +286,6 @@ def benchmark(
     generate_samples=None,
     **kwargs,
 ):
-
     importlib.reload(torch)  # In case we had a memory overflow just before...
     args = generate_samples(N, **kwargs)
 
@@ -318,7 +316,6 @@ def bench_config(
         Nloops = loops.copy()
         nloops = Nloops.pop(0)
         for n in problem_sizes:
-
             elapsed = benchmark(
                 routine,
                 label,
@@ -391,7 +388,6 @@ def full_benchmark(
     legend_location="upper left",
     linestyles=["o-", "s-", "^-", "<-", ">-", "v-", "+-", "*-", "x-", "p-", "d-"],
 ):
-
     if frequency:
         N = len(generate_samples(1)["test"])
         transform = queries_per_second(N)
@@ -430,7 +426,7 @@ def full_benchmark(
             label=label,
         )
 
-        for (j, val) in enumerate(benches[:, i + 1]):
+        for j, val in enumerate(benches[:, i + 1]):
             if np.isnan(val) and j > 0:
                 x, y = benches[j - 1, 0], transform(benches[j - 1, i + 1])
                 plt.annotate(
