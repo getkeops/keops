@@ -18,7 +18,7 @@ bindings_source_dir = join(base_dir_path)
 keops_cache_folder = join(
     os.path.expanduser("~"), ".cache", f"keops{keopscore.__version__}"
 )
-default_build_folder_name = "build"
+default_build_folder_name = "_".join(platform.uname()[:3]) + f"p{sys.version.split(' ')[0]}"
 # In case user has specified CUDA_VISIBLE_DEVICES environment variable,
 # it is better to set the build folder name accordingly.
 specific_gpus = os.getenv("CUDA_VISIBLE_DEVICES")
