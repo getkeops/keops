@@ -109,7 +109,7 @@ class numpytools:
 
     @staticmethod
     def empty(shape, dtype, device=None, requires_grad=None):
-        return np.empty(shape).astype(dtype)
+        return np.empty(shape, dtype=dtype)
 
     @staticmethod
     def eye(n, dtype):
