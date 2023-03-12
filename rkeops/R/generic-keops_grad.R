@@ -88,18 +88,12 @@ keops_grad <- function(operator, var) {
     # parse formula and args to derive position of new variable
     var_aliases <- env$var_aliases
     extra_var <- parse_extra_args(env$formula, env$args)
-    # position new variable = length arg list - 1 (last)
-    posnewvar <- max(c(var_aliases$var_pos, extra_var$var_pos)) + 1
     # define the new formula depending on var type
     new_formula <- NULL
     if(is.character(var)) {
-        new_formula <- paste0("GradFromPos(", env$formula, ",", var, ",", 
-                              posnewvar, ")")
+        new_formula <- paste0("Grad(", env$formula, ",", var, ")")
         
         
-    } else if(is.numeric(var)) {
-        new_formula <- paste0("GradFromInd(", env$formula, ",", var, ",", 
-                              posnewvar, ")")
     } else {
         stop("`var` input argument should be a text string or an integer.")
     }
