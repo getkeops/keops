@@ -7,15 +7,14 @@
     )
 }
 
-.onLoad <- function(libname, pkgname) {
-    check_cmake(get_cmake(), onLoad=TRUE)
-    if(is_installed() & check_os(onLoad=TRUE)) {
-        # set up rkeops global options
-        set_rkeops_options()
-    }
-}
+# global reference to pykeops (will be initialized in .onLoad)
+pykeops <- NULL
 
-.onUnload <- function(libpath) {
-    # unload rkeops shared libraries
-    library.dynam.unload("rkeops", libpath)
+.onLoad <- function(libname, pkgname) {
+    # check os
+    check_os(onLoad=TRUE)
+    # use superassignment to update global reference to pykeops
+    pykeops <<- reticulate::import("pykeops", delay_load = TRUE)
+    # set up rkeops global options
+    # set_rkeops_options()
 }
