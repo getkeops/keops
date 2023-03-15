@@ -25,35 +25,6 @@ clean_rkeops <- function() {
     if(length(file_list) > 0) file.remove(file.path(get_build_dir(), file_list))
 }
 
-#' Create name of shared library from formula and arguments
-#' @keywords internal
-#' @description
-#' Using input formula and arguments along with current value of `"precision"` 
-#' option, the function `dllname` creates a hashed name for the shared 
-#' library where the operators defined by the formula and arguments will be 
-#' compiled.
-#' @details
-#' When compiling a user-defined operators, a shared object (so) library 
-#' (or dynamic link library, dll) file is created in the directory `build_dir` 
-#' specified in compile options of `rkeops`. For every new operators, such a 
-#' file is created.
-#' 
-#' The shared library file associated to a user-defined operator has a unique 
-#' name so that it can be reused without compilation when calling again the 
-#' associated operator.
-#' @param formula text string
-#' @param args vector of text string
-#' @return dll name (text string)
-#' @author Ghislain Durif
-#' @importFrom stringr str_to_lower
-#' @export
-create_dllname <- function(formula, args) {
-    tmp <- paste0(formula, paste0(args, collapse=""), 
-                  "_", get_rkeops_option("precision"))
-    out <- string2hash(str_to_lower(tmp))
-    return(out)
-}
-
 #' Getter for package installation directory
 #' @keywords internal
 #' @description
@@ -147,29 +118,6 @@ get_os <- function() {
     return(os_name)
 }
 
-#' Check if `rkeops` is installed on the system
-#' @keywords internal
-#' @description
-#' When running automatic tests without building and installing the package, 
-#' i.e. with `devtools::test()`, the package file structure is different 
-#' from the structure of a built and installed package (obtained with 
-#' `devtools::check()`). For instance, the directory `inst/include` is 
-#' replaced by `include`, or `src` by `lib`. Check functions inside `rkeops` 
-#' have different behavior between these two cases.
-#' 
-#' The function `is_installed` checks the availability of the compiled 
-#' function [rkeops::is_compiled()]. If available, it means that `rkeops` is 
-#' installed on the system.
-#' @return 1 if ok, 0 otherwise
-#' @author Ghislain Durif
-#' @seealso [rkeops::is_installed()]
-#' @export
-is_installed <- function() {
-    out_compile <- tryCatch(is_compiled(), error = function(e) return(0))
-    out_file <- dir.exists(file.path(get_pkg_dir(), "include"))
-    return(out_compile & out_file)
-}
-
 #' Print message if used on startup or raise error otherwise
 #' @keywords internal
 #' @description
@@ -187,52 +135,6 @@ msg_or_error <- function(msg, onLoad=FALSE) {
     } else {
         stop(msg)
     }
-}
-
-#' Load function from dll shared library for user-defined operator
-#' @keywords internal
-#' @description
-#' User-defined operators are compiled in shared library files. The associated 
-#' function can be load into R with the function `load_dll`.
-#' @details
-#' When compiling a user-defined operators, a shared object (so) library 
-#' (or dynamic link library, dll) file is created in the directory `build_dir` 
-#' specified in compile options of `rkeops`. For every new operators, such a 
-#' file is created.
-#' 
-#' When using a user-defined operator, it is imported into R with the function 
-#' `load_dll`. This function is specifically designed to load `rkeops`-related 
-#' operators with a particular signature (and a test function without input 
-#' paremeter).
-#' @author Ghislain Durif
-#' @param path test string, path to directory where the dll file can be found.
-#' @param dllname text string, dll file name (without the extension).
-#' @param object text string, function from the dll file to be loaded in R.
-#' @param tag text string, prefix used internally in Rcpp. Default value is 
-#' `"_binder_"`. This argument is only used in the unit tests.
-#' @param genred boolean, loading `genred` function or not (different 
-#' signatures).
-#' @return loaded function
-#' @import Rcpp
-#' @importFrom utils getFromNamespace
-#' @export
-load_dll <- function(path, dllname, object, tag="_binder_", genred=FALSE) {
-    filename <- file.path(path, paste0(dllname, .Platform$dynlib.ext))
-    tmp <- dyn.load(filename)
-    out <- NULL
-    
-    sourceCppFunction = getFromNamespace("sourceCppFunction", "Rcpp")
-    
-    if(genred) {
-        out <- sourceCppFunction(function(input, param) {}, FALSE, tmp, 
-                                 paste0(tag, object))
-    } else {
-        out <- sourceCppFunction(function() {}, FALSE, tmp, 
-                                 paste0(tag, object))
-    }
-    
-    rm(tmp)
-    return(out)
 }
 
 #' Enable GPU-computing when calling user-defined operators
