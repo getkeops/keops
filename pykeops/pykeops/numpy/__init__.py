@@ -3,7 +3,7 @@
 
 
 from .generic.generic_red import Genred
-from .generic.generic_red_R import GenredR
+# from .generic.generic_red_R import GenredR # FIXME
 from .operations import KernelSolve
 from .generic.generic_ops import (
     generic_sum,
