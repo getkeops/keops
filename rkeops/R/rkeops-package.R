@@ -3,8 +3,7 @@
 #' @docType package
 #' @title rkeops
 #' 
-#' RKeOps: kernel operations on GPU, with autodiff, without memory overflows in 
-#' R
+#' RKeOps: kernel operations on GPU, with autodiff, without memory overflows in R
 #'  
 #' @description
 #' RKeOps is the R package interfacing the cpp/cuda library 
@@ -35,10 +34,6 @@
 #' @references
 #' \insertRef{JMLR:v22:20-275}{rkeops}
 #' 
-#' @import Rcpp
-#' @importFrom Rcpp sourceCpp
 #' @importFrom utils head packageVersion
-#' @importFrom Rdpack reprompt
-#' @useDynLib rkeops, .registration = TRUE
 #' 
 NULL
