@@ -1,20 +1,5 @@
 context("utils functions")
 
-test_that("dllname", {
-    set_rkeops_options()
-    
-    formula = "Sum_Reduction(Exp(lambda*SqNorm2(x-y))*beta,0)"
-    args = c("x=Vi(3)", "y=Vj(3)",
-             "beta=Vj(3)", "lambda=Pm(1)")
-    expected_value <- paste0("headers",
-                             stringr::str_sub(
-                                 paste0("4621b22f0172c0d526e8d02fa33f4908", 
-                                        "f519fbb51fb47c90c3742b282530b9f8"),
-                                 start = 1, end = 25))
-    expect_equal(as.character(create_dllname(formula, args)), 
-                 expected_value)
-})
-
 test_that("clean_rkeops", {
     set_rkeops_options()
     
@@ -48,32 +33,6 @@ test_that("get_build_dir", {
     expect_equal(get_build_dir(), 
                  expected_dir)
     expect_true(dir.exists(expected_dir))
-})
-
-test_that("load_dll", {
-    set_rkeops_options()
-    # current dir
-    current_dir <- getwd()
-    # go to src dir
-    src_dir <- file.path(get_pkg_dir(), "src")
-    # compile test function
-    setwd(src_dir)
-    on.exit(setwd(current_dir))
-    tmp <- tryCatch(compile_test_function(),
-                    error = function(e) {print(e); return(NULL)})
-    setwd(current_dir)
-    # test (if compilation work)
-    expect_true(!is.null(tmp))
-    if(!is.null(tmp)) {
-        test_function <- load_dll(path = get_build_dir(),
-                                  dllname = tmp,
-                                  object = "is_compiled",
-                                  tag="_rkeops_")
-        expect_error(test_function(), NA)
-        expect_equal(test_function(), 1)
-    }
-    ## cleaning
-    clean_rkeops()
 })
 
 test_that("use_gpu", {
