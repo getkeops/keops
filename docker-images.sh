@@ -7,14 +7,15 @@
 
 KEOPS_VERSION=2.1
 GEOMLOSS_VERSION=0.2.5
-CUDA_VERSION=11.3
-CUDA_CHANNEL=nvidia/label/cuda-11.3.1
-PYTORCH_VERSION=1.11.0
-TORCHVISION_VERSION=0.12.0
-TORCHAUDIO_VERSION=0.11.0
-PYTORCH_SCATTER_VERSION=2.0.9
+CUDA_VERSION=11.8
+CUDA_CHANNEL=nvidia/label/cuda-11.8.0
+PYTORCH_VERSION=2.0.0
+TORCHVISION_VERSION=0.15.0
+TORCHAUDIO_VERSION=2.0.0
+PYTORCH_SCATTER_VERSION=2.1.1
+PYTHON_VERSION=3.11
 
-VERSION_TAG=${KEOPS_VERSION}-geomloss${GEOMLOSS_VERSION}-cuda${CUDA_VERSION}-pytorch${PYTORCH_VERSION}
+VERSION_TAG=${KEOPS_VERSION}-geomloss${GEOMLOSS_VERSION}-cuda${CUDA_VERSION}-pytorch${PYTORCH_VERSION}-python${PYTHON_VERSION}
 
 for TARGET in keops keops-doc keops-full
 do
@@ -34,6 +35,9 @@ do
 done
 
 # Test your images with e.g.
-# docker run getkeops/keops:latest
+# docker run -dit getkeops/keops:latest
+# docker exec -it <container_id> /bin/bash
+#
 # And push to Docker Hub:
+# docker login -u getkeops
 # docker push getkeops/keops:latest
