@@ -5,6 +5,7 @@
 # to clear the docker cache and make sure that the config works
 # with the current version of e.g. the Ubuntu repositories.
 
+PYTHON_VERSION=3.10
 KEOPS_VERSION=2.1
 GEOMLOSS_VERSION=0.2.5
 CUDA_VERSION=11.8
@@ -13,7 +14,6 @@ PYTORCH_VERSION=2.0.0
 TORCHVISION_VERSION=0.15.0
 TORCHAUDIO_VERSION=2.0.0
 PYTORCH_SCATTER_VERSION=2.1.1
-PYTHON_VERSION=3.11
 
 VERSION_TAG=${KEOPS_VERSION}-geomloss${GEOMLOSS_VERSION}-cuda${CUDA_VERSION}-pytorch${PYTORCH_VERSION}-python${PYTHON_VERSION}
 
@@ -21,6 +21,7 @@ for TARGET in keops keops-doc keops-full
 do
     docker build \
     --target ${TARGET} \
+    --build-arg PYTHON_VERSION=${PYTHON_VERSION} \
     --build-arg KEOPS_VERSION=${KEOPS_VERSION} \
     --build-arg GEOMLOSS_VERSION=${GEOMLOSS_VERSION} \
     --build-arg CUDA_VERSION=${CUDA_VERSION} \
