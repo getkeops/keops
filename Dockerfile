@@ -84,6 +84,9 @@ FROM dev-base AS r-env
 #       the time zone prompt from the tzdata package.
 # N.B.: We install as many packages as possible from the Ubuntu repository
 #       to save on compilation times.
+# N.B.: We install the latest version of roxygen2 from CRAN, to avoid
+#       conflicts with collaborators who may not be working with the
+#       exact same version of Ubuntu.
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y \
     r-base \
@@ -97,7 +100,7 @@ RUN apt-get update && \
     r-cran-matrix \
     r-cran-testthat \
     r-cran-devtools && \
-    Rscript -e 'install.packages(c("WCE", "languageserver", "profvis", "tictoc"))'
+    Rscript -e 'install.packages(c("WCE", "languageserver", "profvis", "tictoc", "roxygen2", "qpdf"))'
 # Encoding for R:
 ENV LC_ALL=C.UTF-8
 
