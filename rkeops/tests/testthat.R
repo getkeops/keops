@@ -7,6 +7,8 @@
 # * https://testthat.r-lib.org/reference/test_package.html#special-files
 
 library(testthat)
+library(checkmate)
+library(withr)
 library(rkeops)
 
 test_check("rkeops")
