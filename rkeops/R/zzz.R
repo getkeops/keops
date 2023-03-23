@@ -12,9 +12,9 @@ pykeops <- NULL
 
 .onLoad <- function(libname, pkgname) {
     # check os
-    check_os(onLoad=TRUE)
+    rkeops:::check_os(onLoad=TRUE)
     # use superassignment to update global reference to pykeops
     pykeops <<- reticulate::import("pykeops", delay_load = TRUE)
     # set up rkeops global options
-    # set_rkeops_options()
+    set_rkeops_options()
 }
