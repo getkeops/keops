@@ -13,16 +13,18 @@
 #' The aforementioned options correspond to the input parameters.
 #' 
 #' **Note:** Default options are set up when loading `rkeops`. To reset 
-#' `rkeops` options to default, you should use the function 
-#' [rkeops::set_rkeops_options()]. To set up a particular option, you should 
-#' use the function [rkeops::set_rkeops_option()].
+#' `rkeops` options to default or configure a particular option, 
+#' you should use the function [rkeops::set_rkeops_options()].
 #' 
 #' Some helper functions are available to enable some options, 
-#' see [rkeops::use_float32()], [rkeops::use_float64()], 
-#' [rkeops::use_cpu()], [rkeops::use_gpu()], [rkeops::enable_verbosity()], 
-#' [rkeops::disable_verbosity()].
+#' see [rkeops::rkeops_use_float32()], [rkeops::rkeops_use_float64()], 
+#' [rkeops::rkeops_use_cpu()], [rkeops::rkeops_use_gpu()], 
+#' [rkeops::rkeops_enable_verbosity()], [rkeops::rkeops_disable_verbosity()].
 #' 
-#' **Important:** GPU computing requires an Nvidia GPU and CUDA drivers.
+#' **Important:** GPU computing requires a Nvidia GPU and CUDA drivers. 
+#' It is recommended to use default GPU (i.e. `device_id = -1` or `0`) and 
+#' manage GPU assignment outside R by setting the environment variable 
+#' `CUDA_VISIBLE_DEVICES`.
 #' 
 #' @author Ghislain Durif
 #' 
@@ -31,35 +33,36 @@
 #' @param device_id integer value corresponding to GPU id used for computation
 #' (when using GPU computing). Default
 #' @param precision string, character, precision for floating point 
-#' computations (`"float"` for 32bits float or `"double"` for 64bits float).
-#' Default value is `"float"`.
+#' computations (`"float32"` for 32bits float or `"float64"` for 
+#' 64bits float/double precision). Default value is `"float32"`.
 #' @param verbosity `TRUE`-`FALSE` or `1`-`0` indicator (boolean) for 
 #' verbosity level. Default value is `0`.
 #' @param debug `TRUE`-`FALSE` or `1`-`0` indicator (boolean) regarding 
 #' compilation debugging flag. `1` means that user-defined operators will 
 #' be compiled with a debug flag, and `0` means no debug flag. 
-#' Default value is `0`.
+#' Default value is `0`. DEPRECATED.
 #' 
 #' @return a list (of class `rkeops_options`) with the following containing 
 #' named values corresponding to the function input parameters.
 #' 
-#' @seealso [rkeops::use_float32()], [rkeops::use_float64()], 
-#' [rkeops::use_cpu()], [rkeops::use_gpu()], [rkeops::enable_verbosity()], 
-#' [rkeops::disable_verbosity()].
+#' @seealso [rkeops::rkeops_use_float32()], [rkeops::rkeops_use_float64()], 
+#' [rkeops::rkeops_use_cpu()], [rkeops::rkeops_use_gpu()], 
+#' [rkeops::enable_verbosity()], [rkeops::disable_verbosity()]
 #' 
 #' @importFrom tibble lst
 #' @importFrom checkmate assert_choice assert_integerish qassert
 #' 
 #' @examples
 #' def_rkeops_options()
+#' 
 #' @export
 def_rkeops_options <- function(
-        backend = "CPU", device_id = -1, precision = "float",
+        backend = "CPU", device_id = -1, precision = "float32",
         verbosity = FALSE, debug = FALSE) {
     # check input
     assert_choice(backend, c("CPU", "GPU"))
     assert_integerish(device_id)
-    assert_choice(precision, c("float", "double"))
+    assert_choice(precision, c("float32", "float64"))
     qassert(verbosity, c("B1", "X[0,1]"))
     qassert(debug, c("B1", "X[0,1]"))
     # cast input
@@ -77,8 +80,8 @@ def_rkeops_options <- function(
 #' @description
 #' `rkeops` user-defined operators requires specific options to control
 #' their behavior at runtime (precision, verbosity, use of GPU, debug flag).
-#' Their current values can be print with `get_rkeops_options()`. See
-#' [rkeops::def_rkeops_options()] for more detailled about these options.
+#' Their current values can be printed with `get_rkeops_options()`. See
+#' [rkeops::def_rkeops_options()] for more details about these options.
 #' 
 #' @param option string character or vector of string character, 
 #' specific option name(s) among `"backend"`, `"device_id"`, `"precision"`,
@@ -87,7 +90,7 @@ def_rkeops_options <- function(
 #' 
 #' @return a list with `rkeops` current options values.
 #' 
-#' @seealso [rkeops::def_rkeops_options()]
+#' @seealso [rkeops::def_rkeops_options()], [rkeops::set_rkeops_options()]
 #' 
 #' @importFrom checkmate assert_subset test_null
 #' 
@@ -122,8 +125,7 @@ get_rkeops_options <- function(option = NULL) {
 #' @description
 #' `rkeops` user-defined operators requires specific options to control
 #' their behavior at runtime (precision, verbosity, use of GPU, debug flag).
-#' Their current values can be print with `get_rkeops_options()`. See
-#' [rkeops::def_rkeops_options()] for more detailled about these options.
+#' Their current values can be printed with [rkeops::get_rkeops_options()].
 #' 
 #' @details
 #' See [rkeops::def_rkeops_options()] for more detailed about these options.
@@ -138,9 +140,9 @@ get_rkeops_options <- function(option = NULL) {
 #' accordingly.
 #' 
 #' Some helper functions are available to enable some options, 
-#' see [rkeops::use_float32()], [rkeops::use_float64()], 
-#' [rkeops::use_cpu()], [rkeops::use_gpu()], [rkeops::enable_verbosity()], 
-#' [rkeops::disable_verbosity()].
+#' see [rkeops::rkeops_use_float32()], [rkeops::rkeops_use_float64()], 
+#' [rkeops::rkeops_use_cpu()], [rkeops::rkeops_use_gpu()], 
+#' [rkeops::enable_verbosity()], [rkeops::disable_verbosity()].
 #' 
 #' @param input a list of named values corresponding to rkeops options 
 #' to be updated.
@@ -148,9 +150,9 @@ get_rkeops_options <- function(option = NULL) {
 #' @return None
 #' 
 #' @seealso [rkeops::def_rkeops_options()], [rkeops::get_rkeops_options()],
-#' [rkeops::use_float32()], [rkeops::use_float64()], 
-#' [rkeops::use_cpu()], [rkeops::use_gpu()], [rkeops::enable_verbosity()], 
-#' [rkeops::disable_verbosity()].
+#' [rkeops::rkeops_use_float32()], [rkeops::rkeops_use_float64()], 
+#' [rkeops::rkeops_use_cpu()], [rkeops::rkeops_use_gpu()], 
+#' [rkeops::enable_verbosity()], [rkeops::disable_verbosity()]
 #' 
 #' @importFrom checkmate assert_list assert_subset test_null
 #' 
@@ -189,4 +191,202 @@ set_rkeops_options <- function(input = NULL) {
     
     ## update `rkeops` options in global options scope
     options("rkeops" = rkeops_options)
+}
+
+#' Enable GPU-computing when calling user-defined operators
+#' 
+#' @description
+#' Set up `rkeops` options to use GPU computing when calling 
+#' user-defined operators.
+#' 
+#' @details
+#' If you have compiled GPU-compatible operators (which requires a 
+#' Nvidia GPU and CUDA), you can call the function [rkeops::rkeops_use_gpu()] 
+#' to specifically run computations on GPU.
+#' 
+#' It is recommended to use default GPU (i.e. `device = -1` or `0`) and 
+#' manage GPU assignment outside R by setting the environment variable 
+#' `CUDA_VISIBLE_DEVICES`.
+#' 
+#' **Note:** The default behavior in `rkeops` is to use CPU computing, thus 
+#' calling the function [rkeops::rkeops_use_gpu()] is mandatory to run 
+#' computations on GPU.
+#' 
+#' To disable GPU computing, run [rkeops::rkeops_use_cpu()].
+#' 
+#' @author Ghislain Durif
+#' 
+#' @param device integer, GPU device id to be used for computations. Default 
+#' value is `-1`, meaning that default GPU will be used, which is 
+#' equivalent to `0`. It is recommended to use default GPU and manage GPU 
+#' assignment outside R (see details).
+#' 
+#' @return None
+#' 
+#' @seealso [rkeops::rkeops_use_cpu()], [rkeops::set_rkeops_options()]
+#' 
+#' @importFrom checkmate qassert
+#' 
+#' @examples
+#' rkeops_use_gpu()
+#' 
+#' @export
+rkeops_use_gpu <- function(device = -1) {
+    
+    qassert(device, "X1[-1,)")
+    
+    set_rkeops_options(list(
+        backend = "GPU",
+        device_id = as.integer(device)
+    ))
+}
+
+#' Enable GPU-computing when calling user-defined operators
+#' 
+#' @description
+#' Set up `rkeops` options to use CPU computing when calling 
+#' user-defined operators.
+#' 
+#' @details
+#' **Note 1:** By default, `rkeops` user-defined operators run computations 
+#' on CPU (even for GPU-compiled operators), thus calling the function 
+#' [rkeops::rkeops_use_gpu()] is mandatory to run computations on GPU.
+#' 
+#' **Note 2:** By default, in CPU mode, `rkeops` user-defined operators run 
+#' computations on all available cores for parallel computing. To control, 
+#' the number of cores used by `rkeops` user-defined operators, you can used 
+#' the input parameter `ncore`.
+#' 
+#' @param ncore integer, number of cores used by `rkeops` user-defined 
+#' operators to run computations in CPU mode. If `ncore = 0` then all 
+#' available cores are used. Default value is `NULL` which correspond to `0`.
+#' 
+#' @return None
+#' 
+#' @author Ghislain Durif
+#' 
+#' @seealso [rkeops::rkeops_use_gpu()], [rkeops::set_rkeops_options()]
+#' 
+#' @importFrom future availableCores
+#' @importFrom RhpcBLASctl omp_set_num_threads
+#' @importFrom checkmate assert_count test_null
+#' 
+#' @examples
+#' rkeops_use_cpu()
+#' 
+#' @export
+rkeops_use_cpu <- function(ncore = NULL) {
+    # check input
+    assert_count(ncore, null.ok = TRUE)
+    # set backend
+    set_rkeops_options(list(backend = "CPU"))
+    # control number of CPU available on the system
+    if(test_null(ncore) || ncore == 0) {
+        ncore <- future::availableCores()
+    } else {
+        ncore <- min(ncore, future::availableCores())
+    }
+    # setup max number of threads for OpenMP
+    RhpcBLASctl::omp_set_num_threads(ncore)
+}
+
+#' Use 32bit float precision in computations
+#' 
+#' @description
+#' Set up `rkeops` options to use 32bit float precision in computation 
+#' when calling user-defined operators.
+#' 
+#' @details
+#' **Note:** Default behavior is to use 32bit float precision in 
+#' computation.
+#' 
+#' **Important:** 32bit float precision computations are faster than 
+#' 64bit float, however the lower precision may have a huge effect on the 
+#' accuracy of your computation and validity of your results 
+#' in certain applications.
+#' 
+#' Since R only manages 64bit float (a.k.a "double") numbers, the input and 
+#' output are converted to 32bit float before computation and back to 
+#' 64bit float after computation.
+#' 
+#' @author Ghislain Durif
+#' 
+#' @return None
+#' 
+#' @seealso [rkeops::rkeops_use_float64()], [rkeops::set_rkeops_options()]
+#' 
+#' @examples
+#' rkeops_use_float32()
+#' 
+#' @export
+rkeops_use_float32 <- function() {
+    set_rkeops_options(list(precision = "float32"))
+}
+
+#' Use 64bit float precision in computations
+#' 
+#' @description
+#' Set up `rkeops` options to use 64bit float precision in computation 
+#' when calling user-defined operators.
+#' 
+#' @details
+#' By default, `rkeops` uses 32bit float precision in computation. 
+#' It is mandatory to call `rkeops_use_float64()` to enable 64bit float 
+#' precision in computation.
+#' 
+#' **Important:** 32bit float precision computations are faster than 
+#' 64bit float, however the lower precision may have a huge effect on the 
+#' accuracy of your computation and validity of your results 
+#' in certain applications.
+#' 
+#' @author Ghislain Durif
+#' 
+#' @return None
+#' 
+#' @seealso [rkeops::rkeops_use_float32()], [rkeops::set_rkeops_options()]
+#' 
+#' @examples
+#' rkeops_use_float64()
+#' 
+#' @export
+rkeops_use_float64 <- function() {
+    set_rkeops_options(list(precision = "float64"))
+}
+
+#' Enable additional verbosity in `rkeops`
+#' 
+#' @description
+#' DEPRECATED
+#' 
+#' @author Ghislain Durif
+#' 
+#' @return None
+#' 
+#' @seealso [rkeops::rkeops_disable_verbosity()], [rkeops::set_rkeops_options()]
+#' 
+#' @examples
+#' rkeops_enable_verbosity()
+#' 
+#' @export
+rkeops_enable_verbosity <- function() {
+    set_rkeops_options(list(verbosity = 1))
+}
+
+#' Disable additional verbosity in `rkeops`
+#' 
+#' @description
+#' DEPRECATED
+#' 
+#' @author Ghislain Durif
+#' 
+#' @return None
+#' 
+#' @seealso [rkeops::rkeops_enable_verbosity()], [rkeops::set_rkeops_options()]
+#' 
+#' @examples
+#' rkeops_disable_verbosity()
+#' 
+#' @export
+rkeops_disable_verbosity <- function() {
+    set_rkeops_options(list(verbosity = 0))
 }

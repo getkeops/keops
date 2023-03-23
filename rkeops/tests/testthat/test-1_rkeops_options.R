@@ -8,12 +8,12 @@ test_that("def_rkeops_options", {
         c("backend", "device_id", "precision", "verbosity", "debug"))
     expect_choice(res$backend, c("CPU", "GPU"))
     expect_integerish(res$device_id)
-    expect_choice(res$precision, c("float", "double"))
+    expect_choice(res$precision, c("float32", "float64"))
     expect_choice(res$verbosity, c(0, 1))
     expect_choice(res$debug, c(0, 1))
     
     res <- def_rkeops_options(
-        backend = "CPU", device_id = -1, precision = "float",
+        backend = "CPU", device_id = -1, precision = "float32",
         verbosity = FALSE, debug = FALSE)
     
     expect_equal(class(res), "rkeops_options")
@@ -23,7 +23,7 @@ test_that("def_rkeops_options", {
         c("backend", "device_id", "precision", "verbosity", "debug"))
     expect_choice(res$backend, c("CPU", "GPU"))
     expect_integerish(res$device_id)
-    expect_choice(res$precision, c("float", "double"))
+    expect_choice(res$precision, c("float32", "float64"))
     expect_choice(res$verbosity, c(0, 1))
     expect_choice(res$debug, c(0, 1))
     
@@ -55,12 +55,11 @@ test_that("get_rkeops_options", {
     expect_list(res, len = 2)
     expect_equal(names(res), c("backend", "precision"))
     expect_choice(res$backend, c("CPU", "GPU"))
-    expect_choice(res$precision, c("float", "double"))
+    expect_choice(res$precision, c("float32", "float64"))
 })
 
 test_that("set_rkeops_options", {
     
-    # test in clean env
     withr::with_options(list(rkeops = NULL), {
         # default options
         expect_error(set_rkeops_options(), NA)
@@ -84,5 +83,58 @@ test_that("set_rkeops_options", {
     withr::with_options(list(rkeops = NULL), {
         # wrong input
         expect_error(set_rkeops_options("backend"))
+    })
+})
+
+test_that("rkeops_use_gpu", {
+    
+    withr::with_options(list(rkeops = NULL), {
+        # use GPU
+        rkeops_use_gpu()
+        # check
+        res <- get_rkeops_options()
+        expect_equal(res$backend, "GPU")
+        expect_equal(res$device_id, -1)
+    })
+    
+    withr::with_options(list(rkeops = NULL), {
+        expect_error(rkeops_use_gpu(device = "0"))
+    })
+})
+
+test_that("rkeops_use_cpu", {
+    
+    withr::with_options(list(rkeops = NULL), {
+        # use CPU
+        rkeops_use_cpu()
+        # check
+        res <- get_rkeops_options()
+        expect_equal(res$backend, "CPU")
+    })
+    
+    withr::with_options(list(rkeops = NULL), {
+        expect_error(rkeops_use_cpu(ncore = "0"))
+    })
+})
+
+test_that("rkeops_use_float32", {
+    
+    withr::with_options(list(rkeops = NULL), {
+        # use float32
+        rkeops_use_float32()
+        # check
+        res <- get_rkeops_options()
+        expect_equal(res$precision, "float32")
+    })
+})
+
+test_that("rkeops_use_float64", {
+    
+    withr::with_options(list(rkeops = NULL), {
+        # use float64
+        rkeops_use_float64()
+        # check
+        res <- get_rkeops_options()
+        expect_equal(res$precision, "float64")
     })
 })
