@@ -692,7 +692,7 @@ class GenericLazyTensor:
               - **dtype_acc** = ``"float64"`` : allowed only if dtype is "float32" or "float64".
 
           use_double_acc (bool, default False): same as setting dtype_acc="float64" (only one of the two options can be set).
-            If True, accumulate results of reduction in float64 variables, before casting to float32. 
+            If True, accumulate results of reduction in float64 variables, before casting to float32.
             This can only be set to True when data is in float32 or float64.
             It improves the accuracy of results in case of large sized data, but is slower.
           sum_scheme (string, default ``"auto"``): method used to sum up results for reductions. This option may be changed only
