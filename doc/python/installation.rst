@@ -56,7 +56,7 @@ Their PYTHONPATH are configured to ensure that git installations of KeOps or Geo
 mounted in ``/opt/keops`` or ``/opt/geomloss`` take precedence over the 
 pre-installed Pip versions.
 
-As an example, here is the script that we use to render this website on the 
+As an example, here are the steps that we follow to render this website on the 
 `Jean Zay <http://www.idris.fr/eng/jean-zay/index.html>`_ scientific cluster:
 
 .. code-block:: bash
@@ -74,14 +74,24 @@ As an example, here is the script that we use to render this website on the
   cd ~/scratch/containers
 
   # Download the Docker image and store it as an immutable Singularity Image File:
-  # N.B.: Our image is pretty heavy (~6 Gb), so it is safer to create
-  #       a tmp folder on the hard drive instead of relying on the RAM-only tmpfs:
-  # N.B.: This step may take 15mn to 60mn, so you may prefer to execute it in an
-  #       interactive compute session.
+  # N.B.: Our image is pretty heavy (~7 Gb), so it is safer to create
+  #       cache folders on the hard drive instead of relying on the RAM-only tmpfs:
+  # N.B.: This step may take 15mn to 60mn, so you may prefer to execute it on your
+  #       local computer and then copy the resulting file `keops-full.sif` to the cluster.
+  #       Alternatively, on the Jean Zay cluster, you may use the `prepost` partition
+  #       to have access to both a large RAM and an internet connection.
+  mkdir cache
   mkdir tmp
-  SINGULARITY_TMPDIR=`pwd`/tmp singularity build keops-full.sif docker://getkeops/keops-full:latest
+  mkdir tmp2
+  SINGULARITY_TMPDIR=`pwd`/tmp SINGULARITY_CACHEDIR=`pwd`/cache \
+  singularity build --tmpdir `pwd`/tmp2 keops-full.sif docker://getkeops/keops-full:latest
+
+  # At this point, on the Jean Zay cluster, you should use a command like:
+  # idrcontmgr cp keops-full.sif
+  # to add our new environment to the cluster's container registry as explained here: 
+  # http://www.idris.fr/jean-zay/cpu/jean-zay-utilisation-singularity.html
   
-  # Create a separate home folder for this image. This is to ensure
+  # Then, create a separate home folder for this image. This is to ensure
   # that we won't see any conflict between different versions of the KeOps binaries,
   # stored in the ~/.cache folder of the virtual machine:
   mkdir -p ~/containers/singularity_homes/keops-full
@@ -164,6 +174,8 @@ And ``keops-doc.sh`` is an executable file that contains:
   # Re-render the doc to remove compilation messages:
   make clean
   make html
+
+  zip -r keops_doc.zip _build/
 
 
 
