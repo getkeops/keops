@@ -336,6 +336,10 @@ def bench_config(
         print("** Memory overflow!")
         not_recorded_times = (len(problem_sizes) - len(times)) * [np.nan]
 
+    except OverflowError:
+        print("** Integer overflow (probably within the torch.compile triton code)!")
+        not_recorded_times = (len(problem_sizes) - len(times)) * [np.nan]
+
     except (TimeoutError, IndexError):  # Thrown by Nloops.pop(0) if Nloops = []
         print("** Too slow!")
         not_recorded_times = (len(problem_sizes) - len(times)) * [np.Infinity]
@@ -430,7 +434,7 @@ def full_benchmark(
             if np.isnan(val) and j > 0:
                 x, y = benches[j - 1, 0], transform(benches[j - 1, i + 1])
                 plt.annotate(
-                    "Memory overflow!",
+                    "Overflow!",
                     xy=(1.05 * x, y),
                     horizontalalignment="left",
                     verticalalignment="center",
