@@ -23,7 +23,7 @@ class LoadKeOps_nvrtc_class(LoadKeOps):
             self.launch_keops = pykeops_nvrtc.KeOps_module_float(
                 self.params.device_id_request,
                 self.params.nargs,
-                self.params.low_level_code_file,
+                self.params.low_level_code_file.decode("utf-8"),
             )
         elif self.params.c_dtype == "double":
             self.launch_keops = pykeops_nvrtc.KeOps_module_double(
@@ -78,6 +78,8 @@ def compile_jit_binary():
         sourcename=pykeops.config.pykeops_nvrtc_name(type="src"),
         dllname=pykeops.config.pykeops_nvrtc_name(type="target"),
     )
+    compile_command = "cmake -S /home/bcharlier/projets/keops/keops/pykeops/pykeops/common/keops_io -B ~/.cache/keops_toto3/ && cmake --build ~/.cache/keops_toto3/"
+
     pyKeOps_Message("Compiling nvrtc binder for python ... ", flush=True, end="")
     KeOps_OS_Run(compile_command)
     pyKeOps_Message("OK", use_tag=False, flush=True)

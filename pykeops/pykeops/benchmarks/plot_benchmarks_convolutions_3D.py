@@ -148,9 +148,6 @@ def gaussianconv_lazytensor(x, y, b, backend="GPU", **kwargs):
 
 if use_cuda:
     routines = [
-        (gaussianconv_numpy, "Numpy (CPU)", {"lang": "numpy"}),
-        (gaussianconv_pytorch, "PyTorch (GPU, TF32=False)", {"tf32": False}),
-        (gaussianconv_pytorch, "PyTorch (GPU, TF32=True)", {"tf32": True}),
         (gaussianconv_keops, "KeOps (GPU)", {}),
     ]
 
@@ -168,8 +165,6 @@ if use_cuda:
 # --------------------------------------------------------
 
 routines = [
-    (gaussianconv_numpy, "Numpy (CPU)", {"device": "cpu", "lang": "numpy"}),
-    (gaussianconv_pytorch, "PyTorch (CPU)", {"device": "cpu"}),
     (gaussianconv_keops, "KeOps (CPU)", {"device": "cpu", "backend": "CPU"}),
 ]
 

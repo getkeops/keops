@@ -31,5 +31,8 @@ def pykeops_cpp_name(tag="", extension=""):
         basename + tag + extension,
     )
 
+import nanobind
 
-python_includes = "$({python3} -m pybind11 --includes)".format(python3=sys.executable)
+python_includes = f"-I{sys.prefix}/include/python{sys.version_info[0]}.{sys.version_info[1]} -I{nanobind.include_dir()}"
+
+# python_includes = "$({python3} -m pybind11 --includes)".format(python3=sys.executable)

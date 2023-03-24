@@ -107,7 +107,7 @@ if shutil.which(cxx_compiler) is None:
     )
 
 
-compile_options = " -shared -fPIC -O3 -std=c++11"
+compile_options = " -shared -fPIC -O3 -std=c++17"
 
 
 # cpp options
