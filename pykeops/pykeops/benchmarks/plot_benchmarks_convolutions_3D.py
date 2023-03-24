@@ -37,7 +37,7 @@ problem_sizes = flatten(
     [[1 * 10**k, 2 * 10**k, 5 * 10**k] for k in [2, 3, 4, 5]] + [[10**6]]
 )
 D = 3  # We work with 3D points
-MAX_TIME = 1  # Run each experiment for at most 1 second
+MAX_TIME = 0.1  # Run each experiment for at most 0.1 second
 
 ##############################################
 # Synthetic dataset. Feel free to use
@@ -145,7 +145,7 @@ def gaussianconv_pytorch_dynamic(x, y, b, **kwargs):
 # On the GPU, if it is available:
 _ = gaussianconv_pytorch_compiled(*generate_samples(1000))
 # And on the CPU, in any case:
-_ = gaussianconv_pytorch_compiled(*generate_samples(1000, device="cpu"))
+# _ = gaussianconv_pytorch_compiled(*generate_samples(1000, device="cpu"))
 
 
 ##############################################
@@ -199,8 +199,8 @@ if use_cuda:
             "PyTorch (GPU, compiled with dynamic shapes)",
             {},
         ),
-        (gaussianconv_keops, "KeOps (GPU, Genred)", {}),
         (gaussianconv_lazytensor, "KeOps (GPU, LazyTensor)", {}),
+        (gaussianconv_keops, "KeOps (GPU, Genred)", {}),
     ]
 
     full_benchmark(
@@ -247,11 +247,6 @@ routines = [
         gaussianconv_pytorch_eager,
         "PyTorch (CPU, cdist)",
         {"device": "cpu", "cdist": True},
-    ),
-    (
-        gaussianconv_pytorch_dynamic,
-        "PyTorch (CPU, compiled with dynamic shapes)",
-        {"device": "cpu"},
     ),
     (
         gaussianconv_lazytensor,
