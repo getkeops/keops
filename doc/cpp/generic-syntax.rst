@@ -41,10 +41,6 @@ The convolution operation is then performed using one of these three calls:
 
 where ``pc``, ``pp``, ``pa``, ``px``, and ``py`` are pointers to their respective arrays in (Cpu) memory, ``pc`` denoting the output. These three functions correspond to computations performed respectively on the Cpu, on the Gpu with a "1D" tiling algorithm, and with a "2D" tiling algorithm.
 
-For a minimal working example code, see the files
-`./keops/examples/test_simple.cpp`_ and
-`./keops/examples/test_simple.cu`_
-
 If data arrays are already located in the GPU memory, these functions should be favored:
 
 .. code:: cpp

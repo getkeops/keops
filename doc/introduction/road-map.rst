@@ -59,8 +59,7 @@ for 2022-2024 in three main axes.
 #. **High-dimensional vectors.**
    As detailed in our benchmarks for 
    :doc:`kernel matrix-vector products <../_auto_benchmarks/plot_benchmark_high_dimension>`
-   and 
-   :doc:`K-Nearest Neighbors queries <../_auto_benchmarks/plot_benchmark_KNN>`
+   and K-Nearest Neighbors queries
    as well as our
    `NeurIPS 2020 paper <https://www.jeanfeydy.com/Papers/KeOps_NeurIPS_2020.pdf>`_,
    KeOps is currently best suited to computations

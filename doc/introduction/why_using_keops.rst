@@ -82,7 +82,7 @@ This type of computation is common in machine learning and applied mathematics:
     a_i \gets \arg_{\mathrm{K}} \min_{j=1,\,\dots\,,\,\mathrm{N}} \|x_i - y_j\|^2 ~,  \qquad i=1,\dots,\mathrm{M}~,
 
   where :math:`\| x - y \|^2 = \sum_k (x[k] - y[k])^2` is a sum of squared distances.
-  K-NN search is a key building block for numerous methods in data sciences, from `simple classifiers <https://scikit-learn.org/stable/modules/neighbors.html>`_ to advanced methods in `topological data analysis <https://en.wikipedia.org/wiki/Topological_data_analysis>`_ and `dimensionality reduction <https://umap-learn.readthedocs.io/en/latest/>`_. KeOps intends to provide fast runtimes for **all types of metrics**, beyond the standard Euclidean distance and cosine similarity: we refer to our :doc:`benchmarks <../_auto_benchmarks/plot_benchmark_KNN>` for an extensive discussion. |br|  |br|
+  K-NN search is a key building block for numerous methods in data sciences, from `simple classifiers <https://scikit-learn.org/stable/modules/neighbors.html>`_ to advanced methods in `topological data analysis <https://en.wikipedia.org/wiki/Topological_data_analysis>`_ and `dimensionality reduction <https://umap-learn.readthedocs.io/en/latest/>`_. KeOps intends to provide fast runtimes for **all types of metrics**, beyond the standard Euclidean distance and cosine similarity. |br|  |br|
 
 - In **computer graphics** and **geometric deep learning**, we implement
   **point cloud convolutions** and
@@ -98,7 +98,7 @@ This type of computation is common in machine learning and applied mathematics:
   .. math::
     a_i \gets \sum_{\substack{j \text{ such that }\\ x_i \leftrightarrow y_j}} \text{Filter}(p,x_i,y_j,f_j) ~.
 
-  Crucially, KeOps now also lets users work with **global point convolutions** without compromising on performances: we refer to the Section 5.3 of our `NeurIPS 2020 paper <http://jeanfeydy.com/Papers/KeOps_NeurIPS_2020.pdf>`_ and to `this presentation <https://www.biorxiv.org/content/10.1101/2020.12.28.424589v1.full.pdf>`_ of quasi-geodesic convolutions on protein surfaces for a detailed discussion. |br|  |br|
+  Crucially, KeOps now also lets users work with **global point convolutions** without compromising on performances: we refer to the Section 5.3 of our `NeurIPS 2020 paper <http://jeanfeydy.com/Papers/KeOps_NeurIPS_2020.pdf>`__ and to `this presentation <https://www.biorxiv.org/content/10.1101/2020.12.28.424589v1.full.pdf>`_ of quasi-geodesic convolutions on protein surfaces for a detailed discussion. |br|  |br|
 
 - In **natural language processing**,
   we implement **attention layers** for `transformer networks <https://en.wikipedia.org/wiki/Transformer_(machine_learning_model)>`_ using an exponentiated dot product :math:`F(q_i,k_j)=\exp(\langle q_i,k_j\rangle/ \sqrt{\mathrm{D}})` between *query* (:math:`q_i`) and *key* (:math:`k_j`) vectors of dimension :math:`\mathrm{D}`. The reduction is a normalized matrix-vector product with an array of *value* vectors :math:`v_j` (a **soft maximum**) and the overall computation reads:
@@ -176,7 +176,7 @@ This type of computation is common in machine learning and applied mathematics:
   .. math::
     a_i \gets - \varepsilon \cdot \log \sum_{j=1}^{\mathrm{N}} \exp \tfrac{1}{\varepsilon} \big[ g_j - \text{C}(x_i,y_j) \big],  \qquad i=1,\dots,\mathrm{M}~.
 
-  As detailed in our `NeurIPS 2020 paper <https://www.jeanfeydy.com/Papers/KeOps_NeurIPS_2020.pdf>`_, KeOps speeds up modern optimal transport solvers by **one to three orders of magnitude**, from standard auction iterations to multiscale Sinkhorn loops. A collection of reference solvers is provided by the `GeomLoss library <https://www.kernel-operations.io/geomloss>`_, that now scales up to millions of samples in seconds. |br|  |br|
+  As detailed in our `NeurIPS 2020 paper <https://www.jeanfeydy.com/Papers/KeOps_NeurIPS_2020.pdf>`__, KeOps speeds up modern optimal transport solvers by **one to three orders of magnitude**, from standard auction iterations to multiscale Sinkhorn loops. A collection of reference solvers is provided by the `GeomLoss library <https://www.kernel-operations.io/geomloss>`_, that now scales up to millions of samples in seconds. |br|  |br|
 
 - Numerous **particle** and **swarming** models
   rely on **interaction steps** that fit this template to update the positions and inner states of their agents. For instance, on modest gaming hardware, KeOps can scale up simulations of `Vicsek-like systems <https://en.wikipedia.org/wiki/Vicsek_model>`_ to
@@ -249,7 +249,7 @@ A first strategy is to prune out negligible terms:
 for every index :math:`i`, we perform the reduction
 on a subset of neighbors
 :math:`\mathcal{N}(i)\subset [\![1,\text{N} ]\!]`.
-As illustrated on our :doc:`front page <../index.rst>`,
+As illustrated on our front page,
 this method is akin to using sparse matrices:
 the neighborhood structure
 is usually understood as a **connectivity matrix**
@@ -378,8 +378,7 @@ These **general purpose compilers** are fully transparent to users
 and show promise for a wide range of applications.
 Nevertheless,
 **they fall short** on the type of **geometric computations** that are discussed above.
-This is most apparent for
-:doc:`nearest neighbor search <../_auto_benchmarks/plot_benchmark_KNN>`,
+This is most apparent for nearest neighbor search,
 :doc:`matrix-vector products <../_auto_benchmarks/plot_benchmark_convolutions>`
 with kernel matrices
 and `message passing methods <https://pytorch-geometric.readthedocs.io/en/latest/>`_ on point clouds,

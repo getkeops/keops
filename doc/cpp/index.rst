@@ -16,7 +16,7 @@ in Python to produce C++ or Cuda source code to be further compiled and used thr
 KeOps 1.5, which can be downloaded `here <https://github.com/getkeops/keops/archive/refs/tags/v1.5.zip>`_.
 
 
-This section documents the use of the KeOps library in C++ codes. We provide some examples in the `./keops/examples/`_ directory.
+This section documents the use of the KeOps library in C++ codes.
 
 .. toctree::
    :maxdepth: 2

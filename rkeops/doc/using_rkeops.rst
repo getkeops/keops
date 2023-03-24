@@ -89,8 +89,7 @@ it was only tested on Linux and MacOS.
 .. rubric:: Install from CRAN
    :name: install-from-cran
 
-    **Note:** RKeOps is avaible on CRAN but only for UNIX environment
-    (GNU/Linux and MacOS) and not for Windows.
+**Note:** RKeOps is avaible on CRAN but only for UNIX environment (GNU/Linux and MacOS) and not for Windows.
 
 .. raw:: html
 
@@ -115,10 +114,9 @@ it was only tested on Linux and MacOS.
 .. rubric:: Install from Github sources
    :name: install-from-github-sources
 
-    !! In most recent version of devtools, the ``args`` argument is not
-    available anymore and it is not possible to use
-    ``devtools::install_git``. Please check next section to install from
-    sources.
+!! In most recent version of devtools, the ``args`` argument is not 
+available anymore and it is not possible to use
+``devtools::install_git``. Please check next section to install from sources.
 
 -  Install directly from Github (requires ``git``)
 
