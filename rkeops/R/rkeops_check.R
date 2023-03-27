@@ -14,11 +14,14 @@
 #' 
 #' @return a boolean value indicating if check is ok or not.
 #' @author Ghislain Durif
-#' @export
+#' 
+#' @examples
+#' check_os()
 check_os <- function(onLoad = FALSE) {
-    if(.Platform$OS.type == "unix") {
-        msg <- paste0("Platform ", .Platform$OS.type, 
-                      "is not supported at the moment.")
+    if(.Platform$OS.type != "unix") {
+        msg <- paste0(
+            "Platform '", .Platform$OS.type, 
+            "' is not supported at the moment.")
         msg_warn_error(msg, ifelse(onLoad, "msg", "error"))
         return(FALSE)
     } else {
