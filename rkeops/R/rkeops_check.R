@@ -90,11 +90,9 @@ check_pypkg <- function(package, warn = TRUE) {
 #' In practice, check if `pykeops` Python package is installed (which is done 
 #' at `rkeops` package install).
 #' 
-#' @param warn boolean, if TRUE (default), warn user about check result.
+#' @inherit check_pypkg
 #'
 #' @return boolean value indicating if the `pykeops` package is available.
-#' 
-#' @seealso [rkeops:::check_pypkg()]
 #' 
 #' @examples
 #' check_pykeops()
@@ -111,11 +109,9 @@ check_pykeops <- function(warn = TRUE) {
 #' In practice, check if `keopscore` Python package is installed (which is done 
 #' at `rkeops` package install).
 #' 
-#' @param warn boolean, if TRUE (default), warn user about check result.
+#' @inherit check_pypkg
 #'
 #' @return boolean value indicating if the `keopscore` package is available.
-#' 
-#' @seealso [rkeops:::check_pypkg()]
 #' 
 #' @examples
 #' check_keopscore()
