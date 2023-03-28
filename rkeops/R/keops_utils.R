@@ -13,7 +13,7 @@
 #' Calling `get_rkeops_build_dir()` gives the location of this specific 
 #' directory on your system.
 #' 
-#' You can use [rkeops::check_rkeops_build_dir()] to list RKeOps build 
+#' You can use [rkeops::ls_rkeops_build_dir()] to list RKeOps build 
 #' directory content, and you can use [rkeops::clean_rkeops()] to delete its
 #' content.
 #'
@@ -22,7 +22,7 @@
 #' @importFrom reticulate import
 #' @importFrom checkmate assert_true
 #' 
-#' @seealso [rkeops::check_rkeops_build_dir()], [rkeops::clean_rkeops()]
+#' @seealso [rkeops::ls_rkeops_build_dir()], [rkeops::clean_rkeops()]
 #' 
 #' @examples
 #' \dontrun{
@@ -33,6 +33,36 @@ get_rkeops_build_dir <- function() {
     assert_true(check_keopscore(warn = FALSE))
     keopscore <- reticulate::import("keopscore")
     return(keopscore$get_build_folder())
+}
+
+#' List RKeOps build directory content
+#' 
+#' @description
+#' List all files in the folder where all dynamic library files generated 
+#' from compilations of user-defined operators are defined.
+#' 
+#' @details
+#' When compiling a user-defined operators, a shared object (`.so`) library 
+#' (or dynamic link library, `.dll`) file is created in RKeOps build 
+#' directory (located in the `.cache` folder in your home). For every 
+#' new operators, such a file is created.
+#' 
+#' Calling `ls_rkeops_build_dir()` lists all files in RKeOps build 
+#' directory.
+#' 
+#' You can use [rkeops::get_rkeops_build_dir()] get the path to RKeOps build 
+#' directory, and you can use [rkeops::clean_rkeops()] to delete its content.
+#'
+#' @return output of [base::file_info()] function.
+#' 
+#' @seealso [rkeops::get_rkeops_build_dir()], [rkeops::clean_rkeops()]
+#' 
+#' @examples
+#' \dontrun{
+#' ls_rkeops_build_dir()
+#' }
+#' @export
+    return(file.info(list.files(get_rkeops_build_dir()), extra_cols = FALSE))
 }
 
 #' Clean RKeOps build directory
@@ -50,14 +80,14 @@ get_rkeops_build_dir <- function() {
 #' Calling `clean_rkeops()` allows you to empty RKeOps build directory.
 #' 
 #' You can [rkeops::get_rkeops_build_dir()] to get the path to RKeOps 
-#' build directory, and you can use [rkeops::check_rkeops_build_dir()] to 
+#' build directory, and you can use [rkeops::ls_rkeops_build_dir()] to 
 #' list its content.
 #' 
 #' @author Ghislain Durif
 #' 
 #' @param warn boolean, if TRUE (default), warn user about cleaning.
 #' 
-#' @seealso [rkeops::get_rkeops_build_dir()], [rkeops::check_rkeops_build_dir()]
+#' @seealso [rkeops::get_rkeops_build_dir()], [rkeops::ls_rkeops_build_dir()]
 #' 
 #' @return None
 #' 
