@@ -62,6 +62,7 @@ get_rkeops_build_dir <- function() {
 #' ls_rkeops_build_dir()
 #' }
 #' @export
+ls_rkeops_build_dir <- function() {
     return(file.info(list.files(get_rkeops_build_dir()), extra_cols = FALSE))
 }
 
