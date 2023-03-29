@@ -41,21 +41,26 @@ test_that("get_rkeops_options", {
         expect_error(get_rkeops_options())
     })
     
-    # get all options
-    res <- get_rkeops_options()
-    expect_equal(res, def_rkeops_options())
-    
-    # get specific options
-    res <- get_rkeops_options("backend")
-    expect_list(res, len = 1)
-    expect_equal(names(res), "backend")
-    expect_choice(res$backend, c("CPU", "GPU"))
-    
-    res <- get_rkeops_options(c("backend", "precision"))
-    expect_list(res, len = 2)
-    expect_equal(names(res), c("backend", "precision"))
-    expect_choice(res$backend, c("CPU", "GPU"))
-    expect_choice(res$precision, c("float32", "float64"))
+    # work with clean options
+    withr::with_options(list(rkeops = NULL), {
+        # set default options
+        set_rkeops_options()
+        
+        # get all options
+        res <- get_rkeops_options()
+        expect_equal(res, def_rkeops_options())
+        
+        # get specific options
+        res <- get_rkeops_options("backend")
+        expect_character(res, len = 1)
+        expect_choice(res, c("CPU", "GPU"))
+        
+        res <- get_rkeops_options(c("backend", "precision"))
+        expect_list(res, len = 2)
+        expect_equal(names(res), c("backend", "precision"))
+        expect_choice(res$backend, c("CPU", "GPU"))
+        expect_choice(res$precision, c("float32", "float64"))
+    })
 })
 
 test_that("set_rkeops_options", {

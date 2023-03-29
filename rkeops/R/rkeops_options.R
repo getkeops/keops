@@ -88,7 +88,8 @@ def_rkeops_options <- function(
 #' `"verbosity"`, `"debug"` to get the corresponding option current values.
 #' Default is `NULL` and all option values are returned.
 #' 
-#' @return a list with `rkeops` current options values.
+#' @return a scalar value if only one option was specified or a list with 
+#' specified `rkeops` current options values.
 #' 
 #' @seealso [rkeops::def_rkeops_options()], [rkeops::set_rkeops_options()]
 #' 
@@ -112,11 +113,16 @@ get_rkeops_options <- function(option = NULL) {
     if(test_null(rkeops_options))
         stop("rkeops global options are not defined.")
     ## return all options or required ones
+    out <- NULL
     if(test_null(option)) {
-        return(rkeops_options)
+        out <- rkeops_options
     } else {
-        return(rkeops_options[option])
+        out <- rkeops_options[option]
     }
+    # unlist if length(option) == 1
+    if(length(out) == 1) out <- unname(unlist(out))
+    # output
+    return(out)
     
 }
 
