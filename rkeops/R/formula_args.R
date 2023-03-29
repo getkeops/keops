@@ -56,7 +56,7 @@
 #' arguments (among `Vi`, `Vj`, `Pm`).
 #' - `var_pos`: vector of integer, corresponding arguments positions.
 #' 
-#' @importFrom stringr str_c str_count str_detect str_extract str_split 
+#' @importFrom stringr str_c str_detect str_extract str_split 
 #' str_replace_all fixed
 #' 
 #' @importFrom checkmate assert_character
@@ -78,19 +78,28 @@ format_var_aliases <- function(args) {
     # check input type
     assert_character(args, min.len = 1)
     
+    # remove white space
+    args <- str_replace_all(args, stringr::fixed(" "), "")
+    
     # potential values
     possible_var_type <- c("Vi", "Vj", "Pm")
     possible_args <- str_c(
-        "[a-zA-Z0-9_-]+=", str_c(possible_var_type, "\\([0-9]+(,[0-9]+)?\\)"))
+        "^[a-zA-Z0-9_-]+=(", 
+        str_c(possible_var_type, collapse = "|"), 
+        ")\\([0-9]+(,[0-9]+)?\\)$"
+    )
     
     # check correctness of input args
-    args_check <- str_count(
-        string = str_replace_all(args, fixed(" "), ""), 
-        pattern = str_c(possible_args, collapse = "|")) == 1
+    args_check <- str_detect(string = args, pattern = possible_args)
     if(!all(args_check)) {
         msg <- str_c(
             "Issue with input value(s): '", 
-            str_c(args[!args_check], collapse = "', '"), "'"
+            str_c(args[!args_check], collapse = "', '"), "'\n",
+            "All input arguments should follow the pattern ",
+            "(with or without spaces): ",
+            "'<name> = Vi|Vj|Pm(<dim>)' or ",
+            "'<name> = Vi|Vj|Pm(<pos>, <dim>)'",
+            "(see help page or vignette for more details)."
         )
         stop(msg)
     }
@@ -108,13 +117,13 @@ format_var_aliases <- function(args) {
                             collapse = "|"))
     var_pos <- NULL
     var_dim <- NULL
-    if(all(as.integer(args_check))) {
+    if(all(args_check)) {
         # syntax 'Xx(pos,dim)'
         var_pos <- as.numeric(str_extract(string = split_args[,2], 
                                           pattern = "[0-9]+(?=,)"))
         var_dim <- as.numeric(str_extract(string = split_args[,2], 
                                           pattern = "(?<=,)[0-9]+"))
-    } else if(all(as.integer(1-args_check))) {
+    } else if(!any(args_check)) {
         # syntax 'Xx(dim)' (and position is inferred from parameter order)
         var_pos <- seq(0, length(args)-1, by=1)
         var_dim <- as.numeric(str_extract(string = split_args[,2], 
