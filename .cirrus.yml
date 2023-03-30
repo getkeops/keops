@@ -1,0 +1,5 @@
+container:
+  image: python:slim
+
+test_task:
+  test_script: pytest
