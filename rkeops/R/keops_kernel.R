@@ -56,8 +56,6 @@
 #' accumulating in the output. This improves accuracy for large sized data.
 #' - `"kahan_scheme"`: use Kahan summation algorithm to compensate for 
 #' round-off errors. This improves accuracy for large sized data.
-#' @param keops_grad_call boolean, for internal use only, do not modify this 
-#' input value.
 #' @param reduction_op NULL, not used at the moment (FIXME).
 #' 
 #' @return a function that can be used to compute the value of the 
@@ -70,8 +68,8 @@
 #' 
 #' @importFrom stringr str_length str_count
 #' @importFrom reticulate np_array source_python
-#' @importFrom checkmate assert_choice assert_integerish 
-#' assert_character assert_string
+#' @importFrom checkmate assert_choice assert_character assert_logical 
+#' assert_string
 #' 
 #' @seealso [rkeops::keops_grad()]
 #' 
@@ -141,37 +139,38 @@
 #' }
 #' @export
 keops_kernel <- function(
-        formula, args, sum_scheme = "auto", keops_grad_call = FALSE, 
-        reduction_op = NULL) {
+        formula, args, sum_scheme = "auto", reduction_op = NULL) {
 
     # check input
     assert_string(formula)
     assert_character(args, min.len = 1)
+    assert_choice(
+        sum_scheme, c("auto", "direct_sum", "block_sum", "kahan_scheme"))
+    assert_string(reduction_op, null.ok = TRUE)
     
-    # args formatting
-    var_aliases <- format_var_aliases(args)
-    
+    # args parsing
+    args_info <- parse_args(formula, args)
     
     # return function calling the corresponding compile operator
     # inner_dim should be "row" or "col"
     function(input=NULL, inner_dim="col") {
         
         ## storing some context
-        env <- list(
-            formula=formula, args=args, inner_dim=inner_dim, 
-            var_aliases = var_aliases,
-            keops_grad_call = keops_grad_call
+        op_env <- list(
+            formula = formula, args = args, 
+            args_info = args_info,
+            sum_scheme = sum_scheme
         )
         
         # return context if no input
         if(missing(input) | is.null(input))
-            return(env)
+            return(op_env)
         
         ## !! important !!
         # input: should be a list, because list are references and since 
         #   argument passing is done by copy in R, it is better to copy a list 
         #   of reference than the actual input data, especially for big 
-        #   matrices. If NULL or missing, env (context) is returned
+        #   matrices. If NULL or missing, op_env (context) is returned
         # inner_dim: "col" for columns, "row" for rows
         
         ## Use pykeops.numpy.Genred
@@ -201,7 +200,7 @@ keops_kernel <- function(
         }
         
         # check input length
-        if(length(input) != length(env$args)) {
+        if(length(input) != length(op_env$args)) {
             msg <- str_c(
                 "The number of elements in the 'input' argument ",
                 "does not correspond to the number of input arguments ",
@@ -212,7 +211,7 @@ keops_kernel <- function(
         
         # reorder input (if named list and named arg in the formula)
         if(!is.null(names(input)) && length(names(input) == length(input))) {
-            input <- input[env$var_aliases$var_name]
+            input <- input[op_env$args_info$var_name]
         }
         
         # remove input name

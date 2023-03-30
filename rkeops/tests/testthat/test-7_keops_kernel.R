@@ -27,6 +27,13 @@ test_that("keops_kernel", {
     op <- keops_kernel(formula, args)
     expect_true(is.function(op))
     
+    # operator information
+    expect_list(op(), len = 4)
+    expect_equal(
+        names(op()), 
+        c("formula", "args", "args_info", "sum_scheme")
+    )
+    
     # data
     # (standard: reduction index over rows, inner dimension over columns)
     nx <- 10
@@ -124,6 +131,7 @@ test_that("keops_kernel", {
     res <- op(input, inner_dim = "col")
     expect_true(is.matrix(res))
     expect_equal(dim(res), c(1, 3))
-    expected_res <- apply(x + matrix(rep(y, nx), byrow = TRUE, ncol = 3), 2, sum)
+    expected_res <- apply(
+        x + matrix(rep(y, nx), byrow = TRUE, ncol = 3), 2, sum)
     expect_true(sum(abs(res - expected_res)) < 1E-9)
 })
