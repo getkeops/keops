@@ -11,6 +11,7 @@ editor_options:
 ```{r dev-setup}
 proj_dir <- rprojroot::find_root(".git/index")
 pkg_dir <- file.path(proj_dir, "rkeops")
+setwd(pkg_dir)
 usethis::proj_set(pkg_dir, force = TRUE)
 usethis::proj_sitrep()
 ```
@@ -69,10 +70,10 @@ usethis::use_description(
         BugReports = "https://github.com/getkeops/keops/issues",
         Encoding = "UTF-8",
         LazyData = "true",
-        Version = readLines(file.path(proj_dir, "keops_version")),
-        `Date/Publication` = format(Sys.time(), "%Y/%m/%d"),
-        SystemRequirements = "Python (>= 3.5.0), CUDA (optional but recommended)",
-        `Config/reticulate` = list(packages = list(list(package = "scipy")))
+        Version = paste0(readLines(file.path(proj_dir, "keops_version")), ".0"),
+        `Date/Publication` = format(Sys.time(), "%Y-%m-%d"),
+        SystemRequirements = "Python (>= 3.5.0), C++ compiler (gcc/clang), CUDA (optional but recommended)",
+        `Config/reticulate` = list(packages = list(list(package = "pykeops")))
     ),
     check_name = TRUE, 
     roxygen = TRUE
@@ -86,6 +87,7 @@ usethis::use_roxygen_md()
 ```{r dev-req}
 # requirements
 usethis::use_package("reticulate", type = "Imports")
+usethis::use_package("withr", type = "Suggests")
 usethis::use_testthat()
 ```
 
