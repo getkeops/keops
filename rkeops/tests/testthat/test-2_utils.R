@@ -10,3 +10,18 @@ test_that("msg_warn_error", {
     # bad input
     expect_error(msg_warn_error(msg, type = "print"))
 })
+
+test_that("random_varname", {
+    
+    expect_equal(random_varname(prefix = "", len = 0), "")
+    
+    res <- random_varname(prefix = "", len = 10)
+    checkmate::expect_string(res, n.char = 10, pattern = "[A-Za-z0-9]{10}")
+    
+    prefix <- "prefix"
+    res <- random_varname(prefix, len = 10)
+    checkmate::expect_string(
+        res, n.char = 10 + stringr::str_length(prefix),
+        pattern = stringr::str_c("^", prefix, "[A-Za-z0-9]{10}")
+    )
+})
