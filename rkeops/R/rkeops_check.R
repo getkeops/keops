@@ -125,10 +125,13 @@ check_keopscore <- function(warn = TRUE) {
 #' @description 
 #' WRITE ME
 #'
-#' @return
+#' @return boolean value indicating if the `rkeops` package is ready.
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#' check_rkeops()
+#' }
 check_rkeops <- function() {
     # WRITE ME
 }

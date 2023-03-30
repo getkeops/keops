@@ -53,7 +53,7 @@ get_rkeops_build_dir <- function() {
 #' You can use [rkeops::get_rkeops_build_dir()] get the path to RKeOps build 
 #' directory, and you can use [rkeops::clean_rkeops()] to delete its content.
 #'
-#' @return output of [base::file_info()] function.
+#' @return output of [file_info()] function.
 #' 
 #' @seealso [rkeops::get_rkeops_build_dir()], [rkeops::clean_rkeops()]
 #' 
