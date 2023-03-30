@@ -97,6 +97,9 @@ usethis::use_testthat()
 # Simulate package installation
 pkgload::load_all(pkg_dir)
 
+# load required package
+library(checkmate)
+library(tibble)
 # Generate documentation and deal with dependencies
 attachment::att_amend_desc(path = pkg_dir)
 ```
