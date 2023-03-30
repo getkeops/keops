@@ -57,3 +57,29 @@ msg_warn_error <- function(msg, type) {
         stop(msg)
     }
 }
+
+#' Helper function to generate random variable name for gradient input in 
+#' formula
+#' 
+#' @keywords internal
+#'
+#' @param prefix character string, prefix to add to the variable name.
+#' @param len integer, number of random character in the variable name.
+#'
+#' @return character string, name of the python environment.
+#' 
+#' @importFrom checkmate assert_string assert_count
+#' @importFrom stringi stri_rand_strings
+#'
+#' @examples
+#' random_varname(prefix = "test", len = 10)
+random_varname <- function(prefix = "", len = 5) {
+    checkmate::assert_string(prefix)
+    checkmate::assert_count(len)
+    varname <- stringr::str_c(
+        prefix,
+        stringi::stri_rand_strings(1, len)
+    )
+    return(varname)
+}
+
