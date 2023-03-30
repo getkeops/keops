@@ -1,9 +1,9 @@
-#' Format formula argument list in triplet (type, dimension, position)
+#' Parse formula argument list in triplet (type, dimension, position)
 #' 
 #' @keywords internal
 #' 
 #' @description
-#' The function `format_var_aliases` formats KeOps formula arguments to be 
+#' The function `parse_args` formats KeOps formula arguments to be 
 #' understood by the C++ code.
 #' 
 #' @details
@@ -46,6 +46,7 @@
 #' 
 #' @author Ghislain Durif
 #' 
+#' @param formula text string, an operator formula (see Details).
 #' @param args vector of text string, formula input arguments (see Details).
 #' 
 #' @return a list with different information about formula input arguments:
@@ -55,28 +56,47 @@
 #' - `var_type`: vector of text string, corresponding type of formula 
 #' arguments (among `Vi`, `Vj`, `Pm`).
 #' - `var_pos`: vector of integer, corresponding arguments positions.
+#' - `var_dim`: vector of integer, corresponding arguments inner dimensions.
+#' - `decl`: character string, either `"dim"` if `Vi|Vj|Pm(<dim>)` argument
+#' declaration convention is used, or `"pos_dim"` if 
+#' `Vi|Vj|Pm(<pos>,<dim>)`  argument declaration convention is used.
 #' 
 #' @importFrom stringr str_c str_detect str_extract str_split 
 #' str_replace_all fixed
 #' 
-#' @importFrom checkmate assert_character
+#' @importFrom checkmate assert_character assert_string
 #' 
 #' @export
-format_var_aliases <- function(args) {
-	
-	if(length(args) == 0) {
-		out <- list(
-		        args = NULL, 
-		        var_name = NULL, 
-                var_type = NULL, 
-                var_pos = NULL, 
-                var_dim = NULL,
-                var_aliases = "")
+parse_args <- function(formula, args) {
+    
+    # check input type
+    assert_string(formula)
+    assert_character(args)
+    
+    # empty input
+    if(length(args) == 0) {
+        out <- list(
+            args = NULL, 
+            var_name = NULL, 
+            var_type = NULL, 
+            var_pos = NULL, 
+            var_dim = NULL,
+            decl = NULL
+            )
         return(out)
     }
     
-    # check input type
-    assert_character(args, min.len = 1)
+    ## check if extra args
+    if(parse_extra_args(formula)) {
+        msg <- str_c(
+            "Issue with formula containing 'Vi|Vj|Pm(<dim>)' or ", 
+            "'Vi|Vj|Pm(<pos>,<dim>)' arguments not defined in 'args' ", 
+            "input list. ",
+            "Please use aliases listed in 'args' input list to define ", "
+            all arguments in the fomula."
+        )
+        stop(msg)
+    }
     
     # remove white space
     args <- str_replace_all(args, stringr::fixed(" "), "")
@@ -97,14 +117,14 @@ format_var_aliases <- function(args) {
             str_c(args[!args_check], collapse = "', '"), "'\n",
             "All input arguments should follow the pattern ",
             "(with or without spaces): ",
-            "'<name> = Vi|Vj|Pm(<dim>)' or ",
-            "'<name> = Vi|Vj|Pm(<pos>, <dim>)'",
+            "'<name> = Vi|Vj|Pm(<dim>)' ",
             "(see help page or vignette for more details)."
         )
         stop(msg)
     }
     
-    # check consistency of input args
+    # check consistency of input args:
+    # '<name> = Vi|Vj|Pm(<dim>)' or '<name> = Vi|Vj|Pm(<pos>,<dim>)'
     args_check <- str_detect(string = args, pattern = "(?<=[0-9]),(?=[0-9])")
     
     # parse
@@ -117,21 +137,25 @@ format_var_aliases <- function(args) {
                             collapse = "|"))
     var_pos <- NULL
     var_dim <- NULL
+    decl <- NULL
     if(all(args_check)) {
         # syntax 'Xx(pos,dim)'
         var_pos <- as.numeric(str_extract(string = split_args[,2], 
                                           pattern = "[0-9]+(?=,)"))
         var_dim <- as.numeric(str_extract(string = split_args[,2], 
                                           pattern = "(?<=,)[0-9]+"))
+        decl <- "pos_dim"
     } else if(!any(args_check)) {
         # syntax 'Xx(dim)' (and position is inferred from parameter order)
         var_pos <- seq(0, length(args)-1, by=1)
         var_dim <- as.numeric(str_extract(string = split_args[,2], 
                                           pattern = "[0-9]+"))
+        decl <- "dim"
     } else {
         msg <- str_c(
             "Issue with input argument consistency, use either ", 
-            "'(dim)' or '(pos, dim)' for 'Vi', 'Vj' and 'Pm' ",
+            "'(dim)' or '(pos, dim)' with 'Vi', 'Vj' and 'Pm' ",
+            "for all arguments ",
             "(see help page or vignette for more details)."
         )
         stop(msg)
@@ -143,15 +167,22 @@ format_var_aliases <- function(args) {
         var_name = unname(var_name), 
         var_type = unname(var_type), 
         var_pos = unname(var_pos), 
-        var_dim = unname(var_dim)
+        var_dim = unname(var_dim),
+        decl = decl
     )
     return(out)
 }
 
-#' Parse formula for extra arguments not encoded in argument aliases
+#' Parse formula for extra arguments in the formula not defined with an 
+#' alias in the argument list.
+#' 
 #' @keywords internal
+#' 
 #' @description
-#' FIXME
+#' RKeOps does not support direct encoding of argument in the formula without 
+#' an alias in the argument list. This function check if any argument are
+#' directly encoded in the formula without an alias.
+#' 
 #' @details
 #' Parse the formula for string such as
 #' * `"YY(<pos>,<dim>)"` where `YY` can be a formula input argument type 
@@ -170,26 +201,16 @@ format_var_aliases <- function(args) {
 #' |---------|-------------------------|-----------|
 #' 
 #' @author Ghislain Durif
-#' @param formula text string, an operator formula (see Details).
-#' @param args vector of text string, formula input arguments (see Details).
-#' @return a list with different information about formula input arguments:
-#' a list with different information about formula input arguments:
-#' \item{var_type}{vector of text string, corresponding type of formula 
-#' arguments (among `Vi`, `Vj`, `Pm`).}
-#' \item{var_pos}{vector of integer, corresponding arguments positions.}
-#' \item{var_dim}{vector of integer, corresponding arguments dimensions.}
+#' 
+#' @inheritParams parse_args
+#' 
+#' @return a boolean value indicating if extra args were found in the formula.
+#' 
 #' @importFrom stringr str_match_all str_replace
-#' @export
-parse_extra_args <- function(formula, args) {
+parse_extra_args <- function(formula) {
     
     ## remove space
     formula <- str_replace(string = formula, pattern = " ", replacement = "")
-    
-    ## empty output
-    out <- list(
-        var_type = NULL, 
-        var_pos = NULL, 
-        var_dim = NULL)
     
     ## parse the formula
     # YY(<dim>) with YY = Vi, Vj or Pm
@@ -202,58 +223,10 @@ parse_extra_args <- function(formula, args) {
     pattern3 = "Var\\(([0-9]+),([0-9]+),([0-9]+)\\)"
     parse3 <- str_match_all(formula, pattern3)[[1]]
     
-    ## nothing to be found
-    if(length(parse1) == 0 & length(parse2) == 0 & length(parse3) == 0) {
-        return(out)
+    ## found anything?
+    if(length(parse1) + length(parse2) + length(parse3) > 0) {
+        return(TRUE)
+    } else {
+        return(FALSE)
     }
-    
-    ## candidate var_type
-    var_types <- c("Vi", "Vj", "Pm")
-    
-    ## var aliases
-    var_aliases <- format_var_aliases(args)
-    
-    ## format results of parsing
-    if(length(parse1) > 0) {
-        extra_args1 <- list(
-            var_type = parse1[,2], 
-            var_pos = (1:nrow(parse1)) + max(var_aliases$var_pos), 
-            var_dim = as.integer(parse1[,3]))
-        
-        if(!all(extra_args1 %in% var_aliases$var_pos))
-            out <- as.list(rbind(as.data.frame(out, 
-                                               stringsAsFactors = FALSE), 
-                                 as.data.frame(extra_args1, 
-                                               stringsAsFactors = FALSE)))
-    }
-    
-    if(length(parse2) > 0) {
-        extra_args2 <- list(
-            var_type = parse2[,2], 
-            var_pos = as.integer(parse2[,3]), 
-            var_dim = as.integer(parse2[,4]))
-        
-        if(!all(extra_args2 %in% var_aliases$var_pos))
-            out <- as.list(rbind(as.data.frame(out, 
-                                               stringsAsFactors = FALSE), 
-                                 as.data.frame(extra_args2, 
-                                               stringsAsFactors = FALSE)))
-    }
-    
-    if(length(parse3) > 0) {
-        extra_args3 <- list(
-            var_type = sapply(
-                as.integer(parse3[,4])+1, function(ind) var_types[[ind]]), 
-            var_pos = as.integer(parse3[,2]), 
-            var_dim = as.integer(parse3[,3]))
-        
-        if(!all(extra_args3 %in% var_aliases$var_pos))
-            out <- as.list(rbind(
-                as.data.frame(out, stringsAsFactors = FALSE), 
-                as.data.frame(extra_args3, stringsAsFactors = FALSE)
-            ))
-    }
-    
-    ## out
-    return(out)
 }
