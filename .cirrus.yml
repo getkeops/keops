@@ -2,4 +2,4 @@ container:
   image: python:slim
 
 test_task:
-  test_script: sh ./pytest.sh
+  test_script: bash ./pytest.sh
