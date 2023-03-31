@@ -73,7 +73,10 @@ usethis::use_description(
         Version = paste0(readLines(file.path(proj_dir, "keops_version")), ".0"),
         `Date/Publication` = format(Sys.time(), "%Y-%m-%d"),
         SystemRequirements = "Python (>= 3.5.0), C++ compiler (gcc/clang), CUDA (optional but recommended)",
-        `Config/reticulate` = list(packages = list(list(package = "pykeops")))
+        `Config/reticulate` = list(packages = list(list(package = "pykeops"))),
+        VignetteBuilder = "knitr",
+        RdMacros = "Rdpack"
+        
     ),
     check_name = TRUE, 
     roxygen = TRUE
@@ -88,6 +91,7 @@ usethis::use_roxygen_md()
 # requirements
 usethis::use_package("reticulate", type = "Imports")
 usethis::use_package("withr", type = "Suggests")
+usethis::use_package("Rdpack", type = "Imports")
 usethis::use_testthat()
 ```
 
