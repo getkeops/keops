@@ -10,13 +10,25 @@ test_that("skip_if_no_python", {
 })
 
 test_that("skip_if_no_keopscore", {
-    skip("WRITE ME")
     skip_if_no_python()
+    if(check_keopscore(warn=FALSE)) {
+        # no skip
+        expect_condition(skip_if_no_keopscore(), NA, class = "skip")
+    } else {
+        # skip
+        expect_condition(skip_if_no_keopscore(), class = "skip")
+    }
 })
 
 test_that("skip_if_no_pykeops", {
-    skip("WRITE ME")
     skip_if_no_python()
+    if(check_pykeops(warn=FALSE)) {
+        # no skip
+        expect_condition(skip_if_no_pykeops(), NA, class = "skip")
+    } else {
+        # skip
+        expect_condition(skip_if_no_pykeops(), class = "skip")
+    }
 })
 
 test_that("skip_if_not_interactive", {
