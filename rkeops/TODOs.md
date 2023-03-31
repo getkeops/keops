@@ -9,8 +9,8 @@ Switch from the old keops engine based on C++/Cmake to the new `keopscore` frame
 Implementation : directly use `PyKeOps` through `reticulate` to avoid maintaining two different binders for Python and R
 
 TODOs
-- [ ] proof-of-concept using `PyKeOps` from R through `reticulate`
-- [ ] integrate `PyKeOps` management inside `RKeOps` with `reticualte`
-- [ ] reimplement `keops_kernel()` and `keops_grad()` functions
+- [x] proof-of-concept using `PyKeOps` from R through `reticulate`
+- [x] integrate `PyKeOps` management inside `RKeOps` with `reticualte`
+- [x] reimplement `keops_kernel()` and `keops_grad()` functions
 - [ ] integrate LazyTensor ([PR #192](https://github.com/getkeops/keops/pull/192))
-- [ ] clean RKeOps from deprecated and oldies (unused code from copyright files, `.Rbuildignore` file)
+- [x] clean RKeOps from deprecated and oldies (unused code from copyright files, `.Rbuildignore` file)
