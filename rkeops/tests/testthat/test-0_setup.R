@@ -33,7 +33,7 @@ test_that("skip_if_no_pykeops", {
 
 test_that("skip_if_not_interactive", {
     # Test that a skip happens
-    if(!interactive()) {
+    if(interactive()) {
         # no skip
         expect_condition(skip_if_not_interactive(), NA, class = "skip")
     } else {

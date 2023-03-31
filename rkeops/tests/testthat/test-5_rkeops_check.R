@@ -1,5 +1,5 @@
 test_that("check_os", {
-    expect_logical(
+    checkmate::expect_logical(
         rkeops:::check_os(onLoad = FALSE), len = 1, any.missing = FALSE)
     
     if(.Platform$OS.type != "unix") {
