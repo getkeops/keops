@@ -13,8 +13,9 @@ None
 DEPRECATED
 }
 \examples{
+\dontrun{
 rkeops_enable_verbosity()
-
+}
 }
 \seealso{
 \code{\link[=rkeops_disable_verbosity]{rkeops_disable_verbosity()}}, \code{\link[=set_rkeops_options]{set_rkeops_options()}}
