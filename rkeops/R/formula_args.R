@@ -65,8 +65,6 @@
 #' str_replace_all fixed
 #' 
 #' @importFrom checkmate assert_character assert_string
-#' 
-#' @export
 parse_args <- function(formula, args) {
     
     # check input type

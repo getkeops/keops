@@ -13,10 +13,8 @@
 #' the package (to avoid the error in this case).
 #' 
 #' @return a boolean value indicating if check is ok or not.
-#' @author Ghislain Durif
 #' 
-#' @examples
-#' check_os()
+#' @author Ghislain Durif
 check_os <- function(onLoad = FALSE) {
     if(.Platform$OS.type != "unix") {
         msg <- paste0(
@@ -49,9 +47,7 @@ check_os <- function(onLoad = FALSE) {
 #' @importFrom stringr str_c
 #' @importFrom checkmate assert_choice assert_logical test_null
 #' 
-#' @examples
-#' check_pypkg("keopscore")
-#' check_pypkg("pykeops")
+#' @author Ghislain Durif
 check_pypkg <- function(package, warn = TRUE) {
     # check input
     assert_choice(package, c("keopscore", "pykeops"))
@@ -94,8 +90,12 @@ check_pypkg <- function(package, warn = TRUE) {
 #'
 #' @return boolean value indicating if the `pykeops` package is available.
 #' 
+#' @author Ghislain Durif
+#' 
 #' @examples
+#' \dontrun{
 #' check_pykeops()
+#' }
 #' @export
 check_pykeops <- function(warn = TRUE) {
     return(check_pypkg("pykeops", warn))
@@ -113,8 +113,12 @@ check_pykeops <- function(warn = TRUE) {
 #'
 #' @return boolean value indicating if the `keopscore` package is available.
 #' 
+#' @author Ghislain Durif
+#' 
 #' @examples
+#' \dontrun{
 #' check_keopscore()
+#' }
 #' @export
 check_keopscore <- function(warn = TRUE) {
     return(check_pypkg("keopscore", warn))
@@ -135,6 +139,9 @@ check_keopscore <- function(warn = TRUE) {
 #' @inheritParams check_pypkg
 #' 
 #' @return boolean value indicating if the `rkeops` package is ready.
+#' 
+#' @author Ghislain Durif
+#' 
 #' @export
 #'
 #' @examples

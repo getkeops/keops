@@ -37,5 +37,6 @@
 #' \insertRef{JMLR:v22:20-275}{rkeops}
 #' 
 #' @importFrom utils head packageVersion
+#' @import Rdpack
 #' 
 NULL
