@@ -1,4 +1,8 @@
 test_that("keops_kernel", {
+    skip_if_no_python()
+    skip_if_no_keopscore()
+    skip_if_no_pykeops()
+    
     set_rkeops_options()
     
     ## computation on GPU ?
