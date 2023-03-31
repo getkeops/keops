@@ -45,6 +45,10 @@ test_that("get_gradient_formula", {
 })
 
 test_that("keops_grad", {
+    skip_if_no_python()
+    skip_if_no_keopscore()
+    skip_if_no_pykeops()
+    
     set_rkeops_options()
     
     ## computation on GPU ?
