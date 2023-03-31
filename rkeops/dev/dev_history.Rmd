@@ -102,6 +102,9 @@ library(checkmate)
 library(tibble)
 # Generate documentation and deal with dependencies
 attachment::att_amend_desc(path = pkg_dir)
+
+# generate README.md from README.Rmd
+devtools::build_readme(pkg_dir)
 ```
 
 ### Test and check
