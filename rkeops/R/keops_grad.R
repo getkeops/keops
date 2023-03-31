@@ -130,7 +130,7 @@ get_gradient_formula <- function(formula, args, var, args_info) {
 #' `inner_dim="col"` (default), or rows, i.e. `inner_dim="row"`, in the data.
 #' 
 #' @importFrom stringr str_match_all
-#' @importFrom checkmate assert_choice assert_function assert_integerish qassert
+#' @importFrom checkmate assert_choice assert_function assert_integerish qtest
 #' 
 #' @seealso [rkeops::keops_kernel()]
 #' 
