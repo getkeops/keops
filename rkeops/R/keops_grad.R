@@ -15,6 +15,8 @@
 #' @importFrom checkmate assert_string assert_character assert_integerish
 #' assert_list
 #' @importFrom tibble lst
+#' 
+#' @author Ghislain Durif
 get_gradient_formula <- function(formula, args, var, args_info) {
     # check input
     assert_string(formula)

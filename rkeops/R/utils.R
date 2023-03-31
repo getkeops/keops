@@ -70,9 +70,6 @@ msg_warn_error <- function(msg, type) {
 #' 
 #' @importFrom checkmate assert_string assert_count
 #' @importFrom stringi stri_rand_strings
-#'
-#' @examples
-#' random_varname(prefix = "test", len = 10)
 random_varname <- function(prefix = "", len = 5) {
     checkmate::assert_string(prefix)
     checkmate::assert_count(len)

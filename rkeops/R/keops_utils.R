@@ -19,6 +19,8 @@
 #'
 #' @return character string, path to RKeOps build directory.
 #' 
+#' @author Ghislain Durif
+#' 
 #' @importFrom reticulate import
 #' @importFrom checkmate assert_true
 #' 
@@ -53,7 +55,9 @@ get_rkeops_build_dir <- function() {
 #' You can use [rkeops::get_rkeops_build_dir()] get the path to RKeOps build 
 #' directory, and you can use [rkeops::clean_rkeops()] to delete its content.
 #'
-#' @return output of [file_info()] function.
+#' @return output of [file.info()] function.
+#' 
+#' @author Ghislain Durif
 #' 
 #' @seealso [rkeops::get_rkeops_build_dir()], [rkeops::clean_rkeops()]
 #' 
@@ -138,9 +142,6 @@ clean_rkeops <- function(warn = TRUE) {
 #' involving `Grad`. Default is `NULL`.
 #' @param input_grad character string, used for recursive call 
 #' involving `Grad`. Default is `NULL`.
-#' 
-#' @importFrom checkmate assert_logical assert_string
-#' @importFrom stringr str_c str_detect str_match str_replace_all str_split
 #'
 #' @return list with items:
 #' - `reduction_op`: character string, name of the reduction that will be 
@@ -151,9 +152,10 @@ clean_rkeops <- function(warn = TRUE) {
 #' details).
 #' - `opt_arg`: integer, optional additional argument for the reduction.
 #' 
-#' @examples
-#' formula <- "Sum_Reduction(Exp(-s * SqNorm2(x - y)) * b, 1)"
-#' get_pykeops_formula()
+#' @importFrom checkmate assert_logical assert_string
+#' @importFrom stringr str_c str_detect str_match str_replace_all str_split
+#' 
+#' @author Ghislain Durif
 get_pykeops_formula <- function(
         formula, grad = FALSE, var_to_diff = NULL, input_grad = NULL) {
     
