@@ -28,16 +28,16 @@ test_that("get_gradient_formula", {
     var <- "x"
     args_info <- parse_args(formula, args)
     res <- get_gradient_formula(formula, args, var, args_info)
-    expect_list(res)
+    checkmate::expect_list(res)
     expect_equal(names(res), c("new_formula", "new_args"))
-    expect_string(
+    checkmate::expect_string(
         res$new_formula, 
         pattern = stringr::str_c(
             "^Grad\\(", stringr::str_escape(formula), ",", var, ",", 
             "var[0-9a-zA-Z]{5}\\)$")
     )
     expect_equal(length(res$new_args), length(args) + 1)
-    expect_string(
+    checkmate::expect_string(
         tail(res$new_args, 1), 
         pattern = stringr::str_c(
             "^var[0-9a-zA-Z]{5}", stringr::str_escape("=Vi(2,1)"), "$")

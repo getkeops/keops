@@ -1,5 +1,5 @@
 test_that("get_os", {
-    expect_choice(get_os(), choices = c("linux", "macos", "windows"))
+    checkmate::expect_choice(get_os(), choices = c("linux", "macos", "windows"))
 })
 
 test_that("msg_warn_error", {

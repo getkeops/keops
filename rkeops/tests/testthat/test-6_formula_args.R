@@ -1,4 +1,5 @@
 test_that("parse_args", {
+    formula <- "Sum_Reduction(Exp(lambda * SqNorm2(x - y)) * beta, 0)"
     # short syntax
     args <- c("x=Vi(3)", "y=Vj(3)", 
               "beta=Vj(3)", "lambda=Pm(1)")

@@ -30,9 +30,9 @@ check_parse_args <- function(formula, args, arg_order = NULL, decl = "dim") {
     if(missing(arg_order)) arg_order <- seq(1, length(args), 1)
     
     out <- parse_args(formula, args)
-    expect_list(out, len = 6)
+    checkmate::expect_list(out, len = 6)
     expect_equal(out$var_name, c("x", "y", "beta", "lambda")[arg_order])
     expect_equal(out$var_type, c("Vi", "Vj", "Vj", "Pm")[arg_order])
     expect_equal(out$var_pos, c(0, 1, 2, 3)[arg_order])
-    expect_choice(out$decl, decl)
+    checkmate::expect_choice(out$decl, decl)
 }
