@@ -143,3 +143,35 @@ test_that("rkeops_use_float64", {
         expect_equal(res$precision, "float64")
     })
 })
+
+skip_if_no_python()
+skip_if_no_keopscore()
+skip_if_no_pykeops()
+
+test_that("rkeops_enable_verbosity", {
+    skip_if_no_python()
+    skip_if_no_keopscore()
+    skip_if_no_pykeops()
+    
+    withr::with_options(list(rkeops = NULL), {
+        # use float64
+        rkeops_enable_verbosity()
+        # check
+        res <- get_rkeops_options()
+        expect_equal(res$verbosity, 1)
+    })
+})
+
+test_that("rkeops_disable_verbosity", {
+    skip_if_no_python()
+    skip_if_no_keopscore()
+    skip_if_no_pykeops()
+    
+    withr::with_options(list(rkeops = NULL), {
+        # use float64
+        rkeops_disable_verbosity()
+        # check
+        res <- get_rkeops_options()
+        expect_equal(res$verbosity, 0)
+    })
+})
