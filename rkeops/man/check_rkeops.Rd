@@ -4,7 +4,10 @@
 \alias{check_rkeops}
 \title{Check if \code{rkeops} is ready and working}
 \usage{
-check_rkeops()
+check_rkeops(warn = TRUE)
+}
+\arguments{
+\item{warn}{boolean, if TRUE (default), warn user about check result.}
 }
 \value{
 boolean value indicating if the \code{rkeops} package is ready.
