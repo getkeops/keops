@@ -12,21 +12,23 @@ test_that("check_os", {
 })
 
 test_that("check_pypkg", {
-    skip("WRITE ME")
     skip_if_no_python()
+    expect_error(check_pypkg("unexisting_pkg", warn = FALSE))
+    expect_logical(check_pypkg("keopscore", warn = FALSE), len = 1)
+    expect_logical(check_pypkg("pykeops", warn = FALSE), len = 1)
 })
 
 test_that("check_keopscore", {
-    skip("WRITE ME")
     skip_if_no_python()
+    expect_logical(check_keopscore(warn = FALSE), len = 1)
 })
 
 test_that("check_pykeops", {
-    skip("WRITE ME")
     skip_if_no_python()
+    expect_logical(check_pykeops(warn = FALSE), len = 1)
 })
 
 test_that("check_rkeops", {
-    skip("WRITE ME")
     skip_if_no_python()
+    expect_logical(check_rkeops(warn = FALSE), len = 1)
 })
