@@ -371,11 +371,15 @@ rkeops_use_float64 <- function() {
 #' @seealso [rkeops::rkeops_disable_verbosity()], [rkeops::set_rkeops_options()]
 #' 
 #' @examples
+#' \dontrun{
 #' rkeops_enable_verbosity()
-#' 
+#' }
 #' @export
 rkeops_enable_verbosity <- function() {
     set_rkeops_options(list(verbosity = 1))
+    
+    assert_true(check_pykeops(warn = FALSE))
+    pykeops$set_verbose(TRUE)
 }
 
 #' Disable additional verbosity in `rkeops`
@@ -390,9 +394,13 @@ rkeops_enable_verbosity <- function() {
 #' @seealso [rkeops::rkeops_enable_verbosity()], [rkeops::set_rkeops_options()]
 #' 
 #' @examples
+#' \dontrun{
 #' rkeops_disable_verbosity()
-#' 
+#' }
 #' @export
 rkeops_disable_verbosity <- function() {
     set_rkeops_options(list(verbosity = 0))
+    
+    assert_true(check_pykeops(warn = FALSE))
+    pykeops$set_verbose(FALSE)
 }
