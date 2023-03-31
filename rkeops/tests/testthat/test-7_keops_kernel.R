@@ -32,7 +32,7 @@ test_that("keops_kernel", {
     expect_true(is.function(op))
     
     # operator information
-    expect_list(op(), len = 4)
+    checkmate::expect_list(op(), len = 4)
     expect_equal(
         names(op()), 
         c("formula", "args", "args_info", "sum_scheme")
