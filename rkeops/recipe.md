@@ -31,11 +31,9 @@ apt-get install build-essential libcurl4-gnutls-dev libxml2-dev libssl-dev
 install.packages("devtools")
 ```
 
-3. Install other dependencies
-```R
-install.packages(c("Rcpp", "RcppEigen", "openssl", "stringr", 
-                   "testthat", "knitr", "rmarkdown", "roxygen2"))
-```
+## Development pipeline
+
+Refer to [`dev/dev_history.Rmd`](dev/dev_history.Rmd) for information and details about RKeOps pipeline development.
 
 ## Continuous Integration (CI)
 
@@ -63,53 +61,33 @@ you can use the attached [project file](../keops.Rproj).
 You will be able to document, build, test and check `rkeops` with 
 Rstudio tools (`document`, `build`, `test` `check`).
 
-We recommend to run:
-```R
-source(rkeops/prebuild.R)
-```
-to update the [DESCRIPTION](.rkeops/DESCRIPTION) 
-file of `rkeops` (date, version, included R files) before 
-building.
-
-
 ## R command tools
 
 Keops root directory
 ```R
-projdir <- system("git rev-parse --show-toplevel", intern = TRUE)
-pkgdir <- file.path(projdir, "rkeops")
+proj_dir <- rprojroot::find_root(".git/index")
+pkg_dir <- file.path(proj_dir, "rkeops")
 ```
 
 ### R documentation
 
 * Automatic doc generation with `roxygen2`
 ```R
-setwd(pkgdir)
-devtools::load_all()
-devtools::document(roclets = c('rd', 'collate', 'namespace', 'vignette'))
-```
-
-### Prebuild script
-
-A prebuild script is available to update the `DESCRIPTION` file of `rkeops`
-(date, version, included R files):
-```R
-setwd(pkgdir)
-source("prebuild.R")
+devtools::load_all(pkg_dir)
+devtools::document(pkg_dir, roclets = c('rd', 'collate', 'namespace', 'vignette'))
 ```
 
 ### Package build and check
 
 ```R
-setwd(pkgdir)
-devtools::build()
-devtools::check()
+devtools::build(pkg_dir)
+devtools::check(pkg_dir)
 ```
 
 ### Release
 
 ```R
-devtools::release()
+devtools::release(pkg_dir)
 ```
 
 **Note:** To release on CRAN, it is recommended to use the command line tools, c.f. next section.
