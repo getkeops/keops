@@ -25,7 +25,6 @@ libnvrtc_folder = os.path.dirname(find_library_abspath(libnvrtc))
 
 
 def get_cuda_include_path():
-
     # auto detect location of cuda headers
 
     # First we look at CUDA_PATH env variable if it is set
@@ -187,7 +186,6 @@ def get_gpu_props():
     MaxThreadsPerBlock = [0] * (nGpus)
     SharedMemPerBlock = [0] * (nGpus)
     for d in range(nGpus):
-
         # getting handle to cuda device
         device = ctypes.c_int()
         result &= safe_call(d, cuda.cuDeviceGet(ctypes.byref(device), ctypes.c_int(d)))

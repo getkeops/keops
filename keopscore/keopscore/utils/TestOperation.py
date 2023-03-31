@@ -8,7 +8,6 @@ import types
 
 
 def TestOperation(op_str, tol=1e-4, dtype="float32", test_grad=True):
-
     # N.B. dtype can be 'float32', 'float64' or 'float16'
 
     print("")

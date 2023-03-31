@@ -60,7 +60,6 @@ setup(
         "keopscore.mapreduce",
         "keopscore.mapreduce.cpu",
         "keopscore.mapreduce.gpu",
-        "keopscore.tests",
         "keopscore.utils",
     ],
     package_data={

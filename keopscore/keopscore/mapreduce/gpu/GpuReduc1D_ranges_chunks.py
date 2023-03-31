@@ -166,7 +166,6 @@ class GpuReduc1D_ranges_chunks(MapReduce, Gpu_link_compile):
         )
 
     def get_code(self):
-
         super().get_code()
 
         red_formula = self.red_formula

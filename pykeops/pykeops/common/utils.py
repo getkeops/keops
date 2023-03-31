@@ -86,7 +86,7 @@ def check_broadcasting(dims_1, dims_2):
     padded_dims_1 = (1,) * (len(dims_2) - len(dims_1)) + dims_1
     padded_dims_2 = (1,) * (len(dims_1) - len(dims_2)) + dims_2
 
-    for (dim_1, dim_2) in zip(padded_dims_1, padded_dims_2):
+    for dim_1, dim_2 in zip(padded_dims_1, padded_dims_2):
         if dim_1 != 1 and dim_2 != 1 and dim_1 != dim_2:
             raise ValueError(
                 "Incompatible batch dimensions: {} and {}.".format(dims_1, dims_2)

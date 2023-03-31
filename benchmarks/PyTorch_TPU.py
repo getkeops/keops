@@ -56,7 +56,6 @@ nits = 100
 Ns, D = [10000, 100000, 1000000], 3
 
 for N in Ns:
-
     x = torch.randn(N, D, device=xm.xla_device())
     y = torch.randn(N, D, device=xm.xla_device())
     p = torch.randn(N, 1, device=xm.xla_device())

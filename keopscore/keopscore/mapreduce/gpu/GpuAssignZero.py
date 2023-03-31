@@ -15,7 +15,6 @@ class GpuAssignZero(MapReduce, Gpu_link_compile):
         self.dimy = self.varloader.dimy
 
     def get_code(self):
-
         super().get_code()
 
         outi = self.outi

@@ -7,7 +7,8 @@ from keopscore.formulas.reductions.Zero_Reduction import Zero_Reduction
 
 class ArgMin_Reduction(Min_ArgMin_Reduction_Base):
     """Implements the argmin reduction operation : for each i or each j, find the index of the
-    minimal value of Fij operation is vectorized: if Fij is vector-valued, argmin is computed for each dimension."""
+    minimal value of Fij operation is vectorized: if Fij is vector-valued, argmin is computed for each dimension.
+    """
 
     string_id = "ArgMin_Reduction"
 

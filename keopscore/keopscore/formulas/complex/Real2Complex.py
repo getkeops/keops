@@ -7,7 +7,6 @@ from keopscore.utils.code_gen_utils import c_zero_float, c_for_loop
 
 
 class Real2Complex(Operation):
-
     string_id = "Real2Complex"
 
     def __init__(self, f):

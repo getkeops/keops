@@ -32,7 +32,6 @@ def do_finalchunk_sub(
     yj,
     out,
 ):
-
     dimout = varfinal.dim
     yjloc = c_variable(pointer(dtype), f"({yj.id} + threadIdx.x * {dimfinalchunk})")
     load_chunks_routine_j = load_vars_chunks(
@@ -80,7 +79,6 @@ class GpuReduc1D_finalchunks(MapReduce, Gpu_link_compile):
         Gpu_link_compile.__init__(self)
 
     def get_code(self):
-
         super().get_code()
         dtype = self.dtype
         dtypeacc = self.dtypeacc

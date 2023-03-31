@@ -566,10 +566,10 @@ public :
         //start_ = clock();
 
         // Send data from device to host.
+        CUDA_SAFE_CALL(cuMemFree(p_data));
 
         if (tagHostDevice == 0) {
             CUDA_SAFE_CALL(cuMemcpyDtoH(out, (CUdeviceptr) out_d, sizeof(TYPE) * sizeout));
-            CUDA_SAFE_CALL(cuMemFree(p_data));
         }
 
         if (RR.tagRanges == 1) {

@@ -19,7 +19,6 @@ class GpuReduc1D_ranges(MapReduce, Gpu_link_compile):
         self.dimy = self.varloader.dimy
 
     def get_code(self):
-
         super().get_code()
 
         red_formula = self.red_formula

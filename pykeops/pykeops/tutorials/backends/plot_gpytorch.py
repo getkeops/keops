@@ -150,6 +150,7 @@ class KeOpsRBFKernel(gpytorch.kernels.Kernel):
 #####################################################################
 # And use it to define a new Gaussian Process model:
 
+
 # We will use the simplest form of GP model, exact inference
 class KeOpsGPModel(gpytorch.models.ExactGP):
     def __init__(self, train_x, train_y, likelihood):

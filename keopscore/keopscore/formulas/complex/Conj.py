@@ -6,7 +6,6 @@ from keopscore.formulas.VectorizedComplexScalarOp import VectorizedComplexScalar
 
 
 class Conj(VectorizedComplexScalarOp):
-
     string_id = "Conj"
 
     def ScalarOp(self, out, inF):

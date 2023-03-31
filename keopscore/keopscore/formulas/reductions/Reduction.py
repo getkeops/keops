@@ -7,7 +7,8 @@ class Reduction(Tree):
 
     def __init__(self, formula, tagI):
         """- formula is an object of type Operation, it is the formula on which we apply a reduction
-        - tagI : 0 or 1, specifies wether we do the reduction over "i"-indexed or "j"-indexed variables."""
+        - tagI : 0 or 1, specifies wether we do the reduction over "i"-indexed or "j"-indexed variables.
+        """
 
         # We initialize several constants, most of them infered from the formula
         self.formula = formula
@@ -20,7 +21,8 @@ class Reduction(Tree):
 
     def ReducePair(self, acc, xi):
         """Returns C++ code that implements the update phase of the reduction.
-        by default it consists in a vectorized version of the ReducePairScalar operation."""
+        by default it consists in a vectorized version of the ReducePairScalar operation.
+        """
         return VectApply(self.ReducePairScalar, acc, xi)
 
     def ReducePairShort(self, acc, xi, ind):

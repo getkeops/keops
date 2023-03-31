@@ -8,7 +8,6 @@ from keopscore.utils.misc_utils import KeOps_Error
 
 
 class OneHot(Operation):
-
     string_id = "OneHot"
 
     def __init__(self, f, dim):
