@@ -118,7 +118,7 @@ Bootstrapping derivatives of arbitrary order
 
 Applying these **commutation rules** between the differential operator
 :math:`\partial_\texttt{V}` and the Sum or Log-Sum-Exp reductions, the
-`pykeops/torch/generic/generic_red.py <https://github.com/getkeops/keops/blob/master/pykeops/torch/generic/generic_red.py>`_ 
+`pykeops/torch/generic/generic_red.py <https://github.com/getkeops/keops/blob/main/pykeops/torch/generic/generic_red.py>`_ 
 module provides full
 compatibility between KeOps :mod:`LazyTensors` and the 
 :mod:`torch.autograd`

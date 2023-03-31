@@ -4,7 +4,7 @@ Reductions
 
 **Following the same design principles**, :math:`\operatorname{Reduction}`
 operators are implemented in the 
-`keops/core/reductions/*.h <https://github.com/getkeops/keops/tree/master/keops/core/reductions>`_ headers.
+`keops/core/reductions/*.h <https://github.com/getkeops/keops/tree/main/keops/core/reductions>`_ headers.
 Taking as input an arbitrary symbolic formula :mod:`F`, 
 :mod:`Reduction<F>`
 templates encode generic Map-Reduce schemes 
@@ -14,7 +14,7 @@ Summation
 --------------
 
 In the case of the simple **Sum** reduction 
-(`Sum_Reduction.h <https://github.com/getkeops/keops/blob/master/keops/core/reductions/Sum_Reduction.h>`_ header), 
+(`Sum_Reduction.h <https://github.com/getkeops/keops/blob/main/keops/core/reductions/Sum_Reduction.h>`_ header), 
 these can be described as:
 
 #. An :mod:`InitializeReduction` method, which **fills up the running buffer**
@@ -45,7 +45,7 @@ The online Log-Sum-Exp trick
 --------------------------------
 
 More interestingly, the 
-`Max_SumShiftExp_Reduction.h <https://github.com/getkeops/keops/blob/master/keops/core/reductions/Max_SumShiftExp_Reduction.h>`_ 
+`Max_SumShiftExp_Reduction.h <https://github.com/getkeops/keops/blob/main/keops/core/reductions/Max_SumShiftExp_Reduction.h>`_ 
 header implements an
 **online version** of the well-known 
 `Log-Sum-Exp trick <https://en.wikipedia.org/wiki/LogSumExp>`_: 
@@ -67,7 +67,7 @@ of maximum likelihood estimators and entropic Optimal Transport solvers
 
 Merging the content of our **C++ header** and of the 
 **Python post-processing step** implemented in 
-`pykeops/common/operations.py <https://github.com/getkeops/keops/blob/master/pykeops/common/operations.py>`_,
+`pykeops/common/operations.py <https://github.com/getkeops/keops/blob/main/pykeops/common/operations.py>`_,
 assuming that :math:`F_{i,j} = F(p^1,\dots,x^1_i,\dots,y^1_j,\dots)` is
 a scalar quantity, we may describe its behaviour as follows:
 

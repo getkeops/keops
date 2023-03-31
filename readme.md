@@ -1,8 +1,8 @@
 ![logo](./doc/_static/logo/keops_logo.png)
 
-----------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
 
-[![Build status](https://ci.inria.fr/keops/buildStatus/icon?job=keops%2Fmaster)](https://ci.inria.fr/keops/job/keops/job/master/)
+[![Build status](https://ci.inria.fr/keops/buildStatus/icon?job=KeOps_ci%2Fmain)](https://ci.inria.fr/keops/job/KeOps_ci/job/main/)
 [![PyPI version](https://img.shields.io/pypi/v/pykeops?color=blue)](https://pypi.org/project/pykeops/)
 [![PyPI downloads](https://pepy.tech/badge/pykeops?color=green)](https://pypi.org/project/pykeops/)
 [![CRAN version](https://img.shields.io/cran/v/rkeops?color=yellowgreen)](https://cran.r-project.org/web/packages/rkeops/index.html)
@@ -125,7 +125,7 @@ K_ij = (- D_ij).exp()               # Symbolic (1e6,2e6,1) Gaussian kernel matri
 a_i = K_ij.sum(dim=1)  # Genuine torch.cuda.FloatTensor, a_i.shape = (1e6, 1), 
 
 # Crucially, KeOps fully supports automatic differentiation!
-g_x = torch.autograd.grad((a_i ** 2).sum(), [x])```
+g_x = torch.autograd.grad((a_i ** 2).sum(), [x])
 ```
 
 KeOps allows you to **get the most out of your hardware** without compromising on **usability**.
@@ -239,12 +239,15 @@ a report on our [GitHub issue tracker](https://github.com/getkeops/keops/issues)
 
 - [François-David Collin](https://github.com/fradav), from the University of Montpellier: Tensordot operation, CI setup.
 - [Tanguy Lefort](https://github.com/tanglef), from the University of Montpellier: conjugate gradient solver.
-- [Mauricio Diaz](https://github.com/mdiazmel), from the University of Montpellier: CI setup.
+- [Amélie Vernay](https://github.com/AmelieVernay) and [Chloé Serre-Combe](https://github.com/chloesrcb), from the University of Montpellier: support for LazyTensors in RKeOps.
+- [Mauricio Diaz](https://github.com/mdiazmel), from Inria of Paris: CI setup.
 - [Benoît Martin](https://github.com/benoitmartin88), from the Aramis Inria team: multi-GPU support.
 - [Francis Williams](https://www.fwilliams.info), from New York University: maths operations.
 - [Kshiteej Kalambarkar](https://github.com/kshitij12345), from Quansight: maths operations.
+- [Hugo Aguettaz](https://github.com/haguettaz), from ETH Zürich: trigonometric functions.
 - [D. J. Sutherland](https://djsutherland.ml), from the TTI-Chicago: bug fix in the Python package.
 - [David Völgyes](https://scholar.google.no/citations?user=ngT2GvMAAAAJ&hl=en), from the Norwegian Institute of Science and Technology: bug fix in the formula parser.
+- [Jean-Baptiste Keck](https://www.keckj.fr/), from the Univeristy Grenoble-Alpes: bug fix in the Python package.
 
 
 Beyond explicit code contributions, KeOps has grown out of numerous discussions with applied mathematicians and machine learning experts. We would especially like to thank 

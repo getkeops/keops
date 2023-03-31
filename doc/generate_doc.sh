@@ -35,7 +35,7 @@ while getopts "n:v:bl" opt; do
     -v : compile doc with the specified VERSION_NUMBER
     -n : number of consecutive build(s)
     "
-         exit -1
+         exit 255
       ;;
   esac
 done
@@ -50,7 +50,7 @@ if [ $build_step = true ]; then
 for i in 1 .. number_of_build
 do
   make clean
-  CXX=g++-8 CC=gcc-8 make html
+  make html-noplot
 done
 
 fi
@@ -58,8 +58,8 @@ fi
 if [ $fix_link = true ]; then
   printf "\n----------------------\n   Fixing doc links   \n----------------------\n\n"
   # Fix some bad links due interaction between rtd-theme and sphinx-gallery
-  find . -path "*_auto_*" -name "plot_*.html" -exec sed -i "s/doc\/_auto_\(.*\)rst/pykeops\/\1py/" {} \;
-  find . -path "*_auto_*" -name "index.html" -exec sed -i "s/doc\/_auto_\(.*\)\/index\.rst/pykeops\/\1\//" {} \;
+  find . -path "*_auto_*" -name "plot_*.html" -exec sed -i "s/doc\/_auto_\(.*\)rst/pykeops\/pykeops\/\1py/" {} \;
+  find . -path "*_auto_*" -name "index.html" -exec sed -i "s/doc\/_auto_\(.*\)\/index\.rst/pykeops\/pykeops\/\1\//" {} \;
 fi
 
 # restore original __init__.py

@@ -4,16 +4,15 @@
 \name{rkeops-package}
 \alias{rkeops-package}
 \alias{rkeops}
-\title{rkeops
-
-RKeOps: kernel operations on GPU, with autodiff, without memory overflows in
-R}
+\title{rkeops}
 \description{
+RKeOps: kernel operations on GPU, with autodiff, without memory overflows in R
+}
+\details{
 RKeOps is the R package interfacing the cpp/cuda library
 \href{https://www.kernel-operations.io/}{KeOps}. It provides
 standard R functions that can be used in any R (>=3) codes.
-}
-\details{
+
 The KeOps library provides seamless kernel operations on GPU, with
 auto-differentiation and without memory overflows.
 
@@ -25,7 +24,7 @@ when the full kernel matrix does not fit into the GPU memory.
 
 For more information, please read the vignettes
 (\code{browseVignettes("rkeops")}) and visit
-https://www.kernel-operations.io/.
+\url{https://www.kernel-operations.io/}.
 }
 \references{
 \insertRef{JMLR:v22:20-275}{rkeops}
@@ -33,6 +32,7 @@ https://www.kernel-operations.io/.
 \author{
 \itemize{
 \item \href{http://imag.umontpellier.fr/~charlier/}{Benjamin Charlier}
+\item Amelie Vernay
 \item \href{https://gdurif.perso.math.cnrs.fr/}{Ghislain Durif}
 \item \href{https://www.jeanfeydy.com}{Jean Feydy}
 \item \href{http://helios.mi.parisdescartes.fr/~glaunes/}{Joan Alexis Glaunès}

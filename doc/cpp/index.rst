@@ -8,7 +8,15 @@
 C++ API for KeOps
 =================
 
-This section documents the use of the KeOps library in C++ codes. We provide some examples in the `./keops/examples/ <https://github.com/getkeops/keops/tree/master/keops/examples>`_ directory.
+Warning !!
+----------
+
+The C++ API of KeOps is available for versions up to 1.5 only. Starting from version 2.0, KeOps uses a meta-programming engine written
+in Python to produce C++ or Cuda source code to be further compiled and used through bindings. This section describes the C++ API for
+KeOps 1.5, which can be downloaded `here <https://github.com/getkeops/keops/archive/refs/tags/v1.5.zip>`_.
+
+
+This section documents the use of the KeOps library in C++ codes. We provide some examples in the `./keops/examples/`_ directory.
 
 .. toctree::
    :maxdepth: 2

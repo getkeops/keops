@@ -1,6 +1,12 @@
 Using RKeOps
 ============
 
+Warning !!
+----------
+
+RKeOps is currently based on KeOps versions up to 1.5 only. The following instructions allow you to install
+RKeOps either from CRAN (v1.4.2.2) or from the KeOps repository, v1.5.
+
 .. raw:: html
 
    <div id="TOC">
@@ -123,6 +129,7 @@ it was only tested on Linux and MacOS.
 .. code:: r
 
     devtools::install_git("https://github.com/getkeops/keops",
+                          ref = "v1.5",
                           subdir = "rkeops",
                           args="--recursive")
     # not possible to use `devtools::intall_github()` because of the required submodule
@@ -151,9 +158,9 @@ it was only tested on Linux and MacOS.
 
    .. code:: bash
 
-       git clone --recurse-submodules="keops/lib/sequences" https://github.com/getkeops/keops
+       git clone --recurse-submodules="keops/lib/sequences" -b v1.5 https://github.com/getkeops/keops
        # or
-       git clone https://github.com/getkeops/keops
+       git clone -b v1.5 https://github.com/getkeops/keops
        cd keops
        git submodule update --init -- keops/lib/sequences
        # other submodules are not necessary for RKeOps

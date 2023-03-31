@@ -5,16 +5,16 @@ Map-Reduce schemes
 The **most important piece of code** in the KeOps package is the
 one-dimensional, heavily templated Map-Reduce scheme that can be found
 in the 
-`GpuConv1D.cu <https://github.com/getkeops/keops/blob/master/keops/core/mapreduce/GpuConv1D.cu>`_ 
+`GpuConv1D.cu <https://github.com/getkeops/keops/blob/main/keops/core/mapreduce/GpuConv1D.cu>`_ 
 CUDA file. Used as a **default backend** by the
 :mod:`Genred` operator, this standard distributed algorithm relies on
 principles that are exposed in the reference 
 `CUDA programming guide <https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#shared-memory>`_
 
 In a nutshell, this scheme may be described as a 
-**tiled “for” loop on the reduction index**  :math:`j`, 
+**tiled “for” loop on the reduction index** :math:`j`,
 parallelized over the sole
-index :math:`i` – hence the “1D” denomination – which reduces the
+index :math:`i` – hence the “1D” denomination – which reduces the
 computed values of :math:`F(p^1,\dots, x^1_i, \dots, y^1_j, \dots)`
 **on-the-fly, without ever storing or sending them to the Device
 memory.**
@@ -195,7 +195,7 @@ tensors.
 Nevertheless, to provide cover for cases where the number of “indexing
 lines” :math:`\mathrm{M}` is much smaller than the size of the “reduction range”
 :math:`\mathrm{N}`, KeOps also implements a **2D Map-Reduce scheme** in the
-`GpuConv2D.cu <https://github.com/getkeops/keops/blob/master/keops/core/mapreduce/GpuConv2D.cu>`_ 
+`GpuConv2D.cu <https://github.com/getkeops/keops/blob/main/keops/core/mapreduce/GpuConv2D.cu>`_ 
 CUDA file. Assigning the
 :math:`\mathrm{K}`-by-:math:`\mathrm{K}` tiles of
 the computation plan **one-by-one to the CUDA blocks** – instead of

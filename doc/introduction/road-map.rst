@@ -13,7 +13,7 @@ By providing cutting edge support for a wide range
 of important but "non-Euclidean" computations, we hope to 
 **stimulate research in computational mathematics and geometric data analysis**.
 
-To reach this goal with our modest means, we focus on a simple
+To reach this goal, we focus on a simple
 but powerful abstraction: :doc:`symbolic matrices <why_using_keops>`.
 We prioritize the support of widely available hardware
 (CPUs, GPUs) over domain-specific accelerators
@@ -36,35 +36,25 @@ Road map
 ----------
 
 In this context, we can summarize our plans
-for 2021-2023 in three main axes.
+for 2022-2024 in three main axes.
 
 **A) User experience:**
 
-#. **Compilation engine.** As described in the :doc:`guided tour <../engine/index>` 
-   of our inner C++ engine, KeOps relies extensively
-   on **template meta-programming** and 
-   the CMake/g++/nvcc compilation suite
-   to create efficient routines.
-   This approach is solid but has **several drawbacks**: 
-   an extremely verbose C++ syntax that slows down 
-   the development of new features and maths operations;
-   compilation times that range between ten and thirty seconds per formula;
-   **deployment issues** that hinder the adoption of KeOps
-   as a standard tool in the community.
-
-   Our main priority for 2021 is to revamp our
-   inner engine to fix these issues.
-   On the development side, we are working on
-   replacing recursive C++ templates
-   with a `Pythonic mathematical engine <https://github.com/getkeops/keops/tree/python_engine/keops/python_engine>`_. 
-   On the compilation side, we intend to rely on the 
-   `LLVM <https://llvm.org>`_ 
-   and 
-   `NVRTC <https://docs.nvidia.com/cuda/nvrtc/index.html>`_ 
-   frameworks
-   to **remove all dependencies on the system compiler**
-   and decrease pre-processing times by an order of magnitude.
-   |br|
+#. **Compatibility with the NumPy API.** 
+   The :mod:`LazyTensor <pykeops.torch.LazyTensor>` module
+   follows common PyTorch and NumPy conventions
+   but cannot always be used as a plug-in replacement.
+   To mitigate this compatibility issue, we intend to implement a new 
+   :mod:`SymbolicTensor` wrapper that will be 100% compatible with NumPy
+   while maintaining support of the :mod:`LazyTensor` API for
+   the sake of backward compatibility.
+   Among other features, we will notably
+   add support for indexing methods
+   and a :mod:`.dense()` 
+   `conversion routine <https://github.com/getkeops/keops/issues/126>`_.
+   This will allow users to turn small- and medium-sized
+   symbolic matrices into
+   dense arrays for e.g. debugging and display purposes.
 
 #. **High-dimensional vectors.**
    As detailed in our benchmarks for 
@@ -83,24 +73,7 @@ for 2021-2023 in three main axes.
    `tensor cores <https://github.com/getkeops/keops/issues/100>`_
    and quantized numerical types
    after the release of our new compilation engine.
-   |br| |br|
-
-#. **Compatibility with the NumPy API.** 
-   The :mod:`LazyTensor <pykeops.torch.LazyTensor>` module
-   follows common PyTorch and NumPy conventions
-   but cannot always be used as a plug-in replacement.
-   To alleviate this compatibility issue from 2022 onwards, 
-   we intend to implement a new 
-   :mod:`SymbolicTensor` wrapper that will be 100% compatible with NumPy
-   while maintaining support of the :mod:`LazyTensor` API for
-   the sake of backward compatibility.
-   Among other features, we will notably
-   add support for indexing methods
-   and a :mod:`.dense()` 
-   `conversion routine <https://github.com/getkeops/keops/issues/126>`_.
-   This will allow users to turn small- and medium-sized
-   symbolic matrices into
-   dense arrays for e.g. debugging and display purposes.
+   |br|
 
 
 **B) Flexibility of the engine, approximation strategies:**
@@ -176,12 +149,11 @@ for 2021-2023 in three main axes.
    :doc:`SciPy <../_auto_tutorials/backends/plot_scipy>` 
    and 
    :doc:`GPyTorch <../_auto_tutorials/backends/plot_gpytorch>`.
-   Integration with
+   We are actively working on integration with
    `PyTorch_geometric <https://pytorch-geometric.readthedocs.io/en/latest/>`_ 
    and the
-   `Python Optimal Transport (POT) <https://pythonot.github.io>`_ libraries
-   are close to our own research interests
-   and will be addressed in 2021.
+   `Python Optimal Transport (POT) <https://pythonot.github.io>`_ libraries,
+   which are close to our own research interests.
    In the long run, interactions with 
    `scikit-learn <https://scikit-learn.org/stable/>`_ 
    and
@@ -197,35 +169,18 @@ for 2021-2023 in three main axes.
    GitHub `project page <https://github.com/getkeops/keops/projects>`_.
    |br| |br|
 
-#. **Test suite.** 
-   Finally, a comprehensive test suite
-   for KeOps is long overdue.
-   Currently, the significant compilation times
-   that are required to test all the maths operations
-   that are supported by our engine
-   are pushing us towards a two-step validation process.
-   We use our lightweight 
-   `continuous integration setup <https://ci.inria.fr/keops/blue/organizations/jenkins/keops/activity>`_ to perform
-   quick checks between every commit,
-   and rely on the hours-long rendering of this website
-   to perform an in-depth review of our code
-   for every release of the PyKeOps and RKeOps packages.
-   Our new compilation engine should relieve us from
-   these constraints and allow us to perform
-   automatic evaluations of our full codebase.
-
 
 As detailed in our :doc:`contribution guide <contributing>`,
 we warmly welcome help on our `GitHub repository <https://github.com/getkeops/keops/>`_
 and keep the door open for internships and collaborations
 that are related to this library.
 So far, KeOps has been primarily developed by 
-a small group of French mathematicians in Paris, Montpellier and London...
+French mathematicians working in Paris and Montpellier...
 but we'd be happy to diversify the team!
 
 
 Changelog
 ---------
 
-Our `Changelog <https://github.com/getkeops/keops/blob/master/CHANGELOG.md>`_
+Our `Changelog <https://github.com/getkeops/keops/blob/main/CHANGELOG.md>`_
 can be found on the `KeOps Github repository <https://github.com/getkeops/keops/>`_.

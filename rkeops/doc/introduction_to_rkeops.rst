@@ -30,7 +30,7 @@ Introduction to RKeOps
 -  URL: https://www.kernel-operations.io/
 -  Source: https://github.com/getkeops/keops
 -  Licence and Copyright: see
-   https://github.com/getkeops/keops/blob/master/licence.txt
+   https://github.com/getkeops/keops/blob/main/licence.txt
 
 .. raw:: html
 
@@ -64,8 +64,8 @@ tracker <https://github.com/getkeops/keops/issues>`__!
    University of Montpellier: Tensordot operation, CI setup.
 -  `Tanguy Lefort <https://github.com/tanglef>`__, from the University
    of Montpellier: conjugate gradient solver.
--  `Mauricio Diaz <https://github.com/mdiazmel>`__, from the University
-   of Montpellier: CI setup.
+-  `Mauricio Diaz <https://github.com/mdiazmel>`__, from Inria 
+   of Paris: CI setup.
 -  `Benoît Martin <https://github.com/benoitmartin88>`__, from the
    Aramis Inria team: multi-GPU support.
 -  `Francis Williams <https://www.fwilliams.info>`__, from New York

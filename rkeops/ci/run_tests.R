@@ -1,3 +1,3 @@
-project_root_dir <- system("git rev-parse --show-toplevel", intern=TRUE)
-devtools::test(file.path(project_root_dir, "rkeops"), 
-               reporter = c('Progress', 'fail'))
+proj_dir <- rprojroot::find_root(".git/index")
+pkg_dir <- file.path(proj_dir, "rkeops")
+devtools::test(pkg_dir, reporter = c('Progress', 'fail'))

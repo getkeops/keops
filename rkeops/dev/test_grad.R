@@ -1,6 +1,7 @@
 # test definition, compilation and use of rkeops operators
-project_root_dir <- system("git rev-parse --show-toplevel", intern=TRUE)
-devtools::load_all(file.path(project_root_dir, "rkeops"))
+proj_dir <- rprojroot::find_root(".git/index")
+pkg_dir <- file.path(proj_dir, "rkeops")
+devtools::load_all(pkg_dir)
 set_rkeops_options()
 clean_rkeops()
 
@@ -18,24 +19,8 @@ y <- matrix(runif(ny*3), nrow=3, ncol=ny)
 eta <- matrix(1, nrow=1, ncol=nx)
 
 input <- list(x, y, eta)
-res1 <- op(input, inner_dim=0)
+res1 <- op(input, inner_dim="row")
 
-
-# GramFromPos
-message("## testing GradFromPos")
-formula <- "GradFromPos(Sum_Reduction(SqNorm2(x-y), 0), x, 2)"
-args <- c("x=Vi(0,3)", "y=Vj(1,3)")
-op <- keops_kernel(formula, args)
-res2 <- op(input, inner_dim=0)
-
-# GramFromInd
-message("## testing GradFromInd")
-formula <- "GradFromInd(Sum_Reduction(SqNorm2(x-y), 0), 0, 2)"
-args <- c("x=Vi(0,3)", "y=Vj(1,3)")
-op <- keops_kernel(formula, args)
-res3 <- op(input, inner_dim=0)
-
-sum(abs(res2 - res3))
 
 # keops_grad
 message("## keops_grad")
@@ -45,6 +30,10 @@ op <- keops_kernel(formula, args)
 
 input <- list(x, y)
 res <- op(input, inner_dim=0)
+
+grad_op <- keops_grad(op, var="x")
+input <- list(x, y, eta)
+res4 <- grad_op(input, inner_dim=0)
 
 grad_op <- keops_grad(op, var=0)
 input <- list(x, y, eta)

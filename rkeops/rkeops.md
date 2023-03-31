@@ -29,7 +29,7 @@ a report on our [GitHub issue tracker](https://github.com/getkeops/keops/issues)
 
 - [François-David Collin](https://github.com/fradav), from the University of Montpellier: Tensordot operation, CI setup.
 - [Tanguy Lefort](https://github.com/tanglef), from the University of Montpellier: conjugate gradient solver.
-- [Mauricio Diaz](https://github.com/mdiazmel), from the University of Montpellier: CI setup.
+- [Mauricio Diaz](https://github.com/mdiazmel), from Inria of Paris: CI setup.
 - [Benoît Martin](https://github.com/benoitmartin88), from the Aramis Inria team: multi-GPU support.
 - [Francis Williams](https://www.fwilliams.info), from New York University: maths operations.
 - [Kshiteej Kalambarkar](https://github.com/kshitij12345), from Quansight: maths operations.
@@ -124,6 +124,7 @@ install.packages("rkeops")
 * Install directly from Github (requires `git`)
 ```R
 devtools::install_git("https://github.com/getkeops/keops", 
+                      ref = "v1.5",
                       subdir = "rkeops", 
                       args="--recursive")
 # not possible to use `devtools::intall_github()` because of the required submodule
@@ -133,9 +134,9 @@ devtools::install_git("https://github.com/getkeops/keops",
 
 * Get KeOps sources (bash command)
 ```bash
-git clone --recurse-submodules="keops/lib/sequences" https://github.com/getkeops/keops
+git clone --recurse-submodules="keops/lib/sequences" -b v1.5 https://github.com/getkeops/keops
 # or
-git clone https://github.com/getkeops/keops
+git clone -b v1.5 https://github.com/getkeops/keops
 cd keops
 git submodule update --init -- keops/lib/sequences
 # other submodules are not necessary for RKeOps

@@ -22,9 +22,9 @@ the relevant variables.
 Back in 2017, in early KeOps releases, this is how we first
 implemented the Gaussian kernel dot product and its derivatives of
 order 1 and 2 : with **explicit** 
-“`gaussian_dot.cu <https://github.com/getkeops/keops/blob/master/keops/specific/radial_kernels/cuda_conv.cx>`_”,
-“`gaussian_dot_grad_x.cu <https://github.com/getkeops/keops/blob/master/keops/specific/radial_kernels/cuda_grad1conv.cx>`_”, 
-“`gaussian_dot_grad_xx.cu <https://github.com/getkeops/keops/blob/master/keops/specific/radial_kernels/cuda_gradconv_xx.cx>`_” 
+“`gaussian_dot.cu <https://github.com/getkeops/keops/blob/main/keops/specific/radial_kernels/cuda_conv.cx>`_”,
+“`gaussian_dot_grad_x.cu <https://github.com/getkeops/keops/blob/main/keops/specific/radial_kernels/cuda_grad1conv.cx>`_”, 
+“`gaussian_dot_grad_xx.cu <https://github.com/getkeops/keops/blob/main/keops/specific/radial_kernels/cuda_gradconv_xx.cx>`_” 
 CUDA files.
 Once the basics are understood, **writing by hand** an *ad hoc* CUDA program
 for every specific type of operation is not too difficult.
@@ -82,7 +82,7 @@ Working with variadic templates
 To achieve our goals whilst abiding by these constraints, we chose to
 **rely on the power of modern C++/CUDA compilers**. Leveraging
 expressive **meta-programming instructions** that were introduced by the
-C++11 revision, the `keops/core/ <https://github.com/getkeops/keops/tree/master/keops/core>`_ folder effectively
+C++11 revision, the `keops/core/ <https://github.com/getkeops/keops/tree/main/keops/core>`_ folder effectively
 implements a small but robust math engine **within the C++ templating system**.
 
 Letting a general-purpose tool such as **nvcc** or **clang** handle the

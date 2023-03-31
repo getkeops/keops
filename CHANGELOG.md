@@ -1,3 +1,18 @@
+* v2.1 - Jun 3, 2022
+    - Fix for gradient formula of divide operation (issue #246).
+    - Fix for special chunked computation mode (issue #243).
+    - Fix for the gradient formula for complex multiplication operation (issue #238).
+    - Other minor bug fixes (issues #242, #240, #248, #241, #233).
+    - Added support for BSpline kernels.
+
+* v2.0 - Mar 17, 2022
+    - Complete rewritting of meta-programming engine: compilation times are divided by 10-100
+    - JIT compilation of cuda kernels
+    - added support for in-place operations.
+    - keopsLab is now deprecated
+    - improve unit test framework
+    - Many bug fixing
+
 * v1.5 - Mar 22, 2021
     - Add multiple operations: acos, asin, atan, atan2, sinc, if-else, round, modulo.
     - Complex numbers: full python support, pairs of float/double for other languages.
