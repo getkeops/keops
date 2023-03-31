@@ -1,3 +1,7 @@
+# requirements
+library(checkmate)
+library(withr)
+
 # helper function to skip tests if Python is not available on the system
 skip_if_no_python <- function() {
     have_python <- reticulate::py_available()
@@ -7,14 +11,14 @@ skip_if_no_python <- function() {
 # helper function to skip tests if `keopscore` is not available
 skip_if_no_keopscore <- function() {
     skip_if_no_python()
-    have_keopscore <- rkeops:::check_keopscore()
+    have_keopscore <- rkeops:::check_keopscore(warn=FALSE)
     if(!have_keopscore) skip("'keopscore' not available for testing")
 }
 
 # helper function to skip tests if `pykeops` is not available
 skip_if_no_pykeops <- function() {
     skip_if_no_python()
-    have_pykeops <- rkeops:::check_pykeops()
+    have_pykeops <- rkeops:::check_pykeops(warn=FALSE)
     if(!have_pykeops) skip("'pykeops' not available for testing")
 }
 
