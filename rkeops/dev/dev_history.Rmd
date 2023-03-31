@@ -24,7 +24,7 @@ reticulate::virtualenv_create("rkeops")
 # activate python environment
 reticulate::use_virtualenv(virtualenv = "rkeops", required = TRUE)
 # check Python config
-reticulate::py_discover_config()
+reticulate::py_config()
 ```
 
 ## Package development
