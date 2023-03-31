@@ -29,4 +29,7 @@ for more details).
 \description{
 Generate formula and input args list for the Gradient of an existing formula
 }
+\author{
+Ghislain Durif
+}
 \keyword{internal}

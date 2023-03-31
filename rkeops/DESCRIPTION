@@ -27,6 +27,7 @@ BugReports: https://github.com/getkeops/keops/issues
 Imports: 
     checkmate,
     future,
+    Rdpack,
     reticulate,
     RhpcBLASctl,
     stringi,
@@ -38,9 +39,13 @@ Suggests:
     rmarkdown,
     testthat (>= 3.0.0),
     withr
+VignetteBuilder: 
+    knitr
+RdMacros: 
+    Rdpack
 Config/reticulate: list(list(package = "pykeops"))
 Config/testthat/edition: 3
-Date/Publication: 2023/03/15
+Date/Publication: 2023/03/31
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)

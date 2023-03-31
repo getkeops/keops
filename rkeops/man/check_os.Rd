@@ -20,9 +20,6 @@ at the moment. Windows is not supported.
 \details{
 Return 0 if run on Windows and 1 otherwise, with a possible warning.
 }
-\examples{
-check_os()
-}
 \author{
 Ghislain Durif
 }

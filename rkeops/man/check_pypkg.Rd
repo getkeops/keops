@@ -22,8 +22,7 @@ normally done at \code{rkeops} package install).
 Should be used to test the availability of \code{keopscore} and of \code{pykeops}
 packages.
 }
-\examples{
-check_pypkg("keopscore")
-check_pypkg("pykeops")
+\author{
+Ghislain Durif
 }
 \keyword{internal}

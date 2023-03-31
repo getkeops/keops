@@ -29,3 +29,6 @@ Under the hood, several verifications are made:
 check_rkeops()
 }
 }
+\author{
+Ghislain Durif
+}

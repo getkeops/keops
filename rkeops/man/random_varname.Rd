@@ -19,7 +19,4 @@ character string, name of the python environment.
 Helper function to generate random variable name for gradient input in
 formula
 }
-\examples{
-random_varname(prefix = "test", len = 10)
-}
 \keyword{internal}

@@ -17,6 +17,11 @@ In practice, check if \code{pykeops} Python package is installed (which is done
 at \code{rkeops} package install).
 }
 \examples{
+\dontrun{
 check_pykeops()
+}
+}
+\author{
+Ghislain Durif
 }
 \keyword{internal}

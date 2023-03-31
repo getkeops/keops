@@ -10,7 +10,7 @@ rkeops_disable_verbosity()
 None
 }
 \description{
-DEPRECATED
+Disable verbosity during operator compilation process.
 }
 \examples{
 \dontrun{
