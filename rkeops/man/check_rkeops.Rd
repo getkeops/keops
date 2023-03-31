@@ -13,7 +13,16 @@ check_rkeops(warn = TRUE)
 boolean value indicating if the \code{rkeops} package is ready.
 }
 \description{
-WRITE ME
+The function checks if the \code{rkeops} package is working and ready for use.
+}
+\details{
+Under the hood, several verifications are made:
+\itemize{
+\item assess if Python is available on the system
+\item assess if \code{rkeops} Python package dependencies are available (namely
+\code{keopscore} and \code{pykeops}, that should be installed along with \code{rkeops})
+\item assess if \code{rkeops} internal machinery is working
+}
 }
 \examples{
 \dontrun{
