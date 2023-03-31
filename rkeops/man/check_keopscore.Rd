@@ -17,6 +17,11 @@ In practice, check if \code{keopscore} Python package is installed (which is don
 at \code{rkeops} package install).
 }
 \examples{
+\dontrun{
 check_keopscore()
+}
+}
+\author{
+Ghislain Durif
 }
 \keyword{internal}

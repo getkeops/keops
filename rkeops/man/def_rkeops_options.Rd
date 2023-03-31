@@ -59,14 +59,10 @@ It is recommended to use default GPU (i.e. \code{device_id = -1} or \code{0}) an
 manage GPU assignment outside R by setting the environment variable
 \code{CUDA_VISIBLE_DEVICES}.
 }
-\examples{
-def_rkeops_options()
-
-}
 \seealso{
 \code{\link[=rkeops_use_float32]{rkeops_use_float32()}}, \code{\link[=rkeops_use_float64]{rkeops_use_float64()}},
 \code{\link[=rkeops_use_cpu]{rkeops_use_cpu()}}, \code{\link[=rkeops_use_gpu]{rkeops_use_gpu()}},
-\code{\link[=enable_verbosity]{enable_verbosity()}}, \code{\link[=disable_verbosity]{disable_verbosity()}}
+\code{\link[=rkeops_enable_verbosity]{rkeops_enable_verbosity()}}, \code{\link[=rkeops_disable_verbosity]{rkeops_disable_verbosity()}}
 }
 \author{
 Ghislain Durif

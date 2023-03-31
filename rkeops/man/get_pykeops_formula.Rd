@@ -51,8 +51,7 @@ variable).
 \code{axis=1} means a reduction over \code{j} (meaning that the result is a \code{Vi}
 variable).
 }
-\examples{
-formula <- "Sum_Reduction(Exp(-s * SqNorm2(x - y)) * b, 1)"
-get_pykeops_formula()
+\author{
+Ghislain Durif
 }
 \keyword{internal}

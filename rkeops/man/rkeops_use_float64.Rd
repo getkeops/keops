@@ -24,8 +24,9 @@ accuracy of your computation and validity of your results
 in certain applications.
 }
 \examples{
+\dontrun{
 rkeops_use_float64()
-
+}
 }
 \seealso{
 \code{\link[=rkeops_use_float32]{rkeops_use_float32()}}, \code{\link[=set_rkeops_options]{set_rkeops_options()}}

@@ -33,14 +33,18 @@ accordingly.
 Some helper functions are available to enable some options,
 see \code{\link[=rkeops_use_float32]{rkeops_use_float32()}}, \code{\link[=rkeops_use_float64]{rkeops_use_float64()}},
 \code{\link[=rkeops_use_cpu]{rkeops_use_cpu()}}, \code{\link[=rkeops_use_gpu]{rkeops_use_gpu()}},
-\code{\link[=enable_verbosity]{enable_verbosity()}}, \code{\link[=disable_verbosity]{disable_verbosity()}}.
+\code{\link[=rkeops_enable_verbosity]{rkeops_enable_verbosity()}}, \code{\link[=rkeops_disable_verbosity]{rkeops_disable_verbosity()}}.
 }
 \examples{
 set_rkeops_options()
+
 }
 \seealso{
 \code{\link[=def_rkeops_options]{def_rkeops_options()}}, \code{\link[=get_rkeops_options]{get_rkeops_options()}},
 \code{\link[=rkeops_use_float32]{rkeops_use_float32()}}, \code{\link[=rkeops_use_float64]{rkeops_use_float64()}},
 \code{\link[=rkeops_use_cpu]{rkeops_use_cpu()}}, \code{\link[=rkeops_use_gpu]{rkeops_use_gpu()}},
-\code{\link[=enable_verbosity]{enable_verbosity()}}, \code{\link[=disable_verbosity]{disable_verbosity()}}
+\code{\link[=rkeops_enable_verbosity]{rkeops_enable_verbosity()}}, \code{\link[=rkeops_disable_verbosity]{rkeops_disable_verbosity()}}
+}
+\author{
+Ghislain Durif
 }
