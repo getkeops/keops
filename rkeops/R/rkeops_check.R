@@ -123,8 +123,17 @@ check_keopscore <- function(warn = TRUE) {
 #' Check if `rkeops` is ready and working
 #' 
 #' @description 
-#' WRITE ME
-#'
+#' The function checks if the `rkeops` package is working and ready for use.
+#' 
+#' @details
+#' Under the hood, several verifications are made:
+#' - assess if Python is available on the system
+#' - assess if `rkeops` Python package dependencies are available (namely 
+#' `keopscore` and `pykeops`, that should be installed along with `rkeops`)
+#' - assess if `rkeops` internal machinery is working
+#' 
+#' @inheritParams check_pypkg
+#' 
 #' @return boolean value indicating if the `rkeops` package is ready.
 #' @export
 #'
@@ -132,6 +141,41 @@ check_keopscore <- function(warn = TRUE) {
 #' \dontrun{
 #' check_rkeops()
 #' }
-check_rkeops <- function() {
-    # WRITE ME
+check_rkeops <- function(warn = TRUE) {
+    # init
+    check0 <- FALSE
+    check1 <- FALSE
+    check2 <- FALSE
+    check3 <- FALSE
+    
+    # check Python availability
+    check0 <- reticulate::py_available()
+    if(!check0) {
+        msg <- stringr::str_c("'Python' is not available.")
+        if(warn) warning(msg)
+    } else {
+        
+        # check Python package availability
+        check1 <- check_keopscore(warn)
+        check2 <- check_pykeops(warn)
+        
+        # check PyKeOps working
+        if(check2) {
+            out <- tryCatch({
+                pykeops$test_numpy_bindings()
+            }, error = function(e) e)
+            
+            check3 <- !any(class(out) == "error")
+        }
+    }
+    # final message
+    if(!all(c(check0,check1,check2,check3))) {
+        msg <- stringr::str_c("'rkeops' is not ready.")
+        if(warn) warning(msg)
+    } else {
+        msg <- stringr::str_c("'rkeops' is ready and working.")
+        if(warn) message(msg)
+    }
+    # output
+    return(all(c(check0,check1,check2,check3)))
 }
