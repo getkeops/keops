@@ -22,7 +22,6 @@ class CpuReduc_ranges(MapReduce, Cpu_link_compile):
         self.dimy = self.varloader.dimy
 
     def get_code(self):
-
         super().get_code()
 
         i = self.i

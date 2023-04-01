@@ -161,7 +161,7 @@ class KernelSolve:
         else:
             # we need to recover index from alias
             tmp = self.aliases.copy()
-            for (i, s) in enumerate(tmp):
+            for i, s in enumerate(tmp):
                 tmp[i] = s[: s.find("=")].strip()
             varinvpos = tmp.index(varinvalias)
         self.varinvpos = varinvpos

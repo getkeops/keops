@@ -27,8 +27,9 @@ output are converted to 32bit float before computation and back to
 64bit float after computation.
 }
 \examples{
+\dontrun{
 rkeops_use_float32()
-
+}
 }
 \seealso{
 \code{\link[=rkeops_use_float64]{rkeops_use_float64()}}, \code{\link[=set_rkeops_options]{set_rkeops_options()}}

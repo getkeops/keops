@@ -41,7 +41,6 @@ class MapReduce:
         self.varloader = Var_loader(self.red_formula)
 
     def get_code(self):
-
         self.headers = "#define C_CONTIGUOUS 1\n"
 
         if self.use_half == 1:

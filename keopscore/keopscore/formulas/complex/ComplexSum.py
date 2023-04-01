@@ -8,7 +8,6 @@ from keopscore.utils.misc_utils import KeOps_Error
 
 
 class ComplexSum(Operation):
-
     string_id = "ComplexSum"
 
     def __init__(self, f):

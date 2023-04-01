@@ -175,6 +175,7 @@ keops_kernel <- function(
         
         ## Use pykeops.numpy.Genred
         # load GenredR
+        GenredR <- NULL
         reticulate::source_python(
             system.file(file.path("python", "generic_red_R.py"), 
                         package = "rkeops"))

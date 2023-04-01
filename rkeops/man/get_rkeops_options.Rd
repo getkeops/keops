@@ -23,11 +23,15 @@ Their current values can be printed with \code{get_rkeops_options()}. See
 \code{\link[=def_rkeops_options]{def_rkeops_options()}} for more details about these options.
 }
 \examples{
-library(rkeops)
+set_rkeops_options()
 get_rkeops_options()
 get_rkeops_options("backend")
 get_rkeops_options(c("backend", "precision"))
+
 }
 \seealso{
 \code{\link[=def_rkeops_options]{def_rkeops_options()}}, \code{\link[=set_rkeops_options]{set_rkeops_options()}}
+}
+\author{
+Ghislain Durif
 }

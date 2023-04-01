@@ -37,7 +37,9 @@ def KeOps_OS_Run(command):
 
         out = subprocess.run(command, shell=True, capture_output=True)
         if out.stderr != b"":
-            KeOps_Warning("There were warnings or errors compiling formula :", newline=True)
+            KeOps_Warning(
+                "There were warnings or errors compiling formula :", newline=True
+            )
             print(out.stderr.decode("utf-8"))
     elif python_version >= (3, 5):
         import subprocess

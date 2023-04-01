@@ -12,7 +12,6 @@ from keopscore.utils.math_functions import keops_diffclampint
 
 
 class DiffClampInt(VectorizedScalarOp):
-
     string_id = "DiffClampInt"
 
     def __init__(self, x, a, b):

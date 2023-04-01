@@ -34,12 +34,13 @@ a report on our [GitHub issue tracker](https://github.com/getkeops/keops/issues)
 **Core library - KeOps, PyKeOps, KeOpsLab:**
 
 - [Benjamin Charlier](https://imag.umontpellier.fr/~charlier/), from the University of Montpellier.
-- [Jean Feydy](https://www.jeanfeydy.com), from Imperial College London.
+- [Jean Feydy](https://www.jeanfeydy.com), from Inria.
 - [Joan Alexis Glaunès](http://helios.mi.parisdescartes.fr/~glaunes/), from the University of Paris.
 
 **R bindings - RKeOps:**
 
-- [Ghislain Durif](https://gdurif.perso.math.cnrs.fr/), from the University of Montpellier.
+- Amelie Vernay, from the University of Montpellier.
+- [Ghislain Durif](https://gdurif.perso.math.cnrs.fr/), from CNRS.
 
 **Contributors:**
 

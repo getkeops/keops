@@ -56,6 +56,7 @@ extensions = [
     "sphinx.ext.linkcode",
 ]
 
+
 # sphinx.ext.linkcode
 def linkcode_resolve(domain, info):
     def find_source():

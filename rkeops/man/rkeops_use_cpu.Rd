@@ -29,8 +29,9 @@ the number of cores used by \code{rkeops} user-defined operators, you can used
 the input parameter \code{ncore}.
 }
 \examples{
+\dontrun{
 rkeops_use_cpu()
-
+}
 }
 \seealso{
 \code{\link[=rkeops_use_gpu]{rkeops_use_gpu()}}, \code{\link[=set_rkeops_options]{set_rkeops_options()}}

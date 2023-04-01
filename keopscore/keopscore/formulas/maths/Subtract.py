@@ -2,6 +2,7 @@ from keopscore.formulas.Operation import Broadcast
 from keopscore.formulas.VectorizedScalarOp import VectorizedScalarOp
 from keopscore.formulas.variables.Zero import Zero
 from keopscore.formulas.maths.Mult import Mult_Impl
+from keopscore.formulas.maths.Sum import Sum
 from keopscore.formulas.variables.IntCst import IntCst, IntCst_Impl
 
 ##########################
@@ -22,7 +23,12 @@ class Subtract_Impl(VectorizedScalarOp):
 
     def DiffT(self, v, gradin):
         fa, fb = self.children
-        return fa.DiffT(v, gradin) - fb.DiffT(v, gradin)
+        if fa.dim == 1 and fb.dim > 1:
+            return fa.DiffT(v, Sum(gradin)) - fb.DiffT(v, gradin)
+        elif fb.dim == 1 and fa.dim > 1:
+            return fa.DiffT(v, gradin) - fb.DiffT(v, Sum(gradin))
+        else:
+            return fa.DiffT(v, gradin) - fb.DiffT(v, gradin)
 
     # parameters for testing the operation (optional)
     nargs = 2  # number of arguments

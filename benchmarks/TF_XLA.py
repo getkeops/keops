@@ -13,6 +13,7 @@ from time import time
 # Make sure that we're using the v2.0.0
 print(tf.__version__)
 
+
 # Our function, that XLA is going to compile
 def KP(x, y, p):
     D_ij = tf.math.reduce_sum((x - y) ** 2, axis=2)
@@ -29,7 +30,6 @@ Ns, D = [10000, 100000, 1000000], 3
 
 # First, test without XLA
 for N in Ns[:1]:
-
     # Generate the data
     x = tf.random.normal((N, 1, D))
     y = tf.random.normal((1, N, D))
@@ -54,7 +54,6 @@ for N in Ns[:1]:
 
 # Second, test with XLA
 for N in Ns:
-
     # Generate the data
     x = tf.random.normal((N, 1, D))
     y = tf.random.normal((1, N, D))

@@ -47,15 +47,10 @@
 #' 
 #' @seealso [rkeops::rkeops_use_float32()], [rkeops::rkeops_use_float64()], 
 #' [rkeops::rkeops_use_cpu()], [rkeops::rkeops_use_gpu()], 
-#' [rkeops::enable_verbosity()], [rkeops::disable_verbosity()]
+#' [rkeops::rkeops_enable_verbosity()], [rkeops::rkeops_disable_verbosity()]
 #' 
 #' @importFrom tibble lst
 #' @importFrom checkmate assert_choice assert_integerish qassert
-#' 
-#' @examples
-#' def_rkeops_options()
-#' 
-#' @export
 def_rkeops_options <- function(
         backend = "CPU", device_id = -1, precision = "float32",
         verbosity = FALSE, debug = FALSE) {
@@ -95,11 +90,14 @@ def_rkeops_options <- function(
 #' 
 #' @importFrom checkmate assert_subset test_null
 #' 
+#' @author Ghislain Durif
+#' 
 #' @examples
-#' library(rkeops)
+#' set_rkeops_options()
 #' get_rkeops_options()
 #' get_rkeops_options("backend")
 #' get_rkeops_options(c("backend", "precision"))
+#' 
 #' @export
 get_rkeops_options <- function(option = NULL) {
     ## check input
@@ -148,7 +146,7 @@ get_rkeops_options <- function(option = NULL) {
 #' Some helper functions are available to enable some options, 
 #' see [rkeops::rkeops_use_float32()], [rkeops::rkeops_use_float64()], 
 #' [rkeops::rkeops_use_cpu()], [rkeops::rkeops_use_gpu()], 
-#' [rkeops::enable_verbosity()], [rkeops::disable_verbosity()].
+#' [rkeops::rkeops_enable_verbosity()], [rkeops::rkeops_disable_verbosity()].
 #' 
 #' @param input a list of named values corresponding to rkeops options 
 #' to be updated.
@@ -158,12 +156,15 @@ get_rkeops_options <- function(option = NULL) {
 #' @seealso [rkeops::def_rkeops_options()], [rkeops::get_rkeops_options()],
 #' [rkeops::rkeops_use_float32()], [rkeops::rkeops_use_float64()], 
 #' [rkeops::rkeops_use_cpu()], [rkeops::rkeops_use_gpu()], 
-#' [rkeops::enable_verbosity()], [rkeops::disable_verbosity()]
+#' [rkeops::rkeops_enable_verbosity()], [rkeops::rkeops_disable_verbosity()]
 #' 
 #' @importFrom checkmate assert_list assert_subset test_null
 #' 
+#' @author Ghislain Durif
+#' 
 #' @examples
 #' set_rkeops_options()
+#' 
 #' @export
 set_rkeops_options <- function(input = NULL) {
     ## check input
@@ -234,8 +235,9 @@ set_rkeops_options <- function(input = NULL) {
 #' @importFrom checkmate qassert
 #' 
 #' @examples
+#' \dontrun{
 #' rkeops_use_gpu()
-#' 
+#' }
 #' @export
 rkeops_use_gpu <- function(device = -1) {
     
@@ -278,8 +280,9 @@ rkeops_use_gpu <- function(device = -1) {
 #' @importFrom checkmate assert_count test_null
 #' 
 #' @examples
+#' \dontrun{
 #' rkeops_use_cpu()
-#' 
+#' }
 #' @export
 rkeops_use_cpu <- function(ncore = NULL) {
     # check input
@@ -322,8 +325,9 @@ rkeops_use_cpu <- function(ncore = NULL) {
 #' @seealso [rkeops::rkeops_use_float64()], [rkeops::set_rkeops_options()]
 #' 
 #' @examples
+#' \dontrun{
 #' rkeops_use_float32()
-#' 
+#' }
 #' @export
 rkeops_use_float32 <- function() {
     set_rkeops_options(list(precision = "float32"))
@@ -352,8 +356,9 @@ rkeops_use_float32 <- function() {
 #' @seealso [rkeops::rkeops_use_float32()], [rkeops::set_rkeops_options()]
 #' 
 #' @examples
+#' \dontrun{
 #' rkeops_use_float64()
-#' 
+#' }
 #' @export
 rkeops_use_float64 <- function() {
     set_rkeops_options(list(precision = "float64"))
@@ -362,7 +367,7 @@ rkeops_use_float64 <- function() {
 #' Enable additional verbosity in `rkeops`
 #' 
 #' @description
-#' DEPRECATED
+#' Enable verbosity during operator compilation process.
 #' 
 #' @author Ghislain Durif
 #' 
@@ -371,17 +376,21 @@ rkeops_use_float64 <- function() {
 #' @seealso [rkeops::rkeops_disable_verbosity()], [rkeops::set_rkeops_options()]
 #' 
 #' @examples
+#' \dontrun{
 #' rkeops_enable_verbosity()
-#' 
+#' }
 #' @export
 rkeops_enable_verbosity <- function() {
     set_rkeops_options(list(verbosity = 1))
+    
+    assert_true(check_pykeops(warn = FALSE))
+    pykeops$set_verbose(TRUE)
 }
 
 #' Disable additional verbosity in `rkeops`
 #' 
 #' @description
-#' DEPRECATED
+#' Disable verbosity during operator compilation process.
 #' 
 #' @author Ghislain Durif
 #' 
@@ -390,9 +399,13 @@ rkeops_enable_verbosity <- function() {
 #' @seealso [rkeops::rkeops_enable_verbosity()], [rkeops::set_rkeops_options()]
 #' 
 #' @examples
+#' \dontrun{
 #' rkeops_disable_verbosity()
-#' 
+#' }
 #' @export
 rkeops_disable_verbosity <- function() {
     set_rkeops_options(list(verbosity = 0))
+    
+    assert_true(check_pykeops(warn = FALSE))
+    pykeops$set_verbose(FALSE)
 }

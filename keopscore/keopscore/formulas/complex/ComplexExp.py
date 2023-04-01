@@ -21,7 +21,6 @@ from keopscore.formulas.maths.Sin import Sin
 
 
 class ComplexExp(VectorizedComplexScalarOp):
-
     string_id = "ComplexExp"
 
     def ScalarOp(self, out, inF):

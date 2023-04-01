@@ -162,6 +162,7 @@ def LDDMMloss(K, dataloss, gamma=0):
 #####################################################################
 # Varifold data attachment loss for surfaces
 
+
 # VT: vertices coordinates of target surface,
 # FS,FT : Face connectivity of source and target surfaces
 # K kernel

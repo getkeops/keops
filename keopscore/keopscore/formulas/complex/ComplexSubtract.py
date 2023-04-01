@@ -6,7 +6,6 @@ from keopscore.formulas.VectorizedComplexScalarOp import VectorizedComplexScalar
 
 
 class ComplexSubtract(VectorizedComplexScalarOp):
-
     string_id = "ComplexSubtract"
 
     def ScalarOp(self, out, inF, inG):
@@ -15,5 +14,12 @@ class ComplexSubtract(VectorizedComplexScalarOp):
         return string
 
     def DiffT(self, v, gradin):
+        from keopscore.formulas.complex.ComplexSum import ComplexSum
+
         f, g = self.children
-        return ComplexSubtract(f.DiffT(v, gradin), g.DiffT(v, gradin))
+        if f.dim == 2 and g.dim > 2:
+            return ComplexSubtract(f.DiffT(v, ComplexSum(gradin)), g.DiffT(v, gradin))
+        elif g.dim == 2 and f.dim > 2:
+            return ComplexSubtract(f.DiffT(v, gradin), g.DiffT(v, ComplexSum(gradin)))
+        else:
+            return ComplexSubtract(f.DiffT(v, gradin), g.DiffT(v, gradin))

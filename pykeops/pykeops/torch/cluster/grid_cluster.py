@@ -37,7 +37,8 @@ def grid_cluster(x, size):
             weights = torch.IntTensor([2**20, 2**10, 1]).to(x.device)
         else:
             raise NotImplementedError()
-        x_ = (x / size).floor().int()
+
+        x_ = ((x - x.min(axis=0, keepdim=True).values) / size).floor().int()
         x_ *= weights
         lab = x_.sum(1)  # labels
         lab = lab - lab.min()

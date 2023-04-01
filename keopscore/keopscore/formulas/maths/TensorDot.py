@@ -54,7 +54,6 @@ class TensorDot(Operation):
     string_id = "TensorDot"
 
     def __init__(self, fa, fb, dimsfa, dimsfb, contfa, contfb, permute=None):
-
         dimsfa = list(dimsfa)
         dimsfb = list(dimsfb)
         contfa = list(contfa)
@@ -65,7 +64,7 @@ class TensorDot(Operation):
         assert fa.dim == prod(dimsfa)
         assert fb.dim == prod(dimsfb)
 
-        super().__init__(fa, fb)
+        super().__init__(fa, fb, params=(dimsfa, dimsfb, contfa, contfb, permute))
 
         self.dimfa = dimsfa
         self.dimfb = dimsfb
@@ -149,17 +148,17 @@ class TensorDot(Operation):
             )
 
         list_indices_keepdim = permutation(self.permute, range(len(self.keepdims)))
-        str_out_indices = ""
+        str_out_indices = "0 +"
         for i, v in enumerate(list_indices_keepdim):
             str_out_indices += (
                 f"TD_var_{chr(70 + v)} * {self.list_strides_keepdim[i]} + "
             )
 
-        str_a_indices = ""
+        str_a_indices = "0 +"
         for i, v in enumerate(self.list_indices_a_intot):
             str_a_indices += f"TD_var_{chr(70 + v)} * {self.list_strides_dimsfa[i]} + "
 
-        str_b_indices = ""
+        str_b_indices = "0 +"
         for i, v in enumerate(self.list_indices_b_intot):
             str_b_indices += f"TD_var_{chr(70 + v)} * {self.list_strides_dimsfb[i]} + "
 

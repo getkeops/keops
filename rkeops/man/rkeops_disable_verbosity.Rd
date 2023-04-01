@@ -10,11 +10,12 @@ rkeops_disable_verbosity()
 None
 }
 \description{
-DEPRECATED
+Disable verbosity during operator compilation process.
 }
 \examples{
+\dontrun{
 rkeops_disable_verbosity()
-
+}
 }
 \seealso{
 \code{\link[=rkeops_enable_verbosity]{rkeops_enable_verbosity()}}, \code{\link[=set_rkeops_options]{set_rkeops_options()}}

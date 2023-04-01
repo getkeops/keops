@@ -4,6 +4,8 @@ import re
 import math
 
 import numpy as np
+
+from keopscore.utils.misc_utils import KeOps_Error
 from pykeops.common.utils import check_broadcasting
 
 
@@ -106,7 +108,6 @@ class GenericLazyTensor:
 
         # A KeOps LazyTensor can be built from many different objects:
         if x is not None:
-
             # Stage 1: Are we dealing with simple numbers? ---------------------
             typex = type(x)
 
@@ -264,6 +265,10 @@ class GenericLazyTensor:
         populates the tools class."""
         pass
 
+    def new_variable_index(self):
+        sv = self.symbolic_variables
+        return 0 if len(sv) == 0 else 1 + max(v[0] for v in sv)
+
     def fixvariables(self):
         r"""If needed, assigns final labels to each variable and pads their batch dimensions prior to a :mod:`Genred()` call."""
         newvars = ()
@@ -274,27 +279,33 @@ class GenericLazyTensor:
             device = self.tools.device(v)
             if device is not None:
                 break
-        i = len(self.symbolic_variables)  # The first few labels are already taken...
-
+        i = self.new_variable_index()
         # So let's loop over our tensors, and give them labels:
         for v in self.variables:
             idv = id(v)
-            if type(v) == list:
+            if type(v) == list and self._dtype is not None:
                 v = self.tools.array(v, self._dtype, device)
 
-            # Replace "Var(idv," by "Var(i," and increment 'i':
+            # Replace "Var(idv," by "Var(i," and increment 'i' :
             tag = "Var({},".format(idv)
             if tag in self.formula + self.formula2:
                 self.formula = self.formula.replace(tag, "Var({},".format(i))
                 self.formula2 = self.formula2.replace(tag, "Var({},".format(i))
-                # Detect if v is meant to be used as a variable or as a parameter:
-                str_cat_v = re.search(
-                    r"Var\({},\d+,([012])\)".format(i), self.formula + self.formula2
-                ).group(1)
-                is_variable = 1 if str_cat_v in ("0", "1") else 0
-                dims_to_pad = self.nbatchdims + 1 + is_variable - len(v.shape)
-                padded_v = self.tools.view(v, (1,) * dims_to_pad + v.shape)
-                newvars += (padded_v,)
+                if hasattr(
+                    v, "shape"
+                ):  # (because v might still be a Python list of floats)
+                    # here we add dummy dims to v ( i.e. replace v by v[None,..,None,...])
+                    # if needed.
+                    # First we detect if v is meant to be used as a variable or as a parameter:
+                    str_cat_v = re.search(
+                        r"Var\({},\d+,([012])\)".format(i), self.formula + self.formula2
+                    ).group(1)
+                    is_variable = 1 if str_cat_v in ("0", "1") else 0
+                    dims_to_pad = self.nbatchdims + 1 + is_variable - len(v.shape)
+                    padded_v = self.tools.view(v, (1,) * dims_to_pad + v.shape)
+                    newvars += (padded_v,)
+                else:
+                    newvars += (v,)
                 if (
                     hasattr(self, "rec_multVar_highdim")
                     and self.rec_multVar_highdim == idv
@@ -838,7 +849,7 @@ class GenericLazyTensor:
             # this is the classical mode: we want to invert sum(self*var) = other
             # we define var as a new symbolic variable with same dimension as other
             # and we assume axis of var is same as axis of reduction
-            varindex = len(self.symbolic_variables)
+            varindex = self.new_variable_index()
             var = self.lt_constructor((varindex, other.ndim, axis))
             res = self * var
         else:
@@ -1723,13 +1734,13 @@ class GenericLazyTensor:
         """
         Tensor dot product (on KeOps internal dimensions) - a binary operation.
 
-        :param other: a LazyTensor
-        :param dimfa: tuple of int
-        :param dimfb: tuple of int
-        :param contfa: tuple of int listing contraction dimension of a (could be empty)
-        :param contfb: tuple of int listing contraction dimension of b (could be empty)
-        :param args: a tuple of int containing the graph of a permutation of the output
-        :return:
+        :param other: a :class:`LazyTensor`
+        :param dimfa: tuple/list of int
+        :param dimfb: tuple/list of int
+        :param contfa: tuple/list of int listing contraction dimension of a (could be empty)
+        :param contfb: tuple/list of int listing contraction dimension of b (could be empty)
+        :param args: a tuple/list of int containing the graph of a permutation of the output
+        :return: a :class:`LazyTensor`
         """
 
         if is_complex_lazytensor(other):
@@ -1744,7 +1755,7 @@ class GenericLazyTensor:
             if isinstance(intseq, int):
                 intseq = (intseq,)  # convert to tuple
             for item in intseq:
-                opt_arg += "{},".format(item)
+                opt_arg += f"{item},"
             opt_arg = opt_arg[:-1] if len(intseq) else opt_arg  # to remove last comma
             opt_arg += "], "
         opt_arg = opt_arg[:-2]  # to remove last comma and space
@@ -1752,6 +1763,73 @@ class GenericLazyTensor:
         dimres /= np.array(dimfa)[np.array(contfa)].prod() ** 2 if len(contfa) else 1
         return self.binary(
             other, "TensorDot", dimres=int(dimres), dimcheck=None, opt_arg=opt_arg
+        )
+
+    def keops_kron(self, other, dimfself, dimfother):
+        r"""
+        Kronecker product (on KeOps internal dimensions) - a binary operation.
+
+        If ``self._shape[-1] == d0 * d1 * ... * dN`` and ``other._shape[-1] == D0 * D1 * ... * DN``,
+        ``z = x.keops_kron(y, [d0, d1, ..., dN], [D0, D1, ..., DN])`` returns a :class:`GenericLazyTensor` of shape
+        ``z._shape[-1] == d0 * D0 * d1 * D1 * ... * dN * DN`` which encodes, symbolically,
+        the (flattened version of) Kronecker product of ``self`` and ``other`` along their internal dimension.
+
+        :param other: a :class:`LazyTensor`
+        :param dimfself: tuple/list of int listing the dimensions of a (prod(dimfself) == self._shape[-1])
+                        and len(dimfself) == len(dimfother)
+        :param dimfother: tuple/list of int listing the dimensions of b (prod(dimfother) == y._shape[-1])
+                        and len(dimfself) == len(dimfother)
+        :return: a :class:`LazyTensor` of internal shape prod(dimfself) * prod(dimfother)
+
+            >>>  import numpy as np
+            >>>  from pykeops.numpy import LazyTensor
+            >>>
+            >>>  dimfb = [3, 3, 2, 1]
+            >>>  dimfa = [3, 1, 3, 2]
+            >>>
+            >>>  M, N, axis = 11, 150, 1
+            >>>
+            >>>  x = np.random.rand(M, np.array(dimfa).prod())
+            >>>  y = np.random.rand(N, np.array(dimfb).prod())
+            >>>
+            >>>  gamma_py = np.zeros((M, N, np.array(dimfa).prod() * np.array(dimfb).prod()))
+            >>>  for i in range(M):
+            >>>      for j in range(N):
+            >>>          gamma_py[i, j, :] = np.kron(x[i, :].reshape(*dimfa), y[j, :].reshape(*dimfb)).flatten()
+            >>>
+            >>>  gamma_py = gamma_py.sum(axis=axis)
+            >>>
+            >>>  X = LazyTensor(x[:, None, :])
+            >>>  Y = LazyTensor(y[None, :, :])
+            >>>
+            >>>  gamma_keops = (X.keops_kron(Y, dimfa, dimfb)).sum(axis=axis)
+            >>>
+            >>>  print(np.allclose(gamma_keops, gamma_py, atol=1e-6))
+        """
+
+        if is_complex_lazytensor(other):
+            raise ValueError("keops_kron is not implemented for complex LazyTensors")
+
+        # format args in a string
+        opt_arg = ""
+        for intseq in (dimfself, dimfother):
+            opt_arg += "["
+            if isinstance(intseq, int):
+                KeOps_Error(
+                    "For keops_Kronecker, dimfself and dimfother must be tuple/list of int"
+                )
+            for item in intseq:
+                opt_arg += f"{item},"
+            opt_arg = opt_arg[:-1] if len(intseq) else opt_arg  # to remove last comma
+            opt_arg += "], "
+        opt_arg = opt_arg[:-2]  # to remove last comma and space
+
+        return self.binary(
+            other,
+            "Kron",
+            dimres=(other.ndim * self.ndim),
+            dimcheck=None,
+            opt_arg=opt_arg,
         )
 
     def grad(self, other, gradin):

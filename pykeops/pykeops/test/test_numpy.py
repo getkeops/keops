@@ -70,7 +70,6 @@ class NumpyUnitTestCase(unittest.TestCase):
 
         for b, t in itertools.product(backend_to_test, self.type_to_test):
             with self.subTest(b=b, t=t):
-
                 # Call cuda kernel
                 myconv = Genred(formula, aliases, reduction_op="Sum", axis=axis)
                 gamma_keops = myconv(
@@ -106,7 +105,6 @@ class NumpyUnitTestCase(unittest.TestCase):
 
         for b, t in itertools.product(backend_to_test, self.type_to_test):
             with self.subTest(b=b, t=t):
-
                 # Call cuda kernel
                 myconv = Genred(formula, aliases, reduction_op="LogSumExp", axis=1)
                 gamma_keops = myconv(
@@ -143,7 +141,6 @@ class NumpyUnitTestCase(unittest.TestCase):
 
         for b, t in itertools.product(backend_to_test, self.type_to_test):
             with self.subTest(b=b, t=t):
-
                 # Call cuda kernel
                 myop = Genred(
                     formula,
@@ -293,14 +290,12 @@ class NumpyUnitTestCase(unittest.TestCase):
 
         full_results = []
         for use_keops in [True, False]:
-
             results = []
 
-            for (x, l, y, s) in [
+            for x, l, y, s in [
                 (self.X.astype(t), self.L.astype(t), self.Y.astype(t), self.S.astype(t))
                 for t in self.type_to_test
             ]:
-
                 x_i = x[:, :, :, None, :]
                 l_i = l[:, :, :, None, :]
                 y_j = y[:, :, None, :, :]
@@ -329,7 +324,7 @@ class NumpyUnitTestCase(unittest.TestCase):
 
             full_results.append(results)
 
-        for (res_keops, res_numpy) in zip(full_results[0], full_results[1]):
+        for res_keops, res_numpy in zip(full_results[0], full_results[1]):
             self.assertTrue(res_keops.shape == res_numpy.shape)
             self.assertTrue(np.allclose(res_keops, res_numpy, atol=1e-3))
 
