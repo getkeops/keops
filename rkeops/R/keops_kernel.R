@@ -182,9 +182,15 @@ keops_kernel <- function(
         # Note: not possible to use <Reduction>_Reduction(..., axis)
         # syntax with PyKeOps --> need to format formula from RKeOps to PyKeOps
         pykeops_formula <- get_pykeops_formula(formula)
+        aliases <- NULL
+        if(length(args) > 1) {
+            aliases <- args
+        } else {
+            aliases <- list(args)
+        }
         routine <- GenredR(
             formula = pykeops_formula$main_formula,
-            aliases = args,
+            aliases = aliases,
             reduction_op = pykeops_formula$reduction_op,
             axis = pykeops_formula$axis,
             opt_arg = pykeops_formula$opt_arg,
