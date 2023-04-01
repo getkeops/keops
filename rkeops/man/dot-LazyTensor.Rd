@@ -10,6 +10,6 @@
 Subtraction or minus sign.
 }
 \author{
-
+Amelie Vernay, Chloe Serre-Combe
 }
 \keyword{internal}

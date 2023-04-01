@@ -7,11 +7,9 @@
 x %*% y
 }
 \arguments{
-\item{x}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector or a matrix of numeric
-values, or a scalar value.}
+\item{x}{A \code{LazyTensor}, a \code{ComplexLazyTensor}.}
 
-\item{y}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector or a matrix of numeric
-values, or a scalar value.}
+\item{y}{A \code{LazyTensor}, a \code{ComplexLazyTensor}.}
 }
 \value{
 A matrix.

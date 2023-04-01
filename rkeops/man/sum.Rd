@@ -16,7 +16,7 @@ be either \strong{i} or \strong{j} to specify whether if the summation is indexe
 It can be NA (default) when no reduction is desired.}
 }
 \value{
-
+FIXME
 }
 \description{
 Summation unary operation, or Sum reduction.

@@ -26,15 +26,18 @@ URL: https://www.kernel-operations.io/, https://github.com/getkeops/keops/
 BugReports: https://github.com/getkeops/keops/issues
 Imports: 
     checkmate,
+    data.table,
     future,
     Rdpack,
     reticulate,
     RhpcBLASctl,
+    stats,
     stringi,
     stringr,
     tibble,
     utils
 Suggests: 
+    devtools,
     knitr,
     rmarkdown,
     testthat (>= 3.0.0),

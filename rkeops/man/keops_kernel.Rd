@@ -41,7 +41,7 @@ new operators based on kernel operation and matrix reduction described as a
 mathematic formula.
 }
 \details{
-The use of the function \code{keops_kernel} is detailed in the vignettes,
+The use of the function \code{keops_kernel} is detailled in the vignettes,
 especially how to write formulae, specified input arguments, how to format
 data to apply the created operators, etc. Run \code{browseVignettes("rkeops")}
 to access the vignettes.
@@ -53,11 +53,6 @@ list defining the input arguments of your formula.
 The function \code{keops_kernel()} compiles and imports a new operator that
 implements the formula given in input, it returns a function that can be
 used to compute the result of the formula on actual data.
-
-Some advance reduction operations, given in \code{keops_kernel} optional
-\code{reduction_op} argument, need a post-processing in the returned function
-output. It is useful for the cases with log-sum-exp and sum-soft-max in
-\code{LazyTensors} operations.
 
 The returned function expects a list of arguments, as data matrices, whose
 order corresponds to the order given in \code{args} to \code{keops_kernel()}.

@@ -31,7 +31,7 @@ and its indices over the \strong{i} indices (rows);}
 and its indices over the \strong{j} indices (columns).}
 }
 
-
+FIXME
 }
 \examples{
 \dontrun{
