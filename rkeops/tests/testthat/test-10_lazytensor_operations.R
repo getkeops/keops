@@ -1,6 +1,3 @@
-context("LazyTensor operations")
-
-
 # TEST ARITHMETIC OPERATIONS ===================================================
 
 
@@ -1077,8 +1074,8 @@ test_that("step", {
   group <- gl(2, 10, 20, labels = c("Ctl","Trt"))
   weight <- c(ctl, trt)
   lm.D9 <- lm(weight ~ group)
-  expect_false(is.LazyTensor(step(lm.D9)))
-  expect_is(step(lm.D9), "lm")
+  expect_false(is.LazyTensor(step(lm.D9, trace = 0)))
+  expect_is(step(lm.D9, trace = 0), "lm")
   
   # check results, formulas & classes
   expect_true(is.LazyTensor(step(x_i)))
@@ -1782,8 +1779,8 @@ test_that("real2complex", {
                fixed = TRUE)
   
   # Should always produce a warning
-  expect_message(real2complex(x_i))
-  expect_message(real2complex(Pm(3)))
+  expect_warning(real2complex(x_i))
+  expect_warning(real2complex(Pm(3)))
 
 })
 
