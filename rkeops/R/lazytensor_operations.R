@@ -158,7 +158,7 @@
 }
 
 #' Subtraction or minus sign.
-#' @author 
+#' @author Amelie Vernay, Chloe Serre-Combe
 #' @keywords internal
 #' @export
 "-.LazyTensor" <- function(x, y = NA) {
@@ -2831,6 +2831,9 @@ tensorprod <- function(x, y) {
 #' }
 #' @export
 reduction.LazyTensor <- function(x, opstr, index, opt_arg = NA) {
+    
+    res <- NULL
+    
     if(!is.LazyTensor(x) && !is.ComplexLazyTensor(x))
         stop("`x` input should be a LazyTensor or a ComplexLazyTensor.")
     
@@ -2892,7 +2895,7 @@ sum.default <- .Primitive("sum")
 #' be either **i** or **j** to specify whether if the summation is indexed by 
 #' **i** (rows), or **j** (columns).
 #' It can be NA (default) when no reduction is desired.
-#' @return 
+#' @return FIXME
 #' @examples
 #' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
@@ -3719,7 +3722,8 @@ Kmin_argKmin <- function(x, K, index) {
 #'     \item{if **index = j**,}{ return the **K** minimal values of **x**
 #'     and its indices over the **j** indices (columns).}
 #' } 
-#' @details  
+#' @details 
+#' FIXME
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `LazyTensor` or a `ComplexLazyTensor`.
 #' @param index A `character` corresponding to the reduction dimension that should 
