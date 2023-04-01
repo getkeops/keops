@@ -1107,8 +1107,8 @@ check_index <- function(index){
   return(res)
 }
 
-
 #' Index to int.
+#' @keywords internal
 #' @description
 #' Transform `string` index input into integer.
 #' @details `index_to_int(index)` returns an `integer`: **1** if 
@@ -1116,7 +1116,6 @@ check_index <- function(index){
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param index A `character` that should be either **i** or **j**.
 #' @return An `integer`.
-#' @export
 index_to_int <- function(index) {
   if(!check_index(index)) {
     stop(paste0("`index` input argument should be a character,",
@@ -1150,7 +1149,6 @@ index_to_int <- function(index) {
 #' arg <- x_i$args[1]                  # argument of the form "A0x.*=Vi(3)"
 #' id <- identifier(arg)               # extracts "A0x.*"
 #' }
-#' @export
 identifier <- function(arg){
   if(!is.character(arg)) {
     stop("`arg` input argument should be a character string.")
@@ -1177,7 +1175,7 @@ identifier <- function(arg){
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
 #' y_j <- LazyTensor(y, index = 'j')   # creating LazyTensor from matrix y, 
-#'                                     # indexed by 'j'                                   
+#'                                     # indexed by 'j'
 #' 
 #' a <- x_i + y_j       # combination of LazyTensors with variable labels 
 #'                      # of the form "A0x.*"
@@ -1187,7 +1185,6 @@ identifier <- function(arg){
 #' b$formula            # returns "V0+V1"
 #' b$args               # returns a vector containing "V0=Vi(3)" and "V1=Vj(3)"
 #' }
-#' @export
 fixvariables <- function(x, is_opt = FALSE){
   if(!is.LazyTensor(x)) {
     stop("`x` input must be a LazyTensor or a ComplexLazyTensor.")
@@ -1244,7 +1241,6 @@ fixvariables <- function(x, is_opt = FALSE){
 #' @param with_weight A `boolean` which is `TRUE` when there is an optional 
 #' argument corresponding to a weight argument.
 #' @return A text `string`.
-#' @export
 fix_op_reduction <- function(reduction_op, with_weight = FALSE){
   if(reduction_op == "SumSoftMaxWeight") {
     # SumSoftMaxWeight relies on KeOps Max_SumShiftExpWeight reduction.
@@ -1297,8 +1293,11 @@ fix_op_reduction <- function(reduction_op, with_weight = FALSE){
 #' 
 #' op <- preprocess_reduction(x_i, "Sum", "i")
 #' }
-#' @export
 preprocess_reduction <- function(x, opstr, index, opt_arg = NA) {
+  # init
+  formula <- NULL
+    
+
   tag <- index_to_int(index)
   
   # Change the identifiers of every variables for the KeOps routine
@@ -1346,56 +1345,13 @@ preprocess_reduction <- function(x, opstr, index, opt_arg = NA) {
 #' 
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @return A warning message.
-#' @export
-cplx_warning <- function() {
-  message(paste("Warning message:\nOperations involving both LazyTensors and ",
-              "ComplexLazyTensors may not work with the actual rkeops version.",
-              "\nThis should be fixed in a future release.", sep = ""))
+cplx_warning <- function(warn = TRUE) {
+    if(warn) {
+        msg <- paste(
+            "Warning message:\nOperations involving both LazyTensors and ",
+            "ComplexLazyTensors may not work with the actual rkeops version.",
+            "\nThis should be fixed in a future release.", sep = ""
+        )
+        warning(msg)
+    }
 }
-
-# cplx_warning <- function() {
-#   warning(paste("Operations involving both LazyTensors and ",
-#                 "ComplexLazyTensors may not work with the actual rkeops version.",
-#                 "\nThis should be fixed in a future release.", sep = ""),
-#           call. = FALSE,
-#           noBreaks. = TRUE)
-# }
-
-
-
-
-# fixvariables <- function(x){
-#   tmp <- x
-#   for(i in 1:length(tmp$args)) {
-#     suffix_arg <- str_extract(string = tmp$args[i], pattern = "=.*")
-#     suffix_arg <- substr(suffix_arg, 2, nchar(suffix_arg))
-#     var_dim <- as.numeric(str_extract(string = tmp$arg[i], 
-#                                       pattern = "(?<=\\()[0-9]+")
-#                           )
-#     #substr(suffix_arg, 1, 3)
-#     tag <- paste("Bl(", i-1, ",", var_dim, ")", sep = "")
-#     id <- identifier(tmp$args[i])
-#     tmp$formula <- str_replace_all(tmp$formula, id, tag)
-#     tmp$args <- str_replace(tmp$args, id, tag)
-#   }
-#   
-#   return(tmp)
-# }
-
-# x <- matrix(c(1, 2, 3), 12, 3)
-# y <- matrix(c(1, 2, 45), 2, 3)
-# x_i <- Vi(x)
-# y_j <- Vj(y)
-# a <- x_i + y_j
-
-
-
-
-
-
-
-
-
-
-
-
