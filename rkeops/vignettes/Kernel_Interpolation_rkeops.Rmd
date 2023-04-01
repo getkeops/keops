@@ -22,7 +22,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r devtools, message=FALSE, include=FALSE}
+```{r devtools, message=FALSE, include=FALSE, eval=FALSE}
 #library(rkeops)
 devtools::load_all("..")
 set_rkeops_options()
@@ -43,9 +43,9 @@ where $K_{xx}$ is a symmetric, positive definite matrix encoded as an `RKeOps La
 
 ## Setup
 
-```{r init}
+```{r init, eval=FALSE}
 library(rkeops)
-set_rkeops_option("precision", "double")
+rkeops_use_float64()
 ```
 
 
@@ -53,7 +53,7 @@ set_rkeops_option("precision", "double")
 
 Generate some data:
 
-```{r data1D}
+```{r data1D, eval=FALSE}
 N <- 10000 # number of samples
 
 x <- matrix(runif(N * 1), N, 1)
@@ -65,7 +65,7 @@ b <- x + 0.5 * sin(6 * x) + 0.1 * sin(20 * x) + 0.05 * pert
 
 Specify our **regression model** - a simple **Gaussian** variogram or **kernel matrix** of deviation `sigma`.
 
-```{r gaussian_kernel}
+```{r gaussian_kernel, eval=FALSE}
 gaussian_kernel <- function(x, y, sigma = 0.1) {
     x_i <- Vi(x) # symbolic 'i'-indexed matrix
     y_j <- Vj(y) # symbolic 'j'-indexed matrix
@@ -79,7 +79,7 @@ gaussian_kernel <- function(x, y, sigma = 0.1) {
 
 We implement the conjugate gradient algorithm, that includes the `lambda` regularization parameter.
 
-```{r CGS}
+```{r CGS, eval=FALSE}
 CG_solve <- function(K, b, lambda, eps = 1e-6) {
     # ----------------------------------------------------------------
     # Conjugate gradient algorithm to solve linear systems of the form
@@ -120,7 +120,7 @@ CG_solve <- function(K, b, lambda, eps = 1e-6) {
 
 Perform the **Kernel interpolation**, without forgetting to specify the ridge regularization parameter `lambda` which controls the trade-off between a perfect fit (`lambda` = $0$) and a smooth interpolation (`lambda` = $+\infty$):
 
-```{r call1D}
+```{r call1D, eval=FALSE}
 K_xx <- gaussian_kernel(x, x)
 
 lambda <- 1
@@ -140,7 +140,7 @@ print(paste("Time to perform an RBF interpolation with",
 
 Display the (fitted) model on the unit interval:
 
-```{r plot1D, fig.width=7, fig.height=6, fig.align='center', message=FALSE}
+```{r plot1D, fig.width=7, fig.height=6, fig.align='center', message=FALSE, eval=FALSE}
 # extrapolate on a uniform sample
 t <- as.matrix(seq(from = 0, to = 1, length.out = N))
 
@@ -166,7 +166,7 @@ ggplot(aes(x = x, y = b), data = D) +
 
 Generate some data:
 
-```{r data2D}
+```{r data2D, eval=FALSE}
 N <- 10000
 # Sampling locations:
 x <- matrix(runif(N * 2), N, 2)
@@ -187,7 +187,7 @@ b[(length(b) - Nout + 1):length(b)] <- matrix(runif(Nout * 1), Nout, 1)
 
 Specify our **regression model** - a simple **Exponential** variogram or **Laplacian** kernel matrix of deviation `sigma`:
 
-```{r laplacian_kernel}
+```{r laplacian_kernel, eval=FALSE}
 laplacian_kernel <- function(x, y, sigma = 0.1) {
   x_i <- Vi(x)
   y_j <- Vj(y)
@@ -199,7 +199,7 @@ laplacian_kernel <- function(x, y, sigma = 0.1) {
 
 Perform the **Kernel interpolation**, without forgetting to specify the ridge regularization parameter `lambda` which controls the trade-off between a perfect fit (`lambda` = $0$) and a smooth interpolation (`lambda` = $+\infty$):
 
-```{r call2D}
+```{r call2D, eval=FALSE}
 lambda <- 10  # Ridge regularization
 
 start <- Sys.time()
@@ -215,7 +215,7 @@ print(paste("Time to perform an RBF interpolation with",
 
 Display the (fitted) model:
 
-```{r plot2D, fig.width=7, fig.height=6, fig.align='center', message=FALSE, warning=FALSE}
+```{r plot2D, fig.width=7, fig.height=6, fig.align='center', message=FALSE, warning=FALSE, eval=FALSE}
 require(pracma) # to create the meshgrid
 
 # Extrapolate on a uniform sample:
