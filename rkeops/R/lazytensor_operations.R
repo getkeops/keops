@@ -1353,10 +1353,7 @@ xlogx.LazyTensor <- function(x) {
 #' @keywords internal
 #' @export
 sinxdivx.default <- function(x) {
-    if(x == 0)
-        res <- 1
-    else
-        res <- sin(x) / x
+    res <- ifelse(x == 0, 1, sin(x) / x)
     return(res)
 }
 
