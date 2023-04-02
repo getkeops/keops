@@ -3,7 +3,7 @@
 
 test_that("+", {
   
-  # check that base addition is still working
+  # check that base operation is still working
   expect_equal(2+3, 5)
   expect_equal(+1, 0+1)
   expect_equal(c(1,2) + c(1,2), c(2,4))
@@ -100,7 +100,7 @@ test_that("+", {
 
 test_that("-", {
   
-  # check that base difference is still working
+  # check that base operation is still working
   expect_equal(8-3, 5)
   expect_equal(-1, 0-1)
   expect_equal(c(3,6) - c(1,2), c(2,4))
@@ -203,7 +203,7 @@ test_that("-", {
 
 test_that("*", {
   
-  # check that base multiplication is still working
+  # check that base operation is still working
   expect_equal(2*3, 6)
   expect_equal(c(1,2) * c(1,2), c(1,4))
   expect_equal(matrix(1, 2, 2) * matrix(1, 2, 2), matrix(1, 2, 2))
@@ -316,7 +316,7 @@ test_that("*", {
 
 test_that("/", {
   
-  # check that base division is still working
+  # check that base operation is still working
   expect_equal(4/2, 2)
   expect_equal(c(3,2) / c(1,2), c(3,1))
   expect_equal(matrix(10, 2, 2) / matrix(2, 2, 2), matrix(5, 2, 2))
@@ -414,6 +414,12 @@ test_that("/", {
 
 
 test_that("^", {
+  
+  # check that base operation is still working
+  expect_equal(2^2, 4)
+  expect_equal(c(3,2) ^ 2, c(9,4))
+  expect_equal(matrix(2, 2, 2) ^ 2, matrix(4, 2, 2))
+  
   # basic example
   D <- 3
   M <- 100
@@ -428,14 +434,14 @@ test_that("^", {
   # check results & formulas
   expect_equal(D^D, 27)
   
-  expect_is(x_i^y_j, "LazyTensor")
-  expect_is(x_i^3, "LazyTensor")
-  expect_is(x_i^yc_j, "ComplexLazyTensor")
-  expect_is(xc_i^y_j, "ComplexLazyTensor")
-  expect_is(xc_i^yc_j, "ComplexLazyTensor")
-  expect_is(xc_i^2, "ComplexLazyTensor")
-  expect_is(xc_i^3, "ComplexLazyTensor")
-  expect_is(xc_i^0.5, "ComplexLazyTensor")
+  expect_s3_class(x_i^y_j, "LazyTensor")
+  expect_s3_class(x_i^3, "LazyTensor")
+  expect_s3_class(x_i^yc_j, "ComplexLazyTensor")
+  expect_s3_class(xc_i^y_j, "ComplexLazyTensor")
+  expect_s3_class(xc_i^yc_j, "ComplexLazyTensor")
+  expect_s3_class(xc_i^2, "ComplexLazyTensor")
+  expect_s3_class(xc_i^3, "ComplexLazyTensor")
+  expect_s3_class(xc_i^0.5, "ComplexLazyTensor")
   
   
   obj <- x_i^y_j
@@ -484,6 +490,13 @@ test_that("^", {
 
 
 test_that("square", {
+  
+  # check that base operation is still working
+  expect_equal(square(2), 4)
+  expect_equal(square(c(3,2)), c(9,4))
+  expect_equal(square(matrix(2, 2, 2)), matrix(4, 2, 2))
+  
+  # basic example
   D <- 3
   M <- 100
   N <- 150
@@ -492,8 +505,8 @@ test_that("square", {
   xc_i <- LazyTensor(x, index = 'i', is_complex = TRUE)
 
   expect_true(square(6) == 36)
-  expect_is(square(x_i), "LazyTensor")
-  expect_is(square(xc_i), "ComplexLazyTensor")
+  expect_s3_class(square(x_i), "LazyTensor")
+  expect_s3_class(square(xc_i), "ComplexLazyTensor")
   
   obj <-  square(x_i)
   expect_equal(length(obj$args), 1)
@@ -505,6 +518,13 @@ test_that("square", {
 
 
 test_that("sqrt", {
+  
+  # check that base operation is still working
+  expect_equal(sqrt(4), 2)
+  expect_equal(sqrt(c(9,4)), c(3,2))
+  expect_equal(sqrt(matrix(4, 2, 2)), matrix(2, 2, 2))
+  
+  # basic example
   D <- 3
   M <- 100
   N <- 150
@@ -513,8 +533,8 @@ test_that("sqrt", {
   xc_i <- LazyTensor(x, index = 'i', is_complex = TRUE)
   
   expect_true(sqrt(36) == 6)
-  expect_is(sqrt(x_i), "LazyTensor")
-  expect_is(sqrt(xc_i), "ComplexLazyTensor")
+  expect_s3_class(sqrt(x_i), "LazyTensor")
+  expect_s3_class(sqrt(xc_i), "ComplexLazyTensor")
   
   obj <-  sqrt(x_i)
   expect_equal(length(obj$args), 1)
@@ -526,6 +546,13 @@ test_that("sqrt", {
 
 
 test_that("rsqrt", {
+  
+  # check that base operation is still working
+  expect_equal(rsqrt(100), 0.1)
+  expect_equal(rsqrt(c(4,16)), c(0.5, 0.25))
+  expect_equal(rsqrt(matrix(4, 2, 2)), matrix(0.5, 2, 2))
+  
+  # basic example
   D <- 3
   M <- 100
   N <- 150
@@ -534,8 +561,8 @@ test_that("rsqrt", {
   xc_i <- LazyTensor(x, index = 'i', is_complex = TRUE)
   
   expect_true(rsqrt(4) == 0.5)
-  expect_is(rsqrt(x_i), "LazyTensor")
-  expect_is(rsqrt(xc_i), "ComplexLazyTensor")
+  expect_s3_class(rsqrt(x_i), "LazyTensor")
+  expect_s3_class(rsqrt(xc_i), "ComplexLazyTensor")
   
   obj <-  rsqrt(x_i)
   expect_equal(length(obj$args), 1)
@@ -547,6 +574,17 @@ test_that("rsqrt", {
 
 
 test_that("|", {
+  
+  # check that base operation is still working
+  expect_equal(TRUE | FALSE, TRUE)
+  expect_equal(FALSE | TRUE, TRUE)
+  expect_equal(FALSE | FALSE, FALSE)
+  expect_equal(c(TRUE, FALSE) | c(FALSE, FALSE), c(TRUE, FALSE))
+  expect_equal(
+      matrix(FALSE, 2, 2) | matrix(TRUE, 2, 2), 
+      matrix(TRUE, 2, 2)
+  )
+  
   # basic example
   D <- 3
   E <- 7
@@ -592,6 +630,13 @@ test_that("|", {
 
 
 test_that("exp", {
+  
+  # check that base operation is still working
+  expect_equal(exp(0), 1)
+  expect_equal(exp(1), 2.718282, tolerance = 1e-5)
+  expect_equal(exp(c(3,2)), c(20.085537, 7.389056), tolerance = 1e-5)
+  expect_equal(exp(matrix(2, 2, 2)), matrix(7.389056, 2, 2), tolerance = 1e-5)
+  
   # basic example
   D <- 3
   M <- 100
@@ -630,6 +675,13 @@ test_that("exp", {
 
 
 test_that("log", {
+  
+  # check that base division is still working
+  expect_equal(log(1), 0)
+  expect_equal(log(10), 2.302585, tolerance = 1e-5)
+  expect_equal(log(c(20.085537, 7.389056)), c(3,2), tolerance = 1e-5)
+  expect_equal(log(matrix(7.389056, 2, 2)), matrix(2, 2, 2), tolerance = 1e-5)
+  
   # basic example
   D <- 3
   M <- 100
@@ -669,6 +721,13 @@ test_that("log", {
 
 
 test_that("inv", {
+  
+  # check that base operation is still working
+  expect_equal(inv(10), 0.1)
+  expect_equal(inv(1), 1)
+  expect_equal(inv(c(10,4)), c(0.1,0.25))
+  expect_equal(inv(matrix(2, 2, 2)), matrix(0.5, 2, 2))
+  
   # basic example
   D <- 3
   M <- 100
@@ -708,6 +767,13 @@ test_that("inv", {
 
 
 test_that("cos", {
+  
+  # check that base operation is still working
+  expect_equal(cos(3.14159), -1, tolerance = 1e-5)
+  expect_equal(cos(0), 1)
+  expect_equal(cos(c(0,3.14159)), c(1, -1), tolerance = 1e-5)
+  expect_equal(cos(matrix(0, 2, 2)), matrix(1, 2, 2))
+  
   # basic example
   D <- 3
   M <- 100
@@ -747,6 +813,13 @@ test_that("cos", {
 
 
 test_that("sin", {
+    
+    # check that base operation is still working
+    expect_equal(sin(3.14159), 0, tolerance = 1e-5)
+    expect_equal(sin(0), 0)
+    expect_equal(sin(c(0,3.14159)), c(0,0), tolerance = 1e-5)
+    expect_equal(sin(matrix(0, 2, 2)), matrix(0, 2, 2))
+    
   # basic example
   D <- 3
   M <- 100
@@ -786,6 +859,14 @@ test_that("sin", {
 
 
 test_that("acos", {
+    
+    # check that base operation is still working
+    expect_equal(acos(0) * 2, 3.14159, tolerance = 1e-5)
+    expect_equal(acos(1), 0)
+    expect_equal(acos(c(0,1)), c(3.14159 / 2, 0), tolerance = 1e-5)
+    expect_equal(
+        acos(matrix(0, 2, 2)), matrix(3.14159 / 2, 2, 2), tolerance = 1e-5)
+    
   # basic example
   D <- 3
   M <- 100
@@ -818,6 +899,15 @@ test_that("acos", {
 
 
 test_that("asin", {
+    
+    # check that base operation is still working
+    expect_equal(asin(1) * 2, 3.14159, tolerance = 1e-5)
+    expect_equal(asin(0), 0)
+    expect_equal(asin(c(1,0)), c(3.14159 / 2, 0), tolerance = 1e-5)
+    expect_equal(
+        asin(matrix(1, 2, 2)), matrix(3.14159 / 2, 2, 2), tolerance = 1e-5)
+    
+    
   # basic example
   D <- 3
   M <- 100
@@ -847,6 +937,14 @@ test_that("asin", {
 
 
 test_that("atan", {
+    
+    # check that base operation is still working
+    expect_equal(atan(1) * 4, 3.14159, tolerance = 1e-5)
+    expect_equal(atan(0), 0)
+    expect_equal(atan(c(1,0)), c(3.14159 / 4, 0), tolerance = 1e-5)
+    expect_equal(
+        atan(matrix(1, 2, 2)), matrix(3.14159 / 4, 2, 2), tolerance = 1e-5)
+    
   # basic example
   D <- 3
   M <- 100
@@ -876,6 +974,15 @@ test_that("atan", {
 
 
 test_that("atan2", {
+    
+    # check that base operation is still working
+    expect_equal(atan2(1, 1) * 4, 3.14159, tolerance = 1e-5)
+    expect_equal(atan2(0, 1), 0)
+    expect_equal(atan2(c(1, 0), c(1,1)), c(3.14159 / 4, 0), tolerance = 1e-5)
+    expect_equal(
+        atan2(matrix(1, 2, 2), matrix(1, 2, 2)), 
+        matrix(3.14159 / 4, 2, 2), tolerance = 1e-5)
+    
   # basic example
   D <- 3
   E <- 4
@@ -915,9 +1022,18 @@ test_that("atan2", {
 
 
 test_that("%*%", {
+    
+    # check that base operation is still working
+    expect_equal(
+        matrix(1:10, nrow = 2) %*% matrix(1:10, ncol = 2),
+        matrix(c(95, 110, 220, 260), ncol = 2))
+    expect_equal(
+        matrix(1:10, ncol = 2) %*% matrix(1, nrow = 2, ncol = 1),
+        as.matrix(rowSums(matrix(1:10, ncol = 2))))
+    
   # basic example
-  x <- matrix(c(1, 2, 3), 2, 3)
-  y <- matrix(c(3, 4, 5), 2, 3)
+  x <- matrix(c(1, 2, 3), 2, 3, byrow = TRUE)
+  y <- matrix(c(3, 4, 5), 2, 3, byrow = TRUE)
   x_i <- LazyTensor(x, index = 'i')
   y_j <- LazyTensor(y, index = 'j')
   
@@ -956,6 +1072,13 @@ test_that("%*%", {
 
 
 test_that("abs", {
+    
+    # check that base operation is still working
+    expect_equal(abs(10), 10)
+    expect_equal(abs(-10), 10)
+    expect_equal(abs(c(5,-3)), c(5,3))
+    expect_equal(abs(matrix(-2, 2, 2)), matrix(2, 2, 2))
+    
   # basic example
   D <- 3
   M <- 100
@@ -993,6 +1116,13 @@ test_that("abs", {
 
 
 test_that("sign", {
+    
+    # check that base operation is still working
+    expect_equal(sign(10), 1)
+    expect_equal(sign(-10), -1)
+    expect_equal(sign(c(5,-3)), c(1,-1))
+    expect_equal(sign(matrix(-2, 2, 2)), matrix(-1, 2, 2))
+    
   # basic example
   D <- 3
   M <- 100
@@ -1022,6 +1152,14 @@ test_that("sign", {
 
 
 test_that("round", {
+    
+    # check that base operation is still working
+    expect_equal(round(3), 3)
+    expect_equal(round(4.5), 4)
+    expect_equal(round(3.567, 2), 3.57)
+    expect_equal(round(c(3.567, 4), 2), c(3.57, 4.00))
+    expect_equal(round(matrix(3.567, 2, 2)), matrix(3.57, 2, 2))
+    
   # basic example
   D <- 3
   M <- 100
@@ -1068,6 +1206,14 @@ test_that("round", {
 
 
 test_that("xlogx", {
+    
+    # check that base operation is still working
+    expect_equal(xlogx(1), 0)
+    expect_equal(xlogx(10), 23.02585, tolerance = 1e-5)
+    expect_equal(xlogx(c(2,3)), c(1.386294, 3.295837), tolerance = 1e-5)
+    expect_equal(
+        xlogx(matrix(2, 2, 2)), matrix(1.386294, 2, 2), tolerance = 1e-5)
+    
   # basic example
   D <- 3
   M <- 100
@@ -1097,6 +1243,14 @@ test_that("xlogx", {
 
 
 test_that("sinxdivx", {
+    
+    # check that base operation is still working
+    expect_equal(sinxdivx(1), sin(1), tolerance = 1e-5)
+    expect_equal(sinxdivx(1), 0.841471, tolerance = 1e-5)
+    expect_equal(sinxdivx(c(3,2)), c(0.0470400, 0.4546487), tolerance = 1e-5)
+    expect_equal(
+        sinxdivx(matrix(1, 2, 2)), matrix(0.841471, 2, 2), tolerance = 1e-5)
+    
   # basic example
   D <- 3
   M <- 100
@@ -1141,7 +1295,7 @@ test_that("step", {
   weight <- c(ctl, trt)
   lm.D9 <- lm(weight ~ group)
   expect_false(is.LazyTensor(step(lm.D9, trace = 0)))
-  expect_is(step(lm.D9, trace = 0), "lm")
+  expect_s3_class(step(lm.D9, trace = 0), "lm")
   
   # check results, formulas & classes
   expect_true(is.LazyTensor(step(x_i)))
@@ -1290,14 +1444,14 @@ test_that("clampint", {
   obj <-  clampint(x_i, 6, 8)
   expect_equal(length(obj$args), 1)
   expect_equal(length(obj$data), 1)
-  expect_is(obj, "LazyTensor")
+  expect_s3_class(obj, "LazyTensor")
   bool_grep_formula <- grep("ClampInt\\(A0x.*i,6,8\\)", obj$formula) 
   expect_equal(bool_grep_formula, 1)
   
   obj <-  clampint(1, 6, 8)
   expect_null(obj$args)
   expect_null(obj$data)
-  expect_is(obj, "LazyTensor")
+  expect_s3_class(obj, "LazyTensor")
   bool_grep_formula <- grep("ClampInt\\(IntCst\\(1\\),6,8\\)", obj$formula) 
   expect_equal(bool_grep_formula, 1)
   
@@ -1329,6 +1483,18 @@ test_that("clampint", {
 
 
 test_that("ifelse", {
+    
+    # check that base operation is still working
+    expect_equal(ifelse(TRUE, 10, 1), 10)
+    expect_equal(ifelse(FALSE, 10, 1), 1)
+    expect_equal(ifelse(c(TRUE, FALSE), 10, 1), c(10, 1))
+    expect_equal(
+        ifelse(
+            matrix(c(TRUE, FALSE, TRUE, FALSE), 2, 2), 
+            matrix(10, 2, 2),
+            matrix(1, 2, 2)),
+        matrix(c(10, 1, 10, 1), 2, 2))
+    
   # basic example
   D <- 3
   M <- 100
@@ -1358,21 +1524,21 @@ test_that("ifelse", {
   expect_equal(length(obj$data), 3)
   bool_grep_formula <- grep("IfElse\\(A0x.*i,A0x.*j,A0x.*i\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
-  expect_is(obj, "LazyTensor")
+  expect_s3_class(obj, "LazyTensor")
   
   obj <-  ifelse(x_i, y_j, 3)
   expect_equal(length(obj$args), 2)
   expect_equal(length(obj$data), 2)
   bool_grep_formula <- grep("IfElse\\(A0x.*i,A0x.*j,IntCst\\(3\\)\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
-  expect_is(obj, "LazyTensor")
+  expect_s3_class(obj, "LazyTensor")
   
   obj <-  ifelse(x_i, 2, 3)
   expect_equal(length(obj$args), 1)
   expect_equal(length(obj$data), 1)
   bool_grep_formula <- grep("IfElse\\(A0x.*i,IntCst\\(2\\),IntCst\\(3\\)\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
-  expect_is(obj, "LazyTensor")
+  expect_s3_class(obj, "LazyTensor")
   
   # errors
   expect_error(
@@ -1425,42 +1591,42 @@ test_that("mod", {
   expect_equal(length(obj$data), 3)
   bool_grep_formula <- grep("Mod\\(A0x.*i,A0x.*j,A0x.*i\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
-  expect_is(obj, "LazyTensor")
+  expect_s3_class(obj, "LazyTensor")
   
   obj <-  mod(xc_i, yc_j, zc_i)
   expect_equal(length(obj$args), 3)
   expect_equal(length(obj$data), 3)
   bool_grep_formula <- grep("Mod\\(A0x.*i,A0x.*j,A0x.*i\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
-  expect_is(obj, "ComplexLazyTensor")
+  expect_s3_class(obj, "ComplexLazyTensor")
   
   obj <-  mod(x_i, yc_j, zc_i)
   expect_equal(length(obj$args), 3)
   expect_equal(length(obj$data), 3)
   bool_grep_formula <- grep("Mod\\(A0x.*i,A0x.*j,A0x.*i\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
-  expect_is(obj, "ComplexLazyTensor")
+  expect_s3_class(obj, "ComplexLazyTensor")
   
   obj <-  mod(xc_i, y_j, z_i)
   expect_equal(length(obj$args), 3)
   expect_equal(length(obj$data), 3)
   bool_grep_formula <- grep("Mod\\(A0x.*i,A0x.*j,A0x.*i\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
-  expect_is(obj, "ComplexLazyTensor")
+  expect_s3_class(obj, "ComplexLazyTensor")
   
   obj <-  mod(x_i, y_j, 3)
   expect_equal(length(obj$args), 2)
   expect_equal(length(obj$data), 2)
   bool_grep_formula <- grep("Mod\\(A0x.*i,A0x.*j,IntCst\\(3\\)\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
-  expect_is(obj, "LazyTensor")
+  expect_s3_class(obj, "LazyTensor")
   
   obj <-  mod(x_i, 2, 3)
   expect_equal(length(obj$args), 1)
   expect_equal(length(obj$data), 1)
   bool_grep_formula <- grep("Mod\\(A0x.*i,IntCst\\(2\\),IntCst\\(3\\)\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
-  expect_is(obj, "LazyTensor")
+  expect_s3_class(obj, "LazyTensor")
   
   obj <-  mod(x_i, 2)
   expect_equal(length(obj$args), 1)
@@ -1468,7 +1634,7 @@ test_that("mod", {
   bool_grep_formula <- grep("Mod\\(A0x.*i,IntCst\\(2\\),IntCst\\(0\\)\\)",
                             obj$formula)
   expect_equal(bool_grep_formula, 1)
-  expect_is(obj, "LazyTensor")
+  expect_s3_class(obj, "LazyTensor")
   
   # errors
   expect_error(
@@ -1670,10 +1836,14 @@ test_that("weightedsqdist", {
   expect_true(is.LazyTensor(weightedsqdist(x_i, y_j, s_i)))
   expect_false(is.ComplexLazyTensor(weightedsqdist(xc_i, yc_j, sc_i)))
   expect_true(is.LazyTensor(weightedsqdist(xc_i, yc_j, sc_i)))
-  expect_false(is.ComplexLazyTensor(weightedsqdist(x_i, yc_j, sc_i)))
-  expect_true(is.LazyTensor(weightedsqdist(x_i, yc_j, sc_i)))
-  expect_false(is.ComplexLazyTensor(weightedsqdist(xc_i, y_j, s_i)))
-  expect_true(is.LazyTensor(weightedsqdist(xc_i, y_j, s_i)))
+  expect_warning(tmp <- is.ComplexLazyTensor(weightedsqdist(x_i, yc_j, sc_i)))
+  expect_false(tmp)
+  expect_warning(tmp <- is.LazyTensor(weightedsqdist(x_i, yc_j, sc_i)))
+  expect_true(tmp)
+  expect_warning(tmp <- is.ComplexLazyTensor(weightedsqdist(xc_i, y_j, s_i)))
+  expect_false(tmp)
+  expect_warning(tmp <- is.LazyTensor(weightedsqdist(xc_i, y_j, s_i)))
+  expect_true(tmp)
   
   obj <- weightedsqdist(x_i, y_j, s_i)
   expect_equal(length(obj$args), 3)
@@ -1714,6 +1884,15 @@ test_that("weightedsqdist", {
 
 
 test_that("Re", {
+    
+    # check that base operation is still working
+    expect_equal(Re(1), 1)
+    expect_equal(Re(1i), 0)
+    expect_equal(Re(1 + 1i), 1)
+    expect_equal(Re(10 + 1i), 10)
+    expect_equal(Re(c(10 + 1i, 5 + 1i)), c(10, 5))
+    expect_equal(Re(matrix(1+1i, 2, 2)), matrix(1, 2, 2))
+    
   # basic example
   D <- 3
   M <- 100
@@ -1735,7 +1914,7 @@ test_that("Re", {
   expect_equal(length(obj$data), 1)
   bool_grep_formula <- grep("ComplexReal\\(A0x.*i\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
-  expect_is(obj, "LazyTensor")
+  expect_s3_class(obj, "LazyTensor")
   
   expect_error(
     Re(x_i), 
@@ -1748,6 +1927,15 @@ test_that("Re", {
 
 test_that("Im", {
 
+    # check that base operation is still working
+    expect_equal(Im(1), 0)
+    expect_equal(Im(1i), 1)
+    expect_equal(Im(1 + 1i), 1)
+    expect_equal(Im(10 + 10i), 10)
+    expect_equal(Im(c(10 + 10i, 5 + 5i)), c(10, 5))
+    expect_equal(Im(matrix(1+1i, 2, 2)), matrix(1, 2, 2))
+    
+    # basic example
   D <- 3
   M <- 100
   
@@ -1768,7 +1956,7 @@ test_that("Im", {
   expect_equal(length(obj$data), 1)
   bool_grep_formula <- grep("ComplexImag\\(A0x.*i\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
-  expect_is(obj, "LazyTensor")
+  expect_s3_class(obj, "LazyTensor")
   
   expect_error(
     Im(x_i), 
@@ -1780,6 +1968,16 @@ test_that("Im", {
 
 
 test_that("Arg", {
+    
+    # check that base operation is still working
+    expect_equal(Arg(1), 0)
+    expect_equal(Arg(1i), 3.141593 / 2, tolerance = 1e-5)
+    expect_equal(Arg(1 + 1i), 3.141593 / 4, tolerance = 1e-5)
+    expect_equal(
+        Arg(c(1 + 1i, 0 + 1i)), c(3.141593 / 4, 3.141593 / 2), tolerance = 1e-5)
+    expect_equal(
+        Arg(matrix(1+1i, 2, 2)), matrix(3.141593 / 4, 2, 2), tolerance = 1e-5)
+    
   # basic example
   D <- 3
   M <- 100
@@ -1800,7 +1998,7 @@ test_that("Arg", {
   expect_equal(length(obj$data), 1)
   bool_grep_formula <- grep("ComplexAngle\\(A0x.*i\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
-  expect_is(obj, "LazyTensor")
+  expect_s3_class(obj, "LazyTensor")
   
   # error
   expect_error(
@@ -1823,21 +2021,21 @@ test_that("real2complex", {
   xc_i <- LazyTensor(x, index = 'i', is_complex = TRUE)
   
   # check formulas & classes
-  obj <-  real2complex(x_i)
+  expect_warning(obj <-  real2complex(x_i))
   expect_equal(length(obj$args), 1)
   expect_equal(length(obj$data), 1)
   expect_equal(obj$dimres, x_i$dimres)
   bool_grep_formula <- grep("Real2Complex\\(A0x.*i\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
-  expect_is(obj, "ComplexLazyTensor")
+  expect_s3_class(obj, "ComplexLazyTensor")
   
-  obj <-  real2complex(Pm(2))
+  expect_warning(obj <-  real2complex(Pm(2)))
   expect_null(obj$args)
   expect_null(obj$data)
   expect_equal(obj$dimres, 1)
   bool_grep_formula <- grep("Real2Complex\\(IntCst\\(2\\)\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
-  expect_is(obj, "ComplexLazyTensor")
+  expect_s3_class(obj, "ComplexLazyTensor")
   
   # errors
   expect_error(real2complex(xc_i), 
@@ -1866,7 +2064,7 @@ test_that("imag2complex", {
   expect_equal(obj$dimres, x_i$dimres)
   bool_grep_formula <- grep("Imag2Complex\\(A0x.*i\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
-  expect_is(obj, "ComplexLazyTensor")
+  expect_s3_class(obj, "ComplexLazyTensor")
   
   obj <-  imag2complex(Pm(2))
   expect_null(obj$args)
@@ -1874,7 +2072,7 @@ test_that("imag2complex", {
   expect_equal(obj$dimres, 1)
   bool_grep_formula <- grep("Imag2Complex\\(IntCst\\(2\\)\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
-  expect_is(obj, "ComplexLazyTensor")
+  expect_s3_class(obj, "ComplexLazyTensor")
   
   expect_error(imag2complex(xc_i), 
                "`imag2complex` cannot be applied to a ComplexLazyTensor.",
@@ -1899,7 +2097,7 @@ test_that("exp1j", {
   expect_equal(obj$dimres, x_i$dimres)
   bool_grep_formula <- grep("ComplexExp1j\\(A0x.*i\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
-  expect_is(obj, "ComplexLazyTensor")
+  expect_s3_class(obj, "ComplexLazyTensor")
   
   expect_error(exp1j(xc_i), 
                "`exp1j` cannot be applied to a ComplexLazyTensor.",
@@ -1909,6 +2107,15 @@ test_that("exp1j", {
 
 
 test_that("Conj", {
+    
+    # check that base operation is still working
+    expect_equal(Conj(10), 10)
+    expect_equal(Conj(10i), -10i)
+    expect_equal(Conj(10+10i), 10-10i)
+    expect_equal(Conj(c(10+10i,2)), c(10-10i, 2))
+    expect_equal(
+        Conj(matrix(10-10i, 2, 2)), matrix(10+10i, 2, 2))
+    
   # basic example
   D <- 3
   M <- 100
@@ -1921,7 +2128,7 @@ test_that("Conj", {
   
   # check results, formulas & classes
   obj <- Conj(z_i)
-  expect_is(obj, "ComplexLazyTensor")
+  expect_s3_class(obj, "ComplexLazyTensor")
   expect_equal(length(obj$args), 1)
   expect_equal(length(obj$data), 1)
   bool_grep_formula <- grep("Conj\\(A0x.*i\\)", obj$formula)
@@ -1929,7 +2136,7 @@ test_that("Conj", {
   
   obj <- Conj(1 + 2i)
   expect_equal(obj, 1 - 2i)
-  expect_is(obj, "complex")
+  expect_type(obj, "complex")
   
   # errors
   expect_error(
@@ -1941,6 +2148,15 @@ test_that("Conj", {
 
 
 test_that("Mod", {
+    
+    # check that base operation is still working
+    expect_equal(Mod(10), 10)
+    expect_equal(Mod(10i), 10)
+    expect_equal(Mod(1+1i), sqrt(2))
+    expect_equal(Mod(c(1+1i, 2)), c(sqrt(2), 2))
+    expect_equal(
+        Mod(matrix(1+1i, 2, 2)), matrix(sqrt(2), 2, 2))
+    
   # basic example
   D <- 3
   M <- 100
