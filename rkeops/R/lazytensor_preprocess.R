@@ -1348,9 +1348,9 @@ preprocess_reduction <- function(x, opstr, index, opt_arg = NA) {
 cplx_warning <- function(warn = TRUE) {
     if(warn) {
         msg <- paste(
-            "Warning message:\nOperations involving both LazyTensors and ",
+            "Operations involving both LazyTensors and",
             "ComplexLazyTensors may not work with the actual rkeops version.",
-            "\nThis should be fixed in a future release.", sep = ""
+            "This should be fixed in a future release.", sep = " "
         )
         warning(msg)
     }
