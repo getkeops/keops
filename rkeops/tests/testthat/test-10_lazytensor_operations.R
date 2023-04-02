@@ -2,6 +2,15 @@
 
 
 test_that("+", {
+  
+  # check that base addition is still working
+  expect_equal(2+3, 5)
+  expect_equal(+1, 0+1)
+  expect_equal(c(1,2) + c(1,2), c(2,4))
+  expect_equal(matrix(1, 2, 2) + matrix(1, 2, 2), matrix(2, 2, 2))
+  expect_equal(matrix(1, 2, 2) + 1, matrix(2, 2, 2))
+  expect_equal(1 + matrix(1, 2, 2), matrix(2, 2, 2))
+  
   # basic example
   D <- 3
   E <- 7
@@ -20,8 +29,13 @@ test_that("+", {
   expect_equal(D + M, 103)
   
   expect_true(is.LazyTensor(x_i + y_j))
-  expect_true(is.ComplexLazyTensor(x_i + xc_i))
-  expect_true(is.ComplexLazyTensor(xc_i + x_i))
+  
+  expect_warning(tmp <- is.ComplexLazyTensor(x_i + xc_i))
+  expect_true(tmp)
+  
+  expect_warning(tmp <- is.ComplexLazyTensor(xc_i + x_i))
+  expect_true(tmp)
+  
   expect_true(is.ComplexLazyTensor(xc_i + yc_j))
   
   obj <- x_i + y_j
@@ -30,28 +44,31 @@ test_that("+", {
   bool_grep_formula <- grep("A0x.*i\\+A0x.*j", obj$formula)
   expect_equal(bool_grep_formula, 1)
   
-  obj <- x_i + xc_i
+  expect_warning(obj <- x_i + xc_i)
   expect_equal(length(obj$args), 2)
   expect_equal(length(obj$data), 2)
-  bool_grep_formula <- grep("Add\\(Real2Complex\\(A0x.*i\\),A0x.*i\\)", obj$formula)
+  bool_grep_formula <- grep(
+      "Add\\(Real2Complex\\(A0x.*i\\),A0x.*i\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
   
-  obj <- xc_i + x_i
+  expect_warning(obj <- xc_i + x_i)
   expect_equal(length(obj$args), 2)
   expect_equal(length(obj$data), 2)
-  bool_grep_formula <- grep("Add\\(A0x.*i,Real2Complex\\(A0x.*i\\)\\)", obj$formula)
+  bool_grep_formula <- grep(
+      "Add\\(A0x.*i,Real2Complex\\(A0x.*i\\)\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
   
-  obj <-  xc_i + 3
+  expect_warning(obj <-  xc_i + 3)
   expect_equal(length(obj$args), 1)
   expect_equal(length(obj$data), 1)
   bool_grep_formula <- grep("Add\\(A0x.*i,Real2Complex\\(IntCst\\(3\\)\\)\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
   
-  obj <-  3 + xc_i
+  expect_warning(obj <-  3 + xc_i)
   expect_equal(length(obj$args), 1)
   expect_equal(length(obj$data), 1)
-  bool_grep_formula <- grep("Add\\(Real2Complex\\(IntCst\\(3\\)\\),A0x.*i\\)", obj$formula)
+  bool_grep_formula <- grep(
+      "Add\\(Real2Complex\\(IntCst\\(3\\)\\),A0x.*i\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
   
   obj <-  x_i + 3
@@ -75,11 +92,22 @@ test_that("+", {
       sep = ""
       ),
     fixed = TRUE
-    )
+  )
+  expect_error(+x_i)
+  expect_error(+xc_i)
 })
 
 
 test_that("-", {
+  
+  # check that base difference is still working
+  expect_equal(8-3, 5)
+  expect_equal(-1, 0-1)
+  expect_equal(c(3,6) - c(1,2), c(2,4))
+  expect_equal(matrix(2, 2, 2) - matrix(1, 2, 2), matrix(1, 2, 2))
+  expect_equal(matrix(2, 2, 2) - 1, matrix(1, 2, 2))
+  expect_equal(2 - matrix(1, 2, 2), matrix(1, 2, 2))
+  
   # basic example
   D <- 3
   E <- 7
@@ -99,7 +127,10 @@ test_that("-", {
   expect_equal(-D, -3)
   
   expect_true(is.LazyTensor(x_i - y_j))
-  expect_true(is.ComplexLazyTensor(x_i - xc_i))
+  
+  expect_warning(tmp <- is.ComplexLazyTensor(x_i - xc_i))
+  expect_true(tmp)
+  
   expect_true(is.ComplexLazyTensor(xc_i - yc_j))
   
   obj <- x_i - y_j
@@ -114,26 +145,30 @@ test_that("-", {
   bool_grep_formula <- grep("Subtract\\(A0x.*i,A0x.*j\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
   
-  obj <- xc_i - y_j
+  expect_warning(obj <- xc_i - y_j)
   expect_equal(length(obj$args), 2)
   expect_equal(length(obj$data), 2)
-  bool_grep_formula <- grep("Subtract\\(A0x.*i,Real2Complex\\(A0x.*j\\)\\)", obj$formula)
+  bool_grep_formula <- grep(
+      "Subtract\\(A0x.*i,Real2Complex\\(A0x.*j\\)\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
   
-  obj <- x_i - yc_j
-  bool_grep_formula <- grep("Subtract\\(Real2Complex\\(A0x.*i\\),A0x.*j\\)", obj$formula)
+  expect_warning(obj <- x_i - yc_j)
+  bool_grep_formula <- grep(
+      "Subtract\\(Real2Complex\\(A0x.*i\\),A0x.*j\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
   
-  obj <- xc_i - 3
+  expect_warning(obj <- xc_i - 3)
   expect_equal(length(obj$args), 1)
   expect_equal(length(obj$data), 1)
-  bool_grep_formula <- grep("Subtract\\(A0x.*i,Real2Complex\\(IntCst\\(3\\)\\)\\)", obj$formula)
+  bool_grep_formula <- grep(
+      "Subtract\\(A0x.*i,Real2Complex\\(IntCst\\(3\\)\\)\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
   
-  obj <- 3.3 - xc_i
+  expect_warning(obj <- 3.3 - xc_i)
   expect_equal(length(obj$args), 2)
   expect_equal(length(obj$data), 2)
-  bool_grep_formula <- grep("Subtract\\(Real2Complex\\(A0x.*NA\\),A0x.*i\\)", obj$formula)
+  bool_grep_formula <- grep(
+      "Subtract\\(Real2Complex\\(A0x.*NA\\),A0x.*i\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
   
   obj <-  x_i - 3
@@ -167,6 +202,14 @@ test_that("-", {
 
 
 test_that("*", {
+  
+  # check that base multiplication is still working
+  expect_equal(2*3, 6)
+  expect_equal(c(1,2) * c(1,2), c(1,4))
+  expect_equal(matrix(1, 2, 2) * matrix(1, 2, 2), matrix(1, 2, 2))
+  expect_equal(matrix(1, 2, 2) * 1, matrix(1, 2, 2))
+  expect_equal(1 * matrix(1, 2, 2), matrix(1, 2, 2))
+  
   # basic example
   D <- 3
   E <- 7
@@ -185,8 +228,13 @@ test_that("*", {
   expect_equal(D * M, 300)
   
   expect_true(is.LazyTensor(x_i * y_j))
-  expect_true(is.ComplexLazyTensor(x_i * yc_j))
-  expect_true(is.ComplexLazyTensor(xc_i * y_j))
+  
+  expect_warning(tmp <- is.ComplexLazyTensor(x_i * yc_j))
+  expect_true(tmp)
+  
+  expect_warning(tmp <- is.ComplexLazyTensor(xc_i * y_j))
+  expect_true(tmp)
+  
   expect_true(is.ComplexLazyTensor(xc_i * yc_j))
   
   obj <- x_i * y_j
@@ -195,16 +243,18 @@ test_that("*", {
   bool_grep_formula <- grep("A0x.*i\\*A0x.*j", obj$formula)
   expect_equal(bool_grep_formula, 1)
   
-  obj <- x_i * xc_i
+  expect_warning(obj <- x_i * xc_i)
   expect_equal(length(obj$args), 2)
   expect_equal(length(obj$data), 2)
-  bool_grep_formula <- grep("ComplexMult\\(Real2Complex\\(A0x.*i\\),A0x.*i\\)", obj$formula)
+  bool_grep_formula <- grep(
+      "ComplexMult\\(Real2Complex\\(A0x.*i\\),A0x.*i\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
   
-  obj <- xc_i * x_i
+  expect_warning(obj <- xc_i * x_i)
   expect_equal(length(obj$args), 2)
   expect_equal(length(obj$data), 2)
-  bool_grep_formula <- grep("ComplexMult\\(A0x.*i,Real2Complex\\(A0x.*i\\)\\)", obj$formula)
+  bool_grep_formula <- grep(
+      "ComplexMult\\(A0x.*i,Real2Complex\\(A0x.*i\\)\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
   
   obj <- xc_i * Pm(2i)
@@ -222,19 +272,22 @@ test_that("*", {
   obj <- xc_i * Pm(2)
   expect_equal(length(obj$args), 1)
   expect_equal(length(obj$data), 1)
-  bool_grep_formula <- grep("ComplexRealScal\\(A0x.*i,IntCst\\(2\\)\\)", obj$formula)
+  bool_grep_formula <- grep(
+      "ComplexRealScal\\(A0x.*i,IntCst\\(2\\)\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
   
   obj <- xc_i * 2
   expect_equal(length(obj$args), 1)
   expect_equal(length(obj$data), 1)
-  bool_grep_formula <- grep("ComplexRealScal\\(A0x.*i,IntCst\\(2\\)\\)", obj$formula)
+  bool_grep_formula <- grep(
+      "ComplexRealScal\\(A0x.*i,IntCst\\(2\\)\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
   
   obj <- 2 * xc_i
   expect_equal(length(obj$args), 1)
   expect_equal(length(obj$data), 1)
-  bool_grep_formula <- grep("ComplexRealScal\\(IntCst\\(2\\),A0x.*i\\)", obj$formula)
+  bool_grep_formula <- grep(
+      "ComplexRealScal\\(IntCst\\(2\\),A0x.*i\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
   
   obj <-  x_i * 3
@@ -262,6 +315,14 @@ test_that("*", {
 
 
 test_that("/", {
+  
+  # check that base division is still working
+  expect_equal(4/2, 2)
+  expect_equal(c(3,2) / c(1,2), c(3,1))
+  expect_equal(matrix(10, 2, 2) / matrix(2, 2, 2), matrix(5, 2, 2))
+  expect_equal(matrix(1, 2, 2) / 10, matrix(0.1, 2, 2))
+  expect_equal(1 / matrix(2, 2, 2), matrix(0.5, 2, 2))
+  
   # basic example
   D <- 3
   E <- 7
@@ -281,8 +342,13 @@ test_that("/", {
   expect_equal(D / M, 0.03)
   
   expect_true(is.LazyTensor(x_i / y_j))
-  expect_true(is.ComplexLazyTensor(x_i / yc_j))
-  expect_true(is.ComplexLazyTensor(xc_i / y_j))
+  
+  expect_warning(tmp <- is.ComplexLazyTensor(x_i / yc_j))
+  expect_true(tmp)
+  
+  expect_warning(tmp <- is.ComplexLazyTensor(xc_i / y_j))
+  expect_true(tmp)
+  
   expect_true(is.ComplexLazyTensor(xc_i / yc_j))
   
   obj <- x_i / y_j
@@ -291,21 +357,21 @@ test_that("/", {
   bool_grep_formula <- grep("A0x.*i/A0x.*j", obj$formula)
   expect_equal(bool_grep_formula, 1)
   
-  obj <- xc_i / y_j
+  expect_warning(obj <- xc_i / y_j)
   expect_equal(length(obj$args), 2)
   expect_equal(length(obj$data), 2)
-  bool_grep_formula <- grep("ComplexDivide\\(A0x.*i,Real2Complex\\(A0x.*j\\)\\)", 
-                            obj$formula)
+  bool_grep_formula <- grep(
+      "ComplexDivide\\(A0x.*i,Real2Complex\\(A0x.*j\\)\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
   
-  obj <- y_j / xc_i
+  expect_warning(obj <- y_j / xc_i)
   expect_equal(length(obj$args), 2)
   expect_equal(length(obj$data), 2)
-  bool_grep_formula <- grep("ComplexDivide\\(Real2Complex\\(A0x.*j\\),A0x.*i\\)", 
-                            obj$formula)
+  bool_grep_formula <- grep(
+      "ComplexDivide\\(Real2Complex\\(A0x.*j\\),A0x.*i\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
   
-  obj <- yc_j / 3
+  expect_warning(obj <- yc_j / 3)
   expect_equal(length(obj$args), 1)
   expect_equal(length(obj$data), 1)
   bool_grep_formula <- grep(
@@ -314,7 +380,7 @@ test_that("/", {
   )
   expect_equal(bool_grep_formula, 1)
   
-  obj <- 3 / xc_i
+  expect_warning(obj <- 3 / xc_i)
   expect_equal(length(obj$args), 1)
   expect_equal(length(obj$data), 1)
   bool_grep_formula <- grep(

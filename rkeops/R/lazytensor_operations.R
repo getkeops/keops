@@ -8,8 +8,13 @@
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @keywords internal
 #' @export
-"+.default" <- function(x, y) {
-    base::"+"(x, y)
+"+.default" <- function(x, y = NULL) {
+    if(!is.null(y)) {
+        return(base::"+"(x, y))
+    }
+    else {
+        return(base::"+"(x))
+    }
 }
 
 
@@ -45,8 +50,8 @@
 #' Sum_xy <- x_i + y_j                 # symbolic matrix, 150 rows and 3 columns
 #' }
 #' @export
-"+" <- function(x, y) { 
-    if(!is.ComplexLazyTensor(x) && is.LazyTensor(y))
+"+" <- function(x, y = NULL) {
+    if(!is.null(y) && !is.ComplexLazyTensor(x) && is.LazyTensor(y))
         UseMethod("+", y)
     else
         UseMethod("+", x)
@@ -56,9 +61,12 @@
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @keywords internal
 #' @export
-"+.LazyTensor" <- function(x, y) {
-    res <- binaryop.LazyTensor(x, y, "+", is_operator = TRUE,
-                               dim_check_type = "sameor1")
+"+.LazyTensor" <- function(x, y = NULL) {
+    if(is.null(y))
+        stop("'+' operand not implemented for a single LazyTensor argument")
+    else
+        res <- binaryop.LazyTensor(
+            x, y, "+", is_operator = TRUE, dim_check_type = "sameor1")
     return(res)
 }
 
@@ -66,7 +74,16 @@
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @keywords internal
 #' @export
-"+.ComplexLazyTensor" <- function(x, y) {
+"+.ComplexLazyTensor" <- function(x, y = NULL) {
+    
+    if(is.null(y)) {
+        msg <- paste0(
+            "'+' operand not implemented for",
+            "a single ComplexLazyTensor argument"
+        )
+        stop(msg)
+    }
+    
     if(!is.LazyTensor(x) && !is.matrix(x)) {
         x <- LazyTensor(x)
     }
@@ -96,21 +113,14 @@
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @keywords internal
 #' @export
-"-.default" <- .Primitive("-")
-
-# Below is an alternative, in case the .Primitive("-") option would not work with
-# some argument types.
-# However, this can lead to warning messages in some tests.
-#
-# "-.default" <- function(x, y = NA) {
-#     if(!is.na(y)) {
-#         return(base::"-"(x, y))
-#     }
-#     else {
-#         return(base::"-"(x))
-#     }
-#     
-# }
+"-.default" <- function(x, y = NULL) {
+    if(!is.null(y)) {
+        return(base::"-"(x, y))
+    }
+    else {
+        return(base::"-"(x))
+    }
+}
 
 #' Subtraction or minus sign.
 #' @description
@@ -150,8 +160,8 @@
 #' Minus_x <- -x_i                     # symbolic matrix
 #' }
 #' @export
-"-" <- function(x, y = NA) { 
-    if(!is.na(y) && (!is.ComplexLazyTensor(x) && is.LazyTensor(y)))
+"-" <- function(x, y = NULL) { 
+    if(!is.null(y) && (!is.ComplexLazyTensor(x) && is.LazyTensor(y)))
         UseMethod("-", y)
     else
         UseMethod("-", x)
@@ -161,12 +171,13 @@
 #' @author Amelie Vernay, Chloe Serre-Combe
 #' @keywords internal
 #' @export
-"-.LazyTensor" <- function(x, y = NA) {
-    if((length(y) == 1) && is.na(y))
+"-.LazyTensor" <- function(x, y = NULL) {
+    
+    if(is.null(y))
         res <- unaryop.LazyTensor(x, "Minus")
     else
-        res <- binaryop.LazyTensor(x, y, "-", is_operator = TRUE,
-                                   dim_check_type = "sameor1")
+        res <- binaryop.LazyTensor(
+            x, y, "-", is_operator = TRUE, dim_check_type = "sameor1")
     return(res)
 }
 
@@ -174,8 +185,9 @@
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @keywords internal
 #' @export
-"-.ComplexLazyTensor" <- function(x, y = NA) {
-    if((length(y) == 1) && is.na(y)) {
+"-.ComplexLazyTensor" <- function(x, y = NULL) {
+    
+    if(is.null(y)) {
         res <- unaryop.LazyTensor(x, "Minus")
         return(res)
     }
