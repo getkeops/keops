@@ -7,15 +7,15 @@ See [PR #192](https://github.com/getkeops/keops/pull/192)
 Remaining issues:
 
 - [ ] output for
-  + Min_ArgMin (missing argmin)
-  + Max_ArgMax (same)
-  + KMin (dim of output)
-  + argKMin (dim of output)
-  + KMin_ArgKMin (dim of output)
-  + LogSumExp (check output value)
-  + SumSoftMaxWeight (Python error: "Axis should be 0 or 1")
+  + [ ] Min_ArgMin (missing argmin)
+  + [ ] Max_ArgMax (same)
+  + [ ] KMin (dim of output)
+  + [ ] argKMin (dim of output)
+  + [ ] KMin_ArgKMin (dim of output)
+  + [ ] LogSumExp (check output value)
+  + [ ] SumSoftMaxWeight (Python error: "Axis should be 0 or 1")
 
-> More in [`dev/debug_LazyTensor.R`] and [`dev/debut_LazyTensor.py`]
+> More in [`dev/debug_LazyTensor.R`](dev/debug_LazyTensor.R) and [`dev/debut_LazyTensor.py`](dev/debut_LazyTensor.py)
 
 - [ ] fix inline doc for min, max (following sum), and other default functions
 
