@@ -1122,9 +1122,9 @@ index_to_int <- function(index) {
                 " either 'i' or 'j'."))
   }
   if(index == "i")
-    res <- 1
-  else
     res <- 0
+  else
+    res <- 1
   return(res)
 }
 

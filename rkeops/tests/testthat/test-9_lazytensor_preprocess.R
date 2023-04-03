@@ -896,10 +896,10 @@ test_that("check_index", {
 
 
 test_that("index_to_int", {
-  expect_is(index_to_int("i"), "numeric")
+  checkmate::expect_integerish(index_to_int("i"))
   
-  expect_equal(index_to_int("i"), 1)
-  expect_equal(index_to_int("j"), 0)
+  expect_equal(index_to_int("i"), 0)
+  expect_equal(index_to_int("j"), 1)
 })
 
 
