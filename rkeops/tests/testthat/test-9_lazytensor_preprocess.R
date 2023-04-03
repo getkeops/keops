@@ -1,5 +1,8 @@
-# TEST LAZYTENSOR CONFIGURATION ================================================
+skip_if_no_python()
+skip_if_no_keopscore()
+skip_if_no_pykeops()
 
+# TEST LAZYTENSOR CONFIGURATION ================================================
 
 # Tests for LazyTensor related functions
 #

@@ -1,3 +1,7 @@
+skip_if_no_python()
+skip_if_no_keopscore()
+skip_if_no_pykeops()
+
 # TEST ARITHMETIC OPERATIONS ===================================================
 
 
