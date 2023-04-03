@@ -1,0 +1,398 @@
+---
+title: "RKeOps LazyTensor"
+output: 
+  rmarkdown::html_vignette:
+    toc: true
+  pdf_document:
+    toc: true
+    number_sections: yes
+author: ""
+date: "`r Sys.Date()`"
+vignette: >
+  %\VignetteEncoding{UTF-8}
+  %\VignetteIndexEntry{RKeOps LazyTensor}
+  %\VignetteEngine{knitr::rmarkdown}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  progress = TRUE,
+  warning = FALSE
+)
+```
+
+```{r library, eval=FALSE}
+library(rkeops)
+```
+
+```{r devtools, message=FALSE, include=FALSE}
+#library(rkeops)
+devtools::load_all("..")
+```
+
+
+## Lazy evaluation
+
+Lazy evaluation allows to write intermediate computations as symbolic operations that are not directly evaluated. The real evaluation is only made on final computation.
+
+To do so, you can use `LazyTensor`s, that are objects wrapped around R matrices or vectors and used to create symbolic formulas for the `KeOps` reduction operations. A typical use case is the following: 
+
+Let us say that we want to compute
+
+$$
+a_j =\displaystyle\sum_{i=1}^{N} \mathrm{exp}\big(-\frac{\|x_i - y_j\|^2}{s^2}\big)
+$$
+
+The associated code would be:
+
+```{r full_example, eval=FALSE}
+# Data
+N <- 100
+M <- 150
+x <- matrix(runif(N * 3), nrow = N, ncol = 3) # arbitrary R matrix representing 
+                                              # 100 data points in R^3
+y <- matrix(runif(M * 3), nrow = M, ncol = 3) # arbitrary R matrix representing 
+                                              # 150 data points in R^3
+s <- 0.1                                      # scale parameter
+
+# Turn our Tensors into KeOps symbolic variables:
+x_i <- LazyTensor(x, "i")   # symbolic object representing an arbitrary row of x, 
+                            # indexed by the letter "i"
+y_j <- LazyTensor(y, "j")   # symbolic object representing an arbitrary row of y, 
+                            # indexed by the letter "j"
+
+# Perform large-scale computations, without memory overflows:
+D_ij <- sum((x_i - y_j)^2)    # symbolic matrix of pairwise squared distances, 
+                              # with 100 rows and 150 columns
+
+K_ij <- exp(- D_ij / s^2)     # symbolic matrix, 100 rows and 150 columns
+
+a_j <- sum(K_ij, index = "i") # actual R matrix (in fact a row vector of 
+                              # length 150 here)
+                              # containing the column sums of K_ij
+                              # (i.e. the sums over the "i" index, for each 
+                              # "j" index)
+
+```
+
+All the available operations are listed in the [section operation](#operations).
+
+## LazyTensor
+
+To encode symbolically a matrix, a vector, or a single value as a `LazyTensor`, you can use the function `LazyTensor()`. Run `?LazyTensor` to display the complete documentation.
+
+**Note:** In general, the term "`LazyTensor`" can denote both a simple `LazyTensor` or a combination of `LazyTensor`s; same for "`ComplexLazyTensor`".
+
+### ComplexLazyTensor
+
+The `LazyTensor` function also allows to encode complex mathematical objects. These new objects are called `ComplexLazyTensor`s, but note that these are also `LazyTensor`s, however, they are not encoded quite the same way: the real and complex parts are dissociated and stored in two contiguous columns. Below is a simple example of what complex objects becomes once encoded as `ComplexLazyTensor`s:
+
+```{r cplx_example}
+# Arbitrary complex R matrix
+z <- matrix(2 + 1i^(-6:-1), nrow = 2, ncol = 2)
+z
+
+# Encode as a `ComplexLazyTensor`, indexed by 'i'
+z_i <- LazyTensor(z, index = 'i', is_complex = TRUE)
+z_i$data
+
+
+# Same idea with a vector of complex
+v_z <- c(4 + 5i, 2 + 3i, 7 + 1i)
+v_z
+
+# Encode as a vector parameter `ComplexLazyTensor`
+Pm_v_z <- LazyTensor(v_z, is_complex = TRUE)
+Pm_v_z$data
+
+
+# Of course if you create a vector or a matrix of real values, and
+# encode it as a `ComplexLazyTensor`, a zero imaginary part is added to it:
+
+# Real R vector
+v <- c(5, 4, 7, 9)
+
+Pm_v <- LazyTensor(v, is_complex = TRUE)
+Pm_v$data
+```
+
+
+## Operations
+
+**Note:** If none of the input arguments are of class `LazyTensor` or `ComplexLazyTensor`, the default `R` function (if any) is used instead.
+Please refer to the help page of each function for type compatibility, dimension compatibility, and further details. You can also take a look at the "Using `RKeOps`" vignette, at the "Arguments" section, for further explanations about inner and outer dimensions.
+
+
+### Result dimension
+
+`LazyTensor`s contain a `dimres` attribute, which is an integer corresponding to the inner dimension of the LazyTensor. It is used when creating new `LazyTensor`s that result from operations to keep track of the dimension, and this enables you to check dimension compatibility when dealing with large operations.
+
+```{r dimres}
+N <- 100
+# arbitrary R matrices representing 100 data points in R^3
+w <- matrix(runif(N * 3), nrow = N, ncol = 3)
+x <- matrix(runif(N * 3), nrow = N, ncol = 3)
+y <- matrix(runif(N * 3), nrow = N, ncol = 3)
+
+# Create `LazyTensor`s from `w`, `x` and `y`
+w_i <- LazyTensor(w, "i")
+x_i <- LazyTensor(x, "i")
+y_j <- LazyTensor(y, "j")
+
+# print `x_i` inner dimension:
+x_i$dimres
+
+# print `y_j` inner dimension:
+y_j$dimres
+
+# Simple addition
+sum_xy <- x_i + y_j
+
+# print `sum_xy` inner dimension:
+sum_xy$dimres
+
+# Euclidean element-wise squared distance
+sq_dist_sum_xy_w <- sqdist(sum_xy, w_i)
+
+# print `sq_dist_sum_xy_w` inner dimension:
+sq_dist_sum_xy_w$dimres
+```
+
+
+### Simple arithmetics
+
+Here, `x` and `y` are `LazyTensor`s, and the result as well.
+
+| operation | meaning                                       |
+|:----------|:----------------------------------------------|
+| `x + y`   | element-wise addition of `x` and `y`          |
+| `x - y`   | element-wise subtraction  of `x` and `y`      |
+| `-x   `   | element-wise opposite of `x`                  |
+| `x * y`   | element-wise multiplication of `x` and `y`    |
+| `x / y`   | element-wise division of `x` by `y`           |
+| `x^y`     | element-wise value of `x` to the power of `y` |
+| `(x|y)`   | Euclidean scalar product between `x` and `y`  |
+
+
+### Elementary functions
+
+Here, `x` and `y` are `LazyTensor`s, and the result as well.
+
+| function               | meaning                                                                                              |
+|:-----------------------|:-----------------------------------------------------------------------------------------------------|
+| `square(x)`            | element-wise square of `x` (faster than `x^2`)                                                       |
+| `sqrt(x)`              | element-wise square root of `x` (faster than `x^(.5)`)                                               |
+| `rsqrt(x)`             | element-wise inverse square root of `x` (faster than `x^(-.5)`)                                      |
+| `exp(x)`               | element-wise exponential of `x`                                                                      |
+| `log(x)`               | element-wise natural logarithm of `x`                                                                |
+| `xlogx(x)`             | element-wise `x * log(x)` (with value `0` at `0`)                                                    |
+| `inv(x)`               | element-wise inverse of `x`                                                                          |
+| `cos(x)`               | element-wise cosine of `x`                                                                           |
+| `sin(x)`               | element-wise sine of `x`                                                                             |
+| `sinxdivx(x)`          | element-wise `sin(x) / x` (with value `1` at `0`)                                                    |
+| `acos(x)`              | element-wise arc-cosine of `x`                                                                       |
+| `asin(x)`              | element-wise arc-sine of `x`                                                                         |
+| `acos(x)`              | element-wise arc-cosine of `x`                                                                       |
+| `atan(x)`              | element-wise arc-tangent of `x`                                                                      |
+| `atan2(x, y)`          | element-wise [2-argument arc-tangent function](https://en.wikipedia.org/wiki/Atan2)                  |
+| `abs(x)`               | element-wise absolute value of `x` (or modulus if `x` is a `ComplexLazyTensor`, same as `Mod(x)`)    |
+| `sign(x)`              | element-wise sign of `x` (`-1` if `x < 0`, `0` if `x = 0`, `+1` if `x > 0`)                          |
+| `step(x)`              | element-wise step function (`0` if `x < 0`, `1` if `x >= 0`)                                         |
+| `relu(x)`              | element-wise ReLU function (`0` if `x < 0`, `x` if `x >= 0`)                                         |
+| `clamp(x, a, b)`       | element-wise Clamp function (`a` if `x < a`, `x` if `a <= x <= b`, `b` if `b < x`)                   |
+| `clampint(x, a, b)`    | element-wise Clamp function with `a` and `b` fixed integers                                          |
+| `ifelse(x, a, b)`      | element-wise If-Else function (`a` if `x >= 0`, `b` if `x < 0`)                                      |
+| `mod(x, a, b)`         | element-wise Modulo function, with offset (`x - a * floor((x - b)/a)`)                               |
+| `round(x, d)`          | element-wise rounding of `x` to `d` decimal places                                                   |
+   
+
+### Operations involving complex numbers
+
+Here, `z` is a `ComplexLazyTensor`, and `x` is a `LazyTensor`. The result is a `LazyTensor` or a `ComplexLazyTensor`, depending on the operation.
+
+| operation         | meaning                                                                        |
+|:------------------|:-------------------------------------------------------------------------------|
+| `Re(z)`           | element-wise real part of `z`                                                  |
+| `Im(z)`           | element-wise imaginary part of `z`                                             |
+| `Arg(z)`          | element-wise angle (or argument) of `z`                                        |
+| `Mod(z)`          | element-wise modulus of `z`                                                    |
+| `Conj(z)`         | element-wise conjugate of `z`                                                  |
+| `real2complex(x)` | element-wise conversion of real to complex with zero imaginary part (`x + 0i`) |
+| `imag2complex(x)` | element-wise conversion of real to complex with zero real part (`0 + xi`)      |
+
+
+### Simple vector operations
+
+Here, `x`, `y` and `s` are `LazyTensor`s, and the result as well.
+
+| operation                          | meaning                                                                                             |
+|:-----------------------------------|:----------------------------------------------------------------------------------------------------|
+| `norm2(x)`                         | L2 norm of `x`, same as `sqrt(x|x)`                                                                 |
+| `sqnorm2(x)`                       | squared L2 norm of `x`, same as `(x|x)`                                                             |
+| `normalize(x)`                     | normalization of `x`, same as `rsqrt(sqnorm2(x)) * x`                                               |
+| `sqdist(x, y)`                     | Euclidean distance between `x` and `y`, same as `sqnorm2(x - y)`                                    |
+| `weightedsqnorm(x, s)`             | generic weighted squared euclidean norm of `x`, with weights stored in `s` (see details below)      |
+| `weightedsqdist(x, y, s)`          | generic weighted squared euclidean distance between `x` and `y`, same as `weightedsqnorm(x - y, s)` |
+
+
+Generic squared Euclidean norms support scalar weights, and diagonal or full (symmetric) weight matrices. If $x$ is a vector of size $n$, depending on the size of $s$, `weightedsqnorm(x, s)` may refer to:
+
+- a weighted L2 norm $s_0\displaystyle\sum_{i = 0}^{n - 1} x_i^2$  if $s$ is a vector of size $1$.
+- a separable norm $\displaystyle\sum_{i = 0}^{n - 1} s_i x_i^2$  if $s$ is a vector of size $n$.
+- a full anisotropic norm $\displaystyle\sum_{i,j\ =\ 0}^{n - 1} s_{in + j} x_i x_j$  if $s$ is a vector of size $n^2$ such that $s_{in+j} =  s_{jn+i}$ (i.e. stores a symmetric matrix).
+
+
+### Elementary dot products
+
+Here, `x` and `y` are `LazyTensor`s, and the result as well.
+
+| operation                 | meaning                                                                                                 |
+|:--------------------------|:--------------------------------------------------------------------------------------------------------------|
+| `matvecmult(x, y)`        | matrix-vector product `x` $\times$ `y`: `x` is a vector interpreted as matrix (column-major), `y` is a vector |
+| `vecmatmult(x, y)`        | vector-matrix product `x` $\times$ `y`: `x` is a vector, `y` is a vector interpreted as matrix (column-major) |
+| `vecmatmult(x, y)`        | vector-matrix product `x` $\times$ `y`: `x` is a vector, `y` is a vector interpreted as matrix (column-major) |
+| `tensorprod(x, y)`        | tensor product of vectors or matrices `x` and `y`                                                             |
+
+
+### Constants and padding/concatenation operations
+
+Here, `x` and `y` are `LazyTensor`s, and `s` is a `LazyTensor` encoding a single value. In each case, the output is a `LazyTensor`.
+
+| operation                   | meaning                                                                                                                               |
+|:-------------------------------|:------------------------------------------------------------------------------------------------------------------------------------- |
+| `sum(x)`           | sum of the elements of `x`                                                                                                            |
+| `max(x)`           | max of the elements of `x`                                                                                                            |
+| `min(x)`           | min of the elements of `x`                                                                                                            |
+| `argmax(x)`        | argmax of the elements of `x`                                                                                                         |
+| `argmin(x)`        | argmin of the elements of `x`                                                                                                         |
+| `elem(x, m)`       | extract the `m`-th element `x`                                                                                                        |
+| `elemT(s, m, n)`   | insert `s` at position `m` in a `LazyTensor` encoding a vector of zeros of dimension `n`                                              |
+| `extract(x, m, d)` | extract sub-vector or sub-matrix from `x` (`m` is the starting index, `d` is the inner dimension of the extracted sub-vector or sub-matrix) |
+| `extractT(x, m, d)`| insert `x` in a vector or a matrix of zeros, at starting position `m` - output has an inner dimension equal to `d`                    |
+| `concat(x, y)`     | concatenation of `x` and `y`                                                                                                          |
+| `one_hot(x, d)`    | encodes a (rounded) scalar value as a one-hot vector of dimension `d`                                                                 |
+
+
+### Gradient
+
+Here, `x` and `gradin` are `LazyTensor`s.
+
+| operation                        | meaning                                                                                                                  |
+|:---------------------------------------------------|:-------------------------------------------------------------------------------------------------------|
+| `grad(x, gradin, red, var, "i")` | gradient of `x` with respect to the variable `var` and applied to `gradin` with compiling the corresponding reduction operator of `opstr` |
+
+
+
+### Reductions
+
+Here, `f` is a combination of `LazyTensor`s, indexed by `i` and `j`, and `w` is a `LazyTensor`.
+
+The operations `sum()`, `min()`, `argmin()`, `max()` and `argmax()` can be called with `NA` index (default), in which case no reduction is done and the result is a `LazyTensor`. Otherwise, the result is not a `LazyTensor`. 
+
+
+| operation                                                 |     meaning                                                |     mathematical expression                                  |
+|:----------------------------------------------------------|:-----------------------------------------------------------|:-------------------------------------------------------------|
+| `sum(f, "j")` <br> `sum_reduction(f, "j")`            | sum reduction indexed by `j` of the elements of `f`        | $\sum_j f_{ij}$                                              |
+| `min(f, "j")` <br> `min_reduction(f, "j")`            | min reduction indexed by `j` of the elements of `f`        | $\min_j f_{ij}$                                              |
+| `argmin(f, "j")` <br> `argmin_reduction(f, "j")`     | argmin reduction indexed by `j` of the elements of `f`     | $\text{argmin}_j f_{ij}$                                      |
+| `min_argmin(f, "j")` <br> `min_argmin_reduction(f, "j")` | min-argmin reduction indexed by `j` of the elements of `f` | $\left(\min_j f_{ij} ,\text{argmin}_j f_{ij}\right)$     |
+| `max(f, "j")`  <br> `max_reduction(f, "j")`           | max reduction indexed by `j` of the elements of `f`        | $\min_j f_{ij}$                                              |
+| `argmax(f, "j")` <br>  `argmax_reduction(f, "j")`     | argmax reduction indexed by `j` of the elements of `f`     | $\text{argmin}_j f_{ij}$                                      |
+| `max_argmax(f, "j")` <br>  `max_argmax_reduction(f, "j")`| max-argmax reduction indexed by `j` of the elements of `f` | $\left(\max_j f_{ij} ,\text{argmax}_j f_{ij}\right)$      |
+| `logsumexp(f, "j", w)` <br>  `logsumexp_reduction(f, "j", w)` | [LogSumExp reduction](https://en.wikipedia.org/wiki/LogSumExp), indexed by `j` of the elements of `f`, with weight stored in `w` | $\log\left(\sum_j\exp(f_{ij})\right)$       |
+| `sumsoftmaxweight(f, "j", w)` <br> `sumsoftmaxweight_reduction(f, "j", w)` | "Sum of weighted Soft-Max" reduction indexed by `j` of the elements of `f` | $\left(\sum_j\exp(f_{ij})w_{ij}\right)/\left(\sum_j\exp(f_{ij})\right)$  |
+
+
+#### Special reduction
+
+Here, `x` is a `LazyTensor` of inner dimension $D$ and outer dimension $M$, indexed by $i \in \{1, \ldots ,M\}$, and `y` is a `LazyTensor` of inner dimension $D$ and outer dimension $N$, indexed by $j \in \{1, \ldots ,N\}$.
+
+| operation | meaning                                                                                             | mathematical expression                         |
+|:----------|:----------------------------------------------------------------------------------------------------|:------------------------------------------------|
+|`x %*% y`  | sum reduction of the product `x` * `y` indexed by `j`.<br> Same as `sum_reduction(x * y, "j")` | $\sum_j x_{ik} y_{jk}, ~ k \in \{1, \ldots, N\}$ |
+
+
+## Advice and random notes
+
+### Aliases
+
+You can use aliases to create `LazyTensor`s:
+
+```{r aliases, eval=FALSE}
+# Data
+N <- 100
+x <- matrix(runif(N * 3), nrow = N, ncol = 3) # arbitrary R matrix representing 
+                                              # 100 data points in R^3
+v <- runif(3, 0, 1)                           # arbitrary vector of length 3
+s <- 0.1                                      # scale parameter
+
+# Create symbolic object representing an arbitrary row of x, 
+# indexed by the letter "i":
+x_i <- LazyTensor(x, "i")   
+# Same as
+x_i <- Vi(x)
+
+# Create symbolic object representing an arbitrary row of x, 
+# indexed by the letter "j":
+x_j <- LazyTensor(x, "j")
+# Same as
+x_j <- Vj(x)
+
+# Create symbolic object representing the vector `v` above:
+LT_v <- LazyTensor(v)
+# Same as
+LT_v <- Pm(v)
+
+# Create symbolic object representing the scalar `s` above:
+LT_s <- LazyTensor(s)
+# Same as
+LT_s <- Pm(s)
+```
+
+
+### Type checking
+
+You can check the "type" of your "object" and/or what kind of values it encodes.
+
+```{r type_checking}
+D <- 3
+M <- 100
+x <- matrix(runif(M * D), M, D)   # matrix of real values
+x_i <- LazyTensor(x, index = 'i')
+p <- LazyTensor(runif(3, 0, 1))   # LazyTensor encoding a fixed vector of real values
+l <- LazyTensor(314)              # LazyTensor encoding a fixed scalar parameter
+z <- matrix(1i^(-6:5), nrow = 4)  # matrix of complex values
+z_i <- LazyTensor(z, index = 'i', is_complex = TRUE)
+
+scal <- 3.14
+cplx <- 2 + 3i
+scal_LT <- LazyTensor(scal)
+cplx_LT <- LazyTensor(cplx)
+
+# check types
+is.LazyTensor(x_i)
+
+is.ComplexLazyTensor(z_i)
+
+is.LazyVector(p)
+
+is.LazyParameter(scal_LT)
+
+is.ComplexLazyParameter(cplx_LT)
+```
+
+Note that above are rudimentary examples, but this can become very handy when dealing with more complex expressions.
+
+
+## The `IntCst` type
+
+When a single integer value `n` is encoded as a `LazyTensor`, its formula is simply `"IntCst(n)"`, which contains all the necessary information, and the `args` and `data` attributes remain empty, to avoid useless storage.
+
+
+## Duplicate items in expressions
+
+When the same `LazyTensor` variable, indexed the same way, is used several times in an expression, it will only appear once in the `args` and `data` attributes, to avoid useless storage. Of course all its instances remain in the `formula` attribute.
+
+
+

@@ -171,7 +171,7 @@ The dimensions over indexes $i$ or $j$ are called the **outer dimensions** (i.e.
 
 * **Inner dimensions** $D$ and $D'$ should be **small** enough to fit in GPU memory, in particular to ensure data colocality and avoid useless memory transfers. Corresponding columns (or rows) should be contiguous in memory (this point is handled for you in RKeOps, see this [section](#data-storage-orientation)).<br>
 
-> **_Note 1:_** The outer dimension can correspond to the rows or the columns of the input matrices (and vice-versa for the inner dimension). The optimal orientation of input matrices is discussed in this [section](#data-storage-orientation) .
+> **Note 1:** The outer dimension can correspond to the rows or the columns of the input matrices (and vice-versa for the inner dimension). The optimal orientation of input matrices is discussed in this [section](#data-storage-orientation) .
 
 > **_Note 2:_** All matrices indexed by $i$ should have the same outer dimension $M$ over $i$, same for all matrices indexed by $j$ (outer dimension $N$). **Only the inner dimensions $D$ and $D'$ should be known for the compilation of your operators.** The respective outer dimensions $M$ and $N$ are discovered at runtime (and can change from one run to another).<br>
 
@@ -201,7 +201,7 @@ where
 
 of the `X`$^\text{th}$ variable in the formula.<br><br>
 
-> **_Important:_** The names should correspond to the ones used in the formula. The input parameter order will be the one used when calling the compiled operator.
+> **Important:** The names should correspond to the ones used in the formula. The input parameter order will be the one used when calling the compiled operator.
 
 **Example:** We define the corresponding arguments of the previous [formula](#formula), i.e. parameters or variables indexed by $i$ or $j$ with their corresponding inner dimensions:
 ```{r args, eval=FALSE}
