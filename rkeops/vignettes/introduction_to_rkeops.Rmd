@@ -40,6 +40,7 @@ a report on our [GitHub issue tracker](https://github.com/getkeops/keops/issues)
 **R bindings - RKeOps:**
 
 - Amelie Vernay, from the University of Montpellier.
+- Chloe Serre-Combe, from the University of Montpellier.
 - [Ghislain Durif](https://gdurif.perso.math.cnrs.fr/), from CNRS.
 
 **Contributors:**

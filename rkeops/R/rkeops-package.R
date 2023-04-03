@@ -14,6 +14,7 @@
 #' @author 
 #' - [Benjamin Charlier](http://imag.umontpellier.fr/~charlier/)
 #' - Amelie Vernay
+#' - Chloe Serre-Combe
 #' - [Ghislain Durif](https://gdurif.perso.math.cnrs.fr/)
 #' - [Jean Feydy](https://www.jeanfeydy.com)
 #' - [Joan Alexis Glaunès](http://helios.mi.parisdescartes.fr/~glaunes/)

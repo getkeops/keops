@@ -33,6 +33,7 @@ For more information, please read the vignettes
 \itemize{
 \item \href{http://imag.umontpellier.fr/~charlier/}{Benjamin Charlier}
 \item Amelie Vernay
+\item Chloe Serre-Combe
 \item \href{https://gdurif.perso.math.cnrs.fr/}{Ghislain Durif}
 \item \href{https://www.jeanfeydy.com}{Jean Feydy}
 \item \href{http://helios.mi.parisdescartes.fr/~glaunes/}{Joan Alexis Glaunès}
