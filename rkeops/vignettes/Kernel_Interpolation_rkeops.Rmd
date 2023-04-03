@@ -10,7 +10,7 @@ author: ""
 date: "`r Sys.Date()`"
 vignette: >
   %\VignetteEncoding{UTF-8}
-  %\VignetteIndexEntry{RKeOps LazyTensor}
+  %\VignetteIndexEntry{Kernel Interpolation with RKeOps}
   %\VignetteEngine{knitr::rmarkdown}
 ---
 
