@@ -2870,7 +2870,6 @@ reduction.LazyTensor <- function(x, opstr, index, opt_arg = NA) {
 #' @inherit base::sum details
 #' @inherit base::sum return
 #' @inherit base::sum examples
-#' @inherit base::sum arguments
 #' @export
 sum.default <- .Primitive("sum")
 
@@ -3007,7 +3006,6 @@ sum_reduction <- function(x, index) {
 #' @inherit base::min details
 #' @inherit base::min return
 #' @inherit base::min examples
-#' @inherit base::min arguments
 #' @export
 min.default <- .Primitive("min")
 
@@ -3270,7 +3268,6 @@ min_argmin_reduction <- function(x, index) {
 #' @inherit base::max details
 #' @inherit base::max return
 #' @inherit base::max examples
-#' @inherit base::max arguments
 #' @export
 max.default <- .Primitive("max")
 
