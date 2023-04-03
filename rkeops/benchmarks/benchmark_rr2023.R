@@ -80,16 +80,16 @@ bench_gaussian <- function(N, D, n_rep = 10) {
             rkeops_use_float64()
             gaussian_keops(x, y, b, lambda)
         },
-        # "keops_gpu_float32" = {
-        #     rkeops_use_gpu()
-        #     rkeops_use_float32()
-        #     gaussian_keops(x, y, b, lambda)
-        # },
-        # "keops_gpu_float32" = {
-        #     rkeops_use_gpu()
-        #     rkeops_use_float64()
-        #     gaussian_keops(x, y, b, lambda)
-        # },
+        "keops_gpu_float32" = {
+            rkeops_use_gpu()
+            rkeops_use_float32()
+            gaussian_keops(x, y, b, lambda)
+        },
+        "keops_gpu_float32" = {
+            rkeops_use_gpu()
+            rkeops_use_float64()
+            gaussian_keops(x, y, b, lambda)
+        },
         "base" = {
             gaussian_base(x, y, b, lambda)
         },
