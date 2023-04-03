@@ -62,6 +62,7 @@
 #' @keywords internal
 #' @export
 "+.LazyTensor" <- function(x, y = NULL) {
+    
     if(is.null(y))
         stop("'+' operand not implemented for a single LazyTensor argument")
     else
@@ -1304,10 +1305,7 @@ round.LazyTensor <- function(x, d) {
 #' @keywords internal
 #' @export
 xlogx.default <- function(x) {
-    if(x == 0)
-        res <- 0
-    else
-        res <- x * log(x)
+    res <- ifelse(x == 0, 0, x * log(x))
     return(res)
 }
 
@@ -2867,16 +2865,43 @@ reduction.LazyTensor <- function(x, opstr, index, opt_arg = NA) {
 
 # sum function -----------------------------------------------------------------
 
-#' Summation operation.
-#' @author Chloe Serre-Combe, Amelie Vernay
-#' @keywords internal
+#' Sum operation.
+#' @inherit base::sum description
+#' @inherit base::sum details
+#' @inherit base::sum return
+#' @inherit base::sum examples
+#' @inherit base::sum arguments
 #' @export
 sum.default <- .Primitive("sum")
 
-#' Summation operation or Sum reduction.
+#' Sum operation or Sum reduction.
 #' @description
-#' Summation unary operation, or Sum reduction.
-#' @details If `x` is a `LazyTensor`, `sum(x, index)` will :
+#' Sum operation for vector or LazyTensor, or Sum reduction for 
+#' LazyTensor.
+#' 
+#' @details
+#' If `x` is a `LazyTensor`, see [rkeops::sum.LazyTensor()], else see
+#' [rkeops::sum.default()].
+#' 
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @param x input for [rkeops::sum.default()] or [rkeops::sum.LazyTensor()].
+#' @param ... optional arguments for [rkeops::sum.default()] or 
+#' [rkeops::sum.LazyTensor()].
+#' @return FIXME
+#' @export
+sum <- function(x, ...) {
+    UseMethod("sum")
+}
+
+#' Sum operation or Sum reduction.
+#' 
+#' @keywords internal
+#' 
+#' @description
+#' Sum unary operation, or Sum reduction for LazyTensor.
+#' 
+#' @details
+#' Given that `x` is a `LazyTensor`, `sum(x, index)` will :
 #' \itemize{
 #'   \item if **index = "i"**, return the sum reduction of **x** over the "i" 
 #'   indexes.
@@ -2891,12 +2916,11 @@ sum.default <- .Primitive("sum")
 #' If **index = NA**, `x` input argument should be a `LazyTensor` encoding a 
 #' parameter vector.
 #' 
-#' If `x` is not a `LazyTensor` it computes R default "sum" function with
-#' other specific arguments (see R default `sum()` function).
 #' 
 #' Run `browseVignettes("rkeops")` to access the vignettes and find details
 #' about the function in "RKeOps LazyTensor",
 #' at section #Reductions.
+#' 
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `LazyTensor`, a `ComplexLazyTensor`, a vector or a matrix of numeric 
 #' values, or a scalar value.
@@ -2904,8 +2928,12 @@ sum.default <- .Primitive("sum")
 #' be either **i** or **j** to specify whether if the summation is indexed by 
 #' **i** (rows), or **j** (columns).
 #' It can be NA (default) when no reduction is desired.
+#' 
 #' @return FIXME
-#' @examples
+#' 
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' 
+#' #' @examples
 #' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
@@ -2914,16 +2942,10 @@ sum.default <- .Primitive("sum")
 #' sum_x <- sum(x_i)                   # LazyTensor object
 #' sum_red_x <- sum(x_i, "i")          # sum reduction indexed by 'i'
 #' }
-#' @export
-sum <- function(x, index) {
-    UseMethod("sum")
-}
-
-#' Summation operation or Sum reduction.
-#' @author Chloe Serre-Combe, Amelie Vernay
-#' @keywords internal
+#' 
 #' @export
 sum.LazyTensor <- function(x, index = NA) {
+    
     if(!is.na(index) && !check_index(index)) {
         stop(paste0("`index` input argument should be a character,",
                     " either 'i' or 'j', or NA."))
@@ -2945,9 +2967,9 @@ sum.LazyTensor <- function(x, index = NA) {
 
 # sum reduction ----------------------------------------------------------------
 
-#' Summation operation or Sum reduction.
+#' Sum reduction.
 #' @description
-#' Summation unary operation, or Sum reduction.
+#' Sum reduction for LazyTensor.
 #' @details `sum_reduction(x, index)` will return the sum reduction of **x** 
 #' indexed by **index**.
 #' @author Chloe Serre-Combe, Amelie Vernay
@@ -2981,8 +3003,11 @@ sum_reduction <- function(x, index) {
 # min function -----------------------------------------------------------------
 
 #' Minimum.
-#' @author Chloe Serre-Combe, Amelie Vernay
-#' @keywords internal
+#' @inherit base::min description
+#' @inherit base::min details
+#' @inherit base::min return
+#' @inherit base::min examples
+#' @inherit base::min arguments
 #' @export
 min.default <- .Primitive("min")
 
@@ -3014,6 +3039,8 @@ min.default <- .Primitive("min")
 #' be either **i** or **j** to specify whether if the reduction is indexed by 
 #' **i** (rows), or **j** (columns).
 #' It can be NA (default) when no reduction is desired.
+#' @param na.rm	logical. Should missing values (including NaN) 
+#' be removed? (only for `base::sum` operation).
 #' @return A matrix corresponding to the min reduction or an object of class 
 #' "LazyTensor" corresponding to a symbolic matrix, otherwise, depending on the 
 #' input class (see R default `min()` function).
@@ -3239,8 +3266,11 @@ min_argmin_reduction <- function(x, index) {
 # max function -----------------------------------------------------------------
 
 #' Maximum.
-#' @author Chloe Serre-Combe, Amelie Vernay
-#' @keywords internal
+#' @inherit base::max description
+#' @inherit base::max details
+#' @inherit base::max return
+#' @inherit base::max examples
+#' @inherit base::max arguments
 #' @export
 max.default <- .Primitive("max")
 
@@ -3286,7 +3316,7 @@ max.default <- .Primitive("max")
 #' }
 #' @export
 max <- function(x, ...) {
-    UseMethod("max", x)
+    UseMethod("max")
 }
 
 #' Maximum.
