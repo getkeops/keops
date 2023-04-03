@@ -6,7 +6,7 @@ See [PR #192](https://github.com/getkeops/keops/pull/192)
 
 Remaining issues:
 
-- output for
+- [ ] output for
   + Min_ArgMin (missing argmin)
   + Max_ArgMax (same)
   + KMin (dim of output)
@@ -17,9 +17,11 @@ Remaining issues:
 
 > More in [`dev/debug_LazyTensor.R`] and [`dev/debut_LazyTensor.py`]
 
-- fix inline doc for min, max (following sum), and other default functions
+- [ ] fix inline doc for min, max (following sum), and other default functions
 
-- revamp vignettes regarding LazyTensor, and mention it in main vignette
+- [ ] revamp vignettes regarding LazyTensor, and mention it in main vignette
+
+- [ ] fix issue from `devtools::check()`
 
 ## Implement RKeOps v2+
 
