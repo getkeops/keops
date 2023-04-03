@@ -102,10 +102,14 @@ bench_gaussian <- function(N, D, n_rep = 10) {
     return(res)
 }
 
-N_val <- c(100, 1000)
+N_val <- c(100, 1000, 5000, 10000, 50000)
 
 res_bench_gaussian <- Reduce("rbind", lapply(
-    N_val, function(N) bench(N, 15, n_rep = 100)))
+    N_val, function(N) {
+        print(paste0("#### N = "), N)
+        bench(N, 15, n_rep = 100)
+    }
+))
 
 str(res_bench_gaussian)
 write.table(
