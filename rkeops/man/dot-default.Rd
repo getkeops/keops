@@ -4,7 +4,7 @@
 \alias{-.default}
 \title{Subtraction.}
 \usage{
-\method{-}{default}()
+\method{-}{default}(x, y = NULL)
 }
 \description{
 Subtraction.

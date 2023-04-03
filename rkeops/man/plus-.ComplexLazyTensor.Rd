@@ -4,7 +4,7 @@
 \alias{+.ComplexLazyTensor}
 \title{Addition.}
 \usage{
-\method{+}{ComplexLazyTensor}(x, y)
+\method{+}{ComplexLazyTensor}(x, y = NULL)
 }
 \description{
 Addition.

@@ -22,3 +22,4 @@ Transform \code{string} index input into integer.
 \author{
 Chloe Serre-Combe, Amelie Vernay
 }
+\keyword{internal}

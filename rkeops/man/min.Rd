@@ -14,6 +14,9 @@ values, or a scalar value.}
 be either \strong{i} or \strong{j} to specify whether if the reduction is indexed by
 \strong{i} (rows), or \strong{j} (columns).
 It can be NA (default) when no reduction is desired.}
+
+\item{na.rm}{logical. Should missing values (including NaN)
+be removed? (only for \code{base::sum} operation).}
 }
 \value{
 A matrix corresponding to the min reduction or an object of class

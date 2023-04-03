@@ -2,57 +2,26 @@
 % Please edit documentation in R/lazytensor_operations.R
 \name{sum}
 \alias{sum}
-\title{Summation operation or Sum reduction.}
+\title{Sum operation or Sum reduction.}
 \usage{
-sum(x, index)
+sum(x, ...)
 }
 \arguments{
-\item{x}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector or a matrix of numeric
-values, or a scalar value.}
+\item{x}{input for \code{\link[=sum.default]{sum.default()}} or \code{\link[=sum.LazyTensor]{sum.LazyTensor()}}.}
 
-\item{index}{A \code{character} corresponding to the reduction dimension that should
-be either \strong{i} or \strong{j} to specify whether if the summation is indexed by
-\strong{i} (rows), or \strong{j} (columns).
-It can be NA (default) when no reduction is desired.}
+\item{...}{optional arguments for \code{\link[=sum.default]{sum.default()}} or
+\code{\link[=sum.LazyTensor]{sum.LazyTensor()}}.}
 }
 \value{
 FIXME
 }
 \description{
-Summation unary operation, or Sum reduction.
+Sum operation for vector or LazyTensor, or Sum reduction for
+LazyTensor.
 }
 \details{
-If \code{x} is a \code{LazyTensor}, \code{sum(x, index)} will :
-\itemize{
-\item if \strong{index = "i"}, return the sum reduction of \strong{x} over the "i"
-indexes.
-\item if \strong{index = "j"}, return the sum reduction of \strong{x} over the "j"
-indexes.
-\item if \strong{index = NA} (default), return a new \code{LazyTensor} object
-representing the sum of the values of the vector.
-}
-
-\strong{Notes}
-
-If \strong{index = NA}, \code{x} input argument should be a \code{LazyTensor} encoding a
-parameter vector.
-
-If \code{x} is not a \code{LazyTensor} it computes R default "sum" function with
-other specific arguments (see R default \code{sum()} function).
-
-Run \code{browseVignettes("rkeops")} to access the vignettes and find details
-about the function in "RKeOps LazyTensor",
-at section #Reductions.
-}
-\examples{
-\dontrun{
-x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
-x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
-                                    # indexed by 'i'
-
-sum_x <- sum(x_i)                   # LazyTensor object
-sum_red_x <- sum(x_i, "i")          # sum reduction indexed by 'i'
-}
+If \code{x} is a \code{LazyTensor}, see \code{\link[=sum.LazyTensor]{sum.LazyTensor()}}, else see
+\code{\link[=sum.default]{sum.default()}}.
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay

@@ -4,7 +4,7 @@
 \alias{-.ComplexLazyTensor}
 \title{Subtraction or minus sign.}
 \usage{
-\method{-}{ComplexLazyTensor}(x, y = NA)
+\method{-}{ComplexLazyTensor}(x, y = NULL)
 }
 \description{
 Subtraction or minus sign.

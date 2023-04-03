@@ -4,7 +4,7 @@
 \alias{cplx_warning}
 \title{Warning for ComplexLazyTensor/LazyTensor operations.}
 \usage{
-cplx_warning()
+cplx_warning(warn = TRUE)
 }
 \value{
 A warning message.

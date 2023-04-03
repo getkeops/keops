@@ -4,7 +4,7 @@
 \alias{+.LazyTensor}
 \title{Addition.}
 \usage{
-\method{+}{LazyTensor}(x, y)
+\method{+}{LazyTensor}(x, y = NULL)
 }
 \description{
 Addition.

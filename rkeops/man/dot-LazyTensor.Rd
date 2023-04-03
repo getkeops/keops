@@ -4,7 +4,7 @@
 \alias{-.LazyTensor}
 \title{Subtraction or minus sign.}
 \usage{
-\method{-}{LazyTensor}(x, y = NA)
+\method{-}{LazyTensor}(x, y = NULL)
 }
 \description{
 Subtraction or minus sign.

@@ -2,7 +2,7 @@
 % Please edit documentation in R/lazytensor_operations.R
 \name{sum_reduction}
 \alias{sum_reduction}
-\title{Summation operation or Sum reduction.}
+\title{Sum reduction.}
 \usage{
 sum_reduction(x, index)
 }
@@ -17,7 +17,7 @@ be either \strong{i} or \strong{j} to specify whether if the summation is indexe
 A matrix corresponding to the sum reduction.
 }
 \description{
-Summation unary operation, or Sum reduction.
+Sum reduction for LazyTensor.
 }
 \details{
 \code{sum_reduction(x, index)} will return the sum reduction of \strong{x}
