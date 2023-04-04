@@ -2,7 +2,7 @@ task:
   name: Tests (linux)
   container:
     image: ubuntu:latest
-  script: sh ./pytest.sh
+  script: bash ./pytest.sh
 
 task:
   name: Tests (macOS)
