@@ -7,7 +7,7 @@ task:
 task:
   name: Tests (macOS)
   macos_instance:
-    image: ghcr.io/cirruslabs/macos-ventura-xcode:14.3-rc-2
+    image: ghcr.io/cirruslabs/macos-ventura-xcode:latest
   script: sh ./pytest.sh
 
 

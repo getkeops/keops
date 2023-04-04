@@ -58,7 +58,7 @@ done
 ################################################################################
 
 # project root directory
-PROJDIR=$(git rev-parse --show-toplevel)
+PROJDIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 # python exec
 PYTHON="python3"
