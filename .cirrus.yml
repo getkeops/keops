@@ -1,5 +1,6 @@
-container:
-  image: python:slim
+macos_instance:
+  image: ghcr.io/cirruslabs/macos-ventura-xcode:14.3-rc-2
 
-test_task:
-  test_script: bash ./pytest.sh
+task:
+  script: sh ./pytest.sh
+
