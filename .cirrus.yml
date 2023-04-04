@@ -1,6 +1,14 @@
-macos_instance:
-  image: ghcr.io/cirruslabs/macos-ventura-xcode:14.3-rc-2
+task:
+  name: Tests (linux)
+    container:
+      image: ubuntu:latest
+  script: sh ./pytest.sh
 
 task:
+  name: Tests (macOS)
+  macos_instance:
+    image: ghcr.io/cirruslabs/macos-ventura-xcode:14.3-rc-2
   script: sh ./pytest.sh
+
+
 
