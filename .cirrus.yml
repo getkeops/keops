@@ -1,7 +1,7 @@
 task:
   name: Tests (linux)
-    container:
-      image: ubuntu:latest
+  container:
+    image: ubuntu:latest
   script: sh ./pytest.sh
 
 task:
