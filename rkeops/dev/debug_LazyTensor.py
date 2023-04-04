@@ -35,4 +35,3 @@ arg = np.random.randn(10, 4)
 # Perform reduction
 res = op(arg, backend="CPU")
 res.shape
-
