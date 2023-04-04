@@ -61,7 +61,7 @@ done
 PROJDIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 # python exec
-PYTHON="python"
+PYTHON="python3"
 
 # python environment for test
 TEST_VENV=${PROJDIR}/.test_venv
