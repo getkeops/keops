@@ -8,6 +8,6 @@ pkg_dir <- file.path(proj_dir, "rkeops")
 # package requirements
 pkg_list <- setdiff(
     remotes::local_package_deps(pkg_dir, dependencies = TRUE),
-    "utils"
+    c("stats", "utils")
 )
 install.packages(pkg_list)

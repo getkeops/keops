@@ -5,6 +5,6 @@ install_pkg(pkg_list) # function defined in local .Rprofile
 # package requirements
 pkg_list <- setdiff(
     remotes::local_package_deps(pkg_dir, dependencies = TRUE),
-    "utils"
+    c("stats", "utils")
 )
 install_pkg(pkg_list) # function defined in local .Rprofile
