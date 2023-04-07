@@ -75,7 +75,7 @@ bench_gaussian <- function(N, D, n_rep = 10) {
             rkeops_use_float32()
             gaussian_keops(x, y, b, lambda)
         },
-        "keops_cpu_float32" = {
+        "keops_cpu_float64" = {
             rkeops_use_cpu()
             rkeops_use_float64()
             gaussian_keops(x, y, b, lambda)
@@ -85,7 +85,7 @@ bench_gaussian <- function(N, D, n_rep = 10) {
             rkeops_use_float32()
             gaussian_keops(x, y, b, lambda)
         },
-        "keops_gpu_float32" = {
+        "keops_gpu_float64" = {
             rkeops_use_gpu()
             rkeops_use_float64()
             gaussian_keops(x, y, b, lambda)
@@ -99,6 +99,10 @@ bench_gaussian <- function(N, D, n_rep = 10) {
         mutate(
             n_data = N
         )
+    write.table(
+        res, file = paste0("res_benchmark_gaussian_N_", as.integer(N), ".csv"), 
+        \row.names = FALSE, col.names = TRUE)
+    
     return(res)
 }
 
@@ -106,8 +110,8 @@ N_val <- c(100, 1000, 5000, 10000, 50000)
 
 res_bench_gaussian <- Reduce("rbind", lapply(
     N_val, function(N) {
-        print(paste0("#### N = "), N)
-        bench(N, 15, n_rep = 100)
+        print(paste0("#### N = ", N))
+        bench_gaussian(N, 15, n_rep = 100)
     }
 ))
 
