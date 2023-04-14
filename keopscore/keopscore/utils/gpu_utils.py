@@ -8,7 +8,7 @@ from keopscore.utils.misc_utils import (
     find_library_abspath,
     KeOps_OS_Run,
 )
-from keopscore.config.config import cxx_compiler, get_build_folder
+from keopscore.config.config import cxx_compiler, get_build_folder, get_compiler_library
 import os
 from os.path import join
 
@@ -17,8 +17,11 @@ CUDA_SUCCESS = 0
 CU_DEVICE_ATTRIBUTE_MAX_THREADS_PER_BLOCK = 1
 CU_DEVICE_ATTRIBUTE_MAX_SHARED_MEMORY_PER_BLOCK = 8
 
-libcuda_folder = os.path.dirname(find_library_abspath("cuda"))
-libnvrtc_folder = os.path.dirname(find_library_abspath("nvrtc"))
+libcuda = get_compiler_library('libcuda')
+libnvrtc = get_compiler_library('libnvrtc')
+libcudart = get_compiler_library('libcudart')
+libcuda_folder = os.path.dirname(find_library_abspath(libcuda))
+libnvrtc_folder = os.path.dirname(find_library_abspath(libnvrtc))
 
 
 def get_cuda_include_path():
@@ -121,7 +124,7 @@ def cuda_include_fp16_path():
 
 
 def get_cuda_version(out_type="single_value"):
-    cuda = ctypes.CDLL(find_library("cudart"))
+    cuda = ctypes.CDLL(find_library(libcudart))
     cuda_version = ctypes.c_int()
     cuda.cudaRuntimeGetVersion(ctypes.byref(cuda_version))
     cuda_version = int(cuda_version.value)
@@ -142,7 +145,7 @@ def get_gpu_props():
     Adapted from https://gist.github.com/f0k/0d6431e3faa60bffc788f8b4daa029b1
     credit: Jan Schlüter
     """
-    cuda = ctypes.CDLL(find_library("cuda"))
+    cuda = ctypes.CDLL(find_library(libcuda))
 
     nGpus = ctypes.c_int()
     error_str = ctypes.c_char_p()

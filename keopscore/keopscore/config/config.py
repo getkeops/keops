@@ -88,23 +88,72 @@ set_build_folder(read_save_file=True, write_save_file=False, reset_all=False)
 def get_build_folder():
     return _build_path
 
-
-jit_binary = join(_build_path, "keops_nvrtc.so")
+if os.name == 'nt':
+    jit_binary = join(_build_path, "keops_nvrtc.dll")
+else:
+    jit_binary = join(_build_path, "keops_nvrtc.so")
 
 # Compiler
 cxx_compiler = os.getenv("CXX")
 if cxx_compiler is None:
-    cxx_compiler = "g++"
-if shutil.which(cxx_compiler) is None:
-    KeOps_Warning(
-        """
-    The default C++ compiler could not be found on your system.
-    You need to either define the CXX environment variable or a symlink to the g++ command.
-    For example if g++-8 is the command you can do
-      import os
-      os.environ['CXX'] = 'g++-8'
-    """
-    )
+    if os.name =='nt':
+        cxx_compiler = "cl.exe"
+    else:
+        cxx_compiler = "g++"
+        if shutil.which(cxx_compiler) is None:
+            KeOps_Warning(
+                """
+            The default C++ compiler could not be found on your system.
+            You need to either define the CXX environment variable or a symlink to the g++ command.
+            For example if g++-8 is the command you can do
+                import os
+                os.environ['CXX'] = 'g++-8'
+            """
+            )
+
+# get cuda libs
+# os.environ['libcuda'] = 'nvcuda'
+# os.environ['libnvrtc'] = 'nvrtc-builtins64_113'
+# os.environ['libcudart'] = 'cudart64_110'
+def get_compiler_library(lib_key):
+    if lib_key == 'libcuda':
+        if 'libcuda' in os.environ:
+            return os.environ['libcuda']
+        else:
+            if os.name =='nt':
+                return 'nvcuda'
+            else:
+                return 'cuda'
+
+    if lib_key == 'libnvrtc':
+        if 'libnvrtc' in os.environ:
+            return os.environ['libnvrtc']
+        else:
+            if os.name =='nt':
+                # nvrtc in windows depends on cuda version
+                # e.g. 'nvrtc-builtins64_113' is for cuda '11.3'
+                import torch
+                cuda_ver = torch.version.cuda
+                nvrtc_name = 'nvrtc-builtins64_' + cuda_ver.replace('.', '')
+                return nvrtc_name
+            else:
+                return 'nvrtc'
+
+    if lib_key == 'libcudart':
+        if 'libcudart' in os.environ:
+            return os.environ['libcudart']
+        else:
+            if os.name =='nt':
+                # nvrtc in windows depends on cuda major version
+                # e.g. 'cudart64_110' is for cuda '11.x'
+                import torch
+                cuda_ver = torch.version.cuda
+                nvrtc_name = 'cudart64_' + cuda_ver.split('.')[0] + '0'
+                return nvrtc_name
+            else:
+                return 'nvrtc'
+
+    return None
 
 
 compile_options = " -shared -fPIC -O3 -std=c++11"
@@ -173,7 +222,31 @@ cpp_flags += " -I" + bindings_source_dir
 
 from keopscore.utils.gpu_utils import get_gpu_props
 
-cuda_dependencies = ["cuda", "nvrtc"]
+libcuda = get_compiler_library('libcuda')
+libnvrtc = get_compiler_library('libnvrtc')
+libcudart = get_compiler_library('libcudart')
+
+if os.name =='nt':
+    if libcuda == 'cuda':
+        KeOps_Warning(
+            "'cuda' changed to 'nvcuda' in Windows. Please set os.environ['libcuda'] if not working."
+        )
+        libcuda = 'nvcuda'
+
+    if libnvrtc == 'nvrtc':
+        KeOps_Warning(
+            "'nvrtc' in Windows is version related. Please set os.environ['nvrtc'], e.g. 'nvrtc-builtins64_113'."
+        )
+        libnvrtc = 'nvrtc-builtins64_113'
+
+    if libcudart == 'cudart':
+        KeOps_Warning(
+            "'cudart' in Windows is version related. Please set os.environ['cudart'], e.g. 'cudart64_110'."
+        )
+        libcudart = 'cudart64_110'
+
+cuda_dependencies = [libcuda, libnvrtc]
+
 if all([find_library(lib) for lib in cuda_dependencies]):
     # N.B. calling get_gpu_props issues a warning if cuda is not available, so we do not add another warning here
     cuda_available = get_gpu_props()[0] > 0
@@ -202,12 +275,12 @@ if use_cuda:
     cuda_version = get_cuda_version()
     nvrtc_flags = (
         compile_options
-        + f" -fpermissive -L{libcuda_folder} -L{libnvrtc_folder} -lcuda -lnvrtc"
+        + f' -fpermissive -L"{libcuda_folder}" -L"{libnvrtc_folder}" -lcuda -lnvrtc'
     )
-    nvrtc_include = " -I" + bindings_source_dir
+    nvrtc_include = f' -I"{bindings_source_dir}"'
     cuda_include_path = get_cuda_include_path()
     if cuda_include_path:
-        nvrtc_include += " -I" + cuda_include_path
+        nvrtc_include += f' -I"{cuda_include_path}"'
     jit_source_file = join(base_dir_path, "binders", "nvrtc", "keops_nvrtc.cpp")
     jit_source_header = join(base_dir_path, "binders", "nvrtc", "keops_nvrtc.h")
 else:
@@ -228,7 +301,7 @@ def init_cudalibs():
     if not keopscore.config.config.init_cudalibs_flag:
         # we load some libraries that need to be linked with KeOps code
         # This is to avoid "undefined symbols" errors.
-        CDLL(find_library("nvrtc"), mode=RTLD_GLOBAL)
-        CDLL(find_library("cuda"), mode=RTLD_GLOBAL)
-        CDLL(find_library("cudart"), mode=RTLD_GLOBAL)
+        CDLL(find_library(libnvrtc), mode=RTLD_GLOBAL)
+        CDLL(find_library(libcuda), mode=RTLD_GLOBAL)
+        CDLL(find_library(libcudart), mode=RTLD_GLOBAL)
         keopscore.config.config.init_cudalibs_flag = True

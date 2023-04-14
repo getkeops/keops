@@ -11,6 +11,10 @@ here = path.abspath(path.dirname(__file__))
 with open(os.path.join(here, "keopscore", "keops_version"), encoding="utf-8") as v:
     current_version = v.read().rstrip()
 
+if current_version.startswith('../'):
+    with open(os.path.join(here, "keopscore", current_version), encoding="utf-8") as v:
+        current_version = v.read().rstrip()
+
 # Get the long description from the README file
 with open(path.join(here, "keopscore", "readme.md"), encoding="utf-8") as f:
     long_description = f.read()

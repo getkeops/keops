@@ -4,7 +4,6 @@
 
 import keopscore
 
-
 def KeOps_Message(message, use_tag=True, **kwargs):
     if keopscore.verbose:
         tag = "[KeOps] " if use_tag else ""
@@ -33,14 +32,16 @@ def KeOps_OS_Run(command):
 
     python_version = sys.version_info
     if python_version >= (3, 7):
-        import subprocess
+        import subprocess, os
 
         out = subprocess.run(command, shell=True, capture_output=True)
         if out.stderr != b"":
-            KeOps_Warning(
-                "There were warnings or errors compiling formula :", newline=True
-            )
-            print(out.stderr.decode("utf-8"))
+            if os.name == 'nt':
+                KeOps_Warning("There were warnings or errors compiling formula :", newline=True)
+                print(out.stderr.decode("gbk"))
+            else:
+                KeOps_Warning("There were warnings or errors compiling formula :", newline=True)
+                print(out.stderr.decode("utf-8"))
     elif python_version >= (3, 5):
         import subprocess
 
@@ -54,7 +55,7 @@ def KeOps_OS_Run(command):
         os.system(command)
 
 
-def find_library_abspath(lib):
+def find_library_abspath_linux(lib):
     """
     wrapper around ctypes find_library that returns the full path
     of the library.
@@ -90,3 +91,33 @@ def find_library_abspath(lib):
     abspath = cast(lmptr, POINTER(LINKMAP)).contents.l_name
 
     return abspath.decode("utf-8")
+
+def find_library_abspath_windows(lib):
+    """
+    wrapper around ctypes find_library that returns the full path
+    of the library.
+    Warning : it also opens the shared library !
+    Adapted from
+    https://stackoverflow.com/questions/11007896/how-can-i-search-and-get-the-directory-of-a-dll-file-in-python
+    """
+    import ctypes
+    from ctypes.wintypes import HANDLE, LPWSTR, DWORD
+
+    GetModuleFileName = ctypes.windll.kernel32.GetModuleFileNameW
+    GetModuleFileName.argtypes = HANDLE, LPWSTR, DWORD
+    GetModuleFileName.restype = DWORD
+
+    MAX_PATH = 260
+    dll = ctypes.CDLL(lib) or ctypes.WINDLL(lib)
+    buf = ctypes.create_unicode_buffer(MAX_PATH)
+    GetModuleFileName(dll._handle, buf, MAX_PATH)
+    abspath = buf.value
+
+    return abspath
+
+def find_library_abspath(lib):
+    import os
+    if os.name == 'nt':
+        return find_library_abspath_windows(lib)
+    else:
+        return find_library_abspath_linux(lib)

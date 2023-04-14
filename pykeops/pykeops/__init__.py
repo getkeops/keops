@@ -30,6 +30,11 @@ with open(
 ) as v:
     __version__ = v.read().rstrip()
 
+here = os.path.abspath(os.path.dirname(__file__))
+if __version__.startswith('../'):
+    with open(os.path.join(here, __version__), encoding="utf-8") as v:
+        __version__ = v.read().rstrip()
+        
 ###########################################################
 # Utils
 
