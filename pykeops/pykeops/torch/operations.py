@@ -118,7 +118,6 @@ class KernelSolveAutograd(torch.autograd.Function):
                 res += alpha * var
             return res
 
-        global copy
         result = ConjugateGradientSolver("torch", linop, varinv.data, eps)
 
         # relying on the 'ctx.saved_variables' attribute is necessary  if you want to be able to differentiate the output
