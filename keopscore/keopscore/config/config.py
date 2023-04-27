@@ -189,7 +189,7 @@ if all([find_and_try_library(lib) for lib in cuda_dependencies]):
 else:
     cuda_available = False
     KeOps_Warning(
-        "Cuda libraries were not detected on the system ; using cpu only mode"
+        "Cuda libraries were not detected on the system or could not be loaded ; using cpu only mode"
     )
 
 if not use_cuda and cuda_available:
