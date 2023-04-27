@@ -173,8 +173,19 @@ cpp_flags += " -I" + bindings_source_dir
 
 from keopscore.utils.gpu_utils import get_gpu_props
 
+def find_and_try_library(libtag):
+    libname = find_library(libtag)
+    if libname is None:
+        return False
+    else:
+        try:
+            CDLL(libname)
+            return True
+        except OSError:
+            return False
+
 cuda_dependencies = ["cuda", "nvrtc"]
-if all([find_library(lib) for lib in cuda_dependencies]):
+if all([find_and_try_library(lib) for lib in cuda_dependencies]):
     # N.B. calling get_gpu_props issues a warning if cuda is not available, so we do not add another warning here
     cuda_available = get_gpu_props()[0] > 0
 else:
