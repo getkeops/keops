@@ -50,7 +50,7 @@ class GenredAutograd(torch.autograd.Function):
         # number of batch dimensions
         # N.B. we assume here that there is at least a cat=0 or cat=1 variable in the formula...
         nbatchdims = max(len(arg.shape) for arg in args) - 2
-        use_ranges = nbatchdims > 0 or ranges
+        use_ranges = nbatchdims > 0 or ranges is not None
 
         device_args = args[0].device
         if tagCPUGPU == 1 & tagHostDevice == 1:
