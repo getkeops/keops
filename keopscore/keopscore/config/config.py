@@ -152,6 +152,9 @@ if use_OpenMP:
                     if res.returncode == 0
                     else None
                 )
+                
+            print(loaded_libs)
+            
             if loaded_libs["libmkl_rt"]:
                 cpp_flags += f' -Xclang -fopenmp -lmkl_rt -L{loaded_libs["libmkl_rt"]}'
             elif loaded_libs["libiomp"]:

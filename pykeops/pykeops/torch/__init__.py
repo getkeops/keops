@@ -1,5 +1,12 @@
+print("a")
+
 import torch
+
+print("b")
+
 from .. import config as pykeopsconfig
+
+print("c")
 
 ##########################################################
 # Check Pytorch install

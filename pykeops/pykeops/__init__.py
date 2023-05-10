@@ -5,6 +5,8 @@ import keopscore.config
 import keopscore.config.config
 from keopscore.config.config import get_build_folder as keops_get_build_folder
 
+print("1")
+
 from . import config as pykeopsconfig
 
 ###########################################################
@@ -20,6 +22,7 @@ def set_verbose(val):
     verbose = val
     keopscore.verbose = val
 
+print("2")
 
 ###########################################################
 # Set version
@@ -32,6 +35,8 @@ with open(
 
 ###########################################################
 # Utils
+
+print("3")
 
 default_device_id = 0  # default Gpu device number
 
@@ -70,12 +75,19 @@ def set_build_folder(path=None):
 def get_build_folder():
     return keops_get_build_folder()
 
+print("4")
 
 if pykeopsconfig.numpy_found:
     from .numpy.test_install import test_numpy_bindings
 
+print("5")
+
 if pykeopsconfig.torch_found:
     from .torch.test_install import test_torch_bindings
 
+
+
 # next line is to ensure that cache file for formulas is loaded at import
 from .common import keops_io
+
+print("6")
