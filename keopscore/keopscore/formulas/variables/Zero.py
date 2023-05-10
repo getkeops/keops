@@ -7,10 +7,13 @@ class Zero(Operation):
 
     string_id = "Zero"
 
-    def __init__(self, dim):
-        super().__init__()
+    def __init__(self, dim=None, params=None):
+        # N.B. init via params keyword is used for compatibility with base class.
+        if dim is None:
+            # here params should be a tuple containing one single integer
+            (dim,) = params
+        super().__init__(params=(dim,))
         self.dim = dim
-        self.params = (dim,)
 
     # custom __eq__ method
     def __eq__(self, other):
