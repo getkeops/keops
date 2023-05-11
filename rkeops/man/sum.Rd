@@ -13,7 +13,7 @@ sum(x, ...)
 \code{\link[=sum.LazyTensor]{sum.LazyTensor()}}.}
 }
 \value{
-FIXME
+Sum of input.
 }
 \description{
 Sum operation for vector or LazyTensor, or Sum reduction for

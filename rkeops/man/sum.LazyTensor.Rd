@@ -32,9 +32,7 @@ indexes.
 representing the sum of the values of the vector.
 }
 
-\strong{Notes}
-
-If \strong{index = NA}, \code{x} input argument should be a \code{LazyTensor} encoding a
+\strong{Notes}: If \strong{index = NA}, \code{x} input argument should be a \code{LazyTensor} encoding a
 parameter vector.
 
 Run \code{browseVignettes("rkeops")} to access the vignettes and find details
