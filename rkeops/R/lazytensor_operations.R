@@ -1690,6 +1690,7 @@ mod <- function(x, ...) {
 }
 
 #' Element-wise modulo with offset function.
+#' @rdname modulo.LazyTensor
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @keywords internal
 #' @export
@@ -2228,6 +2229,7 @@ Conj.ComplexLazyTensor <- function(z) {
 # complex modulus --------------------------------------------------------------
 
 #' Absolute value (or modulus).
+#' @rdname absolute.default
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @keywords internal
 #' @export
@@ -2257,6 +2259,7 @@ Mod <- function(z) {
 }
 
 #' Element-wise absolute value (or modulus).
+#' @rdname absolute.LazyTensor
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @keywords internal
 #' @export
@@ -2265,6 +2268,7 @@ Mod.LazyTensor <- function(z) {
 }
 
 #' Element-wise absolute value (or modulus).
+#' @rdname absolute.ComplexLazyTensor
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @keywords internal
 #' @export
