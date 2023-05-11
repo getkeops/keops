@@ -1637,6 +1637,7 @@ ifelse.LazyTensor <- function(x, a, b) {
 # mod function -----------------------------------------------------------------
 
 #' Element-wise modulo with offset function.
+#' @rdname modulo
 #' @description
 #' Symbolic ternary operation for element-wise modulo with offset function.
 #' @details `mod(x, a, b)` returns a `LazyTensor` that encodes, symbolically,
@@ -2233,6 +2234,7 @@ Conj.ComplexLazyTensor <- function(z) {
 Mod.default <- .Primitive("Mod") # assign default as current definition
 
 #' Element-wise absolute value (or modulus).
+#' @rdname absolute
 #' @description
 #' Symbolic unary operation for element-wise absolute value (or modulus).
 #' @details If `z` is a `ComplexLazyTensor`, `Mod(z)` returns a `LazyTensor` that 
@@ -2886,7 +2888,7 @@ sum.default <- .Primitive("sum")
 #' @param x input for [rkeops::sum.default()] or [rkeops::sum.LazyTensor()].
 #' @param ... optional arguments for [rkeops::sum.default()] or 
 #' [rkeops::sum.LazyTensor()].
-#' @return FIXME
+#' @return Sum of input.
 #' @export
 sum <- function(x, ...) {
     UseMethod("sum")
@@ -2910,11 +2912,8 @@ sum <- function(x, ...) {
 #'   representing the sum of the values of the vector.
 #' }
 #' 
-#' **Notes**
-#' 
-#' If **index = NA**, `x` input argument should be a `LazyTensor` encoding a 
+#' **Notes**: If **index = NA**, `x` input argument should be a `LazyTensor` encoding a 
 #' parameter vector.
-#' 
 #' 
 #' Run `browseVignettes("rkeops")` to access the vignettes and find details
 #' about the function in "RKeOps LazyTensor",
