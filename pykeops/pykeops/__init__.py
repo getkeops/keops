@@ -36,7 +36,6 @@ with open(
 default_device_id = 0  # default Gpu device number
 
 if keopscore.config.config.use_cuda:
-
     if not os.path.exists(pykeopsconfig.pykeops_nvrtc_name(type="target")):
         from .common.keops_io.LoadKeOps_nvrtc import compile_jit_binary
 

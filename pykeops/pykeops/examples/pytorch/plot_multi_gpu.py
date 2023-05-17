@@ -32,6 +32,7 @@ N = 1000000
 x = torch.randn(M, 3)
 y = torch.randn(N, 3)
 
+
 ###############################################################
 #  Define a symbolic gaussian kernel
 #  reduction using LazyTensor syntax

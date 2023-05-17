@@ -28,7 +28,6 @@ def KP(x, y, b):
 
 
 for N in Ns:
-
     # Generate the data
     x = torch.randn(N, D).cuda()
     y = torch.randn(N, D).cuda()

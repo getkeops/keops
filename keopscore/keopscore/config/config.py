@@ -18,7 +18,9 @@ bindings_source_dir = join(base_dir_path)
 keops_cache_folder = join(
     os.path.expanduser("~"), ".cache", f"keops{keopscore.__version__}"
 )
-default_build_folder_name = "build"
+default_build_folder_name = (
+    "_".join(platform.uname()[:3]) + f"_p{sys.version.split(' ')[0]}"
+)
 # In case user has specified CUDA_VISIBLE_DEVICES environment variable,
 # it is better to set the build folder name accordingly.
 specific_gpus = os.getenv("CUDA_VISIBLE_DEVICES")
@@ -39,7 +41,6 @@ _build_path = None
 def set_build_folder(
     path=None, read_save_file=False, write_save_file=True, reset_all=True
 ):
-
     # if path is not given, we either read the save file or use the default build path
     save_file = join(keops_cache_folder, "build_folder_location.txt")
     if not path:
@@ -170,16 +171,30 @@ if platform.system() == "Darwin":
 cpp_flags += " -I" + bindings_source_dir
 
 
-from keopscore.utils.gpu_utils import get_gpu_props
+def find_and_try_library(libtag):
+    libname = find_library(libtag)
+    if libname is None:
+        return False
+    else:
+        try:
+            CDLL(libname)
+            return True
+        except OSError:
+            return False
+
 
 cuda_dependencies = ["cuda", "nvrtc"]
-if all([find_library(lib) for lib in cuda_dependencies]):
+if all([find_and_try_library(lib) for lib in cuda_dependencies]):
     # N.B. calling get_gpu_props issues a warning if cuda is not available, so we do not add another warning here
+    from keopscore.utils.gpu_utils import (
+        get_gpu_props,
+    )  # N.B. this import should be kept inside the if statement
+
     cuda_available = get_gpu_props()[0] > 0
 else:
     cuda_available = False
     KeOps_Warning(
-        "Cuda libraries were not detected on the system ; using cpu only mode"
+        "Cuda libraries were not detected on the system or could not be loaded ; using cpu only mode"
     )
 
 if not use_cuda and cuda_available:

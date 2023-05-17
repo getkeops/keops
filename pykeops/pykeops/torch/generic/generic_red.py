@@ -34,7 +34,6 @@ class GenredAutograd(torch.autograd.Function):
         out,
         *args
     ):
-
         # N.B. when rec_multVar_highdim option is set, it means that formula is of the form "sum(F*b)", where b is a variable
         # with large dimension. In this case we set option multVar_highdim to allow for the use of the special "final chunk" computation
         # mode. However, this may not be also true for the gradients of the same formula. In fact only the gradient
@@ -192,7 +191,7 @@ class GenredAutograd(torch.autograd.Function):
 
         grads = []  # list of gradients wrt. args;
 
-        for (var_ind, (sig, arg_ind)) in enumerate(
+        for var_ind, (sig, arg_ind) in enumerate(
             zip(aliases, args)
         ):  # Run through the arguments
             # If the current gradient is to be discarded immediatly...

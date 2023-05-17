@@ -21,7 +21,6 @@ KP = generic_sum(
 )  # 3rd argument
 
 for N in Ns:
-
     # Generate the data
     x = torch.randn(N, D).cuda()
     y = torch.randn(N, D).cuda()

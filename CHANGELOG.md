@@ -1,7 +1,15 @@
+* v2.1.2 - Apr 4, 2023
+   - Fixes a memory leaks introduced in version v2.x (issues 284 and 300).
+   - The name of the cache folder now include the hostname.
+   - Fix a bad memory allocation in tensordot
+   - Add Kronecker product
+
+
 * v2.1.1 - Jan 6, 2023
-    - Fixes for issues 220, 263, 256, 266, 275, 262, 282
+    - Fixes for issues 220, 263, 256, 266, 275, 262, 282.
     - Fixed an error caused by a compile warning on recent MacOs systems.
     - Added an official image on DockerHub and updated instructions for Singularity and Docker.
+
 
 * v2.1 - Jun 3, 2022
     - Fix for gradient formula of divide operation (issue #246).
@@ -9,6 +17,7 @@
     - Fix for the gradient formula for complex multiplication operation (issue #238).
     - Other minor bug fixes (issues #242, #240, #248, #241, #233).
     - Added support for BSpline kernels.
+
 
 * v2.0 - Mar 17, 2022
     - Complete rewritting of meta-programming engine: compilation times are divided by 10-100
@@ -18,12 +27,14 @@
     - improve unit test framework
     - Many bug fixing
 
+
 * v1.5 - Mar 22, 2021
     - Add multiple operations: acos, asin, atan, atan2, sinc, if-else, round, modulo.
     - Complex numbers: full python support, pairs of float/double for other languages.
     - Extensive benchmarks for knn, etc...
     - Extensive documentation improvements.
     - New compilation pipeline for python.
+
 
 * v1.4.2 - Nov 27, 2020
     - Refactor pykeops LazyTensor class.
@@ -33,14 +44,17 @@
     - remove Gputils dependency for pykeops.
     - Add Clamp operator in keops.
 
+
 * v1.4.1 - Aug 19, 2020
     - Fix compatibility issue with PyTorch 1.5-6.
     - Fix compatibility issue with Cuda 11.0.
     - Improve performances for computations with dimension D>100.
 
+
 * v1.4 - Mar 22, 2020
     - Added multiprocessor parallelization in CPU mode.
     - Added support for float16 data type.
+
 
 * v1.3 - Jan 16, 2020
     - rKeOps: KeOps binding for R (uploaded in CRAN).
@@ -48,9 +62,11 @@
     - Add accuracy options for single precision summations: block summations (used by default now), mixed precision and Kahan compensated scheme.
     - Add a pykeops.clean_pykeops() routine to flush the cache dir.
     
+
 * v1.2 - Sep 25, 2019
     - Add TensorDot operation.
     - Refactor Cpp codes.
+
 
 * v1.1.2 - Aug 8, 2019
     - Fix bug in batch computations.

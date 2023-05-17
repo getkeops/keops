@@ -47,7 +47,6 @@ downloaded = {
 
 
 def get_dataset(key):
-
     data_folder = "benchmark_datasets/"
 
     filename = None
@@ -131,7 +130,6 @@ from copy import deepcopy
 
 
 def generate_samples(key):
-
     dataset = get_dataset(key)
 
     def samples(K):

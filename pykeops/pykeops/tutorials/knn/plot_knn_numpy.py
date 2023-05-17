@@ -37,6 +37,7 @@ N, D = (
 )  # Number of samples, dimension
 x = np.random.rand(N, D).astype(dtype)  # Random samples on the unit square
 
+
 # Random-ish class labels:
 def fth(x):
     return 3 * x * (x - 0.5) * (x - 1) + x
@@ -69,8 +70,7 @@ plt.axis("off")
 plt.axis([0, 1, 0, 1])
 plt.title("{:,} data points,\n{:,} grid points".format(N, M * M))
 
-for (i, K) in enumerate((1, 3, 10, 20, 50)):
-
+for i, K in enumerate((1, 3, 10, 20, 50)):
     start = time.time()  # Benchmark:
 
     G_i = LazyTensor(g[:, None, :])  # (M**2, 1, 2)

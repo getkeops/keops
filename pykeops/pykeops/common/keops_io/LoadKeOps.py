@@ -44,7 +44,6 @@ class LoadKeOps:
         lang,
         optional_flags,
     ):
-
         aliases_new = []
         for k, alias in enumerate(aliases):
             alias = alias.replace(" ", "")
@@ -182,7 +181,6 @@ class LoadKeOps:
         out,
         *args,
     ):
-
         if self.params.use_half:
             from pykeops.torch.half2_convert import preprocess_half2
 

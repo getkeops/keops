@@ -25,10 +25,13 @@ def do_chunk_sub_ranges(
     dimchunk_curr,
     dimsx,
     dimsy,
+    dimsp,
     indsi,
     indsj,
+    indsp,
     indsi_chunked,
     indsj_chunked,
+    indsp_chunked,
     acc,
     tile,
     i,
@@ -41,6 +44,7 @@ def do_chunk_sub_ranges(
     nbatchdims,
     indices_i,
     indices_j,
+    indices_p,
     arg,
     fout,
     xi,
@@ -69,6 +73,7 @@ def do_chunk_sub_ranges(
     varloader_global = Var_loader(red_formula)
     indsi_global = varloader_global.indsi
     indsj_global = varloader_global.indsj
+    indsp_global = varloader_global.indsp
 
     threadIdx_x = c_variable("int", "threadIdx.x")
     load_chunks_routine_i_batches = load_vars_chunks_offsets(
@@ -108,14 +113,36 @@ def do_chunk_sub_ranges(
         row_index=j - start_y,
     )
 
+    load_chunks_routine_p = load_vars_chunks(
+        indsp_chunked,
+        dimchunk,
+        dimchunk_curr,
+        chk.dim_org,
+        param_loc,
+        arg,
+        chunk,
+    )
+
+    load_chunks_routine_p_batches = load_vars_chunks_offsets(
+        indsp_chunked,
+        indsp_global,
+        dimchunk,
+        dimchunk_curr,
+        chk.dim_org,
+        param_loc,
+        arg,
+        chunk,
+        indices_p,
+    )
+
     chktable = table(
         chk.nminargs,
         dimsx,
         dimsy,
-        chk.dimsp,
+        dimsp,
         indsi,
         indsj,
-        chk.indsp,
+        indsp,
         xi,
         yjrel,
         param_loc,
@@ -137,6 +164,11 @@ def do_chunk_sub_ranges(
                     }} else {{
                         {load_chunks_routine_j_batches}
                     }}
+                }}
+                if ({nbatchdims.id}==0) {{
+                    {load_chunks_routine_p}
+                }} else {{
+                    {load_chunks_routine_p_batches}
                 }}
                 __syncthreads();
                 if ({i.id} < {end_x.id}) {{ // we compute only if needed
@@ -166,7 +198,6 @@ class GpuReduc1D_ranges_chunks(MapReduce, Gpu_link_compile):
         )
 
     def get_code(self):
-
         super().get_code()
 
         red_formula = self.red_formula
@@ -176,6 +207,7 @@ class GpuReduc1D_ranges_chunks(MapReduce, Gpu_link_compile):
         varloader_global = Var_loader(red_formula)
         indsi_global = varloader_global.indsi
         indsj_global = varloader_global.indsj
+        indsp_global = varloader_global.indsp
 
         i = self.i
         j = self.j
@@ -242,10 +274,13 @@ class GpuReduc1D_ranges_chunks(MapReduce, Gpu_link_compile):
             dimchunk,
             chk.dimsx,
             chk.dimsy,
+            chk.dimsp,
             chk.indsi,
             chk.indsj,
+            chk.indsp,
             chk.indsi_chunked,
             chk.indsj_chunked,
+            chk.indsp_chunked,
             acc,
             tile,
             i,
@@ -258,6 +293,7 @@ class GpuReduc1D_ranges_chunks(MapReduce, Gpu_link_compile):
             nbatchdims,
             indices_i,
             indices_j,
+            indices_p,
             arg,
             fout_chunk,
             xi,
@@ -274,10 +310,13 @@ class GpuReduc1D_ranges_chunks(MapReduce, Gpu_link_compile):
             chk.dimlastchunk,
             chk.dimsx_last,
             chk.dimsy_last,
+            chk.dimsp_last,
             chk.indsi,
             chk.indsj,
+            chk.indsp,
             chk.indsi_lastchunked,
             chk.indsj_lastchunked,
+            chk.indsp_lastchunked,
             acc,
             tile,
             i,
@@ -290,6 +329,7 @@ class GpuReduc1D_ranges_chunks(MapReduce, Gpu_link_compile):
             nbatchdims,
             indices_i,
             indices_j,
+            indices_p,
             arg,
             fout_chunk,
             xi,
@@ -357,9 +397,9 @@ class GpuReduc1D_ranges_chunks(MapReduce, Gpu_link_compile):
                           // load parameters variables from global memory to local thread memory
                           {param_loc.declare()}
                           if (nbatchdims == 0) {{
-                              {load_vars(chk.dimsp, chk.indsp, param_loc, args)}
+                              {load_vars(chk.dimsp_notchunked, chk.indsp_notchunked, param_loc, args)}
                           }} else {{
-                              {load_vars(chk.dimsp, chk.indsp, param_loc, args, offsets=indices_p)}
+                              {load_vars(chk.dimsp_notchunked, chk.indsp_notchunked, param_loc, args, offsets=indices_p)}
                           }}
                           
                           {acc.declare()}

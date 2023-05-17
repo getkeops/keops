@@ -10,7 +10,11 @@ from keopscore.utils.misc_utils import KeOps_Error
 class ExtractT(Operation):
     string_id = "ExtractT"
 
-    def __init__(self, f, start, dim):
+    def __init__(self, f, start=None, dim=None, params=None):
+        # N.B. init via params keyword is used for compatibility with base class.
+        if start is None:
+            # here we assume dim is also None and params is be a tuple containing start and dim
+            start, dim = params
         if start + f.dim > dim or start < 0:
             KeOps_Error("Index out of bound in ExtractT")
         super().__init__(f, params=(start, dim))

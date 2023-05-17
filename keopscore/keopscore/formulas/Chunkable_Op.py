@@ -6,10 +6,7 @@ from keopscore.config.chunks import enable_chunk, dim_treshold_chunk, specdims_u
 class Chunkable_Op(Operation):
     def chunked_version(self, dimchk):
         chunked_args = [child.chunked_version(dimchk) for child in self.children]
-        if self.params == ():
-            return type(self)(*chunked_args)
-        else:
-            return type(self)(*chunked_args, params=self.params)
+        return type(self)(*chunked_args, params=self.params)
 
     def chunked_vars(self, cat):
         res = set()
