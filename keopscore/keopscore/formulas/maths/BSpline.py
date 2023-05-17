@@ -19,7 +19,6 @@ class BSpline_Impl(Operation):
     string_id = "BSpline_Impl"
 
     def __init__(self, knots, x, order=None, params=None):
-
         # N.B. init via params keyword is used for compatibility with base class.
         if order is None:
             # here we assume params is a tuple containing a single value

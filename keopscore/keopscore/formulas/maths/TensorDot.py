@@ -64,7 +64,6 @@ class TensorDot(Operation):
         permute=None,
         params=None,
     ):
-
         # N.B. init via params keyword is used for compatibility with base class.
         if dimsfa is None:
             # here we assume dimsfb, contfa, contfb, permute are also None, and
