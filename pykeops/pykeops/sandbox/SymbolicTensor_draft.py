@@ -99,7 +99,7 @@ class GenericSymbolicTensor(Tree):
     def dense(self):
         # returns the actual tensor corresponding to self by performing
         # the sequence of operations encoded in the symbolic tensor.
-        # This is done by coalling Genred
+        # This is done by calling Genred
         if not isinstance(self.node, ReductionOp):
             raise ValueError("not implemented yet")
         reduction_op = self.node.keops_string_id
