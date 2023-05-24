@@ -15,7 +15,7 @@ class IntCst_Impl(Operation):
             (val,) = params
         super().__init__(params=(val,))
         self.val = val
-        self.dim = 1
+        self.shape = (1,)
 
     # custom __eq__ method
     def __eq__(self, other):

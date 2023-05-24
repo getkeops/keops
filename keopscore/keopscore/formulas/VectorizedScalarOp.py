@@ -9,16 +9,16 @@ class VectorizedScalarOp(Operation):
     # such as Exp(f), Cos(f), Mult(f,g), Subtract(f,g), etc.
 
     def __init__(self, *args, params=()):
-        dims = set(arg.dim for arg in args)
-        if len(dims) > 2 or (len(dims) == 2 and min(dims) != 1):
+        shapes = tuple(arg.shape for arg in args)
+        if len(shapes) > 2 or (len(shapes) == 2 and not all((x==y or min((x,y))==1) for (x,y) in zip(*shapes))):
             KeOps_Error("dimensions are not compatible for VectorizedScalarOp")
         super().__init__(*args, params=params)
 
     @property
-    def dim(self):
-        # dim gives the output dimension of the operation,
-        # here it is the same as the output dimension of the child operation
-        return max(child.dim for child in self.children)
+    def shape(self):
+        # shape gives the output shape of the operation,
+        # here we use broadcasting rules to infer the new shape
+        return tuple(max(z) for z in zip(*(child.shape for child in self.children)))
 
     def Op(self, out, table, *args):
         # Atomic evaluation of the operation : it consists in a simple

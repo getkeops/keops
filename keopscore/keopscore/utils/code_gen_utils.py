@@ -486,8 +486,8 @@ def c_function(name, dtypeout, args, commands, qualifier=None):
 
 
 def GetDims(Vars):
-    # returns the list of dim fields (dimensions) of a list of Var instances
-    return tuple(v.dim for v in Vars)
+    # returns the list of dimensions (sum of shapes) of a list of Var instances
+    return tuple(sum(v.shape) for v in Vars)
 
 
 def GetInds(Vars):

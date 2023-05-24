@@ -1,0 +1,13 @@
+
+
+GenericSymbolicTensor
+  Attributes :
+		_shape : internal, shape of the symbolic tensor (must match exactly the shape of the equivalent dense tensor)
+		shape : property, returns _shape
+		__str__ : string returned by the print command
+		Vars : property, returns the list of variables of the symbolic tensor
+		assign_variables_indices : internal, method to give a final ordering for all variables in the formula
+		dense : returns the actual tensor corresponding to the symbolic tensor. So:
+			- if self is a ReductionOp instance, it will call KeOps to perform the reduction
+			- otherwise, currently returns error, but should call the equivalent NumPy/PyTorch operation
+	-> 

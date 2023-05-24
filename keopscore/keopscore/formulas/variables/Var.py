@@ -12,22 +12,27 @@ class Var(Operation):
     object that encodes an input tensor in the call to the
     KeOps routine, where
     - ind gives the position of the input tensor in the list of tensors sent to the routine
-    - dim gives the "dimension" of the data : each input tensor is interpreted as a matrix
-    of size (n,dim), where n is dynamically handled and dim is known at compile time.
+    - shape gives the inner "shape" of the data : each input tensor is interpreted as a tensor
+    of shape (n,*shape), where n is dynamically handled and shape is known at compile time.
     - cat is the "category" of the variable : either a "i"-indexed variable (cat=0),
     a "j"-indexed variable (cat=1), or a parameter variable (cat=2)"""
 
     string_id = "Var"
 
-    def __init__(self, ind=None, dim=None, cat=None, params=None):
+    def __init__(self, ind=None, shape=None, cat=None, params=None):
         # N.B. init via params keyword is used for compatibility with base class.
         if ind is None:
-            # here we assume dim and cat are also None, and
-            # that params is a tuple containing ind, dim, cat
-            ind, dim, cat = params
-        super().__init__(params=(ind, dim, cat))
+            # here we assume shape and cat are also None, and
+            # that params is a tuple containing ind, shape, cat
+            ind, shape, cat = params
+        super().__init__(params=(ind, shape, cat))
         self.ind = ind
-        self.dim = dim
+        
+        if not isinstance(shape,tuple):
+            assert(isinstance(shape,int))
+            shape = (shape,)
+
+        self.shape = shape
         self.cat = cat
         self.Vars_ = {self}
 
@@ -36,12 +41,12 @@ class Var(Operation):
         return (
             type(self) == type(other)
             and self.ind == other.ind
-            and self.dim == other.dim
+            and self.shape == other.shape
             and self.cat == other.cat
         )
 
     def __hash__(self):
-        return hash((self.ind, self.dim, self.cat))
+        return hash((self.ind, self.shape, self.cat))
 
     def Op(self, out, table):
         return VectCopy(out, table[self.ind])
@@ -52,7 +57,7 @@ class Var(Operation):
     def DiffT(self, v, gradin):
         from keopscore.formulas.variables.Zero import Zero
 
-        return gradin if v == self else Zero(v.dim)
+        return gradin if v == self else Zero(v.shape)
 
     def chunked_version(self, dimchk):
         return Var(self.ind, dimchk, self.cat)

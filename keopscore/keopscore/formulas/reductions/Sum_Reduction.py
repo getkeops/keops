@@ -14,7 +14,7 @@ class Sum_Reduction(Reduction):
 
     def __init__(self, formula, tagIJ):
         super().__init__(formula, tagIJ)
-        self.dim = formula.dim  # dimension of final output of reduction
+        self.dim = sum(formula.shape)  # dimension of final output of reduction
         self.dimred = self.dim  # dimension of inner reduction variables
         self.dim_kahan = self.dim
 

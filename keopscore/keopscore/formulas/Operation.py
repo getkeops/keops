@@ -24,6 +24,10 @@ class Operation(Tree):
         )
         self.Vars_ = sorted(list(set_vars), key=lambda v: v.ind)
 
+    @property
+    def dim(self):
+        return sum(self.shape)
+
     def Vars(self, cat="all"):
         # if cat=="all", returns the list of all variables in a formula, stored in self.Vars_
         # if cat is an integer between 0 and 2, returns the list of variables v such that v.cat=cat

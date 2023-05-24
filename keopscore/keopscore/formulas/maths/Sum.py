@@ -13,7 +13,7 @@ class Sum_Impl(Chunkable_Op):
 
     string_id = "Sum"
 
-    dim = 1
+    shape = (1,)
 
     def Op(self, out, table, arg):
         return out.assign(c_zero_float) + VectApply(self.ScalarOp, out, arg)
