@@ -1,4 +1,4 @@
-from keopscore.utils.code_gen_utils import new_c_varname, c_array
+from keopscore.utils.code_gen_utils import new_c_varname, c_array, c_tensor
 from keopscore.utils.Tree import Tree
 from keopscore import debug_ops, debug_ops_at_exec
 from keopscore.utils.misc_utils import KeOps_Error
@@ -7,6 +7,7 @@ from keopscore.utils.misc_utils import KeOps_Error
 ## Base class
 ###################
 
+from math import prod
 
 class Operation(Tree):
     """Base class for all keops building block operations in a formula"""
@@ -26,7 +27,7 @@ class Operation(Tree):
 
     @property
     def dim(self):
-        return sum(self.shape)
+        return prod(self.shape)
 
     def Vars(self, cat="all"):
         # if cat=="all", returns the list of all variables in a formula, stored in self.Vars_
@@ -79,7 +80,7 @@ class Operation(Tree):
                 # when we will recursively evaluate nested operations.
                 template_string_id = "out_" + child.string_id.lower()
                 arg_name = new_c_varname(template_string_id)
-                arg = c_array(out.dtype, child.dim, arg_name)
+                arg = c_tensor(out.dtype, child.shape, arg_name)
                 # Now we append into string the C++ code to declare the array
                 string += f"{arg.declare()}\n"
                 # Now we evaluate the child operation and append the result into string

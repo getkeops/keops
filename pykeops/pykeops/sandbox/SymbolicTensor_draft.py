@@ -405,8 +405,8 @@ import torch
 
 M, N, D1, D2 = 4, 3, 2, 3
 x = torch.rand(M, 1, D1, D2)
-y = torch.rand(1, N, 1, D2)
-b = torch.rand(1, N, 1, 1)
+y = torch.rand(1, N, D1, D2)
+b = torch.rand(1, N, D1, D2)
 
 xi = SymbolicTensor(x)
 yj = SymbolicTensor(y)

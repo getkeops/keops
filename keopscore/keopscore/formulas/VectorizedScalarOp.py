@@ -23,6 +23,10 @@ class VectorizedScalarOp(Operation):
     def Op(self, out, table, *args):
         # Atomic evaluation of the operation : it consists in a simple
         # for loop around the call to the correponding scalar operation
+        print()
+        print("out=", out)
+        print("args[0]=", args[0])
+        input()
         return VectApply(self.ScalarOp, out, *args)
 
     def ScalarOp(self, out, *args):

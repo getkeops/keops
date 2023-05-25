@@ -61,6 +61,9 @@ class c_variable:
             string_id = new_c_varname("var")
         self.dtype = dtype  # dtype is C++ type of variable
         self.id = string_id  # string_id is C++ name of variable
+    
+    def __str__(self):
+        return f"c_variable of dtype={self.dtype} and id={self.id}"
 
     def __repr__(self):
         # method for printing the c_variable inside Python code
@@ -302,6 +305,9 @@ class c_array:
         self.dim = dim
         self.id = string_id
 
+    def __str__(self):
+        return f"c_array of dtype={self.dtype}, dim={self.dim}, and id={self.id}"
+    
     def __repr__(self):
         # method for printing the c_variable inside Python code
         return self.c_var.__repr__()
@@ -355,6 +361,7 @@ class c_array:
         return string
 
 class c_tensor(c_array):
+
     def __init__(self, dtype, shape=(), string_id=new_c_varname("tensor")):
         if not isinstance(shape, tuple):
             KeOps_Error("shape should be a tuple.")
@@ -362,6 +369,10 @@ class c_tensor(c_array):
         self.stride = shape[1:] + (1,)
         dim = prod(shape)
         super().__init__(dtype, dim, string_id)
+
+    def __str__(self):
+        return f"c_tensor of dtype={self.dtype}, shape={self.shape}, and id={self.id}"
+
 
 def VectApply(fun, *args):
     # returns C++ code string to apply a scalar operation to fixed-size arrays, following broadcasting rules.
@@ -400,8 +411,10 @@ def VectApply(fun, *args):
         else:
             KeOps_Error("args must be c_variable, c_array or c_tensor instances")
 
+    print("\n@@@@@@@@@@@")
     print(args)
     print(shapes)
+    input()
 
     naxes = set(len(shape) for shape in shapes)
     if len(naxes)>1:
@@ -521,9 +534,12 @@ def c_function(name, dtypeout, args, commands, qualifier=None):
 
 
 def GetDims(Vars):
-    # returns the list of dimensions (sum of shapes) of a list of Var instances
-    return tuple(sum(v.shape) for v in Vars)
+    # returns the list of dimensions (product of shapes) of a list of Var instances
+    return tuple(prod(v.shape) for v in Vars)
 
+def GetShapes(Vars):
+    # returns the list of shapes of a list of Var instances
+    return tuple(v.shape for v in Vars)
 
 def GetInds(Vars):
     # returns the list of ind fields (indices) of a list of Var instances
@@ -543,8 +559,9 @@ class Var_loader:
         self.nvarsi = len(self.Varsi)  # number of "i"-indexed variables
         self.indsi = GetInds(self.Varsi)  # list indices of "i"-indexed variables
         self.pos_first_argI = mymin(self.indsi)  # first index of "i"-indexed variables
-        self.dimsx = GetDims(self.Varsi)  # list dimensions of "i"-indexed variables
-        self.dimx = sum(self.dimsx)  # total dimension of "i"-indexed variables
+        self.shapesx = GetShapes(self.Varsi)  # list shapes of "i"-indexed variables
+        dimsx = GetDims(self.Varsi)  # list dimensions of "i"-indexed variables
+        self.dimx = sum(dimsx)  # total dimension of "i"-indexed variables
 
         self.Varsj = formula.Vars(
             cat=tagJ
@@ -552,15 +569,17 @@ class Var_loader:
         self.nvarsj = len(self.Varsj)  # number of "j"-indexed variables
         self.indsj = GetInds(self.Varsj)  # list indices of "j"-indexed variables
         self.pos_first_argJ = mymin(self.indsj)  # first index of "j"-indexed variables
-        self.dimsy = GetDims(self.Varsj)  # list dimensions of "j"-indexed variables
-        self.dimy = sum(self.dimsy)  # total dimension of "j"-indexed variables
+        self.shapesy = GetShapes(self.Varsj)  # list shapes of "j"-indexed variables
+        dimsy = GetDims(self.Varsj)  # list dimensions of "j"-indexed variables
+        self.dimy = sum(dimsy)  # total dimension of "j"-indexed variables
 
         self.Varsp = formula.Vars(cat=2)  # list all parameter variables in the formula
         self.nvarsp = len(self.Varsp)  # number of parameter variables
         self.indsp = GetInds(self.Varsp)  # list indices of parameter variables
         self.pos_first_argP = mymin(self.indsp)  # first index of parameter variables
-        self.dimsp = GetDims(self.Varsp)  # list indices of parameter variables
-        self.dimp = sum(self.dimsp)  # total dimension of parameter variables
+        self.shapesp = GetShapes(self.Varsp)  # list shapes of parameter variables
+        dimsp = GetDims(self.Varsp)  # list dimensions of parameter variables
+        self.dimp = sum(dimsp)  # total dimension of parameter variables
 
         self.inds = GetInds(formula.Vars_)
         self.nminargs = max(self.inds) + 1 if len(self.inds) > 0 else 0
@@ -568,9 +587,9 @@ class Var_loader:
     def table(self, xi, yj, pp):
         return table(
             self.nminargs,
-            self.dimsx,
-            self.dimsy,
-            self.dimsp,
+            self.shapesx,
+            self.shapesy,
+            self.shapesp,
             self.indsi,
             self.indsj,
             self.indsp,
@@ -582,9 +601,9 @@ class Var_loader:
     def direct_table(self, args, i, j):
         return direct_table(
             self.nminargs,
-            self.dimsx,
-            self.dimsy,
-            self.dimsp,
+            self.shapesx,
+            self.shapesy,
+            self.shapesp,
             self.indsi,
             self.indsj,
             self.indsp,
@@ -595,49 +614,53 @@ class Var_loader:
 
     def load_vars(self, cat, *args, **kwargs):
         if cat == "i":
-            dims, inds = self.dimsx, self.indsi
+            shapes, inds = self.shapesx, self.indsi
         elif cat == "j":
-            dims, inds = self.dimsy, self.indsj
+            shapes, inds = self.shapesy, self.indsj
         elif cat == "p":
-            dims, inds = self.dimsp, self.indsp
-        return load_vars(dims, inds, *args, **kwargs)
+            shapes, inds = self.shapesp, self.indsp
+        return load_vars(shapes, inds, *args, **kwargs)
 
 
-def table(nminargs, dimsx, dimsy, dimsp, indsi, indsj, indsp, xi, yj, pp):
+def table(nminargs, shapesx, shapesy, shapesp, indsi, indsj, indsp, xi, yj, pp):
     res = [None] * nminargs
-    for dims, inds, xloc in (
-        (dimsx, indsi, xi),
-        (dimsy, indsj, yj),
-        (dimsp, indsp, pp),
+    for shapes, inds, xloc in (
+        (shapesx, indsi, xi),
+        (shapesy, indsj, yj),
+        (shapesp, indsp, pp),
     ):
         k = 0
-        for u in range(len(dims)):
-            res[inds[u]] = c_array(xloc.dtype, dims[u], f"({xloc.id}+{k})")
-            k += dims[u]
+        for u in range(len(shapes)):
+            print("+++++++++")
+            print("xloc=",xloc)
+            res[inds[u]] = c_tensor(xloc.dtype, shapes[u], f"({xloc.id}+{k})")
+            print("res[inds[u]]=",res[inds[u]])
+            input()
+            k += prod(shapes[u])
     return res
 
 
-def direct_table(nminargs, dimsx, dimsy, dimsp, indsi, indsj, indsp, args, i, j):
+def direct_table(nminargs, shapesx, shapesy, shapesp, indsi, indsj, indsp, args, i, j):
     res = [None] * nminargs
-    for dims, inds, row_index in (
-        (dimsx, indsi, i),
-        (dimsy, indsj, j),
-        (dimsp, indsp, c_zero_int),
+    for shapes, inds, row_index in (
+        (shapesx, indsi, i),
+        (shapesy, indsj, j),
+        (shapesp, indsp, c_zero_int),
     ):
-        for u in range(len(dims)):
+        for u in range(len(shapes)):
             arg = args[inds[u]]
-            res[inds[u]] = c_array(
-                value(arg.dtype), dims[u], f"({arg.id}+{row_index.id}*{dims[u]})"
+            res[inds[u]] = c_tensor(
+                value(arg.dtype), shapes[u], f"({arg.id}+{row_index.id}*{prod(shapes[u])})"
             )
     return res
 
 
 def table4(
     nminargs,
-    dimsx,
-    dimsy,
-    dimsp,
-    dims_new,
+    shapesx,
+    shapesy,
+    shapesp,
+    shapes_new,
     indsi,
     indsj,
     indsp,
@@ -648,16 +671,16 @@ def table4(
     arg_new,
 ):
     res = [None] * nminargs
-    for dims, inds, xloc in (
-        (dimsx, indsi, xi),
-        (dimsy, indsj, yj),
-        (dimsp, indsp, pp),
-        (dims_new, inds_new, arg_new),
+    for shapes, inds, xloc in (
+        (shapesx, indsi, xi),
+        (shapesy, indsj, yj),
+        (shapesp, indsp, pp),
+        (shapes_new, inds_new, arg_new),
     ):
         k = 0
-        for u in range(len(dims)):
-            res[inds[u]] = c_array(xloc.dtype, dims[u], f"({xloc.id}+{k})")
-            k += dims[u]
+        for u in range(len(shapes)):
+            res[inds[u]] = c_tensor(xloc.dtype, shapes[u], f"({xloc.id}+{k})")
+            k += prod(shapes[u])
 
     return res
 
