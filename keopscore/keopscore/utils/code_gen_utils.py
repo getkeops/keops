@@ -4,6 +4,7 @@ from hashlib import sha256
 from keopscore.config.config import disable_pragma_unrolls
 from keopscore.utils.misc_utils import KeOps_Error, KeOps_Message
 
+from math import prod
 
 def get_hash_name(*args):
     return sha256("".join(list(str(arg) for arg in args)).encode("utf-8")).hexdigest()[
@@ -353,49 +354,83 @@ class c_array:
         string += ");\n"
         return string
 
+class c_tensor(c_array):
+    def __init__(self, dtype, shape=(), string_id=new_c_varname("tensor")):
+        if not isinstance(shape, tuple):
+            KeOps_Error("shape should be a tuple.")
+        self.shape = shape
+        self.stride = shape[1:] + (1,)
+        dim = prod(shape)
+        super().__init__(dtype, dim, string_id)
 
-def VectApply(fun, out, *args):
+def VectApply(fun, *args):
     # returns C++ code string to apply a scalar operation to fixed-size arrays, following broadcasting rules.
-    # - fun is the scalar unary function to be applied, it must accept two c_variable or c_array inputs and output a string
-    # - out must be a c_array instance
-    # - args may be c_array or c_variable instances
+    # - fun is a function representing the scalar C++ function expression to be applied, 
+    #       it must accept c_variable or c_array inputs and output a string (the code of the scalar function)
+    # - args may be c_array, c_variable or c_tensor instances
     #
-    # Example : if out.dim = 3, arg0.dim = 1, arg1.dim = 3,
+    # Example : if arg0.dim = 3, arg1.dim = 1, arg2.dim = 3,
     # it will generate the following (in pseudo-code for clarity) :
     #   #pragma unroll
-    #   for(int k=0; k<out.dim; k++)
-    #       fun(out[k], arg0[0], arg1[k]);
+    #   for(int k=0; k<3; k++)
+    #       fun(arg0[k], arg1[0], arg2[k]);
     #
-    # Equivalently, if out.dim = 3, arg0 is c_variable, arg1.dim = 3,
+    # Equivalently, if arg0.dim = 3, arg1 is c_variable, arg2.dim = 3,
     # it will generate the following (in pseudo-code for clarity) :
     #   #pragma unroll
-    #   for(int k=0; k<out.dim; k++)
-    #       fun(out[k], arg0, arg1[k]);
+    #   for(int k=0; k<3; k++)
+    #       fun(arg0[k], arg1, arg2[k]);
+    #
+    # Example with c_tensor : if arg0.shape = (3,2), arg1.shape = (1,2), arg2.shape = (3,2),
+    # it will generate the following (in pseudo-code for clarity) :
+    #   #pragma unroll
+    #   for(int k=0; k<3; k++)
+    #     for(int l=0; l<2; l++)
+    #       fun(arg0[k*2+l*1], arg1[0*2+l*1], arg2[k*2+l*1]);
 
-    dims = [out.dim]
+    nargs = len(args)
+    shapes = []
     for arg in args:
         if isinstance(arg, c_variable):
-            dims.append(1)
+            shapes.append((1,))
+        elif isinstance(arg, c_tensor):
+            shapes.append(arg.shape)
         elif isinstance(arg, c_array):
-            dims.append(arg.dim)
+            shapes.append((arg.dim,))
         else:
-            KeOps_Error("args must be c_variable or c_array instances")
-    dimloop = max(dims)
-    if not set(dims) in ({dimloop}, {1, dimloop}):
-        KeOps_Error("incompatible dimensions in VectApply")
-    incr_out = 1 if out.dim == dimloop else 0
-    incr_args = list((1 if dim == dimloop else 0) for dim in dims[1:])
+            KeOps_Error("args must be c_variable, c_array or c_tensor instances")
 
-    forloop, k = c_for_loop(0, dimloop, 1, pragma_unroll=True)
+    print(args)
+    print(shapes)
 
-    argsk = []
-    for arg, incr in zip(args, incr_args):
-        if isinstance(arg, c_variable):
-            argsk.append(arg)
-        elif isinstance(arg, c_array):
-            argsk.append(arg[k * incr])
+    naxes = set(len(shape) for shape in shapes)
+    if len(naxes)>1:
+        KeOps_Error("Not implemented ; currently args must all have same number of axes")
+    naxes = naxes.pop()
+    
+    inds = [c_zero_int]*nargs
+    forloops = [0]*naxes
+    for a in range(naxes):
+        dims = list(shape[a] for shape in shapes)
+        dimloop = max(dims)
+        if not set(dims) in ({dimloop}, {1, dimloop}):
+            KeOps_Error("incompatible dimensions in VectApply")
+        broadcast_coef_args = list((1 if dim == dimloop else 0) for dim in dims)
 
-    return forloop(fun(out[k * incr_out], *argsk))
+        forloops[a], k = c_for_loop(0, dimloop, 1, pragma_unroll=True)
+
+        for i in range(nargs):
+            arg, coef = args[i], broadcast_coef_args[i]
+            if isinstance(arg, c_tensor):
+                inds[i] += k * coef * arg.stride[a]
+            elif isinstance(arg, c_array):
+                inds[i] += k * coef
+
+    code = forloops[-1](fun(*((arg if isinstance(arg,c_variable) else arg[ind]) for (arg,ind) in zip(args,inds))))
+    for a in range(naxes-2,-1,-1):
+        code = forloops[a](code)
+
+    return code
 
 
 def ComplexVectApply(fun, out, *args):
