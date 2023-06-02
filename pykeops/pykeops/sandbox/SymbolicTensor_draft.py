@@ -75,6 +75,19 @@ class GenericSymbolicTensor(Tree):
         # the same sequence of operations over actual tensors.
         return self._shape
 
+    @property
+    def inner_shape(self):
+        # this is the inner shape of the symbolic tensor, corresponding
+        # to the shape of the tensor inside the reduction formula
+        # (i.e. the shape without the batch dimensions and without the i and j axes)
+        return self._shape[self.nbatchdims + 2 :]
+
+    @property
+    def outer_shape(self):
+        # this is the outer shape of the symbolic tensor, corresponding
+        # to the batch dimensions and the i and j axes
+        return self._shape[: self.nbatchdims + 2]
+
     def __str__(self):
         self.assign_variables_indices()
         return f"{type(self).__name__} with shape {self.shape} and formula {self.keops_formula()}"
@@ -109,7 +122,8 @@ class GenericSymbolicTensor(Tree):
         keops_fun = Genred(
             inner_formula, [], reduction_op=reduction_op, axis=reduction_axis
         )
-        return keops_fun(*(var.tensor for var in vars)).reshape(self.shape)
+        keops_inputs = (var.tensor.view(var.outer_shape+(prod(var.inner_shape),)) for var in vars)
+        return keops_fun(*keops_inputs).reshape(self.shape)
 
     # below are aliases for operations on symbolic tensors
 
@@ -141,14 +155,13 @@ class GenericSymbolicTensor(Tree):
 class GenericVariable(GenericSymbolicTensor):
     # the generic variable class
     def __init__(self, tensor, nbatchdims=0):
-        shape = tensor.shape
+        shape = tuple(tensor.shape)
         assert len(shape) >= nbatchdims + 2
         assert shape[nbatchdims] == 1 or shape[nbatchdims + 1] == 1
         self.tensor = tensor
         self.nbatchdims = nbatchdims
         self._shape = shape
         self.ind = id(tensor)
-        self.dim = prod(shape[nbatchdims + 2 :])
         if shape[nbatchdims] == 1:
             if shape[nbatchdims + 1] == 1:
                 self.cat = 2
@@ -159,7 +172,7 @@ class GenericVariable(GenericSymbolicTensor):
         super().__init__(node=self)
 
     def keops_formula(self):
-        return f"Var({self.ind},{self.dim},{self.cat})"
+        return f"Var({self.ind},{prod(self.inner_shape)},{self.cat})"
 
     def __repr__(self):
         return self.keops_formula()
@@ -181,20 +194,21 @@ class BroadcastShapes:
         # for example if x.shape=(2,3,1) and y.shape=(2,1,4), then
         # get_shape([x,y]) will return (2,3,4)
         # N.B. input params is unused here.
+        nargs = len(args)
         shapes = [arg.shape for arg in args]
-        ndims = set(len(shape) for shape in shapes)
-        if len(ndims) != 1:
-            raise ValueError("incompatible shapes : different number of dimensions")
-        ndims = ndims.pop()
+        ndims = list(len(shape) for shape in shapes)
+        ndim = max(ndims)
+        for i in range(nargs):
+            shapes[i] = shapes[i] + (1,)*(ndim-ndims[i])
         shapeout = []
-        for k in range(ndims):
+        for k in range(ndim):
             dims = set(shape[k] for shape in shapes)
             if len(dims) == 2 and min(dims) == 1:
                 dimout = max(dims)
             elif len(dims) == 1:
                 dimout = dims.pop()
             else:
-                raise ValueError(f"incompatible shapes : k={k}, dims={dims}")
+                raise ValueError(f"Incompatible shapes for broadcasting. The axis dimensions at non-singleton dimension {k} are {', '.join(list(str(x.shape[k]) for x in args))}.")
             shapeout.append(dimout)
         return tuple(shapeout)
 
@@ -362,17 +376,15 @@ def jit(fun):
 ###  example of use
 #####################################################
 
-import torch
-
+"""
 M, N, D = 4, 3, 2
 x = torch.rand(M, 1, D)
 y = torch.rand(1, N, D)
 b = torch.rand(1, N)
 
-
 def gauss_kernel(x, y, b):
-    D2 = ((x - y) ** 2).sum(axis=2)
-    K = (-D2).exp()
+    dist2 = ((x - y) ** 2).sum(axis=2)
+    K = (-dist2).exp()
     f = K * b
     return f.sum(axis=1)
 
@@ -383,8 +395,8 @@ print(out1.shape)
 
 @jit
 def gauss_kernel(x, y, b):
-    D2 = ((x - y) ** 2).sum(axis=2)
-    K = (-D2).exp()
+    dist2 = ((x - y) ** 2).sum(axis=2)
+    K = (-dist2).exp()
     f = K * b
     return f.sum(axis=1)
 
@@ -393,3 +405,26 @@ out2 = gauss_kernel(x, y, b)
 print(out2.shape)
 
 print(torch.norm(out1 - out2))
+"""
+
+
+import torch
+
+M, N, D1, D2 = 4, 3, 2, 3
+x = torch.rand(M, 1, D1, D2)
+y = torch.rand(1, N, 1, D2)
+b = torch.rand(1, N)
+
+xi = SymbolicTensor(x)
+yj = SymbolicTensor(y)
+bj = SymbolicTensor(b)
+K = (xi-yj)**2 * bj
+
+res = K.sum(axis=1).dense()
+
+print(res.shape)
+
+
+
+
+

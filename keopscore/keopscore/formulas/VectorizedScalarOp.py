@@ -3,12 +3,40 @@ from keopscore.formulas.Operation import Operation
 from keopscore.utils.misc_utils import KeOps_Error
 
 
+def broadcast_shapes(shapes):
+    # check that input shapes are compatible for broadcasting
+    # and return the output broadcasted shape.
+    # for example if shapes[0]=(2,3,1) and shapes[1]=(2,1,4), then
+    # get_shape(shapes) will return (2,3,4)
+    n = len(shapes)
+    ndims = list(len(shape) for shape in shapes)
+    ndim = max(ndims)
+    for i in range(n):
+        shapes[i] = shapes[i] + (1,)*(ndim-ndims[i])
+    shapeout = []
+    for k in range(ndim):
+        dims = set(shape[k] for shape in shapes)
+        if len(dims) == 2 and min(dims) == 1:
+            dimout = max(dims)
+        elif len(dims) == 1:
+            dimout = dims.pop()
+        else:
+            raise ValueError(f"Incompatible shapes for broadcasting. The axis dimensions at non-singleton dimension {k} are {', '.join(list(str(x.shape[k]) for x in args))}.")
+        shapeout.append(dimout)
+    return tuple(shapeout)
+
 class VectorizedScalarOp(Operation):
     # class for operations that are vectorized or broadcasted
     # scalar operations,
     # such as Exp(f), Cos(f), Mult(f,g), Subtract(f,g), etc.
 
-    def __init__(self, *args, params=()):
+    def __init__(self, *args, shapes=None, params=None):
+
+        # N.B. init via params keyword is used for compatibility with base class.
+        if shapes is None:
+            # here params should be a tuple containing one single integer
+            (m,) = params
+
         dims = set(arg.dim for arg in args)
         if len(dims) > 2 or (len(dims) == 2 and min(dims) != 1):
             KeOps_Error("dimensions are not compatible for VectorizedScalarOp")
