@@ -113,15 +113,15 @@ class LoadKeOps:
             self.params.cuda_block_size,
             self.params.use_chunk_mode,
             self.params.tag1D2D,
-            self.params.dimred,
-            self.params.dim,
+            self.params.shapered,
+            self.params.shape,
             self.params.dimy,
             indsi,
             indsj,
             indsp,
-            dimsx,
-            dimsy,
-            dimsp,
+            shapesx,
+            shapesy,
+            shapesp,
         ) = get_keops_dll(
             map_reduce_id,
             self.params.red_formula_string,
@@ -152,9 +152,9 @@ class LoadKeOps:
         self.params.indsi = indsi
         self.params.indsj = indsj
         self.params.indsp = indsp
-        self.params.dimsx = dimsx
-        self.params.dimsy = dimsy
-        self.params.dimsp = dimsp
+        self.params.shapesx = shapesx
+        self.params.shapesy = shapesy
+        self.params.shapesp = shapesp
 
         self.params.tagCPUGPU = tagCPUGPU
         self.params.device_id_request = device_id_request

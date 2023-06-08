@@ -1,5 +1,5 @@
 from keopscore.utils.code_gen_utils import (
-    c_array,
+    c_tensor,
     c_zero_float,
     c_if,
     c_variable,
@@ -7,12 +7,12 @@ from keopscore.utils.code_gen_utils import (
 
 
 class Sum_Scheme:
-    def __init__(self, red_formula, dtype, dimred=None):
+    def __init__(self, red_formula, dtype, shapered=None):
         self.red_formula = red_formula
-        if dimred is None:
-            self.dimred = red_formula.dimred
+        if shapered is None:
+            self.shapered = red_formula.shapered
         else:
-            self.dimred = dimred
+            self.shapered = shapered
 
     def declare_temporary_accumulator(self):
         return self.tmp_acc.declare()
@@ -44,7 +44,7 @@ class direct_sum(Sum_Scheme):
 class block_sum(Sum_Scheme):
     def __init__(self, red_formula, dtype, dimred=None):
         super().__init__(red_formula, dtype, dimred)
-        self.tmp_acc = c_array(dtype, self.dimred, "tmp")
+        self.tmp_acc = c_tensor(dtype, self.shapered, "tmp")
 
     def initialize_temporary_accumulator(self):
         return (
@@ -68,13 +68,17 @@ class block_sum(Sum_Scheme):
         )
 
     def final_operation(self, acc):
-        return self.red_formula.ReducePair(acc, self.tmp_acc)
+        res = self.red_formula.ReducePair(acc, self.tmp_acc)
+        print("final_operation")
+        print(res)
+        input()
+        return res
 
 
 class kahan_scheme(Sum_Scheme):
     def __init__(self, red_formula, dtype, dimred=None):
         super().__init__(red_formula, dtype, dimred)
-        self.tmp_acc = c_array(dtype, red_formula.dim_kahan, "tmp")
+        self.tmp_acc = c_tensor(dtype, red_formula.shape_kahan, "tmp")
 
     def initialize_temporary_accumulator(self):
         return self.tmp_acc.assign(c_zero_float)

@@ -135,15 +135,15 @@ def get_keops_dll_impl(
         cuda_block_size,
         use_chunk_mode,
         tag1D2D,
-        res["dimred"],
-        res["dim"],
+        res["shapered"],
+        res["shape"],
         res["dimy"],
         res["indsi"],
         res["indsj"],
         res["indsp"],
-        res["dimsx"],
-        res["dimsy"],
-        res["dimsp"],
+        res["shapesx"],
+        res["shapesy"],
+        res["shapesp"],
     )
 
 

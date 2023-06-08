@@ -69,7 +69,6 @@ class CpuReduc_ranges(MapReduce, Cpu_link_compile):
         if debug_ops_at_exec:
             headers.append("iostream")
         self.headers += c_include(*headers)
-
         self.code = f"""
 {self.headers}
 

@@ -1,6 +1,6 @@
 from keopscore.formulas.reductions import *
 from keopscore.formulas.GetReduction import GetReduction
-from keopscore.utils.code_gen_utils import Var_loader, new_c_varname, pointer, c_include, c_tensor
+from keopscore.utils.code_gen_utils import Var_loader, new_c_varname, pointer, c_include, c_tensor, c_array
 
 
 class MapReduce:
@@ -70,6 +70,7 @@ class MapReduce:
         self.args = [self.arg[k] for k in range(nargs)]
 
         self.acc = c_tensor(dtypeacc, red_formula.shapered, "acc")
+        
         self.acctmp = c_tensor(dtypeacc, red_formula.shapered, "acctmp")
         self.fout = c_tensor(dtype, formula.shape, "fout")
         self.outi = c_tensor(dtype, red_formula.shape, f"(out + i * {red_formula.dim})")

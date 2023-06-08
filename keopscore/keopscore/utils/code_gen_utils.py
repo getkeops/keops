@@ -374,6 +374,31 @@ class c_tensor(c_array):
         return f"c_tensor of dtype={self.dtype}, shape={self.shape}, and id={self.id}"
 
 
+
+# utils for VectApply
+
+def get_shapes(args):
+    shapes = []
+    for arg in args:
+        if isinstance(arg, c_variable):
+            shape = (1,)
+        elif isinstance(arg, c_tensor):
+            shape = arg.shape
+        elif isinstance(arg, c_array):
+            shape = (arg.dim,)
+        else:
+            KeOps_Error("args must be c_variable, c_array or c_tensor instances")
+        shapes.append(shape)
+    return shapes
+
+def append_ones(shapes):
+    # append 1s to shapes to get same length. Useful for broadcasting rules
+    # ex: append_ones([(2,1,4), (2,), (2,5)]) returns [(2,1,4), (2,1,1), (2,5,1)]
+    maxlength = max(len(shape) for shape in shapes)
+    for k in range(len(shapes)):
+        shapes[k] += (1,) * (maxlength - len(shapes[k]))
+    return shapes
+
 def VectApply(fun, *args):
     # returns C++ code string to apply a scalar operation to fixed-size arrays, following broadcasting rules.
     # - fun is a function representing the scalar C++ function expression to be applied, 
@@ -400,22 +425,8 @@ def VectApply(fun, *args):
     #       fun(arg0[k*2+l*1], arg1[0*2+l*1], arg2[k*2+l*1]);
 
     nargs = len(args)
-    shapes = []
-    for arg in args:
-        if isinstance(arg, c_variable):
-            shapes.append((1,))
-        elif isinstance(arg, c_tensor):
-            shapes.append(arg.shape)
-        elif isinstance(arg, c_array):
-            shapes.append((arg.dim,))
-        else:
-            KeOps_Error("args must be c_variable, c_array or c_tensor instances")
-
-    print("\n@@@@@@@@@@@")
-    print(args)
-    print(shapes)
-    input()
-
+    shapes = get_shapes(args)
+    shapes = append_ones(shapes)
     naxes = set(len(shape) for shape in shapes)
     if len(naxes)>1:
         KeOps_Error("Not implemented ; currently args must all have same number of axes")
@@ -442,6 +453,10 @@ def VectApply(fun, *args):
     code = forloops[-1](fun(*((arg if isinstance(arg,c_variable) else arg[ind]) for (arg,ind) in zip(args,inds))))
     for a in range(naxes-2,-1,-1):
         code = forloops[a](code)
+
+    print('VectApply')
+    print(code)
+    input()
 
     return code
 
@@ -474,10 +489,13 @@ def ComplexVectApply(fun, out, *args):
 def VectCopy(out, arg, dim=None):
     # returns a C++ code string representing a vector copy between fixed-size arrays
     # - dim is dimension of arrays
-    # - out is c_variable representing the output array
-    # - arg is c_variable representing the input array
+    # - out is c_array or c_tensor representing the output array
+    # - arg is c_array or c_tensor representing the input array
     if dim is None:
         dim = out.dim
+    print("VectCopy")
+    print(dim)
+    input()
     forloop, k = c_for_loop(0, dim, 1, pragma_unroll=True)
     return forloop(out[k].assign(arg[k]))
 
@@ -619,7 +637,8 @@ class Var_loader:
             shapes, inds = self.shapesy, self.indsj
         elif cat == "p":
             shapes, inds = self.shapesp, self.indsp
-        return load_vars(shapes, inds, *args, **kwargs)
+        dims = [prod(shape) for shape in shapes]
+        return load_vars(dims, inds, *args, **kwargs)
 
 
 def table(nminargs, shapesx, shapesy, shapesp, indsi, indsj, indsp, xi, yj, pp):
@@ -631,11 +650,7 @@ def table(nminargs, shapesx, shapesy, shapesp, indsi, indsj, indsp, xi, yj, pp):
     ):
         k = 0
         for u in range(len(shapes)):
-            print("+++++++++")
-            print("xloc=",xloc)
             res[inds[u]] = c_tensor(xloc.dtype, shapes[u], f"({xloc.id}+{k})")
-            print("res[inds[u]]=",res[inds[u]])
-            input()
             k += prod(shapes[u])
     return res
 
@@ -688,7 +703,7 @@ def table4(
 def load_vars(dims, inds, xloc, args, row_index=c_zero_int, offsets=None, indsref=None):
     # returns a c++ code used to create a local copy of slices of the input tensors, for evaluating a formula
     # - dims is a list of integers giving dimensions of variables
-    # - dims is a list of integers giving indices of variables
+    # - inds is a list of integers giving indices of variables
     # - xloc is a c_array, the local array which will receive the copy
     # - args is a list of c_variable, representing pointers to input tensors
     # - row_index is a c_variable (of dtype="int"), specifying which row of the matrix should be loaded

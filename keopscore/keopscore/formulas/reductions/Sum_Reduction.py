@@ -18,6 +18,9 @@ class Sum_Reduction(Reduction):
         self.shape = formula.shape  # shape of final output of reduction
         self.shapered = self.shape  # shape of inner reduction variables
         self.shape_kahan = self.shape
+        self.dim = prod(self.shape)
+        self.dimred = prod(self.shapered)
+        self.dim_kahan = prod(self.shape_kahan)
 
     def InitializeReduction(self, tmp):
         # Returns C++ code to be used at initialization phase of the reduction.

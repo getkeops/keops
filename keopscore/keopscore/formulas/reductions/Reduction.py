@@ -23,7 +23,11 @@ class Reduction(Tree):
         """Returns C++ code that implements the update phase of the reduction.
         by default it consists in a vectorized version of the ReducePairScalar operation.
         """
-        return VectApply(self.ReducePairScalar, acc, xi)
+        res = VectApply(self.ReducePairScalar, acc, xi)
+        print("ReducePair")
+        print(res)
+        input()
+        return res
 
     def ReducePairShort(self, acc, xi, ind):
         # N.B next lines are useless here, but to be used in other reductions :
@@ -37,4 +41,7 @@ class Reduction(Tree):
         For most reducitons it is a simple copy of the temporary variable
         updated during the reduction, with possibly a cast if the accumulator was of
         different data type."""
-        return VectCopy(out, acc)
+        res = VectCopy(out, acc)
+        print("FinalizeOutput")
+        print(res)
+        return res
