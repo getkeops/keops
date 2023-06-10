@@ -5,6 +5,9 @@
 from math import prod
 
 
+debug_mode = True
+
+
 def check_get_unique_attr(objects, attr):
     # given a list of objects, make sure the attribute attr
     # is the same for each object, and return this common attribute
@@ -211,6 +214,20 @@ class BroadcastShapes:
                 raise ValueError(f"Incompatible shapes for broadcasting. The axis dimensions at non-singleton dimension {k} are {', '.join(list(str(x.shape[k]) for x in args))}.")
             shapeout.append(dimout)
         return tuple(shapeout)
+    
+    @staticmethod
+    def test_non_trivial_inner_broadcast(args):
+        set_shapes = set(arg.inner_shape for arg in args)
+        n_sh = len(set_shapes)
+        if n_sh > 2:
+            return True
+        elif n_sh == 2:
+            dims = [prod(shape) for shape in set_shapes]
+            return min(dims)!=1
+        else:
+            return False
+        
+        
 
 
 class ReductionShape:
@@ -259,7 +276,14 @@ class Op(Node):
 
 class ScalarOp(Op, BroadcastShapes):
     # class for all scalar broadcasted operations
-    pass
+    def __call__(self, *args):
+        res = super().__call__(*args)
+        if self.test_non_trivial_inner_broadcast(args):
+            self.keops_params = [[arg.inner_shape for arg in args]]
+        if debug_mode:
+            print("\nIn __call__ method of class ScalarOp")
+            print("  res.keops_formula()=", res.keops_formula())
+        return res
 
 
 class ExpOp(ScalarOp):
@@ -412,8 +436,8 @@ import torch
 
 M, N, D1, D2 = 4, 3, 2, 3
 x = torch.rand(M, 1, D1, D2)
-y = torch.rand(1, N, 1, D2)
-b = torch.rand(1, N)
+y = torch.rand(1, N,  1, D2)
+b = torch.rand(1, N, D1, D2)
 
 xi = SymbolicTensor(x)
 yj = SymbolicTensor(y)

@@ -12,6 +12,7 @@ class Pow(VectorizedScalarOp):
         if m is None:
             # here params should be a tuple containing one single integer
             (m,) = params
+        self.scalar_op_params = (m,)
         super().__init__(f, params=(m,))
 
     string_id = "Pow"

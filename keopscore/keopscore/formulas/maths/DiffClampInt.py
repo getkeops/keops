@@ -19,6 +19,7 @@ class DiffClampInt(VectorizedScalarOp):
         if a is None:
             # here we assume b is also None and params is tuple containing a and b
             a, b = params
+        self.scalar_op_params = (a, b)
         super().__init__(x, params=(a, b))
 
     ScalarOpFun = keops_diffclampint

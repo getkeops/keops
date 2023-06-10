@@ -30,17 +30,27 @@ class VectorizedScalarOp(Operation):
     # scalar operations,
     # such as Exp(f), Cos(f), Mult(f,g), Subtract(f,g), etc.
 
-    def __init__(self, *args, shapes=None, params=None):
+    def __init__(self, *args, shapes=None, params=()):
 
         # N.B. init via params keyword is used for compatibility with base class.
-        if shapes is None:
-            # here params should be a tuple containing one single integer
-            (m,) = params
+        if shapes is None and len(params)>0 :
+            # here params should be a tuple containing one element
+            (shapes,) = params
+        self.shapes = shapes
 
-        dims = set(arg.dim for arg in args)
-        if len(dims) > 2 or (len(dims) == 2 and min(dims) != 1):
-            KeOps_Error("dimensions are not compatible for VectorizedScalarOp")
-        super().__init__(*args, params=params)
+        if shapes is None:
+            # here shapes of args, are not provided, so args are considered vectors.
+            # So we check basic broadcast rule : inputs all have same dimensions, or some are scalars.
+            dims = set(arg.dim for arg in args)
+            if len(dims) > 2 or (len(dims) == 2 and min(dims) != 1):
+                KeOps_Error("dimensions are not compatible for VectorizedScalarOp")
+        else:
+            # N.B. we should check shapes are compatible for broadcast here.
+            # But currently this mode with 'shapes' parameter is only used with SymbolicTensor class from pykeops,
+            # which already performs its own compatibility check.
+            pass
+
+        super().__init__(*args, params=(shapes,))
 
     @property
     def dim(self):
@@ -51,12 +61,14 @@ class VectorizedScalarOp(Operation):
     def Op(self, out, table, *args):
         # Atomic evaluation of the operation : it consists in a simple
         # for loop around the call to the correponding scalar operation
-        return VectApply(self.ScalarOp, out, *args)
+        return VectApply(self.ScalarOp, out, *args, shapes=self.shapes)
+    
+    scalar_op_params = ()
 
     def ScalarOp(self, out, *args):
         # returns the atomic piece of c++ code to evaluate the function on arg and return
         # the result in out
-        return out.assign(type(self).ScalarOpFun(*args, *self.params))
+        return out.assign(type(self).ScalarOpFun(*args, *self.scalar_op_params))
 
     def DiffT(self, v, gradin):
         derivatives = self.Derivative(*self.children, *self.params)

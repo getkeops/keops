@@ -13,6 +13,7 @@ class Round(VectorizedScalarOp):
         if d is None:
             # here params should be a tuple containing one single integer
             (d,) = params
+        self.scalar_op_params = (d,)
         super().__init__(f, params=(d,))
 
     string_id = "Round"

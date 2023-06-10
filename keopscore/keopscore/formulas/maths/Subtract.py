@@ -37,7 +37,7 @@ class Subtract_Impl(VectorizedScalarOp):
 
 # N.B. The following separate function should theoretically be implemented
 # as a __new__ method of the previous class, but this can generate infinite recursion problems
-def Subtract(arg0, arg1):
+def Subtract(arg0, arg1, shapes=None):
     if isinstance(arg0, Zero):
         return -Broadcast(arg1, arg0.dim)
     elif isinstance(arg1, Zero):
@@ -65,4 +65,4 @@ def Subtract(arg0, arg1):
         #  factorization :  x - n*x = (1-n)*x
         return IntCst(1 - arg1.children[0].val) * arg0
     else:
-        return Subtract_Impl(arg0, arg1)
+        return Subtract_Impl(arg0, arg1, shapes=shapes)
