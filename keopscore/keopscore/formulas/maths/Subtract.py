@@ -22,6 +22,8 @@ class Subtract_Impl(VectorizedScalarOp):
         return f"{out.id} = {arg0.id}-{arg1.id};\n"
 
     def DiffT(self, v, gradin):
+        if self.shapes is not None:
+            raise ValueError("not implemented")
         fa, fb = self.children
         if fa.dim == 1 and fb.dim > 1:
             return fa.DiffT(v, Sum(gradin)) - fb.DiffT(v, gradin)

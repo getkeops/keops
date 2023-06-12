@@ -23,6 +23,8 @@ class Mult_Impl(VectorizedScalarOp):
 
     #  \diff_V (A*B) = (\diff_V A) * B + A * (\diff_V B)
     def DiffT(self, v, gradin):
+        if self.shapes is not None:
+            raise ValueError("not implemented")
         fa, fb = self.children
         if fa.dim == 1 and fb.dim > 1:
             return fa.DiffT(v, Scalprod(gradin, fb)) + fb.DiffT(v, fa * gradin)
@@ -38,7 +40,7 @@ class Mult_Impl(VectorizedScalarOp):
 
 # N.B. The following separate function should theoretically be implemented
 # as a __new__ method of the previous class, but this can generate infinite recursion problems
-def Mult(arg0, arg1):
+def Mult(arg0, arg1, shapes=None):
     if isinstance(arg0, Zero):
         return Broadcast(arg0, arg1.dim)
     elif isinstance(arg1, Zero):
@@ -58,7 +60,7 @@ def Mult(arg0, arg1):
         return Mult(arg1, arg0)
     elif isinstance(arg1, Mult_Impl) and isinstance(arg1.children[0], IntCst_Impl):
         # f*(n*g) -> (n*f)*g
-        return (arg1.children[0] * arg0) * arg1.children[1]
+        return Mult(arg1.children[0] * arg0, arg1.children[1], shapes=shapes)
     elif arg0 == arg1:
         # f*f -> f^2
         return Square(arg0)
@@ -81,4 +83,4 @@ def Mult(arg0, arg1):
         # SumT(f)*g -> g*SumT(f)
         return arg1 * arg0
     else:
-        return Mult_Impl(arg0, arg1)
+        return Mult_Impl(arg0, arg1, shapes=shapes)

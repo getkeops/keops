@@ -23,6 +23,8 @@ class Add_Impl(VectorizedScalarOp):
         return f"{out.id} = {arg0.id}+{arg1.id};\n"
 
     def DiffT(self, v, gradin):
+        if self.shapes is not None:
+            raise ValueError("not implemented")
         fa, fb = self.children
         if fa.dim == 1 and fb.dim > 1:
             return fa.DiffT(v, Sum(gradin)) + fb.DiffT(v, gradin)
@@ -37,7 +39,7 @@ class Add_Impl(VectorizedScalarOp):
 
 # N.B. The following separate function could theoretically be implemented
 # as a __new__ method of the previous class, but this can generate infinite recursion problems
-def Add(arg0, arg1):
+def Add(arg0, arg1, shapes=None):
     if isinstance(arg0, Zero):
         return Broadcast(arg1, arg0.dim)
     elif isinstance(arg1, Zero):
@@ -64,4 +66,4 @@ def Add(arg0, arg1):
     ):
         #  factorization :  x + n*x = (n+1)*x
         return IntCst(arg1.children[0].val + 1) * arg0
-    return Add_Impl(arg0, arg1)
+    return Add_Impl(arg0, arg1, shapes=shapes)

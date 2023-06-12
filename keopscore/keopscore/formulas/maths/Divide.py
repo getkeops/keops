@@ -23,6 +23,8 @@ class Divide_Impl(VectorizedScalarOp):
 
     #  \diff_V (A/B) = ((\diff_V A) * B - A * (\diff_V B)) / B^2
     def DiffT(self, v, gradin):
+        if self.shapes is not None:
+            raise ValueError("not implemented")
         fa, fb = self.children
         if fa.dim == 1 and fb.dim > 1:
             return fa.DiffT(v, Sum(gradin / fb)) - fb.DiffT(v, fa * gradin / Square(fb))
@@ -39,10 +41,10 @@ class Divide_Impl(VectorizedScalarOp):
 
 # N.B. The following separate function should theoretically be implemented
 # as a __new__ method of the previous class, but this can generate infinite recursion problems
-def Divide(arg0, arg1):
+def Divide(arg0, arg1, shapes=None):
     if isinstance(arg0, Zero):
         return Broadcast(arg0, arg1.dim)
     elif isinstance(arg1, Zero):
         KeOps_Error("division by zero")
     else:
-        return Divide_Impl(arg0, arg1)
+        return Divide_Impl(arg0, arg1, shapes=shapes)

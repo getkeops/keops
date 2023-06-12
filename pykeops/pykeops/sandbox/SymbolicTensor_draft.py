@@ -5,7 +5,7 @@
 from math import prod
 
 
-debug_mode = True
+debug_mode = False
 
 
 def check_get_unique_attr(objects, attr):
@@ -138,6 +138,9 @@ class GenericSymbolicTensor(Tree):
 
     def __sub__(self, other):
         return SubOp()(self, other)
+    
+    def __add__(self, other):
+        return AddOp()(self, other)
 
     def __mul__(self, other):
         return MultOp()(self, other)
@@ -279,7 +282,7 @@ class ScalarOp(Op, BroadcastShapes):
     def __call__(self, *args):
         res = super().__call__(*args)
         if self.test_non_trivial_inner_broadcast(args):
-            self.keops_params = [[arg.inner_shape for arg in args]]
+            self.keops_params = [[arg.inner_shape for arg in (res,*args)]]
         if debug_mode:
             print("\nIn __call__ method of class ScalarOp")
             print("  res.keops_formula()=", res.keops_formula())
@@ -293,10 +296,11 @@ class ExpOp(ScalarOp):
 def exp(x):
     return ExpOp()(x)
 
+class AddOp(ScalarOp):
+    keops_string_id = "Add"
 
 class MinusOp(ScalarOp):
     keops_string_id = "Minus"
-
 
 class SubOp(ScalarOp):
     keops_string_id = "Subtract"
@@ -387,7 +391,7 @@ def SymbolicTensor(tensor, nbatchdims=0):
 #####################################################
 
 
-def jit(fun):
+def keops(fun):
     def newfun(*args, **kwargs):
         newargs = [SymbolicTensor(arg) for arg in args]
         res = fun(*newargs, **kwargs)
@@ -417,7 +421,7 @@ out1 = gauss_kernel(x, y, b)
 print(out1.shape)
 
 
-@jit
+@keops
 def gauss_kernel(x, y, b):
     dist2 = ((x - y) ** 2).sum(axis=2)
     K = (-dist2).exp()
@@ -431,24 +435,32 @@ print(out2.shape)
 print(torch.norm(out1 - out2))
 """
 
+def TestFun(fun, *args):
+    # compare KeOps and PyTorch implementation
+    res_torch = fun(*args)
+    res_keops = keops(fun)(*args)
+    print(f"Testing function {fun.__name__}")
+    if res_torch.shape==res_keops.shape:
+        print("output shapes are the same.")
+        rel_err = torch.norm(res_keops-res_torch)
+        print(f"relative error is {rel_err}")
+    else:
+        print("output shapes are different.")
+    
+
+def fun1(x,y,b):
+    K = (x-y)**2 * b
+    return K.sum(axis=1)
+
+def fun2(x,y,b):
+    K = (x+y)**2 * b
+    return K.sum(axis=1)
 
 import torch
 
-M, N, D1, D2 = 4, 3, 2, 3
+M, N, D1, D2 = 5, 4, 3, 3
 x = torch.rand(M, 1, D1, D2)
-y = torch.rand(1, N,  1, D2)
-b = torch.rand(1, N, D1, D2)
+y = torch.rand(1, N, D1, D2)
+b = torch.rand(1, N,  1, D2)
 
-xi = SymbolicTensor(x)
-yj = SymbolicTensor(y)
-bj = SymbolicTensor(b)
-K = (xi-yj)**2 * bj
-
-res = K.sum(axis=1).dense()
-
-print(res.shape)
-
-
-
-
-
+TestFun(fun2,x,y,b)
