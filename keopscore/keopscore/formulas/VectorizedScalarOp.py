@@ -21,7 +21,7 @@ def broadcast_shapes(shapes):
         elif len(dims) == 1:
             dimout = dims.pop()
         else:
-            raise ValueError(f"Incompatible shapes for broadcasting. The axis dimensions at non-singleton dimension {k} are {', '.join(list(str(x.shape[k]) for x in args))}.")
+            raise ValueError(f"Incompatible shapes for broadcasting. The axis dimensions at non-singleton dimension {k} are {', '.join(list(str(shape[k]) for shape in shapes))}.")
         shapeout.append(dimout)
     return tuple(shapeout)
 
