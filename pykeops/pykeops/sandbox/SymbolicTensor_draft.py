@@ -458,9 +458,9 @@ def fun2(x,y,b):
 
 import torch
 
-M, N, D1, D2 = 5, 4, 3, 3
+M, N, D1, D2 = 5, 4, 3, 2
 x = torch.rand(M, 1, D1, D2)
-y = torch.rand(1, N, D1, D2)
-b = torch.rand(1, N,  1, D2)
+y = torch.rand(1, N,  1, D2)
+b = torch.rand(1, 1,  1, D2)
 
 TestFun(fun2,x,y,b)
