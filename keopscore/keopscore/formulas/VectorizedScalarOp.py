@@ -65,7 +65,8 @@ class VectorizedScalarOp(Operation):
         derivatives = self.Derivative(*self.children, *self.params)
         if len(self.children) == 1:
             derivatives = (derivatives,)
-        return sum(f.DiffT(v, Broadcast(gradin,f.dim) * df) for f, df in zip(self.children, derivatives))
+        #return sum(f.DiffT(v, Broadcast(gradin,f.dim) * df) for f, df in zip(self.children, derivatives))
+        return sum(f.DiffT(v, gradin * df) for f, df in zip(self.children, derivatives))
 
     @property
     def is_chunkable(self):
