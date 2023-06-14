@@ -1,7 +1,7 @@
 from keopscore.utils.code_gen_utils import VectApply
 from keopscore.formulas.Operation import Operation
 from keopscore.utils.misc_utils import KeOps_Error
-
+from keopscore.formulas.Operation import Broadcast
 
 def broadcast_shapes(shapes):
     # check that input shapes are compatible for broadcasting
@@ -30,18 +30,11 @@ class VectorizedScalarOp(Operation):
     # scalar operations,
     # such as Exp(f), Cos(f), Mult(f,g), Subtract(f,g), etc.
 
-    def __init__(self, *args, shapes=None, params=()):
-
-        # N.B. init via params keyword is used for compatibility with base class.
-        if shapes is None and len(params)>0 :
-            # here params should be a tuple containing one element
-            (shapes,) = params
-        self.shapes = shapes
-
-        if shapes is None:
+    def check_shapes(self):
+        if self.shapes is None:
             # here shapes of args, are not provided, so args are considered vectors.
             # So we check basic broadcast rule : inputs all have same dimensions, or some are scalars.
-            dims = set(arg.dim for arg in args)
+            dims = set(arg.dim for arg in self.children)
             if len(dims) > 2 or (len(dims) == 2 and min(dims) != 1):
                 KeOps_Error("dimensions are not compatible for VectorizedScalarOp")
         else:
@@ -49,8 +42,6 @@ class VectorizedScalarOp(Operation):
             # But currently this mode with 'shapes' parameter is only used with SymbolicTensor class from pykeops,
             # which already performs its own compatibility check.
             pass
-
-        super().__init__(*args, params=(shapes,))
 
     @property
     def dim(self):
@@ -74,10 +65,7 @@ class VectorizedScalarOp(Operation):
         derivatives = self.Derivative(*self.children, *self.params)
         if len(self.children) == 1:
             derivatives = (derivatives,)
-        return sum(f.DiffT(v, gradin * df) for f, df in zip(self.children, derivatives))
-
-    def Derivative(self):
-        pass
+        return sum(f.DiffT(v, Broadcast(gradin,f.dim) * df) for f, df in zip(self.children, derivatives))
 
     @property
     def is_chunkable(self):

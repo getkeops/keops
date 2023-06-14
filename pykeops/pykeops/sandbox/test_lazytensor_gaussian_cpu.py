@@ -6,7 +6,7 @@ import math
 import torch
 from pykeops.torch import LazyTensor
 
-M, N, D, DV = 10000, 10000, 3, 1
+M, N, D, DV = 10, 20, 3, 1
 
 dtype = torch.float32
 
@@ -15,21 +15,18 @@ test_grad2 = False
 device_id = "cpu"  # "cuda" if torch.cuda.is_available() else "cpu"
 do_warmup = True
 
-x = torch.rand(M, 1, D, device=device_id, dtype=dtype) / math.sqrt(D)
-y = torch.rand(1, N, D, device=device_id, dtype=dtype) / math.sqrt(D)
-b = torch.randn(N, DV, requires_grad=test_grad, device=device_id, dtype=dtype)
+x = torch.rand(M, 1, D, requires_grad=test_grad, device=device_id, dtype=dtype) / math.sqrt(D)
+y = torch.rand(1, N, D, requires_grad=test_grad, device=device_id, dtype=dtype) / math.sqrt(D)
+b = torch.randn(1, N, DV, requires_grad=test_grad, device=device_id, dtype=dtype)
 
 
 def fun(x, y, b, backend):
     if "keops" in backend:
         x = LazyTensor(x)
         y = LazyTensor(y)
-    Dxy = ((x - y) ** 2).sum(dim=2)
+    Dxy = ((x - y) ** 2)
     Kxy = (-Dxy).exp()
-    if backend == "keops":
-        out = LazyTensor.__matmul__(Kxy, b, backend="CPU")
-    else:
-        out = Kxy @ b
+    out = (Kxy*b).sum(axis=1)
     if device_id != "cpu":
         torch.cuda.synchronize()
     # print("out:",out.flatten()[:10])
@@ -60,16 +57,17 @@ if test_grad:
     for k, backend in enumerate(backends):
         start = time.time()
         out_g.append(
-            torch.autograd.grad((out[k] ** 2).sum(), [b], create_graph=True)[0]
+            torch.autograd.grad((out[k] ** 2).sum(), [x,y,b], create_graph=True)
         )
         end = time.time()
         print("time for " + backend + " (grad):", end - start)
 
     if len(out_g) > 1:
-        print(
-            "relative error grad:",
-            (torch.norm(out_g[0] - out_g[1]) / torch.norm(out_g[0])).item(),
-        )
+        for k in range(3):
+            print(
+                "relative error grad:",
+                (torch.norm(out_g[0][k] - out_g[1][k]) / torch.norm(out_g[0][k])).item(),
+            )
 
 if test_grad2:
     out_g2 = []

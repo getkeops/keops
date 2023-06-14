@@ -11,10 +11,12 @@ from keopscore.utils.misc_utils import KeOps_Error
 class Operation(Tree):
     """Base class for all keops building block operations in a formula"""
 
-    def __init__(self, *args, params=()):
+    def __init__(self, *args, shapes=None, params=()):
         # *args are other instances of Operation, they are the child operations of self
         self.children = args
         self.params = params
+        self.shapes = shapes
+        self.check_shapes()
 
         # The variables in the current formula is the union of the variables in the child operations.
         # Note that this requires implementing properly __eq__ and __hash__ methods in Var class.
@@ -23,6 +25,11 @@ class Operation(Tree):
             set.union(*(set(arg.Vars_) for arg in args)) if len(args) > 0 else set()
         )
         self.Vars_ = sorted(list(set_vars), key=lambda v: v.ind)
+
+    def check_shapes(self):
+        # used for checking input shapes or dims of args, depending on some rules.
+        # We do nothing by default ; see VectorizedScalarOp for a derived implementation
+        pass
 
     def Vars(self, cat="all"):
         # if cat=="all", returns the list of all variables in a formula, stored in self.Vars_
@@ -174,6 +181,7 @@ class Operation(Tree):
             type(self) == type(other)
             and self.children == other.children
             and self.params == other.params
+            and self.shapes == other.shapes
         )
 
     def __hash__(self):
@@ -226,13 +234,17 @@ def int2Op(x):
 ##########################
 
 
-# N.B. this is used internally
-def Broadcast(arg, dim):
-    from keopscore.formulas.maths import SumT
+# helpers for broadcasted operators 
+# N.B. these are used internally only
 
-    if arg.dim == dim or dim == 1:
+def Broadcast(arg, dim):
+    from keopscore.formulas.maths import Sum, SumT
+
+    if arg.dim == dim:
         return arg
     elif arg.dim == 1:
         return SumT(arg, dim)
+    elif dim==1:
+        return Sum(arg)
     else:
         KeOps_Error("dimensions are not compatible for Broadcast operation")
