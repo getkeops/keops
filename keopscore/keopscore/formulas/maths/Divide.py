@@ -20,20 +20,10 @@ class Divide_Impl(VectorizedScalarOp):
     def ScalarOp(self, out, arg0, arg1):
         """returns the atomic piece of c++ code to evaluate the function on arg and return the result in out"""
         return f"{out.id} = {arg0.id} / {arg1.id};\n"
-
-    #  \diff_V (A/B) = ((\diff_V A) * B - A * (\diff_V B)) / B^2
-    def DiffT(self, v, gradin):
-        if self.shapes is not None:
-            raise ValueError("not implemented")
-        fa, fb = self.children
-        if fa.dim == 1 and fb.dim > 1:
-            return fa.DiffT(v, Sum(gradin / fb)) - fb.DiffT(v, fa * gradin / Square(fb))
-        elif fb.dim == 1 and fa.dim > 1:
-            return (
-                fa.DiffT(v, fb * gradin) - fb.DiffT(v, Scalprod(gradin, fa))
-            ) / Square(fb)
-        else:
-            return fa.DiffT(v, gradin / fb) - fb.DiffT(v, fa * gradin / Square(fb))
+  
+    @staticmethod
+    def Derivative(a, b):
+        return 1/b, -a/b**2
 
     # parameters for testing the operation (optional)
     nargs = 2  # number of arguments

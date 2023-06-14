@@ -144,6 +144,9 @@ class GenericSymbolicTensor(Tree):
 
     def __mul__(self, other):
         return MultOp()(self, other)
+    
+    def __truediv__(self, other):
+        return DivideOp()(self, other)
 
     def __pow__(self, order):
         if order == 2:
@@ -313,6 +316,9 @@ class SquareOp(ScalarOp):
 class MultOp(ScalarOp):
     keops_string_id = "Mult"
 
+class DivideOp(ScalarOp):
+    keops_string_id = "Divide"
+
 
 class SumOp(Op, ReductionShape):
     keops_string_id = "Sum"
@@ -458,7 +464,7 @@ def TestFun(fun, *args):
 
 
 def fun1(x,y,b):
-    K = (x-y)**2 * b
+    K = (x-y)**2 / b
     return K.sum(axis=1)
 
 def fun2(x,y,b):
@@ -478,7 +484,7 @@ def varset1():
 def varset2():
     M, N, D = 5, 4, 3
     x = torch.rand(M, 1, D, requires_grad=True)
-    y = torch.rand(1, N,  D, requires_grad=True)
+    y = torch.rand(1, N,  1, requires_grad=True)
     b = torch.rand(1, 1,  D, requires_grad=True)
     return x, y, b
 

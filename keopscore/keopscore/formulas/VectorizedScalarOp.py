@@ -1,7 +1,7 @@
 from keopscore.utils.code_gen_utils import VectApply
 from keopscore.formulas.Operation import Operation
 from keopscore.utils.misc_utils import KeOps_Error
-from keopscore.formulas.Operation import Broadcast
+from keopscore.formulas.Operation import BroadcastT
 
 def broadcast_shapes(shapes):
     # check that input shapes are compatible for broadcasting
@@ -65,8 +65,7 @@ class VectorizedScalarOp(Operation):
         derivatives = self.Derivative(*self.children, *self.params)
         if len(self.children) == 1:
             derivatives = (derivatives,)
-        #return sum(f.DiffT(v, Broadcast(gradin,f.dim) * df) for f, df in zip(self.children, derivatives))
-        return sum(f.DiffT(v, gradin * df) for f, df in zip(self.children, derivatives))
+        return sum(f.DiffT(v, BroadcastT(gradin,f.dim) * df) for f, df in zip(self.children, derivatives))
 
     @property
     def is_chunkable(self):

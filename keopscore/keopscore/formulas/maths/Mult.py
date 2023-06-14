@@ -21,17 +21,9 @@ class Mult_Impl(VectorizedScalarOp):
 
     ScalarOpFun = keops_mul
 
-    #  \diff_V (A*B) = (\diff_V A) * B + A * (\diff_V B)
-    def DiffT(self, v, gradin):
-        if self.shapes is not None:
-            raise ValueError("not implemented")
-        fa, fb = self.children
-        if fa.dim == 1 and fb.dim > 1:
-            return fa.DiffT(v, Scalprod(gradin, fb)) + fb.DiffT(v, fa * gradin)
-        elif fb.dim == 1 and fa.dim > 1:
-            return fa.DiffT(v, fb * gradin) + fb.DiffT(v, Scalprod(gradin, fa))
-        else:
-            return fa.DiffT(v, fb * gradin) + fb.DiffT(v, fa * gradin)
+    @staticmethod
+    def Derivative(a, b):
+        return b, a
 
     # parameters for testing the operation (optional)
     nargs = 2  # number of arguments

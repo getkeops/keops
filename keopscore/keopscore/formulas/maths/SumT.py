@@ -38,7 +38,7 @@ def SumT(arg, dim):
         KeOps_Error("dimension of argument must be 1 for SumT operation")
     elif isinstance(arg, Zero):
         return Zero(dim)
-    #elif dim==1:
-    #    return arg
+    elif dim==1:
+        return arg
     else:
         return SumT_Impl(arg, dim)

@@ -22,16 +22,9 @@ class Add_Impl(VectorizedScalarOp):
         # the result in out
         return f"{out.id} = {arg0.id}+{arg1.id};\n"
 
-    def DiffT(self, v, gradin):
-        if self.shapes is not None:
-            raise ValueError("not implemented")
-        fa, fb = self.children
-        if fa.dim == 1 and fb.dim > 1:
-            return fa.DiffT(v, Sum(gradin)) + fb.DiffT(v, gradin)
-        elif fb.dim == 1 and fa.dim > 1:
-            return fa.DiffT(v, gradin) + fb.DiffT(v, Sum(gradin))
-        else:
-            return fa.DiffT(v, gradin) + fb.DiffT(v, gradin)
+    @staticmethod
+    def Derivative(a, b):
+        return 1, 1
 
     # parameters for testing the operation (optional)
     nargs = 2  # number of arguments
