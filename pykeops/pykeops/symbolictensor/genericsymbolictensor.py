@@ -6,8 +6,8 @@ import pykeops
 from pykeops.symbolictensor.utils import Tree
 from math import prod
 
-class GenericSymbolicTensor(Tree):
 
+class GenericSymbolicTensor(Tree):
     # this is the main class for symbolic tensors
 
     _shape = None
@@ -63,6 +63,7 @@ class GenericSymbolicTensor(Tree):
         # the sequence of operations encoded in the symbolic tensor.
         # This is done by calling Genred
         from pykeops.symbolictensor.operations import ReductionOp
+
         if not isinstance(self.node, ReductionOp):
             raise ValueError("not implemented yet")
         reduction_op = self.node.keops_string_id
@@ -72,7 +73,9 @@ class GenericSymbolicTensor(Tree):
         keops_fun = self.Genred(
             inner_formula, [], reduction_op=reduction_op, axis=reduction_axis
         )
-        keops_inputs = (var.tensor.view(var.outer_shape+(prod(var.inner_shape),)) for var in vars)
+        keops_inputs = (
+            var.tensor.view(var.outer_shape + (prod(var.inner_shape),)) for var in vars
+        )
         return keops_fun(*keops_inputs).reshape(self.shape)
 
     # below are aliases for operations on symbolic tensors
@@ -85,13 +88,13 @@ class GenericSymbolicTensor(Tree):
 
     def __sub__(self, other):
         return pykeops.symbolictensor.operations.SubOp()(self, other)
-    
+
     def __add__(self, other):
         return pykeops.symbolictensor.operations.AddOp()(self, other)
 
     def __mul__(self, other):
         return pykeops.symbolictensor.operations.MultOp()(self, other)
-    
+
     def __truediv__(self, other):
         return pykeops.symbolictensor.operations.DivideOp()(self, other)
 
@@ -135,7 +138,3 @@ class GenericVariable(GenericSymbolicTensor):
 
     # def __getitem__(self, key):
     #    self.SymbolicTensorConstructor(self.tensor[key], nbatchdims=self.nbatchdims)
-
-
-
-

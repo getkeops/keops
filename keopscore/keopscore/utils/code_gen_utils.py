@@ -354,12 +354,8 @@ class c_array:
         return string
 
 
-
-
-
-
-
 # utils for VectApply
+
 
 def append_ones(shapes):
     # append 1s to shapes to get same length. Useful for broadcasting rules
@@ -369,12 +365,14 @@ def append_ones(shapes):
         shapes[k] += (1,) * (maxlength - len(shapes[k]))
     return shapes
 
+
 def get_strides(shapes):
-    return [shape[1:]+(1,) for shape in shapes]
+    return [shape[1:] + (1,) for shape in shapes]
+
 
 def VectApply(fun, *args, shapes=None):
     # returns C++ code string to apply a scalar operation to fixed-size arrays, following broadcasting rules.
-    # - fun is a function representing the scalar C++ function expression to be applied, 
+    # - fun is a function representing the scalar C++ function expression to be applied,
     #       it must accept c_variable or c_array inputs and output a string (the code of the scalar function)
     # - args may be c_array or c_variable instances
     #
@@ -403,14 +401,16 @@ def VectApply(fun, *args, shapes=None):
     shapes = append_ones(shapes)
 
     naxes = set(len(shape) for shape in shapes)
-    if len(naxes)>1:
-        KeOps_Error("Not implemented ; currently args must all have same number of axes")
+    if len(naxes) > 1:
+        KeOps_Error(
+            "Not implemented ; currently args must all have same number of axes"
+        )
     naxes = naxes.pop()
 
     strides = get_strides(shapes)
-    
-    inds = [c_zero_int]*nargs
-    forloops = [0]*naxes
+
+    inds = [c_zero_int] * nargs
+    forloops = [0] * naxes
     for a in range(naxes):
         dims = list(shape[a] for shape in shapes)
         dimloop = max(dims)
@@ -424,8 +424,15 @@ def VectApply(fun, *args, shapes=None):
             arg, coef = args[i], broadcast_coef_args[i]
             inds[i] += k * coef * strides[i][a]
 
-    code = forloops[-1](fun(*((arg if isinstance(arg,c_variable) else arg[ind]) for (arg,ind) in zip(args,inds))))
-    for a in range(naxes-2,-1,-1):
+    code = forloops[-1](
+        fun(
+            *(
+                (arg if isinstance(arg, c_variable) else arg[ind])
+                for (arg, ind) in zip(args, inds)
+            )
+        )
+    )
+    for a in range(naxes - 2, -1, -1):
         code = forloops[a](code)
 
     return code

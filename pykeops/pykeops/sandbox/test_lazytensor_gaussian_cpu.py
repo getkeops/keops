@@ -15,8 +15,12 @@ test_grad2 = False
 device_id = "cpu"  # "cuda" if torch.cuda.is_available() else "cpu"
 do_warmup = True
 
-x = torch.rand(M, 1, D, requires_grad=test_grad, device=device_id, dtype=dtype) / math.sqrt(D)
-y = torch.rand(1, N, D, requires_grad=test_grad, device=device_id, dtype=dtype) / math.sqrt(D)
+x = torch.rand(
+    M, 1, D, requires_grad=test_grad, device=device_id, dtype=dtype
+) / math.sqrt(D)
+y = torch.rand(
+    1, N, D, requires_grad=test_grad, device=device_id, dtype=dtype
+) / math.sqrt(D)
 b = torch.randn(1, N, DV, requires_grad=test_grad, device=device_id, dtype=dtype)
 
 
@@ -24,9 +28,9 @@ def fun(x, y, b, backend):
     if "keops" in backend:
         x = LazyTensor(x)
         y = LazyTensor(y)
-    Dxy = ((x - y) ** 2)
+    Dxy = (x - y) ** 2
     Kxy = (-Dxy).exp()
-    out = (Kxy*b).sum(axis=1)
+    out = (Kxy * b).sum(axis=1)
     if device_id != "cpu":
         torch.cuda.synchronize()
     # print("out:",out.flatten()[:10])
@@ -57,7 +61,7 @@ if test_grad:
     for k, backend in enumerate(backends):
         start = time.time()
         out_g.append(
-            torch.autograd.grad((out[k] ** 2).sum(), [x,y,b], create_graph=True)
+            torch.autograd.grad((out[k] ** 2).sum(), [x, y, b], create_graph=True)
         )
         end = time.time()
         print("time for " + backend + " (grad):", end - start)
@@ -66,7 +70,9 @@ if test_grad:
         for k in range(3):
             print(
                 "relative error grad:",
-                (torch.norm(out_g[0][k] - out_g[1][k]) / torch.norm(out_g[0][k])).item(),
+                (
+                    torch.norm(out_g[0][k] - out_g[1][k]) / torch.norm(out_g[0][k])
+                ).item(),
             )
 
 if test_grad2:

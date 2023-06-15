@@ -6,8 +6,8 @@ import pykeops
 from pykeops.symbolictensor.utils import Node, check_get_unique_attr
 from pykeops.symbolictensor.shaperules import BroadcastShapes, ReductionShape
 
-class Op(Node):
 
+class Op(Node):
     # base class for operations
 
     def __init__(self, params=[]):
@@ -38,14 +38,11 @@ class ScalarOp(Op, BroadcastShapes):
     def __call__(self, *args):
         res = super().__call__(*args)
         if self.test_non_trivial_inner_broadcast(args):
-            self.keops_params = [[arg.inner_shape for arg in (res,*args)]]
+            self.keops_params = [[arg.inner_shape for arg in (res, *args)]]
         if pykeops.symbolictensor.debug_mode:
             print("\nIn __call__ method of class ScalarOp")
             print("  res.keops_formula()=", res.keops_formula())
         return res
-    
-
-
 
 
 class ExpOp(ScalarOp):
@@ -55,11 +52,14 @@ class ExpOp(ScalarOp):
 def exp(x):
     return ExpOp()(x)
 
+
 class AddOp(ScalarOp):
     keops_string_id = "Add"
 
+
 class MinusOp(ScalarOp):
     keops_string_id = "Minus"
+
 
 class SubOp(ScalarOp):
     keops_string_id = "Subtract"
@@ -71,6 +71,7 @@ class SquareOp(ScalarOp):
 
 class MultOp(ScalarOp):
     keops_string_id = "Mult"
+
 
 class DivideOp(ScalarOp):
     keops_string_id = "Divide"
@@ -90,10 +91,6 @@ class SumOp(Op, ReductionShape):
     @property
     def keepdim(self):
         return self.params[1]
-    
-
-
-
 
 
 class ReductionOp(Op, ReductionShape):
@@ -115,11 +112,6 @@ class SumReductionOp(ReductionOp):
     keops_string_id = "Sum"
 
 
-
-
-
-
-    
 def sum(x, axis=None, keepdim=False):
     if axis < x.nbatchdims:
         raise ValueError("not implemented")

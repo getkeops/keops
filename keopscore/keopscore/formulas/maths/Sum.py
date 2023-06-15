@@ -39,7 +39,7 @@ class Sum_Impl(Chunkable_Op):
 def Sum(arg):
     if isinstance(arg, Zero):
         return Zero(1)
-    elif arg.dim==1:
+    elif arg.dim == 1:
         return arg
     else:
         return Sum_Impl(arg)

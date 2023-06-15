@@ -20,10 +20,10 @@ class Divide_Impl(VectorizedScalarOp):
     def ScalarOp(self, out, arg0, arg1):
         """returns the atomic piece of c++ code to evaluate the function on arg and return the result in out"""
         return f"{out.id} = {arg0.id} / {arg1.id};\n"
-  
+
     @staticmethod
     def Derivative(a, b):
-        return 1/b, -a/b**2
+        return 1 / b, -a / b**2
 
     # parameters for testing the operation (optional)
     nargs = 2  # number of arguments

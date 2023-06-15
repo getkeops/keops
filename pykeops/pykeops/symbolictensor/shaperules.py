@@ -4,6 +4,7 @@
 
 from math import prod
 
+
 class BroadcastShapes:
     @staticmethod
     def get_shape(args, params=[]):
@@ -19,7 +20,7 @@ class BroadcastShapes:
         ndims = list(len(shape) for shape in shapes)
         ndim = max(ndims)
         for i in range(nargs):
-            shapes[i] = shapes[i] + (1,)*(ndim-ndims[i])
+            shapes[i] = shapes[i] + (1,) * (ndim - ndims[i])
         shapeout = []
         for k in range(ndim):
             dims = set(shape[k] for shape in shapes)
@@ -28,10 +29,12 @@ class BroadcastShapes:
             elif len(dims) == 1:
                 dimout = dims.pop()
             else:
-                raise ValueError(f"Incompatible shapes for broadcasting. The axis dimensions at non-singleton dimension {k} are {', '.join(list(str(x.shape[k]) for x in args))}.")
+                raise ValueError(
+                    f"Incompatible shapes for broadcasting. The axis dimensions at non-singleton dimension {k} are {', '.join(list(str(x.shape[k]) for x in args))}."
+                )
             shapeout.append(dimout)
         return tuple(shapeout)
-    
+
     @staticmethod
     def test_non_trivial_inner_broadcast(args):
         set_shapes = set(arg.inner_shape for arg in args)
@@ -40,11 +43,9 @@ class BroadcastShapes:
             return True
         elif n_sh == 2:
             dims = [prod(shape) for shape in set_shapes]
-            return min(dims)!=1
+            return min(dims) != 1
         else:
             return False
-        
-        
 
 
 class ReductionShape:

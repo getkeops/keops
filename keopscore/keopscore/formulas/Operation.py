@@ -234,18 +234,20 @@ def int2Op(x):
 ##########################
 
 
-# helpers for broadcasted operators 
+# helpers for broadcasted operators
 # N.B. these are used internally only
+
 
 def Broadcast(arg, dim):
     from keopscore.formulas.maths import SumT
 
-    if arg.dim == dim or dim==1:
+    if arg.dim == dim or dim == 1:
         return arg
     elif arg.dim == 1:
         return SumT(arg, dim)
     else:
         KeOps_Error("dimensions are not compatible for Broadcast operation")
+
 
 def BroadcastT(arg, dim):
     from keopscore.formulas.maths import Sum

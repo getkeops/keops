@@ -3,6 +3,7 @@ from keopscore.formulas.Operation import Operation
 from keopscore.utils.misc_utils import KeOps_Error
 from keopscore.formulas.Operation import BroadcastT
 
+
 def broadcast_shapes(shapes):
     # check that input shapes are compatible for broadcasting
     # and return the output broadcasted shape.
@@ -12,7 +13,7 @@ def broadcast_shapes(shapes):
     ndims = list(len(shape) for shape in shapes)
     ndim = max(ndims)
     for i in range(n):
-        shapes[i] = shapes[i] + (1,)*(ndim-ndims[i])
+        shapes[i] = shapes[i] + (1,) * (ndim - ndims[i])
     shapeout = []
     for k in range(ndim):
         dims = set(shape[k] for shape in shapes)
@@ -21,9 +22,12 @@ def broadcast_shapes(shapes):
         elif len(dims) == 1:
             dimout = dims.pop()
         else:
-            raise ValueError(f"Incompatible shapes for broadcasting. The axis dimensions at non-singleton dimension {k} are {', '.join(list(str(shape[k]) for shape in shapes))}.")
+            raise ValueError(
+                f"Incompatible shapes for broadcasting. The axis dimensions at non-singleton dimension {k} are {', '.join(list(str(shape[k]) for shape in shapes))}."
+            )
         shapeout.append(dimout)
     return tuple(shapeout)
+
 
 class VectorizedScalarOp(Operation):
     # class for operations that are vectorized or broadcasted
@@ -53,7 +57,7 @@ class VectorizedScalarOp(Operation):
         # Atomic evaluation of the operation : it consists in a simple
         # for loop around the call to the correponding scalar operation
         return VectApply(self.ScalarOp, out, *args, shapes=self.shapes)
-    
+
     scalar_op_params = ()
 
     def ScalarOp(self, out, *args):
@@ -65,7 +69,10 @@ class VectorizedScalarOp(Operation):
         derivatives = self.Derivative(*self.children, *self.params)
         if len(self.children) == 1:
             derivatives = (derivatives,)
-        return sum(f.DiffT(v, BroadcastT(gradin,f.dim) * df) for f, df in zip(self.children, derivatives))
+        return sum(
+            f.DiffT(v, BroadcastT(gradin, f.dim) * df)
+            for f, df in zip(self.children, derivatives)
+        )
 
     @property
     def is_chunkable(self):
@@ -77,7 +84,7 @@ class VectorizedScalarOp(Operation):
                 (child if child.dim == 1 else child.chunked_version(dimchk))
                 for child in self.children
             ),
-            *self.params
+            *self.params,
         )
 
     def chunked_vars(self, cat):

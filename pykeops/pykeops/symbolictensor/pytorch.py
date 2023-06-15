@@ -3,13 +3,16 @@
 #####################################################
 
 from pykeops.torch import Genred
-from pykeops.symbolictensor.genericsymbolictensor import GenericSymbolicTensor, GenericVariable
+from pykeops.symbolictensor.genericsymbolictensor import (
+    GenericSymbolicTensor,
+    GenericVariable,
+)
 from pykeops.symbolictensor.operations import Op
 
-class PytorchSymbolicTensor(GenericSymbolicTensor):
 
+class PytorchSymbolicTensor(GenericSymbolicTensor):
     Genred = Genred
-    
+
     @property
     def SymbolicTensor_backend(self):
         return PytorchSymbolicTensor
@@ -26,6 +29,7 @@ class Variable(GenericVariable, PytorchSymbolicTensor):
 
 def SymbolicTensor(tensor, nbatchdims=0):
     return Variable(tensor, nbatchdims)
+
 
 #####################################################
 ###  decorator

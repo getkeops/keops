@@ -2,6 +2,7 @@
 ###  utils
 ###############
 
+
 def check_get_unique_attr(objects, attr):
     # given a list of objects, make sure the attribute attr
     # is the same for each object, and return this common attribute
@@ -9,6 +10,7 @@ def check_get_unique_attr(objects, attr):
     if len(values) != 1:
         raise ValueError(f"incompatible {attr}")
     return values.pop()
+
 
 class Node:
     # default class for representing a node of a tree structure
