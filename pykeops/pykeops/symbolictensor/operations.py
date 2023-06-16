@@ -4,15 +4,15 @@
 
 import pykeops
 from pykeops.symbolictensor.utils import Node, check_get_unique_attr
-from pykeops.symbolictensor.shaperules import BroadcastShapes, ReductionShape
+from pykeops.symbolictensor.shapes import BroadcastShapes, ReductionShape
 
 
 class Op(Node):
     # base class for operations
 
-    def __init__(self, params=[]):
-        self.params = params
-        self.keops_params = params
+    def __init__(self, *keops_params):
+        self.params = {}
+        self.keops_params = keops_params
 
     @property
     def node_id(self):
@@ -29,7 +29,7 @@ class Op(Node):
         backend = check_get_unique_attr(args, "SymbolicTensor_backend")
         res = backend.SymbolicTensorConstructor(node=self, children=args)
         res.nbatchdims = check_get_unique_attr(args, "nbatchdims")
-        res._shape = self.get_shape(args, self.params)
+        res._shape = self.get_shape(*args, **self.params)
         return res
 
 
@@ -39,6 +39,15 @@ class ScalarOp(Op, BroadcastShapes):
         res = super().__call__(*args)
         if self.test_non_trivial_inner_broadcast(args):
             self.keops_params = [[arg.inner_shape for arg in (res, *args)]]
+        if pykeops.symbolictensor.debug_mode:
+            print("\nIn __call__ method of class ScalarOp")
+            print("  res.keops_formula()=", res.keops_formula())
+        return res
+    
+class InnerReductionOp(Op):
+    # class for all inner reduction operations like Sum, Max, etc.
+    def __call__(self, arg, axis=None, keepdim=False):
+        res = super().__call__(arg,params=(axis,keepdim))
         if pykeops.symbolictensor.debug_mode:
             print("\nIn __call__ method of class ScalarOp")
             print("  res.keops_formula()=", res.keops_formula())
@@ -95,17 +104,17 @@ class SumOp(Op, ReductionShape):
 
 class ReductionOp(Op, ReductionShape):
     # base class for reduction operations
-    def __init__(self, axis, keepdim=False):
-        self.params = [axis, keepdim]
+    def __init__(self, axis=None, keepdim=False):
+        self.params = {"axis":axis, "keepdim":keepdim}
         self.keops_params = [axis]
 
     @property
     def axis(self):
-        return self.params[0]
+        return self.params["axis"]
 
     @property
     def keepdim(self):
-        return self.params[1]
+        return self.params["keepdim"]
 
 
 class SumReductionOp(ReductionOp):
@@ -116,7 +125,7 @@ def sum(x, axis=None, keepdim=False):
     if axis < x.nbatchdims:
         raise ValueError("not implemented")
     elif axis in [x.nbatchdims, x.nbatchdims + 1]:
-        return SumReductionOp(axis - x.nbatchdims, keepdim)(x)
+        return SumReductionOp(axis=axis - x.nbatchdims, keepdim=keepdim)(x)
     else:
         if len(x.shape) != x.nbatchdims + 3:
             raise ValueError("not implemented")

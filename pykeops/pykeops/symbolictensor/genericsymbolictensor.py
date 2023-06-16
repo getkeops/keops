@@ -13,7 +13,7 @@ class GenericSymbolicTensor(Tree):
     _shape = None
 
     def keops_formula(self):
-        # self.keops_formula() returns a string that corrsponds
+        # self.keops_formula() returns a string that corresponds
         # to the object to be instanciated with keopscore
         return self.recursive_str("keops_formula")
 
@@ -131,6 +131,8 @@ class GenericVariable(GenericSymbolicTensor):
         super().__init__(node=self)
 
     def keops_formula(self):
+        print(f"Var({self.ind},{prod(self.inner_shape)},{self.cat})")
+        input()
         return f"Var({self.ind},{prod(self.inner_shape)},{self.cat})"
 
     def __repr__(self):

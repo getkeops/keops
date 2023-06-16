@@ -9,11 +9,9 @@ class Reduction(Tree):
         """- formula is an object of type Operation, it is the formula on which we apply a reduction
         - tagI : 0 or 1, specifies wether we do the reduction over "i"-indexed or "j"-indexed variables.
         """
-
+        super().__init__(formula, tagI=tagI)
         # We initialize several constants, most of them infered from the formula
         self.formula = formula
-        self.children = [formula]
-        self.params = (tagI,)
         self.tagI = tagI
         self.tagJ = 1 - tagI
         self.cat = tagI

@@ -1,3 +1,4 @@
+import keopscore
 from keopscore.utils.code_gen_utils import new_c_varname, c_array
 from keopscore.utils.Tree import Tree
 from keopscore import debug_ops, debug_ops_at_exec
@@ -12,8 +13,8 @@ class Operation(Tree):
     """Base class for all keops building block operations in a formula"""
 
     def __init__(self, *args, shapes=None, params=()):
-        # *args are other instances of Operation, they are the child operations of self
-        self.children = args
+        super().__init__(*args, shapes=shapes, params=params)
+
         self.params = params
         self.shapes = shapes
         self.check_shapes()
@@ -105,34 +106,24 @@ class Operation(Tree):
 
     def __mul__(self, other):
         """f*g redirects to Mult(f,g)"""
-        from keopscore.formulas.maths.Mult import Mult
-
-        return Mult(self, int2Op(other))
+        return keopscore.formulas.maths.Mult(self, int2Op(other))
 
     def __rmul__(self, other):
-        from keopscore.formulas.maths.Mult import Mult
-
-        return Mult(int2Op(other), self)
+        return keopscore.formulas.maths.Mult(int2Op(other), self)
 
     def __truediv__(self, other):
         """f/g redirects to Divide(f,g)"""
-        from keopscore.formulas.maths.Divide import Divide
-
-        return Divide(self, int2Op(other))
+        return keopscore.formulas.maths.Divide(self, int2Op(other))
 
     def __rtruediv__(self, other):
         if other == 1:
-            from keopscore.formulas.maths.Inv import Inv
-
-            return Inv(self)
+            return keopscore.formulas.maths.Inv(self)
         else:
             return int2Op(other) / self
 
     def __add__(self, other):
         """f+g redirects to Add(f,g)"""
-        from keopscore.formulas.maths.Add import Add
-
-        return Add(self, int2Op(other))
+        return keopscore.formulas.maths.Add(self, int2Op(other))
 
     def __radd__(self, other):
         """f+g redirects to Add(f,g)"""
@@ -140,9 +131,7 @@ class Operation(Tree):
 
     def __sub__(self, other):
         """f-g redirects to Subtract(f,g)"""
-        from keopscore.formulas.maths.Subtract import Subtract
-
-        return Subtract(self, int2Op(other))
+        return keopscore.formulas.maths.Subtract(self, int2Op(other))
 
     def __rsub__(self, other):
         """f-g redirects to Subtract(f,g)"""
@@ -150,42 +139,21 @@ class Operation(Tree):
 
     def __neg__(self):
         """-f redirects to Minus(f)"""
-        from keopscore.formulas.maths.Minus import Minus
-
-        return Minus(self)
+        return keopscore.formulas.maths.Minus(self)
 
     def __pow__(self, other):
         if other == 2:
             """f**2 redirects to Square(f)"""
-            from keopscore.formulas.maths.Square import Square
-
-            return Square(self)
+            return keopscore.formulas.maths.Square(self)
         elif isinstance(other, int):
             """f**m with m integer redirects to Pow(f,m)"""
-            from keopscore.formulas.maths.Pow import Pow
-
-            return Pow(self, other)
+            return keopscore.formulas.maths.Pow(self, other)
         else:
-            from keopscore.formulas.maths.Powf import Powf
-
-            raise Powf(self, other)
+            return keopscore.formulas.maths.Powf(self, other)
 
     def __or__(self, other):
         """f|g redirects to Scalprod(f,g)"""
-        from keopscore.formulas.maths.Scalprod import Scalprod
-
-        return Scalprod(self, other)
-
-    def __eq__(self, other):
-        return (
-            type(self) == type(other)
-            and self.children == other.children
-            and self.params == other.params
-            and self.shapes == other.shapes
-        )
-
-    def __hash__(self):
-        return hash((type(self), self.children, self.params))
+        return keopscore.formulas.maths.Scalprod(self, other)
 
     def Op(self, out, table, param):
         pass
@@ -220,9 +188,7 @@ class Operation(Tree):
 
 def int2Op(x):
     if isinstance(x, int):
-        from keopscore.formulas.variables.IntCst import IntCst
-
-        return IntCst(x)
+        return keopscore.formulas.variables.IntCst(x)
     elif isinstance(x, Operation):
         return x
     else:
@@ -239,22 +205,18 @@ def int2Op(x):
 
 
 def Broadcast(arg, dim):
-    from keopscore.formulas.maths import SumT
-
     if arg.dim == dim or dim == 1:
         return arg
     elif arg.dim == 1:
-        return SumT(arg, dim)
+        return keopscore.formulas.maths.SumT(arg, dim)
     else:
         KeOps_Error("dimensions are not compatible for Broadcast operation")
 
 
 def BroadcastT(arg, dim):
-    from keopscore.formulas.maths import Sum
-
     if arg.dim == dim:
         return arg
     elif dim == 1:
-        return Sum(arg)
+        return keopscore.formulas.maths.Sum(arg)
     else:
         KeOps_Error("dimensions are not compatible for BroadcastT operation")

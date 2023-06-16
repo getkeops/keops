@@ -2,6 +2,10 @@ class Tree:
     """a custom class for handling a tree structure.
     Currently we use it only to recursively print a formula or reduction"""
 
+    def __init__(self, *args, **kwargs):
+        self.children = args
+        self.kwargs = kwargs
+
     def recursive_str(self):
         if hasattr(self, "print_spec"):
             idstr, mode, level = self.print_spec
@@ -32,10 +36,10 @@ class Tree:
             string += child.recursive_str()
             string += ")" if test else ""
             string += middle_string if k < len(self.children) - 1 else ""
-        for k, param in enumerate(self.params):
+        for k, key in enumerate(self.kwargs):
             if k > 0 or len(self.children) > 0:
                 string += ","
-            string += str(param)
+            string += f"{key}={self.kwargs[key]}"
         string += post_string
         return string
 
@@ -46,8 +50,8 @@ class Tree:
             string += (
                 "\n" + depth * 4 * " " + "{}".format(child.recursive_str(depth=depth))
             )
-        for param in self.params:
-            string += "\n" + depth * 4 * " " + str(param)
+        for key in self.kwargs:
+            string += "\n" + depth * 4 * " " + f"{key}={self.kwargs[key]}"
         return string
 
     def __str__(self):
@@ -60,6 +64,9 @@ class Tree:
     def __eq__(self, other):
         return (
             type(self) == type(other)
-            and len(self.children) == len(other.children)
-            and all([x == y for x, y in zip(self.children, other.children)])
+            and self.children == other.children
+            and self.kwargs == other.kwargs
         )
+
+    def __hash__(self):
+        return hash((type(self), self.children, self.kwargs))
