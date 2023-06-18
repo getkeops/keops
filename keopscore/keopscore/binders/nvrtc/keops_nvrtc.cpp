@@ -568,13 +568,13 @@ public :
             CUDA_SAFE_CALL(cuMemcpyDtoH(out, (CUdeviceptr) out_d, sizeof(TYPE) * sizeout));
         }
 
-         CUDA_SAFE_CALL(cuMemFree(p_data));
+        CUDA_SAFE_CALL(cuMemFree(p_data));
 
         if (RR.tagRanges == 1) {
             CUDA_SAFE_CALL(cuMemFree((CUdeviceptr) lookup_d));
+            CUDA_SAFE_CALL(cuMemFree((CUdeviceptr) slices_x_d));
+            CUDA_SAFE_CALL(cuMemFree((CUdeviceptr) ranges_y_d));
             if (SS.nbatchdims > 0) {
-                CUDA_SAFE_CALL(cuMemFree((CUdeviceptr) slices_x_d));
-                CUDA_SAFE_CALL(cuMemFree((CUdeviceptr) ranges_y_d));
                 CUDA_SAFE_CALL(cuMemFree((CUdeviceptr) offsets_d));
             }
         }
