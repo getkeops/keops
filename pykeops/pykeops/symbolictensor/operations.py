@@ -3,16 +3,18 @@
 #####################################################
 
 import pykeops
-from pykeops.symbolictensor.utils import Node, check_get_unique_attr
+from pykeops.symbolictensor.utils_.tree import Tree
+
 from pykeops.symbolictensor.shapes import BroadcastShapes, ReductionShape
 
 
-class Op(Node):
+class Op(Tree):
+
     # base class for operations
 
-    def __init__(self, *keops_params):
-        self.params = {}
-        self.keops_params = keops_params
+    def ___init___(self,*args, params={}):
+        assert(isinstance(params,dict))
+        super().___init___(children=args, params=params)
 
     @property
     def node_id(self):
