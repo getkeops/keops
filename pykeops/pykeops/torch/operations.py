@@ -238,7 +238,7 @@ class KernelSolveAutograd(torch.autograd.Function):
                     ):  # we're referring to a parameter, so we'll have to sum both wrt 'i' and 'j'
                         # WARNING !! : here we rely on the implementation of DiffT in files in folder keopscore/core/formulas/reductions
                         # if tagI==cat of V is 2, then reduction is done wrt j, so we need to further sum output wrt i
-                        grad = genconv(
+                        grad,_  = genconv(
                             formula_g,
                             aliases_g,
                             backend,
@@ -259,7 +259,7 @@ class KernelSolveAutograd(torch.autograd.Function):
                         grad = torch.ones(1, grad.shape[0]).type_as(grad.data) @ grad
                         grad = grad.view(-1)
                     else:
-                        grad = genconv(
+                        grad,_ = genconv(
                             formula_g,
                             aliases_g,
                             backend,
