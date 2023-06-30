@@ -1,4 +1,3 @@
-
 import time
 import torch
 from pykeops.torch import KernelSolve
@@ -21,7 +20,7 @@ x = torch.rand(N, D, requires_grad=True)
 b = torch.rand(N, Dv)
 g = torch.Tensor([0.5 / sigma**2])  # Parameter of the Gaussian RBF kernel
 
-sync = torch.cuda.synchronize if torch.cuda.is_available() else lambda:None
+sync = torch.cuda.synchronize if torch.cuda.is_available() else lambda: None
 
 ###############################################################################
 # KeOps kernel
@@ -78,6 +77,3 @@ sync()
 end = time.time()
 print("Timing (PyTorch implementation):", round(end - start, 5), "s")
 print("Relative error = ", (torch.norm(c - c_py) / torch.norm(c_py)).item())
-
-
-

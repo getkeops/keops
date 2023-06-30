@@ -3,6 +3,7 @@ from pykeops.torch import LazyTensor
 
 test_grad = True
 
+
 def fn(x_i, x_j, y_j, use_keops=True):
     if use_keops:
         x_i = LazyTensor(x_i)
@@ -50,6 +51,6 @@ print(torch.norm(res_keops - res_torch) / torch.norm(res_torch))
 if test_grad:
     print("testing grad")
     u = torch.rand(res_torch.shape)
-    res_torch_grad, = torch.autograd.grad(res_torch,x_i,u)
-    res_keops_grad, = torch.autograd.grad(res_keops,x_i,u)
+    (res_torch_grad,) = torch.autograd.grad(res_torch, x_i, u)
+    (res_keops_grad,) = torch.autograd.grad(res_keops, x_i, u)
     print(torch.norm(res_keops_grad - res_torch_grad) / torch.norm(res_torch_grad))
