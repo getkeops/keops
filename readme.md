@@ -184,6 +184,8 @@ KeOps provides core routines for the following projects and libraries:
   [Shapes toolbox](https://plmlab.math.cnrs.fr/jeanfeydy/shapes_toolbox),
   two research-oriented [LDDMM](https://en.wikipedia.org/wiki/Large_deformation_diffeomorphic_metric_mapping) toolkits.
 
+- [HyenaDNA](https://github.com/HazyResearch/hyena-dna/) for parallel computations of the Vandermonde matrix multiplication kernel and reductions used in the S4D kernel.
+
 # Licensing, citation, academic use
 
 This library is licensed under the permissive [MIT license](https://en.wikipedia.org/wiki/MIT_License),
