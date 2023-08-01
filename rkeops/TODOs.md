@@ -1,8 +1,8 @@
 # Organize TODOs/tasks/actions related to RKeOps package
 
-## Merge R LazyTensor
+## R LazyTensor
 
-See [PR #192](https://github.com/getkeops/keops/pull/192)
+- [x] Merge [PR #192](https://github.com/getkeops/keops/pull/192)
 
 Remaining issues:
 
@@ -18,6 +18,8 @@ Remaining issues:
 > More in [`dev/debug_LazyTensor.R`](dev/debug_LazyTensor.R) and [`dev/debut_LazyTensor.py`](dev/debut_LazyTensor.py)
 
 - [ ] fix inline doc for min, max (following sum), and other default functions
+
+- [ ] fix issue with `%*%`
 
 - [ ] revamp vignettes regarding LazyTensor, and mention it in main vignette
 
