@@ -25,6 +25,8 @@ Remaining issues:
 
 - [ ] fix issue from `devtools::check()`
 
+- [ ] fix doc of function `concat` in `R/lazytensor_operations.R`
+
 ## Implement RKeOps v2+
 
 See [PR #279](https://github.com/getkeops/keops/pull/279)
