@@ -4,45 +4,58 @@
 
 # addition ---------------------------------------------------------------------
 
-#' Addition.
-#' @rdname arithmetic.add.default
-#' @author Chloe Serre-Combe, Amelie Vernay
-#' @keywords internal
+#' @title Default arithmetic operations
+#' @name arithmetic.default
+#' @rdname arithmetic.default
+#' @alias +.default
+#' @usage
+#' +x
+#' x + y
+#' @inherit base::Arithmetic description
+#' @inherit base::Arithmetic details
+#' @inherit base::Arithmetic params
+#' @inherit base::Arithmetic return
+#' @inherit base::Arithmetic examples
+#' @seealso [base::Arithmetic]
+#' @author R core team and contributors
 #' @export
-"+.default" <- function(x, y = NULL) {
-    if(!is.null(y)) {
-        return(base::"+"(x, y))
-    }
-    else {
-        return(base::"+"(x))
-    }
-}
+"+.default" <- .Primitive("+")
+#     function(x, y = NULL) {
+#     if(!is.null(y)) {
+#         return(base::"+"(x, y))
+#     }
+#     else {
+#         return(base::"+"(x))
+#     }
+# }
 
 
 #' Addition.
 #' @rdname arithmetic.add
-#' @description
-#' Symbolic binary operation for addition.
-#' @usage x + y
-#' @details If `x` or `y` is a `LazyTensor`, `x + y` returns a `LazyTensor`
-#' that encodes, symbolically, the addition of `x` and `y`.
-#' (In case one of the arguments is a vector or a scalar, it is first converted 
-#' to `LazyTensor`). If none of the arguments is a `LazyTensor`, is equivalent 
-#' to the "+" R operator.
-#' 
-#' **Note**
-#' 
-#' `x` and `y` input arguments should have the same inner dimension or be of 
-#' dimension 1.
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values,
-#' or a scalar value.
-#' @param y A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values,
-#' or a scalar value.
-#' @return An object of class "LazyTensor" if the function is called with a
-#' `LazyTensor`, and an object of class "numeric", otherwise.
+#' @description
+#' Symbolic addition for `LazyTensor`s or default addition for other types.
+#' @usage
+#' +x
+#' x + y
+#' @details
+#' If `x` or `y` is a `LazyTensor`, see [rkeops::+.LazyTensor()], else see
+#' [rkeops::+.default()].
+#' 
+#' **Note:**
+#' - the `+` operand is only a binary operator for `LazyTensor`s: `x + y`.
+#' - the `+` operand can be a unary or a binary operator for other types: `+ x` 
+#' or `x + y`.
+#' @param x,y input for [rkeops::+.default()] or [rkeops::+.LazyTensor()].
+#' @return See value of [rkeops::+.default()] or [rkeops::+.LazyTensor()].
+#' @seealso [rkeops::+.default()], [rkeops::+.LazyTensor()], 
+#' [rkeops::+.ComplexLazyTensor()]
 #' @examples
 #' \dontrun{
+#' # R base operation
+#' +5
+#' 1 + 3
+#' # LazyTensor symbolic addition
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' y <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
@@ -62,7 +75,30 @@
 #' Addition.
 #' @rdname arithmetic.add.LazyTensor
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @keywords internal
+#' @description
+#' Symbolic addition for `LazyTensor` objects.
+#' @usage x + y
+#' @details If `x` or `y` is a `LazyTensor`, `x + y` returns a `LazyTensor`
+#' that encodes, symbolically, the addition of `x` and `y`.
+#' (In case one of the arguments is a vector or a scalar, it is first converted 
+#' to `LazyTensor`).
+#' 
+#' **Note**: `x` and `y` input arguments should have the same inner dimension 
+#' or be of dimension 1.
+#' @param x,y A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values,
+#' or a scalar value.
+#' @return An object of class `LazyTensor`.
+#' @seealso [rkeops::+()], [rkeops::+.ComplexLazyTensor()]
+#' @examples
+#' \dontrun{
+#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
+#' y <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
+#' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
+#'                                     # indexed by 'i'
+#' y_j <- LazyTensor(y, index = 'j')   # creating LazyTensor from matrix y, 
+#'                                     # indexed by 'j'
+#' Sum_xy <- x_i + y_j                 # symbolic matrix, 150 rows and 3 columns
+#' }
 #' @export
 "+.LazyTensor" <- function(x, y = NULL) {
     
@@ -76,8 +112,14 @@
 
 #' Addition.
 #' @rdname arithmetic.add.ComplexLazyTensor
-#' @author Chloe Serre-Combe, Amelie Vernay
-#' @keywords internal
+#' @inherit rkeops::+.LazyTensor author
+#' @inherit rkeops::+.LazyTensor description
+#' @inherit rkeops::+.LazyTensor details
+#' @inherit rkeops::+.LazyTensor params
+#' @inherit rkeops::+.LazyTensor return
+#' @inherit rkeops::+.LazyTensor examples
+#' @usage x + y
+#' @seealso [rkeops::+()], [rkeops::+.LazyTensor()]
 #' @export
 "+.ComplexLazyTensor" <- function(x, y = NULL) {
     
@@ -114,49 +156,42 @@
 
 # subtraction ------------------------------------------------------------------
 
-#' Subtraction.
-#' @rdname arithmetic.substract.default
-#' @author Chloe Serre-Combe, Amelie Vernay
-#' @keywords internal
+#' @title Default arithmetic operations
+#' @name arithmetic.default
+#' @rdname arithmetic.default
+#' @alias -.default
+#' @usage
+#' -x
+#' x - y
 #' @export
-"-.default" <- function(x, y = NULL) {
-    if(!is.null(y)) {
-        return(base::"-"(x, y))
-    }
-    else {
-        return(base::"-"(x))
-    }
-}
+"-.default" <- .Primitive("-")
 
 #' Subtraction or minus sign.
 #' @rdname arithmetic.substract
-#' @description
-#' Symbolic binary operation for subtraction.
-#' @usage x - y
-#' @details Two possible use cases:
-#' \itemize{
-#'     \item{**Subtraction**:}{ If `x` or `y` is a `LazyTensor`, `x - y` returns 
-#'     a `LazyTensor` that encodes, symbolically, the subtraction of `x` and `y`.
-#'     (In case one of the arguments is a vector or a scalar, it is first 
-#'     converted to `LazyTensor`). If none of the arguments is a `LazyTensor`, 
-#'     it is equivalent to the "-" R operator.}
-#'     \item{**Minus sign**:}{ If `x` is a `LazyTensor`, `-x` returns a 
-#'     `LazyTensor` that encodes, symbolically, the element-wise opposite 
-#'     of `x`.}
-#' }
-#' **Note**
-#' 
-#' For **subtraction operation**, `x` and `y` input arguments should have the 
-#' same inner dimension or be of dimension 1.
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, 
-#' or a scalar value (matrices can be used with the minus sign only).
-#' @param y A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, 
-#' or a scalar value (matrices can be used with the minus sign only).
-#' @return An object of class "LazyTensor" if the function is called with a 
-#' `LazyTensor`, and an object of class "numeric", otherwise.
+#' @description
+#' Symbolic substraction for `LazyTensor`s or default substraction for other 
+#' types.
+#' @usage
+#' -x
+#' x - y
+#' @details
+#' If `x` or `y` is a `LazyTensor`, see [rkeops::-.LazyTensor()], else see
+#' [rkeops::-.default()].
+#' 
+#' **Note:** the `-` operand can be a binary operator, e.g. `x + y`, 
+#' implementing the substraction, or a unary operator, e.g. `- x`, implementing 
+#' the "minus sign", both for `LazyTensor` objects or other types.
+#' @param x,y input for [rkeops::-.default()] or [rkeops::-.LazyTensor()].
+#' @return See value of [rkeops::-.default()] or [rkeops::-.LazyTensor()].
+#' @seealso [rkeops::-.default()], [rkeops::-.LazyTensor()], 
+#' [rkeops::-.ComplexLazyTensor()]
 #' @examples
 #' \dontrun{
+#' # R base operation
+#' +5
+#' 1 + 3
+#' # LazyTensor symbolic substraction
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' y <- matrix(runif(250 * 3), 250, 3) # arbitrary R matrix, 250 rows and 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
@@ -177,8 +212,38 @@
 
 #' Subtraction or minus sign.
 #' @rdname arithmetic.substract.LazyTensor
-#' @author Amelie Vernay, Chloe Serre-Combe
-#' @keywords internal
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @description
+#' Symbolic substraction for `LazyTensor` objects.
+#' @usage
+#' - x
+#' x - y
+#' @details 
+#' **Binary operator**: If `x` or `y` is a `LazyTensor`, `x + y` returns a 
+#' `LazyTensor` that encodes, symbolically, the addition of `x` and `y`.
+#' (In case one of the arguments is a vector or a scalar, it is first converted 
+#' to `LazyTensor`).
+#' 
+#' **Unary operator**: If `x` is a `LazyTensor`, then `- x` returns a 
+#' `LazyTensor` that encodes, symbolically, the opposite of `x`.
+#' 
+#' **Note**: `x` and `y` input arguments should have the same inner dimension 
+#' or be of dimension 1.
+#' @inherit rkeops::+.LazyTensor params
+#' @return An object of class `LazyTensor`.
+#' @seealso [rkeops::-()], [rkeops::-.ComplexLazyTensor()]
+#' @examples
+#' \dontrun{
+#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
+#' y <- matrix(runif(250 * 3), 250, 3) # arbitrary R matrix, 250 rows and 3 columns
+#' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
+#'                                     # indexed by 'i'
+#' y_j <- LazyTensor(y, index = 'j')   # creating LazyTensor from matrix y, 
+#'                                     # indexed by 'j'
+#'                                     
+#' Sub_xy <- x_i - y_j                 # symbolic matrix
+#' Minus_x <- -x_i                     # symbolic matrix
+#' }
 #' @export
 "-.LazyTensor" <- function(x, y = NULL) {
     
@@ -192,8 +257,16 @@
 
 #' Subtraction or minus sign.
 #' @rdname arithmetic.substract.ComplexLazyTensor
-#' @author Chloe Serre-Combe, Amelie Vernay
-#' @keywords internal
+#' @inherit rkeops::-.LazyTensor author
+#' @inherit rkeops::-.LazyTensor description
+#' @inherit rkeops::-.LazyTensor details
+#' @inherit rkeops::-.LazyTensor params
+#' @inherit rkeops::-.LazyTensor return
+#' @inherit rkeops::-.LazyTensor examples
+#' @usage
+#' - x
+#' x - y
+#' @seealso [rkeops::-()], [rkeops::-.LazyTensor()]
 #' @export
 "-.ComplexLazyTensor" <- function(x, y = NULL) {
     
