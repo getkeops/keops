@@ -1140,7 +1140,7 @@ atan.LazyTensor <- function(x) {
 #' @keywords internal
 #' @export
 atan2.default <- function(x, y) {
-    .Internal(atan2(x, y))
+    base::atan2(x, y)
 }
 
 #' Element-wise 2-argument arc-tangent.
@@ -2980,7 +2980,7 @@ sum <- function(x, ...) {
 #' 
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' 
-#' #' @examples
+#' @examples
 #' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
