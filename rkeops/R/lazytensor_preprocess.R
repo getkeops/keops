@@ -439,6 +439,8 @@ unaryop.LazyTensor <- function(x, opstr, opt_arg = NA, opt_arg2 = NA,
 #' @param dim_res NA (default) or an integer corresponding to the inner
 #' dimension of the output `LazyTensor`. If NA, **dim_res** is set to the
 #' maximum between the inner dimensions of the two input `LazyTensor`s.
+#' @param opt_arg NA (default) or list of optional arguments for the formula
+#' encoding the binary operation on input LazyTensors.
 #' @return An object of class "LazyTensor".
 #' @examples
 #' \dontrun{

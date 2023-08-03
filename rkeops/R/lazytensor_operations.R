@@ -729,10 +729,10 @@ rsqrt.LazyTensor <- function(x) {
 #' @rdname matprod
 #' @description
 #' Sum reduction of the multiplication operator "*".
-#' @usage x %*% y
-#' @details If `x` or `y` is a `LazyTensor`, `x %*% y` returns the sum reduction 
-#' of the product `x * y`. 
-#' If none of the arguments is a `LazyTensor`, is equivalent to the "%*%"
+#' @usage x \%*\% y
+#' @details If `x` or `y` is a `LazyTensor`, `x %*% y` returns the sum 
+#' reduction of the product `x * y`. 
+#' If none of the arguments is a `LazyTensor`, is equivalent to the "\%*\%"
 #' R operator.
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `LazyTensor`, a `ComplexLazyTensor`.
@@ -2650,7 +2650,7 @@ extractT <- function(x, m, d) {
 #' dimension !
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `LazyTensor` or a `ComplexLazyTensor`.
-#' @param x A `LazyTensor` or a `ComplexLazyTensor`.
+#' @param y A `LazyTensor` or a `ComplexLazyTensor`.
 #' @return A `LazyTensor` or a `ComplexLazyTensor` that encodes, symbolically,
 #' the concatenation of `x` and `y` along their inner dimension.
 #' @examples
