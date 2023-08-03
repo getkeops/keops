@@ -232,7 +232,7 @@
 #' 
 #' **Note**: `x` and `y` input arguments should have the same inner dimension 
 #' or be of dimension 1.
-#' @inherit rkeops::+.LazyTensor params
+#' @inherit arithmetic.add.LazyTensor params
 #' @return An object of class `LazyTensor`.
 #' @seealso [rkeops::-()]
 #' @examples
@@ -360,7 +360,7 @@
 #' 
 #' **Note**: `x` and `y` input arguments should have the same inner dimension 
 #' or be of dimension 1.
-#' @inherit rkeops::+.LazyTensor params
+#' @inherit arithmetic.add.LazyTensor params
 #' @return An object of class `LazyTensor`.
 #' @seealso [rkeops::*()]
 #' @examples
@@ -489,7 +489,7 @@
 #' 
 #' **Note**: `x` and `y` input arguments should have the same inner dimension 
 #' or be of dimension 1.
-#' @inherit rkeops::+.LazyTensor params
+#' @inherit arithmetic.add.LazyTensor params
 #' @return An object of class `LazyTensor`.
 #' @seealso [rkeops::/()]
 #' @examples
