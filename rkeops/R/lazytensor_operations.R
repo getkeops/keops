@@ -1510,7 +1510,7 @@ relu <- function(x) {
 #' @description
 #' Symbolic ternary operation for element-wise clamp function.
 #' @details `clamp(x, a, b)` returns a `LazyTensor` that encodes, symbolically,
-#' the element-wise clamping of ``x`` in ``(a, b)``. That is, `clamp(x, a, b)`
+#' the element-wise clamping of  `x` in `(a, b)`. That is, `clamp(x, a, b)`
 #' encodes symbolically `a` if `x < a`, `x` if `a <= x <= b`, and `b` if 
 #' `b < x`.
 #' Broadcasting rules apply.
