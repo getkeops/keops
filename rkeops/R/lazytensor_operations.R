@@ -6,7 +6,7 @@
 
 #' @title Default arithmetic operations
 #' @name arithmetic.default
-#' @alias +.default
+#' @aliases +.default
 #' @usage
 #' +x
 #' x + y
@@ -78,7 +78,7 @@
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @description
 #' Symbolic addition for `LazyTensor` objects.
-#' @usage x + y
+#' @usage x + y  # if x or y is a LazyTensor
 #' @details If `x` or `y` is a `LazyTensor`, `x + y` returns a `LazyTensor`
 #' that encodes, symbolically, the addition of `x` and `y`.
 #' (In case one of the arguments is a vector or a scalar, it is first converted 
@@ -115,6 +115,7 @@
 #' @name arithmetic.add.LazyTensor
 #' @aliases +.ComplexLazyTensor
 #' @author Chloe Serre-Combe, Amelie Vernay
+#' @usage x + y  # if x or y is a ComplexLazyTensor
 #' @export
 "+.ComplexLazyTensor" <- function(x, y = NULL) {
     
@@ -153,7 +154,7 @@
 
 #' @title Default arithmetic operations
 #' @name arithmetic.default
-#' @alias -.default
+#' @aliases -.default
 #' @usage
 #' -x
 #' x - y
@@ -181,7 +182,7 @@
 #' If `x` or `y` is a `LazyTensor`, see [rkeops::-.LazyTensor()], else see
 #' [rkeops::-.default()].
 #' 
-#' **Note:** the `-` operand can be a binary operator, e.g. `x + y`, 
+#' **Note:** the `-` operand can be a binary operator, e.g. `x - y`, 
 #' implementing the subtraction, or a unary operator, e.g. `- x`, implementing 
 #' the "minus sign", both for `LazyTensor` objects or other types.
 #' @param x,y input for [rkeops::-.default()] or [rkeops::-.LazyTensor()].
@@ -219,10 +220,11 @@
 #' @description
 #' Symbolic subtraction for `LazyTensor` objects.
 #' @usage
+#' # if x or y is a LazyTensor
 #' - x
 #' x - y
 #' @details 
-#' **Binary operator**: If `x` or `y` is a `LazyTensor`, `x + y` returns a 
+#' **Binary operator**: If `x` or `y` is a `LazyTensor`, `x - y` returns a 
 #' `LazyTensor` that encodes, symbolically, the subtraction of `x` and `y`.
 #' (In case one of the arguments is a vector or a scalar, it is first converted 
 #' to `LazyTensor`).
@@ -262,6 +264,10 @@
 #' @name arithmetic.subtract.LazyTensor
 #' @aliases -.ComplexLazyTensor
 #' @author Chloe Serre-Combe, Amelie Vernay
+#' @usage
+#' # if x or y is a ComplexLazyTensor
+#' - x
+#' x - y
 #' @export
 "-.ComplexLazyTensor" <- function(x, y = NULL) {
     
@@ -298,7 +304,7 @@
 
 #' @title Default arithmetic operations
 #' @name arithmetic.default
-#' @alias *.default
+#' @aliases *.default
 #' @usage
 #' x * y
 #' @export
@@ -351,9 +357,8 @@
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @description
 #' Symbolic multiplication for `LazyTensor` objects.
-#' @usage
-#' x * y
-#' @details If `x` or `y` is a `LazyTensor`, `x + y` returns a 
+#' @usage x * y  # if x or y is a LazyTensor
+#' @details If `x` or `y` is a `LazyTensor`, `x * y` returns a 
 #' `LazyTensor` that encodes, symbolically, the multiplication of `x` and `y`.
 #' (In case one of the arguments is a vector or a scalar, it is first converted 
 #' to `LazyTensor`).
@@ -385,6 +390,7 @@
 #' @name arithmetic.multiply.LazyTensor
 #' @aliases *.ComplexLazyTensor
 #' @author Chloe Serre-Combe, Amelie Vernay
+#' @usage x * y  # if x or y is a ComplexLazyTensor
 #' @export
 "*.ComplexLazyTensor" <- function(x, y) {
     if(!is.LazyTensor(x) && !is.matrix(x)) {
@@ -427,7 +433,7 @@
 
 #' @title Default arithmetic operations
 #' @name arithmetic.default
-#' @alias /.default
+#' @aliases /.default
 #' @usage
 #' x / y
 #' @export
@@ -480,9 +486,8 @@
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @description
 #' Symbolic multiplication for `LazyTensor` objects.
-#' @usage
-#' x * y
-#' @details If `x` or `y` is a `LazyTensor`, `x + y` returns a 
+#' @usage x / y  # if x or y is a LazyTensor
+#' @details If `x` or `y` is a `LazyTensor`, `x / y` returns a 
 #' `LazyTensor` that encodes, symbolically, the division of `x` and `y`.
 #' (In case one of the arguments is a vector or a scalar, it is first converted 
 #' to `LazyTensor`).
@@ -515,6 +520,7 @@
 #' @name arithmetic.divide.LazyTensor
 #' @aliases /.ComplexLazyTensor
 #' @author Chloe Serre-Combe, Amelie Vernay
+#' @usage x / y  # if x or y is a ComplexLazyTensor
 #' @export
 "/.ComplexLazyTensor" <- function(x, y) {
     if(!is.LazyTensor(x) && !is.matrix(x)) {
