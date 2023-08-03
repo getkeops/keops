@@ -6,7 +6,6 @@
 
 #' @title Default arithmetic operations
 #' @name arithmetic.default
-#' @rdname arithmetic.default
 #' @alias +.default
 #' @usage
 #' +x
@@ -30,7 +29,8 @@
 
 
 #' Addition.
-#' @rdname arithmetic.add
+#' @name arithmetic.add
+#' @aliases +
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @description
 #' Symbolic addition for `LazyTensor` objects or default addition for other 
@@ -74,7 +74,6 @@
 
 #' Addition.
 #' @name arithmetic.add.LazyTensor
-#' @rdname arithmetic.add.LazyTensor
 #' @aliases +.LazyTensor
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @description
@@ -114,7 +113,6 @@
 
 #' Addition.
 #' @name arithmetic.add.LazyTensor
-#' @rdname arithmetic.add.LazyTensor
 #' @aliases +.ComplexLazyTensor
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @export
@@ -155,7 +153,6 @@
 
 #' @title Default arithmetic operations
 #' @name arithmetic.default
-#' @rdname arithmetic.default
 #' @alias -.default
 #' @usage
 #' -x
@@ -171,7 +168,8 @@
 }
 
 #' Subtraction or minus sign.
-#' @rdname arithmetic.subtract
+#' @name arithmetic.subtract
+#' @aliases -
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @description
 #' Symbolic subtraction for `LazyTensor` objects or default subtraction for 
@@ -216,7 +214,6 @@
 
 #' Subtraction or minus sign.
 #' @name arithmetic.subtract.LazyTensor
-#' @rdname arithmetic.subtract.LazyTensor
 #' @aliases -.LazyTensor
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @description
@@ -262,9 +259,8 @@
 }
 
 #' Subtraction or minus sign.
-#' @rdname arithmetic.subtract.LazyTensor
 #' @name arithmetic.subtract.LazyTensor
-#' @aliases +.ComplexLazyTensor
+#' @aliases -.ComplexLazyTensor
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @export
 "-.ComplexLazyTensor" <- function(x, y = NULL) {
@@ -302,7 +298,6 @@
 
 #' @title Default arithmetic operations
 #' @name arithmetic.default
-#' @rdname arithmetic.default
 #' @alias *.default
 #' @usage
 #' x * y
@@ -312,7 +307,8 @@
 }
 
 #' Multiplication.
-#' @rdname arithmetic.multiply
+#' @name arithmetic.multiply
+#' @aliases *
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @description
 #' Symbolic multiplication for `LazyTensor` objects or default multiplication 
@@ -351,7 +347,6 @@
 
 #' Multiplication.
 #' @name arithmetic.multiply.LazyTensor
-#' @rdname arithmetic.multiply.LazyTensor
 #' @aliases *.LazyTensor
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @description
@@ -388,7 +383,6 @@
 
 #' Multiplication.
 #' @name arithmetic.multiply.LazyTensor
-#' @rdname arithmetic.multiply.LazyTensor
 #' @aliases *.ComplexLazyTensor
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @export
@@ -433,7 +427,6 @@
 
 #' @title Default arithmetic operations
 #' @name arithmetic.default
-#' @rdname arithmetic.default
 #' @alias /.default
 #' @usage
 #' x / y
@@ -443,7 +436,8 @@
 }
 
 #' Division.
-#' @rdname arithmetic.divide
+#' @name arithmetic.divide
+#' @aliases /
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @description
 #' Symbolic division for `LazyTensor` objects or default division 
@@ -482,7 +476,6 @@
 
 #' Division.
 #' @name arithmetic.divide.LazyTensor
-#' @rdname arithmetic.divide.LazyTensor
 #' @aliases /.LazyTensor
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @description
@@ -520,7 +513,6 @@
 
 #' Division.
 #' @name arithmetic.divide.LazyTensor
-#' @rdname arithmetic.divide.LazyTensor
 #' @aliases /.ComplexLazyTensor
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @export
