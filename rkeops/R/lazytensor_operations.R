@@ -19,22 +19,22 @@
 #' @seealso [base::Arithmetic]
 #' @author R core team and contributors
 #' @export
-"+.default" <- .Primitive("+")
-#     function(x, y = NULL) {
-#     if(!is.null(y)) {
-#         return(base::"+"(x, y))
-#     }
-#     else {
-#         return(base::"+"(x))
-#     }
-# }
+"+.default" <- function(x, y = NULL) {
+    if(!is.null(y)) {
+        return(base::"+"(x, y))
+    }
+    else {
+        return(base::"+"(x))
+    }
+}
 
 
 #' Addition.
 #' @rdname arithmetic.add
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @description
-#' Symbolic addition for `LazyTensor`s or default addition for other types.
+#' Symbolic addition for `LazyTensor` objects or default addition for other 
+#' types.
 #' @usage
 #' +x
 #' x + y
@@ -73,7 +73,9 @@
 }
 
 #' Addition.
+#' @name arithmetic.add.LazyTensor
 #' @rdname arithmetic.add.LazyTensor
+#' @aliases +.LazyTensor
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @description
 #' Symbolic addition for `LazyTensor` objects.
@@ -88,7 +90,7 @@
 #' @param x,y A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values,
 #' or a scalar value.
 #' @return An object of class `LazyTensor`.
-#' @seealso [rkeops::+()], [rkeops::+.ComplexLazyTensor()]
+#' @seealso [rkeops::+()]
 #' @examples
 #' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
@@ -111,15 +113,10 @@
 }
 
 #' Addition.
-#' @rdname arithmetic.add.ComplexLazyTensor
-#' @inherit rkeops::+.LazyTensor author
-#' @inherit rkeops::+.LazyTensor description
-#' @inherit rkeops::+.LazyTensor details
-#' @inherit rkeops::+.LazyTensor params
-#' @inherit rkeops::+.LazyTensor return
-#' @inherit rkeops::+.LazyTensor examples
-#' @usage x + y
-#' @seealso [rkeops::+()], [rkeops::+.LazyTensor()]
+#' @name arithmetic.add.LazyTensor
+#' @rdname arithmetic.add.LazyTensor
+#' @aliases +.ComplexLazyTensor
+#' @author Chloe Serre-Combe, Amelie Vernay
 #' @export
 "+.ComplexLazyTensor" <- function(x, y = NULL) {
     
@@ -164,14 +161,21 @@
 #' -x
 #' x - y
 #' @export
-"-.default" <- .Primitive("-")
+"-.default" <- function(x, y = NULL) {
+    if(!is.null(y)) {
+        return(base::"-"(x, y))
+    }
+    else {
+        return(base::"-"(x))
+    }
+}
 
 #' Subtraction or minus sign.
 #' @rdname arithmetic.substract
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @description
-#' Symbolic substraction for `LazyTensor`s or default substraction for other 
-#' types.
+#' Symbolic substraction for `LazyTensor` objects or default substraction for 
+#' other types.
 #' @usage
 #' -x
 #' x - y
@@ -211,7 +215,9 @@
 }
 
 #' Subtraction or minus sign.
+#' @name arithmetic.substract.LazyTensor
 #' @rdname arithmetic.substract.LazyTensor
+#' @aliases -.LazyTensor
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @description
 #' Symbolic substraction for `LazyTensor` objects.
@@ -231,7 +237,7 @@
 #' or be of dimension 1.
 #' @inherit rkeops::+.LazyTensor params
 #' @return An object of class `LazyTensor`.
-#' @seealso [rkeops::-()], [rkeops::-.ComplexLazyTensor()]
+#' @seealso [rkeops::-()]
 #' @examples
 #' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
@@ -256,17 +262,10 @@
 }
 
 #' Subtraction or minus sign.
-#' @rdname arithmetic.substract.ComplexLazyTensor
-#' @inherit rkeops::-.LazyTensor author
-#' @inherit rkeops::-.LazyTensor description
-#' @inherit rkeops::-.LazyTensor details
-#' @inherit rkeops::-.LazyTensor params
-#' @inherit rkeops::-.LazyTensor return
-#' @inherit rkeops::-.LazyTensor examples
-#' @usage
-#' - x
-#' x - y
-#' @seealso [rkeops::-()], [rkeops::-.LazyTensor()]
+#' @rdname arithmetic.substract.LazyTensor
+#' @name arithmetic.substract.LazyTensor
+#' @aliases +.ComplexLazyTensor
+#' @author Chloe Serre-Combe, Amelie Vernay
 #' @export
 "-.ComplexLazyTensor" <- function(x, y = NULL) {
     
@@ -301,46 +300,45 @@
 
 # multiplication  --------------------------------------------------------------
 
-#' Multiplication.
-#' @rdname arithmetic.multiply.default
-#' @author Chloe Serre-Combe, Amelie Vernay
-#' @keywords internal
+#' @title Default arithmetic operations
+#' @name arithmetic.default
+#' @rdname arithmetic.default
+#' @alias *.default
+#' @usage
+#' x * y
 #' @export
 "*.default" <- function(x, y) {
-    base::"*"(x, y)
+    return(base::"*"(x, y))
 }
 
 #' Multiplication.
 #' @rdname arithmetic.multiply
-#' @description
-#' Symbolic binary operation for multiplication.
-#' @usage x * y
-#' @details If `x` or `y` is a `LazyTensor`, `x * y` returns a `LazyTensor`
-#' that encodes, symbolically, the element-wise product of `x` and `y`.
-#' (In case one of the arguments is a vector or a scalar, it is first converted 
-#' to `LazyTensor`). If none of the arguments is a `LazyTensor`, it is 
-#' equivalent to the "*" R operator.
-#' 
-#' **Note**
-#' 
-#' `x` and `y` input arguments should have the same inner dimension or be of 
-#' dimension 1.
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, 
-#' or a scalar value.
-#' @param y A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, 
-#' or a scalar value.
-#' @return An object of class "LazyTensor" if the function is called with a 
-#' `LazyTensor`, and an object of class "numeric", otherwise.
+#' @description
+#' Symbolic multiplication for `LazyTensor` objects or default multiplication 
+#' for other types.
+#' @usage
+#' x * y
+#' @details
+#' If `x` or `y` is a `LazyTensor`, see [rkeops::*.LazyTensor()], else see
+#' [rkeops::*.default()].
+#' @param x,y input for [rkeops::*.default()] or [rkeops::*.LazyTensor()].
+#' @return See value of [rkeops::*.default()] or [rkeops::*.LazyTensor()].
+#' @seealso [rkeops::*.default()], [rkeops::*.LazyTensor()], 
+#' [rkeops::*.ComplexLazyTensor()]
 #' @examples
 #' \dontrun{
+#' # R base operation
+#' +5
+#' 1 + 3
+#' # LazyTensor symbolic multiplication
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' y <- matrix(runif(250 * 3), 250, 3) # arbitrary R matrix, 250 rows and 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
 #' y_j <- LazyTensor(y, index = 'j')   # creating LazyTensor from matrix y, 
 #'                                     # indexed by 'j'
-#'                                     
+#' 
 #' x_times_y <- x_i * y_j              # symbolic matrix
 #' }
 #' @export
@@ -352,9 +350,35 @@
 }
 
 #' Multiplication.
+#' @name arithmetic.multiply.LazyTensor
 #' @rdname arithmetic.multiply.LazyTensor
+#' @aliases *.LazyTensor
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @keywords internal
+#' @description
+#' Symbolic multiplication for `LazyTensor` objects.
+#' @usage
+#' x * y
+#' @details If `x` or `y` is a `LazyTensor`, `x + y` returns a 
+#' `LazyTensor` that encodes, symbolically, the addition of `x` and `y`.
+#' (In case one of the arguments is a vector or a scalar, it is first converted 
+#' to `LazyTensor`).
+#' 
+#' **Note**: `x` and `y` input arguments should have the same inner dimension 
+#' or be of dimension 1.
+#' @inherit rkeops::+.LazyTensor params
+#' @return An object of class `LazyTensor`.
+#' @seealso [rkeops::*()]
+#' @examples
+#' \dontrun{
+#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
+#' y <- matrix(runif(250 * 3), 250, 3) # arbitrary R matrix, 250 rows and 3 columns
+#' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
+#'                                     # indexed by 'i'
+#' y_j <- LazyTensor(y, index = 'j')   # creating LazyTensor from matrix y, 
+#'                                     # indexed by 'j'
+#' 
+#' x_times_y <- x_i * y_j              # symbolic matrix
+#' }
 #' @export
 "*.LazyTensor" <- function(x, y) {
     res <- binaryop.LazyTensor(x, y, "*", is_operator = TRUE,
@@ -363,9 +387,10 @@
 }
 
 #' Multiplication.
-#' @rdname arithmetic.multiply.ComplexLazyTensor
+#' @name arithmetic.multiply.LazyTensor
+#' @rdname arithmetic.multiply.LazyTensor
+#' @aliases *.ComplexLazyTensor
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @keywords internal
 #' @export
 "*.ComplexLazyTensor" <- function(x, y) {
     if(!is.LazyTensor(x) && !is.matrix(x)) {
