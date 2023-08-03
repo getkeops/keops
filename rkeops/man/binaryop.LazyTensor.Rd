@@ -16,11 +16,11 @@ binaryop.LazyTensor(
 )
 }
 \arguments{
-\item{x}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric values, or
-a scalar value.}
+\item{x}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric values,
+or a scalar value.}
 
-\item{y}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric values, or
-a scalar value.}
+\item{y}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric values,
+or a scalar value.}
 
 \item{opstr}{A text string corresponding to an operation.}
 
@@ -28,18 +28,17 @@ a scalar value.}
 \code{+}, \code{-} or a "genuine" function.}
 
 \item{dim_check_type}{A string to specify if, and how, we should check input
-dimensions.
-Supported values are:
+dimensions. Supported values are:
 \itemize{
 \item {\strong{"same"}:}{ \strong{x} and \strong{y} should have the same inner dimension;}
-\item {\strong{"sameor1"} (default):}{ \strong{x} and \strong{y} should have the same inner
-dimension or at least one of them should be of dimension 1;}
+\item {\strong{"sameor1"} (default):}{ \strong{x} and \strong{y} should have the same
+inner dimension or at least one of them should be of dimension 1;}
 \item {\strong{NA}:}{ no dimension restriction.}
 }}
 
 \item{res_type}{NA (default) or a character string among "LazyTensor" and
-"ComplexLazyTensor", to specify if a change of class is required for the result.
-(Useful especially when dealing with complex-to-real or
+"ComplexLazyTensor", to specify if a change of class is required for the
+result. (Useful especially when dealing with complex-to-real or
 real-to-complex functions).}
 
 \item{dim_res}{NA (default) or an integer corresponding to the inner

@@ -9,11 +9,12 @@ Kmin_reduction(x, K, index)
 \arguments{
 \item{x}{A \code{LazyTensor} or a \code{ComplexLazyTensor}.}
 
-\item{K}{An \code{integer} corresponding to the  number of minimal values required.}
+\item{K}{An \code{integer} corresponding to the  number of minimal values
+required.}
 
-\item{index}{A \code{character} corresponding to the reduction dimension that should
-be either \strong{i} or \strong{j} to specify whether if the reduction is indexed by
-\strong{i} (rows) or \strong{j} (columns).}
+\item{index}{A \code{character} corresponding to the reduction dimension that
+should be either \strong{i} or \strong{j} to specify whether if the reduction is
+indexed by \strong{i} (rows) or \strong{j} (columns).}
 }
 \value{
 A matrix corresponding to the Kmin reduction.

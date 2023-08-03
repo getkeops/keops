@@ -13,7 +13,7 @@ is.LazyVector(x)
 A boolean, TRUE or FALSE.
 }
 \description{
-Checks whether if the given input is a \code{LazyTensor} encoding
+Checks whether the given input is a \code{LazyTensor} encoding
 a vector or a single value.
 }
 \details{

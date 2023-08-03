@@ -7,13 +7,13 @@
 is.ComplexLazyTensor(x)
 }
 \arguments{
-\item{x}{An object we want to know if it is a \code{ComplexLazyTensor}.}
+\item{x}{An object that we want to know if it is a \code{ComplexLazyTensor}.}
 }
 \value{
 A boolean, TRUE or FALSE.
 }
 \description{
-Checks whether if the given input is a \code{ComplexLazyTensor} or not.
+Checks whether the given input is a \code{ComplexLazyTensor} or not.
 }
 \details{
 If \code{x} is a \code{ComplexLazyTensor}, \code{is.ComplexLazyTensor(x)}

@@ -9,9 +9,9 @@ argmax_reduction(x, index)
 \arguments{
 \item{x}{A \code{LazyTensor} or a \code{ComplexLazyTensor}.}
 
-\item{index}{A \code{character} corresponding to the reduction dimension that should
-be either \strong{i} or \strong{j} to specify whether if the reduction is indexed by
-\strong{i} (rows) or \strong{j} (columns).}
+\item{index}{A \code{character} corresponding to the reduction dimension that
+should be either \strong{i} or \strong{j} to specify whether if the reduction is
+indexed by \strong{i} (rows) or \strong{j} (columns).}
 }
 \value{
 A matrix corresponding to the argmax reduction.
@@ -20,11 +20,12 @@ A matrix corresponding to the argmax reduction.
 ArgMax reduction.
 }
 \details{
-\code{argmax_reduction(x, index)} will return the argmax reduction of \code{x}.
+\code{argmax_reduction(x, index)} will return the argmax reduction of
+\code{x}.
 }
 \examples{
 \dontrun{
-x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows and 3 columns
+x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
                                     # indexed by 'i'
 

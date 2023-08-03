@@ -18,9 +18,9 @@ a \code{ComplexLazyTensor}, else see R default \code{Re()} function.
 Symbolic unary operation for element-wise real part of complex.
 }
 \details{
-If \code{z} is a \code{ComplexLazyTensor}, \code{Re(z)} returns a \code{ComplexLazyTensor}
-that encodes, symbolically, the element-wise real part of complex \code{z} ;
-else, computes R default \code{Re()} function.
+If \code{z} is a \code{ComplexLazyTensor}, \code{Re(z)} returns a
+\code{ComplexLazyTensor} that encodes, symbolically, the element-wise real part
+of complex \code{z} ; else, computes R default \code{Re()} function.
 }
 \examples{
 \dontrun{

@@ -17,9 +17,9 @@ A \code{ComplexLazyTensor}.
 Symbolic unary operation for element-wise complex conjugate.
 }
 \details{
-If \code{z} is a \code{ComplexLazyTensor}, \code{Conj(z)} returns a \code{ComplexLazyTensor}
-that encodes symbolically, the element-wise complex conjugate of \code{z} ;
-else, computes R default \code{Conj()} function.
+If \code{z} is a \code{ComplexLazyTensor}, \code{Conj(z)} returns a
+\code{ComplexLazyTensor} that encodes symbolically, the element-wise complex
+conjugate of \code{z} ; else, computes R default \code{Conj()} function.
 }
 \examples{
 \dontrun{

@@ -27,10 +27,10 @@ Returns a \code{function} for a reduction to a \code{LazyTensor} and it is calle
 \details{
 \code{preprocess_reduction(x, opstr, index)} will :
 \itemize{
-\item{ if \strong{index = "i"}, return a \code{function} corresponding to the \strong{opstr}
-reduction of \strong{x} over the "i" indexes;}
-\item{ if \strong{index = "j"}, return a \code{function} corresponding to the \strong{opstr}
-reduction of \strong{x} over the "j" indexes.}
+\item{ if \strong{index = "i"}, return a \code{function} corresponding to the
+\strong{opstr} reduction of \strong{x} over the "i" indexes;}
+\item{ if \strong{index = "j"}, return a \code{function} corresponding to the
+\strong{opstr} reduction of \strong{x} over the "j" indexes.}
 }
 }
 \examples{

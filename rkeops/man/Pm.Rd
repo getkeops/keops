@@ -9,15 +9,16 @@ Pm(x, is_complex = FALSE)
 \arguments{
 \item{x}{A vector or a scalar value.}
 
-\item{is_complex}{A boolean (default is FALSE). Whether if we want to create a
-\code{ComplexLazyTensor} (is_complex = TRUE) or a \code{LazyTensor} (is_complex = FALSE).}
+\item{is_complex}{A boolean (default is FALSE). Whether if we want to create
+a \code{ComplexLazyTensor} (\code{is_complex = TRUE}) or a \code{LazyTensor}
+(\code{is_complex = FALSE}).}
 }
 \value{
 An object of class "LazyTensor" in parameter category.
 See \code{?LazyTensor} for more details.
 }
 \description{
-Simple wrapper that return an instantiation of a fixed parameter \code{LazyTensor}.
+Simple wrapper returning an instance of a fixed parameter \code{LazyTensor}.
 Equivalent to \code{LazyTensor(x)}.
 }
 \details{

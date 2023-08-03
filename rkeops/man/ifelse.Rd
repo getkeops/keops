@@ -18,8 +18,9 @@ or a scalar value.}
 }
 \value{
 An object of class "LazyTensor" if the function is called with a
-\code{LazyTensor}, and an object of class "numeric", "matrix", or "array" otherwise,
-depending on the input class (see R default \code{base::ifelse()} function).
+\code{LazyTensor}, and an object of class "numeric", "matrix", or "array"
+otherwise, depending on the input class (see R default \code{base::ifelse()}
+function).
 }
 \description{
 Symbolic ternary operation for element-wise if-else function.

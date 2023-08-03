@@ -24,8 +24,8 @@ or a scalar value.}
 \item{opt_arg2}{An optional argument which can be a scalar value.}
 
 \item{res_type}{NA (default) or a character string among "LazyTensor" and
-"ComplexLazyTensor", to specify if a change of class is required for the result.
-(Useful especially when dealing with complex-to-real or
+"ComplexLazyTensor", to specify if a change of class is required for the
+result. (Useful especially when dealing with complex-to-real or
 real-to-complex functions).}
 
 \item{dim_res}{NA (default) or an integer corresponding to the inner
@@ -40,7 +40,7 @@ Symbolically applies \strong{opstr} operation to \strong{x}.
 }
 \examples{
 \dontrun{
-x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows and 3 columns
+x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
                                     # indexed by 'i'
 una_x <- unaryop.LazyTensor(x_i, "Minus")   # symbolic matrix

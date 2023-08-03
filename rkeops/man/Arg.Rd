@@ -18,9 +18,9 @@ a \code{ComplexLazyTensor}, else see R default \code{Arg()} function.
 Symbolic unary operation for element-wise angle (or argument) of complex.
 }
 \details{
-If \code{z} is a \code{ComplexLazyTensor}, \code{Arg(z)} returns a \code{ComplexLazyTensor}
-that encodes, symbolically, the element-wise angle (or argument) of
-complex \code{z} ; else, computes R default \code{Arg()} function.
+If \code{z} is a \code{ComplexLazyTensor}, \code{Arg(z)} returns a
+\code{ComplexLazyTensor} that encodes, symbolically, the element-wise angle
+(or argument) of complex \code{z} ; else, computes R default \code{Arg()} function.
 }
 \examples{
 \dontrun{

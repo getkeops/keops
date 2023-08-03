@@ -20,12 +20,13 @@ Sum reduction of the multiplication operator "*".
 \details{
 If \code{x} or \code{y} is a \code{LazyTensor}, \code{x \%*\% y} returns the sum reduction
 of the product \code{x * y}.
-If none of the arguments is a \code{LazyTensor}, is equivalent to the "\%*\%" R operator.
+If none of the arguments is a \code{LazyTensor}, is equivalent to the "\%*\%"
+R operator.
 }
 \examples{
 \dontrun{
-x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows and 3 columns
-y <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows and 3 columns
+x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
+y <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
                                     # indexed by 'i'
 y_j <- LazyTensor(y, index = 'j')   # creating LazyTensor from matrix y, 

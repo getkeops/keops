@@ -23,8 +23,8 @@ dimensions.
 Supported values are:
 \itemize{
 \item {\strong{"same"}:}{ \strong{x} and \strong{y} should have the same inner dimension;}
-\item {\strong{"sameor1"} (default):}{ \strong{x} and \strong{y} should have the same inner
-dimension or at least one of them should be of dimension 1;}
+\item {\strong{"sameor1"} (default):}{ \strong{x} and \strong{y} should have the same
+inner dimension or at least one of them should be of dimension 1;}
 \item {\strong{NA}:}{ no dimension restriction.}
 }}
 

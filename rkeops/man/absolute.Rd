@@ -17,9 +17,9 @@ A \code{LazyTensor}.
 Symbolic unary operation for element-wise absolute value (or modulus).
 }
 \details{
-If \code{z} is a \code{ComplexLazyTensor}, \code{Mod(z)} returns a \code{LazyTensor} that
-encodes, symbolically, the element-wise absolute value (or modulus) of \code{z} ;
-else, computes R default \code{Mod()} function.
+If \code{z} is a \code{ComplexLazyTensor}, \code{Mod(z)} returns a \code{LazyTensor}
+that encodes, symbolically, the element-wise absolute value (or modulus)
+of \code{z} ; else, computes R default \code{Mod()} function.
 }
 \examples{
 \dontrun{

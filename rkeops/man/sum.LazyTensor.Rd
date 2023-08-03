@@ -7,12 +7,12 @@
 \method{sum}{LazyTensor}(x, index = NA)
 }
 \arguments{
-\item{x}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector or a matrix of numeric
-values, or a scalar value.}
+\item{x}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector or a matrix of
+numeric values, or a scalar value.}
 
-\item{index}{A \code{character} corresponding to the reduction dimension that should
-be either \strong{i} or \strong{j} to specify whether if the summation is indexed by
-\strong{i} (rows), or \strong{j} (columns).
+\item{index}{A \code{character} corresponding to the reduction dimension that
+should be either \strong{i} or \strong{j} to specify whether if the summation is
+indexed by \strong{i} (rows), or \strong{j} (columns).
 It can be NA (default) when no reduction is desired.}
 }
 \value{
@@ -32,8 +32,8 @@ indexes.
 representing the sum of the values of the vector.
 }
 
-\strong{Notes}: If \strong{index = NA}, \code{x} input argument should be a \code{LazyTensor} encoding a
-parameter vector.
+\strong{Notes}: If \strong{index = NA}, \code{x} input argument should be a \code{LazyTensor}
+encoding a parameter vector.
 
 Run \code{browseVignettes("rkeops")} to access the vignettes and find details
 about the function in "RKeOps LazyTensor",

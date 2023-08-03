@@ -7,12 +7,12 @@
 max(x, ...)
 }
 \arguments{
-\item{x}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector or a matrix of numeric
-values, or a scalar value.}
+\item{x}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector or a matrix of
+numeric values, or a scalar value.}
 
-\item{index}{A \code{character} corresponding to the reduction dimension that should
-be either \strong{i} or \strong{j} to specify whether if the reduction is indexed by
-\strong{i} (rows), or \strong{j} (columns).
+\item{index}{A \code{character} corresponding to the reduction dimension that
+should be either \strong{i} or \strong{j} to specify whether if the reduction is
+indexed by \strong{i} (rows), or \strong{j} (columns).
 It can be NA (default) when no reduction is desired.}
 }
 \value{
@@ -45,7 +45,7 @@ at section #Reductions.
 }
 \examples{
 \dontrun{
-x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows and 3 columns
+x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
                                     # indexed by 'i'
 

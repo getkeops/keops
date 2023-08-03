@@ -12,8 +12,9 @@ of numeric values, or a scalar value.}
 }
 \value{
 An object of class "LazyTensor" if the function is called with a
-\code{LazyTensor}, and an object of class "numeric", "matrix", or "array" otherwise,
-depending on the input class (see R default \code{stats::step()} function).
+\code{LazyTensor}, and an object of class "numeric", "matrix", or "array"
+otherwise, depending on the input class (see R default \code{stats::step()}
+function).
 }
 \description{
 Symbolic unary operation for element-wise step function.
@@ -22,11 +23,12 @@ Symbolic unary operation for element-wise step function.
 If \code{x} is a \code{LazyTensor}, \code{step(x)} returns a \code{LazyTensor} that
 encodes, symbolically, the element-wise step function of \code{x}
 (\code{0} if \code{x < 0}, \code{1} if \code{x >= 0}); else, computes R default
-step function with other specific arguments (see R default \code{step()} function).
+step function with other specific arguments (see R default \code{step()}
+function).
 }
 \examples{
 \dontrun{
-x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows and 3 columns
+x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
                                     # indexed by 'i'
                                     

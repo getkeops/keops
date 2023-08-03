@@ -7,8 +7,8 @@
 identifier(arg)
 }
 \arguments{
-\item{arg}{A \code{string} corresponding to an element of the attribute \code{args} of a
-\code{LazyTensor}.}
+\item{arg}{A \code{string} corresponding to an element of the attribute \code{args} of
+a \code{LazyTensor}.}
 }
 \value{
 A \code{string}.

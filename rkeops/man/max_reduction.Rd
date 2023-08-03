@@ -9,9 +9,9 @@ max_reduction(x, index)
 \arguments{
 \item{x}{A \code{LazyTensor} or a \code{ComplexLazyTensor}.}
 
-\item{index}{A \code{character} corresponding to the reduction dimension that should
-be either \strong{i} or \strong{j} to specify whether if the reduction is indexed by
-\strong{i} (rows) or \strong{j} (columns).}
+\item{index}{A \code{character} corresponding to the reduction dimension that
+should be either \strong{i} or \strong{j} to specify whether if the reduction is
+indexed by \strong{i} (rows) or \strong{j} (columns).}
 }
 \value{
 A matrix corresponding to the max reduction or an object of class

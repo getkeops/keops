@@ -18,9 +18,9 @@ a \code{ComplexLazyTensor}, else see R default \code{Im()} function.
 Symbolic unary operation for element-wise imaginary part of complex.
 }
 \details{
-If \code{z} is a \code{ComplexLazyTensor}, \code{Im(z)} returns a \code{ComplexLazyTensor}
-that encodes, symbolically, the element-wise imaginary part of complex \code{z} ;
-else, computes R default \code{Im()} function.
+If \code{z} is a \code{ComplexLazyTensor}, \code{Im(z)} returns a
+\code{ComplexLazyTensor} that encodes, symbolically, the element-wise imaginary
+part of complex \code{z} ; else, computes R default \code{Im()} function.
 }
 \examples{
 \dontrun{

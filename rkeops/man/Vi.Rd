@@ -9,15 +9,16 @@ Vi(x, is_complex = FALSE)
 \arguments{
 \item{x}{A matrix of numeric values, or a scalar value.}
 
-\item{is_complex}{A boolean (default is FALSE). Whether if we want to create a
-\code{ComplexLazyTensor} (is_complex = TRUE) or a \code{LazyTensor} (is_complex = FALSE).}
+\item{is_complex}{A boolean (default is FALSE). Whether we want to create
+a \code{ComplexLazyTensor} (\code{is_complex = TRUE}) or a \code{LazyTensor}
+(\code{is_complex = FALSE}).}
 }
 \value{
 An object of class "LazyTensor" indexed by "i". See \code{?LazyTensor} for
 more details.
 }
 \description{
-Simple wrapper that return an instantiation of \code{LazyTensor} indexed by "i".
+Simple wrapper returning an instance of \code{LazyTensor} indexed by "i".
 Equivalent to \code{LazyTensor(x, index = "i")}.
 }
 \details{

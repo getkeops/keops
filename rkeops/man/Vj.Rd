@@ -9,14 +9,15 @@ Vj(x, is_complex = FALSE)
 \arguments{
 \item{x}{A matrix of numeric values.}
 
-\item{is_complex}{A boolean (default is FALSE). Whether if we want to create a
-\code{ComplexLazyTensor} (is_complex = TRUE) or a \code{LazyTensor} (is_complex = FALSE).}
+\item{is_complex}{A boolean (default is FALSE). Whether we want to create
+a \code{ComplexLazyTensor} (\code{is_complex = TRUE}) or a \code{LazyTensor}
+(\code{is_complex = FALSE}).}
 }
 \value{
 An object of class "LazyTensor" indexed by "j".
 }
 \description{
-Simple wrapper that return an instantiation of \code{LazyTensor} indexed by "j".
+Simple wrapper returning an instance of \code{LazyTensor} indexed by "j".
 Equivalent to \code{LazyTensor(x, index = "j")}.
 }
 \details{

@@ -7,13 +7,13 @@
 is.int(x)
 }
 \arguments{
-\item{x}{An object we want to know if it is a \code{integer}.}
+\item{x}{An object that we want to know if it is an \code{integer}.}
 }
 \value{
 A boolean, TRUE or FALSE.
 }
 \description{
-Checks whether if the given input is a scalar \code{integer} or not.
+Checks whether the given input is a scalar \code{integer} or not.
 }
 \details{
 If \code{x} is a scalar\code{integer}, \code{is.int(x)} returns TRUE,
