@@ -5,6 +5,7 @@
 # addition ---------------------------------------------------------------------
 
 #' Addition.
+#' @rdname arithmetic.add.default
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @keywords internal
 #' @export
@@ -19,6 +20,7 @@
 
 
 #' Addition.
+#' @rdname arithmetic.add
 #' @description
 #' Symbolic binary operation for addition.
 #' @usage x + y
@@ -58,6 +60,7 @@
 }
 
 #' Addition.
+#' @rdname arithmetic.add.LazyTensor
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @keywords internal
 #' @export
@@ -72,6 +75,7 @@
 }
 
 #' Addition.
+#' @rdname arithmetic.add.ComplexLazyTensor
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @keywords internal
 #' @export
@@ -111,6 +115,7 @@
 # subtraction ------------------------------------------------------------------
 
 #' Subtraction.
+#' @rdname arithmetic.substract.default
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @keywords internal
 #' @export
@@ -124,6 +129,7 @@
 }
 
 #' Subtraction or minus sign.
+#' @rdname arithmetic.substract
 #' @description
 #' Symbolic binary operation for subtraction.
 #' @usage x - y
@@ -170,6 +176,7 @@
 }
 
 #' Subtraction or minus sign.
+#' @rdname arithmetic.substract.LazyTensor
 #' @author Amelie Vernay, Chloe Serre-Combe
 #' @keywords internal
 #' @export
@@ -184,6 +191,7 @@
 }
 
 #' Subtraction or minus sign.
+#' @rdname arithmetic.substract.ComplexLazyTensor
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @keywords internal
 #' @export
@@ -221,6 +229,7 @@
 # multiplication  --------------------------------------------------------------
 
 #' Multiplication.
+#' @rdname arithmetic.multiply.default
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @keywords internal
 #' @export
@@ -229,6 +238,7 @@
 }
 
 #' Multiplication.
+#' @rdname arithmetic.multiply
 #' @description
 #' Symbolic binary operation for multiplication.
 #' @usage x * y
@@ -269,6 +279,7 @@
 }
 
 #' Multiplication.
+#' @rdname arithmetic.multiply.LazyTensor
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @keywords internal
 #' @export
@@ -279,6 +290,7 @@
 }
 
 #' Multiplication.
+#' @rdname arithmetic.multiply.ComplexLazyTensor
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @keywords internal
 #' @export
@@ -322,6 +334,7 @@
 # division ---------------------------------------------------------------------
 
 #' Division.
+#' @rdname arithmetic.divide.default
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @keywords internal
 #' @export
@@ -330,6 +343,7 @@
 }
 
 #' Division.
+#' @rdname arithmetic.divide
 #' @description
 #' Symbolic binary operation for division.
 #' @usage x / y
@@ -370,6 +384,7 @@
 }
 
 #' Division.
+#' @rdname arithmetic.divide.LazyTensor
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @keywords internal
 #' @export
@@ -380,6 +395,7 @@
 }
 
 #' Division.
+#' @rdname arithmetic.divide.ComplexLazyTensor
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @keywords internal
 #' @export
@@ -545,6 +561,7 @@ rsqrt.LazyTensor <- function(x) {
 # power ------------------------------------------------------------------------
 
 #' Power.
+#' @rdname arithmetic.power.default
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @keywords internal
 #' @export
@@ -553,6 +570,7 @@ rsqrt.LazyTensor <- function(x) {
 }
 
 #' Power.
+#' @rdname arithmetic.power
 #' @description
 #' Symbolic binary operation for element-wise power operator.
 #' @usage x^y
@@ -598,6 +616,7 @@ rsqrt.LazyTensor <- function(x) {
 }
 
 #' Power.
+#' @rdname arithmetic.power.LazyTensor
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @keywords internal
 #' @export
@@ -628,6 +647,9 @@ rsqrt.LazyTensor <- function(x) {
 # Euclidean scalar product -----------------------------------------------------
 
 #' Logical "or"
+#' @aliases |.default
+#' @name logical.or.default
+#' @rdname logical.or.default
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @keywords internal
 #' @export
@@ -636,7 +658,10 @@ rsqrt.LazyTensor <- function(x) {
 }
 
 
-#' Euclidean scalar product.
+#' Euclidean scalar product for LazyTensors or logical "or" for R base types.
+#' @aliases |
+#' @name scalar.product
+#' @rdname scalar.product
 #' @description
 #' Symbolic binary operation for Euclidean scalar product.
 #' @usage x | y  or  (x | y)
@@ -676,7 +701,10 @@ rsqrt.LazyTensor <- function(x) {
         UseMethod("|", x)
 }
 
-#' Euclidean scalar product
+#' Euclidean scalar product for LazyTensors.
+#' @aliases |.LazyTensor
+#' @name scalar.product.LazyTensor
+#' @rdname scalar.product.LazyTensor
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @keywords internal
 #' @export
@@ -691,12 +719,14 @@ rsqrt.LazyTensor <- function(x) {
 # Matrix product ---------------------------------------------------------------
 
 #' Matrix product
+#' @rdname matprod.default
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @keywords internal
 #' @export
 "%*%.default" <- .Primitive("%*%")
 
 #' Matrix multiplication.
+#' @rdname matprod
 #' @description
 #' Sum reduction of the multiplication operator "*".
 #' @usage x %*% y
@@ -727,6 +757,7 @@ rsqrt.LazyTensor <- function(x) {
 }
 
 #' Matrix multiplication
+#' @rdname matprod.LazyTensor
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @keywords internal
 #' @export
