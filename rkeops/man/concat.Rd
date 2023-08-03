@@ -8,6 +8,8 @@ concat(x, y)
 }
 \arguments{
 \item{x}{A \code{LazyTensor} or a \code{ComplexLazyTensor}.}
+
+\item{y}{A \code{LazyTensor} or a \code{ComplexLazyTensor}.}
 }
 \value{
 A \code{LazyTensor} or a \code{ComplexLazyTensor} that encodes, symbolically,

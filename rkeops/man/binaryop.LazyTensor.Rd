@@ -44,6 +44,9 @@ real-to-complex functions).}
 \item{dim_res}{NA (default) or an integer corresponding to the inner
 dimension of the output \code{LazyTensor}. If NA, \strong{dim_res} is set to the
 maximum between the inner dimensions of the two input \code{LazyTensor}s.}
+
+\item{opt_arg}{NA (default) or list of optional arguments for the formula
+encoding the binary operation on input LazyTensors.}
 }
 \value{
 An object of class "LazyTensor".

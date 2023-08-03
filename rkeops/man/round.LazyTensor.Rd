@@ -4,7 +4,7 @@
 \alias{round.LazyTensor}
 \title{Element-wise rounding function.}
 \usage{
-\method{round}{LazyTensor}(x, d)
+\method{round}{LazyTensor}(x, d, ...)
 }
 \description{
 Element-wise rounding function.

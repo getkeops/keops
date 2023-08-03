@@ -4,7 +4,7 @@
 \alias{min.LazyTensor}
 \title{Minimum.}
 \usage{
-\method{min}{LazyTensor}(x, index = NA)
+\method{min}{LazyTensor}(x, index = NA, ...)
 }
 \description{
 Minimum.

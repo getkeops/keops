@@ -4,7 +4,7 @@
 \alias{sum.LazyTensor}
 \title{Sum operation or Sum reduction.}
 \usage{
-\method{sum}{LazyTensor}(x, index = NA)
+\method{sum}{LazyTensor}(x, index = NA, ...)
 }
 \arguments{
 \item{x}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector or a matrix of
@@ -39,12 +39,7 @@ Run \code{browseVignettes("rkeops")} to access the vignettes and find details
 about the function in "RKeOps LazyTensor",
 at section #Reductions.
 }
-\author{
-Chloe Serre-Combe, Amelie Vernay
-
-Chloe Serre-Combe, Amelie Vernay
-
-#' @examples
+\examples{
 \dontrun{
 x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
@@ -53,5 +48,9 @@ x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x,
 sum_x <- sum(x_i)                   # LazyTensor object
 sum_red_x <- sum(x_i, "i")          # sum reduction indexed by 'i'
 }
+
+}
+\author{
+Chloe Serre-Combe, Amelie Vernay
 }
 \keyword{internal}

@@ -24,7 +24,7 @@ Symbolic ternary operation for element-wise clamp function.
 }
 \details{
 \code{clamp(x, a, b)} returns a \code{LazyTensor} that encodes, symbolically,
-the element-wise clamping of \code{x} in \verb{(a, b)}. That is, \code{clamp(x, a, b)}
+the element-wise clamping of  \code{x} in \verb{(a, b)}. That is, \code{clamp(x, a, b)}
 encodes symbolically \code{a} if \code{x < a}, \code{x} if \verb{a <= x <= b}, and \code{b} if
 \code{b < x}.
 Broadcasting rules apply.

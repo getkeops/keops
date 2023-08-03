@@ -4,7 +4,7 @@
 \alias{step.LazyTensor}
 \title{Element-wise step function.}
 \usage{
-\method{step}{LazyTensor}(x)
+\method{step}{LazyTensor}(x, ...)
 }
 \description{
 Element-wise step function.

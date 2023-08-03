@@ -4,7 +4,7 @@
 \alias{max.LazyTensor}
 \title{Maximum.}
 \usage{
-\method{max}{LazyTensor}(x, index = NA)
+\method{max}{LazyTensor}(x, index = NA, ...)
 }
 \description{
 Maximum.

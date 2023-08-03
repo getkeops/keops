@@ -40,6 +40,20 @@ Symbolically applies \strong{opstr} operation to \strong{x}, \strong{y} and \str
 }
 \examples{
 \dontrun{
+# basic example
+D <- 3
+M <- 100
+N <- 150
+P <- 200
+x <- matrix(runif(M * D), M, D)
+y <- matrix(runif(N * D), N, D)
+z <- matrix(runif(P * D), P, D)
+x_i <- LazyTensor(x, index = 'i')
+y_j <- LazyTensor(y, index = 'j')
+z_i <- LazyTensor(z, index = 'i')
+
+# symbolic matrix:
+tern_xyz <- ternaryop.LazyTensor(x_i, y_j, z_i, "IfElse")
 }
 }
 \author{

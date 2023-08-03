@@ -4,7 +4,7 @@
 \alias{\%*\%}
 \title{Matrix multiplication.}
 \usage{
-x %*% y
+x \%*\% y
 }
 \arguments{
 \item{x}{A \code{LazyTensor}, a \code{ComplexLazyTensor}.}
@@ -18,9 +18,9 @@ A matrix.
 Sum reduction of the multiplication operator "*".
 }
 \details{
-If \code{x} or \code{y} is a \code{LazyTensor}, \code{x \%*\% y} returns the sum reduction
-of the product \code{x * y}.
-If none of the arguments is a \code{LazyTensor}, is equivalent to the "\%*\%"
+If \code{x} or \code{y} is a \code{LazyTensor}, \code{x \%*\% y} returns the sum
+reduction of the product \code{x * y}.
+If none of the arguments is a \code{LazyTensor}, is equivalent to the "\\%*\\%"
 R operator.
 }
 \examples{
