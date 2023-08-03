@@ -171,10 +171,10 @@
 }
 
 #' Subtraction or minus sign.
-#' @rdname arithmetic.substract
+#' @rdname arithmetic.subtract
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @description
-#' Symbolic substraction for `LazyTensor` objects or default substraction for 
+#' Symbolic subtraction for `LazyTensor` objects or default subtraction for 
 #' other types.
 #' @usage
 #' -x
@@ -184,7 +184,7 @@
 #' [rkeops::-.default()].
 #' 
 #' **Note:** the `-` operand can be a binary operator, e.g. `x + y`, 
-#' implementing the substraction, or a unary operator, e.g. `- x`, implementing 
+#' implementing the subtraction, or a unary operator, e.g. `- x`, implementing 
 #' the "minus sign", both for `LazyTensor` objects or other types.
 #' @param x,y input for [rkeops::-.default()] or [rkeops::-.LazyTensor()].
 #' @return See value of [rkeops::-.default()] or [rkeops::-.LazyTensor()].
@@ -195,7 +195,7 @@
 #' # R base operation
 #' +5
 #' 1 + 3
-#' # LazyTensor symbolic substraction
+#' # LazyTensor symbolic subtraction
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' y <- matrix(runif(250 * 3), 250, 3) # arbitrary R matrix, 250 rows and 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
@@ -215,18 +215,18 @@
 }
 
 #' Subtraction or minus sign.
-#' @name arithmetic.substract.LazyTensor
-#' @rdname arithmetic.substract.LazyTensor
+#' @name arithmetic.subtract.LazyTensor
+#' @rdname arithmetic.subtract.LazyTensor
 #' @aliases -.LazyTensor
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @description
-#' Symbolic substraction for `LazyTensor` objects.
+#' Symbolic subtraction for `LazyTensor` objects.
 #' @usage
 #' - x
 #' x - y
 #' @details 
 #' **Binary operator**: If `x` or `y` is a `LazyTensor`, `x + y` returns a 
-#' `LazyTensor` that encodes, symbolically, the addition of `x` and `y`.
+#' `LazyTensor` that encodes, symbolically, the subtraction of `x` and `y`.
 #' (In case one of the arguments is a vector or a scalar, it is first converted 
 #' to `LazyTensor`).
 #' 
@@ -262,8 +262,8 @@
 }
 
 #' Subtraction or minus sign.
-#' @rdname arithmetic.substract.LazyTensor
-#' @name arithmetic.substract.LazyTensor
+#' @rdname arithmetic.subtract.LazyTensor
+#' @name arithmetic.subtract.LazyTensor
 #' @aliases +.ComplexLazyTensor
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @export
@@ -359,7 +359,7 @@
 #' @usage
 #' x * y
 #' @details If `x` or `y` is a `LazyTensor`, `x + y` returns a 
-#' `LazyTensor` that encodes, symbolically, the addition of `x` and `y`.
+#' `LazyTensor` that encodes, symbolically, the multiplication of `x` and `y`.
 #' (In case one of the arguments is a vector or a scalar, it is first converted 
 #' to `LazyTensor`).
 #' 
@@ -431,10 +431,12 @@
 
 # division ---------------------------------------------------------------------
 
-#' Division.
-#' @rdname arithmetic.divide.default
-#' @author Chloe Serre-Combe, Amelie Vernay
-#' @keywords internal
+#' @title Default arithmetic operations
+#' @name arithmetic.default
+#' @rdname arithmetic.default
+#' @alias /.default
+#' @usage
+#' x / y
 #' @export
 "/.default" <- function(x, y) {
     base::"/"(x, y)
@@ -442,35 +444,32 @@
 
 #' Division.
 #' @rdname arithmetic.divide
-#' @description
-#' Symbolic binary operation for division.
-#' @usage x / y
-#' @details If `x` or `y` is a `LazyTensor`, `x / y` returns a `LazyTensor`
-#' that encodes, symbolically, the element-wise division of `x` by `y`.
-#' (In case one of the arguments is a vector or a scalar, it is first converted 
-#' to `LazyTensor`). If none of the arguments is a `LazyTensor`, it is 
-#' equivalent to the "/" R operator.
-#' 
-#' **Note**
-#' 
-#' `x` and `y` input arguments should have the same inner dimension or be of 
-#' dimension 1.
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, 
-#' or a scalar value.
-#' @param y A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, 
-#' or a scalar value.
-#' @return An object of class "LazyTensor" if the function is called with a 
-#' `LazyTensor`, and an object of class "numeric", otherwise.
+#' @description
+#' Symbolic division for `LazyTensor` objects or default division 
+#' for other types.
+#' @usage
+#' x * y
+#' @details
+#' If `x` or `y` is a `LazyTensor`, see [rkeops::/.LazyTensor()], else see
+#' [rkeops::/.default()].
+#' @param x,y input for [rkeops::/.default()] or [rkeops::/.LazyTensor()].
+#' @return See value of [rkeops::/.default()] or [rkeops::/.LazyTensor()].
+#' @seealso [rkeops::/.default()], [rkeops::/.LazyTensor()], 
+#' [rkeops::/.ComplexLazyTensor()]
 #' @examples
 #' \dontrun{
+#' # R base operation
+#' +5
+#' 1 + 3
+#' # LazyTensor symbolic division
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' y <- matrix(runif(250 * 3), 250, 3) # arbitrary R matrix, 250 rows and 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
 #' y_j <- LazyTensor(y, index = 'j')   # creating LazyTensor from matrix y,
 #'                                     # indexed by 'j'
-#'                                     
+#' 
 #' x_div_y <- x_i / y_j                # symbolic matrix
 #' }
 #' @export
@@ -482,9 +481,36 @@
 }
 
 #' Division.
+#' @name arithmetic.divide.LazyTensor
 #' @rdname arithmetic.divide.LazyTensor
+#' @aliases /.LazyTensor
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @keywords internal
+#' @description
+#' Symbolic multiplication for `LazyTensor` objects.
+#' @usage
+#' x * y
+#' @details If `x` or `y` is a `LazyTensor`, `x + y` returns a 
+#' `LazyTensor` that encodes, symbolically, the division of `x` and `y`.
+#' (In case one of the arguments is a vector or a scalar, it is first converted 
+#' to `LazyTensor`).
+#' 
+#' **Note**: `x` and `y` input arguments should have the same inner dimension 
+#' or be of dimension 1.
+#' @inherit rkeops::+.LazyTensor params
+#' @return An object of class `LazyTensor`.
+#' @seealso [rkeops::/()]
+#' @examples
+#' \dontrun{
+#' # LazyTensor symbolic division
+#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
+#' y <- matrix(runif(250 * 3), 250, 3) # arbitrary R matrix, 250 rows and 3 columns
+#' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
+#'                                     # indexed by 'i'
+#' y_j <- LazyTensor(y, index = 'j')   # creating LazyTensor from matrix y,
+#'                                     # indexed by 'j'
+#' 
+#' x_div_y <- x_i / y_j                # symbolic matrix
+#' }
 #' @export
 "/.LazyTensor" <- function(x, y) {
     res <- binaryop.LazyTensor(x, y, "/", is_operator = TRUE,
@@ -493,9 +519,10 @@
 }
 
 #' Division.
-#' @rdname arithmetic.divide.ComplexLazyTensor
+#' @name arithmetic.divide.LazyTensor
+#' @rdname arithmetic.divide.LazyTensor
+#' @aliases /.ComplexLazyTensor
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @keywords internal
 #' @export
 "/.ComplexLazyTensor" <- function(x, y) {
     if(!is.LazyTensor(x) && !is.matrix(x)) {
