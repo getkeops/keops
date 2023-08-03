@@ -1329,7 +1329,7 @@ round <- function(x, ...) {
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @keywords internal
 #' @export
-round.LazyTensor <- function(x, d) {
+round.LazyTensor <- function(x, d, ...) {
     if(is.numeric(d) && length(d) == 1)
         res <- unaryop.LazyTensor(x, "Round", d)
     else
@@ -1472,7 +1472,7 @@ step <- function(x, ...){
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @keywords internal
 #' @export
-step.LazyTensor <- function(x) {
+step.LazyTensor <- function(x, ...) {
     res <- unaryop.LazyTensor(x, "Step")
     return(res)
 }
@@ -1738,7 +1738,7 @@ mod <- function(x, ...) {
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @keywords internal
 #' @export
-mod.LazyTensor <- function(x, a, b = 0) {
+mod.LazyTensor <- function(x, a, b = 0, ...) {
     res <- ternaryop.LazyTensor(x, a, b, "Mod")
 }
 
@@ -2991,7 +2991,7 @@ sum <- function(x, ...) {
 #' }
 #' 
 #' @export
-sum.LazyTensor <- function(x, index = NA) {
+sum.LazyTensor <- function(x, index = NA, ...) {
     
     if(!is.na(index) && !check_index(index)) {
         stop(paste0("`index` input argument should be a character,",
@@ -3108,7 +3108,7 @@ min <- function(x, ...) {
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @keywords internal
 #' @export
-min.LazyTensor <- function(x, index = NA) {
+min.LazyTensor <- function(x, index = NA, ...) {
     if(is.na(index))
         res <- unaryop.LazyTensor(x, "Min")
     else if(check_index(index))
@@ -3369,7 +3369,7 @@ max <- function(x, ...) {
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @keywords internal
 #' @export
-max.LazyTensor <- function(x, index = NA) {
+max.LazyTensor <- function(x, index = NA, ...) {
     if(is.na(index))
         res <- unaryop.LazyTensor(x, "Max")
     else if(check_index(index))
