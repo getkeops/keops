@@ -645,10 +645,11 @@ sqrt.default <- function(x) {
 #' \eqn{\sqrt{x}}.
 #' @details If `x` is a `LazyTensor`, see [rkeops::sqrt.LazyTensor()], else 
 #' see [rkeops::sqrt.default()].
-#' @param x input for [rkeops::sqrt.default()] or 
-#' [rkeops::sqrt.LazyTensor()].
-#' @return See value of [rkeops::sqrt.default()] or 
-#' [rkeops::sqrt.LazyTensor()].
+#' 
+#' **Note**: for complex input argument `z`, then the absolute value 
+#' corresponds to the complex modulus `sqrt(z) = z^0.5`.
+#' @param x input for [rkeops::sqrt.default()] or [rkeops::sqrt.LazyTensor()].
+#' @return See value of [rkeops::sqrt.default()] or [rkeops::sqrt.LazyTensor()].
 #' @seealso [rkeops::sqrt.default()], [rkeops::sqrt.LazyTensor()]
 #' @examples
 #' \dontrun{
@@ -1285,9 +1286,6 @@ inv <- function(x) {
 
 #' Element-wise inverse operation
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @usage
-#' log(x)
-#' log(x, base = NULL)
 #' @description
 #' Symbolic element-wise inverse unary operation for `LazyTensor` 
 #' objects.
@@ -1360,7 +1358,6 @@ cos <- function(x) {
 
 #' Element-wise cosine operation
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @usage cos(x)
 #' @description
 #' Symbolic element-wise cosine unary operation for `LazyTensor` objects.
 #' @details If `x` is a `LazyTensor`, `cos(x)` returns a `LazyTensor` that 
@@ -1424,7 +1421,6 @@ sin <- function(x) {
 
 #' Element-wise sine operation
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @usage sin(x)
 #' @description
 #' Symbolic element-wise sine unary operation for `LazyTensor` objects.
 #' @details If `x` is a `LazyTensor`, `sin(x)` returns a `LazyTensor` that 
@@ -1488,7 +1484,6 @@ acos <- function(x) {
 
 #' Element-wise arc-cosine operation
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @usage acos(x)
 #' @description
 #' Symbolic element-wise arc-cosine unary operation for `LazyTensor` objects.
 #' @details If `x` is a `LazyTensor`, `acos(x)` returns a `LazyTensor` that 
@@ -1553,7 +1548,6 @@ asin <- function(x) {
 
 #' Element-wise arc-sine operation
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @usage asin(x)
 #' @description
 #' Symbolic element-wise arc-sine unary operation for `LazyTensor` objects.
 #' @details If `x` is a `LazyTensor`, `asin(x)` returns a `LazyTensor` that 
@@ -1618,7 +1612,6 @@ atan <- function(x) {
 
 #' Element-wise arc-tangent operation
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @usage atan(x)
 #' @description
 #' Symbolic element-wise arc-tangent unary operation for `LazyTensor` objects.
 #' @details If `x` is a `LazyTensor`, `atan(x)` returns a `LazyTensor` that 
@@ -1693,14 +1686,9 @@ atan2 <- function(x, y) {
 
 #' Element-wise 2-argument arc-tangent operation
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @usage atan2(x, y)
 #' @description
 #' Symbolic element-wise 2-argument arc-tangent unary operation for 
 #' `LazyTensor` objects.
-#' @details If `x` is a `LazyTensor`, `atan2(x, y)` returns a `LazyTensor` that 
-#' encodes, symbolically, the element-wise 2-argument arc-tangent of `x`.
-#' @param x a `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values,
-#' or a scalar value.
 #' @details If `x` or `y` is a `LazyTensor`, `atan2(x, y)` returns a 
 #' `LazyTensor` that encodes, symbolically, the element-wise 2-argument 
 #' arc-tangent of `x` and `y`. i.e. `atan2(x, y) == atan(x/y)`.
@@ -1730,26 +1718,62 @@ atan2.LazyTensor <- function(x, y) {
 
 # absolute value ---------------------------------------------------------------
 
-#' Absolute value.
-#' @author Chloe Serre-Combe, Amelie Vernay
-#' @keywords internal
+#' @title Miscellaneous Mathematical Functions
+#' @name default.math.fun
+#' @aliases abs.default
+#' @usage abs(x)
 #' @export
-abs.default <- .Primitive("abs")
+abs.default <- function(x) {
+    return(base::abs(x))
+}
 
-#' Element-wise absolute value.
-#' @description
-#' Symbolic unary operation for element-wise absolute value.
-#' @details If `x` is a `LazyTensor`, `abs(x)` returns a `LazyTensor` that 
-#' encodes, symbolically, the element-wise absolute value of `x` ; else, 
-#' computes R default absolute value function. If `x` is a `ComplexLazyTensor`, 
-#' `abs(x)` returns a `LazyTensor` that encodes, symbolically, the modulus 
-#' of `x` ; else, computes R default absolute value function.
+#' Element-wise absolute value (or modulus) operation
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x a `LazyTensor`, a `ComplexLazyTensor`, a vector or a matrix of 
-#' numeric values, or a scalar value.
-#' @return An object of class "LazyTensor" if the function is called with a 
-#' `LazyTensor`, and an object of class "numeric", "matrix", or "array" 
-#' otherwise, depending on the input class (see R default `abs()` function).
+#' @description
+#' Symbolic element-wise absolute value (or modulus) unary operation for 
+#' `LazyTensor` objects or default element-wise absolute value (or modulus)
+#' operation for other types, i.e. \eqn{\vert x \vert}.
+#' @details If `x` is a `LazyTensor`, see [rkeops::abs.LazyTensor()], else 
+#' see [rkeops::abs.default()].
+#' 
+#' **Note**: for complex input argument `z`, then the absolute value 
+#' corresponds to the complex modulus `abs(z) = Mod(z)`.
+#' @param x input for [rkeops::abs.default()] or [rkeops::abs.LazyTensor()].
+#' @return See value of [rkeops::abs.default()] or [rkeops::abs.LazyTensor()].
+#' @seealso [rkeops::abs.default()], [rkeops::abs.LazyTensor()], 
+#' [rkeops::Mod.default()], [rkeops::Mod.LazyTensor()]
+#' @examples
+#' \dontrun{
+#' # R base operation
+#' abs(5)
+#' abs(-5)
+#' abs(-10:10)
+#' # LazyTensor symbolic element-wise absolute value
+#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
+#' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
+#'                                     # indexed by 'i'
+#' Abs_x <- abs(x_i)                   # symbolic matrix, 150 rows and 3 columns
+#' }
+#' @export
+abs <- function(x) {
+    UseMethod("abs")
+}
+
+#' Element-wise absolute value operation
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @description
+#' Symbolic element-wise absolute value (or modulus) unary operation for 
+#' `LazyTensor` objects.
+#' @details If `x` is a `LazyTensor`, `abs(x)` returns a `LazyTensor` that 
+#' encodes, symbolically, the element-wise absolute value of `x`.
+#' 
+#' If `x` is a `ComplexLazyTensor`, `abs(x)` returns a `LazyTensor` that 
+#' encodes, symbolically, the complex absolute value or modulus of `x`, i.e.
+#' `abs(x) = Mod(x)`.
+#' @param x a `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values,
+#' or a scalar value.
+#' @return An object of class `LazyTensor`.
+#' @seealso [rkeops::abs()], [rkeops::Mod()]
 #' @examples
 #' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
@@ -1759,26 +1783,17 @@ abs.default <- .Primitive("abs")
 #' Abs_x <- abs(x_i)                   # symbolic matrix, 150 rows and 3 columns
 #' }
 #' @export
-abs <- function(x) {
-    UseMethod("abs")
-}
-
-#' Element-wise absolute value.
-#' @author Chloe Serre-Combe, Amelie Vernay
-#' @keywords internal
-#' @export
 abs.LazyTensor <- function(x) {
-    res <- unaryop.LazyTensor(x, "Abs")
-    return(res)
+    return(unaryop.LazyTensor(x, "Abs"))
 }
 
-#' Element-wise absolute value.
+#' Element-wise absolute value operation
+#' @name abs.LazyTensor
+#' @aliases abs.ComplexLazyTensor
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @keywords internal
 #' @export
 abs.ComplexLazyTensor <- function(x) {
-    res <- unaryop.LazyTensor(x, "ComplexAbs", res_type = "LazyTensor")
-    return(res)
+    return(unaryop.LazyTensor(x, "ComplexAbs", res_type = "LazyTensor"))
 }
 
 
