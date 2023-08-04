@@ -981,35 +981,51 @@ rsqrt.LazyTensor <- function(x) {
 
 # Matrix product ---------------------------------------------------------------
 
-#' Matrix product
-#' @rdname matprod.default
-#' @author Chloe Serre-Combe, Amelie Vernay
-#' @keywords internal
+#' @title Matrix multiplication
+#' @name matmult.default
+#' @aliases %*%.default
+#' @usage x \%*\% y
+#' @inherit base::matmult description
+#' @inherit base::matmult details
+#' @inherit base::matmult params
+#' @inherit base::matmult return
+#' @inherit base::matmult examples
+#' @seealso [base::matmult]
+#' @author R core team and contributors
 #' @export
-"%*%.default" <- .Primitive("%*%")
+"%*%.default" <- function(x, y) {
+    return(base::"%*%"(x, y))
+}
 
 #' Matrix multiplication.
-#' @rdname matprod
-#' @description
-#' Sum reduction of the multiplication operator "*".
-#' @usage x \%*\% y
-#' @details If `x` or `y` is a `LazyTensor`, `x %*% y` returns the sum 
-#' reduction of the product `x * y`. 
-#' If none of the arguments is a `LazyTensor`, is equivalent to the "\%*\%"
-#' R operator.
+#' @name matmult
+#' @aliases %*%
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x a `LazyTensor`, a `ComplexLazyTensor`.
-#' @param y a `LazyTensor`, a `ComplexLazyTensor`.
-#' @return A matrix.
+#' @description
+#' Matrix multiplication binary operation for `LazyTensor` objects or 
+#' default matrix multiplication operation for R matrices.
+#' @usage x \%*\% y
+#' @details
+#' If `x` or `y` is a `LazyTensor`, see [rkeops::%*%.LazyTensor()], else see
+#' [rkeops::%*%.default()].
+#' @param x,y input for [rkeops::%*%.default()] or [rkeops::%*%.LazyTensor()].
+#' @return See value of [rkeops::%*%.default()] or [rkeops::%*%.LazyTensor()].
+#' @seealso [rkeops::%*%.default()], [rkeops::%*%.LazyTensor()]
 #' @examples
 #' \dontrun{
+#' # R base operation
+#' x <- matrix(runif(10 * 5), 10, 5)   # arbitrary R matrix, 10 rows, 5 columns
+#' x <- matrix(runif(5 * 3), 5, 3)     # arbitrary R matrix, 5 rows, 3 columns
+#' x %*% y                             # product matrix, 10 rows, 3 columns
+#' 
+#' # LazyTensor matrix multiplication
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' y <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
 #' y_j <- LazyTensor(y, index = 'j')   # creating LazyTensor from matrix y, 
 #'                                     # indexed by 'j'
-#' x_mult_y <- x_i %*% y_j             
+#' x_mult_y <- x_i %*% y_j             # FIXME
 #' }
 #' @export
 "%*%" <- function(x, y) { 
@@ -1020,12 +1036,31 @@ rsqrt.LazyTensor <- function(x) {
 }
 
 #' Matrix multiplication
-#' @rdname matprod.LazyTensor
+#' @name matmult.LazyTensor
+#' @description
+#' Matrix multiplication binary operation for `LazyTensor` objects 
+#' corresponding to combination of multiplication operator `*` and sum 
+#' reduction.
+#' @usage x \%*\% y
+#' @details If `x` or `y` is a `LazyTensor`, `x %*% y` returns the sum 
+#' reduction of the product `x * y`.
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @keywords internal
+#' @param x,y a `LazyTensor`, a `ComplexLazyTensor`.
+#' @return A matrix.
+#' @examples
+#' \dontrun{
+#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
+#' y <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
+#' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
+#'                                     # indexed by 'i'
+#' y_j <- LazyTensor(y, index = 'j')   # creating LazyTensor from matrix y, 
+#'                                     # indexed by 'j'
+#' x_mult_y <- x_i %*% y_j             # FIXME
+#' }
 #' @export
 "%*%.LazyTensor" <- function(x, y) {
-    sum(x * y, index = "j") # sum reduction 
+    # FIXME
+    return(sum(x * y, index = "j")) # sum reduction 
 }
 
 
