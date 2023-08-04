@@ -28,7 +28,7 @@
 }
 
 
-#' Addition.
+#' Addition
 #' @name arithmetic.add
 #' @aliases +
 #' @author Chloe Serre-Combe, Amelie Vernay
@@ -72,7 +72,7 @@
         UseMethod("+", x)
 }
 
-#' Addition.
+#' Addition
 #' @name arithmetic.add.LazyTensor
 #' @aliases +.LazyTensor
 #' @author Chloe Serre-Combe, Amelie Vernay
@@ -111,7 +111,7 @@
     return(res)
 }
 
-#' Addition.
+#' Addition
 #' @name arithmetic.add.LazyTensor
 #' @aliases +.ComplexLazyTensor
 #' @author Chloe Serre-Combe, Amelie Vernay
@@ -168,7 +168,7 @@
     }
 }
 
-#' Subtraction or minus sign.
+#' Subtraction or minus sign
 #' @name arithmetic.subtract
 #' @aliases -
 #' @author Chloe Serre-Combe, Amelie Vernay
@@ -212,7 +212,7 @@
         UseMethod("-", x)
 }
 
-#' Subtraction or minus sign.
+#' Subtraction or minus sign
 #' @name arithmetic.subtract.LazyTensor
 #' @aliases -.LazyTensor
 #' @author Chloe Serre-Combe, Amelie Vernay
@@ -259,7 +259,7 @@
     return(res)
 }
 
-#' Subtraction or minus sign.
+#' Subtraction or minus sign
 #' @name arithmetic.subtract.LazyTensor
 #' @aliases -.ComplexLazyTensor
 #' @author Chloe Serre-Combe, Amelie Vernay
@@ -310,7 +310,7 @@
     return(base::"*"(x, y))
 }
 
-#' Multiplication.
+#' Multiplication
 #' @name arithmetic.multiply
 #' @aliases *
 #' @author Chloe Serre-Combe, Amelie Vernay
@@ -347,7 +347,7 @@
         UseMethod("*", x)
 }
 
-#' Multiplication.
+#' Multiplication
 #' @name arithmetic.multiply.LazyTensor
 #' @aliases *.LazyTensor
 #' @author Chloe Serre-Combe, Amelie Vernay
@@ -382,7 +382,7 @@
     return(res)
 }
 
-#' Multiplication.
+#' Multiplication
 #' @name arithmetic.multiply.LazyTensor
 #' @aliases *.ComplexLazyTensor
 #' @author Chloe Serre-Combe, Amelie Vernay
@@ -436,7 +436,7 @@
     return(base::"/"(x, y))
 }
 
-#' Division.
+#' Division
 #' @name arithmetic.divide
 #' @aliases /
 #' @author Chloe Serre-Combe, Amelie Vernay
@@ -473,7 +473,7 @@
         UseMethod("/", x)
 }
 
-#' Division.
+#' Division
 #' @name arithmetic.divide.LazyTensor
 #' @aliases /.LazyTensor
 #' @author Chloe Serre-Combe, Amelie Vernay
@@ -509,7 +509,7 @@
     return(res)
 }
 
-#' Division.
+#' Division
 #' @name arithmetic.divide.LazyTensor
 #' @aliases /.ComplexLazyTensor
 #' @author Chloe Serre-Combe, Amelie Vernay
@@ -541,15 +541,15 @@
 
 # square -----------------------------------------------------------------------
 
-#' Element-wise square (power-2) operation.
+#' Element-wise square (power-2) operation
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @usage square(x)
 #' @description
 #' Element-wise square or power-2 operations on numeric or complex vectors 
 #' (or objects which can be coerced to them).
 #' @details
-#' `square(x)` is equivalent to `x^2` where `^` is the default power function 
-#' (`base::"^"(x,2)`), i.e. \eqn{x^2}.
+#' `square(x)` is equivalent to `x^2` where `^` is the default power function, 
+#' i.e. \eqn{x^2}.
 #' 
 #' From [base::Arithmetic]: if applied to arrays the result will be an array if 
 #' this is sensible 
@@ -561,12 +561,12 @@
 #' @examples
 #' square(4)
 #' square(1:10)
-#' @export 
+#' @export
 square.default <- function(x) {
     return(x^2)
 }
 
-#' Element-wise square (power-2) operation.
+#' Element-wise square (power-2) operation
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @description
 #' Symbolic element-wise square unary operation for `LazyTensor` objects or
@@ -594,7 +594,7 @@ square <- function(x) {
     UseMethod("square", x)
 }
 
-#' Element-wise square operation.
+#' Element-wise square (power-2) operation
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @description
 #' Symbolic element-wise square unary operation for `LazyTensor` objects.
@@ -630,14 +630,14 @@ square.LazyTensor <- function(x) {
 #' @inherit base::sqrt params
 #' @inherit base::sqrt return
 #' @inherit base::sqrt examples
-#' @seealso [base::MathFun]
+#' @seealso [base::sqrt]
 #' @author R core team and contributors
 #' @export
 sqrt.default <- function(x) {
     return(base::sqrt(x))
 }
 
-#' Element-wise square root operation.
+#' Element-wise square root operation
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @description
 #' Symbolic element-wise square root unary operation for `LazyTensor` objects or
@@ -666,7 +666,7 @@ sqrt <- function(x) {
     UseMethod("sqrt", x)
 }
 
-#' Element-wise square root operation.
+#' Element-wise square root operation
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @description
 #' Symbolic element-wise square root unary operation for `LazyTensor` objects.
@@ -693,7 +693,7 @@ sqrt.LazyTensor <- function(x) {
 
 # Rsqrt ------------------------------------------------------------------------
 
-#' Element-wise inverse square root operations.
+#' Element-wise inverse square root operation
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @usage rsqrt(x)
 #' @description
@@ -713,7 +713,7 @@ rsqrt.default <- function(x) {
     return(1 / sqrt(x))
 }
 
-#' Element-wise inverse square root operation.
+#' Element-wise inverse square root operation
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @description
 #' Symbolic element-wise inverse square root unary operation for `LazyTensor` 
@@ -742,7 +742,7 @@ rsqrt <- function(x) {
     UseMethod("rsqrt", x)
 }
 
-#' Element-wise inverse square root operation.
+#' Element-wise inverse square root operation
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @description
 #' Symbolic element-wise inverse square root unary operation for `LazyTensor` 
@@ -779,7 +779,7 @@ rsqrt.LazyTensor <- function(x) {
     return(base::"^"(x, y))
 }
 
-#' Element-wise power operation.
+#' Element-wise power operation
 #' @name arithmetic.power
 #' @aliases ^
 #' @author Chloe Serre-Combe, Amelie Vernay
@@ -818,7 +818,7 @@ rsqrt.LazyTensor <- function(x) {
         UseMethod("^", x)
 }
 
-#' Element-wise power operation.
+#' Element-wise power operation
 #' @name arithmetic.power.LazyTensor
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @aliases ^.lazyTensor
@@ -896,7 +896,7 @@ rsqrt.LazyTensor <- function(x) {
     return(base::"|"(x, y))
 }
 
-#' Euclidean scalar product for LazyTensors or logical "or" for other types.
+#' Euclidean scalar product (for LazyTensors) or default logical "or"
 #' @name ScalarProduct.or.OR
 #' @aliases |
 #' @description
@@ -936,7 +936,7 @@ rsqrt.LazyTensor <- function(x) {
         UseMethod("|", x)
 }
 
-#' Euclidean scalar product for LazyTensors.
+#' Euclidean scalar product operation
 #' @name scalar.product.LazyTensor
 #' @aliases |.LazyTensor
 #' @author Chloe Serre-Combe, Amelie Vernay
@@ -997,7 +997,7 @@ rsqrt.LazyTensor <- function(x) {
     return(base::"%*%"(x, y))
 }
 
-#' Matrix multiplication.
+#' Matrix multiplication
 #' @name matmult
 #' @aliases %*%
 #' @author Chloe Serre-Combe, Amelie Vernay
@@ -1066,33 +1066,68 @@ rsqrt.LazyTensor <- function(x) {
 
 # exponential ------------------------------------------------------------------
 
-#' Exponential
-#' @author Chloe Serre-Combe, Amelie Vernay
-#' @keywords internal
+#' @title Logarithms and Exponentials
+#' @name log.and.exp
+#' @aliases exp.default
+#' @usage exp(x)
+#' @inherit base::log description
+#' @inherit base::log details
+#' @inherit base::log params
+#' @inherit base::log return
+#' @inherit base::log examples
+#' @seealso [base::log]
+#' @author R core team and contributors
 #' @export
-exp.default <- .Primitive("exp")
+exp.default <- function(x) {
+    return(base::exp(x))
+}
 
-#' Element-wise exponential.
-#' @description
-#' Symbolic unary operation for element-wise exponential.
-#' @details 
-#' 
-#' **Different use cases**:
-#' 
-#' \itemize{
-#'     \item{`x` is a `LazyTensor`,}{ `exp(x)` returns a `LazyTensor` that 
-#'     encodes, symbolically, the element-wise exponential of `x`;}
-#'     \item{`x` is a `ComplexLazyTensor`,}{ `exp(x)` returns 
-#'     a `ComplexLazyTensor` that encodes, symbolically, the element-wise 
-#'     complex exponential of `x`;}
-#'     \item{else,}{ `exp(x)` applies R default exponential to `x`.}
-#' }
+#' Element-wise exponential operation
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x a `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, 
+#' @description
+#' Symbolic element-wise exponential unary operation for `LazyTensor` objects or 
+#' default element-wise exponential operation for other types, i.e. 
+#' \eqn{e^x}.
+#' @details If `x` is a `LazyTensor`, see [rkeops::exp.LazyTensor()], else 
+#' see [rkeops::exp.default()].
+#' @param x input for [rkeops::exp.default()] or 
+#' [rkeops::exp.LazyTensor()].
+#' @return See value of [rkeops::exp.default()] or 
+#' [rkeops::exp.LazyTensor()].
+#' @seealso [rkeops::exp.default()], [rkeops::exp.LazyTensor()]
+#' @examples
+#' \dontrun{
+#' # R base operation
+#' exp(0)
+#' exp(1:10)
+#' # LazyTensor symbolic element-wise exponential
+#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
+#' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
+#'                                     # indexed by 'i'
+#' Exp_x <- exp(x_i)                   # symbolic matrix, 150 rows and 3 columns
+#' }
+#' @export
+exp <- function(x) {
+    UseMethod("exp")
+}
+
+#' Element-wise exponential operation
+#' @name exp.LazyTensor
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @description
+#' Symbolic element-wise exponential unary operation for `LazyTensor` objects.
+#' @details 
+#' **Different use cases**:
+#' - If `x` is a `LazyTensor`, `exp(x)` returns a `LazyTensor` that 
+#' encodes, symbolically, the element-wise exponential of `x`, i.e. 
+#' \eqn{e^x}.
+#' - If `x` is a `ComplexLazyTensor`, `exp(x)` returns a `LazyTensor` that 
+#' encodes, symbolically, the element-wise complex exponential of `x`
+#' @param x a `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values,
 #' or a scalar value.
-#' @return An object of class "LazyTensor" if the function is called with a 
-#' `LazyTensor`, and an object of class "numeric", "matrix", or "array" 
-#' otherwise, depending on the input class (see R default `exp()` function).
+#' @return An object of class `LazyTensor` or `ComplexLazyTensor` depending on
+#' input.
+#' @seealso [rkeops::exp()]
 #' @examples
 #' \dontrun{
 #' # basic example
@@ -1107,48 +1142,79 @@ exp.default <- .Primitive("exp")
 #' Exp_z_i <- exp(z_i)                                  # symbolic matrix
 #' }
 #' @export
-exp <- function(x) {
-    UseMethod("exp")
-}
-
-#' Element-wise exponential.
-#' @author Chloe Serre-Combe, Amelie Vernay
-#' @keywords internal
-#' @export
 exp.LazyTensor <- function(x) {
-    res <- unaryop.LazyTensor(x, "Exp")
-    return(res)
+    return(unaryop.LazyTensor(x, "Exp"))
 }
 
-#' Element-wise exponential.
+#' Element-wise exponential operation
+#' @name exp.LazyTensor
+#' @aliases exp.ComplexLazyTensor
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @keywords internal
 #' @export
 exp.ComplexLazyTensor <- function(x) {
-    res <- unaryop.LazyTensor(x, "ComplexExp")
+    return(unaryop.LazyTensor(x, "ComplexExp"))
 }
 
 
 # logarithm --------------------------------------------------------------------
 
-#' Logarithm.
-#' @author Chloe Serre-Combe, Amelie Vernay
-#' @keywords internal
+#' @title Logarithms and Exponentials
+#' @name log.and.exp
+#' @aliases log.default
+#' @usage log(x)
 #' @export
-log.default <- .Primitive("log")
+log.default <- function(x, base = exp(1)) {
+    return(base::log(x, base))
+}
 
-#' Element-wise natural logarithm.
-#' @description
-#' Symbolic unary operation for element-wise natural logarithm.
-#' @details If `x` is a `LazyTensor`, `exp(x)` returns a `LazyTensor` that 
-#' encodes, symbolically, the element-wise natural logarithm of `x` ; 
-#' else, computes R default logarithm.
+#' Element-wise natural logarithm operation
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x a `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, 
+#' @description
+#' Symbolic element-wise natural logarithm unary operation for `LazyTensor` 
+#' objects or default element-wise natural logarithm operation for other types, 
+#' i.e. \eqn{\log(x)}.
+#' @details If `x` is a `LazyTensor`, see [rkeops::log.LazyTensor()], else 
+#' see [rkeops::log.default()].
+#' @param x input for [rkeops::log.default()] or 
+#' [rkeops::log.LazyTensor()].
+#' @param base numeric, see [rkeops::log.default()], not used with `LazyTensor`
+#' input.
+#' @return See value of [rkeops::log.default()] or 
+#' [rkeops::log.LazyTensor()].
+#' @seealso [rkeops::log.default()], [rkeops::log.LazyTensor()]
+#' @examples
+#' \dontrun{
+#' # R base operation
+#' log(1)
+#' log(1:10)
+#' # LazyTensor symbolic element-wise natural logarithm
+#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
+#' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
+#'                                     # indexed by 'i'
+#' Log_x <- log(x_i)                   # symbolic matrix, 150 rows and 3 columns
+#' }
+#' @export
+log <- function(x, base = exp(1)) {
+    UseMethod("log")
+}
+
+#' Element-wise natural logarithm operation
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @usage
+#' log(x)
+#' log(x, base = NULL)
+#' @description
+#' Symbolic element-wise natural logarithm unary operation for `LazyTensor` 
+#' objects.
+#' @details If `x` is a `LazyTensor`, `log(x)` returns a `LazyTensor` that 
+#' encodes, symbolically, the element-wise natural logarithm of `x`, i.e. 
+#' \eqn{\log{x}}.
+#' @param x a `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values,
 #' or a scalar value.
-#' @return An object of class "LazyTensor" if the function is called with a 
-#' `LazyTensor`, and an object of class "numeric", "matrix", or "array" 
-#' otherwise, depending on the input class (see R default `log()` function).
+#' @param base NULL, not used, only present for method compatibility with
+#' corresponding generic.
+#' @return An object of class `LazyTensor`.
+#' @seealso [rkeops::log()]
 #' @examples
 #' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
@@ -1157,45 +1223,56 @@ log.default <- .Primitive("log")
 #' Log_x <- log(x_i)                   # symbolic matrix, 150 rows and 3 columns
 #' }
 #' @export
-log <- function(x) {
-    UseMethod("log")
-}
-
-#' Element-wise natural logarithm.
-#' @author Chloe Serre-Combe, Amelie Vernay
-#' @keywords internal
-#' @export
-log.LazyTensor <- function(x) {
-    res <- unaryop.LazyTensor(x, "Log")
-    return(res)
+log.LazyTensor <- function(x, base = NULL) {
+    return(unaryop.LazyTensor(x, "Log"))
 }
 
 
 # inverse ----------------------------------------------------------------------
 
-#' Inverse.
+#' Element-wise 1/x inverse operation
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @keywords internal
+#' @usage inv(x)
+#' @description
+#' Element-wise inverse operations on numeric or complex vectors 
+#' (or objects which can be coerced to them).
+#' @details
+#' `inv(x)` is equivalent to `1/x` where `/` is the default division operator.
+#' 
+#' From [base::Arithmetic]: if applied to arrays the result will be an array if 
+#' this is sensible 
+#' (for example it will not if the recycling rule has been invoked).
+#' @param x numeric or complex vectors or objects which can be coerced to such, 
+#' or other objects for which methods have been written.
+#' @return Vector or array of inverted elements from `x`.
+#' @seealso [base::Arithmetic]
+#' @examples
+#' inv(4)
+#' inv(1:10)
 #' @export
 inv.default <- function(x) {
-    res <- 1 / x
-    return(res)
+    return(1 / x)
 }
 
-#' Element-wise 1/x inverse.
-#' @description
-#' Symbolic unary operation for element-wise inverse.
-#' @details If `x` is a `LazyTensor`, `exp(x)` returns a `LazyTensor` that 
-#' encodes, symbolically, the element-wise inverse of `x` ; else, computes R 
-#' default inverse.
+#' Element-wise inverse operation.
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x a `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values,
-#' or a scalar value.
-#' @return An object of class "LazyTensor" if the function is called with a 
-#' `LazyTensor`, and an object of class "numeric", "matrix", or "array" 
-#' otherwise, same as the input class.
+#' @description
+#' Symbolic element-wise inverse unary operation for `LazyTensor` 
+#' objects or standard element-wise inverse operation for 
+#' other types, i.e. `1/x`.
+#' @details If `x` is a `LazyTensor`, see [rkeops::inv.LazyTensor()], else 
+#' see [rkeops::inv.default()].
+#' @param x input for [rkeops::inv.default()] or 
+#' [rkeops::inv.LazyTensor()].
+#' @return See value of [rkeops::inv.default()] or 
+#' [rkeops::inv.LazyTensor()].
+#' @seealso [rkeops::inv.default()], [rkeops::inv.LazyTensor()]
 #' @examples
 #' \dontrun{
+#' # Numerical input
+#' inv(4)
+#' inv(1:10)
+#' # LazyTensor symbolic element-wise inverse
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
@@ -1206,9 +1283,26 @@ inv <- function(x) {
     UseMethod("inv")
 }
 
-#' Element-wise 1/x inverse.
+#' Element-wise inverse operation
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @keywords internal
+#' @usage
+#' log(x)
+#' log(x, base = NULL)
+#' @description
+#' Symbolic element-wise inverse unary operation for `LazyTensor` 
+#' objects.
+#' @details If `x` is a `LazyTensor`, `inv(x)` returns a `LazyTensor` that 
+#' encodes, symbolically, the element-wise inverse of `x`, i.e. `1/x`.
+#' @param x a `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values,
+#' or a scalar value.
+#' @seealso [rkeops::inv()]
+#' @examples
+#' \dontrun{
+#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
+#' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
+#'                                     # indexed by 'i'
+#' Inv_x <- inv(x_i)                   # symbolic matrix, 150 rows and 3 columns
+#' }
 #' @export
 inv.LazyTensor <- function(x) {
     res <- unaryop.LazyTensor(x, "Inv")
