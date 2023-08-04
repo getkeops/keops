@@ -5,7 +5,7 @@
 # addition ---------------------------------------------------------------------
 
 #' @title Default arithmetic operations
-#' @name arithmetic.default
+#' @name default.arithmetic.fun
 #' @aliases +.default
 #' @usage
 #' +x
@@ -153,7 +153,7 @@
 # subtraction ------------------------------------------------------------------
 
 #' @title Default arithmetic operations
-#' @name arithmetic.default
+#' @name default.arithmetic.fun
 #' @aliases -.default
 #' @usage
 #' -x
@@ -196,7 +196,7 @@
 #' 1 + 3
 #' # LazyTensor symbolic subtraction
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
-#' y <- matrix(runif(250 * 3), 250, 3) # arbitrary R matrix, 250 rows and 3 columns
+#' y <- matrix(runif(250 * 3), 250, 3) # arbitrary R matrix, 250 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
 #' y_j <- LazyTensor(y, index = 'j')   # creating LazyTensor from matrix y, 
@@ -240,7 +240,7 @@
 #' @examples
 #' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
-#' y <- matrix(runif(250 * 3), 250, 3) # arbitrary R matrix, 250 rows and 3 columns
+#' y <- matrix(runif(250 * 3), 250, 3) # arbitrary R matrix, 250 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
 #' y_j <- LazyTensor(y, index = 'j')   # creating LazyTensor from matrix y, 
@@ -302,7 +302,7 @@
 # multiplication  --------------------------------------------------------------
 
 #' @title Default arithmetic operations
-#' @name arithmetic.default
+#' @name default.arithmetic.fun
 #' @aliases *.default
 #' @usage x * y
 #' @export
@@ -332,7 +332,7 @@
 #' 1 + 3
 #' # LazyTensor symbolic multiplication
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
-#' y <- matrix(runif(250 * 3), 250, 3) # arbitrary R matrix, 250 rows and 3 columns
+#' y <- matrix(runif(250 * 3), 250, 3) # arbitrary R matrix, 250 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
 #' y_j <- LazyTensor(y, index = 'j')   # creating LazyTensor from matrix y, 
@@ -368,7 +368,7 @@
 #' @examples
 #' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
-#' y <- matrix(runif(250 * 3), 250, 3) # arbitrary R matrix, 250 rows and 3 columns
+#' y <- matrix(runif(250 * 3), 250, 3) # arbitrary R matrix, 250 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
 #' y_j <- LazyTensor(y, index = 'j')   # creating LazyTensor from matrix y, 
@@ -428,7 +428,7 @@
 # division ---------------------------------------------------------------------
 
 #' @title Default arithmetic operations
-#' @name arithmetic.default
+#' @name default.arithmetic.fun
 #' @aliases /.default
 #' @usage x / y
 #' @export
@@ -458,7 +458,7 @@
 #' 1 + 3
 #' # LazyTensor symbolic division
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
-#' y <- matrix(runif(250 * 3), 250, 3) # arbitrary R matrix, 250 rows and 3 columns
+#' y <- matrix(runif(250 * 3), 250, 3) # arbitrary R matrix, 250 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
 #' y_j <- LazyTensor(y, index = 'j')   # creating LazyTensor from matrix y,
@@ -495,7 +495,7 @@
 #' \dontrun{
 #' # LazyTensor symbolic division
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
-#' y <- matrix(runif(250 * 3), 250, 3) # arbitrary R matrix, 250 rows and 3 columns
+#' y <- matrix(runif(250 * 3), 250, 3) # arbitrary R matrix, 250 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
 #' y_j <- LazyTensor(y, index = 'j')   # creating LazyTensor from matrix y,
@@ -622,7 +622,7 @@ square.LazyTensor <- function(x) {
 # square root ------------------------------------------------------------------
 
 #' @title Miscellaneous Mathematical Functions
-#' @name math.fun
+#' @name default.math.fun
 #' @aliases sqrt.default
 #' @usage sqrt(x)
 #' @inherit base::sqrt description
@@ -630,7 +630,7 @@ square.LazyTensor <- function(x) {
 #' @inherit base::sqrt params
 #' @inherit base::sqrt return
 #' @inherit base::sqrt examples
-#' @seealso [base::sqrt]
+#' @seealso [base::MathFun]
 #' @author R core team and contributors
 #' @export
 sqrt.default <- function(x) {
@@ -652,7 +652,7 @@ sqrt.default <- function(x) {
 #' @seealso [rkeops::sqrt.default()], [rkeops::sqrt.LazyTensor()]
 #' @examples
 #' \dontrun{
-#' # Numerical input
+#' # R base operation
 #' sqrt(4)
 #' sqrt(c(1,4,9,16))
 #' # LazyTensor symbolic element-wise square root
@@ -771,7 +771,7 @@ rsqrt.LazyTensor <- function(x) {
 # power ------------------------------------------------------------------------
 
 #' @title Default arithmetic operations
-#' @name arithmetic.default
+#' @name default.arithmetic.fun
 #' @aliases ^.default
 #' @usage x^y
 #' @export
@@ -803,7 +803,7 @@ rsqrt.LazyTensor <- function(x) {
 #' (1:10)^(1:2)
 #' # LazyTensor symbolic power operation
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
-#' y <- matrix(runif(250 * 3), 250, 3) # arbitrary R matrix, 250 rows and 3 columns
+#' y <- matrix(runif(250 * 3), 250, 3) # arbitrary R matrix, 250 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
 #' y_j <- LazyTensor(y, index = 'j')   # creating LazyTensor from matrix y, 
@@ -841,7 +841,7 @@ rsqrt.LazyTensor <- function(x) {
 #' @examples
 #' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
-#' y <- matrix(runif(250 * 3), 250, 3) # arbitrary R matrix, 250 rows and 3 columns
+#' y <- matrix(runif(250 * 3), 250, 3) # arbitrary R matrix, 250 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
 #' y_j <- LazyTensor(y, index = 'j')   # creating LazyTensor from matrix y, 
@@ -920,7 +920,7 @@ rsqrt.LazyTensor <- function(x) {
 #' (x < 2) | (x > 8)
 #' # LazyTensor symbolic scalar product operation
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
-#' y <- matrix(runif(250 * 3), 250, 3) # arbitrary R matrix, 250 rows and 3 columns
+#' y <- matrix(runif(250 * 3), 250, 3) # arbitrary R matrix, 250 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
 #' y_j <- LazyTensor(y, index = 'j')   # creating LazyTensor from matrix y, 
@@ -963,7 +963,7 @@ rsqrt.LazyTensor <- function(x) {
 #' @examples
 #' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
-#' y <- matrix(runif(250 * 3), 250, 3) # arbitrary R matrix, 250 rows and 3 columns
+#' y <- matrix(runif(250 * 3), 250, 3) # arbitrary R matrix, 250 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
 #' y_j <- LazyTensor(y, index = 'j')   # creating LazyTensor from matrix y, 
@@ -1067,7 +1067,7 @@ rsqrt.LazyTensor <- function(x) {
 # exponential ------------------------------------------------------------------
 
 #' @title Logarithms and Exponentials
-#' @name log.and.exp
+#' @name default.log.exp.fun
 #' @aliases exp.default
 #' @usage exp(x)
 #' @inherit base::log description
@@ -1159,7 +1159,7 @@ exp.ComplexLazyTensor <- function(x) {
 # logarithm --------------------------------------------------------------------
 
 #' @title Logarithms and Exponentials
-#' @name log.and.exp
+#' @name default.log.exp.fun
 #' @aliases log.default
 #' @usage log(x)
 #' @export
@@ -1230,12 +1230,12 @@ log.LazyTensor <- function(x, base = NULL) {
 
 # inverse ----------------------------------------------------------------------
 
-#' Element-wise 1/x inverse operation
+#' Element-wise inverse operation
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @usage inv(x)
 #' @description
 #' Element-wise inverse operations on numeric or complex vectors 
-#' (or objects which can be coerced to them).
+#' (or objects which can be coerced to them), i.e. `1/x`.
 #' @details
 #' `inv(x)` is equivalent to `1/x` where `/` is the default division operator.
 #' 
@@ -1295,6 +1295,7 @@ inv <- function(x) {
 #' encodes, symbolically, the element-wise inverse of `x`, i.e. `1/x`.
 #' @param x a `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values,
 #' or a scalar value.
+#' @return An object of class `LazyTensor`.
 #' @seealso [rkeops::inv()]
 #' @examples
 #' \dontrun{
@@ -1312,30 +1313,44 @@ inv.LazyTensor <- function(x) {
 
 # cosine -----------------------------------------------------------------------
 
-#' Cosine.
-#' @author Chloe Serre-Combe, Amelie Vernay
-#' @keywords internal
+#' @title Trigonometric Functions
+#' @name default.trigo.fun
+#' @aliases cos.default
+#' @usage cos(x)
+#' @inherit base::cos description
+#' @inherit base::cos details
+#' @inherit base::cos params
+#' @inherit base::cos return
+#' @inherit base::cos examples
+#' @seealso [base::Trig]
+#' @author R core team and contributors
 #' @export
-cos.default <- .Primitive("cos")
+cos.default <- function(x) {
+    return(base::cos(x))
+}
 
-#' Element-wise cosine.
-#' @description
-#' Symbolic unary operation for element-wise cosine.
-#' @details If `x` is a `LazyTensor`, `exp(x)` returns a `LazyTensor` that 
-#' encodes, symbolically, the element-wise cosine of `x` ; else, computes 
-#' R default cosine.
+#' Element-wise cosine operation.
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x a `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, 
-#' or a scalar value.
-#' @return An object of class "LazyTensor" if the function is called with a 
-#' `LazyTensor`, and an object of class "numeric", "matrix", or "array" 
-#' otherwise, depending on the input class (see R default `cos()` function).
+#' @description
+#' Symbolic element-wise cosine unary operation for `LazyTensor` 
+#' objects or standard element-wise cosine operation for 
+#' other types.
+#' @details If `x` is a `LazyTensor`, see [rkeops::cos.LazyTensor()], else 
+#' see [rkeops::cos.default()].
+#' @param x input for [rkeops::cos.default()] or 
+#' [rkeops::cos.LazyTensor()].
+#' @return See value of [rkeops::cos.default()] or 
+#' [rkeops::cos.LazyTensor()].
+#' @seealso [rkeops::cos.default()], [rkeops::cos.LazyTensor()]
 #' @examples
 #' \dontrun{
+#' # R base operation
+#' cos(0)
+#' cos(pi)
+#' # LazyTensor symbolic element-wise cosine
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
-#'                                     
 #' Cos_x <- cos(x_i)                   # symbolic matrix, 150 rows and 3 columns
 #' }
 #' @export
@@ -1343,42 +1358,63 @@ cos <- function(x) {
     UseMethod("cos")
 }
 
-#' Element-wise cosine.
+#' Element-wise cosine operation
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @keywords internal
-#' @export
-cos.LazyTensor <- function(x) {
-    res <- unaryop.LazyTensor(x, "Cos")
-    return(res)
-}
-
-
-# sine -------------------------------------------------------------------------
-
-#' Sine.
-#' @author Chloe Serre-Combe, Amelie Vernay
-#' @keywords internal
-#' @export
-sin.default <- .Primitive("sin")
-
-#' Element-wise sine.
+#' @usage cos(x)
 #' @description
-#' Symbolic unary operation for element-wise sine.
-#' @details If `x` is a `LazyTensor`, `sin(x)` returns a `LazyTensor` that 
-#' encodes, symbolically, the element-wise sine of `x`; else, computes 
-#' R default sine function.
-#' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x a `LazyTensor`, a `ComplexLazyTensor`, a vector or a matrix of 
-#' numeric values, or a scalar value.
-#' @return An object of class "LazyTensor" if the function is called with a 
-#' `LazyTensor`, and an object of class "numeric", "matrix", or "array" 
-#' otherwise, depending on the input class (see R default `sin()` function).
+#' Symbolic element-wise cosine unary operation for `LazyTensor` objects.
+#' @details If `x` is a `LazyTensor`, `cos(x)` returns a `LazyTensor` that 
+#' encodes, symbolically, the element-wise cosine of `x`.
+#' @param x a `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values,
+#' or a scalar value.
+#' @return An object of class `LazyTensor`.
+#' @seealso [rkeops::cos()]
 #' @examples
 #' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
-#'                                     
+#' Cos_x <- cos(x_i)                   # symbolic matrix, 150 rows and 3 columns
+#' }
+#' @export
+cos.LazyTensor <- function(x) {
+    return(unaryop.LazyTensor(x, "Cos"))
+}
+
+
+# sine -------------------------------------------------------------------------
+
+#' @title Trigonometric Functions
+#' @name default.trigo.fun
+#' @aliases sin.default
+#' @usage sin(x)
+#' @export
+sin.default <- function(x) {
+    return(base::sin(x))
+}
+
+#' Element-wise sine operation.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @description
+#' Symbolic element-wise sine unary operation for `LazyTensor` 
+#' objects or standard element-wise sine operation for 
+#' other types.
+#' @details If `x` is a `LazyTensor`, see [rkeops::sin.LazyTensor()], else 
+#' see [rkeops::sin.default()].
+#' @param x input for [rkeops::sin.default()] or 
+#' [rkeops::sin.LazyTensor()].
+#' @return See value of [rkeops::sin.default()] or 
+#' [rkeops::sin.LazyTensor()].
+#' @seealso [rkeops::sin.default()], [rkeops::sin.LazyTensor()]
+#' @examples
+#' \dontrun{
+#' # R base operation
+#' sin(0)
+#' sin(pi)
+#' # LazyTensor symbolic element-wise sine
+#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
+#' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
+#'                                     # indexed by 'i'
 #' Sin_x <- sin(x_i)                   # symbolic matrix, 150 rows and 3 columns
 #' }
 #' @export
@@ -1386,42 +1422,63 @@ sin <- function(x) {
     UseMethod("sin")
 }
 
-#' Element-wise sine.
+#' Element-wise sine operation
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @keywords internal
-#' @export
-sin.LazyTensor  <- function(x){
-    res <- unaryop.LazyTensor(x, "Sin")
-    return(res)
-}
-
-
-# arc-cosine --------------------------------------------------------------------
-
-#' Arc-cosine.
-#' @author Chloe Serre-Combe, Amelie Vernay
-#' @keywords internal
-#' @export
-acos.default <- .Primitive("acos")
-
-#' Element-wise arc-cosine.
+#' @usage sin(x)
 #' @description
-#' Symbolic unary operation for element-wise arc-cosine.
-#' @details If `x` is a `LazyTensor`, `acos(x)` returns a `LazyTensor` that 
-#' encodes, symbolically, the element-wise arc-cosine of `x` ; else, computes 
-#' R default arc-cosine function.
-#' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x a `LazyTensor`, a `ComplexLazyTensor`, a vector or a matrix of 
-#' numeric values, or a scalar value.
-#' @return An object of class "LazyTensor" if the function is called with a 
-#' `LazyTensor`, and an object of class "numeric", "matrix", or "array" 
-#' otherwise, depending on the input class (see R default `acos()` function).
+#' Symbolic element-wise sine unary operation for `LazyTensor` objects.
+#' @details If `x` is a `LazyTensor`, `sin(x)` returns a `LazyTensor` that 
+#' encodes, symbolically, the element-wise sine of `x`.
+#' @param x a `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values,
+#' or a scalar value.
+#' @return An object of class `LazyTensor`.
+#' @seealso [rkeops::sin()]
 #' @examples
 #' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
-#'                                     
+#' Sin_x <- sin(x_i)                   # symbolic matrix, 150 rows and 3 columns
+#' }
+#' @export
+sin.LazyTensor  <- function(x){
+    return(unaryop.LazyTensor(x, "Sin"))
+}
+
+
+# arc-cosine --------------------------------------------------------------------
+
+#' @title Trigonometric Functions
+#' @name default.trigo.fun
+#' @aliases acos.default
+#' @usage acos(x)
+#' @export
+acos.default <- function(x) {
+    return(base::acos(x))
+}
+
+#' Element-wise arc-cosine operation.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @description
+#' Symbolic element-wise arc-cosine unary operation for `LazyTensor` 
+#' objects or standard element-wise arc-cosine operation for 
+#' other types.
+#' @details If `x` is a `LazyTensor`, see [rkeops::acos.LazyTensor()], else 
+#' see [rkeops::acos.default()].
+#' @param x input for [rkeops::acos.default()] or 
+#' [rkeops::acos.LazyTensor()].
+#' @return See value of [rkeops::acos.default()] or 
+#' [rkeops::acos.LazyTensor()].
+#' @seealso [rkeops::acos.default()], [rkeops::acos.LazyTensor()]
+#' @examples
+#' \dontrun{
+#' # R base operation
+#' acos(0)
+#' acos(-1)
+#' # LazyTensor symbolic element-wise arc-cosine
+#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
+#' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
+#'                                     # indexed by 'i'
 #' Acos_x <- acos(x_i)                 # symbolic matrix, 150 rows and 3 columns
 #' }
 #' @export
@@ -1429,9 +1486,24 @@ acos <- function(x) {
     UseMethod("acos")
 }
 
-#' Element-wise arc-cosine.
+#' Element-wise arc-cosine operation
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @keywords internal
+#' @usage acos(x)
+#' @description
+#' Symbolic element-wise arc-cosine unary operation for `LazyTensor` objects.
+#' @details If `x` is a `LazyTensor`, `acos(x)` returns a `LazyTensor` that 
+#' encodes, symbolically, the element-wise arc-cosine of `x`.
+#' @param x a `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values,
+#' or a scalar value.
+#' @return An object of class `LazyTensor`.
+#' @seealso [rkeops::acos()]
+#' @examples
+#' \dontrun{
+#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
+#' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
+#'                                     # indexed by 'i'
+#' Acos_x <- acos(x_i)                 # symbolic matrix, 150 rows and 3 columns
+#' }
 #' @export
 acos.LazyTensor <- function(x) {
     res <- unaryop.LazyTensor(x, "Acos")
@@ -1441,30 +1513,37 @@ acos.LazyTensor <- function(x) {
 
 # arc-sine ----------------------------------------------------------------------
 
-#' Arc-sine.
-#' @author Chloe Serre-Combe, Amelie Vernay
-#' @keywords internal
+#' @title Trigonometric Functions
+#' @name default.trigo.fun
+#' @aliases asin.default
+#' @usage asin(x)
 #' @export
-asin.default <- .Primitive("asin")
+asin.default <- function(x) {
+    return(base::asin(x))
+}
 
-#' Element-wise arc-sine.
-#' @description
-#' Symbolic unary operation for element-wise arc-sine.
-#' @details If `x` is a `LazyTensor`, `asin(x)` returns a `LazyTensor` that 
-#' encodes, symbolically, the element-wise arc-sine of `x` ; else, computes 
-#' R default arc-sine function.
+#' Element-wise arc-sine operation.
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x a `LazyTensor`, a `ComplexLazyTensor`, a vector or a matrix of 
-#' numeric values, or a scalar value.
-#' @return An object of class "LazyTensor" if the function is called with a 
-#' `LazyTensor`, and an object of class "numeric", "matrix", or "array" 
-#' otherwise, depending on the input class (see R default `asin()` function).
+#' @description
+#' Symbolic element-wise arc-sine unary operation for `LazyTensor` 
+#' objects or standard element-wise arc-sine operation for 
+#' other types.
+#' @details If `x` is a `LazyTensor`, see [rkeops::asin.LazyTensor()], else 
+#' see [rkeops::asin.default()].
+#' @param x input for [rkeops::asin.default()] or 
+#' [rkeops::asin.LazyTensor()].
+#' @return See value of [rkeops::asin.default()] or 
+#' [rkeops::asin.LazyTensor()].
+#' @seealso [rkeops::asin.default()], [rkeops::asin.LazyTensor()]
 #' @examples
 #' \dontrun{
+#' # R base operation
+#' asin(0)
+#' asin(-1)
+#' # LazyTensor symbolic element-wise arc-sine
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
-#'                                     
 #' Asin_x <- asin(x_i)                 # symbolic matrix, 150 rows and 3 columns
 #' }
 #' @export
@@ -1472,9 +1551,24 @@ asin <- function(x) {
     UseMethod("asin")
 }
 
-#' Element-wise arc-sine.
+#' Element-wise arc-sine operation
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @keywords internal
+#' @usage asin(x)
+#' @description
+#' Symbolic element-wise arc-sine unary operation for `LazyTensor` objects.
+#' @details If `x` is a `LazyTensor`, `asin(x)` returns a `LazyTensor` that 
+#' encodes, symbolically, the element-wise arc-sine of `x`.
+#' @param x a `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values,
+#' or a scalar value.
+#' @return An object of class `LazyTensor`.
+#' @seealso [rkeops::asin()]
+#' @examples
+#' \dontrun{
+#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
+#' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
+#'                                     # indexed by 'i'
+#' Asin_x <- asin(x_i)                 # symbolic matrix, 150 rows and 3 columns
+#' }
 #' @export
 asin.LazyTensor <- function(x) {
     res <- unaryop.LazyTensor(x, "Asin")
@@ -1484,30 +1578,37 @@ asin.LazyTensor <- function(x) {
 
 # arc-tangent -------------------------------------------------------------------
 
-#' Arc-tangent.
-#' @author Chloe Serre-Combe, Amelie Vernay
-#' @keywords internal
+#' @title Trigonometric Functions
+#' @name default.trigo.fun
+#' @aliases atan.default
+#' @usage atan(x)
 #' @export
-atan.default <- .Primitive("atan")
+atan.default <- function(x) {
+    return(base::atan(x))
+}
 
-#' Element-wise arc-tangent.
-#' @description
-#' Symbolic unary operation for element-wise arc-tangent.
-#' @details If `x` is a `LazyTensor`, `atan(x)` returns a `LazyTensor` that 
-#' encodes, symbolically, the element-wise arc-tangent of `x` ; else, computes 
-#' R default arc-tangent function.
+#' Element-wise arc-tangent operation.
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x a `LazyTensor`, a `ComplexLazyTensor`, a vector or a matrix of 
-#' numeric values, or a scalar value.
-#' @return An object of class "LazyTensor" if the function is called with a 
-#' `LazyTensor`, and an object of class "numeric", "matrix", or "array" 
-#' otherwise, depending on the input class (see R default `atan()` function).
+#' @description
+#' Symbolic element-wise arc-tangent unary operation for `LazyTensor` 
+#' objects or standard element-wise arc-tangent operation for 
+#' other types.
+#' @details If `x` is a `LazyTensor`, see [rkeops::atan.LazyTensor()], else 
+#' see [rkeops::atan.default()].
+#' @param x input for [rkeops::atan.default()] or 
+#' [rkeops::atan.LazyTensor()].
+#' @return See value of [rkeops::atan.default()] or 
+#' [rkeops::atan.LazyTensor()].
+#' @seealso [rkeops::atan.default()], [rkeops::atan.LazyTensor()]
 #' @examples
 #' \dontrun{
+#' # R base operation
+#' atan(0)
+#' atan(-1)
+#' # LazyTensor symbolic element-wise arc-tangent
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
-#'                                     
 #' Atan_x <- atan(x_i)                 # symbolic matrix, 150 rows and 3 columns
 #' }
 #' @export
@@ -1515,9 +1616,24 @@ atan <- function(x) {
     UseMethod("atan")
 }
 
-#' Element-wise arc-tangent.
+#' Element-wise arc-tangent operation
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @keywords internal
+#' @usage atan(x)
+#' @description
+#' Symbolic element-wise arc-tangent unary operation for `LazyTensor` objects.
+#' @details If `x` is a `LazyTensor`, `atan(x)` returns a `LazyTensor` that 
+#' encodes, symbolically, the element-wise arc-tangent of `x`.
+#' @param x a `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values,
+#' or a scalar value.
+#' @return An object of class `LazyTensor`.
+#' @seealso [rkeops::atan()]
+#' @examples
+#' \dontrun{
+#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
+#' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
+#'                                     # indexed by 'i'
+#' Atan_x <- atan(x_i)                 # symbolic matrix, 150 rows and 3 columns
+#' }
 #' @export
 atan.LazyTensor <- function(x) {
     res <- unaryop.LazyTensor(x, "Atan")
@@ -1527,45 +1643,44 @@ atan.LazyTensor <- function(x) {
 
 # arc-tan2 ---------------------------------------------------------------------
 
-#' 2-argument arc-tangent.
-#' @author Chloe Serre-Combe, Amelie Vernay
-#' @keywords internal
+#' @title Trigonometric Functions
+#' @name default.trigo.fun
+#' @aliases atan2.default
+#' @usage atan2(y, x)
 #' @export
 atan2.default <- function(x, y) {
-    base::atan2(x, y)
+    return(base::atan2(x, y))
 }
 
-#' Element-wise 2-argument arc-tangent.
-#' @description
-#' Symbolic binary operation for element-wise 2-argument arc-tangent function.
-#' @details If `x` or `y` is a `LazyTensor`, `atan2(x, y)` returns a 
-#' `LazyTensor` that encodes, symbolically, the element-wise atan2 of `x` and 
-#' `y`. 
-#' (In case one of the arguments is a vector or a scalar, it is first converted 
-#' to LazyTensor). 
-#' If none of the arguments is a LazyTensor, it computes R default atan2 
-#' function.
-#' 
-#' **Note**
-#' 
-#' `x` and `y` input arguments should have the same inner dimension.
+#' Element-wise 2-argument arc-tangent operation.
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x a `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, 
-#' or a scalar value.
-#' @param y a `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, 
-#' or a scalar value.
-#' @return An object of class "LazyTensor" if the function is called with a 
-#' `LazyTensor`, and an object of class "numeric", "matrix", or "array" 
-#' otherwise, depending on the input class (see R default `atan2()` function).
+#' @description
+#' Symbolic element-wise 2-argument arc-tangent unary operation for `LazyTensor` 
+#' objects or standard element-wise 2-argument arc-tangent operation for 
+#' other types.
+#' @details If `x` is a `LazyTensor`, see [rkeops::atan2.LazyTensor()], else 
+#' see [rkeops::atan2.default()].
+#' 
+#' **Note**: the arc-tangent of two arguments `atan2(y, x)` returns the angle
+#' between the x-axis and the vector from the origin to (x, y), i.e.,
+#' for positive arguments `atan2(y, x) == atan(y/x)`.
+#' @param x input for [rkeops::atan2.default()] or 
+#' [rkeops::atan2.LazyTensor()].
+#' @return See value of [rkeops::atan2.default()] or 
+#' [rkeops::atan2.LazyTensor()].
+#' @seealso [rkeops::atan2.default()], [rkeops::atan2.LazyTensor()]
 #' @examples
 #' \dontrun{
+#' # R base operation
+#' atan2(0, 1)
+#' atan2(1, 0)
+#' # LazyTensor symbolic element-wise 2-argument arc-tangent
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
-#' y <- matrix(runif(250 * 3), 250, 3) # arbitrary R matrix, 250 rows and 3 columns
+#' y <- matrix(runif(250 * 3), 250, 3) # arbitrary R matrix, 250 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
 #' y_j <- LazyTensor(y, index = 'j')   # creating LazyTensor from matrix y, 
 #'                                     # indexed by 'j'
-#'                                     
 #' Atan2_xy <- atan2(x_i, y_j)         # symbolic matrix
 #' }
 #' @export
@@ -1576,13 +1691,40 @@ atan2 <- function(x, y) {
         UseMethod("atan2", x)
 }
 
-#' Element-wise 2-argument arc-tangent.
+#' Element-wise 2-argument arc-tangent operation
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @keywords internal
+#' @usage atan2(x, y)
+#' @description
+#' Symbolic element-wise 2-argument arc-tangent unary operation for 
+#' `LazyTensor` objects.
+#' @details If `x` is a `LazyTensor`, `atan2(x, y)` returns a `LazyTensor` that 
+#' encodes, symbolically, the element-wise 2-argument arc-tangent of `x`.
+#' @param x a `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values,
+#' or a scalar value.
+#' @details If `x` or `y` is a `LazyTensor`, `atan2(x, y)` returns a 
+#' `LazyTensor` that encodes, symbolically, the element-wise 2-argument 
+#' arc-tangent of `x` and `y`. i.e. `atan2(x, y) == atan(x/y)`.
+#' (In case one of the arguments is 
+#' a vector or a scalar, it is first converted to `LazyTensor`).
+#'
+#' **Note**: `x` and `y` input arguments should have the same inner dimension.
+#' @param x,y a `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values,
+#' or a scalar value.
+#' @return An object of class `LazyTensor`.
+#' @seealso [rkeops::atan2()]
+#' @examples
+#' \dontrun{
+#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
+#' y <- matrix(runif(250 * 3), 250, 3) # arbitrary R matrix, 250 rows, 3 columns
+#' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
+#'                                     # indexed by 'i'
+#' y_j <- LazyTensor(y, index = 'j')   # creating LazyTensor from matrix y, 
+#'                                     # indexed by 'j'
+#' Atan2_xy <- atan2(x_i, y_j)         # symbolic matrix
+#' }
 #' @export
 atan2.LazyTensor <- function(x, y) {
-    res <- binaryop.LazyTensor(x, y, "Atan2", dim_check_type = "same")
-    return(res)
+    return(binaryop.LazyTensor(x, y, "Atan2", dim_check_type = "same"))
 }
 
 
