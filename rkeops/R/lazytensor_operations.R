@@ -201,7 +201,6 @@
 #'                                     # indexed by 'i'
 #' y_j <- LazyTensor(y, index = 'j')   # creating LazyTensor from matrix y, 
 #'                                     # indexed by 'j'
-#'                                     
 #' Sub_xy <- x_i - y_j                 # symbolic matrix
 #' Minus_x <- -x_i                     # symbolic matrix
 #' }
@@ -245,7 +244,6 @@
 #'                                     # indexed by 'i'
 #' y_j <- LazyTensor(y, index = 'j')   # creating LazyTensor from matrix y, 
 #'                                     # indexed by 'j'
-#'                                     
 #' Sub_xy <- x_i - y_j                 # symbolic matrix
 #' Minus_x <- -x_i                     # symbolic matrix
 #' }
@@ -340,7 +338,6 @@
 #'                                     # indexed by 'i'
 #' y_j <- LazyTensor(y, index = 'j')   # creating LazyTensor from matrix y, 
 #'                                     # indexed by 'j'
-#' 
 #' x_times_y <- x_i * y_j              # symbolic matrix
 #' }
 #' @export
@@ -376,7 +373,6 @@
 #'                                     # indexed by 'i'
 #' y_j <- LazyTensor(y, index = 'j')   # creating LazyTensor from matrix y, 
 #'                                     # indexed by 'j'
-#' 
 #' x_times_y <- x_i * y_j              # symbolic matrix
 #' }
 #' @export
@@ -438,7 +434,7 @@
 #' x / y
 #' @export
 "/.default" <- function(x, y) {
-    base::"/"(x, y)
+    return(base::"/"(x, y))
 }
 
 #' Division.
@@ -469,7 +465,6 @@
 #'                                     # indexed by 'i'
 #' y_j <- LazyTensor(y, index = 'j')   # creating LazyTensor from matrix y,
 #'                                     # indexed by 'j'
-#' 
 #' x_div_y <- x_i / y_j                # symbolic matrix
 #' }
 #' @export
@@ -506,7 +501,6 @@
 #'                                     # indexed by 'i'
 #' y_j <- LazyTensor(y, index = 'j')   # creating LazyTensor from matrix y,
 #'                                     # indexed by 'j'
-#' 
 #' x_div_y <- x_i / y_j                # symbolic matrix
 #' }
 #' @export
@@ -552,7 +546,7 @@
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @usage square(x)
 #' @description
-#' Square or power-2 operations for on numeric or complex vectors 
+#' Element-wise square or power-2 operations on numeric or complex vectors 
 #' (or objects which can be coerced to them).
 #' @details
 #' `square(x)` is equivalent to `x^2` where `^` is the default power function, 
@@ -570,8 +564,7 @@
 #' square(1:10)
 #' @export 
 square.default <- function(x) {
-    res <- x^2
-    return(res)
+    return(x^2)
 }
 
 #' Element-wise square (power-2) operation.
@@ -595,7 +588,6 @@ square.default <- function(x) {
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
-#' 
 #' Square_x <- square(x_i)             # symbolic matrix, 150 rows and 3 columns
 #' }
 #' @export
@@ -617,7 +609,6 @@ square <- function(x) {
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
-#' 
 #' Square_x <- square(x_i)             # symbolic matrix, 150 rows and 3 columns
 #' }
 #' @export
@@ -701,33 +692,48 @@ sqrt.LazyTensor <- function(x) {
 
 # Rsqrt ------------------------------------------------------------------------
 
-#' Inverse square root.
+#' Element-wise inverse square root operations.
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @keywords internal
+#' @usage rsqrt(x)
+#' @description
+#' Element-wise inverse square root on numeric or complex vectors 
+#' (or objects which can be coerced to them).
+#' @details
+#' `rsqrt(x)` is equivalent to `1 / sqrt(x)` where `sqrt()` is the 
+#' default square root function, i.e. \eqn{1/\sqrt{x}}.
+#' @inheritParams base::sqrt
+#' @return a numeric or complex vector or array.
+#' @seealso [rkeops::rsqrt()], [rkeops::sqrt()], [base::sqrt()]
+#' @examples
+#' rsqrt(4)
+#' rsqrt(c(1,4,9,16))
 #' @export
 rsqrt.default <- function(x) {
-    res <- 1 / sqrt(x)
-    return(res)
+    return(1 / sqrt(x))
 }
 
-#' Element-wise inverse square root.
-#' @description
-#' Symbolic unary operation for element-wise inverse square root.
-#' @details If `x` is a `LazyTensor`, `sqrt(x)` returns a `LazyTensor` that 
-#' encodes, symbolically, the element-wise inverse square root of `x` ; else, 
-#' computes the element-wise inverse of R default square root function.
+#' Element-wise inverse square root operation.
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x a `LazyTensor`, a `ComplexLazyTensor`, a vector or a matrix of 
-#' numeric values, or a scalar value.
-#' @return An object of class "LazyTensor" if the function is called with a 
-#' `LazyTensor`, and an object of class "numeric", "matrix", or "array" 
-#' otherwise, same as the input class.
+#' @description
+#' Symbolic element-wise inverse square root unary operation for `LazyTensor` 
+#' objects or standard element-wise inverse square root operation for 
+#' other types, i.e. \eqn{1/\sqrt{x}}.
+#' @details If `x` is a `LazyTensor`, see [rkeops::rsqrt.LazyTensor()], else 
+#' see [rkeops::rsqrt.default()].
+#' @param x input for [rkeops::rsqrt.default()] or 
+#' [rkeops::rsqrt.LazyTensor()].
+#' @return See value of [rkeops::rsqrt.default()] or 
+#' [rkeops::rsqrt.LazyTensor()].
+#' @seealso [rkeops::rsqrt.default()], [rkeops::rsqrt.LazyTensor()]
 #' @examples
 #' \dontrun{
+#' # Numerical input
+#' rsqrt(4)
+#' rsqrt(c(1,4,9,16))
+#' # LazyTensor symbolic element-wise inverse square root
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
-#'                                     
 #' Rsqrt_x <- rsqrt(x_i)               # symbolic matrix, 150 rows and 3 columns
 #' }
 #' @export
@@ -735,9 +741,24 @@ rsqrt <- function(x) {
     UseMethod("rsqrt", x)
 }
 
-#' Element-wise inverse square root.
+#' Element-wise inverse square root operation.
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @keywords internal
+#' @description
+#' Symbolic element-wise inverse square root unary operation for `LazyTensor` 
+#' objects.
+#' @details If `x` is a `LazyTensor`, `rsqrt(x)` returns a `LazyTensor` that 
+#' encodes, symbolically, the element-wise inverse square root of `x`, i.e. 
+#' \eqn{1/\sqrt{x}}.
+#' @param x a `LazyTensor`.
+#' @return An object of class `LazyTensor`.
+#' @seealso [rkeops::rsqrt()]
+#' @examples
+#' \dontrun{
+#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
+#' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
+#'                                     # indexed by 'i'
+#' Rsqrt_x <- rsqrt(x_i)               # symbolic matrix, 150 rows and 3 columns
+#' }
 #' @export
 rsqrt.LazyTensor <- function(x) {
     res <- unaryop.LazyTensor(x, "Rsqrt")
