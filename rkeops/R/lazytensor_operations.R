@@ -233,7 +233,8 @@
 #' 
 #' **Note**: `x` and `y` input arguments should have the same inner dimension 
 #' or be of dimension 1.
-#' @inherit arithmetic.add.LazyTensor params
+#' @param x,y a `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values,
+#' or a scalar value.
 #' @return An object of class `LazyTensor`.
 #' @seealso [rkeops::-()]
 #' @examples
@@ -303,8 +304,7 @@
 #' @title Default arithmetic operations
 #' @name arithmetic.default
 #' @aliases *.default
-#' @usage
-#' x * y
+#' @usage x * y
 #' @export
 "*.default" <- function(x, y) {
     return(base::"*"(x, y))
@@ -317,8 +317,7 @@
 #' @description
 #' Symbolic multiplication for `LazyTensor` objects or default multiplication 
 #' for other types.
-#' @usage
-#' x * y
+#' @usage x * y
 #' @details
 #' If `x` or `y` is a `LazyTensor`, see [rkeops::*.LazyTensor()], else see
 #' [rkeops::*.default()].
@@ -362,7 +361,8 @@
 #' 
 #' **Note**: `x` and `y` input arguments should have the same inner dimension 
 #' or be of dimension 1.
-#' @inherit arithmetic.add.LazyTensor params
+#' @param x,y a `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values,
+#' or a scalar value.
 #' @return An object of class `LazyTensor`.
 #' @seealso [rkeops::*()]
 #' @examples
@@ -430,8 +430,7 @@
 #' @title Default arithmetic operations
 #' @name arithmetic.default
 #' @aliases /.default
-#' @usage
-#' x / y
+#' @usage x / y
 #' @export
 "/.default" <- function(x, y) {
     return(base::"/"(x, y))
@@ -444,8 +443,7 @@
 #' @description
 #' Symbolic division for `LazyTensor` objects or default division 
 #' for other types.
-#' @usage
-#' x * y
+#' @usage x / y
 #' @details
 #' If `x` or `y` is a `LazyTensor`, see [rkeops::/.LazyTensor()], else see
 #' [rkeops::/.default()].
@@ -489,7 +487,8 @@
 #' 
 #' **Note**: `x` and `y` input arguments should have the same inner dimension 
 #' or be of dimension 1.
-#' @inherit arithmetic.add.LazyTensor params
+#' @param x,y a `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values,
+#' or a scalar value.
 #' @return An object of class `LazyTensor`.
 #' @seealso [rkeops::/()]
 #' @examples
@@ -549,8 +548,8 @@
 #' Element-wise square or power-2 operations on numeric or complex vectors 
 #' (or objects which can be coerced to them).
 #' @details
-#' `square(x)` is equivalent to `x^2` where `^` is the default power function, 
-#' i.e. `base::"^"(x,2)` or \eqn{x^2} in mathematical formulation.
+#' `square(x)` is equivalent to `x^2` where `^` is the default power function 
+#' (`base::"^"(x,2)`), i.e. \eqn{x^2}.
 #' 
 #' From [base::Arithmetic]: if applied to arrays the result will be an array if 
 #' this is sensible 
@@ -601,7 +600,8 @@ square <- function(x) {
 #' Symbolic element-wise square unary operation for `LazyTensor` objects.
 #' @details If `x` is a `LazyTensor`, `square(x)` returns a `LazyTensor` that 
 #' encodes, symbolically, the element-wise square of `x`, i.e. \eqn{x^2}.
-#' @param x a `LazyTensor`.
+#' @param x a `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values,
+#' or a scalar value.
 #' @return An object of class `LazyTensor`.
 #' @seealso [rkeops::square()]
 #' @examples
@@ -673,7 +673,8 @@ sqrt <- function(x) {
 #' @details If `x` is a `LazyTensor`, `sqrt(x)` returns a `LazyTensor` that 
 #' encodes, symbolically, the element-wise square root of `x`, i.e. 
 #' \eqn{\sqrt{x}}.
-#' @param x a `LazyTensor`.
+#' @param x,y a `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values,
+#' or a scalar value.
 #' @return An object of class `LazyTensor`.
 #' @seealso [rkeops::sqrt()]
 #' @examples
@@ -749,7 +750,8 @@ rsqrt <- function(x) {
 #' @details If `x` is a `LazyTensor`, `rsqrt(x)` returns a `LazyTensor` that 
 #' encodes, symbolically, the element-wise inverse square root of `x`, i.e. 
 #' \eqn{1/\sqrt{x}}.
-#' @param x a `LazyTensor`.
+#' @param x,y a `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values,
+#' or a scalar value.
 #' @return An object of class `LazyTensor`.
 #' @seealso [rkeops::rsqrt()]
 #' @examples
@@ -768,51 +770,44 @@ rsqrt.LazyTensor <- function(x) {
 
 # power ------------------------------------------------------------------------
 
-#' Power.
-#' @rdname arithmetic.power.default
-#' @author Chloe Serre-Combe, Amelie Vernay
-#' @keywords internal
+#' @title Default arithmetic operations
+#' @name arithmetic.default
+#' @aliases ^.default
+#' @usage x^y
 #' @export
 "^.default" <- function(x, y) {
-    base::"^"(x, y)
+    return(base::"^"(x, y))
 }
 
-#' Power.
-#' @rdname arithmetic.power
-#' @description
-#' Symbolic binary operation for element-wise power operator.
-#' @usage x^y
-#' @details If `x` or `y` is a `LazyTensor`, `x^y` returns a `LazyTensor`
-#' that encodes, symbolically, the element-wise value of `x` to the power 
-#' of `y`.
-#' (In case one of the arguments is a vector or a scalar, it is first converted 
-#' to `LazyTensor`).
-#' If none of the arguments is a `LazyTensor`, it is equivalent to the "^" R 
-#' operator.
-#' 
-#' **Note**
-#' 
-#' \itemize{
-#'     \item{if **y = 2**,}{ `x^y` relies on the `"Square"` `KeOps` operation;}
-#'     \item{if **y = 0.5**,}{ `x^y` uses on the `"Sqrt"` `KeOps` operation;}
-#'     \item{if **y = -0.5**,}{ `x^y` uses on the `"Rsqrt"` `KeOps` operation.}
-#' }
+#' Element-wise power operation.
+#' @name arithmetic.power
+#' @aliases ^
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x a `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, 
-#' or a scalar value.
-#' @param y a `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, 
-#' or a scalar value.
-#' @return An object of class "LazyTensor" if the function is called with a 
-#' `LazyTensor`, and an object of class "numeric", otherwise.
+#' @description
+#' Symbolic element-wise power binary operation for `LazyTensor` objects or 
+#' default element-wise power operation for other types, i.e. 
+#' \eqn{x^y}.
+#' @usage x^y
+#' @details
+#' If `x` or `y` is a `LazyTensor`, see [rkeops::^.LazyTensor()], else see
+#' [rkeops::^.default()].
+#' @param x,y input for [rkeops::^.default()] or [rkeops::^.LazyTensor()].
+#' @return See value of [rkeops::^.default()] or [rkeops::^.LazyTensor()].
+#' @seealso [rkeops::^.default()], [rkeops::^.LazyTensor()]
 #' @examples
 #' \dontrun{
+#' # R base operation
+#' 3^2
+#' (1:10)^3
+#' 2^(1:10)
+#' (1:10)^(1:2)
+#' # LazyTensor symbolic power operation
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' y <- matrix(runif(250 * 3), 250, 3) # arbitrary R matrix, 250 rows and 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
 #' y_j <- LazyTensor(y, index = 'j')   # creating LazyTensor from matrix y, 
 #'                                     # indexed by 'j'
-#'                                     
 #' x_pow_y <- x_i^y_j                  # symbolic matrix
 #' }
 #' @export
@@ -823,10 +818,36 @@ rsqrt.LazyTensor <- function(x) {
         UseMethod("^", x)
 }
 
-#' Power.
-#' @rdname arithmetic.power.LazyTensor
+#' Element-wise power operation.
+#' @name arithmetic.power.LazyTensor
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @keywords internal
+#' @aliases ^.lazyTensor
+#' @description
+#' Symbolic power binary operation for `LazyTensor` objects.
+#' @usage x^y
+#' @details If `x` or `y` is a `LazyTensor`, `x^y` returns a `LazyTensor`
+#' that encodes, symbolically, the element-wise value of `x` to the power 
+#' of `y`.
+#' (In case one of the arguments is a vector or a scalar, it is first converted 
+#' to `LazyTensor`).
+#' 
+#' **Note**:
+#' - if `y = 2`, `x^y` relies on the `"Square"` `KeOps` operation;
+#' - if `y = 0.5`, `x^y` uses on the `"Sqrt"` `KeOps` operation;
+#' - if `y = -0.5`, `x^y` uses on the `"Rsqrt"` `KeOps` operation.
+#' @param x,y a `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values,
+#' or a scalar value.
+#' @return An object of class `LazyTensor`.
+#' @examples
+#' \dontrun{
+#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
+#' y <- matrix(runif(250 * 3), 250, 3) # arbitrary R matrix, 250 rows and 3 columns
+#' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
+#'                                     # indexed by 'i'
+#' y_j <- LazyTensor(y, index = 'j')   # creating LazyTensor from matrix y, 
+#'                                     # indexed by 'j'
+#' x_pow_y <- x_i^y_j                  # symbolic matrix
+#' }
 #' @export
 "^.LazyTensor" <- function(x, y) {   
     if(is.numeric(y) && length(y) == 1){
@@ -854,44 +875,50 @@ rsqrt.LazyTensor <- function(x) {
 
 # Euclidean scalar product -----------------------------------------------------
 
-#' Logical "or"
+#' @title Logical.or
+#' @name logical
 #' @aliases |.default
-#' @name logical.or.default
-#' @rdname logical.or.default
-#' @author Chloe Serre-Combe, Amelie Vernay
-#' @keywords internal
+#' @usage x | y
+#' @description
+#' Logical "or" operator.
+#' @details
+#' See [base::Logic] for more details.
+#' @inherit base::Logic params
+#' @inherit base::Logic return
+#' @seealso [base::Logic]
+#' @author R core team and contributors
+#' @examples
+#' TRUE | FALSE
+#' x <- 1:10
+#' (x < 2) | (x > 8)
 #' @export
 "|.default" <- function(x, y) {
-    base::"|"(x, y)
+    return(base::"|"(x, y))
 }
 
-
-#' Euclidean scalar product for LazyTensors or logical "or" for R base types.
+#' Euclidean scalar product for LazyTensors or logical "or" for other types.
+#' @name ScalarProduct.or.OR
 #' @aliases |
-#' @name scalar.product
-#' @rdname scalar.product
 #' @description
-#' Symbolic binary operation for Euclidean scalar product.
-#' @usage x | y  or  (x | y)
-#' @details If `x` or `y` is a `LazyTensor`, `(x|y)` (or `x | y`) returns a 
-#' `LazyTensor` that encodes, symbolically, the Euclidean scalar product between 
-#' `x` and `y`, which must have the same shape. (In case one of the arguments is 
-#' a vector or a scalar, it is first converted to `LazyTensor`).
-#' If none of the arguments is a `LazyTensor`, is equivalent to the "|" R 
-#' operator.
-#'
-#' **Note**
-#'
-#' `x` and `y` input arguments should have the same inner dimension.
-#' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x a `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, 
-#' or a scalar value.
-#' @param y a `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, 
-#' or a scalar value.
-#' @return An object of class "LazyTensor" if the function is called with a 
-#' `LazyTensor`, and an object of class "numeric", otherwise.
+#' Euclidean scalar product symbolic binary operation for `LazyTensor` objects,
+#' i.e. \eqn{\langle x, y\rangle}, or default element-wise logical "or" for 
+#' other types, i.e. `x OR y`.
+#' @usage
+#' x | y
+#' (x | y)
+#' @details
+#' If `x` or `y` is a `LazyTensor`, see [rkeops::|.LazyTensor()], else see
+#' [rkeops::|.default()].
+#' @param x,y input for [rkeops::|.default()] or [rkeops::|.LazyTensor()].
+#' @return See value of [rkeops::|.default()] or [rkeops::|.LazyTensor()].
+#' @seealso [rkeops::|.default()], [rkeops::|.LazyTensor()]
 #' @examples
 #' \dontrun{
+#' # R base element-wise logical or operation
+#' TRUE | FALSE
+#' x <- 1:10
+#' (x < 2) | (x > 8)
+#' # LazyTensor symbolic scalar product operation
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' y <- matrix(runif(250 * 3), 250, 3) # arbitrary R matrix, 250 rows and 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
@@ -910,11 +937,39 @@ rsqrt.LazyTensor <- function(x) {
 }
 
 #' Euclidean scalar product for LazyTensors.
-#' @aliases |.LazyTensor
 #' @name scalar.product.LazyTensor
-#' @rdname scalar.product.LazyTensor
+#' @aliases |.LazyTensor
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @keywords internal
+#' @description
+#' Symbolic uclidean scalar product binary operation for `LazyTensor` objects.
+#' @usage
+#' x | y
+#' (x | y)
+#' @details If `x` or `y` is a `LazyTensor`, `x^y` returns a `LazyTensor`
+#' that encodes, symbolically, the element-wise value of `x` to the power 
+#' of `y`.
+#' (In case one of the arguments is a vector or a scalar, it is first converted 
+#' to `LazyTensor`).
+#' 
+#' @details If `x` or `y` is a `LazyTensor`, `(x|y)` (or `x | y`) returns a 
+#' `LazyTensor` that encodes, symbolically, the Euclidean scalar product between 
+#' `x` and `y`, which must have the same shape. (In case one of the arguments is 
+#' a vector or a scalar, it is first converted to `LazyTensor`).
+#'
+#' **Note**: `x` and `y` input arguments should have the same inner dimension.
+#' @param x,y a `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values,
+#' or a scalar value.
+#' @return An object of class `LazyTensor`.
+#' @examples
+#' \dontrun{
+#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
+#' y <- matrix(runif(250 * 3), 250, 3) # arbitrary R matrix, 250 rows and 3 columns
+#' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
+#'                                     # indexed by 'i'
+#' y_j <- LazyTensor(y, index = 'j')   # creating LazyTensor from matrix y, 
+#'                                     # indexed by 'j'
+#' x_sp_y <- x_i | y_j                 # symbolic matrix
+#' }
 #' @export
 "|.LazyTensor" <- function(x, y) {
     res <- binaryop.LazyTensor(x, y, "|", is_operator = TRUE,
