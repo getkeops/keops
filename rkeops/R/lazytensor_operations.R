@@ -613,8 +613,7 @@ square <- function(x) {
 #' }
 #' @export
 square.LazyTensor <- function(x) {
-    res <- unaryop.LazyTensor(x, "Square")
-    return(res)
+    return(unaryop.LazyTensor(x, "Square"))
 }
 
 
@@ -630,7 +629,7 @@ square.LazyTensor <- function(x) {
 #' @inherit base::sqrt params
 #' @inherit base::sqrt return
 #' @inherit base::sqrt examples
-#' @seealso [base::MathFun]
+#' @seealso [base::sqrt()]
 #' @author R core team and contributors
 #' @export
 sqrt.default <- function(x) {
@@ -1722,6 +1721,7 @@ atan2.LazyTensor <- function(x, y) {
 #' @name default.math.fun
 #' @aliases abs.default
 #' @usage abs(x)
+#' @seealso [base::abs()]
 #' @export
 abs.default <- function(x) {
     return(base::abs(x))
@@ -1799,30 +1799,47 @@ abs.ComplexLazyTensor <- function(x) {
 
 # sign function ----------------------------------------------------------------
 
-#' Sign.
-#' @author Chloe Serre-Combe, Amelie Vernay
-#' @keywords internal
+#' Sign function
+#' @inherit base::sign description
+#' @inherit base::sign details
+#' @inherit base::sign params
+#' @inherit base::sign return
+#' @inherit base::sign examples
+#' @seealso [base::sign()]
+#' @author R core team and contributors
 #' @export
-sign.default <- .Primitive("sign")
+sign.default <- function(x) {
+    return(base::sign(x))
+}
 
-#' Element-wise sign.
-#' @description
-#' Symbolic unary operation for element-wise sign.
-#' @details If `x` is a `LazyTensor`, `sign(x)` returns a `LazyTensor` that 
-#' encodes, symbolically, the element-wise sign of `x` in {-1, 0, +1} ; else, 
-#' computes R default sign function.
+#' Element-wise sign operation
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x a `LazyTensor`, a `ComplexLazyTensor`, a vector or a matrix of 
-#' numeric values, or a scalar value.
-#' @return An object of class "LazyTensor" if the function is called with a 
-#' `LazyTensor`, and an object of class "numeric", "matrix", or "array" 
-#' otherwise, depending on the input class (see R default `sign()` function).
+#' @description
+#' Symbolic element-wise sign unary operation for `LazyTensor` objects or 
+#' default element-wise sign operation for other types.
+#' @details If `x` is a `LazyTensor`, see [rkeops::sign.LazyTensor()], else 
+#' see [rkeops::sign.default()].
+#' 
+#' The sign function is defined as follows:
+#' \deqn{\text{sign}(x) = \left\{
+#' \begin{array}{rcl}
+#' 0 & \text{if } & x = 0\\
+#' -1 & \text{if } & x < 0\\
+#' 1 & \text{if } & x > 0 
+#' \end{array}\right.}
+#' @param x input for [rkeops::sign.default()] or [rkeops::sign.LazyTensor()].
+#' @return See value of [rkeops::sign.default()] or [rkeops::sign.LazyTensor()].
+#' @seealso [rkeops::sign.default()], [rkeops::sign.LazyTensor()]
 #' @examples
 #' \dontrun{
+#' # R base operation
+#' sign(5)
+#' sign(-5)
+#' sign(-10:10)
+#' # LazyTensor symbolic element-wise sign
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
-#'                                     
 #' Sign_x <- sign(x_i)                 # symbolic matrix, 150 rows and 3 columns
 #' }
 #' @export
@@ -1830,92 +1847,154 @@ sign <- function(x) {
     UseMethod("sign")
 }
 
-#' Element-wise sign.
+#' Element-wise sign operation
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @keywords internal
-#' @export
-sign.LazyTensor <- function(x) {
-    res <- unaryop.LazyTensor(x, "Sign")
-    return(res)
-}
-
-
-# round function ---------------------------------------------------------------
-
-#' Rounding function.
-#' @author Chloe Serre-Combe, Amelie Vernay
-#' @keywords internal
-#' @export
-round.default <- .Primitive("round")
-
-#' Element-wise rounding function.
 #' @description
-#' Symbolic binary operation for element-wise rounding function.
-#' @details If `x` is a `LazyTensor`, `round(x, d)` returns a `LazyTensor` that 
-#' encodes, symbolically, the element-wise rounding of `x` to `d` decimal 
-#' places ; else, computes R default rounding function.
-#' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x a `LazyTensor`, a `ComplexLazyTensor`, a vector or a matrix of 
-#' numeric values, or a scalar value.
-#' @param d A scalar value. (or a complex ?)
-#' @return An object of class "LazyTensor" if the function is called with a 
-#' `LazyTensor`, and an object of class "numeric", "matrix", or "array" 
-#' otherwise, depending on the input class (see R default `round()` function).
+#' Symbolic element-wise sign unary operation for `LazyTensor` objects.
+#' @details If `x` is a `LazyTensor`, `sign(x)` returns a `LazyTensor` that 
+#' encodes, symbolically, the element-wise sign of `x`, i.e. 
+#' \deqn{\text{sign}(x) = \left\{
+#' \begin{array}{rcl}
+#' 0 & \text{if } & x = 0\\
+#' -1 & \text{if } & x < 0\\
+#' 1 & \text{if } & x > 0 
+#' \end{array}\right.}
+#' @param x a `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values,
+#' or a scalar value.
+#' @return An object of class `LazyTensor`.
+#' @seealso [rkeops::sign()]
 #' @examples
 #' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
-#'                                     
+#' Sign_x <- sign(x_i)                 # symbolic matrix, 150 rows and 3 columns
+#' }
+#' @export
+sign.LazyTensor <- function(x) {
+    return(unaryop.LazyTensor(x, "Sign"))
+}
+
+
+# round function ---------------------------------------------------------------
+
+#' Rounding function
+#' @inherit base::round description
+#' @inherit base::round details
+#' @inherit base::round params
+#' @inherit base::round return
+#' @inherit base::round examples
+#' @seealso [base::round()]
+#' @author R core team and contributors
+#' @export
+round.default <- function(x, digits = 0) {
+    return(base::round(x, digits))
+}
+
+#' Element-wise rounding function
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @description
+#' Symbolic element-wise rounding function for `LazyTensor` objects or 
+#' default element-wise rounding function for other types.
+#' @details If `x` is a `LazyTensor`, see [rkeops::round.LazyTensor()], else 
+#' see [rkeops::round.default()].
+#' @param x input for [rkeops::round.default()] or [rkeops::round.LazyTensor()].
+#' @param digits integer indicating the number of decimal places to be used 
+#' when rounding.
+#' @return See value of [rkeops::round.default()] or [rkeops::round.LazyTensor()].
+#' @seealso [rkeops::round.default()], [rkeops::round.LazyTensor()]
+#' @examples
+#' \dontrun{
+#' # R base operation
+#' round(5)
+#' round(runif(10), 4)
+#' # LazyTensor symbolic element-wise rounding
+#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
+#' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
+#'                                     # indexed by 'i'
 #' Round_x <- round(x_i, 2)            # symbolic matrix
 #' }
 #' @export
-round <- function(x, ...) {
+round <- function(x, digits = 0) {
     UseMethod("round", x)
 }
 
-#' Element-wise rounding function.
+#' Element-wise rounding function
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @keywords internal
+#' @description
+#' Symbolic element-wise rounding function for `LazyTensor` objects.
+#' @details If `x` is a `LazyTensor`, `round(x, digits)` returns a `LazyTensor` 
+#' that encodes, symbolically, the element-wise rounding of `x` to `digits` 
+#' decimal places.
+#' @param x a `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values,
+#' or a scalar value.
+#' @param digits integer indicating the number of decimal places to be used 
+#' when rounding.
+#' @return An object of class `LazyTensor`.
+#' @seealso [rkeops::round()]
+#' @examples
+#' \dontrun{
+#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
+#' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
+#'                                     # indexed by 'i'
+#' Round_x <- round(x_i, 2)            # symbolic matrix
+#' }
 #' @export
-round.LazyTensor <- function(x, d, ...) {
-    if(is.numeric(d) && length(d) == 1)
-        res <- unaryop.LazyTensor(x, "Round", d)
+round.LazyTensor <- function(x, digits = 0) {
+    if(is.numeric(digits) && length(digits) == 1)
+        res <- unaryop.LazyTensor(x, "Round", digits)
     else
-        stop("`d` input argument should be a scalar.")
+        stop("`digits` input argument should be a scalar.")
     return(res)
 }
 
 
 # xlogx function ---------------------------------------------------------------
 
-#' x*log(x) function.
+#' x*log(x) function
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @keywords internal
+#' @description
+#' Element-wise \eqn{x \times \log(x)} function on numeric or complex vectors 
+#' (or objects which can be coerced to them).
+#' @details
+#' See [base::Arithmetic] and [base::log()] for details about the 
+#' multiplication operation and log function.
+#' 
+#' **Note**: by convention `xlogx(0)` returns `0`.
+#' @param x numeric or complex vectors or objects which can be coerced to such.
+#' @return Vector or array containing the values of `x*log(x)`.
+#' @seealso [base::Arithmetic], [base::log()]
+#' @examples
+#' xlogx(4)
+#' xlogx(1:10)
 #' @export
 xlogx.default <- function(x) {
-    res <- ifelse(x == 0, 0, x * log(x))
-    return(res)
+    return(ifelse(x == 0, 0, x * log(x)))
 }
 
-#' Element-wise x*log(x) function.
-#' @description
-#' Symbolic unary operation for element-wise sign.
-#' @details If `x` is a `LazyTensor`, `xlogx(x)` returns a `LazyTensor` that 
-#' encodes, symbolically, the element-wise `x` times logarithm of `x` 
-#' (with value 0 at 0); else, computes `x * log(x)`.
+#' Element-wise `x*log(x)` operation
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x a `LazyTensor`, a `ComplexLazyTensor`, a vector or a matrix of 
-#' numeric values, or a scalar value.
-#' @return An object of class "LazyTensor" if the function is called with a 
-#' `LazyTensor`, and an object of class "numeric", "matrix", or "array" 
-#' otherwise, depending on the input class.
+#' @description
+#' Symbolic element-wise `x*log(x)` function for `LazyTensor` objects or
+#' standard element-wise `x*log(x)` function for other types.
+#' @details If `x` is a `LazyTensor`, see [rkeops::xlogx.LazyTensor()], 
+#' else see [rkeops::xlogx.default()].
+#' 
+#' **Note**: by convention `xlogx(0)` returns `0`.
+#' @param x input for [rkeops::xlogx.default()] or 
+#' [rkeops::xlogx.LazyTensor()].
+#' @return See value of [rkeops::xlogx.default()] or 
+#' [rkeops::xlogx.LazyTensor()]
+#' @seealso [rkeops::xlogx.default()], [rkeops::xlogx.LazyTensor()]
 #' @examples
 #' \dontrun{
+#' # Numerical input
+#' xlog(4)
+#' xlog(1:10)
+#' # LazyTensor symbolic element-wise `x*log(x)`
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
-#'                                     
 #' xlog_x <- xlogx(x_i)                # symbolic matrix, 150 rows and 3 columns
 #' }
 #' @export
@@ -1923,45 +2002,77 @@ xlogx <- function(x) {
     UseMethod("xlogx", x)
 }
 
-#' Element-wise x*log(x) function.
+#' Element-wise `x*log(x)` operation
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @keywords internal
-#' @export
-xlogx.LazyTensor <- function(x) {
-    res <- unaryop.LazyTensor(x, "XLogX")
-    return(res)
-}
-
-
-# sinxdivx function ------------------------------------------------------------
-
-#' sin(x)/x.
-#' @author Chloe Serre-Combe, Amelie Vernay
-#' @keywords internal
-#' @export
-sinxdivx.default <- function(x) {
-    res <- ifelse(x == 0, 1, sin(x) / x)
-    return(res)
-}
-
-#' Element-wise sin(x)/x function.
 #' @description
-#' Symbolic unary operation for element-wise sign.
-#' @details If `x` is a `LazyTensor`, `xlogx(x)` returns a `LazyTensor` that 
-#' encodes, symbolically, the element-wise sin(x)/x function of `x` (with value 
-#' 0 at 0); else, computes `sin(x) / x`.
-#' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x a `LazyTensor`, a `ComplexLazyTensor`, a vector or a matrix of 
-#' numeric values, or a scalar value.
-#' @return An object of class "LazyTensor" if the function is called with a 
-#' `LazyTensor`, and an object of class "numeric", "matrix", or "array" 
-#' otherwise, depending on the input class.
+#' Symbolic element-wise `x*log(x)` function for `LazyTensor` objects.
+#' @details If `x` is a `LazyTensor`, `square(x)` returns a `LazyTensor` that 
+#' encodes, symbolically, the element-wise `x*log(x)` values for `x`.
+#' 
+#' **Note**: by convention `xlogx(0)` returns `0`.
+#' @param x a `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values,
+#' or a scalar value.
+#' @return An object of class `LazyTensor`.
+#' @seealso [rkeops::xlogx()]
 #' @examples
 #' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
-#'                                     
+#' xlog_x <- xlogx(x_i)                # symbolic matrix, 150 rows and 3 columnsjs
+#' }
+#' @export
+xlogx.LazyTensor <- function(x) {
+    return(unaryop.LazyTensor(x, "XLogX"))
+}
+
+
+# sinxdivx function ------------------------------------------------------------
+
+#' sin(x)/x function
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @description
+#' Element-wise \eqn{\sin(x) / x} function on numeric or complex vectors 
+#' (or objects which can be coerced to them).
+#' @details
+#' See [base::sin()], [base::Arithmetic] for details about the sine function
+#' and division operation.
+#' 
+#' **Note**: by convention `sinxdivx(0)` returns `1`.
+#' @param x numeric or complex vectors or objects which can be coerced to such.
+#' @return Vector or array containing the values of `sin(x)/x`.
+#' @seealso [base::Arithmetic], [base::sin()]
+#' @examples
+#' sinxdivx(pi)
+#' sinxdivx(1:10)
+#' @export
+sinxdivx.default <- function(x) {
+    return(ifelse(x == 0, 1, sin(x) / x))
+}
+
+#' Element-wise `sin(x)/x` function
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @description
+#' Symbolic element-wise `sin(x)/x` function for `LazyTensor` objects or
+#' standard element-wise `sin(x)/x` function for other types.
+#' @details If `x` is a `LazyTensor`, see [rkeops::sinxdivx.LazyTensor()], 
+#' else see [rkeops::sinxdivx.default()].
+#' 
+#' **Note**: by convention `sinxdivx(0)` returns `1`.
+#' @param x input for [rkeops::sinxdivx.default()] or 
+#' [rkeops::sinxdivx.LazyTensor()].
+#' @return See value of [rkeops::sinxdivx.default()] or 
+#' [rkeops::sinxdivx.LazyTensor()]
+#' @seealso [rkeops::sinxdivx.default()], [rkeops::sinxdivx.LazyTensor()]
+#' @examples
+#' \dontrun{
+#' # Numerical input
+#' sinxdivx(4)
+#' sinxdivx(1:10)
+#' # LazyTensor symbolic element-wise `sin(x)/x`
+#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
+#' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
+#'                                     # indexed by 'i'
 #' sindiv_x <- sinxdivx(x_i)           # symbolic matrix, 150 rows and 3 columns
 #' }
 #' @export
@@ -1969,47 +2080,66 @@ sinxdivx <- function(x) {
     UseMethod("sinxdivx", x)
 }
 
-#' Element-wise sin(x)/x function.
+#' Element-wise `sin(x)/x` operation
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @keywords internal
-#' @export
-sinxdivx.LazyTensor <- function(x) {
-    res <- unaryop.LazyTensor(x, "SinXDivX")
-    return(res)
-}
-
-
-# step function ----------------------------------------------------------------
-
-#' Step.
-#' @author Chloe Serre-Combe, Amelie Vernay
-#' @keywords internal
-#' @export
-step.default <- function(x, ...) {
-    res <- stats::step(x, ...)
-}
-
-#' Element-wise step function.
 #' @description
-#' Symbolic unary operation for element-wise step function.
-#' @details If `x` is a `LazyTensor`, `step(x)` returns a `LazyTensor` that
-#' encodes, symbolically, the element-wise step function of `x` 
-#' (`0` if `x < 0`, `1` if `x >= 0`); else, computes R default 
-#' step function with other specific arguments (see R default `step()` 
-#' function).
-#' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x a `LazyTensor`, a `ComplexLazyTensor`, a vector or a matrix
-#' of numeric values, or a scalar value.
-#' @return An object of class "LazyTensor" if the function is called with a 
-#' `LazyTensor`, and an object of class "numeric", "matrix", or "array" 
-#' otherwise, depending on the input class (see R default `stats::step()` 
-#' function).
+#' Symbolic element-wise `sin(x)/x` function for `LazyTensor` objects.
+#' @details If `x` is a `LazyTensor`, `square(x)` returns a `LazyTensor` that 
+#' encodes, symbolically, the element-wise `sin(x)/x` values for `x`.
+#' 
+#' **Note**: by convention `sinxdivx(0)` returns `1`.
+#' @param x a `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values,
+#' or a scalar value.
+#' @return An object of class `LazyTensor`.
+#' @seealso [rkeops::sinxdivx()]
 #' @examples
 #' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
-#'                                     
+#' sindiv_x <- sinxdivx(x_i)           # symbolic matrix, 150 rows and 3 columns
+#' }
+#' @export
+sinxdivx.LazyTensor <- function(x) {
+    return(unaryop.LazyTensor(x, "SinXDivX"))
+}
+
+
+# step function ----------------------------------------------------------------
+
+#' Choose a model by AIC in a Stepwise Algorithm
+#' @inherit stats::step description
+#' @inherit stats::step details
+#' @inherit stats::step params
+#' @inherit stats::step return
+#' @inherit stats::step examples
+#' @seealso [stats::step()]
+#' @author R core team and contributors
+#' @export
+step.default <- function(x, ...) {
+    return(stats::step(x, ...))
+}
+
+#' Element-wise 0-1 step function (for LazyTensors) or default stepwise model 
+#' selection
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @description
+#' Symbolic element-wise 0-1 step function for `LazyTensor` objects 
+#' (i.e. `0` if `x < 0`, `1` if `x >= 0`) or stepwise model 
+#' selection.
+#' @details If `x` is a `LazyTensor`, see [rkeops::step.LazyTensor()], else 
+#' see [rkeops::step.default()].
+#' @param x input for [rkeops::step.default()] or [rkeops::step.LazyTensor()].
+#' @param ... optional additional input arguments.
+#' @return See value of [rkeops::step.default()] or [rkeops::step.LazyTensor()].
+#' @seealso [rkeops::step.default()], [rkeops::step.LazyTensor()]
+#' @examples
+#' \dontrun{
+#' # R base operation: see `?step.default`
+#' # LazyTensor symbolic element-wise sign
+#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
+#' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
+#'                                     # indexed by 'i'
 #' Step_x <- step.LazyTensor(x_i)      # symbolic matrix, 150 rows and 3 columns
 #' }
 #' @export
@@ -2017,64 +2147,129 @@ step <- function(x, ...){
     UseMethod("step", x)
 }
 
-#' Element-wise step function.
+#' Element-wise 0-1 step function
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @keywords internal
-#' @export
-step.LazyTensor <- function(x, ...) {
-    res <- unaryop.LazyTensor(x, "Step")
-    return(res)
-}
-
-
-# relu function ----------------------------------------------------------------
-
-#' Element-wise ReLU function.
 #' @description
-#' Symbolic unary operation for element-wise ReLU function.
-#' @details `relu(x)` returns a `LazyTensor` that encodes, symbolically,
-#' the element-wise ReLU of `x` (`0` if `x < 0`, `x` if `x >= 0`).
-#' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x a `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, 
+#' Symbolic element-wise 0-1 step function for `LazyTensor` objects.
+#' @details If `x` is a `LazyTensor`, `step(x)` returns a `LazyTensor` 
+#' that encodes, symbolically, the element-wise 0-1 step of `x`, i.e. 
+#' `0` if `x < 0`, `1` if `x >= 0`.js
+#' @param x a `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values,
 #' or a scalar value.
-#' @return An object of class "LazyTensor".
+#' @return An object of class `LazyTensor`.
+#' @seealso [rkeops::step()]
 #' @examples
 #' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
-#'                                     
+#' Step_x <- step.LazyTensor(x_i)      # symbolic matrix, 150 rows and 3 columns
+#' }
+#' @export
+step.LazyTensor <- function(x, ...) {
+    return(unaryop.LazyTensor(x, "Step"))
+}
+
+
+# relu function ----------------------------------------------------------------
+
+#' Element-wise ReLU function
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @description
+#' Element-wise ReLU (Rectified Linear Unit) function on numeric vectors 
+#' (or objects which can be coerced to them).
+#' @details
+#' The ReLU function \insertCite{fukushima_cognitron_1975}{rkeops} is defined 
+#' as follows: `relu(x)` returns `0` if `x < 0`, `x` if `x >= 0`.
+#' @param x numeric vectors or objects which can be coerced to such.
+#' @return Vector or array containing the element-wise ReLU of `x`.
+#' @references
+#' \insertRef{fukushima_cognitron_1975}{rkeops}
+#' @examples
+#' relu(4)
+#' relu(-10:10)
+#' @export
+relu.default <- function(x) {
+    return(ifelse(x < 0, 0, x))
+}
+
+#' Element-wise ReLU function
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @description
+#' Symbolic element-wise ReLU function for `LazyTensor` objects or
+#' standard element-wise ReLU function for other types.
+#' @details The ReLU function \insertCite{fukushima_cognitron_1975}{rkeops} 
+#' is defined as follows: `relu(x)` returns `0` if `x < 0`, `x` if `x >= 0`.
+#' 
+#' If `x` is a `LazyTensor`, see [rkeops::relu.LazyTensor()], else 
+#' see [rkeops::relu.default()].
+#' @param x input for [rkeops::relu.default()] or 
+#' [rkeops::relu.LazyTensor()].
+#' @return See value of [rkeops::relu.default()] or 
+#' [rkeops::relu.LazyTensor()]
+#' @seealso [rkeops::relu.default()], [rkeops::relu.LazyTensor()]
+#' @references
+#' \insertRef{fukushima_cognitron_1975}{rkeops}
+#' @examples
+#' \dontrun{
+#' # Numerical input
+#' relu(4)
+#' relu(-10:10)
+#' # LazyTensor symbolic element-wise square
+#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
+#' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
+#'                                     # indexed by 'i'
 #' ReLU_x <- relu(x_i)                 # symbolic matrix, 150 rows and 3 columns
 #' }
 #' @export
 relu <- function(x) {
-    res <- unaryop.LazyTensor(x, "ReLU")
-    return(res)
+    UseMethod("relu", x)
+}
+
+#' Element-wise ReLU function
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @description
+#' Symbolic element-wise ReLU (Rectified Linear Unit) function for 
+#' `LazyTensor` objects.
+#' @details If `x` is a `LazyTensor`, `relu(x)` returns a `LazyTensor` that 
+#' encodes, symbolically, the element-wise ReLU of `x`.
+#' 
+#' The ReLU function \insertCite{fukushima_cognitron_1975}{rkeops} is defined 
+#' as follows: `relu(x)` returns `0` if `x < 0`, `x` if `x >= 0`.
+#' @param x a `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values,
+#' or a scalar value.
+#' @return An object of class `LazyTensor`.
+#' @seealso [rkeops::relu()]
+#' @references
+#' \insertRef{fukushima_cognitron_1975}{rkeops}
+#' @examples
+#' \dontrun{
+#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
+#' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
+#'                                     # indexed by 'i'
+#' ReLU_x <- relu(x_i)                 # symbolic matrix, 150 rows and 3 columns
+#' }
+#' @export
+relu.LazyTensor <- function(x) {
+    return(unaryop.LazyTensor(x, "ReLU"))
 }
 
 
 # clamp function ---------------------------------------------------------------
 
-#' Element-wise clamp function.
+#' Element-wise clamp function
 #' @description
-#' Symbolic ternary operation for element-wise clamp function.
+#' Symbolic element-wise clamp function (ternary operation) for `LazyTensor` 
+#' objects.
 #' @details `clamp(x, a, b)` returns a `LazyTensor` that encodes, symbolically,
-#' the element-wise clamping of  `x` in `(a, b)`. That is, `clamp(x, a, b)`
-#' encodes symbolically `a` if `x < a`, `x` if `a <= x <= b`, and `b` if 
-#' `b < x`.
+#' the element-wise clamping of  `x` in `(a, b)`, i.e. `a` if `x < a`, 
+#' `x` if `a <= x <= b`, and `b` if  `b < x`.
 #' Broadcasting rules apply.
 #' 
-#' **Note**
-#' 
-#' If `a` and `b` are not scalar values, these should have the same inner 
-#' dimension as `x`.
+#' **Note**: If `a` and `b` are not scalar values, these should have the same 
+#' inner dimension as `x`.
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A `LazyTensor`, a vector of numeric values, 
-#' or a scalar value.
-#' @param a A `LazyTensor`, a vector of numeric values, 
-#' or a scalar value.
-#' @param b A `LazyTensor`, a vector of numeric values, 
-#' or a scalar value.
+#' @param x,a,b A `LazyTensor`, a vector of numeric values, or a scalar value.
 #' @return An object of class `LazyTensor`.
 #' @examples
 #' \dontrun{
@@ -2111,16 +2306,16 @@ clamp <- function(x, a, b) {
 
 # clampint function ------------------------------------------------------------
 
-#' Element-wise clampint function.
+#' Element-wise clampint function
 #' @description
-#' Symbolic ternary operation for element-wise clampint function.
+#' Symbolic element-wise clampint function (ternary operation) for `LazyTensor` 
+#' objects.
 #' @details `clampint(x, y, z)` returns a `LazyTensor` that encodes, 
 #' symbolically, the element-wise clamping of `x` in `(y, z)` which are 
-#' integers. See `?clamp` for more details.
+#' integers. See [rkeops::clamp()] for more details.
 #' Broadcasting rules apply.
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A `LazyTensor`, a vector of numeric values, 
-#' or a scalar value.
+#' @param x A `LazyTensor`, a vector of numeric values, or a scalar value.
 #' @param y An `integer`.
 #' @param z An `integer`.
 #' @return An object of class `LazyTensor`.
@@ -2147,8 +2342,8 @@ clampint <- function(x, y, z) {
                 "`clampint(x, y, z)` expects integer arguments for `y` and `z`.", 
                 "Use clamp(x, y, z) for different `y` and `z` types.", 
                 sep = " "
-                )
             )
+        )
     }
     res <- unaryop.LazyTensor(x, "ClampInt", y, z)
 }
@@ -2156,41 +2351,72 @@ clampint <- function(x, y, z) {
 
 # if-else function -------------------------------------------------------------
 
-#' if-else function.
-#' @author Chloe Serre-Combe, Amelie Vernay
-#' @keywords internal
+#' Conditional Element Selection
+#' @inherit base::ifelse description
+#' @inherit base::ifelse details
+#' @inherit base::ifelse params
+#' @inherit base::ifelse return
+#' @inherit base::ifelse examples
+#' @seealso [base::ifelse()]
+#' @author R core team and contributors
 #' @export
 ifelse.default <- function(x, a, b) {
-    res <- base::ifelse(x, a, b)
-    return(res)
+    return(base::ifelse(x, a, b))
 }
 
 
-#' Element-wise if-else function.
+#' Element-wise if-else function
+#' @author Chloe Serre-Combe, Amelie Vernay
 #' @description
-#' Symbolic ternary operation for element-wise if-else function.
+#' Symbolic element-wise if-else function for `LazyTensor` objects or
+#' standard element-wise if-else function for other types.
+#' @details If `x` is a `LazyTensor`, see [rkeops::ifelse.LazyTensor()], else 
+#' see [rkeops::ifelse.default()].
+#' @param x,a,b input for [rkeops::ifelse.default()] or 
+#' [rkeops::ifelse.LazyTensor()].
+#' @return See value of [rkeops::ifelse.default()] or 
+#' [rkeops::ifelse.LazyTensor()]
+#' @seealso [rkeops::ifelse.default()], [rkeops::ifelse.LazyTensor()]
+#' @examples
+#' \dontrun{
+#' # R base operation
+#' x <- c(6:-4)
+#' sqrt(ifelse(x >= 0, x, NA))
+#' # LazyTensor symbolic element-wise square
+#' D <- 3
+#' M <- 100
+#' N <- 150
+#' P <- 200
+#' x <- matrix(runif(M * D), M, D)
+#' y <- matrix(runif(N * D), N, D)
+#' z <- matrix(runif(P * D), P, D)
+#' x_i <- LazyTensor(x, index = 'i')
+#' y_j <- LazyTensor(y, index = 'j')
+#' z_i <- LazyTensor(z, index = 'i')
+#' 
+#' if_else_xyz <- ifelse(x_i, y_j, z_i)
+#' }
+#' @export
+ifelse <- function(x, a, b) {
+    UseMethod("ifelse", x)
+}
+
+#' Element-wise if-else function.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @description
+#' Symbolic element-wise if-else function  (ternary operation) for 
+#' `LazyTensor` objects.
 #' @details If `x` is a `LazyTensor`, `ifelse(x, a, b)` returns a `LazyTensor` 
-#' that encodes, symbolically,
-#' `a` if `x >= 0` and `b` if ``x < 0``.  Broadcasting rules apply. 
+#' that encodes, symbolically, `a` if `x >= 0` and `b` if `x < 0`.  
+#' Broadcasting rules apply. 
 #' `a` and `b` may be fixed integers or floats, or other `LazyTensor`.
 #' 
-#' Else, computes R default if-else function.
-#' 
-#' **Note**
-#' 
-#' If `a` and `b` are not scalar values, these should have the same inner 
+#' **Note**: If `a` and `b` are not scalar values, these should have the same inner 
 #' dimension as `x`.
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A `LazyTensor`, a vector of numeric values, 
+#' @param x,a,b A `LazyTensor`, a vector of numeric values, 
 #' or a scalar value.
-#' @param a A `LazyTensor`, a vector of numeric values, 
-#' or a scalar value.
-#' @param b A `LazyTensor`, a vector of numeric values, 
-#' or a scalar value.
-#' @return An object of class "LazyTensor" if the function is called with a 
-#' `LazyTensor`, and an object of class "numeric", "matrix", or "array" 
-#' otherwise, depending on the input class (see R default `base::ifelse()` 
-#' function).
+#' @return An object of class `LazyTensor`.
 #' @examples
 #' \dontrun{
 #' # basic example
@@ -2209,54 +2435,34 @@ ifelse.default <- function(x, a, b) {
 #' if_else_xyz <- ifelse(x_i, y_j, z_i)
 #' }
 #' @export
-ifelse <- function(x, a, b) {
-    UseMethod("ifelse", x)
-}
-
-#' Element-wise if-else function.
-#' @author Chloe Serre-Combe, Amelie Vernay
-#' @keywords internal
-#' @export
 ifelse.LazyTensor <- function(x, a, b) {
     if((is.ComplexLazyTensor(x) || is.ComplexLazyTensor(a)) 
        || (is.ComplexLazyTensor(b))) {
         stop(paste0("`x`, `a` and `b` input arguments ", 
                     "cannot be ComplexLazyTensors."))
     }
-    res <- ternaryop.LazyTensor(x, a, b, "IfElse")
+    return(ternaryop.LazyTensor(x, a, b, "IfElse"))
 }
 
 
 # mod function -----------------------------------------------------------------
 
-#' Element-wise modulo with offset function.
+#' Element-wise modulo with offset function
 #' @rdname modulo
-#' @description
-#' Symbolic ternary operation for element-wise modulo with offset function.
-#' @details `mod(x, a, b)` returns a `LazyTensor` that encodes, symbolically,
-#' the element-wise modulo of `x` with modulus `a` and offset `b`. That is,
-#' `mod(x, a, b)` encodes symbolically `x - a * floor((x - b)/a)`.
-#' By default `b = 0`, so that `mod(x, a)` becomes equivalent to the R 
-#' function `%%`.
-#' `a` and `b` may be fixed integers or floats, or other `LazyTensor`.
-#' Broadcasting rules apply.
-#' 
-#' **Note**
-#' 
-#' If `a` and `b` are not scalar values, these should have the same inner 
-#' dimension as `x`.
-#' 
-#' **Warning**
-#' 
-#' Do not confuse with `Mod()`.
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x a `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, 
-#' or a scalar value.
-#' @param a a `LazyTensor`, a `ComplexLazyTensor` a vector of numeric values, 
-#' or a scalar value.
-#' @param b a `LazyTensor`, a `ComplexLazyTensor` a vector of numeric values, 
-#' or a scalar value.
-#' @return An object of class `LazyTensor`.
+#' @description
+#' Symbolic element-wise modulo with offset function  (ternary operation) for 
+#' `LazyTensor` objects  or any other `mod` function (if existing).
+#' @details If `x` is a `LazyTensor`, see [rkeops::ifelse.LazyTensor()], else 
+#' see the corresponding `mod` function (if existing) help page.
+#' 
+#' **Warning**: Do not confuse with [rkeops::Mod()].
+#' @param x input for [rkeops::ifelse.default()] or any other `mod` function 
+#' (if existing).
+#' @param ... optional additional input arguments.
+#' @return See value of [rkeops::mod.LazyTensor()] or any other `mod` function
+#' (if existing).
+#' @seealso [rkeops::mod.LazyTensor()]
 #' @examples
 #' \dontrun{
 #' # basic example
@@ -2282,13 +2488,53 @@ mod <- function(x, ...) {
     UseMethod("mod", x)
 }
 
-#' Element-wise modulo with offset function.
+#' Element-wise modulo with offset function
 #' @rdname modulo.LazyTensor
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @keywords internal
+#' @description
+#' Symbolic element-wise modulo with offset function (ternary operation) for 
+#' `LazyTensor` objects
+#' @details If `x` is a `LazyTensor`, `mod(x, a, b)` returns a `LazyTensor` 
+#' that encodes, symbolically, the element-wise modulo of `x` with 
+#' divisor `a` and offset `b`, i.e. `x - a * floor((x - b)/a)`.
+#' By default `b = 0`, `mod(x, a)` corresponds to the standard R 
+#' function `%%`.
+#' 
+#' `a` and `b` may be fixed integers or floats, or other `LazyTensor`.
+#' Broadcasting rules apply.
+#' 
+#' **Note**: If `a` and `b` are not scalar values, these should have the same 
+#' inner dimension as `x`.
+#' 
+#' **Warning**: Do not confuse with [rkeops::Mod()].
+#' @param x,a,b a `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric 
+#' values, or a scalar value.
+#' @param ... not used, only present for method compatibility with
+#' corresponding generic.
+#' @return An object of class `LazyTensor`.
+#' @examples
+#' \dontrun{
+#' # basic example
+#' D <- 3
+#' M <- 100
+#' N <- 150
+#' P <- 200
+#' x <- matrix(runif(M * D), M, D)
+#' y <- matrix(runif(N * D), N, D)
+#' z <- matrix(runif(P * D), P, D)
+#' x_i <- LazyTensor(x, index = 'i')
+#' y_j <- LazyTensor(y, index = 'j')
+#' z_i <- LazyTensor(z, index = 'i')
+#' 
+#' # call mod function
+#' mod_x72 <- mod(x_i, 7, 2)
+#' 
+#' # works also with LazyTensors with same inner dimension or dimension 1
+#' mod_xyz <- mod(x_i, y_j, z_i)
+#' }
 #' @export
 mod.LazyTensor <- function(x, a, b = 0, ...) {
-    res <- ternaryop.LazyTensor(x, a, b, "Mod")
+    return(ternaryop.LazyTensor(x, a, b, "Mod"))
 }
 
 
@@ -3399,7 +3645,7 @@ vecmatmult <- function(v, m) {
 tensorprod <- function(x, y) {
     dim_res <- x$dimres * y$dimres
     res <- binaryop.LazyTensor(x, y, "TensorProd", dim_check_type = NA, 
-                                   dim_res = dim_res)
+                               dim_res = dim_res)
     
     return(res)
 }
@@ -4653,7 +4899,7 @@ grad <- function(f, gradin, opstr, var, index) {
     if(is.LazyTensor(var)) {
         var <- fixvariables(var)$formula
     }
-   
+    
     if(!is.LazyTensor(f) || !is.LazyTensor(gradin)) {
         stop(paste0("`f` and `gradin` input arguments should be LazyTensor."))
     }
