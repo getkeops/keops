@@ -3277,31 +3277,28 @@ Mod.ComplexLazyTensor <- function(z) {
 
 # Elem -------------------------------------------------------------------------
 
-# TODO doc
-#' Elem.
+#' Extract an element
 #' @description
-#' Symbolic element extraction. A unary operation.
-#' @details  
-#' Extracts the `m`-th element of a `LazyTensor` `x`, that is, `elem(x, m)`
-#' encodes, symbolically, symbolically, the `m`-th element `x[m]`
-#' of the given `LazyTensor` `x`.
+#' Symbolic element extraction operation for `LazyTensor` objects.
+#' @details 
+#' If `x` is a `LazyTensor`, `elem(x, m)` returns a `LazyTensor` that 
+#' encodes, symbolically, the `m+1`-th element of `x`, i.e. `x[m+1]` in 
+#' standard R notation.
 #' 
-#' **IMPORTANT**
-#' 
-#' IN THIS CASE, INDICES START AT ZERO, therefore, `m` should be in `[0, n)`,
-#' where `n` is the inner dimension of `x`.
+#' **IMPORTANT**: IN THIS CASE, INDICES START AT ZERO, therefore, `m` should 
+#' be in `[0, n)`, where `n` is the inner dimension of `x`.
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A `LazyTensor` or a `ComplexLazyTensor`.
-#' @param m An `integer` corresponding to the index of the element of `x` we
-#' want to extract (`x[m]`).
-#' @return A `LazyTensor` or a `ComplexLazyTensor`.
+#' @param x a `LazyTensor` or a `ComplexLazyTensor`.
+#' @param m an `integer` corresponding to the index (starting from 0) of 
+#' the element of `x` that will be extracted.
+#' @return a `LazyTensor` or a `ComplexLazyTensor`.
 #' @examples
 #' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # LazyTensor from matrix x, indexed by 'i'
 #' m <- 2
 #' 
-#' elem_x <- elem(x_i, m)  # symbolic `m`-th element of `x_i`.
+#' elem_x <- elem(x_i, m)  # symbolic `m+1`-th element of `x_i`.
 #' }
 #' @export
 elem <- function(x, m) {
@@ -3313,34 +3310,33 @@ elem <- function(x, m) {
         stop(paste("Index `m` is out of bounds. Should be in [0, ",
                    D, ").", sep = ""))
     }
-    res <- unaryop.LazyTensor(x, "Elem", m, dim_res = 1)
-    return(res)
+    return(unaryop.LazyTensor(x, "Elem", m, dim_res = 1))
 }
 
 
 # ElemT ------------------------------------------------------------------------
 
-#' ElemT.
+#' Insert element in a vector of zeros
 #' @description
-#' Insert a given value in a symbolic vector of zeros - a unary operation.
+#' Insert a given value (stored in a `LazyTensor`) in a symbolic vector of 
+#' zeros.
 #' @details 
 #' `elemT(x, m, n)` insert scalar value `x` (encoded as a `LazyTensor`) at
-#' position `m` in a vector of zeros of length `n`.
+#' position `m+1` in a vector of zeros of length `n` (encoded as a `LazyTensor`
+#' of inner dimension `n`).
 #' 
-#' **Note**
+#' **Note**: Input `x` should be a `LazyTensor` encoding a single parameter
+#' value.
 #' 
-#' Input `x` should be a `LazyTensor` encoding a single parameter value.
-#' 
-#' **IMPORTANT**
-#' 
-#' IN THIS CASE, INDICES START AT ZERO, therefore, `m` should be in `[0, n)`.
+#' **IMPORTANT**: IN THIS CASE, INDICES START AT ZERO, therefore, `m` should 
+#' be in `[0, n)`.
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A `LazyTensor` or a `ComplexLazyTensor` encoding a single
+#' @param x a `LazyTensor` or a `ComplexLazyTensor` encoding a single
 #' parameter value.
-#' @param m An `integer` corresponding to the position `m` of the created
-#' vector of zeros at which we want to insert the value `x`.
-#' @param n An `integer` corresponding to the length of the vector of zeros.
-#' @return A `LazyTensor` or a `ComplexLazyTensor`.
+#' @param m an `integer` corresponding to the position `m` (starting from 0) 
+#' of the created vector of zeros at which we want to insert the value `x`.
+#' @param n an `integer` corresponding to the length of the vector of zeros.
+#' @return a `LazyTensor` or a `ComplexLazyTensor`.
 #' @examples
 #' \dontrun{
 #' # basic example
@@ -3369,33 +3365,32 @@ elemT <- function(x, m, n) {
                    n, ").", sep = ""))
     }
     
-    res <- unaryop.LazyTensor(x, "ElemT", opt_arg = n, opt_arg2 = m)
-    return(res)
+    return(unaryop.LazyTensor(x, "ElemT", opt_arg = n, opt_arg2 = m))
 }
 
 
 # Extract ----------------------------------------------------------------------
 
-#' Extract.
+#' Extract a range of elements
 #' @description
-#' Symbolic sub-element extraction. A unary operation.
+#' Symbolic extraction range of elements for `LazyTensor` objects.
 #' @details `extract(x_i, m, d)` encodes, symbolically, the extraction
 #' of a range of values `x[m:m+d]` in the `LazyTensor` `x`; (`m` is the 
 #' starting index, and `d` is the dimension of the extracted sub-vector).
 #'
-#' **IMPORTANT**
+#' **IMPORTANT**: IN THIS CASE, INDICES START AT ZERO, therefore, `m` should 
+#' be in `[0, n)`, where `n` is the inner dimension of `x`. And `d` should be 
+#' in `[0, n-m]`.
 #' 
-#' IN THIS CASE, INDICES START AT ZERO, therefore, `m` should be in `[0, n)`,
-#' where `n` is the inner dimension of `x`. And `d` should be in `[0, n-m]`.
-#' 
-#' **Note**
-#' 
-#' See @examples for a more concrete explanation of the use of `extract()`.
+#' **Note**: See the examples for a more concrete explanation regarding the 
+#' use of `extract()`.
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A `LazyTensor` or a `ComplexLazyTensor`.
-#' @param m An `integer` corresponding to the starting index.
-#' @param d An `integer` corresponding to the output dimension.
-#' @return A `LazyTensor`.
+#' @param x a `LazyTensor` or a `ComplexLazyTensor`.
+#' @param m an `integer` corresponding to the starting index (starting from 0) 
+#' of the range of elements from `x` that will be extracted.
+#' @param d an `integer` corresponding to the output dimension, i.e. the number 
+#' of consecutive elements from `x` that will be extracted.
+#' @return a `LazyTensor`.
 #' @examples
 #' \dontrun{
 #' # Two very rudimentary examples
@@ -3466,37 +3461,37 @@ extract <- function(x, m, d) {
                   D, "-m] where `m` is the starting index.", sep = "")
         )
     }
-    res <- unaryop.LazyTensor(x, "Extract",
+    return(unaryop.LazyTensor(x, "Extract",
                               opt_arg = m, opt_arg2 = d,
-                              dim_res = d)
-    return(res)
+                              dim_res = d))
 }
 
 
 # ExtractT ---------------------------------------------------------------------
 
-#' ExtractT.
+#' Insert a range of elements
 #' @description
-#' Insert a given value, vector of values or matrix of values in a symbolic
-#' vector or matrix of zeros -
-#' a unary operation.
+#' Insert a given value, vector of values or matrix of values (stored in a 
+#' `LazyTensor`) in a symbolic vector or matrix of zeros.
 #' @details If `x` is a `LazyTensor` encoding a vector (resp. a matrix),
 #' `extractT(x, m, d)` encodes, symbolically, a `d`-inner-dimensional
 #' vector (resp. matrix) of zeros in which is inserted `x`,
-#' at starting position `m`.
+#' at starting position `m+1`.
 #' 
-#' **Note 1**
+#' **IMPORTANT**: IN THIS CASE, INDICES START AT ZERO, therefore, `m` should 
+#' be in `[0, n)`, where `n` is the inner dimension of `x`. And `d` should be 
+#' in `[0, n-m]`.
 #' 
-#' `x` can also encode a single value, in which case the operation works
-#' the same way as in the case of a vector of values.
+#' **Note 1**: `x` can also encode a single value, in which case the 
+#' operation works the same way as in the case of a vector of values.
 #' 
-#' **Note 2**
-#' 
-#' See @examples for a more concrete explanation of the use of `extractT()`.
+#' **Note 2**: See the examples for a more concrete explanation regarding the 
+#' use of `extractT()`.
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A `LazyTensor` or a `ComplexLazyTensor`.
-#' @param m An `integer` corresponding to the starting index.
-#' @param d An `integer` corresponding to the output inner dimension.
+#' @param x a `LazyTensor` or a `ComplexLazyTensor`.
+#' @param m an `integer` corresponding to the starting index (starting from 0) 
+#' where the elements from `x` will be inserted.
+#' @param d an `integer` corresponding to the output inner dimension.
 #' @return A `LazyTensor`.
 #' @examples
 #' \dontrun{
@@ -3586,41 +3581,40 @@ extractT <- function(x, m, d) {
                   D, ".", sep = "")
         )
     }
-    res <- unaryop.LazyTensor(x, "ExtractT", opt_arg = m, opt_arg2 = d)
-    return(res)
+    return(unaryop.LazyTensor(x, "ExtractT", opt_arg = m, opt_arg2 = d))
 }
 
 
 # Concatenation ----------------------------------------------------------------
 
-#' Concatenation.
+#' Concatenation
 #' @description
-#' Concatenation of two `LazyTensor` or `ComplexLazyTensor`. A binary operation.
+#' Concatenation of two `LazyTensor` or `ComplexLazyTensor`.
 #' @details If `x` and `y` are two `LazyTensor` or `ComplexLazyTensor`,
 #' `concat(x, y)` encodes, symbolically, the concatenation of `x` and `y` along
-#' their inner dimension. TODO check if this is, indeed, along the inner 
-#' dimension !
+#' their inner dimension.
+#' 
+#' TODO check if this is, indeed, along the inner dimension !
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A `LazyTensor` or a `ComplexLazyTensor`.
-#' @param y A `LazyTensor` or a `ComplexLazyTensor`.
-#' @return A `LazyTensor` or a `ComplexLazyTensor` that encodes, symbolically,
+#' @param x a `LazyTensor` or a `ComplexLazyTensor`.
+#' @param y a `LazyTensor` or a `ComplexLazyTensor`.
+#' @return a `LazyTensor` or a `ComplexLazyTensor` that encodes, symbolically,
 #' the concatenation of `x` and `y` along their inner dimension.
 #' @examples
 #' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' y <- matrix(runif(250 * 3), 250, 3) # arbitrary R matrix, 250 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # LazyTensor from matrix x, indexed by 'i'
-#' y_j <- LazyTensor(y, index = 'j')   # LazyTensor from matrix x, indexed by 'j'                                     
+#' y_j <- LazyTensor(y, index = 'j')   # LazyTensor from matrix x, indexed by 'j'
 #' 
 #' concat_xy <- concat(x_i, y_j)
 #' }
 #' @export
 concat <- function(x, y) {
     dim_res <- get_inner_dim(x) + get_inner_dim(y)
-    res <- binaryop.LazyTensor(x, y, "Concat",
+    return(binaryop.LazyTensor(x, y, "Concat",
                                dim_check_type = NA,
-                               dim_res = dim_res)
-    return(res)
+                               dim_res = dim_res))
 }
 
 
