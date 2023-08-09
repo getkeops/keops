@@ -3620,16 +3620,16 @@ concat <- function(x, y) {
 
 # One-hot ----------------------------------------------------------------------
 
-#' One-hot.
+#' One-hot encoding vector
 #' @description
-#' One-hot 
+#' Create one-hot encoding vector as a `LazyTensor` object.
 #' @details If `x` is a scalar value encoded as a `LazyTensor`,
 #' `one_hot(x, D)` encodes, symbolically, a vector of length **D**
-#' whose round(`x`)-th coordinate is equal to 1, and the other ones to 0.
+#' where round(`x`)-th coordinate is equal to 1, and the other ones to 0.
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `LazyTensor` encoding a scalar value.
-#' @param D An `integer` corresponding to the output dimension.
-#' @return A `LazyTensor`.
+#' @param D an `integer` corresponding to the output dimension.
+#' @return a `LazyTensor`.
 #' @examples
 #' \dontrun{
 #' A <- 7
@@ -3654,8 +3654,7 @@ one_hot <- function(x, D) {
         stop("`D` input argument should be an integer.")
     }
     
-    res <- unaryop.LazyTensor(x, "OneHot", opt_arg = D, dim_res = D)
-    return(res)
+    return(unaryop.LazyTensor(x, "OneHot", opt_arg = D, dim_res = D))
 }
 
 
@@ -3665,21 +3664,18 @@ one_hot <- function(x, D) {
 
 # MatVecMult -------------------------------------------------------------------
 
-#' Matrix-vector product.
+#' Matrix-vector product
 #' @description
-#' Matrix-vector product - a binary operation.
-#' @details `matvecmult(m, v)` encodes, symbolically,
-#' the matrix-vector product of `m` and `v`.
+#' Matrix-vector product for `LazyTensor` objects.
+#' @details `matvecmult(m, v)` encodes, symbolically, the matrix-vector product 
+#' of matrix `m` and vector `v`.
 #' 
-#' **Note**
-#' 
-#' `m` and `v` should have the same inner dimension or `v` should be of
-#' dimension 1.
-#' 
+#' **Note**: `m` and `v` should have the same inner dimension or `v` should be 
+#' of dimension 1.
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param m A `LazyTensor` or a `ComplexLazyTensor` encoding a matrix.
-#' @param v A `LazyTensor` or a `ComplexLazyTensor` encoding a parameter vector.
-#' @return A `LazyTensor` or a `ComplexLazyTensor`. 
+#' @param m a `LazyTensor` or a `ComplexLazyTensor` encoding a matrix.
+#' @param v a `LazyTensor` or a `ComplexLazyTensor` encoding a parameter vector.
+#' @return a `LazyTensor` or a `ComplexLazyTensor`. 
 #' @examples
 #' \dontrun{
 #' m <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
@@ -3711,28 +3707,25 @@ matvecmult <- function(m, v) {
         dim_res <- m$dimres
     }
     
-    res <- binaryop.LazyTensor(m, v, "MatVecMult", dim_res = dim_res)
-    return(res)
+    return(binaryop.LazyTensor(m, v, "MatVecMult", dim_res = dim_res))
 }
 
 
 # VecMatMult -------------------------------------------------------------------
 
-#' Vector-matrix product.
+#' Vector-matrix product
 #' @description
-#' Vector-matrix product - a binary operation.
-#' @details `vecmatmult(v, m)` encodes, symbolically,
-#' the vector-matrix product of `v` and `m`.
+#' Vector-matrix product for `LazyTensor` objects.
+#' @details `vecmatmult(v, m)` encodes, symbolically, the vector-matrix product 
+#' of vector `v` and matrix `m`.
 #' 
-#' **Note**
-#' 
-#' `v` and `m` should have the same inner dimension or `v` should be of
-#' dimension 1.
+#' **Note**: `v` and `m` should have the same inner dimension or `v` should be 
+#' of dimension 1.
 #' 
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param v A `LazyTensor` or a `ComplexLazyTensor` encoding a parameter vector.
-#' @param m A `LazyTensor` or a `ComplexLazyTensor` encoding a matrix.
-#' @return A `LazyTensor` or a `ComplexLazyTensor`.
+#' @param v a `LazyTensor` or a `ComplexLazyTensor` encoding a parameter vector.
+#' @param m a `LazyTensor` or a `ComplexLazyTensor` encoding a matrix.
+#' @return a `LazyTensor` or a `ComplexLazyTensor`.
 #' @examples
 #' \dontrun{
 #' v <- c(1,2,3)                        # arbitrary R vector of length 3
@@ -3764,24 +3757,23 @@ vecmatmult <- function(v, m) {
         dim_res <- m$dimres
     }
     
-    res <- binaryop.LazyTensor(v, m, "VecMatMult", dim_res = dim_res)
-    return(res)
+    return(binaryop.LazyTensor(v, m, "VecMatMult", dim_res = dim_res))
 }
 
 
 # Tensorprod -------------------------------------------------------------------
 
-#' Tensor product.
+#' Tensor product
 #' @description
-#' Tensor product of `LazyTensor`s - a binary operation.
+#' Tensor product for `LazyTensor` objects.
 #' @details If `x` and `y` are `LazyTensor`s encoding matrix,
 #' respectively of length `nx*px` and `ny*py`, then `tensorprod(x, y)` encodes,
 #' symbolically, the tensor product between matrix `x` and `y`, which is
 #' a symbolic matrix of dimension (`nx*ny`, `px*py`).
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A `LazyTensor` or a `ComplexLazyTensor`.
-#' @param y A `LazyTensor` or a `ComplexLazyTensor`. 
-#' @return A `LazyTensor` or a `ComplexLazyTensor`.
+#' @param x a `LazyTensor` or a `ComplexLazyTensor`.
+#' @param y a `LazyTensor` or a `ComplexLazyTensor`. 
+#' @return a `LazyTensor` or a `ComplexLazyTensor`.
 #' @examples
 #' \dontrun{
 #' x <- matrix(c(1, 2, 3), 2, 3)       # arbitrary R matrix, 150 rows, 3 columns
@@ -3795,10 +3787,8 @@ vecmatmult <- function(v, m) {
 #' @export
 tensorprod <- function(x, y) {
     dim_res <- x$dimres * y$dimres
-    res <- binaryop.LazyTensor(x, y, "TensorProd", dim_check_type = NA, 
-                               dim_res = dim_res)
-    
-    return(res)
+    return(binaryop.LazyTensor(x, y, "TensorProd", dim_check_type = NA, 
+                               dim_res = dim_res))
 }
 
 
