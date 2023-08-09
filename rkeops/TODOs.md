@@ -18,8 +18,11 @@ Remaining issues:
 > More in [`dev/debug_LazyTensor.R`](dev/debug_LazyTensor.R) and [`dev/debut_LazyTensor.py`](dev/debut_LazyTensor.py)
 
 - [ ] fix inline doc for min, max (following sum), and other default functions
+  + [ ] fix issue with `?"/"`
 
-- [ ] fix issue with `%*%`
+- [ ] fix issue with `%*%` (including code and doc)
+
+- [ ] check if concatenation is done along the innder dimension for `concat` function
 
 - [ ] revamp vignettes regarding LazyTensor, and mention it in main vignette
 
