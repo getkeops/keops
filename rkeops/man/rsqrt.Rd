@@ -2,35 +2,41 @@
 % Please edit documentation in R/lazytensor_operations.R
 \name{rsqrt}
 \alias{rsqrt}
-\title{Element-wise inverse square root.}
+\title{Element-wise inverse square root operation}
 \usage{
 rsqrt(x)
 }
 \arguments{
-\item{x}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector or a matrix of
-numeric values, or a scalar value.}
+\item{x}{input for \code{\link[=rsqrt.default]{rsqrt.default()}} or
+\code{\link[=rsqrt.LazyTensor]{rsqrt.LazyTensor()}}.}
 }
 \value{
-An object of class "LazyTensor" if the function is called with a
-\code{LazyTensor}, and an object of class "numeric", "matrix", or "array"
-otherwise, same as the input class.
+See value of \code{\link[=rsqrt.default]{rsqrt.default()}} or
+\code{\link[=rsqrt.LazyTensor]{rsqrt.LazyTensor()}}.
 }
 \description{
-Symbolic unary operation for element-wise inverse square root.
+Symbolic element-wise inverse square root operation for \code{LazyTensor}
+objects or standard element-wise inverse square root operation otherwise,
+i.e. \eqn{1/\sqrt{x}}.
 }
 \details{
-If \code{x} is a \code{LazyTensor}, \code{sqrt(x)} returns a \code{LazyTensor} that
-encodes, symbolically, the element-wise inverse square root of \code{x} ; else,
-computes the element-wise inverse of R default square root function.
+If \code{x} is a \code{LazyTensor}, see \code{\link[=rsqrt.LazyTensor]{rsqrt.LazyTensor()}}, else
+see \code{\link[=rsqrt.default]{rsqrt.default()}}.
 }
 \examples{
 \dontrun{
+# Numerical input
+rsqrt(4)
+rsqrt(c(1,4,9,16))
+# LazyTensor symbolic element-wise inverse square root
 x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
                                     # indexed by 'i'
-                                    
 Rsqrt_x <- rsqrt(x_i)               # symbolic matrix, 150 rows and 3 columns
 }
+}
+\seealso{
+\code{\link[=rsqrt.default]{rsqrt.default()}}, \code{\link[=rsqrt.LazyTensor]{rsqrt.LazyTensor()}}
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay

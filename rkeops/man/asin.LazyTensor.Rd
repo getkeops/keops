@@ -2,14 +2,35 @@
 % Please edit documentation in R/lazytensor_operations.R
 \name{asin.LazyTensor}
 \alias{asin.LazyTensor}
-\title{Element-wise arc-sine.}
+\title{Element-wise arc-sine operation}
 \usage{
 \method{asin}{LazyTensor}(x)
 }
+\arguments{
+\item{x}{a \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric values,
+or a scalar value.}
+}
+\value{
+An object of class \code{LazyTensor}.
+}
 \description{
-Element-wise arc-sine.
+Symbolic element-wise arc-sine operation for \code{LazyTensor} objects.
+}
+\details{
+If \code{x} is a \code{LazyTensor}, \code{asin(x)} returns a \code{LazyTensor} that
+encodes, symbolically, the element-wise arc-sine of \code{x}.
+}
+\examples{
+\dontrun{
+x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
+x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
+                                    # indexed by 'i'
+Asin_x <- asin(x_i)                 # symbolic matrix, 150 rows and 3 columns
+}
+}
+\seealso{
+\code{\link[=asin]{asin()}}
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay
 }
-\keyword{internal}

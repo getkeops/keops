@@ -2,32 +2,39 @@
 % Please edit documentation in R/lazytensor_operations.R
 \name{Conj}
 \alias{Conj}
-\title{Element-wise complex conjugate.}
+\title{Element-wise complex conjugate operation}
 \usage{
 Conj(z)
 }
 \arguments{
-\item{z}{A \code{ComplexLazyTensor}, or any type of values accepted by R default
-\code{Conj()} function.}
+\item{z}{input for \code{\link[=Conj.default]{Conj.default()}} or \code{\link[=Conj.LazyTensor]{Conj.LazyTensor()}}.}
 }
 \value{
-A \code{ComplexLazyTensor}.
+See value of \code{\link[=Conj.default]{Conj.default()}} or \code{\link[=Conj.LazyTensor]{Conj.LazyTensor()}}.
 }
 \description{
-Symbolic unary operation for element-wise complex conjugate.
+Symbolic element-wise complex conjugate operation for
+\code{ComplexLazyTensor} objects or default element-wise complex conjugate
+operation otherwise.
 }
 \details{
-If \code{z} is a \code{ComplexLazyTensor}, \code{Conj(z)} returns a
-\code{ComplexLazyTensor} that encodes symbolically, the element-wise complex
-conjugate of \code{z} ; else, computes R default \code{Conj()} function.
+If \code{z} is a \code{LazyTensor}, see \code{\link[=Conj.LazyTensor]{Conj.LazyTensor()}}, else
+see \code{\link[=Conj.default]{Conj.default()}}.
 }
 \examples{
 \dontrun{
+# R base operation
+Conj(1)
+Conj(1+1i)
+# LazyTensor symbolic element-wise complex conjugate
 z <- matrix(1i^ (-6:5), nrow = 4)                     # complex 4x3 matrix
 z_i <- LazyTensor(z, index = 'i', is_complex = TRUE)  # ComplexLazyTensor
-
 Conj_z_i <- Conj(z_i)                                 # symbolic matrix
 }
+}
+\seealso{
+\code{\link[=Conj.default]{Conj.default()}}, \code{\link[=Conj.LazyTensor]{Conj.LazyTensor()}},
+\code{\link[=Re]{Re()}}, \code{\link[=Im]{Im()}}, \code{\link[=Arg]{Arg()}}, \code{\link[=Mod]{Mod()}}
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay

@@ -2,33 +2,38 @@
 % Please edit documentation in R/lazytensor_operations.R
 \name{Re}
 \alias{Re}
-\title{Element-wise real part of complex.}
+\title{Element-wise complex real part operation}
 \usage{
 Re(z)
 }
 \arguments{
-\item{z}{A \code{ComplexLazyTensor} or any type of values accepted by R default
-\code{Re()} function.}
+\item{z}{input for \code{\link[=Re.default]{Re.default()}} or \code{\link[=Re.LazyTensor]{Re.LazyTensor()}}.}
 }
 \value{
-An object of class "ComplexLazyTensor" if the function is called with
-a \code{ComplexLazyTensor}, else see R default \code{Re()} function.
+See value of \code{\link[=Re.default]{Re.default()}} or \code{\link[=Re.LazyTensor]{Re.LazyTensor()}}.
 }
 \description{
-Symbolic unary operation for element-wise real part of complex.
+Symbolic element-wise complex real part operation for \code{ComplexLazyTensor}
+objects or default R element-wise complex real part operation otherwise.
 }
 \details{
-If \code{z} is a \code{ComplexLazyTensor}, \code{Re(z)} returns a
-\code{ComplexLazyTensor} that encodes, symbolically, the element-wise real part
-of complex \code{z} ; else, computes R default \code{Re()} function.
+If \code{z} is a \code{ComplexLazyTensor}, see
+\code{\link[=Re.LazyTensor]{Re.LazyTensor()}}, else see \code{\link[=Re.default]{Re.default()}}.
 }
 \examples{
 \dontrun{
+# R base operation
+Re(1)
+Re(1+1i)
+# LazyTensor symbolic element-wise complex real part
 z <- matrix(2 + 1i^ (-6:5), nrow = 4)        # complex matrix
 z_i <- LazyTensor(z, "i", is_complex = TRUE) # creating ComplexLazyTensor
-
 Re_z <- Re(z_i)                              # symbolic matrix
 }
+}
+\seealso{
+\code{\link[=Re.default]{Re.default()}}, \code{\link[=Re.LazyTensor]{Re.LazyTensor()}},
+\code{\link[=Im]{Im()}}, \code{\link[=Arg]{Arg()}}, \code{\link[=Mod]{Mod()}}, \code{\link[=Conj]{Conj()}}
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay

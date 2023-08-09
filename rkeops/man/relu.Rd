@@ -2,32 +2,46 @@
 % Please edit documentation in R/lazytensor_operations.R
 \name{relu}
 \alias{relu}
-\title{Element-wise ReLU function.}
+\title{Element-wise ReLU function}
 \usage{
 relu(x)
 }
 \arguments{
-\item{x}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric values,
-or a scalar value.}
+\item{x}{input for \code{\link[=relu.default]{relu.default()}} or
+\code{\link[=relu.LazyTensor]{relu.LazyTensor()}}.}
 }
 \value{
-An object of class "LazyTensor".
+See value of \code{\link[=relu.default]{relu.default()}} or
+\code{\link[=relu.LazyTensor]{relu.LazyTensor()}}
 }
 \description{
-Symbolic unary operation for element-wise ReLU function.
+Symbolic element-wise ReLU function for \code{LazyTensor} objects or
+standard element-wise ReLU function otherwise.
 }
 \details{
-\code{relu(x)} returns a \code{LazyTensor} that encodes, symbolically,
-the element-wise ReLU of \code{x} (\code{0} if \code{x < 0}, \code{x} if \code{x >= 0}).
+The ReLU function \insertCite{fukushima_cognitron_1975}{rkeops}
+is defined as follows: \code{relu(x)} returns \code{0} if \code{x < 0}, \code{x} if \code{x >= 0}.
+
+If \code{x} is a \code{LazyTensor}, see \code{\link[=relu.LazyTensor]{relu.LazyTensor()}}, else
+see \code{\link[=relu.default]{relu.default()}}.
 }
 \examples{
 \dontrun{
+# Numerical input
+relu(4)
+relu(-10:10)
+# LazyTensor symbolic element-wise square
 x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
                                     # indexed by 'i'
-                                    
 ReLU_x <- relu(x_i)                 # symbolic matrix, 150 rows and 3 columns
 }
+}
+\references{
+\insertRef{fukushima_cognitron_1975}{rkeops}
+}
+\seealso{
+\code{\link[=relu.default]{relu.default()}}, \code{\link[=relu.LazyTensor]{relu.LazyTensor()}}
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay

@@ -2,35 +2,40 @@
 % Please edit documentation in R/lazytensor_operations.R
 \name{atan}
 \alias{atan}
-\title{Element-wise arc-tangent.}
+\title{Element-wise arc-tangent operation.}
 \usage{
 atan(x)
 }
 \arguments{
-\item{x}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector or a matrix of
-numeric values, or a scalar value.}
+\item{x}{input for \code{\link[=atan.default]{atan.default()}} or
+\code{\link[=atan.LazyTensor]{atan.LazyTensor()}}.}
 }
 \value{
-An object of class "LazyTensor" if the function is called with a
-\code{LazyTensor}, and an object of class "numeric", "matrix", or "array"
-otherwise, depending on the input class (see R default \code{atan()} function).
+See value of \code{\link[=atan.default]{atan.default()}} or
+\code{\link[=atan.LazyTensor]{atan.LazyTensor()}}.
 }
 \description{
-Symbolic unary operation for element-wise arc-tangent.
+Symbolic element-wise arc-tangent operation for \code{LazyTensor}
+objects or standard element-wise arc-tangent operation otherwise.
 }
 \details{
-If \code{x} is a \code{LazyTensor}, \code{atan(x)} returns a \code{LazyTensor} that
-encodes, symbolically, the element-wise arc-tangent of \code{x} ; else, computes
-R default arc-tangent function.
+If \code{x} is a \code{LazyTensor}, see \code{\link[=atan.LazyTensor]{atan.LazyTensor()}}, else
+see \code{\link[=atan.default]{atan.default()}}.
 }
 \examples{
 \dontrun{
+# R base operation
+atan(0)
+atan(-1)
+# LazyTensor symbolic element-wise arc-tangent
 x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
                                     # indexed by 'i'
-                                    
 Atan_x <- atan(x_i)                 # symbolic matrix, 150 rows and 3 columns
 }
+}
+\seealso{
+\code{\link[=atan.default]{atan.default()}}, \code{\link[=atan.LazyTensor]{atan.LazyTensor()}}
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay

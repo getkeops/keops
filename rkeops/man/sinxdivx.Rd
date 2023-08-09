@@ -2,35 +2,42 @@
 % Please edit documentation in R/lazytensor_operations.R
 \name{sinxdivx}
 \alias{sinxdivx}
-\title{Element-wise sin(x)/x function.}
+\title{Element-wise \code{sin(x)/x} function}
 \usage{
 sinxdivx(x)
 }
 \arguments{
-\item{x}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector or a matrix of
-numeric values, or a scalar value.}
+\item{x}{input for \code{\link[=sinxdivx.default]{sinxdivx.default()}} or
+\code{\link[=sinxdivx.LazyTensor]{sinxdivx.LazyTensor()}}.}
 }
 \value{
-An object of class "LazyTensor" if the function is called with a
-\code{LazyTensor}, and an object of class "numeric", "matrix", or "array"
-otherwise, depending on the input class.
+See value of \code{\link[=sinxdivx.default]{sinxdivx.default()}} or
+\code{\link[=sinxdivx.LazyTensor]{sinxdivx.LazyTensor()}}
 }
 \description{
-Symbolic unary operation for element-wise sign.
+Symbolic element-wise \code{sin(x)/x} function for \code{LazyTensor} objects or
+standard element-wise \code{sin(x)/x} function otherwise.
 }
 \details{
-If \code{x} is a \code{LazyTensor}, \code{xlogx(x)} returns a \code{LazyTensor} that
-encodes, symbolically, the element-wise sin(x)/x function of \code{x} (with value
-0 at 0); else, computes \code{sin(x) / x}.
+If \code{x} is a \code{LazyTensor}, see \code{\link[=sinxdivx.LazyTensor]{sinxdivx.LazyTensor()}},
+else see \code{\link[=sinxdivx.default]{sinxdivx.default()}}.
+
+\strong{Note}: by convention \code{sinxdivx(0)} returns \code{1}.
 }
 \examples{
 \dontrun{
+# Numerical input
+sinxdivx(4)
+sinxdivx(1:10)
+# LazyTensor symbolic element-wise `sin(x)/x`
 x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
                                     # indexed by 'i'
-                                    
 sindiv_x <- sinxdivx(x_i)           # symbolic matrix, 150 rows and 3 columns
 }
+}
+\seealso{
+\code{\link[=sinxdivx.default]{sinxdivx.default()}}, \code{\link[=sinxdivx.LazyTensor]{sinxdivx.LazyTensor()}}
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay

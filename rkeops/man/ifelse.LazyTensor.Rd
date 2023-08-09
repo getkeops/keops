@@ -6,10 +6,44 @@
 \usage{
 \method{ifelse}{LazyTensor}(x, a, b)
 }
+\arguments{
+\item{x, a, b}{A \code{LazyTensor}, a vector of numeric values,
+or a scalar value.}
+}
+\value{
+An object of class \code{LazyTensor}.
+}
 \description{
-Element-wise if-else function.
+Symbolic element-wise if-else function  (ternary operation) for
+\code{LazyTensor} objects.
+}
+\details{
+If \code{x} is a \code{LazyTensor}, \code{ifelse(x, a, b)} returns a \code{LazyTensor}
+that encodes, symbolically, \code{a} if \code{x >= 0} and \code{b} if \code{x < 0}.
+Broadcasting rules apply.
+\code{a} and \code{b} may be fixed integers or floats, or other \code{LazyTensor}.
+
+\strong{Note}: If \code{a} and \code{b} are not scalar values, these should have the same inner
+dimension as \code{x}.
+}
+\examples{
+\dontrun{
+# basic example
+D <- 3
+M <- 100
+N <- 150
+P <- 200
+x <- matrix(runif(M * D), M, D)
+y <- matrix(runif(N * D), N, D)
+z <- matrix(runif(P * D), P, D)
+x_i <- LazyTensor(x, index = 'i')
+y_j <- LazyTensor(y, index = 'j')
+z_i <- LazyTensor(z, index = 'i')
+
+# call ifelse function
+if_else_xyz <- ifelse(x_i, y_j, z_i)
+}
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay
 }
-\keyword{internal}

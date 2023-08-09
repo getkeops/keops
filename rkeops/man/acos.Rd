@@ -2,35 +2,40 @@
 % Please edit documentation in R/lazytensor_operations.R
 \name{acos}
 \alias{acos}
-\title{Element-wise arc-cosine.}
+\title{Element-wise arc-cosine operation.}
 \usage{
 acos(x)
 }
 \arguments{
-\item{x}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector or a matrix of
-numeric values, or a scalar value.}
+\item{x}{input for \code{\link[=acos.default]{acos.default()}} or
+\code{\link[=acos.LazyTensor]{acos.LazyTensor()}}.}
 }
 \value{
-An object of class "LazyTensor" if the function is called with a
-\code{LazyTensor}, and an object of class "numeric", "matrix", or "array"
-otherwise, depending on the input class (see R default \code{acos()} function).
+See value of \code{\link[=acos.default]{acos.default()}} or
+\code{\link[=acos.LazyTensor]{acos.LazyTensor()}}.
 }
 \description{
-Symbolic unary operation for element-wise arc-cosine.
+Symbolic element-wise arc-cosine operation for \code{LazyTensor}
+objects or standard element-wise arc-cosine operation otherwise.
 }
 \details{
-If \code{x} is a \code{LazyTensor}, \code{acos(x)} returns a \code{LazyTensor} that
-encodes, symbolically, the element-wise arc-cosine of \code{x} ; else, computes
-R default arc-cosine function.
+If \code{x} is a \code{LazyTensor}, see \code{\link[=acos.LazyTensor]{acos.LazyTensor()}}, else
+see \code{\link[=acos.default]{acos.default()}}.
 }
 \examples{
 \dontrun{
+# R base operation
+acos(0)
+acos(-1)
+# LazyTensor symbolic element-wise arc-cosine
 x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
                                     # indexed by 'i'
-                                    
 Acos_x <- acos(x_i)                 # symbolic matrix, 150 rows and 3 columns
 }
+}
+\seealso{
+\code{\link[=acos.default]{acos.default()}}, \code{\link[=acos.LazyTensor]{acos.LazyTensor()}}
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay

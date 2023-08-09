@@ -3,7 +3,7 @@
 \name{arithmetic.add}
 \alias{arithmetic.add}
 \alias{+}
-\title{Addition.}
+\title{Addition}
 \usage{
 +x
 x + y

@@ -2,43 +2,29 @@
 % Please edit documentation in R/lazytensor_operations.R
 \name{mod}
 \alias{mod}
-\title{Element-wise modulo with offset function.}
+\title{Element-wise modulo with offset function}
 \usage{
 mod(x, ...)
 }
 \arguments{
-\item{x}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric values,
-or a scalar value.}
+\item{x}{input for \code{\link[=ifelse.default]{ifelse.default()}} or any other \code{mod} function
+(if existing).}
 
-\item{a}{A \code{LazyTensor}, a \code{ComplexLazyTensor} a vector of numeric values,
-or a scalar value.}
-
-\item{b}{A \code{LazyTensor}, a \code{ComplexLazyTensor} a vector of numeric values,
-or a scalar value.}
+\item{...}{optional additional input arguments.}
 }
 \value{
-An object of class \code{LazyTensor}.
+See value of \code{\link[=mod.LazyTensor]{mod.LazyTensor()}} or any other \code{mod} function
+(if existing).
 }
 \description{
-Symbolic ternary operation for element-wise modulo with offset function.
+Symbolic element-wise modulo with offset function  (ternary operation) for
+\code{LazyTensor} objects  or any other \code{mod} function (if existing).
 }
 \details{
-\code{mod(x, a, b)} returns a \code{LazyTensor} that encodes, symbolically,
-the element-wise modulo of \code{x} with modulus \code{a} and offset \code{b}. That is,
-\code{mod(x, a, b)} encodes symbolically \code{x - a * floor((x - b)/a)}.
-By default \code{b = 0}, so that \code{mod(x, a)} becomes equivalent to the R
-function \code{\%\%}.
-\code{a} and \code{b} may be fixed integers or floats, or other \code{LazyTensor}.
-Broadcasting rules apply.
+If \code{x} is a \code{LazyTensor}, see \code{\link[=ifelse.LazyTensor]{ifelse.LazyTensor()}}, else
+see the corresponding \code{mod} function (if existing) help page.
 
-\strong{Note}
-
-If \code{a} and \code{b} are not scalar values, these should have the same inner
-dimension as \code{x}.
-
-\strong{Warning}
-
-Do not confuse with \code{Mod()}.
+\strong{Warning}: Do not confuse with \code{\link[=Mod]{Mod()}}.
 }
 \examples{
 \dontrun{
@@ -60,6 +46,9 @@ mod_x72 <- mod(x_i, 7, 2)
 # works also with LazyTensors with same inner dimension or dimension 1
 mod_xyz <- mod(x_i, y_j, z_i)
 }
+}
+\seealso{
+\code{\link[=mod.LazyTensor]{mod.LazyTensor()}}
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay

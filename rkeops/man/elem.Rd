@@ -2,31 +2,29 @@
 % Please edit documentation in R/lazytensor_operations.R
 \name{elem}
 \alias{elem}
-\title{Elem.}
+\title{Extract an element}
 \usage{
 elem(x, m)
 }
 \arguments{
-\item{x}{A \code{LazyTensor} or a \code{ComplexLazyTensor}.}
+\item{x}{a \code{LazyTensor} or a \code{ComplexLazyTensor}.}
 
-\item{m}{An \code{integer} corresponding to the index of the element of \code{x} we
-want to extract (\code{x[m]}).}
+\item{m}{an \code{integer} corresponding to the index (starting from 0) of
+the element of \code{x} that will be extracted.}
 }
 \value{
-A \code{LazyTensor} or a \code{ComplexLazyTensor}.
+a \code{LazyTensor} or a \code{ComplexLazyTensor}.
 }
 \description{
-Symbolic element extraction. A unary operation.
+Symbolic element extraction operation for \code{LazyTensor} objects.
 }
 \details{
-Extracts the \code{m}-th element of a \code{LazyTensor} \code{x}, that is, \code{elem(x, m)}
-encodes, symbolically, symbolically, the \code{m}-th element \code{x[m]}
-of the given \code{LazyTensor} \code{x}.
+If \code{x} is a \code{LazyTensor}, \code{elem(x, m)} returns a \code{LazyTensor} that
+encodes, symbolically, the \code{m+1}-th element of \code{x}, i.e. \code{x[m+1]} in
+standard R notation.
 
-\strong{IMPORTANT}
-
-IN THIS CASE, INDICES START AT ZERO, therefore, \code{m} should be in \verb{[0, n)},
-where \code{n} is the inner dimension of \code{x}.
+\strong{IMPORTANT}: IN THIS CASE, INDICES START AT ZERO, therefore, \code{m} should
+be in \verb{[0, n)}, where \code{n} is the inner dimension of \code{x}.
 }
 \examples{
 \dontrun{
@@ -34,7 +32,7 @@ x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 x_i <- LazyTensor(x, index = 'i')   # LazyTensor from matrix x, indexed by 'i'
 m <- 2
 
-elem_x <- elem(x_i, m)  # symbolic `m`-th element of `x_i`.
+elem_x <- elem(x_i, m)  # symbolic `m+1`-th element of `x_i`.
 }
 }
 \author{

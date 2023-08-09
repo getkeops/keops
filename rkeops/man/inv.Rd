@@ -2,34 +2,40 @@
 % Please edit documentation in R/lazytensor_operations.R
 \name{inv}
 \alias{inv}
-\title{Element-wise 1/x inverse.}
+\title{Element-wise inverse operation.}
 \usage{
 inv(x)
 }
 \arguments{
-\item{x}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric values,
-or a scalar value.}
+\item{x}{input for \code{\link[=inv.default]{inv.default()}} or
+\code{\link[=inv.LazyTensor]{inv.LazyTensor()}}.}
 }
 \value{
-An object of class "LazyTensor" if the function is called with a
-\code{LazyTensor}, and an object of class "numeric", "matrix", or "array"
-otherwise, same as the input class.
+See value of \code{\link[=inv.default]{inv.default()}} or
+\code{\link[=inv.LazyTensor]{inv.LazyTensor()}}.
 }
 \description{
-Symbolic unary operation for element-wise inverse.
+Symbolic element-wise inverse operation for \code{LazyTensor} objects or
+standard element-wise inverse operation otherwise, i.e. \code{1/x}.
 }
 \details{
-If \code{x} is a \code{LazyTensor}, \code{exp(x)} returns a \code{LazyTensor} that
-encodes, symbolically, the element-wise inverse of \code{x} ; else, computes R
-default inverse.
+If \code{x} is a \code{LazyTensor}, see \code{\link[=inv.LazyTensor]{inv.LazyTensor()}}, else
+see \code{\link[=inv.default]{inv.default()}}.
 }
 \examples{
 \dontrun{
+# Numerical input
+inv(4)
+inv(1:10)
+# LazyTensor symbolic element-wise inverse
 x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
                                     # indexed by 'i'
 Inv_x <- inv(x_i)                   # symbolic matrix, 150 rows and 3 columns
 }
+}
+\seealso{
+\code{\link[=inv.default]{inv.default()}}, \code{\link[=inv.LazyTensor]{inv.LazyTensor()}}
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay

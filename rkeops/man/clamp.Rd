@@ -2,37 +2,28 @@
 % Please edit documentation in R/lazytensor_operations.R
 \name{clamp}
 \alias{clamp}
-\title{Element-wise clamp function.}
+\title{Element-wise clamp function}
 \usage{
 clamp(x, a, b)
 }
 \arguments{
-\item{x}{A \code{LazyTensor}, a vector of numeric values,
-or a scalar value.}
-
-\item{a}{A \code{LazyTensor}, a vector of numeric values,
-or a scalar value.}
-
-\item{b}{A \code{LazyTensor}, a vector of numeric values,
-or a scalar value.}
+\item{x, a, b}{A \code{LazyTensor}, a vector of numeric values, or a scalar value.}
 }
 \value{
 An object of class \code{LazyTensor}.
 }
 \description{
-Symbolic ternary operation for element-wise clamp function.
+Symbolic element-wise clamp function (ternary operation) for \code{LazyTensor}
+objects.
 }
 \details{
 \code{clamp(x, a, b)} returns a \code{LazyTensor} that encodes, symbolically,
-the element-wise clamping of  \code{x} in \verb{(a, b)}. That is, \code{clamp(x, a, b)}
-encodes symbolically \code{a} if \code{x < a}, \code{x} if \verb{a <= x <= b}, and \code{b} if
-\code{b < x}.
+the element-wise clamping of  \code{x} in \verb{(a, b)}, i.e. \code{a} if \code{x < a},
+\code{x} if \verb{a <= x <= b}, and \code{b} if  \code{b < x}.
 Broadcasting rules apply.
 
-\strong{Note}
-
-If \code{a} and \code{b} are not scalar values, these should have the same inner
-dimension as \code{x}.
+\strong{Note}: If \code{a} and \code{b} are not scalar values, these should have the same
+inner dimension as \code{x}.
 }
 \examples{
 \dontrun{

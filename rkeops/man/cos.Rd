@@ -2,35 +2,40 @@
 % Please edit documentation in R/lazytensor_operations.R
 \name{cos}
 \alias{cos}
-\title{Element-wise cosine.}
+\title{Element-wise cosine operation.}
 \usage{
 cos(x)
 }
 \arguments{
-\item{x}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric values,
-or a scalar value.}
+\item{x}{input for \code{\link[=cos.default]{cos.default()}} or
+\code{\link[=cos.LazyTensor]{cos.LazyTensor()}}.}
 }
 \value{
-An object of class "LazyTensor" if the function is called with a
-\code{LazyTensor}, and an object of class "numeric", "matrix", or "array"
-otherwise, depending on the input class (see R default \code{cos()} function).
+See value of \code{\link[=cos.default]{cos.default()}} or
+\code{\link[=cos.LazyTensor]{cos.LazyTensor()}}.
 }
 \description{
-Symbolic unary operation for element-wise cosine.
+Symbolic element-wise cosine operation for \code{LazyTensor}
+objects or standard element-wise cosine operation otherwise.
 }
 \details{
-If \code{x} is a \code{LazyTensor}, \code{exp(x)} returns a \code{LazyTensor} that
-encodes, symbolically, the element-wise cosine of \code{x} ; else, computes
-R default cosine.
+If \code{x} is a \code{LazyTensor}, see \code{\link[=cos.LazyTensor]{cos.LazyTensor()}}, else
+see \code{\link[=cos.default]{cos.default()}}.
 }
 \examples{
 \dontrun{
+# R base operation
+cos(0)
+cos(pi)
+# LazyTensor symbolic element-wise cosine
 x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
                                     # indexed by 'i'
-                                    
 Cos_x <- cos(x_i)                   # symbolic matrix, 150 rows and 3 columns
 }
+}
+\seealso{
+\code{\link[=cos.default]{cos.default()}}, \code{\link[=cos.LazyTensor]{cos.LazyTensor()}}
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay

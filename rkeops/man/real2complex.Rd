@@ -2,30 +2,38 @@
 % Please edit documentation in R/lazytensor_operations.R
 \name{real2complex}
 \alias{real2complex}
-\title{Element-wise "real 2 complex" operation.}
+\alias{real2complex.LazyTensor}
+\alias{real2complex.ComplexLazyTensor}
+\title{Element-wise "real to complex" operation.}
 \usage{
 real2complex(x)
+
+\method{real2complex}{LazyTensor}(x)
+
+\method{real2complex}{ComplexLazyTensor}(x)
 }
 \arguments{
-\item{x}{A \code{LazyTensor}.}
+\item{x}{a \code{LazyTensor}.}
 }
 \value{
-An object of class "ComplexLazyTensor".
+An object of class \code{ComplexLazyTensor}.
 }
 \description{
-Symbolic unary operation for element-wise "real 2 complex".
+Symbolic element-wise "real to complex" operation.
 }
 \details{
 \code{real2complex(x)} returns a \code{ComplexLazyTensor} that encodes,
-symbolically, the element-wise "real 2 complex" of \code{x} (i.e. with
-additional zero imaginary part: \code{x + 0*i}).
+symbolically, the element-wise "real to complex" transformation of \code{x}
+(i.e. with additional zero imaginary part: \code{x + 0*i}).
+
+\strong{Note}: \code{real2complex(x)} will exit with an error if \code{x} is
+a \code{ComplexLazyTensor}.
 }
 \examples{
 \dontrun{
 x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 x_i <- LazyTensor(x, "i")           # creating LazyTensor from matrix x, 
                                     # indexed by 'i'
-
 z <- real2complex(x_i)              # ComplexLazyTensor object
 }
 }

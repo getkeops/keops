@@ -7,7 +7,7 @@
 max(x, ...)
 }
 \arguments{
-\item{x}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector or a matrix of
+\item{x}{a \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector or a matrix of
 numeric values, or a scalar value.}
 
 \item{index}{A \code{character} corresponding to the reduction dimension that

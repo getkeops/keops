@@ -2,14 +2,42 @@
 % Please edit documentation in R/lazytensor_operations.R
 \name{Arg.LazyTensor}
 \alias{Arg.LazyTensor}
-\title{Element-wise angle (or argument) of complex.}
+\alias{Arg.ComplexLazyTensor}
+\title{Element-wise argument (or angle) of complex}
 \usage{
 \method{Arg}{LazyTensor}(z)
+
+\method{Arg}{ComplexLazyTensor}(z)
+}
+\arguments{
+\item{z}{A \code{ComplexLazyTensor} or any type of values accepted by R default
+\code{\link[base:complex]{base::Arg()}} function.}
+}
+\value{
+An object of class \code{ComplexLazyTensor}.
 }
 \description{
-Element-wise angle (or argument) of complex.
+Symbolic element-wise argument (or angle) of complex operation for
+\code{LazyTensor} objects.
+}
+\details{
+If \code{z} is a \code{ComplexLazyTensor}, \code{Arg(z)} returns a
+\code{ComplexLazyTensor} that encodes, symbolically, the element-wise imaginary
+part of complex \code{z}.
+
+\strong{Note}: \code{Arg(z)} will exit with an error if \code{z} is a \code{LazyTensor} but not
+a \code{ComplexLazyTensor}.
+}
+\examples{
+\dontrun{
+z <- matrix(2 + 1i^ (-6:5), nrow = 4)        # complex matrix
+z_i <- LazyTensor(z, "i", is_complex = TRUE) # creating ComplexLazyTensor
+Arg_z <- Arg(z_i)                            # symbolic matrix
+}
+}
+\seealso{
+\code{\link[=Arg]{Arg()}}
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay
 }
-\keyword{internal}

@@ -2,14 +2,33 @@
 % Please edit documentation in R/lazytensor_operations.R
 \name{sinxdivx.default}
 \alias{sinxdivx.default}
-\title{sin(x)/x.}
+\title{sin(x)/x function}
 \usage{
 \method{sinxdivx}{default}(x)
 }
+\arguments{
+\item{x}{numeric or complex vectors or objects which can be coerced to such.}
+}
+\value{
+Vector or array containing the values of \code{sin(x)/x}.
+}
 \description{
-sin(x)/x.
+Element-wise \eqn{\sin(x) / x} function on numeric or complex vectors
+(or objects which can be coerced to them).
+}
+\details{
+See \code{\link[base:Trig]{base::sin()}}, \link[base:Arithmetic]{base::Arithmetic} for details about the sine function
+and division operation.
+
+\strong{Note}: by convention \code{sinxdivx(0)} returns \code{1}.
+}
+\examples{
+sinxdivx(pi)
+sinxdivx(1:10)
+}
+\seealso{
+\link[base:Arithmetic]{base::Arithmetic}, \code{\link[base:Trig]{base::sin()}}
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay
 }
-\keyword{internal}

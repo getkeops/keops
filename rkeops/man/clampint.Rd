@@ -2,13 +2,12 @@
 % Please edit documentation in R/lazytensor_operations.R
 \name{clampint}
 \alias{clampint}
-\title{Element-wise clampint function.}
+\title{Element-wise clampint function}
 \usage{
 clampint(x, y, z)
 }
 \arguments{
-\item{x}{A \code{LazyTensor}, a vector of numeric values,
-or a scalar value.}
+\item{x}{A \code{LazyTensor}, a vector of numeric values, or a scalar value.}
 
 \item{y}{An \code{integer}.}
 
@@ -18,12 +17,13 @@ or a scalar value.}
 An object of class \code{LazyTensor}.
 }
 \description{
-Symbolic ternary operation for element-wise clampint function.
+Symbolic element-wise clampint function (ternary operation) for \code{LazyTensor}
+objects.
 }
 \details{
 \code{clampint(x, y, z)} returns a \code{LazyTensor} that encodes,
 symbolically, the element-wise clamping of \code{x} in \verb{(y, z)} which are
-integers. See \code{?clamp} for more details.
+integers. See \code{\link[=clamp]{clamp()}} for more details.
 Broadcasting rules apply.
 }
 \examples{

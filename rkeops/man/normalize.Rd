@@ -2,19 +2,19 @@
 % Please edit documentation in R/lazytensor_operations.R
 \name{normalize}
 \alias{normalize}
-\title{Vector normalization.}
+\title{Vector normalization}
 \usage{
 normalize(x)
 }
 \arguments{
-\item{x}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric values,
+\item{x}{a \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric values,
 or a scalar value.}
 }
 \value{
-An object of class "LazyTensor".
+An object of class \code{LazyTensor}.
 }
 \description{
-Symbolic unary operation for vector normalization.
+Symbolic vector normalization operation for \code{LazyTensor} objects.
 }
 \details{
 \code{normalize(x)} returns a \code{LazyTensor} that encodes, symbolically,
@@ -26,9 +26,11 @@ same as \code{rsqrt(sqnorm2(x)) * x}.
 x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
                                     # indexed by 'i'
-                                    
 N_x <- norm2(x_i)                   # symbolic matrix, 150 rows and 3 columns
 }
+}
+\seealso{
+\code{\link[=sqnorm2]{sqnorm2()}}, \code{\link[=rsqrt]{rsqrt()}}
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay

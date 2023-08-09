@@ -2,33 +2,39 @@
 % Please edit documentation in R/lazytensor_operations.R
 \name{Arg}
 \alias{Arg}
-\title{Element-wise angle (or argument) of complex.}
+\title{Element-wise argument (or angle) of complex operation}
 \usage{
 Arg(z)
 }
 \arguments{
-\item{z}{A \code{ComplexLazyTensor} or any type of values accepted by R default
-\code{Arg()} function.}
+\item{z}{input for \code{\link[=Arg.default]{Arg.default()}} or \code{\link[=Arg.LazyTensor]{Arg.LazyTensor()}}.}
 }
 \value{
-An object of class "ComplexLazyTensor" if the function is called with
-a \code{ComplexLazyTensor}, else see R default \code{Arg()} function.
+See value of \code{\link[=Arg.default]{Arg.default()}} or \code{\link[=Arg.LazyTensor]{Arg.LazyTensor()}}.
 }
 \description{
-Symbolic unary operation for element-wise angle (or argument) of complex.
+Symbolic element-wise argument (or angle) of complex operation for
+\code{ComplexLazyTensor} objects or default element-wise argument (or angle) of
+complex operation otherwise.
 }
 \details{
-If \code{z} is a \code{ComplexLazyTensor}, \code{Arg(z)} returns a
-\code{ComplexLazyTensor} that encodes, symbolically, the element-wise angle
-(or argument) of complex \code{z} ; else, computes R default \code{Arg()} function.
+If \code{z} is a \code{LazyTensor}, see \code{\link[=Arg.LazyTensor]{Arg.LazyTensor()}}, else
+see \code{\link[=Arg.default]{Arg.default()}}.
 }
 \examples{
 \dontrun{
+# R base operation
+Arg(1)
+Arg(1+1i)
+# LazyTensor symbolic element-wise argument (or angle) of complex
 z <- matrix(2 + 1i^ (-6:5), nrow = 4)         # complex matrix
 z_i <- LazyTensor(z, "i", is_complex = TRUE)  # creating ComplexLazyTensor
-
 Arg_z <- Arg(z_i)                             # symbolic matrix
 }
+}
+\seealso{
+\code{\link[=Arg.default]{Arg.default()}}, \code{\link[=Arg.LazyTensor]{Arg.LazyTensor()}},
+\code{\link[=Re]{Re()}}, \code{\link[=Im]{Im()}}, \code{\link[=Mod]{Mod()}}, \code{\link[=Conj]{Conj()}}
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay

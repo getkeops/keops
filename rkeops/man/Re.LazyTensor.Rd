@@ -2,14 +2,42 @@
 % Please edit documentation in R/lazytensor_operations.R
 \name{Re.LazyTensor}
 \alias{Re.LazyTensor}
-\title{Element-wise real part of complex.}
+\alias{Re.ComplexLazyTensor}
+\title{Element-wise complex real part}
 \usage{
 \method{Re}{LazyTensor}(z)
+
+\method{Re}{ComplexLazyTensor}(z)
+}
+\arguments{
+\item{z}{A \code{ComplexLazyTensor} or any type of values accepted by R default
+\code{\link[base:complex]{base::Re()}} function.}
+}
+\value{
+An object of class \code{ComplexLazyTensor}.
 }
 \description{
-Element-wise real part of complex.
+Symbolic element-wise complex real part operation for \code{ComplexLazyTensor}
+objects.
+}
+\details{
+If \code{z} is a \code{ComplexLazyTensor}, \code{Re(z)} returns a
+\code{ComplexLazyTensor} that encodes, symbolically, the element-wise real part
+of complex \code{z}.
+
+\strong{Note}: \code{Re(z)} will exit with an error if \code{z} is a \code{LazyTensor} but not
+a \code{ComplexLazyTensor}.
+}
+\examples{
+\dontrun{
+z <- matrix(2 + 1i^ (-6:5), nrow = 4)        # complex matrix
+z_i <- LazyTensor(z, "i", is_complex = TRUE) # creating ComplexLazyTensor
+Re_z <- Re(z_i)                              # symbolic matrix
+}
+}
+\seealso{
+\code{\link[=Re]{Re()}}
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay
 }
-\keyword{internal}

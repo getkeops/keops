@@ -2,33 +2,39 @@
 % Please edit documentation in R/lazytensor_operations.R
 \name{Im}
 \alias{Im}
-\title{Element-wise imaginary part of complex.}
+\title{Element-wise complex imaginery part operation}
 \usage{
 Im(z)
 }
 \arguments{
-\item{z}{A \code{ComplexLazyTensor} or any type of values accepted by R default
-\code{Im()} function.}
+\item{z}{input for \code{\link[=Im.default]{Im.default()}} or \code{\link[=Im.LazyTensor]{Im.LazyTensor()}}.}
 }
 \value{
-An object of class "ComplexLazyTensor" if the function is called with
-a \code{ComplexLazyTensor}, else see R default \code{Im()} function.
+See value of \code{\link[=Im.default]{Im.default()}} or \code{\link[=Im.LazyTensor]{Im.LazyTensor()}}.
 }
 \description{
-Symbolic unary operation for element-wise imaginary part of complex.
+Symbolic element-wise complex imaginery part operation for
+\code{ComplexLazyTensor} objects or default element-wise complex imaginery part
+operation otherwise.
 }
 \details{
-If \code{z} is a \code{ComplexLazyTensor}, \code{Im(z)} returns a
-\code{ComplexLazyTensor} that encodes, symbolically, the element-wise imaginary
-part of complex \code{z} ; else, computes R default \code{Im()} function.
+If \code{z} is a \code{LazyTensor}, see \code{\link[=Im.LazyTensor]{Im.LazyTensor()}}, else
+see \code{\link[=Im.default]{Im.default()}}.
 }
 \examples{
 \dontrun{
+# R base operation
+Im(1)
+Im(1+1i)
+# LazyTensor symbolic element-wise complex imaginery part
 z <- matrix(2 + 1i^ (-6:5), nrow = 4)         # complex matrix
 z_i <- LazyTensor(z, "i", is_complex = TRUE)  # creating ComplexLazyTensor
-
 Im_z <- Im(z_i)                               # symbolic matrix
 }
+}
+\seealso{
+\code{\link[=Im.default]{Im.default()}}, \code{\link[=Im.LazyTensor]{Im.LazyTensor()}},
+\code{\link[=Re]{Re()}}, \code{\link[=Arg]{Arg()}}, \code{\link[=Mod]{Mod()}}, \code{\link[=Conj]{Conj()}}
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay

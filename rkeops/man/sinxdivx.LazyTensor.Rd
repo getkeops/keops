@@ -2,14 +2,37 @@
 % Please edit documentation in R/lazytensor_operations.R
 \name{sinxdivx.LazyTensor}
 \alias{sinxdivx.LazyTensor}
-\title{Element-wise sin(x)/x function.}
+\title{Element-wise \code{sin(x)/x} operation}
 \usage{
 \method{sinxdivx}{LazyTensor}(x)
 }
+\arguments{
+\item{x}{a \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric values,
+or a scalar value.}
+}
+\value{
+An object of class \code{LazyTensor}.
+}
 \description{
-Element-wise sin(x)/x function.
+Symbolic element-wise \code{sin(x)/x} function for \code{LazyTensor} objects.
+}
+\details{
+If \code{x} is a \code{LazyTensor}, \code{square(x)} returns a \code{LazyTensor} that
+encodes, symbolically, the element-wise \code{sin(x)/x} values for \code{x}.
+
+\strong{Note}: by convention \code{sinxdivx(0)} returns \code{1}.
+}
+\examples{
+\dontrun{
+x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
+x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
+                                    # indexed by 'i'
+sindiv_x <- sinxdivx(x_i)           # symbolic matrix, 150 rows and 3 columns
+}
+}
+\seealso{
+\code{\link[=sinxdivx]{sinxdivx()}}
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay
 }
-\keyword{internal}

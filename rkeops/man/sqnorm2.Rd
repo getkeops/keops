@@ -2,19 +2,19 @@
 % Please edit documentation in R/lazytensor_operations.R
 \name{sqnorm2}
 \alias{sqnorm2}
-\title{Squared Euclidean norm.}
+\title{Squared Euclidean norm}
 \usage{
 sqnorm2(x)
 }
 \arguments{
-\item{x}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric values,
+\item{x}{a \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric values,
 or a scalar value.}
 }
 \value{
-An object of class "LazyTensor".
+An object of class \code{LazyTensor}.
 }
 \description{
-Symbolic unary operation for squared Euclidean norm.
+Symbolic squared Euclidean norm operation for \code{LazyTensor} objects.
 }
 \details{
 \code{sqnorm2(x)} returns a \code{LazyTensor} that encodes, symbolically,
@@ -25,9 +25,11 @@ the squared Euclidean norm of \code{x}, same as \code{(x|x)}.
 x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
                                     # indexed by 'i'
-                                    
-SqN_x <- sqnorm2(x_i)               # symbolic matrix, 150 rows and 3 columns
+SqN_x <- sqnorm2(x_i)               # symbolic matrix, 150 rows, 1 columns
 }
+}
+\seealso{
+\code{\link[=|.LazyTensor]{|.LazyTensor()}}
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay

@@ -2,34 +2,42 @@
 % Please edit documentation in R/lazytensor_operations.R
 \name{sqrt}
 \alias{sqrt}
-\title{Element-wise square root.}
+\title{Element-wise square root operation}
 \usage{
 sqrt(x)
 }
 \arguments{
-\item{x}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector or a matrix of
-numeric values, or a scalar value.}
+\item{x}{input for \code{\link[=sqrt.default]{sqrt.default()}} or \code{\link[=sqrt.LazyTensor]{sqrt.LazyTensor()}}.}
 }
 \value{
-An object of class "LazyTensor" if the function is called with a
-\code{LazyTensor}, and an object of class "numeric", "matrix", or "array"
-otherwise, depending on the input class (see R default \code{sqrt()} function).
+See value of \code{\link[=sqrt.default]{sqrt.default()}} or \code{\link[=sqrt.LazyTensor]{sqrt.LazyTensor()}}.
 }
 \description{
-Symbolic unary operation for element-wise square root.
+Symbolic element-wise square root operation for \code{LazyTensor} objects or
+standard element-wise square root operation otherwise, i.e.
+\eqn{\sqrt{x}}.
 }
 \details{
-If \code{x} is a \code{LazyTensor}, \code{sqrt(x)} returns a \code{LazyTensor} that
-encodes, symbolically, the element-wise square root of \code{x} ;
-else, computes R default square root function.
+If \code{x} is a \code{LazyTensor}, see \code{\link[=sqrt.LazyTensor]{sqrt.LazyTensor()}}, else
+see \code{\link[=sqrt.default]{sqrt.default()}}.
+
+\strong{Note}: for complex input argument \code{z}, then the absolute value
+corresponds to the complex modulus \code{sqrt(z) = z^0.5}.
 }
 \examples{
 \dontrun{
+# R base operation
+sqrt(4)
+sqrt(c(1,4,9,16))
+# LazyTensor symbolic element-wise square root
 x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
                                     # indexed by 'i'
 Sqrt_x <- sqrt(x_i)                 # symbolic matrix, 150 rows and 3 columns
 }
+}
+\seealso{
+\code{\link[=sqrt.default]{sqrt.default()}}, \code{\link[=sqrt.LazyTensor]{sqrt.LazyTensor()}}
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay
