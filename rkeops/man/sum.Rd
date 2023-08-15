@@ -2,7 +2,7 @@
 % Please edit documentation in R/lazytensor_operations.R
 \name{sum}
 \alias{sum}
-\title{Sum operation or Sum reduction.}
+\title{Sum operation or sum reduction}
 \usage{
 sum(x, ...)
 }
@@ -16,8 +16,8 @@ sum(x, ...)
 Sum of input.
 }
 \description{
-Sum operation for vector or LazyTensor, or Sum reduction for
-LazyTensor.
+Sum operation for vector or \code{LazyTensor}, or sum reduction for
+\code{LazyTensor}.
 }
 \details{
 If \code{x} is a \code{LazyTensor}, see \code{\link[=sum.LazyTensor]{sum.LazyTensor()}}, else see

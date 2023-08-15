@@ -109,6 +109,14 @@ showC(NA_complex_) # always == (R = NA, I = NA)
 }
 \seealso{
 \code{\link[base:complex]{base::Re()}}
+
+\code{\link[base:complex]{base::Im()}}
+
+\code{\link[base:complex]{base::Arg()}}
+
+\code{\link[base:complex]{base::Conj()}}
+
+\code{\link[base:complex]{base::Mod()}}
 }
 \author{
 R core team and contributors

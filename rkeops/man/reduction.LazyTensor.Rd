@@ -2,23 +2,23 @@
 % Please edit documentation in R/lazytensor_operations.R
 \name{reduction.LazyTensor}
 \alias{reduction.LazyTensor}
-\title{Reduction operation.}
+\title{Reduction operation}
 \usage{
 reduction.LazyTensor(x, opstr, index, opt_arg = NA)
 }
 \arguments{
-\item{x}{A \code{LazyTensor} or a \code{ComplexLazyTensor}.}
+\item{x}{a \code{LazyTensor} or a \code{ComplexLazyTensor}.}
 
-\item{opstr}{A \code{string} formula (like "Sum" or "Max").}
+\item{opstr}{a \code{string} formula (like "Sum" or "Max").}
 
-\item{index}{A \code{character} that should be either \strong{i} or \strong{j} to specify
-whether if the reduction is indexed by \strong{i} (rows), or \strong{j} (columns).}
+\item{index}{a \code{character} that should be either \code{i} or \code{j} to specify
+whether if the reduction is indexed by \code{i} (rows), or \code{j} (columns).}
 
-\item{opt_arg}{An optional argument : an \code{interger} (for "Kmin" reduction),
-a \code{character}, \code{LazyTensor} or a \code{ComplexLazyTensor}.}
+\item{opt_arg}{an optional argument: an \code{integer} (e.g. for \code{Kmin}
+reduction), a \code{character}, a \code{LazyTensor} or a \code{ComplexLazyTensor}.}
 }
 \value{
-A matrix corresponding to the reduction wanted.
+an array storing the result of the specified reduction.
 }
 \description{
 Applies a reduction to a \code{LazyTensor}.
@@ -26,10 +26,8 @@ Applies a reduction to a \code{LazyTensor}.
 \details{
 \code{reduction.LazyTensor(x, opstr, index)} will :
 \itemize{
-\item{ if \strong{index = "i"}, return the \strong{opstr} reduction of \strong{x} over the
-"i" indexes;}
-\item{ if \strong{index = "j"}, return the \strong{opstr} reduction of \strong{x} over the
-"j" indexes.}
+\item if \code{index = "i"}, return the \code{opstr} reduction of \code{x} over the "i" indexes;
+\item if \code{index = "j"}, return the \code{opstr} reduction of \code{x} over the "j" indexes.
 }
 }
 \examples{

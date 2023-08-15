@@ -2,20 +2,20 @@
 % Please edit documentation in R/lazytensor_operations.R
 \name{tensorprod}
 \alias{tensorprod}
-\title{Tensor product.}
+\title{Tensor product}
 \usage{
 tensorprod(x, y)
 }
 \arguments{
-\item{x}{A \code{LazyTensor} or a \code{ComplexLazyTensor}.}
+\item{x}{a \code{LazyTensor} or a \code{ComplexLazyTensor}.}
 
-\item{y}{A \code{LazyTensor} or a \code{ComplexLazyTensor}.}
+\item{y}{a \code{LazyTensor} or a \code{ComplexLazyTensor}.}
 }
 \value{
-A \code{LazyTensor} or a \code{ComplexLazyTensor}.
+a \code{LazyTensor} or a \code{ComplexLazyTensor}.
 }
 \description{
-Tensor product of \code{LazyTensor}s - a binary operation.
+Tensor product for \code{LazyTensor} objects.
 }
 \details{
 If \code{x} and \code{y} are \code{LazyTensor}s encoding matrix,

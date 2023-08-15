@@ -103,3 +103,9 @@ stopifnot(identical(D,  cut01(D) ),
           identical(n0, pmax(3:1, n0, 2)),
           identical(n0, pmax(n0, 4)))
 }
+\seealso{
+\code{\link[base:Extremes]{base::min()}}
+}
+\author{
+R core team and contributors
+}

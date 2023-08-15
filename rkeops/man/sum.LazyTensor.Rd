@@ -2,7 +2,7 @@
 % Please edit documentation in R/lazytensor_operations.R
 \name{sum.LazyTensor}
 \alias{sum.LazyTensor}
-\title{Sum operation or Sum reduction.}
+\title{Sum operation or sum reduction}
 \usage{
 \method{sum}{LazyTensor}(x, index = NA, ...)
 }
@@ -10,34 +10,35 @@
 \item{x}{a \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector or a matrix of
 numeric values, or a scalar value.}
 
-\item{index}{A \code{character} corresponding to the reduction dimension that
-should be either \strong{i} or \strong{j} to specify whether if the summation is
-indexed by \strong{i} (rows), or \strong{j} (columns).
-It can be NA (default) when no reduction is desired.}
+\item{index}{a \code{character} corresponding to the wanted reduction dimension,
+either \code{i} or \code{j}, to specify whether if the sum reduction is done along the
+index \code{i}, or \code{j}.
+It can be \code{NA} (default) when no reduction is desired.}
 }
 \value{
-FIXME
+a \code{LazyTensor} if \code{index = NA} or an array storing the result of
+the specified sum reduction otherwise.
 }
 \description{
-Sum unary operation, or Sum reduction for LazyTensor.
+Sum operation or Sum reduction for \code{LazyTensor} objects.
 }
 \details{
-Given that \code{x} is a \code{LazyTensor}, \code{sum(x, index)} will :
+If \code{x} is a \code{LazyTensor}, \code{sum(x, index)} will :
 \itemize{
-\item if \strong{index = "i"}, return the sum reduction of \strong{x} over the "i"
+\item if \code{index = "i"}, return the sum reduction of \code{x} over the \code{"i"}
 indexes.
-\item if \strong{index = "j"}, return the sum reduction of \strong{x} over the "j"
+\item if \code{index = "j"}, return the sum reduction of \code{x} over the \code{"j"}
 indexes.
-\item if \strong{index = NA} (default), return a new \code{LazyTensor} object
-representing the sum of the values of the vector.
+\item if \code{index = NA} (default), return a new \code{LazyTensor} object
+representing the symbolic sum of the values along the inner dimension of
+\code{x}.
 }
 
-\strong{Notes}: If \strong{index = NA}, \code{x} input argument should be a \code{LazyTensor}
+\code{Notes}: If \code{index = NA}, \code{x} input argument should be a \code{LazyTensor}
 encoding a parameter vector.
 
 Run \code{browseVignettes("rkeops")} to access the vignettes and find details
-about the function in "RKeOps LazyTensor",
-at section #Reductions.
+about the function in "RKeOps LazyTensor" vignette, at section "Reductions".
 }
 \examples{
 \dontrun{
@@ -53,4 +54,3 @@ sum_red_x <- sum(x_i, "i")          # sum reduction indexed by 'i'
 \author{
 Chloe Serre-Combe, Amelie Vernay
 }
-\keyword{internal}

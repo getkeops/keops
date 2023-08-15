@@ -7,21 +7,21 @@
 sum_reduction(x, index)
 }
 \arguments{
-\item{x}{A \code{LazyTensor} or a \code{ComplexLazyTensor}.}
+\item{x}{a \code{LazyTensor} or a \code{ComplexLazyTensor}.}
 
-\item{index}{A \code{character} corresponding to the reduction dimension that
-should be either \strong{i} or \strong{j} to specify whether if the summation is
-indexed by \strong{i} (rows), by \strong{j} (columns).}
+\item{index}{a \code{character} corresponding to the wanted reduction dimension,
+either \code{i} or \code{j}, to specify whether if the sum reduction is done along the
+index \code{i}, or \code{j}.}
 }
 \value{
-A matrix corresponding to the sum reduction.
+an array storing the result of the specified sum reduction.
 }
 \description{
-Sum reduction for LazyTensor.
+Sum reduction for \code{LazyTensor} objects.
 }
 \details{
-\code{sum_reduction(x, index)} will return the sum reduction of \strong{x}
-indexed by \strong{index}.
+\code{sum_reduction(x, index)} will return the sum reduction of \code{x}
+over the given \code{index}.
 }
 \examples{
 \dontrun{
