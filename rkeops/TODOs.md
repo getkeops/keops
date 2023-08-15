@@ -22,7 +22,7 @@ Remaining issues:
 
 - [ ] fix issue with `%*%` (including code and doc)
 
-- [ ] check if concatenation is done along the innder dimension for `concat` function
+- [ ] check if concatenation is done along the inner dimension for `concat` function
 
 - [ ] revamp vignettes regarding LazyTensor, and mention it in main vignette
 
