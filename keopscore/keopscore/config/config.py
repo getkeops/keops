@@ -126,9 +126,11 @@ if use_OpenMP:
 
         res = subprocess.run(
             'echo "#include <omp.h>" | g++ -E - -o /dev/null',
-            stdout=subprocess.PIPE,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.PIPE,
             shell=True,
         )
+        
         if res.returncode != 0:
             KeOps_Warning("omp.h header is not in the path, disabling OpenMP.")
             use_OpenMP = False
