@@ -11,7 +11,7 @@ else:
 # Define our dataset:
 #
 
-B = 3 # batch dim
+B = 3  # batch dim
 N = 5000 if torch.cuda.is_available() else 500  # Number of points
 D = 2  # Dimension of the ambient space
 Dv = 2  # Dimension of the vectors (= number of linear problems to solve)
@@ -23,19 +23,21 @@ g = torch.Tensor([0.5 / sigma**2])  # Parameter of the Gaussian RBF kernel
 
 sync = torch.cuda.synchronize if torch.cuda.is_available() else lambda: None
 
-def my_kernel(x,g):
-    x_i = LazyTensor(x[:,:,None,:])
-    x_j = LazyTensor(x[:,None,:,:])
-    D_ij = ((x_i-x_j)**2).sum(axis=3)
-    return (-g*D_ij).exp()
+
+def my_kernel(x, g):
+    x_i = LazyTensor(x[:, :, None, :])
+    x_j = LazyTensor(x[:, None, :, :])
+    D_ij = ((x_i - x_j) ** 2).sum(axis=3)
+    return (-g * D_ij).exp()
+
 
 alpha = 0.01
 
 print("Solving a Gaussian linear system, with {} points in dimension {}.".format(N, D))
 sync()
 start = time.time()
-b_j = LazyTensor(b[:,None,:,None])
-c = my_kernel(x,g).solve(b_j, alpha=alpha)
+b_j = LazyTensor(b[:, None, :, None])
+c = my_kernel(x, g).solve(b_j, alpha=alpha)
 sync()
 end = time.time()
 print("Timing (KeOps implementation):", round(end - start, 5), "s")
