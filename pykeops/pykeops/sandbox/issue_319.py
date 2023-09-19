@@ -24,9 +24,10 @@ res2 = torch.func.vmap(fn_keops)(x_i, x_j, y_j)
 print("testing vmap, error=",torch.norm(res1 - res2) / torch.norm(res1))
 
 # 2) testing torch.func.grad
-res1 = torch.func.grad(fn_torch)(x_i, x_j, y_j)
-res2 = torch.func.grad(fn_keops)(x_i, x_j, y_j)
-print("testing grad, error=",torch.norm(res1 - res2) / torch.norm(res1))
+res1 = torch.func.grad(fn_torch,(0,1,2))(x_i, x_j, y_j)
+res2 = torch.func.grad(fn_keops,(0,1,2))(x_i, x_j, y_j)
+for k in range(3):
+    print("testing grad, error=",torch.norm(res1[k] - res2[k]) / torch.norm(res1[k]))
 
 # 3) testing torch.func.vjp
 res1 = torch.func.vjp(fn_torch, x_i, x_j, y_j)[1](torch.tensor(1.))[0]
@@ -39,9 +40,10 @@ print("testing vjp, error=",torch.norm(res1 - res2) / torch.norm(res1))
 #print("testing jvp, error=",torch.norm(res1 - res2) / torch.norm(res1))
 
 # 5) testing torch.func.jacrev
-res1 = torch.func.jacrev(fn_torch)(x_i, x_j, y_j)
-res2 = torch.func.jacrev(fn_keops)(x_i, x_j, y_j)
-print("testing jacrev, error=",torch.norm(res1 - res2) / torch.norm(res1))
+res1 = torch.func.jacrev(fn_torch,(0,1,2))(x_i, x_j, y_j)
+res2 = torch.func.jacrev(fn_keops,(0,1,2))(x_i, x_j, y_j)
+for k in range(3):
+    print("testing jacrev, error=",torch.norm(res1[k] - res2[k]) / torch.norm(res1[k]))
 
 # 6) testing torch.func.jacfwd. Doesn't work because requires forward AD
 #res1 = torch.func.jacfwd(fn_torch)(x_i, x_j, y_j)
