@@ -361,8 +361,12 @@ class GenredAutograd(torch.autograd.Function):
         ind_vmap_args = in_dims[11:]
         args = list(args)
         n = len(args)
+
         for k in range(n):
-            args[k] = args[k].transpose(0, ind_vmap_args[k]).contiguous()
+            if ind_vmap_args[k] is None:
+                args[k] = args[k][None,...]
+            else:
+                args[k] = args[k].transpose(0, ind_vmap_args[k]).contiguous()
 
         return GenredAutograd.apply(
             formula,
