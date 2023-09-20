@@ -22,7 +22,7 @@ debug_ops = False
 debug_ops_at_exec = False
 
 # flag for automatic factorization : apply automatic factorization for all formulas before reduction.
-auto_factorize = True
+auto_factorize = False
 
 cuda_block_size = 192
 
