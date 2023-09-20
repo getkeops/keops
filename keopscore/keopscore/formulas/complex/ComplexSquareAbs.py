@@ -11,7 +11,6 @@ from keopscore.utils.misc_utils import KeOps_Error
 
 
 class ComplexSquareAbs(Operation):
-
     string_id = "ComplexSquareAbs"
 
     def __init__(self, f):

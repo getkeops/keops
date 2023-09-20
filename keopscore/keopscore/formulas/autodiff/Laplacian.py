@@ -14,7 +14,6 @@ from keopscore.utils.misc_utils import KeOps_Error
 
 
 def Laplacian(formula, v):
-
     if formula.dim != 1:
         KeOps_Error("Laplacian is only implemented for scalar formula.")
 

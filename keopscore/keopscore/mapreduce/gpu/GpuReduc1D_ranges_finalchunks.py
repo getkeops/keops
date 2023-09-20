@@ -37,7 +37,6 @@ def do_finalchunk_sub_ranges(
     yj,
     out,
 ):
-
     dimout = varfinal.dim
     yjloc = c_variable(pointer(dtype), f"({yj.id} + threadIdx.x * {dimfinalchunk})")
     indsj_global = Var_loader(fun_global).indsj
@@ -102,7 +101,6 @@ class GpuReduc1D_ranges_finalchunks(MapReduce, Gpu_link_compile):
         Gpu_link_compile.__init__(self)
 
     def get_code(self):
-
         super().get_code()
 
         dtype = self.dtype

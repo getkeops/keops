@@ -7,7 +7,7 @@ TVM
 # If you're running this script on Google Colab, use the following lines to install TVM on your session:
 
 
-#%matplotlib inline
+# %matplotlib inline
 #
 # try:
 #  import google.colab

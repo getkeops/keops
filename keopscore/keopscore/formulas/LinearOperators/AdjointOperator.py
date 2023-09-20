@@ -24,7 +24,6 @@ from keopscore.formulas.Operation import Broadcast
 
 
 class AdjointOperator_class(LinearOperator_class):
-
     string_id = "AdjointOperator"
 
     def call(self, formula, v, u):

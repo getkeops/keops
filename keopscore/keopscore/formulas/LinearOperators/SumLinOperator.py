@@ -24,11 +24,9 @@ from keopscore.formulas.Operation import Broadcast
 
 
 class SumLinOperator_class(LinearOperator_class):
-
     string_id = "SumLinOperator"
 
     def call(self, formula, v, wl=1, wr=1):
-
         """
         Sum of all matrix entries of a linear function.
         formula must be a linear function of v

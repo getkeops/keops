@@ -8,7 +8,6 @@ from keopscore.formulas.complex.ComplexAdd import ComplexAdd
 
 
 class ComplexMult(VectorizedComplexScalarOp):
-
     string_id = "ComplexMult"
 
     def ScalarOp(self, out, inF, inG):

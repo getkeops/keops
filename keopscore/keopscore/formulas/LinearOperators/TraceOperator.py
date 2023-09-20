@@ -25,11 +25,9 @@ from keopscore.formulas.Operation import Broadcast
 
 
 class TraceOperator_class(LinearOperator_class):
-
     string_id = "TraceOperator"
 
     def call(self, formula, v, w=1):
-
         """
         Trace of a linear function.
         formula must be a linear function of v

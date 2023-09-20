@@ -19,7 +19,7 @@ def complete_aliases(formula, aliases):
     # now we loop through extravars
     newind = ()  # this will give the indices in extravars list of new variables
     newpos = ()  # this will give the indices in aliases list of new variables
-    for (ind, var) in enumerate(extravars):
+    for ind, var in enumerate(extravars):
         # we get the "position" of the variable as the first integer value in the string
         # (i.e. the "a" in "Var(a,b,c)")
         pos = int(re.search(r"[0-9]+", var).group(0))
@@ -47,7 +47,7 @@ def complete_aliases(formula, aliases):
 
 def get_sizes(aliases, *args):
     nx, ny = None, None
-    for (var_ind, sig) in enumerate(aliases):
+    for var_ind, sig in enumerate(aliases):
         _, cat, dim, pos = get_type(sig, position_in_list=var_ind)
         if cat == 0:
             nx = args[pos].shape[-2]
@@ -204,7 +204,6 @@ def get_optional_flags(
 
 
 def parse_dtype_acc(dtype_acc, dtype):
-
     if dtype_acc == "auto":
         dtype_acc = dtype
     if dtype == "float32" and dtype_acc not in ("float32", "float64"):

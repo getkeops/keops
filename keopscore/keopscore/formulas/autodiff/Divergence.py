@@ -13,7 +13,6 @@ from keopscore.utils.misc_utils import KeOps_Error
 
 
 def Divergence(formula, v):
-
     if formula.dim != v.dim:
         KeOps_Error(
             "Divergence requires formula and variable to have the same dimaension."

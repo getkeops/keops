@@ -96,7 +96,6 @@ Ks = [1, 10, 50, 100]  # Numbers of neighbors to find
 
 
 def KNN_torch_fun(x_train, x_train_norm, x_test, K, metric):
-
     largest = False  # Default behaviour is to look for the smallest values
 
     if metric == "euclidean":
@@ -231,7 +230,6 @@ import jax.numpy as jnp
 
 @partial(jax.jit, static_argnums=(2, 3))
 def knn_jax_fun(x_train, x_test, K, metric):
-
     if metric == "euclidean":
         diss = (
             (x_test**2).sum(-1)[:, None]
@@ -266,7 +264,6 @@ def knn_jax_fun(x_train, x_test, K, metric):
 
 def KNN_JAX(K, metric="euclidean", **kwargs):
     def fit(x_train):
-
         # Setup the K-NN estimator:
         start = timer(use_torch=False)
         x_train = jax_tensor(x_train)
@@ -293,7 +290,6 @@ def KNN_JAX(K, metric="euclidean", **kwargs):
 
 def KNN_JAX_batch_loop(K, metric="euclidean", **kwargs):
     def fit(x_train):
-
         # Setup the K-NN estimator:
         start = timer(use_torch=False)
         x_train = jax_tensor(x_train)
@@ -398,7 +394,6 @@ from sklearn.neighbors import NearestNeighbors
 
 
 def KNN_sklearn(K, metric="euclidean", algorithm=None, **kwargs):
-
     if metric in ["euclidean", "angular"]:
         p = 2
     elif metric == "manhattan":
@@ -525,14 +520,12 @@ def KNN_faiss_gpu(
     **kwargs,
 ):
     def fit(x_train):
-
         D = x_train.shape[1]
 
         co = faiss.GpuClonerOptions()
         co.useFloat16 = use_float16
 
         if metric in ["euclidean", "angular"]:
-
             if algorithm == "flat":
                 index = faiss.IndexFlatL2(D)  # May be used as quantizer
                 index = faiss.index_cpu_to_gpu(res, deviceId, index, co)
@@ -616,7 +609,6 @@ jax_only = getenv("KEOPS_DOC_PRECOMPILE_JAX")
 
 
 def run_KNN_benchmark(name, loops=[1]):
-
     # Load the dataset and some info:
     dataset = generate_samples(name)(1)
     N_train, dimension = dataset["train"].shape

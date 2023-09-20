@@ -55,7 +55,6 @@ class TensorDot(Operation):
     linearity_type = "one"
 
     def __init__(self, fa, fb, dimsfa, dimsfb, contfa, contfb, permute=None):
-
         dimsfa = list(dimsfa)
         dimsfb = list(dimsfb)
         contfa = list(contfa)

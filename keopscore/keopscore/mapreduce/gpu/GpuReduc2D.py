@@ -17,7 +17,6 @@ class GpuReduc2D(MapReduce, Gpu_link_compile):
         self.dimy = self.varloader.dimy
 
     def get_code(self):
-
         super().get_code()
 
         i = self.i

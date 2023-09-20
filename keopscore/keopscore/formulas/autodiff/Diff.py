@@ -11,7 +11,6 @@ from keopscore.utils.code_gen_utils import GetInds
 
 
 def Diff(formula, v, u):
-
     # we define a temporary gradin to backpropagate.
     # This gradin will disappear in the formula when we compute the adjoint.
     # We define this temporary gradin as Var(ind,dim,cat)

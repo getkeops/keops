@@ -51,7 +51,6 @@ def KMeans(x, K=10, Niter=10, verbose=True):
     # - cl is the (N,) vector of class labels
     # - c  is the (K, D) cloud of cluster centroids
     for i in range(Niter):
-
         # E step: assign points to the closest cluster -------------------------
         D_ij = ((x_i - c_j) ** 2).sum(-1)  # (N, K) symbolic squared distances
         cl = D_ij.argmin(dim=1).long().view(-1)  # Points -> Nearest cluster
@@ -130,7 +129,6 @@ def KMeans_cosine(x, K=10, Niter=10, verbose=True):
     # - cl is the (N,) vector of class labels
     # - c  is the (K, D) cloud of cluster centroids
     for i in range(Niter):
-
         # E step: assign points to the closest cluster -------------------------
         S_ij = x_i | c_j  # (N, K) symbolic Gram matrix of dot products
         cl = S_ij.argmax(dim=1).long().view(-1)  # Points -> Nearest cluster

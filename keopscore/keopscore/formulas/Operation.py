@@ -241,6 +241,7 @@ def int2Op(x):
 #####    Broadcast    ####
 ##########################
 
+
 # N.B. this is used internally
 def Broadcast(arg, dim):
     from keopscore.formulas.maths import SumT

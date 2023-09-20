@@ -38,7 +38,7 @@ for k in range(ntry):
     res2 = fun2(x, y, b)
     end = time.time()
     time2 = end - start
-    S.append(time1/time2)
-    E.append(torch.norm(res1-res2)/torch.norm(res1))
-print("mean error of autofact:", sum(E)/ntry)
-print("mean speedup factor of autofact:", sum(S)/ntry)
+    S.append(time1 / time2)
+    E.append(torch.norm(res1 - res2) / torch.norm(res1))
+print("mean error of autofact:", sum(E) / ntry)
+print("mean speedup factor of autofact:", sum(S) / ntry)

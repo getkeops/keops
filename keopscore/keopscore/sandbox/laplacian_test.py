@@ -18,14 +18,14 @@ print("\nh=", h)
 
 h_ = AutoFactorize(h)
 
-print("\nh_=",h_)
+print("\nh_=", h_)
 
 print("****")
 
-g = Concat(x+y,x-y)
+g = Concat(x + y, x - y)
 print(g)
 
 print("****")
 
-g =Elem(x+y,0)
+g = Elem(x + y, 0)
 print(g)

@@ -184,6 +184,7 @@ class PytorchUnitTestCase(unittest.TestCase):
                 gamma_keops = myop(
                     self.sigmacd, self.gcd, self.xcd, self.ycd, backend=b
                 )
+
                 # Numpy version
                 def np_softmax(x, w):
                     x -= np.max(x, axis=1)[:, None]  # subtract the max for robustness
@@ -481,12 +482,10 @@ class PytorchUnitTestCase(unittest.TestCase):
 
         full_results = []
         for use_keops in [True, False]:
-
             results = []
 
             # N.B.: We could loop over float32 and float64, but this would take longer...
-            for (x, l, y, s) in [(self.Xc, self.Lc, self.Yc, self.Sc)]:  # Float32
-
+            for x, l, y, s in [(self.Xc, self.Lc, self.Yc, self.Sc)]:  # Float32
                 x_i = x.unsqueeze(-2)
                 l_i = l.unsqueeze(-2)
                 y_j = y.unsqueeze(-3)
@@ -514,7 +513,7 @@ class PytorchUnitTestCase(unittest.TestCase):
 
             full_results.append(results)
 
-        for (res_keops, res_torch) in zip(full_results[0], full_results[1]):
+        for res_keops, res_torch in zip(full_results[0], full_results[1]):
             self.assertTrue(res_keops.shape == res_torch.shape)
             self.assertTrue(
                 np.allclose(
@@ -537,12 +536,10 @@ class PytorchUnitTestCase(unittest.TestCase):
 
         full_results = []
         for use_keops in [True, False]:
-
             results = []
 
             # N.B.: We could loop over float32 and float64, but this would take longer...
-            for (x, l, y, s) in [(self.Xcd, self.Lcd, self.Ycd, self.Scd)]:  # Float64
-
+            for x, l, y, s in [(self.Xcd, self.Lcd, self.Ycd, self.Scd)]:  # Float64
                 x_i = x.unsqueeze(-2)
                 l_i = l.unsqueeze(-2)
                 y_j = y.unsqueeze(-3)
@@ -573,7 +570,7 @@ class PytorchUnitTestCase(unittest.TestCase):
 
             full_results.append(results)
 
-        for (res_keops, res_torch) in zip(full_results[0], full_results[1]):
+        for res_keops, res_torch in zip(full_results[0], full_results[1]):
             self.assertTrue(res_keops.shape == res_torch.shape)
             self.assertTrue(
                 np.allclose(
@@ -597,12 +594,10 @@ class PytorchUnitTestCase(unittest.TestCase):
 
         full_results = []
         for use_keops in [True, False]:
-
             results = []
 
             # N.B.: We could loop over float32 and float64, but this would take longer...
-            for (x, y) in [(Xc, Yc)]:  # Float32
-
+            for x, y in [(Xc, Yc)]:  # Float32
                 x_i = x.unsqueeze(-2)
                 y_j = y.unsqueeze(-3)
 
@@ -623,7 +618,7 @@ class PytorchUnitTestCase(unittest.TestCase):
 
             full_results.append(results)
 
-        for (res_keops, res_torch) in zip(full_results[0], full_results[1]):
+        for res_keops, res_torch in zip(full_results[0], full_results[1]):
             self.assertTrue(res_keops.shape == res_torch.shape)
             self.assertTrue(
                 np.allclose(
@@ -640,12 +635,10 @@ class PytorchUnitTestCase(unittest.TestCase):
 
         full_results = []
         for use_keops in [True, False]:
-
             results = []
 
             # N.B.: We could loop over float32 and float64, but this would take longer...
-            for (x, l, y, s) in [(self.Xc, self.Lc, self.Yc, self.Sc)]:  # Float32
-
+            for x, l, y, s in [(self.Xc, self.Lc, self.Yc, self.Sc)]:  # Float32
                 x_i = x.unsqueeze(-2)
                 l_i = l.unsqueeze(-2)
                 y_j = y.unsqueeze(-3)
@@ -673,7 +666,7 @@ class PytorchUnitTestCase(unittest.TestCase):
 
             full_results.append(results)
 
-        for (res_keops, res_torch) in zip(full_results[0], full_results[1]):
+        for res_keops, res_torch in zip(full_results[0], full_results[1]):
             self.assertTrue(res_keops.shape == res_torch.shape)
             self.assertTrue(
                 np.allclose(

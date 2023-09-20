@@ -31,7 +31,6 @@ def KP(x, y, p):
 
 
 for N in Ns:
-
     # Generate the data
     x = np.random.randn(N, D).astype(dtype)
     y = np.random.randn(N, D).astype(dtype)

@@ -40,7 +40,6 @@ class Subtract_Impl(VectorizedScalarOp):
 # N.B. The following separate function should theoretically be implemented
 # as a __new__ method of the previous class, but this can generate infinite recursion problems
 def Subtract(arg0, arg1):
-
     from keopscore.formulas.maths.Add import Add_Impl
 
     # Simplification rules

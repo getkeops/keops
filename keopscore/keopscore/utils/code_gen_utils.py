@@ -389,7 +389,7 @@ def VectApply(fun, out, *args):
     forloop, k = c_for_loop(0, dimloop, 1, pragma_unroll=True)
 
     argsk = []
-    for (arg, incr) in zip(args, incr_args):
+    for arg, incr in zip(args, incr_args):
         if isinstance(arg, c_variable):
             argsk.append(arg)
         elif isinstance(arg, c_array):
@@ -416,7 +416,7 @@ def ComplexVectApply(fun, out, *args):
     forloop, k = c_for_loop(0, dimloop, 2, pragma_unroll=True)
 
     argsk = []
-    for (arg, incr) in zip(args, incr_args):
+    for arg, incr in zip(args, incr_args):
         argk = c_array(arg.dtype, 2, f"({arg.id}+{k.id}*{incr})")
         argsk.append(argk)
     outk = c_array(out.dtype, 2, f"({out.id}+{k.id}*{incr_out})")
@@ -497,7 +497,6 @@ def GetInds(Vars):
 
 class Var_loader:
     def __init__(self, red_formula):
-
         formula = red_formula.formula
         tagI, tagJ = red_formula.tagI, red_formula.tagJ
 
@@ -571,7 +570,7 @@ class Var_loader:
 
 def table(nminargs, dimsx, dimsy, dimsp, indsi, indsj, indsp, xi, yj, pp):
     res = [None] * nminargs
-    for (dims, inds, xloc) in (
+    for dims, inds, xloc in (
         (dimsx, indsi, xi),
         (dimsy, indsj, yj),
         (dimsp, indsp, pp),
@@ -585,7 +584,7 @@ def table(nminargs, dimsx, dimsy, dimsp, indsi, indsj, indsp, xi, yj, pp):
 
 def direct_table(nminargs, dimsx, dimsy, dimsp, indsi, indsj, indsp, args, i, j):
     res = [None] * nminargs
-    for (dims, inds, row_index) in (
+    for dims, inds, row_index in (
         (dimsx, indsi, i),
         (dimsy, indsj, j),
         (dimsp, indsp, c_zero_int),
@@ -614,7 +613,7 @@ def table4(
     arg_new,
 ):
     res = [None] * nminargs
-    for (dims, inds, xloc) in (
+    for dims, inds, xloc in (
         (dimsx, indsi, xi),
         (dimsy, indsj, yj),
         (dimsp, indsp, pp),

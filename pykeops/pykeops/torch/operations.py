@@ -38,7 +38,6 @@ class KernelSolveAutograd(torch.autograd.Function):
         ny,
         *args
     ):
-
         # N.B. when rec_multVar_highdim option is set, it means that formula is of the form "sum(F*b)", where b is a variable
         # with large dimension. In this case we set option multVar_highdim to allow for the use of the special "final chunk" computation
         # mode. However, this may not be also true for the gradients of the same formula. In fact only the gradient
@@ -193,7 +192,7 @@ class KernelSolveAutograd(torch.autograd.Function):
 
         grads = []  # list of gradients wrt. args;
 
-        for (var_ind, sig) in enumerate(aliases):  # Run through the arguments
+        for var_ind, sig in enumerate(aliases):  # Run through the arguments
             # If the current gradient is to be discarded immediatly...
             if not ctx.needs_input_grad[
                 var_ind + 13
@@ -201,7 +200,6 @@ class KernelSolveAutograd(torch.autograd.Function):
                 grads.append(None)  # Don't waste time computing it.
 
             else:  # Otherwise, the current gradient is really needed by the user:
-
                 if var_ind == varinvpos:
                     grads.append(KinvG)
                 else:
@@ -455,7 +453,7 @@ class KernelSolve:
         else:
             # we need to recover index from alias
             tmp = self.aliases.copy()
-            for (i, s) in enumerate(tmp):
+            for i, s in enumerate(tmp):
                 tmp[i] = s[: s.find("=")].strip()
             varinvpos = tmp.index(varinvalias)
         self.varinvpos = varinvpos
