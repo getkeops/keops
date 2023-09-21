@@ -68,6 +68,7 @@ class Gpu_link_compile(LinkCompile):
             create_string_buffer(self.low_level_code_file),
             create_string_buffer(self.code.encode("utf-8")),
             c_int(self.use_half),
+            c_int(self.use_fast_math),
             c_int(self.device_id),
             create_string_buffer(
                 (cuda_include_fp16_path() + os.path.sep).encode("utf-8")
