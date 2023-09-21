@@ -1,4 +1,3 @@
-# Test for gaussian kernel operation using LazyTensors.
 
 import time
 
@@ -6,9 +5,9 @@ import math
 import torch
 from pykeops.torch import Genred
 
-M, N, D, DV = 2000, 3000, 1, 1
+M, N, D, DV = 200000, 300000, 1, 1
 
-dtype = torch.float64
+dtype = torch.float32
 
 device_id = "cuda:0" if torch.cuda.is_available() else "cpu"
 
@@ -21,7 +20,7 @@ aliases = [f"x=Vi(0,{D})", f"y=Vj(1,{D})", f"b=Vj(2,{DV})", f"e=Vi(3,{DV})"]
 
 formula1 = formula2 = "Exp(-SqDist(x,y))*b"
 
-order = 1
+order = 5
 for k in range(order):
     formula1 = f"Grad({formula1},x,e)"
     formula2 = f"AutoFactorize(Grad({formula2},x,e))"
@@ -31,7 +30,7 @@ fun2 = Genred(formula2, aliases, reduction_op="Sum", axis=1, sum_scheme="block_s
 
 S = []
 E = []
-ntry = 100
+ntry = 10
 for k in range(ntry):
     start = time.time()
     res1 = fun1(x, y, b, e)
