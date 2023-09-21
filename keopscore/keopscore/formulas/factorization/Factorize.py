@@ -17,6 +17,11 @@ class Factorize_Impl(Operation):
     def __init__(self, f, g, aliasvar):
         super().__init__(f, g, params=(aliasvar,))
         self.dim = f.dim
+        self.aliasvar = aliasvar
+        if isinstance(f, Factorize_Impl):
+            self.defined_temp_Vars = f.defined_temp_Vars + [aliasvar]
+        else:
+            self.defined_temp_Vars = [aliasvar]
 
     def __call__(self, out, table):
         """returns the C++ code string corresponding to the evaluation of the formula
@@ -77,28 +82,42 @@ class Factorize_Impl(Operation):
     # parameters for testing the operation (optional)
     enable_test = False  # enable testing for this operation
 
+def Factorize_(formula, g, v):
+    if isinstance(formula, Factorize_Impl):
+        if set.intersection(set(formula.defined_temp_Vars), set(g.Vars_)):
+            f_inner, g_inner = formula.children
+            v_inner = formula.aliasvar
+            return Factorize_Impl(Factorize_(f_inner, g, v), g_inner, v_inner)
+    res = Factorize_Impl(formula, g, v)
+    return res
 
 def Factorize(formula, g):
     if type(g) in (Var, Zero, IntCst_Impl):
         return formula
-    inds = GetInds(formula.Vars_)
     # we get a new negative index (negative because it must not refer to an actual input tensor index)
+    inds = GetInds(formula.Vars_)
     minind = min(inds) if len(inds) > 0 else 0
     newind = -1 if minind >= 0 else minind - 1
     v = Var(newind, g.dim, 3)
     newformula, cnt = formula.replace_and_count(g, v)
     if cnt > 1:
-        return Factorize_Impl(newformula, g, v)
+        return Factorize_(newformula, g, v)
     else:
         return formula
 
 
 def AutoFactorize(formula):
     def RecSearch(formula, g):
-        formula = Factorize(formula, g)
+        newformula = Factorize(formula, g)
+        if newformula!=formula:
+            return newformula
         for child in g.children:
-            formula = RecSearch(formula, child)
+            newformula = RecSearch(formula, child)
+            if newformula!=formula:
+                return newformula
         return formula
 
-    formula = RecSearch(formula, formula)
+    newformula = RecSearch(formula, formula)
+    if newformula!=formula:
+        return AutoFactorize(newformula)
     return formula
