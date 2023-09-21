@@ -64,7 +64,7 @@ class Genred:
         sum_scheme="auto",
         enable_chunks=True,
         rec_multVar_highdim=False,
-        use_fast_math=True
+        use_fast_math=True,
     ):
         r"""
         Instantiate a new generic operation.
@@ -135,7 +135,7 @@ class Genred:
             rec_multVar_highdim (bool, default False): for Gpu mode only, enable special "final chunked" computation mode for accelerating reductions
                                 with formulas involving large dimension variables. Beware ! This will only work if the formula has the very special form
                                 that allows such computation mode.
-            
+
             use_fast_math (bool, default True): enables use_fast_math Cuda option
 
         """
@@ -158,7 +158,7 @@ class Genred:
             use_double_acc,
             sum_scheme,
             enable_chunks,
-            use_fast_math
+            use_fast_math,
         )
 
         if rec_multVar_highdim:

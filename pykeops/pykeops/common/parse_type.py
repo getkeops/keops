@@ -128,7 +128,12 @@ def get_type(type_str, position_in_list=None):
 
 
 def get_optional_flags(
-    reduction_op_internal, dtype_acc, use_double_acc, sum_scheme, enable_chunks, use_fast_math
+    reduction_op_internal,
+    dtype_acc,
+    use_double_acc,
+    sum_scheme,
+    enable_chunks,
+    use_fast_math,
 ):
     # 1. Options for accuracy
 
