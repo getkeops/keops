@@ -124,13 +124,17 @@ if use_OpenMP:
     if platform.system() == "Darwin":
         import subprocess, importlib
 
+        include_tag = "-I$OMP_PATH" if "OMP_PATH" in os.environ else ""
         res = subprocess.run(
-            'echo "#include <omp.h>" | g++ -E - -o /dev/null',
-            stdout=subprocess.PIPE,
+            f'echo "#include <omp.h>" | g++ {include_tag} -E - -o /dev/null',
+            stderr=subprocess.DEVNULL,
             shell=True,
         )
         if res.returncode != 0:
-            KeOps_Warning("omp.h header is not in the path, disabling OpenMP.")
+            KeOps_Warning("""omp.h header is not in the path, disabling OpenMP. To fix this, you can set the environment
+                  variable OMP_PATH to the location of the header before importing keopscore or pykeops,
+                  e.g. using os.environ: import os; os.environ['OMP_PATH'] = '/path/to/omp/header'"""
+                          )
             use_OpenMP = False
         else:
             # we try to import either mkl or numpy, because it will load
