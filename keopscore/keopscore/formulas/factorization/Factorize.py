@@ -82,6 +82,7 @@ class Factorize_Impl(Operation):
     # parameters for testing the operation (optional)
     enable_test = False  # enable testing for this operation
 
+
 def Factorize_(formula, g, v):
     if isinstance(formula, Factorize_Impl):
         if set.intersection(set(formula.defined_temp_Vars), set(g.Vars_)):
@@ -90,6 +91,7 @@ def Factorize_(formula, g, v):
             return Factorize_Impl(Factorize_(f_inner, g, v), g_inner, v_inner)
     res = Factorize_Impl(formula, g, v)
     return res
+
 
 def Factorize(formula, g):
     if type(g) in (Var, Zero, IntCst_Impl):
@@ -109,15 +111,15 @@ def Factorize(formula, g):
 def AutoFactorize(formula):
     def RecSearch(formula, g):
         newformula = Factorize(formula, g)
-        if newformula!=formula:
+        if newformula != formula:
             return newformula
         for child in g.children:
             newformula = RecSearch(formula, child)
-            if newformula!=formula:
+            if newformula != formula:
                 return newformula
         return formula
 
     newformula = RecSearch(formula, formula)
-    if newformula!=formula:
+    if newformula != formula:
         return AutoFactorize(newformula)
     return formula
