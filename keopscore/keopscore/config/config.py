@@ -106,15 +106,16 @@ if shutil.which(cxx_compiler) is None:
     """
     )
 
+cpp_env_flags = os.getenv("CXXFLAGS") if "CXXFLAGS" in os.environ else ""
 
 compile_options = " -shared -fPIC -O3 -std=c++11"
 
-
 # cpp options
+cpp_flags = f"{cpp_env_flags} {compile_options}"
 if platform.system() == "Darwin":
-    cpp_flags = compile_options + " -flto"
+    cpp_flags = f"{cpp_flags} -flto"
 else:
-    cpp_flags = compile_options + " -flto=auto"
+    cpp_flags = f"{cpp_flags} -flto=auto"
 
 disable_pragma_unrolls = True
 
@@ -124,9 +125,12 @@ if use_OpenMP:
     if platform.system() == "Darwin":
         import subprocess, importlib
 
-        include_tag = "-I$OMP_PATH" if "OMP_PATH" in os.environ else ""
+        omp_env_path = f" -I{os.getenv('OMP_PATH')}" if "OMP_PATH" in os.environ else ""
+        cpp_env_flags += omp_env_path
+        cpp_flags += omp_env_path
+
         res = subprocess.run(
-            f'echo "#include <omp.h>" | g++ {include_tag} -E - -o /dev/null',
+            f'echo "#include <omp.h>" | {cxx_compiler} {cpp_env_flags} -E - -o /dev/null',
             stderr=subprocess.DEVNULL,
             shell=True,
         )
