@@ -14,7 +14,7 @@ public:
 
 
     int operator()(int tagHostDevice, int dimY, int nx, int ny,
-                   int tagI, int tagZero, int use_half,
+                   int tagI, int tagZero, int use_half, 
                    int tag1D2D, int dimred,
                    int cuda_block_size, int use_chunk_mode,
                    py::tuple py_indsi, py::tuple py_indsj, py::tuple py_indsp,

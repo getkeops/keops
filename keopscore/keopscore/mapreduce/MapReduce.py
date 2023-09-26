@@ -20,6 +20,7 @@ class MapReduce:
         tagCpuGpu,
         tag1D2D,
         use_half,
+        use_fast_math,
         device_id,
     ):
         self.red_formula_string = red_formula_string
@@ -37,6 +38,7 @@ class MapReduce:
             tag1D2D,
         )
         self.use_half = use_half
+        self.use_fast_math = use_fast_math
         self.device_id = device_id
         self.varloader = Var_loader(self.red_formula)
 
