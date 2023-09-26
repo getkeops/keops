@@ -15,7 +15,7 @@ if torch.__version__ < torch_version_required:
 ##########################################################
 # Get GPU informations
 
-pykeopsconfig.gpu_available = torch.cuda.is_available()  # use torch to detect gpu
+#pykeopsconfig.gpu_available = torch.cuda.is_available()  # use torch to detect gpu
 
 ##########################################################
 # Import pyKeOps routines
