@@ -563,10 +563,12 @@ public :
 
         // Send data from device to host.
 
+
         if (tagHostDevice == 0) {
             CUDA_SAFE_CALL(cuMemcpyDtoH(out, (CUdeviceptr) out_d, sizeof(TYPE) * sizeout));
-            CUDA_SAFE_CALL(cuMemFree(p_data));
         }
+
+         CUDA_SAFE_CALL(cuMemFree(p_data));
 
         if (RR.tagRanges == 1) {
             CUDA_SAFE_CALL(cuMemFree((CUdeviceptr) lookup_d));

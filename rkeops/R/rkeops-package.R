@@ -3,16 +3,18 @@
 #' @docType package
 #' @title rkeops
 #' 
-#' RKeOps: kernel operations on GPU, with autodiff, without memory overflows in 
-#' R
-#'  
 #' @description
+#' RKeOps: kernel operations on GPU, with autodiff, without memory overflows in R
+#' 
+#' @details
 #' RKeOps is the R package interfacing the cpp/cuda library 
 #' [KeOps](https://www.kernel-operations.io/). It provides 
 #' standard R functions that can be used in any R (>=3) codes.
 #' 
 #' @author 
 #' - [Benjamin Charlier](http://imag.umontpellier.fr/~charlier/)
+#' - Amelie Vernay
+#' - Chloe Serre-Combe
 #' - [Ghislain Durif](https://gdurif.perso.math.cnrs.fr/)
 #' - [Jean Feydy](https://www.jeanfeydy.com)
 #' - [Joan Alexis Glaunès](http://helios.mi.parisdescartes.fr/~glaunes/)
@@ -30,15 +32,12 @@
 #' 
 #' For more information, please read the vignettes 
 #' (`browseVignettes("rkeops")`) and visit 
-#' https://www.kernel-operations.io/.
+#' <https://www.kernel-operations.io/>.
 #' 
 #' @references
 #' \insertRef{JMLR:v22:20-275}{rkeops}
 #' 
-#' @import Rcpp
-#' @importFrom Rcpp sourceCpp
 #' @importFrom utils head packageVersion
-#' @importFrom Rdpack reprompt
-#' @useDynLib rkeops, .registration = TRUE
+#' @import Rdpack
 #' 
 NULL

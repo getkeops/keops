@@ -1,3 +1,0 @@
-# local gitignore for R binder
-RcppExports.R
-RcppExports.cpp

@@ -9,9 +9,6 @@ class Chunk_Mode_Constants:
 
         self.red_formula = red_formula
         self.dimred = red_formula.dimred  # dimension of reduction operation
-        self.dimsp = varloader.dimsp  # dimensions of parameters variables
-        self.indsp = varloader.indsp
-        self.dimp = varloader.dimp
         self.dimout = (
             red_formula.dim
         )  # dimension of output variable of reduction operation
@@ -34,10 +31,13 @@ class Chunk_Mode_Constants:
         self.dimsy_chunked = GetDims(self.varsj_chunked)
         self.indsj_chunked = GetInds(self.varsj_chunked)
 
+        self.varsp_chunked = self.fun_chunked.chunked_vars(2)
+        self.dimsp_chunked = GetDims(self.varsp_chunked)
+        self.indsp_chunked = GetInds(self.varsp_chunked)
+
         self.fun_postchunk = formula.post_chunk_formula(self.nminargs)
 
         self.varsi_postchunk = self.fun_postchunk.Vars(red_formula.tagI)
-
         self.dimsx_postchunk = GetDims(self.varsi_postchunk)
         self.indsi_postchunk = GetInds(self.varsi_postchunk)
 
@@ -45,12 +45,9 @@ class Chunk_Mode_Constants:
         self.dimsy_postchunk = GetDims(self.varsj_postchunk)
         self.indsj_postchunk = GetInds(self.varsj_postchunk)
 
-        self.varsi_notchunked = list(
-            set.union(
-                set(self.varsi_postchunk),
-                set(self.fun_chunked.notchunked_vars(red_formula.tagI)),
-            )
-        )
+        self.varsp_postchunk = self.fun_postchunk.Vars(2)
+        self.dimsp_postchunk = GetDims(self.varsp_postchunk)
+        self.indsp_postchunk = GetInds(self.varsp_postchunk)
 
         # Here we detect if chunked variables are also used in the postchunk formula
         # Currently the code in GpuReduc1D_chunks.py does not handle this case, so
@@ -59,7 +56,15 @@ class Chunk_Mode_Constants:
         self.chunk_postchunk_mix = (
             len(set.intersection(set(self.indsi_postchunk), set(self.indsi_chunked)))
             + len(set.intersection(set(self.indsj_postchunk), set(self.indsj_chunked)))
+            + len(set.intersection(set(self.indsp_postchunk), set(self.indsp_chunked)))
         ) > 0
+
+        self.varsi_notchunked = list(
+            set.union(
+                set(self.varsi_postchunk),
+                set(self.fun_chunked.notchunked_vars(red_formula.tagI)),
+            )
+        )
 
         self.indsi_notchunked = GetInds(self.varsi_notchunked)
         self.dimsx_notchunked = GetDims(self.varsi_notchunked)
@@ -75,6 +80,16 @@ class Chunk_Mode_Constants:
         self.dimsy_notchunked = GetDims(self.varsj_notchunked)
         self.dimy_notchunked = sum(self.dimsy_notchunked)
 
+        self.varsp_notchunked = list(
+            set.union(
+                set(self.varsp_postchunk),
+                set(self.fun_chunked.notchunked_vars(2)),
+            )
+        )
+        self.indsp_notchunked = GetInds(self.varsp_notchunked)
+        self.dimsp_notchunked = GetDims(self.varsp_notchunked)
+        self.dimp_notchunked = sum(self.dimsp_notchunked)
+
         self.fun_lastchunked = formula.chunked_formulas(self.dimlastchunk)[0]["formula"]
 
         self.varsi_lastchunked = list(
@@ -89,6 +104,12 @@ class Chunk_Mode_Constants:
         self.indsj_lastchunked = GetInds(self.varsj_lastchunked)
         self.dimsy_lastchunked = GetDims(self.varsj_lastchunked)
 
+        self.varsp_lastchunked = list(
+            Var(v.ind, self.dimlastchunk, v.cat) for v in self.varsp_chunked
+        )
+        self.indsp_lastchunked = GetInds(self.varsp_lastchunked)
+        self.dimsp_lastchunked = GetDims(self.varsp_lastchunked)
+
         self.varsi = [*self.varsi_notchunked, *self.varsi_chunked]
         self.dimsx = GetDims(self.varsi)
         self.indsi = GetInds(self.varsi)
@@ -99,6 +120,11 @@ class Chunk_Mode_Constants:
         self.indsj = GetInds(self.varsj)
         self.dimy = sum(self.dimsy)
 
+        self.varsp = [*self.varsp_notchunked, *self.varsp_chunked]
+        self.dimsp = GetDims(self.varsp)
+        self.indsp = GetInds(self.varsp)
+        self.dimp = sum(self.dimsp)
+
         self.inds = [*self.indsi, *self.indsj, *self.indsp]
 
         self.varsi_last = [*self.varsi_notchunked, *self.varsi_lastchunked]
@@ -108,3 +134,7 @@ class Chunk_Mode_Constants:
         self.varsj_last = [*self.varsj_notchunked, *self.varsj_lastchunked]
         self.indsj_last = GetInds(self.varsj_last)
         self.dimsy_last = GetDims(self.varsj_last)
+
+        self.varsp_last = [*self.varsp_notchunked, *self.varsp_lastchunked]
+        self.indsp_last = GetInds(self.varsp_last)
+        self.dimsp_last = GetDims(self.varsp_last)

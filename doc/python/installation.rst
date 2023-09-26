@@ -278,6 +278,9 @@ First of all, make sure that you are using a C++ compiler which is compatible wi
 
 2. Install a compiler **locally**: if you are using a conda environment, you can install a new instance of gcc and g++ by following the `documentation of conda <https://conda.io/docs/user-guide/tasks/build-packages/compiler-tools.html>`_.
 
+3. If you have a conda environment with CUDA toolkit and pyKeOps, the compiling test with ``pykeops.test_numpy_bindings()``will fail unless you also have a system-wide CUDA toolkit installation, due to missing ``cuda.h`` file. See <https://conda-forge.org/docs/user/faq.html?highlight=cuda>`_, question "How can I compile CUDA (host or device) codes in my environment?"
+
+
 
 .. _`part.cache`:
 

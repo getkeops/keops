@@ -58,7 +58,7 @@ done
 ################################################################################
 
 # project root directory
-PROJDIR=$(git rev-parse --show-toplevel)
+PROJDIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 # python exec
 PYTHON="python3"
@@ -82,11 +82,6 @@ logging "---- Python version = $(python -V)"
 
 pip install -U ${TEST_REQ}
 
-
-# FIXME Temp fix: pytorch compatible with Cuda 11.3 is not available on PyPI
-if [[ $(hostname) == "oban" ]]; then
-    pip install -U torch==1.11.0+cu113 -f https://download.pytorch.org/whl/cu113/torch_stable.html
-fi
 
 ################################################################################
 # Installing keopscore                                                         #
