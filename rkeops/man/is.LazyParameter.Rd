@@ -14,7 +14,7 @@ is.LazyParameter(x)
 A boolean, TRUE or FALSE.
 }
 \description{
-Checks whether if the given input is a \code{LazyTensor} encoding
+Checks whether the given input is a \code{LazyTensor} encoding
 a single scalar value. That is, if the input is a fixed parameter
 \code{LazyTensor} of dimension 1.
 }

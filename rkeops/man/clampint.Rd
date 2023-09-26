@@ -21,9 +21,9 @@ An object of class \code{LazyTensor}.
 Symbolic ternary operation for element-wise clampint function.
 }
 \details{
-\code{clampint(x, y, z)} returns a \code{LazyTensor} that encodes, symbolically,
-the element-wise clamping of \code{x} in \verb{(y, z)} which are integers. See \code{?clamp}
-for more details.
+\code{clampint(x, y, z)} returns a \code{LazyTensor} that encodes,
+symbolically, the element-wise clamping of \code{x} in \verb{(y, z)} which are
+integers. See \code{?clamp} for more details.
 Broadcasting rules apply.
 }
 \examples{

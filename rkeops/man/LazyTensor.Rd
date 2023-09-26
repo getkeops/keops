@@ -10,18 +10,19 @@ LazyTensor(x, index = NA, is_complex = FALSE)
 \item{x}{A matrix or a vector of numeric values, or a scalar value}
 
 \item{index}{A text string that should be either \strong{i} or \strong{j}, or an \strong{NA}
-value (the default), to specify whether if the \strong{x} variable is indexed
+value (the default), to specify whether the \strong{x} variable is indexed
 by \strong{i} (rows), by \strong{j} (columns), or is a fixed parameter across indices.
 If \strong{x} is a matrix, \strong{index} must be \strong{i} or \strong{j}.}
 
-\item{is_complex}{A boolean (default is FALSE). Whether if we want to create a
-\code{ComplexLazyTensor} (is_complex = TRUE) or a \code{LazyTensor} (is_complex = FALSE).}
+\item{is_complex}{A boolean (default is FALSE). Whether we want to create
+a \code{ComplexLazyTensor} (\code{is_complex = TRUE}) or a \code{LazyTensor}
+(\code{is_complex = FALSE}).}
 }
 \value{
 An object of class "LazyTensor" or "ComplexLazyTensor".
 }
 \description{
-\code{LazyTensor}s objects are wrappers around R matrices or vectors that are used
+\code{LazyTensor} objects are wrappers around R matrices or vectors that are used
 to create symbolic formulas for the \code{KeOps} reduction operations.
 }
 \details{
@@ -51,14 +52,14 @@ to keep track of the dimension.}
 
 Setting the argument \code{is_complex} to \code{TRUE} will build a \code{ComplexLazyTensor},
 which is also a \code{LazyTensor}. Run \code{browseVignettes("rkeops")} and see
-"RKeOps LazyTensor" vignette for further details on how \code{ComplexLazyTensor}s
-are build.
+"RKeOps LazyTensor" vignette for further details on how \code{ComplexLazyTensors}
+are built.
 
 \strong{Note}
 
 If \code{x} is an integer, \code{LazyTensor(x)} builds a \code{LazyTensor} whose
 formula is simply \code{IntCst(x)} and contains all the necessary information;
-\code{args} and \code{data} remains empty, to avoid useless storage.
+\code{args} and \code{data} remain empty to avoid useless storage.
 
 \strong{Alternatives}
 
@@ -69,7 +70,7 @@ formula is simply \code{IntCst(x)} and contains all the necessary information;
 }
 
 Run \code{browseVignettes("rkeops")} to access the vignettes and see how to use
-\code{LazyTensor}s.
+\code{LazyTensors}.
 }
 \examples{
 \dontrun{

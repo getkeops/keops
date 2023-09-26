@@ -128,7 +128,12 @@ def get_type(type_str, position_in_list=None):
 
 
 def get_optional_flags(
-    reduction_op_internal, dtype_acc, use_double_acc, sum_scheme, enable_chunks
+    reduction_op_internal,
+    dtype_acc,
+    use_double_acc,
+    sum_scheme,
+    enable_chunks,
+    use_fast_math,
 ):
     # 1. Options for accuracy
 
@@ -189,12 +194,11 @@ def get_optional_flags(
 
     optional_flags["sum_scheme"] = sum_scheme
 
+    optional_flags["use_fast_math"] = 1 if use_fast_math else 0
+
     # 2. Option for chunk mode
 
-    if enable_chunks:
-        optional_flags["enable_chunks"] = 1
-    else:
-        optional_flags["enable_chunks"] = 0
+    optional_flags["enable_chunks"] = 1 if enable_chunks else 0
 
     return optional_flags
 

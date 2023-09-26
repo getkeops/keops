@@ -4,15 +4,15 @@
 \alias{sum.LazyTensor}
 \title{Sum operation or Sum reduction.}
 \usage{
-\method{sum}{LazyTensor}(x, index = NA)
+\method{sum}{LazyTensor}(x, index = NA, ...)
 }
 \arguments{
-\item{x}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector or a matrix of numeric
-values, or a scalar value.}
+\item{x}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector or a matrix of
+numeric values, or a scalar value.}
 
-\item{index}{A \code{character} corresponding to the reduction dimension that should
-be either \strong{i} or \strong{j} to specify whether if the summation is indexed by
-\strong{i} (rows), or \strong{j} (columns).
+\item{index}{A \code{character} corresponding to the reduction dimension that
+should be either \strong{i} or \strong{j} to specify whether if the summation is
+indexed by \strong{i} (rows), or \strong{j} (columns).
 It can be NA (default) when no reduction is desired.}
 }
 \value{
@@ -32,19 +32,14 @@ indexes.
 representing the sum of the values of the vector.
 }
 
-\strong{Notes}: If \strong{index = NA}, \code{x} input argument should be a \code{LazyTensor} encoding a
-parameter vector.
+\strong{Notes}: If \strong{index = NA}, \code{x} input argument should be a \code{LazyTensor}
+encoding a parameter vector.
 
 Run \code{browseVignettes("rkeops")} to access the vignettes and find details
 about the function in "RKeOps LazyTensor",
 at section #Reductions.
 }
-\author{
-Chloe Serre-Combe, Amelie Vernay
-
-Chloe Serre-Combe, Amelie Vernay
-
-#' @examples
+\examples{
 \dontrun{
 x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
@@ -53,5 +48,9 @@ x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x,
 sum_x <- sum(x_i)                   # LazyTensor object
 sum_red_x <- sum(x_i, "i")          # sum reduction indexed by 'i'
 }
+
+}
+\author{
+Chloe Serre-Combe, Amelie Vernay
 }
 \keyword{internal}

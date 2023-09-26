@@ -16,13 +16,13 @@ argument corresponding to a weight argument.}
 A text \code{string}.
 }
 \description{
-Return the internal reduction operation.
+Returns the internal reduction operation.
 }
 \details{
-\code{fix_op_reduction(reduction_op, with_weight)} will return the internal
-reduction operation according to \code{reduction_op} and a possible optional weight
-argument. Some advance operations defined at user level use in fact other
-internal reductions:
+\code{fix_op_reduction(reduction_op, with_weight)} will return the
+internal reduction operation according to \code{reduction_op} and a possible
+optional weight argument. Some advance operations defined at user level use,
+in fact, other internal reductions:
 \itemize{
 \item If \code{reduction_op == "LogSumExp"}, the internal reduction operation
 is \code{"Max_SumShiftExp"} or \code{"Max_SumShiftExpWeight"} depending on

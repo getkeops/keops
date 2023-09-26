@@ -1200,11 +1200,11 @@ test_that("round", {
   
   # errors
   expect_error(round(x_i, x), 
-               "`d` input argument should be a scalar.", 
+               "`digits` input argument should be a scalar.", 
                fixed = TRUE)
   
   expect_error(round(x_i, 2i), 
-               "`d` input argument should be a scalar.", 
+               "`digits` input argument should be a scalar.", 
                fixed = TRUE)
 })
 
@@ -1320,6 +1320,15 @@ test_that("step", {
 
 
 test_that("relu", {
+    
+    # check that base operation is still working
+    expect_equal(relu(3), 3)
+    expect_equal(relu(1:10), 1:10)
+    expect_equal(relu(-9:10), c(rep(0, 10), 1:10))
+    expect_equal(
+        relu(matrix(-9:10, 5, 2)), 
+        matrix(c(rep(0, 10), 1:10), 5, 2))
+    
   # basic example
   D <- 3
   M <- 100

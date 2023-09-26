@@ -4,7 +4,7 @@
 \alias{mod.LazyTensor}
 \title{Element-wise modulo with offset function.}
 \usage{
-\method{mod}{LazyTensor}(x, a, b = 0)
+\method{mod}{LazyTensor}(x, a, b = 0, ...)
 }
 \description{
 Element-wise modulo with offset function.

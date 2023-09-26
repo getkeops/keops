@@ -7,13 +7,13 @@
 is.LazyTensor(x)
 }
 \arguments{
-\item{x}{An object we want to know if it is a \code{LazyTensor}.}
+\item{x}{An object that we want to know if it is a \code{LazyTensor}.}
 }
 \value{
 A boolean, TRUE or FALSE.
 }
 \description{
-Checks whether if the given input is a \code{LazyTensor} or not.
+Checks whether the given input is a \code{LazyTensor} or not.
 }
 \details{
 If \code{x} is a \code{LazyTensor}, \code{is.LazyTensor(x)} returns TRUE, else,

@@ -124,5 +124,5 @@ covr::package_coverage(
     pkg_dir, line_exclusions = list("R/init.R", "R/python.R"))
 
 # Check the package
-devtools::check(pkg_dir)
+devtools::check(pkg_dir, run_dont_test = TRUE)
 ```

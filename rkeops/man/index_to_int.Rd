@@ -13,7 +13,7 @@ index_to_int(index)
 An \code{integer}.
 }
 \description{
-Transform \code{string} index input into integer.
+Transforms \code{string} index input into integer.
 }
 \details{
 \code{index_to_int(index)} returns an \code{integer}: \strong{1} if

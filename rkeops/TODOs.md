@@ -1,8 +1,8 @@
 # Organize TODOs/tasks/actions related to RKeOps package
 
-## Merge R LazyTensor
+## R LazyTensor
 
-See [PR #192](https://github.com/getkeops/keops/pull/192)
+- [x] Merge [PR #192](https://github.com/getkeops/keops/pull/192)
 
 Remaining issues:
 
@@ -19,9 +19,13 @@ Remaining issues:
 
 - [ ] fix inline doc for min, max (following sum), and other default functions
 
+- [ ] fix issue with `%*%`
+
 - [ ] revamp vignettes regarding LazyTensor, and mention it in main vignette
 
 - [ ] fix issue from `devtools::check()`
+
+- [ ] fix doc of function `concat` in `R/lazytensor_operations.R`
 
 ## Implement RKeOps v2+
 

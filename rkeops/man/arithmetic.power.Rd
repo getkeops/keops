@@ -22,9 +22,10 @@ Symbolic binary operation for element-wise power operator.
 }
 \details{
 If \code{x} or \code{y} is a \code{LazyTensor}, \code{x^y} returns a \code{LazyTensor}
-that encodes, symbolically, the element-wise value of \code{x} to the power of \code{y}.
-(In case one of the arguments is a vector or a scalar, it is first converted to
-\code{LazyTensor}).
+that encodes, symbolically, the element-wise value of \code{x} to the power
+of \code{y}.
+(In case one of the arguments is a vector or a scalar, it is first converted
+to \code{LazyTensor}).
 If none of the arguments is a \code{LazyTensor}, it is equivalent to the "^" R
 operator.
 
@@ -38,7 +39,7 @@ operator.
 }
 \examples{
 \dontrun{
-x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows and 3 columns
+x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 y <- matrix(runif(250 * 3), 250, 3) # arbitrary R matrix, 250 rows and 3 columns
 x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
                                     # indexed by 'i'

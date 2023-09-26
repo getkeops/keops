@@ -7,13 +7,13 @@
 square(x)
 }
 \arguments{
-\item{x}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector or a matrix of numeric
-values, or a scalar value.}
+\item{x}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector or a matrix of
+numeric values, or a scalar value.}
 }
 \value{
 An object of class "LazyTensor" if the function is called with a
-\code{LazyTensor}, and an object of class "numeric", "matrix", or "array" otherwise,
-same as the input class.
+\code{LazyTensor}, and an object of class "numeric", "matrix", or "array"
+otherwise, same as the input class.
 }
 \description{
 Symbolic unary operation for element-wise square.
@@ -25,7 +25,7 @@ else, is equivalent to the "^2" R operator.
 }
 \examples{
 \dontrun{
-x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows and 3 columns
+x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
                                     # indexed by 'i'
                                     

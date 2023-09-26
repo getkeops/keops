@@ -13,7 +13,7 @@ check_index(index)
 A boolean TRUE or FALSE.
 }
 \description{
-Check index for operation.
+Checks index for operation.
 }
 \details{
 \code{check_index(index)} will return a boolean to check if \strong{index} is

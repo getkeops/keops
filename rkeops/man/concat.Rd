@@ -8,6 +8,8 @@ concat(x, y)
 }
 \arguments{
 \item{x}{A \code{LazyTensor} or a \code{ComplexLazyTensor}.}
+
+\item{y}{A \code{LazyTensor} or a \code{ComplexLazyTensor}.}
 }
 \value{
 A \code{LazyTensor} or a \code{ComplexLazyTensor} that encodes, symbolically,
@@ -19,7 +21,8 @@ Concatenation of two \code{LazyTensor} or \code{ComplexLazyTensor}. A binary ope
 \details{
 If \code{x} and \code{y} are two \code{LazyTensor} or \code{ComplexLazyTensor},
 \code{concat(x, y)} encodes, symbolically, the concatenation of \code{x} and \code{y} along
-their inner dimension. TODO check if this is, indeed, along the inner dimension !
+their inner dimension. TODO check if this is, indeed, along the inner
+dimension !
 }
 \examples{
 \dontrun{
