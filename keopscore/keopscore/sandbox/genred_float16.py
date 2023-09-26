@@ -6,7 +6,10 @@ import math
 import torch
 from pykeops.torch import Genred
 
-(M, N,) = (
+(
+    M,
+    N,
+) = (
     5,
     5,
 )

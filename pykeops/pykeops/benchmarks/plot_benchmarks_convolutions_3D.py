@@ -119,6 +119,7 @@ def gaussianconv_pytorch_eager(x, y, b, tf32=False, cdist=False, **kwargs):
 # we will update this demo with new PyTorch releases.
 #
 
+
 # Inner function to be compiled:
 def _gaussianconv_pytorch(x, y, b):
     """(B,N,D), (B,N,D), (B,N,1) -> (B,N,1)"""
@@ -135,6 +136,7 @@ def _gaussianconv_pytorch(x, y, b):
 
 # Compile the function:
 gaussianconv_pytorch_compiled = torch.compile(_gaussianconv_pytorch, dynamic=True)
+
 
 # Wrap it to ignore optional keyword arguments:
 def gaussianconv_pytorch_dynamic(x, y, b, **kwargs):
