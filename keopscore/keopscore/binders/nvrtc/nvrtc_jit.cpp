@@ -88,7 +88,18 @@ extern "C" int Compile(const char *target_file_name, const char *cu_code, int us
     }
     
 
+    // following "if" block is when there is a mismatch between
+    // the device compute capability and the cuda libs versions : typically
+    // when the device is more recent than the lib, the -arch flag may fail to compile.
+    if (compileResult == NVRTC_ERROR_INVALID_OPTION) {
+        const char *new_opts[] = {"-use_fast_math"};
+        compileResult = nvrtcCompileProgram(prog,     // prog
+                                1,              // numOptions
+                                new_opts);          // options
+    }
+
     if (compileResult != NVRTC_SUCCESS) {
+        std::cout << "[KeOps] Error when compiling formula (error in nvrtcCompileProgram)." << std::endl;
         throw std::runtime_error("[KeOps] Error when compiling formula (error in nvrtcCompileProgram).");
     }
 
