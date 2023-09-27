@@ -13,15 +13,9 @@ from pykeops import default_device_id
 from pykeops.common.utils import pyKeOps_Warning
 
 
-class GenredAutograd(torch.autograd.Function):
-    """
-    This class is the entry point to pytorch auto grad engine.
-    """
-
-    # generate_vmap_rule=True
-
+class GenredAutograd_base:
     @staticmethod
-    def forward(
+    def _forward(
         formula,
         aliases,
         backend,
@@ -99,11 +93,10 @@ class GenredAutograd(torch.autograd.Function):
         result = myconv.genred_pytorch(
             device_args, ranges, nx, ny, nbatchdims, out, *args
         )
-
         return result, myconv
 
     @staticmethod
-    def setup_context(ctx, inputs, outputs):
+    def _setup_context(ctx, inputs, outputs):
         (
             formula,
             aliases,
@@ -139,7 +132,7 @@ class GenredAutograd(torch.autograd.Function):
         ctx.save_for_backward(*args, result)
 
     @staticmethod
-    def backward(ctx, G, _):
+    def _backward(ctx, G, _):
         formula = ctx.formula
         aliases = ctx.aliases
         backend = ctx.backend
@@ -240,7 +233,7 @@ class GenredAutograd(torch.autograd.Function):
                 )  # Don't forget the gradient to backprop !
 
                 # N.B.: if I understand PyTorch's doc, we should redefine this function every time we use it?
-                genconv = GenredAutograd.apply
+                genconv = GenredAutograd_fun
 
                 # For a reduction of the type sum(F*b), with b a variable, and if we require the gradient
                 # with respect to b, the gradient will be of same type sum(F*eta). So we set again rec_multVar option
@@ -260,7 +253,7 @@ class GenredAutograd(torch.autograd.Function):
                 ):  # we're referring to a parameter, so we'll have to sum both wrt 'i' and 'j'
                     # WARNING !! : here we rely on the implementation of DiffT in files in folder keopscore/core/formulas/reductions
                     # if tagI==cat of V is 2, then reduction is done wrt j, so we need to further sum output wrt i
-                    grad, _ = genconv(
+                    grad = genconv(
                         formula_g,
                         aliases_g,
                         backend,
@@ -290,7 +283,7 @@ class GenredAutograd(torch.autograd.Function):
                     )
 
                 else:
-                    grad, _ = genconv(
+                    grad = genconv(
                         formula_g,
                         aliases_g,
                         backend,
@@ -341,34 +334,50 @@ class GenredAutograd(torch.autograd.Function):
             *grads,
         )
 
-    @staticmethod
-    def vmap(
-        info,
-        in_dims,
-        formula,
-        aliases,
-        backend,
-        dtype,
-        device_id_request,
-        ranges,
-        optional_flags,
-        rec_multVar_highdim,
-        nx,
-        ny,
-        out,
-        *args
-    ):
-        ind_vmap_args = in_dims[11:]
-        args = list(args)
-        n = len(args)
 
-        for k in range(n):
-            if ind_vmap_args[k] is None:
-                args[k] = args[k][None, ...]
-            else:
-                args[k] = args[k].transpose(0, ind_vmap_args[k]).contiguous()
+if torch.__version__ < "2.0":
 
-        return GenredAutograd.apply(
+    class GenredAutograd(torch.autograd.Function):
+        """
+        This class is the entry point to pytorch auto grad engine.
+        """
+
+        @staticmethod
+        def forward(ctx, *inputs):
+            outputs = GenredAutograd_base._forward(*inputs)
+            GenredAutograd_base._setup_context(ctx, inputs, outputs)
+            result, _ = outputs
+            return result
+
+        @staticmethod
+        def backward(ctx, G):
+            return GenredAutograd_base._backward(ctx, G, None)
+
+    GenredAutograd_fun = GenredAutograd.apply
+
+else:
+
+    class GenredAutograd(torch.autograd.Function):
+        """
+        This class is the entry point to pytorch auto grad engine.
+        """
+
+        @staticmethod
+        def forward(*inputs):
+            return GenredAutograd_base._forward(*inputs)
+
+        @staticmethod
+        def setup_context(ctx, inputs, outputs):
+            GenredAutograd_base._setup_context(ctx, inputs, outputs)
+
+        @staticmethod
+        def backward(ctx, G, _):
+            return GenredAutograd_base._backward(ctx, G, _)
+
+        @staticmethod
+        def vmap(
+            info,
+            in_dims,
             formula,
             aliases,
             backend,
@@ -381,7 +390,34 @@ class GenredAutograd(torch.autograd.Function):
             ny,
             out,
             *args
-        ), (0, None)
+        ):
+            ind_vmap_args = in_dims[11:]
+            args = list(args)
+            n = len(args)
+
+            for k in range(n):
+                if ind_vmap_args[k] is None:
+                    args[k] = args[k][None, ...]
+                else:
+                    args[k] = args[k].transpose(0, ind_vmap_args[k]).contiguous()
+
+            return GenredAutograd.apply(
+                formula,
+                aliases,
+                backend,
+                dtype,
+                device_id_request,
+                ranges,
+                optional_flags,
+                rec_multVar_highdim,
+                nx,
+                ny,
+                out,
+                *args
+            ), (0, None)
+
+    def GenredAutograd_fun(*inputs):
+        return GenredAutograd.apply(*inputs)[0]
 
 
 class Genred:
@@ -684,7 +720,7 @@ class Genred:
                     "size of input array is too large for Arg type reduction with float16 dtype.."
                 )
 
-        out, _ = GenredAutograd.apply(
+        out = GenredAutograd_fun(
             self.formula,
             self.aliases,
             backend,

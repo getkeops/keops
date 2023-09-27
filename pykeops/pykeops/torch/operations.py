@@ -10,7 +10,7 @@ from pykeops.common.parse_type import (
     get_optional_flags,
 )
 from pykeops.common.utils import axis2cat
-from pykeops.torch.generic.generic_red import GenredAutograd
+from pykeops.torch.generic.generic_red import GenredAutograd_fun
 from pykeops import default_device_id
 from pykeops.common.utils import pyKeOps_Warning
 
@@ -231,14 +231,14 @@ class KernelSolveAutograd(torch.autograd.Function):
                     )  # Don't forget the gradient to backprop !
 
                     # N.B.: if I understand PyTorch's doc, we should redefine this function every time we use it?
-                    genconv = GenredAutograd.apply
+                    genconv = GenredAutograd_fun
 
                     if (
                         cat == 2
                     ):  # we're referring to a parameter, so we'll have to sum both wrt 'i' and 'j'
                         # WARNING !! : here we rely on the implementation of DiffT in files in folder keopscore/core/formulas/reductions
                         # if tagI==cat of V is 2, then reduction is done wrt j, so we need to further sum output wrt i
-                        grad, _ = genconv(
+                        grad = genconv(
                             formula_g,
                             aliases_g,
                             backend,
@@ -259,7 +259,7 @@ class KernelSolveAutograd(torch.autograd.Function):
                         grad = torch.ones(1, grad.shape[0]).type_as(grad.data) @ grad
                         grad = grad.view(-1)
                     else:
-                        grad, _ = genconv(
+                        grad = genconv(
                             formula_g,
                             aliases_g,
                             backend,
