@@ -328,7 +328,7 @@ public :
     }
 
     int launch_kernel(int tagHostDevice, int dimY, int nx, int ny,
-                      int tagI, int tagZero, int use_half,
+                      int tagI, int tagZero, int use_half, 
                       int tag1D2D, int dimred,
                       int cuda_block_size, int use_chunk_mode,
                       std::vector< int > indsi, std::vector< int > indsj, std::vector< int > indsp,
@@ -563,10 +563,12 @@ public :
 
         // Send data from device to host.
 
+
         if (tagHostDevice == 0) {
             CUDA_SAFE_CALL(cuMemcpyDtoH(out, (CUdeviceptr) out_d, sizeof(TYPE) * sizeout));
-            CUDA_SAFE_CALL(cuMemFree(p_data));
         }
+
+         CUDA_SAFE_CALL(cuMemFree(p_data));
 
         if (RR.tagRanges == 1) {
             CUDA_SAFE_CALL(cuMemFree((CUdeviceptr) lookup_d));

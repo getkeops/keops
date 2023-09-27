@@ -8,7 +8,11 @@ class IntCst_Impl(Operation):
     string_id = "IntCst"
     print_spec = "", "pre", 0
 
-    def __init__(self, val):
+    def __init__(self, val=None, params=None):
+        # N.B. init via params keyword is used for compatibility with base class.
+        if val is None:
+            # here params should be a tuple containing one single integer
+            (val,) = params
         super().__init__(params=(val,))
         self.val = val
         self.dim = 1

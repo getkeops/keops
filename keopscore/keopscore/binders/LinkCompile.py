@@ -29,6 +29,7 @@ class LinkCompile:
             self.tagCpuGpu,
             self.tag1D2D,
             self.use_half,
+            self.use_fast_math,
             self.device_id,
             cpp_flags,
         )
@@ -110,6 +111,7 @@ class LinkCompile:
             low_level_code_file=self.low_level_code_file,
             tagI=self.tagI,
             use_half=self.use_half,
+            use_fast_math=self.use_fast_math,
             tag1D2D=self.tag1D2D,
             dimred=self.red_formula.dimred,
             dim=self.dim,

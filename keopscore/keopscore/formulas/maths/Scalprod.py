@@ -19,7 +19,10 @@ class Scalprod_Impl(Chunkable_Op):
 
     dim = 1
 
-    def __init__(self, fa, fb):
+    def __init__(self, fa, fb, params=()):
+        # N.B. params keyword is used for compatibility with base class, but should always equal ()
+        if params != ():
+            KeOps_Error("There should be no parameter.")
         # Output dimension = 1, provided that FA::DIM = FB::DIM
         self.dimin = fa.dim
         if self.dimin != fb.dim:

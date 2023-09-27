@@ -19,7 +19,7 @@ bash run_ci.sh
 
 ### Troubleshooting
 
-`devtools` package dependencies 
+`devtools` package dependencies
   - `apt-get install build-essential libcurl4-gnutls-dev libxml2-dev libssl-dev` (ubuntu)
 
 Configuration failed to find libgit2 library. Try installing:

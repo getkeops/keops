@@ -18,7 +18,9 @@ bindings_source_dir = join(base_dir_path)
 keops_cache_folder = join(
     os.path.expanduser("~"), ".cache", f"keops{keopscore.__version__}"
 )
-default_build_folder_name = "build"
+default_build_folder_name = (
+    "_".join(platform.uname()[:3]) + f"_p{sys.version.split(' ')[0]}"
+)
 # In case user has specified CUDA_VISIBLE_DEVICES environment variable,
 # it is better to set the build folder name accordingly.
 specific_gpus = os.getenv("CUDA_VISIBLE_DEVICES")
@@ -104,15 +106,16 @@ if shutil.which(cxx_compiler) is None:
     """
     )
 
+cpp_env_flags = os.getenv("CXXFLAGS") if "CXXFLAGS" in os.environ else ""
 
 compile_options = " -shared -fPIC -O3 -std=c++11"
 
-
 # cpp options
+cpp_flags = f"{cpp_env_flags} {compile_options}"
 if platform.system() == "Darwin":
-    cpp_flags = compile_options + " -flto"
+    cpp_flags = f"{cpp_flags} -flto"
 else:
-    cpp_flags = compile_options + " -flto=auto"
+    cpp_flags = f"{cpp_flags} -flto=auto"
 
 disable_pragma_unrolls = True
 
@@ -122,13 +125,21 @@ if use_OpenMP:
     if platform.system() == "Darwin":
         import subprocess, importlib
 
+        omp_env_path = f" -I{os.getenv('OMP_PATH')}" if "OMP_PATH" in os.environ else ""
+        cpp_env_flags += omp_env_path
+        cpp_flags += omp_env_path
+
         res = subprocess.run(
-            'echo "#include <omp.h>" | g++ -E - -o /dev/null',
-            stdout=subprocess.PIPE,
+            f'echo "#include <omp.h>" | {cxx_compiler} {cpp_env_flags} -E - -o /dev/null',
+            stderr=subprocess.DEVNULL,
             shell=True,
         )
         if res.returncode != 0:
-            KeOps_Warning("omp.h header is not in the path, disabling OpenMP.")
+            KeOps_Warning(
+                """omp.h header is not in the path, disabling OpenMP. To fix this, you can set the environment
+                  variable OMP_PATH to the location of the header before importing keopscore or pykeops,
+                  e.g. using os.environ: import os; os.environ['OMP_PATH'] = '/path/to/omp/header'"""
+            )
             use_OpenMP = False
         else:
             # we try to import either mkl or numpy, because it will load
@@ -169,16 +180,30 @@ if platform.system() == "Darwin":
 cpp_flags += " -I" + bindings_source_dir
 
 
-from keopscore.utils.gpu_utils import get_gpu_props
+def find_and_try_library(libtag):
+    libname = find_library(libtag)
+    if libname is None:
+        return False
+    else:
+        try:
+            CDLL(libname)
+            return True
+        except OSError:
+            return False
+
 
 cuda_dependencies = ["cuda", "nvrtc"]
-if all([find_library(lib) for lib in cuda_dependencies]):
+if all([find_and_try_library(lib) for lib in cuda_dependencies]):
     # N.B. calling get_gpu_props issues a warning if cuda is not available, so we do not add another warning here
+    from keopscore.utils.gpu_utils import (
+        get_gpu_props,
+    )  # N.B. this import should be kept inside the if statement
+
     cuda_available = get_gpu_props()[0] > 0
 else:
     cuda_available = False
     KeOps_Warning(
-        "Cuda libraries were not detected on the system ; using cpu only mode"
+        "Cuda libraries were not detected on the system or could not be loaded ; using cpu only mode"
     )
 
 if not use_cuda and cuda_available:

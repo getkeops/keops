@@ -167,14 +167,15 @@ Constants and padding/concatenation operations:
 ``OneHot(f, D)``          encodes a (rounded) scalar value as a one-hot vector of dimension D
 ======================   =========================================================================================================
 
-Elementary dot products:
+Elementary tensor algebra:
 
 ==============================================      ================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================
 ``MatVecMult(f, g)``                                matrix-vector product ``f x g``: ``f`` is vector interpreted as matrix (column-major), ``g`` is vector
 ``VecMatMult(f, g)``                                vector-matrix product ``f x g``: ``f`` is vector, ``g`` is vector interpreted as matrix (column-major)
 ``TensorProd(f, g)``                                tensor cross product ``f x g^T``: ``f`` and ``g`` are vectors of sizes M and N, output is of size MN.
-``TensorDot(f, g, dimf, dimg, contf, contg)``       tensordot product ``f : g`` (similar to `numpy\'s tensordot <https://docs.scipy.org/doc/numpy/reference/generated/numpy.tensordot.html>`_ in the spirit): ``f`` and ``g`` are tensors of sizes listed in ``dimf`` and ``dimg`` :ref:`index sequences <part.reservedWord>` and contracted along the dimensions listed in ``contf`` and ``contg`` :ref:`index sequences <part.reservedWord>`. The ``MatVecMult``, ``VecMatMult`` and ``TensorProd`` operations are special cases of ``TensorDot``.
-==============================================      ================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================
+``Kron(f, g, dimf, dimg)``                          kronecker product (to `numpy\'s tensordot <https://numpy.org/devdocs/reference/generated/numpy.kron.html>`_ in the spirit)
+``TensorDot(f, g, dimf, dimg, contf, contg)``       tensordot product ``f : g``(similar to `numpy\'s tensordot <https://numpy.org/doc/stable/reference/generated/numpy.tensordot.html>`_ in the spirit): ``f`` and ``g`` are tensors of sizes listed in ``dimf`` and ``dimg`` :ref:`index sequences <part.reservedWord>` and contracted along the dimensions listed in ``contf`` and ``contg`` :ref:`index sequences <part.reservedWord>`. The ``MatVecMult``, ``VecMatMult``, ``Kron`` and ``TensorProd`` operations are special cases of ``TensorDot``.
+==============================================     ====================================================================================================================================================================================================================================================================================
 
 Symbolic gradients and linear operators:
 

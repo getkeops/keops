@@ -2,7 +2,7 @@
 
 ---------------------------------------------------------------------------------
 
-[![Build status](https://ci.inria.fr/keops-qualif/buildStatus/icon?job=keops%2Fmain)](https://ci.inria.fr/keops-qualif/job/keops/job/main/)
+<!-- [![Build status](https://ci.inria.fr/keops/buildStatus/icon?job=keops%2Fmain)](https://ci.inria.fr/keops/job/keops/job/main/) -->
 [![PyPI version](https://img.shields.io/pypi/v/pykeops?color=blue)](https://pypi.org/project/pykeops/)
 [![PyPI downloads](https://pepy.tech/badge/pykeops?color=green)](https://pypi.org/project/pykeops/)
 [![CRAN version](https://img.shields.io/cran/v/rkeops?color=yellowgreen)](https://cran.r-project.org/web/packages/rkeops/index.html)
@@ -183,6 +183,8 @@ KeOps provides core routines for the following projects and libraries:
 - [FshapesTk](https://plmlab.math.cnrs.fr/benjamin.charlier/fshapesTk) and the
   [Shapes toolbox](https://plmlab.math.cnrs.fr/jeanfeydy/shapes_toolbox),
   two research-oriented [LDDMM](https://en.wikipedia.org/wiki/Large_deformation_diffeomorphic_metric_mapping) toolkits.
+
+- [HyenaDNA](https://github.com/HazyResearch/hyena-dna/) for parallel computations of the Vandermonde matrix multiplication kernel and reductions used in the S4D kernel.
 
 # Licensing, citation, academic use
 
