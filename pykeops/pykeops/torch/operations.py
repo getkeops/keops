@@ -10,7 +10,7 @@ from pykeops.common.parse_type import (
     get_optional_flags,
 )
 from pykeops.common.utils import axis2cat
-from pykeops.torch.generic.generic_red import GenredAutograd
+from pykeops.torch.generic.generic_red import GenredAutograd_fun
 from pykeops import default_device_id
 from pykeops.common.utils import pyKeOps_Warning
 
@@ -231,7 +231,7 @@ class KernelSolveAutograd(torch.autograd.Function):
                     )  # Don't forget the gradient to backprop !
 
                     # N.B.: if I understand PyTorch's doc, we should redefine this function every time we use it?
-                    genconv = GenredAutograd.apply
+                    genconv = GenredAutograd_fun
 
                     if (
                         cat == 2
