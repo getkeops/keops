@@ -15,8 +15,7 @@ from pykeops.common.utils import pyKeOps_Warning
 
 
 class Genred_parameters:
-    formula = aliases = backend = dtype = device_id_request = ranges = None
-    optional_flags = rec_multVar_highdim = nx = ny = out = None
+    pass
 
 
 class GenredAutograd_base:
