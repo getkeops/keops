@@ -1,4 +1,4 @@
-from keopscore.formulas import Var
+from keopscore.formulas import Var, Reduction
 from keopscore.formulas.LinearOperators import AdjointOperator
 from keopscore.utils.code_gen_utils import GetInds
 
@@ -11,6 +11,8 @@ from keopscore.utils.code_gen_utils import GetInds
 
 
 def Diff(formula, v, u):
+    if isinstance(formula, Reduction):
+        return formula.Diff(v, u) # TODO : this may only work for Sum_Reduction...
     # we define a temporary gradin to backpropagate.
     # This gradin will disappear in the formula when we compute the adjoint.
     # We define this temporary gradin as Var(ind,dim,cat)

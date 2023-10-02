@@ -48,6 +48,8 @@ class AdjointOperator_class(LinearOperator_class):
         elif isinstance(formula, Sum_Impl):
             (f,) = formula.children
             return self(f, v, SumT(u, f.dim))
+        elif isinstance(formula, Zero):
+            return Zero(v.dim)
 
 
 def AdjointOperator(formula, v, u):
