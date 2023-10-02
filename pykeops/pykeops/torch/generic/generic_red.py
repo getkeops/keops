@@ -43,10 +43,8 @@ def check_AD_supported(formula):
 class GenredAutograd_base:
     @staticmethod
     def _forward(params, *args):
-        if params.rec_multVar_highdim:
-            params.optional_flags["multVar_highdim"] = 1
-        else:
-            params.optional_flags["multVar_highdim"] = 0
+        multVar_highdim_flag = 1 if params.rec_multVar_highdim else 0
+        params.optional_flags["multVar_highdim"] = multVar_highdim_flag
 
         tagCPUGPU, tag1D2D, tagHostDevice = get_tag_backend(params.backend, args)
 
@@ -107,14 +105,14 @@ class GenredAutograd_base:
         result = myconv.genred_pytorch(
             device_args, params.ranges, params.nx, params.ny, nbatchdims, params.out, *args
         )
-        return result, torch.tensor([myconv.dimout, myconv.tagIJ])
+        return result, torch.tensor([myconv.dimout, myconv.tagIJ, multVar_highdim_flag])
 
     @staticmethod
     def _setup_context(ctx, inputs, outputs):
         params, *args = inputs
-        result, dimout_tagIJ = outputs
-        ctx.mark_non_differentiable(dimout_tagIJ)
-        dimout, tagIJ = int(dimout_tagIJ[0]), int(dimout_tagIJ[1])
+        result, info = outputs
+        ctx.mark_non_differentiable(info)
+        dimout, tagIJ, multVar_highdim_flag = int(info[0]), int(info[1]), int(info[2])
 
         ctx.optional_flags = params.optional_flags.copy()
 
@@ -291,7 +289,7 @@ else:
             return GenredAutograd_base._backward(ctx, G, _)
 
         @staticmethod
-        def vmap(info, in_dims, params, *args):
+        def vmap(ctx, in_dims, params, *args):
             ind_vmap_args = in_dims[1:]
             args = list(args)
             n = len(args)
