@@ -17,15 +17,16 @@ from pykeops.common.utils import pyKeOps_Warning
 class Genred_parameters:
     pass
 
+
 def check_AD_supported(formula):
     not_supported = [
-            "Min_ArgMin_Reduction",
-            "Min_Reduction",
-            "Max_ArgMax_Reduction",
-            "Max_Reduction",
-            "KMin_ArgKMin_Reduction",
-            "KMin_Reduction",
-        ]
+        "Min_ArgMin_Reduction",
+        "Min_Reduction",
+        "Max_ArgMax_Reduction",
+        "Max_Reduction",
+        "KMin_ArgKMin_Reduction",
+        "KMin_Reduction",
+    ]
     for red in not_supported:
         if formula.startswith(red):
             raise NotImplementedError(
@@ -40,11 +41,14 @@ def check_AD_supported(formula):
                 + "before using PyTorch advanced indexing to create a fully-differentiable "
                 + "tensor containing the relevant 'minimal' values."
             )
+
+
 class GenredAutograd_base:
     @staticmethod
     def _forward(params, *args):
-        
-        params.optional_flags["multVar_highdim"] = 1 if params.rec_multVar_highdim else 0
+        params.optional_flags["multVar_highdim"] = (
+            1 if params.rec_multVar_highdim else 0
+        )
 
         tagCPUGPU, tag1D2D, tagHostDevice = get_tag_backend(params.backend, args)
 
@@ -103,7 +107,13 @@ class GenredAutograd_base:
             ranges = tuple(r.contiguous() for r in ranges)
 
         result = myconv.genred_pytorch(
-            device_args, params.ranges, params.nx, params.ny, nbatchdims, params.out, *args
+            device_args,
+            params.ranges,
+            params.nx,
+            params.ny,
+            nbatchdims,
+            params.out,
+            *args,
         )
         return result, torch.tensor([myconv.dimout, myconv.tagIJ])
 
@@ -147,7 +157,7 @@ class GenredAutograd_base:
         result = ctx.saved_tensors[-1].detach()
 
         check_AD_supported(formula)
-        
+
         # If formula takes 5 variables (numbered from 0 to 4), then the gradient
         # wrt. the output, G, should be given as a 6-th variable (numbered 5),
         # with the same dim-cat as the formula's output.
@@ -200,14 +210,14 @@ class GenredAutograd_base:
                 params_g.aliases = aliases_g
                 params_g.out = None
 
-                grad = genconv(params_g,*args_g)
-                
+                grad = genconv(params_g, *args_g)
+
                 if (
                     cat == 2
                 ):  # we're referring to a parameter, so we'll have to sum both wrt 'i' and 'j'
                     # WARNING !! : here we rely on the implementation of DiffT in files in folder keopscore/core/formulas/reductions
                     # if tagI==cat of V is 2, then reduction is done wrt j, so we need to further sum output wrt i
-                    
+
                     # Then, sum 'grad' wrt 'i' :
                     # I think that '.sum''s backward introduces non-contiguous arrays,
                     # and is thus non-compatible with GenredAutograd: grad = grad.sum(0)
@@ -224,7 +234,6 @@ class GenredAutograd_base:
                     )
 
                 else:
-
                     # N.B.: 'grad' is always a full [A, .., B, M, D] or [A, .., B, N, D] or [A, .., B, D] tensor,
                     #       whereas 'arg_ind' may have some broadcasted batched dimensions.
                     #       Before returning our gradient, we must collapse 'grad' with a .sum() operation,
@@ -301,7 +310,6 @@ else:
                     args[k] = args[k].transpose(0, ind_vmap_args[k]).contiguous()
 
             return GenredAutograd.apply(params, *args), (0, None)
-        
 
         @staticmethod
         def jvp(ctx, *grad_inputs):
@@ -328,7 +336,7 @@ else:
             for var_ind, (sig, arg_ind) in enumerate(
                 zip(aliases, args)
             ):  # Run through the arguments
-                grad_input = grad_inputs[var_ind+1]
+                grad_input = grad_inputs[var_ind + 1]
                 if grad_input is not None:
                     grad_input = grad_input.contiguous()
                     _, cat, dim, pos = get_type(sig, position_in_list=var_ind)
@@ -343,13 +351,11 @@ else:
                     params_d.formula = formula_d
                     params_d.aliases = aliases_d
                     params_d.out = None
-                    diff = genconv(params_d,*args_d)
+                    diff = genconv(params_d, *args_d)
                     # TODO : probably need to process result after genconv, as done in backward method.
                     out += diff
 
             return out, None
-
-
 
     def GenredAutograd_fun(*inputs):
         return GenredAutograd.apply(*inputs)[0]

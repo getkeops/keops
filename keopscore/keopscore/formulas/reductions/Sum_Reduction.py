@@ -43,7 +43,7 @@ class Sum_Reduction(Reduction):
         from keopscore.formulas.autodiff import Grad
 
         return Sum_Reduction(Grad(self.formula, v, gradin), v.cat % 2)
-    
+
     def Diff(self, v, diffin):
         from keopscore.formulas.autodiff import Diff
 

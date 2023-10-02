@@ -8,10 +8,12 @@ dx_i = torch.randn(5, 4, 10, 1, 2)
 dy_j = torch.randn(5, 1, 1, 20, 2)
 db_j = torch.randn(5, 4, 1, 20, 1)
 
+
 def fn_torch(x_i, y_j, b_j):
     K_ij = (-((x_i - y_j) ** 2).sum(-1)).exp()
     K_ij = K_ij[..., None]
     return ((K_ij * b_j).sum(2)).norm()
+
 
 def fn_keops(x_i, y_j, b_j):
     x_i = LazyTensor(x_i)
@@ -40,7 +42,7 @@ print("testing vjp, error=", torch.norm(res1 - res2) / torch.norm(res1))
 # 4) testing torch.func.jvp
 _, res1 = torch.func.jvp(fn_torch, (x_i, y_j, b_j), (dx_i, dy_j, db_j))
 _, res2 = torch.func.jvp(fn_keops, (x_i, y_j, b_j), (dx_i, dy_j, db_j))
-print("testing jvp, error=",torch.norm(res1 - res2) / torch.norm(res1))
+print("testing jvp, error=", torch.norm(res1 - res2) / torch.norm(res1))
 
 # 5) testing torch.func.jacrev
 res1 = torch.func.jacrev(fn_torch, (0, 1, 2))(x_i, y_j, b_j)
@@ -51,9 +53,9 @@ for k in range(3):
 # 6) testing torch.func.jacfwd.
 res1 = torch.func.jacfwd(fn_torch)(x_i, y_j, b_j)
 res2 = torch.func.jacfwd(fn_keops)(x_i, y_j, b_j)
-print("testing jacfwd, error=",torch.norm(res1 - res2) / torch.norm(res1))
+print("testing jacfwd, error=", torch.norm(res1 - res2) / torch.norm(res1))
 
 # 7) testing torch.func.hessian.
 res1 = torch.func.hessian(fn_torch)(x_i, y_j, b_j)
 res2 = torch.func.hessian(fn_keops)(x_i, y_j, b_j)
-print("testing hessian, error=",torch.norm(res1 - res2) / torch.norm(res1))
+print("testing hessian, error=", torch.norm(res1 - res2) / torch.norm(res1))
