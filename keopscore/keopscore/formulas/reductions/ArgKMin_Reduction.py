@@ -32,3 +32,6 @@ class ArgKMin_Reduction(KMin_ArgKMin_Reduction):
 
     def DiffT(self, v, gradin):
         return Zero_Reduction(v.dim, v.cat % 2)
+
+    def Diff(self, v, diffin):
+        return Zero_Reduction(self.dim, self.tagI)

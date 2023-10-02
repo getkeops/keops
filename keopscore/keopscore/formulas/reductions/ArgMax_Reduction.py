@@ -22,3 +22,6 @@ class ArgMax_Reduction(Max_ArgMax_Reduction_Base):
 
     def DiffT(self, v, gradin):
         return Zero_Reduction(v.dim, v.cat % 2)
+    
+    def Diff(self, v, diffin):
+        return Zero_Reduction(self.dim, self.tagI)

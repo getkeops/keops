@@ -43,8 +43,8 @@ def check_AD_supported(formula):
 class GenredAutograd_base:
     @staticmethod
     def _forward(params, *args):
-        multVar_highdim_flag = 1 if params.rec_multVar_highdim else 0
-        params.optional_flags["multVar_highdim"] = multVar_highdim_flag
+        
+        params.optional_flags["multVar_highdim"] = 1 if params.rec_multVar_highdim else 0
 
         tagCPUGPU, tag1D2D, tagHostDevice = get_tag_backend(params.backend, args)
 
@@ -105,14 +105,14 @@ class GenredAutograd_base:
         result = myconv.genred_pytorch(
             device_args, params.ranges, params.nx, params.ny, nbatchdims, params.out, *args
         )
-        return result, torch.tensor([myconv.dimout, myconv.tagIJ, multVar_highdim_flag])
+        return result, torch.tensor([myconv.dimout, myconv.tagIJ])
 
     @staticmethod
     def _setup_context(ctx, inputs, outputs):
         params, *args = inputs
         result, info = outputs
         ctx.mark_non_differentiable(info)
-        dimout, tagIJ, multVar_highdim_flag = int(info[0]), int(info[1]), int(info[2])
+        dimout, tagIJ = int(info[0]), int(info[1])
 
         ctx.optional_flags = params.optional_flags.copy()
 
