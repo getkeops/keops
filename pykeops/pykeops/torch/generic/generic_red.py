@@ -42,6 +42,7 @@ def check_AD_supported(formula):
                 + "tensor containing the relevant 'minimal' values."
             )
 
+
 def set_device(tagCPUGPU, tagHostDevice, device_id_request, *args):
     device_args = args[0].device
     if tagCPUGPU == 1 & tagHostDevice == 1:
@@ -65,6 +66,7 @@ def set_device(tagCPUGPU, tagHostDevice, device_id_request, *args):
                 )
     return device_id, device_args
 
+
 class GenredAutograd_base:
     @staticmethod
     def _forward(params, *args):
@@ -83,7 +85,9 @@ class GenredAutograd_base:
         nbatchdims = max(len(arg.shape) for arg in args) - 2
         use_ranges = nbatchdims > 0 or params.ranges
 
-        device_id, device_args = set_device(tagCPUGPU, tagHostDevice, params.device_id_request, *args)
+        device_id, device_args = set_device(
+            tagCPUGPU, tagHostDevice, params.device_id_request, *args
+        )
 
         from pykeops.common.keops_io import keops_binder
 

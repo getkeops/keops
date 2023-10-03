@@ -11,7 +11,11 @@ from pykeops.common.parse_type import (
     get_optional_flags,
 )
 from pykeops.common.utils import axis2cat
-from pykeops.torch.generic.generic_red import GenredAutograd_fun, Genred_parameters, set_device
+from pykeops.torch.generic.generic_red import (
+    GenredAutograd_fun,
+    Genred_parameters,
+    set_device,
+)
 from pykeops import default_device_id
 from pykeops.common.utils import pyKeOps_Warning
 
@@ -34,7 +38,9 @@ class KernelSolveAutograd(torch.autograd.Function):
         nbatchdims = max(len(arg.shape) for arg in args) - 2
         use_ranges = nbatchdims > 0 or params.ranges
 
-        device_id, device_args = set_device(tagCPUGPU, tagHostDevice, params.device_id_request, *args)
+        device_id, device_args = set_device(
+            tagCPUGPU, tagHostDevice, params.device_id_request, *args
+        )
 
         myconv = keops_binder["nvrtc" if tagCPUGPU else "cpp"](
             tagCPUGPU,
@@ -58,9 +64,15 @@ class KernelSolveAutograd(torch.autograd.Function):
         varinv = args[params.varinvpos]
 
         def linop(var):
-            newargs = args[:params.varinvpos] + (var,) + args[params.varinvpos + 1 :]
+            newargs = args[: params.varinvpos] + (var,) + args[params.varinvpos + 1 :]
             res = myconv.genred_pytorch(
-                device_args, params.ranges, params.nx, params.ny, nbatchdims, None, *newargs
+                device_args,
+                params.ranges,
+                params.nx,
+                params.ny,
+                nbatchdims,
+                None,
+                *newargs,
             )
             if params.alpha:
                 res += params.alpha * var
@@ -92,14 +104,16 @@ class KernelSolveAutograd(torch.autograd.Function):
         # there is also a new variable for the formula's output
         resvar = f"Var({nargs+1},{myconv.dimout},{myconv.tagIJ})"
 
-        newargs = args[:params.varinvpos] + (G,) + args[params.varinvpos + 1 :]
+        newargs = args[: params.varinvpos] + (G,) + args[params.varinvpos + 1 :]
         KinvG = KernelSolveAutograd.apply(params, *newargs)
 
         grads = []  # list of gradients wrt. args;
 
         for var_ind, sig in enumerate(params.aliases):  # Run through the arguments
             # If the current gradient is to be discarded immediatly...
-            if not ctx.needs_input_grad[var_ind+1]:  # N.B. "+1" because of params arg.
+            if not ctx.needs_input_grad[
+                var_ind + 1
+            ]:  # N.B. "+1" because of params arg.
                 grads.append(None)  # Don't waste time computing it.
             else:  # Otherwise, the current gradient is really needed by the user:
                 if var_ind == params.varinvpos:
@@ -111,11 +125,11 @@ class KernelSolveAutograd(torch.autograd.Function):
                     # these will not be used in the C++ code,
                     # but are useful to keep track of the actual variables used in the formula
                     _, cat, dim, pos = get_type(sig, position_in_list=var_ind)
-                    var = f"Var({pos},{dim},{cat})" # V
-                    formula_g = f"Grad_WithSavedForward({params.formula},{var},{eta},{resvar})" # Grad<F,V,G,R>
+                    var = f"Var({pos},{dim},{cat})"  # V
+                    formula_g = f"Grad_WithSavedForward({params.formula},{var},{eta},{resvar})"  # Grad<F,V,G,R>
                     aliases_g = params.aliases + [eta, resvar]
                     args_g = (
-                        args[:params.varinvpos]
+                        args[: params.varinvpos]
                         + (result,)
                         + args[params.varinvpos + 1 :]
                         + (-KinvG,)
