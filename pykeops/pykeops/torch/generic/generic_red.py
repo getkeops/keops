@@ -1,5 +1,5 @@
 import torch
-from copy import copy
+import copy
 
 from pykeops.common.get_options import get_tag_backend
 from pykeops.common.operations import preprocess, postprocess
@@ -42,10 +42,36 @@ def check_AD_supported(formula):
                 + "tensor containing the relevant 'minimal' values."
             )
 
+def set_device(tagCPUGPU, tagHostDevice, device_id_request, *args):
+    device_args = args[0].device
+    if tagCPUGPU == 1 & tagHostDevice == 1:
+        for i in range(1, len(args)):
+            if args[i].device.index != device_args.index:
+                raise ValueError(
+                    "[KeOps] Input arrays must be all located on the same device."
+                )
+
+    if device_id_request == -1:  # -1 means auto setting
+        if device_args.index:  # means args are on Gpu
+            device_id = device_args.index
+        else:
+            device_id = default_device_id if tagCPUGPU == 1 else -1
+    else:
+        device_id = device_id_request
+        if device_args.index:
+            if device_args.index != device_id:
+                raise ValueError(
+                    "[KeOps] Gpu device id of arrays is different from device id requested for computation."
+                )
+    return device_id, device_args
 
 class GenredAutograd_base:
     @staticmethod
     def _forward(params, *args):
+        if isinstance(params, str):
+            print("hiiii")
+            print("params=", params)
+            print("params.rec_multVar_highdim=", params.rec_multVar_highdim)
         params.optional_flags["multVar_highdim"] = (
             1 if params.rec_multVar_highdim else 0
         )
@@ -57,25 +83,7 @@ class GenredAutograd_base:
         nbatchdims = max(len(arg.shape) for arg in args) - 2
         use_ranges = nbatchdims > 0 or params.ranges
 
-        device_args = args[0].device
-        if tagCPUGPU == 1 & tagHostDevice == 1:
-            for i in range(1, len(args)):
-                if args[i].device.index != device_args.index:
-                    raise ValueError(
-                        "[KeOps] Input arrays must be all located on the same device."
-                    )
-
-        if params.device_id_request == -1:  # -1 means auto setting
-            if device_args.index:  # means args are on Gpu
-                device_id_request = device_args.index
-            else:
-                device_id_request = default_device_id if tagCPUGPU == 1 else -1
-        else:
-            if device_args.index:
-                if device_args.index != device_id_request:
-                    raise ValueError(
-                        "[KeOps] Gpu device id of arrays is different from device id requested for computation."
-                    )
+        device_id, device_args = set_device(tagCPUGPU, tagHostDevice, params.device_id_request, *args)
 
         from pykeops.common.keops_io import keops_binder
 
@@ -84,7 +92,7 @@ class GenredAutograd_base:
             tag1D2D,
             tagHostDevice,
             use_ranges,
-            device_id_request,
+            device_id,
             params.formula,
             params.aliases,
             len(args),
@@ -141,22 +149,13 @@ class GenredAutograd_base:
     @staticmethod
     def _backward(ctx, G, _):
         params = ctx.params
-        formula = params.formula
-        aliases = params.aliases
-        backend = params.backend
-        dtype = params.dtype
-        ranges = params.ranges
-        optional_flags = params.optional_flags
-        device_id_request = params.device_id_request
         dimout = ctx.dimout
         tagIJ = ctx.tagIJ
-        nx = params.nx
-        ny = params.ny
         args = ctx.saved_tensors[:-1]  # Unwrap the saved variables
         nargs = len(args)
         result = ctx.saved_tensors[-1].detach()
 
-        check_AD_supported(formula)
+        check_AD_supported(params.formula)
 
         # If formula takes 5 variables (numbered from 0 to 4), then the gradient
         # wrt. the output, G, should be given as a 6-th variable (numbered 5),
@@ -172,7 +171,7 @@ class GenredAutograd_base:
         grads = []  # list of gradients wrt. args;
 
         for var_ind, (sig, arg_ind) in enumerate(
-            zip(aliases, args)
+            zip(params.aliases, args)
         ):  # Run through the arguments
             # If the current gradient is to be discarded immediatly...
             if not ctx.needs_input_grad[var_ind + 1]:  # NB "+1" because of params
@@ -185,8 +184,8 @@ class GenredAutograd_base:
                 # but are useful to keep track of the actual variables used in the formula
                 _, cat, dim, pos = get_type(sig, position_in_list=var_ind)
                 var = f"Var({pos},{dim},{cat})"  # V
-                formula_g = f"Grad_WithSavedForward({formula},{var},{eta},{resvar})"  # Grad<F,V,G,R>
-                aliases_g = aliases + [eta, resvar]
+                formula_g = f"Grad_WithSavedForward({params.formula},{var},{eta},{resvar})"  # Grad<F,V,G,R>
+                aliases_g = params.aliases + [eta, resvar]
                 args_g = (*args, G, result)  # Don't forget the gradient to backprop !
 
                 # N.B.: if I understand PyTorch's doc, we should redefine this function every time we use it?
@@ -205,7 +204,7 @@ class GenredAutograd_base:
                 else:
                     params.rec_multVar_highdim = None
 
-                params_g = copy(params)
+                params_g = copy.copy(params)
                 params_g.formula = formula_g
                 params_g.aliases = aliases_g
                 params_g.out = None
@@ -347,7 +346,7 @@ else:
                     args_d = (*args, grad_input)
                     genconv = GenredAutograd_fun
                     # TODO : set rec_multVar_highdim at this point
-                    params_d = copy(params)
+                    params_d = copy.copy(params)
                     params_d.formula = formula_d
                     params_d.aliases = aliases_d
                     params_d.out = None
