@@ -70,10 +70,6 @@ def set_device(tagCPUGPU, tagHostDevice, device_id_request, *args):
 class GenredAutograd_base:
     @staticmethod
     def _forward(params, *args):
-        if isinstance(params, str):
-            print("hiiii")
-            print("params=", params)
-            print("params.rec_multVar_highdim=", params.rec_multVar_highdim)
         params.optional_flags["multVar_highdim"] = (
             1 if params.rec_multVar_highdim else 0
         )
