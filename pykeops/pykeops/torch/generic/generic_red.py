@@ -372,8 +372,7 @@ else:
                         params_d.rec_multVar_highdim = None
 
                     diff = genconv(params_d, *args_d)
-                    # TODO : probably need to process result after genconv, as done in backward method.
-                    out += diff
+                    out = out + diff   # N.B. in-place "out+=diff" produces a bug, should investigate...
 
             return out, None
 
