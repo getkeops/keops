@@ -30,8 +30,8 @@ class ArgKMin_Reduction(KMin_ArgKMin_Reduction):
         return loop(body)
         outer_body
 
-    def DiffT(self, v, gradin):
+    def DiffT(self, v, gradin, f0=None):
         return Zero_Reduction(v.dim, v.cat % 2)
 
-    def Diff(self, v, diffin):
+    def Diff(self, v, diffin, f0=None):
         return Zero_Reduction(self.dim, self.tagI)

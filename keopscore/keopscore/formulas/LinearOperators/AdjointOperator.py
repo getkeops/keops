@@ -9,6 +9,10 @@ from keopscore.formulas.maths.Subtract import Subtract_Impl
 from keopscore.formulas.maths.Mult import Mult_Impl
 from keopscore.formulas.maths.Sum import Sum_Impl, Sum
 from keopscore.formulas.maths.SumT import SumT_Impl, SumT
+from keopscore.formulas.maths.Extract import Extract
+from keopscore.formulas.maths.ExtractT import ExtractT
+from keopscore.formulas.maths.Elem import Elem
+from keopscore.formulas.maths.ElemT import ElemT
 from keopscore.formulas.maths.Divide import Divide_Impl
 from keopscore.formulas.maths.Exp import Exp
 from keopscore.formulas.variables.IntCst import IntCst_Impl
@@ -50,6 +54,18 @@ class AdjointOperator_class(LinearOperator_class):
             return self(f, v, SumT(u, f.dim))
         elif isinstance(formula, Zero):
             return Zero(v.dim)
+        elif isinstance(formula, Extract):
+            (f,) = formula.children
+            return self(f, v, ExtractT(u, formula.start, f.dim))
+        elif isinstance(formula, ExtractT):
+            (f,) = formula.children
+            return self(f, v, Extract(u, formula.start, f.dim))
+        elif isinstance(formula, Elem):
+            (f,) = formula.children
+            return self(f, v, ElemT(u, f.dim, formula.m))
+        elif isinstance(formula, ElemT):
+            (f,) = formula.children
+            return self(f, v, Elem(u, formula.m))
 
 
 def AdjointOperator(formula, v, u):

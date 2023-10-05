@@ -143,8 +143,9 @@ class GenredAutograd_base:
         #  of the backward once again. It helps pytorch to keep track of 'who is who'.
         ctx.save_for_backward(*args, result)
 
-        # for forward AD we cannot use save_for_backward, so we put also args in ctx...
+        # for forward AD we cannot use save_for_backward, so we put also args and result in ctx...
         ctx.args = args
+        ctx.result = result
 
     @staticmethod
     def _backward(ctx, G, _):
@@ -326,8 +327,12 @@ else:
             ny = params.ny
             args = ctx.args
             nargs = len(args)
+            result = ctx.result
 
             check_AD_supported(formula)
+
+            # we define a new variable for the formula's output
+            resvar = f"Var({nargs},{dimout},{tagIJ})"
 
             # We define Var objects corresponding to grad_inputs tensors.
             # Each Var has the same dim and cat as the corresponding input arg.
@@ -340,10 +345,10 @@ else:
                     grad_input = grad_input.contiguous()
                     _, cat, dim, pos = get_type(sig, position_in_list=var_ind)
                     var = f"Var({pos},{dim},{cat})"
-                    eta = f"Var({nargs},{dim},{cat})"
-                    formula_d = f"Diff({formula},{var},{eta})"
-                    aliases_d = aliases + [eta]
-                    args_d = (*args, grad_input)
+                    eta = f"Var({nargs+1},{dim},{cat})"
+                    formula_d = f"Diff_WithSavedForward({formula},{var},{eta},{resvar})"
+                    aliases_d = aliases + [resvar] + [eta]
+                    args_d = (*args, result, grad_input)
                     genconv = GenredAutograd_fun
                     # TODO : set rec_multVar_highdim at this point
                     params_d = copy.copy(params)
