@@ -70,9 +70,11 @@ def set_device(tagCPUGPU, tagHostDevice, device_id_request, *args):
 class GenredAutograd_base:
     @staticmethod
     def _forward(params, *args):
-        params.optional_flags["multVar_highdim"] = (
-            1 if params.rec_multVar_highdim else 0
-        )
+
+        if isinstance(params.rec_multVar_highdim, int) or params.rec_multVar_highdim:
+            params.optional_flags["multVar_highdim"] = 1
+        else:
+            params.optional_flags["multVar_highdim"] = 0
 
         tagCPUGPU, tag1D2D, tagHostDevice = get_tag_backend(params.backend, args)
 
@@ -350,11 +352,25 @@ else:
                     aliases_d = aliases + [resvar] + [eta]
                     args_d = (*args, result, grad_input)
                     genconv = GenredAutograd_fun
-                    # TODO : set rec_multVar_highdim at this point
+                    
                     params_d = copy.copy(params)
                     params_d.formula = formula_d
                     params_d.aliases = aliases_d
                     params_d.out = None
+
+                    # For a reduction of the type sum(F*b), with b a variable, and if we require the diff
+                    # with respect to b, the diff will be of same type sum(F*eta). So we set again rec_multVar option
+                    # in this case.
+                    if (
+                        not isinstance(params.rec_multVar_highdim, bool)
+                        and pos == params.rec_multVar_highdim
+                    ):
+                        params_d.rec_multVar_highdim = (
+                        nargs+1  # nargs+1 is the position of variable eta.
+                    )
+                    else:
+                        params_d.rec_multVar_highdim = None
+
                     diff = genconv(params_d, *args_d)
                     # TODO : probably need to process result after genconv, as done in backward method.
                     out += diff
