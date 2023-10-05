@@ -10,8 +10,9 @@ dy_j = torch.randn(5, 1, 1, 20, 2)
 db_j = torch.randn(5, 4, 1, 20, 1)
 dp = torch.randn(5, 1, 1, 1, 1)
 
+
 def fn_torch(x_i, y_j, b_j, p):
-    K_ij = (-p[...,0]*((x_i - y_j) ** 2).sum(-1)).exp()
+    K_ij = (-p[..., 0] * ((x_i - y_j) ** 2).sum(-1)).exp()
     K_ij = K_ij[..., None]
     return ((K_ij * b_j).sum(2)).norm()
 
@@ -21,7 +22,7 @@ def fn_keops(x_i, y_j, b_j, p):
     y_j = LazyTensor(y_j)
     b_j = LazyTensor(b_j)
     p = LazyTensor(p)
-    K_ij = (-p*((x_i - y_j) ** 2).sum(-1)).exp()
+    K_ij = (-p * ((x_i - y_j) ** 2).sum(-1)).exp()
     return ((K_ij * b_j).sum(2)).norm()
 
 

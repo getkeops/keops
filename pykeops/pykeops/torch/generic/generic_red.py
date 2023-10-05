@@ -70,7 +70,6 @@ def set_device(tagCPUGPU, tagHostDevice, device_id_request, *args):
 class GenredAutograd_base:
     @staticmethod
     def _forward(params, *args):
-
         if isinstance(params.rec_multVar_highdim, int) or params.rec_multVar_highdim:
             params.optional_flags["multVar_highdim"] = 1
         else:
@@ -352,7 +351,7 @@ else:
                     aliases_d = aliases + [resvar] + [eta]
                     args_d = (*args, result, grad_input)
                     genconv = GenredAutograd_fun
-                    
+
                     params_d = copy.copy(params)
                     params_d.formula = formula_d
                     params_d.aliases = aliases_d
@@ -366,13 +365,15 @@ else:
                         and pos == params.rec_multVar_highdim
                     ):
                         params_d.rec_multVar_highdim = (
-                        nargs+1  # nargs+1 is the position of variable eta.
-                    )
+                            nargs + 1  # nargs+1 is the position of variable eta.
+                        )
                     else:
                         params_d.rec_multVar_highdim = None
 
                     diff = genconv(params_d, *args_d)
-                    out = out + diff   # N.B. in-place "out+=diff" produces a bug, should investigate...
+                    out = (
+                        out + diff
+                    )  # N.B. in-place "out+=diff" produces a bug, should investigate...
 
             return out, None
 
