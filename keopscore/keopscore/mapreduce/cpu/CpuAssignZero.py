@@ -1,4 +1,4 @@
-from keopscore import debug_ops_at_exec
+import keopscore
 from keopscore.binders.cpp.Cpu_link_compile import Cpu_link_compile
 from keopscore.mapreduce.MapReduce import MapReduce
 from keopscore.utils.code_gen_utils import (
@@ -27,27 +27,35 @@ class CpuAssignZero(MapReduce, Cpu_link_compile):
         headers = ["stdlib.h"]
         if keopscore.config.config.use_OpenMP:
             headers.append("omp.h")
-        if debug_ops_at_exec:
+        if keopscore.debug_ops_at_exec:
             headers.append("iostream")
         self.headers += c_include(*headers)
 
         self.code = f"""
 {self.headers}
 
+#include "stdarg.h"
+#include <vector>
+
 template < typename TYPE >
-int AssignZeroCpu_{self.gencode_filename}(int nx, int ny, TYPE* out,  TYPE **{arg.id}) {{
+int AssignZeroCpu_{self.gencode_filename}(int nx, int ny, std::vector< int > shapeout, TYPE* out,  TYPE **{arg.id}) {{
+    
+    // for some reason the nx value is not correct for very special cases (like Zero reduction..)
+    // so we compute the true value from the input shapeout...
+    int true_nx = 1;
+    for (int k=0; k<shapeout.size()-1; k++) {{
+        true_nx *= shapeout[k];
+    }}
+    
     #pragma omp parallel for
-    for (int i = 0; i < nx; i++) {{
+    for (int i = 0; i < true_nx; i++) {{
         {outi.assign(c_zero_float)}
     }}
     return 0;
 }}
 
-#include "stdarg.h"
-#include <vector>
-
 template < typename TYPE >
-int launch_keops_{self.gencode_filename}(int nx, int ny, int tagI, TYPE *out, TYPE **arg) {{
+int launch_keops_{self.gencode_filename}(int nx, int ny, int tagI, std::vector< int > shapeout, TYPE *out, TYPE **arg) {{
 
     if (tagI==1) {{
         int tmp = ny;
@@ -55,7 +63,7 @@ int launch_keops_{self.gencode_filename}(int nx, int ny, int tagI, TYPE *out, TY
         nx = tmp;
     }}
 
-    return AssignZeroCpu_{self.gencode_filename}< TYPE > (nx, ny, out, arg);
+    return AssignZeroCpu_{self.gencode_filename}< TYPE > (nx, ny, shapeout, out, arg);
 
 }}
 
@@ -77,7 +85,7 @@ int launch_keops_cpu_{self.gencode_filename}(int dimY,
                                          std::vector< std::vector< int > > argshape) {{
 
 
-    return launch_keops_{self.gencode_filename}< TYPE > (nx, ny, tagI, out, arg);
+    return launch_keops_{self.gencode_filename}< TYPE > (nx, ny, tagI, shapeout, out, arg);
 
 }}
 

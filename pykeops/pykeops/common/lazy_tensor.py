@@ -128,6 +128,7 @@ class GenericLazyTensor:
                     )
 
                 self.symbolic_variables = (x,)
+                self.ind = x[0]
                 self.ndim = x[1]
                 self.axis = x[2]
                 self.formula = "VarSymb({},{},{})".format(x[0], self.ndim, self.axis)
@@ -1850,6 +1851,138 @@ class GenericLazyTensor:
             dimcheck="same",
             opt_arg=other,
             opt_pos="middle",
+        )
+
+    def diff(self, other, diffin):
+        r"""
+        Symbolic differential operation (forward differentiation).
+
+        ``z = x.diff(v,e)`` returns a :class:`LazyTensor`
+        which encodes, symbolically,
+        the differential operator of ``x``, with
+        respect to variable ``v``, and applied to ``e``.
+        For details, please check the documentation of the KeOps operation ``"Diff"`` in
+        the :doc:`main reference page <../../../api/math-operations>`.
+        """
+        return self.binary(
+            diffin,
+            "Diff",
+            dimres=self.ndim,
+            dimcheck=None,
+            opt_arg=other,
+            opt_pos="middle",
+        )
+
+    def factorize(self, other):
+        r"""
+        Symbolic factorization operation.
+
+        ``z = x.factorize(y)`` returns a :class:`LazyTensor`
+        which encodes, symbolically,
+        a factorization of ``x`` with respect to ``y``.
+        For details, please check the documentation of the KeOps operation ``"Factorize"`` in
+        the :doc:`main reference page <../../../api/math-operations>`.
+        """
+        return self.binary(
+            other,
+            "Factorize",
+            dimres=self.ndim,
+            dimcheck=None,
+        )
+
+    def auto_factorize(self):
+        r"""
+        Symbolic auto factorization operation.
+
+        ``z = x.auto_factorize()`` returns a :class:`LazyTensor`
+        which encodes, symbolically,
+        the automatic factorization of ``x``.
+        For details, please check the documentation of the KeOps operation ``"AutoFactorize"`` in
+        the :doc:`main reference page <../../../api/math-operations>`.
+        """
+        return self.unary(
+            "AutoFactorize",
+            dimres=self.ndim,
+        )
+
+    def grad_matrix(self, other):
+        r"""
+        Symbolic gradient matrix operation.
+
+        ``z = x.grad_matrix(v)`` returns a :class:`LazyTensor`
+        which encodes, symbolically,
+        the gradient matrix (more precisely, the adjoint of the differential operator) of ``x``, with
+        respect to variable ``v``.
+        For details, please check the documentation of the KeOps operation ``"GradMatrix"`` in
+        the :doc:`main reference page <../../../api/math-operations>`.
+        """
+        return self.unary(
+            "GradMatrix",
+            dimres=self.ndim * other.ndim,
+            opt_arg=other,
+        )
+
+    def trace_operator(self, var):
+        r"""
+        Symbolic trace operation.
+
+        ``z = x.trace_operator(v)`` returns a :class:`LazyTensor`
+        which encodes, symbolically,
+        the trace of ``x``, with respect to variable ``v``.
+        ``x`` must be a linear function of ``v``.
+        For details, please check the documentation of the KeOps operation ``"TraceOperator"`` in
+        the :doc:`main reference page <../../../api/math-operations>`.
+        """
+        res = self.binary(
+            var,
+            "TraceOperator",
+            dimres=1,
+            dimcheck="same",
+        )
+        # we need some trick here, because we are in the case where the variable var=Var(ind,dim,cat)
+        # will be present in the formula string, but will disappear after symbolic evaluation. So this
+        # var must be suppressed from the list of symbolic variables (because it will not need any actual
+        # tensor in the end), and we change its ind to a negative value, so that later it will not be
+        # considered when calling function "parse_type" that gets the list of actual variables.
+        res.symbolic_variables = list(
+            set(res.symbolic_variables).difference(var.symbolic_variables)
+        )
+        if var.ind >= 0:
+            res.formula = res.formula.replace(
+                var.formula, f"VarSymb(-{var.ind}-1,{var.ndim},{var.axis})"
+            )
+        return res
+
+    def divergence(self, var):
+        r"""
+        Symbolic divergence operation.
+
+        ``z = x.divergence(v)`` returns a :class:`LazyTensor`
+        which encodes, symbolically,
+        the divergence of ``x``, with respect to variable ``v``.
+        Inner dimensions of ``x`` (``x.ndim``) and ``v`` (``v.ndim``) must match.
+        """
+        return self.binary(
+            var,
+            "Divergence",
+            dimres=1,
+            dimcheck="same",
+        )
+
+    def laplacian(self, var):
+        r"""
+        Symbolic laplacian operation.
+
+        ``z = x.laplacian(v)`` returns a :class:`LazyTensor`
+        which encodes, symbolically,
+        the laplacian of ``x``, with respect to variable ``v``.
+        Inner dimension of ``x`` (``x.ndim``) must equal 1.
+        """
+        return self.binary(
+            var,
+            "Laplacian",
+            dimres=1,
+            dimcheck=None,
         )
 
         # List of supported reductions  ============================================

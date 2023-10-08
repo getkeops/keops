@@ -15,7 +15,7 @@ from keopscore.utils.misc_utils import KeOps_Error
 
 class KMin_ArgKMin_Reduction(Reduction):
     """Implements the k-min-arg-k-min reduction operation : for each i or each j, find the
-    values and indices of the k minimal values of Fij operation is vectorized: if Fij is vector-valued,
+    values and indices of the k minimal values of Fij. The operation is vectorized: if Fij is vector-valued,
      arg-k-min is computed for each dimension."""
 
     string_id = "KMin_ArgKMin_Reduction"

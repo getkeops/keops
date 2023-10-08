@@ -1,4 +1,4 @@
-from keopscore import debug_ops_at_exec
+import keopscore
 from keopscore.binders.cpp.Cpu_link_compile import Cpu_link_compile
 
 from keopscore.mapreduce.cpu.CpuAssignZero import CpuAssignZero
@@ -66,7 +66,7 @@ class CpuReduc_ranges(MapReduce, Cpu_link_compile):
         headers = ["cmath", "stdlib.h"]
         if keopscore.config.config.use_OpenMP:
             headers.append("omp.h")
-        if debug_ops_at_exec:
+        if keopscore.debug_ops_at_exec:
             headers.append("iostream")
         self.headers += c_include(*headers)
 
@@ -103,7 +103,7 @@ int CpuConv_ranges_{self.gencode_filename}(int nx, int ny,
                     int nbatchdims, int* shapes,
                     std::vector< int > indsi, std::vector< int > indsj, std::vector< int > indsp,
                     int nranges_x, int nranges_y, int **ranges,
-                    TYPE* out, TYPE **{arg.id}) {{
+                    TYPE* out, std::vector< int > shapeout, TYPE **{arg.id}) {{
                         
     int sizei = indsi.size();
     int sizej = indsj.size();
@@ -138,11 +138,18 @@ int CpuConv_ranges_{self.gencode_filename}(int nx, int ny,
     
     // Set the output to zero, as the ranges may not cover the full output -----
     {acctmp.declare()} // __TYPEACC__ acctmp[DIMRED];
-    for (int i = 0; i < nx; i++) {{
+
+    // for some reason the nx value is not correct for very special cases (like Zero reduction..)
+    // so we compute the true value from the input shapeout...
+    int true_nx = 1;
+    for (int k=0; k<shapeout.size()-1; k++) {{
+        true_nx *= shapeout[k];
+    }}
+
+    for (int i = 0; i < true_nx; i++) {{
         {red_formula.InitializeReduction(acctmp)}
         {red_formula.FinalizeOutput(acctmp, outi, i)}
     }}
-    
     
     // N.B.: In the following code, we assume that the x-ranges do not overlap.
     //       Otherwise, we'd have to assume that DIMRED == DIMOUT
@@ -235,7 +242,7 @@ int launch_keops_{self.gencode_filename}(int nx, int ny,
                                          int dimout,
                                          std::vector< int > dimsx, std::vector< int > dimsy, std::vector< int > dimsp,
                                          int **ranges, 
-                                         TYPE *out, int nargs, TYPE** arg,
+                                         TYPE *out, std::vector< int > shapeout, int nargs, TYPE** arg,
                                          std::vector<std::vector< int >> argshape) {{
     
     Sizes< TYPE > SS (nargs, arg, argshape, nx, ny,tagI, use_half,
@@ -271,7 +278,7 @@ int launch_keops_{self.gencode_filename}(int nx, int ny,
     return CpuConv_ranges_{self.gencode_filename}< TYPE> (nx, ny, SS.nbatchdims, SS.shapes,
                                                           indsi, indsj, indsp,
                                                           RR.nranges_x, RR.nranges_y, RR.castedranges,
-                                                          out, arg);
+                                                          out, shapeout, arg);
 }}
 
 template < typename TYPE >
@@ -304,6 +311,7 @@ int launch_keops_cpu_{self.gencode_filename}(int dimY,
                                                         dimsx, dimsy, dimsp,
                                                         ranges,
                                                         out, 
+                                                        shapeout,
                                                         argshape.size(), 
                                                         arg, 
                                                         argshape);
