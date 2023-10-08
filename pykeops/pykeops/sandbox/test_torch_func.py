@@ -1,14 +1,20 @@
 import torch
 from pykeops.torch import LazyTensor
 
-x_i = torch.randn(5, 4, 10, 1, 2)
-y_j = torch.randn(5, 1, 1, 20, 2)
-b_j = torch.randn(5, 4, 1, 20, 1)
-p = torch.rand(5, 1, 1, 1, 1)
-dx_i = torch.randn(5, 4, 10, 1, 2)
-dy_j = torch.randn(5, 1, 1, 20, 2)
-db_j = torch.randn(5, 4, 1, 20, 1)
-dp = torch.randn(5, 1, 1, 1, 1)
+import keopscore
+
+keopscore.auto_factorize = False
+
+B1, B2, M, N, D = 5, 4, 10, 20, 2
+
+x_i = torch.randn(B1, B2, M, 1, D)
+y_j = torch.randn(B1, 1, 1, N, D)
+b_j = torch.randn(B1, B2, 1, N, 1)
+p = torch.rand(B1, 1, 1, 1, 1)
+dx_i = torch.randn(B1, B2, M, 1, D)
+dy_j = torch.randn(B1, 1, 1, N, D)
+db_j = torch.randn(B1, B2, 1, N, 1)
+dp = torch.randn(B1, 1, 1, 1, 1)
 
 
 def fn_torch(x_i, y_j, b_j, p):
@@ -58,7 +64,10 @@ res1 = torch.func.jacfwd(fn_torch)(x_i, y_j, b_j, p)
 res2 = torch.func.jacfwd(fn_keops)(x_i, y_j, b_j, p)
 print("testing jacfwd, error=", torch.norm(res1 - res2) / torch.norm(res1))
 
+
 # 7) testing torch.func.hessian.
 res1 = torch.func.hessian(fn_torch)(x_i, y_j, b_j, p)
+print("norm(res1)=", torch.norm(res1))
 res2 = torch.func.hessian(fn_keops)(x_i, y_j, b_j, p)
+print("norm(res2)=", torch.norm(res2))
 print("testing hessian, error=", torch.norm(res1 - res2) / torch.norm(res1))

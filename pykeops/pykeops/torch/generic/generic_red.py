@@ -124,6 +124,7 @@ class GenredAutograd_base:
             params.out,
             *args,
         )
+
         return result, torch.tensor([myconv.dimout, myconv.tagIJ])
 
     @staticmethod
@@ -333,7 +334,7 @@ else:
             check_AD_supported(formula)
 
             # we define a new variable for the formula's output
-            resvar = f"Var({nargs},{dimout},{tagIJ})"
+            resvar = f"Var({nargs+1},{dimout},{tagIJ})"
 
             # We define Var objects corresponding to grad_inputs tensors.
             # Each Var has the same dim and cat as the corresponding input arg.
@@ -346,10 +347,10 @@ else:
                     grad_input = grad_input.contiguous()
                     _, cat, dim, pos = get_type(sig, position_in_list=var_ind)
                     var = f"Var({pos},{dim},{cat})"
-                    eta = f"Var({nargs+1},{dim},{cat})"
+                    eta = f"Var({nargs},{dim},{cat})"
                     formula_d = f"Diff_WithSavedForward({formula},{var},{eta},{resvar})"
-                    aliases_d = aliases + [resvar] + [eta]
-                    args_d = (*args, result, grad_input)
+                    aliases_d = aliases + [eta] + [resvar]
+                    args_d = (*args, grad_input, result)
                     genconv = GenredAutograd_fun
 
                     params_d = copy.copy(params)
@@ -365,15 +366,14 @@ else:
                         and pos == params.rec_multVar_highdim
                     ):
                         params_d.rec_multVar_highdim = (
-                            nargs + 1  # nargs+1 is the position of variable eta.
+                            nargs  # nargs is the position of variable eta.
                         )
                     else:
                         params_d.rec_multVar_highdim = None
 
                     diff = genconv(params_d, *args_d)
-                    out = (
-                        out + diff
-                    )  # N.B. in-place "out+=diff" produces a bug, should investigate...
+
+                    out = out + diff
 
             return out, None
 
