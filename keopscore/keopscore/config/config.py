@@ -160,7 +160,9 @@ if use_OpenMP:
                 success = False
                 for lib in ["libomp", "libiomp", "libiomp5", "libmkl_rt"]:
                     res = subprocess.run(
-                        f"lsof -p {pid} | grep {lib}", stdout=subprocess.PIPE, shell=True
+                        f"lsof -p {pid} | grep {lib}",
+                        stdout=subprocess.PIPE,
+                        shell=True,
                     )
                     loaded_libs[lib] = (
                         os.path.dirname(res.stdout.split(b" ")[-1]).decode("utf-8")
@@ -169,28 +171,29 @@ if use_OpenMP:
                     )
                     success = success or (res.returncode == 0)
                 return success, loaded_libs
-            
+
             success, loaded_libs = check_openmp_loaded()
             if not success:
                 # we try to directly load
                 # the shared libraries for OpenMP.
                 def load_dll(libname):
                     from ctypes import cdll
+
                     try:
-                        cdll.LoadLibrary('libmkl_rt.dylib')
+                        cdll.LoadLibrary("libmkl_rt.dylib")
                         return True
                     except:
                         return False
-                    
-                if load_dll('libmkl_rt.dylib'):
+
+                if load_dll("libmkl_rt.dylib"):
                     pass
-                elif load_dll('libiomp5.dylib'):
+                elif load_dll("libiomp5.dylib"):
                     pass
-                elif load_dll('libiomp.dylib'):
+                elif load_dll("libiomp.dylib"):
                     pass
-                elif load_dll('libomp.dylib'):
+                elif load_dll("libomp.dylib"):
                     pass
-            
+
             success, loaded_libs = check_openmp_loaded()
 
             if loaded_libs["libmkl_rt"]:
