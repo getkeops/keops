@@ -328,9 +328,10 @@ class GenericLazyTensor:
 
     def separate_kwargs(self, kwargs):
         # separating keyword arguments for Genred init vs Genred call...
-        # Currently the only four additional optional keyword arguments that are passed to Genred init
+        # Currently the only additional optional keyword arguments that are passed to Genred init
         # are accuracy options: dtype_acc, use_double_acc and sum_scheme,
         # chunk mode option enable_chunks,
+        # use_fast_math option,
         # and compiler option optional_flags.
         kwargs_init = []
         kwargs_call = []
@@ -340,6 +341,7 @@ class GenericLazyTensor:
                 "use_double_acc",
                 "sum_scheme",
                 "enable_chunks",
+                "use_fast_math",
                 "optional_flags",
             ):
                 kwargs_init += [(key, kwargs[key])]
@@ -2423,6 +2425,7 @@ class GenericLazyTensor:
             >>> print( (K @ v).shape )
             ... torch.Size([1000, 2])
         """
+
         if self._shape[-1] != 1:
             raise ValueError(
                 "The 'K @ v' syntax is only supported for LazyTensors "
