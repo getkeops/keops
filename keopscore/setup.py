@@ -49,6 +49,7 @@ setup(
         "keopscore.formulas",
         "keopscore.formulas.autodiff",
         "keopscore.formulas.complex",
+        "keopscore.formulas.LinearOperators",
         "keopscore.formulas.maths",
         "keopscore.formulas.reductions",
         "keopscore.formulas.variables",
