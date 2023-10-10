@@ -50,7 +50,7 @@ setup(
         "keopscore.formulas.autodiff",
         "keopscore.formulas.complex",
         "keopscore.formulas.LinearOperators",
-        # "keopscore.formulas.factorization",
+        "keopscore.formulas.factorization",
         "keopscore.formulas.maths",
         "keopscore.formulas.reductions",
         "keopscore.formulas.variables",
