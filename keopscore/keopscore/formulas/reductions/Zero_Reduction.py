@@ -15,3 +15,6 @@ class Zero_Reduction(Reduction):
 
     def DiffT(self, v, gradin, f0=None):
         return Zero_Reduction(v.dim, v.cat % 2)
+
+    def Diff(self, v, diffin, f0=None):
+        return Zero_Reduction(self.dim, self.tagI)

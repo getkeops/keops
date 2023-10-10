@@ -1,3 +1,4 @@
+from .Reduction import Reduction
 from .ArgKMin_Reduction import ArgKMin_Reduction
 from .ArgMax_Reduction import ArgMax_Reduction
 from .ArgMin_Reduction import ArgMin_Reduction

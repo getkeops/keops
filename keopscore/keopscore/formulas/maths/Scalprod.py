@@ -15,6 +15,7 @@ from keopscore.utils.misc_utils import KeOps_Error
 class Scalprod_Impl(Chunkable_Op):
     string_id = "Scalprod"
     print_spec = "|", "mid", 3
+    linearity_type = "one"
 
     dim = 1
 
@@ -46,9 +47,24 @@ class Scalprod_Impl(Chunkable_Op):
 
 
 def Scalprod(arg0, arg1):
+    from keopscore.formulas.maths.Mult import Mult_Impl
+
     if arg0.dim == 1:
         return arg0 * Sum(arg1)
-    elif arg1.dim == 1:
+    if arg1.dim == 1:
         return Sum(arg0) * arg1
-    else:
-        return Scalprod_Impl(arg0, arg1)
+    if arg0 == arg1:
+        return Sum(arg0**2)
+    if isinstance(arg0, Mult_Impl):
+        u, v = arg0.children
+        if u.dim == 1:
+            return u * (v | arg1)
+        if v.dim == 1:
+            return v * (u | arg1)
+    if isinstance(arg1, Mult_Impl):
+        u, v = arg1.children
+        if u.dim == 1:
+            return u * (v | arg0)
+        if v.dim == 1:
+            return v * (u | arg0)
+    return Scalprod_Impl(arg0, arg1)

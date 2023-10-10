@@ -21,6 +21,9 @@ debug_ops = False
 # for all atomic operations during computations
 debug_ops_at_exec = False
 
+# flag for automatic factorization : apply automatic factorization for all formulas before reduction.
+auto_factorize = False
+
 cuda_block_size = 192
 
 from . import config as keopscoreconfig

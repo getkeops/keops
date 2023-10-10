@@ -169,7 +169,7 @@ Constants and padding/concatenation operations:
 
 Elementary tensor algebra:
 
-==============================================     ====================================================================================================================================================================================================================================================================================
+==============================================      ================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================
 ``MatVecMult(f, g)``                                matrix-vector product ``f x g``: ``f`` is vector interpreted as matrix (column-major), ``g`` is vector
 ``VecMatMult(f, g)``                                vector-matrix product ``f x g``: ``f`` is vector, ``g`` is vector interpreted as matrix (column-major)
 ``TensorProd(f, g)``                                tensor cross product ``f x g^T``: ``f`` and ``g`` are vectors of sizes M and N, output is of size MN.
@@ -177,12 +177,17 @@ Elementary tensor algebra:
 ``TensorDot(f, g, dimf, dimg, contf, contg)``       tensordot product ``f : g``(similar to `numpy\'s tensordot <https://numpy.org/doc/stable/reference/generated/numpy.tensordot.html>`_ in the spirit): ``f`` and ``g`` are tensors of sizes listed in ``dimf`` and ``dimg`` :ref:`index sequences <part.reservedWord>` and contracted along the dimensions listed in ``contf`` and ``contg`` :ref:`index sequences <part.reservedWord>`. The ``MatVecMult``, ``VecMatMult``, ``Kron`` and ``TensorProd`` operations are special cases of ``TensorDot``.
 ==============================================     ====================================================================================================================================================================================================================================================================================
 
-Symbolic gradients:
+Symbolic gradients and linear operators:
 
-======================   =========================================================================================================
-``Grad(f,x,e)``           gradient of ``f`` with respect to the variable ``x``, with ``e`` as the "grad_input" to backpropagate
-``GradMatrix(f, v)``      matrix of gradient (i.e. transpose of the jacobian matrix)
-======================   =========================================================================================================
+========================   =========================================================================================================
+``Grad(f,x,e)``            gradient of ``f`` with respect to the variable ``x``, with ``e`` as the "grad_input" to backpropagate
+``Diff(f,x,e)``            differential of ``f`` with respect to the variable ``x``, with ``e`` as the "diff_input" to propagate
+``GradMatrix(f, v)``       matrix of gradient (i.e. transpose of the jacobian matrix)
+``Divergence(f,x)``        divergence of ``f`` with respect to the variable ``x``
+``Laplacian(f,x)``         laplacian of ``f`` with respect to the variable ``x``
+``TraceOperator(f,x)``     trace of ``f`` with respect to the variable ``x`` (``f`` must be a linear function of ``x``)
+``AdjointOperator(f,x)``   adjoint of ``f`` with respect to the variable ``x`` (``f`` must be a linear function of ``x``)
+========================   =========================================================================================================
 
 
 .. _`part.reduction`:

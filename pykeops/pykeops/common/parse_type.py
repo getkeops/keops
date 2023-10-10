@@ -23,6 +23,10 @@ def complete_aliases(formula, aliases):
         # we get the "position" of the variable as the first integer value in the string
         # (i.e. the "a" in "Var(a,b,c)")
         pos = int(re.search(r"[0-9]+", var).group(0))
+        if pos < 0:
+            # This means that this variable is fictious : it is used only for symbolic calculus
+            # and will not appear in the actual formula (used in trace_operator)
+            pass
         if pos < len(aliases):
             # this means that in fact var is not an extra variable, it is already in the list of aliases
             # We could check that the "dimension" and "category" are consistent, but we assume here
@@ -128,7 +132,12 @@ def get_type(type_str, position_in_list=None):
 
 
 def get_optional_flags(
-    reduction_op_internal, dtype_acc, use_double_acc, sum_scheme, enable_chunks
+    reduction_op_internal,
+    dtype_acc,
+    use_double_acc,
+    sum_scheme,
+    enable_chunks,
+    use_fast_math,
 ):
     # 1. Options for accuracy
 
@@ -189,12 +198,11 @@ def get_optional_flags(
 
     optional_flags["sum_scheme"] = sum_scheme
 
+    optional_flags["use_fast_math"] = 1 if use_fast_math else 0
+
     # 2. Option for chunk mode
 
-    if enable_chunks:
-        optional_flags["enable_chunks"] = 1
-    else:
-        optional_flags["enable_chunks"] = 0
+    optional_flags["enable_chunks"] = 1 if enable_chunks else 0
 
     return optional_flags
 

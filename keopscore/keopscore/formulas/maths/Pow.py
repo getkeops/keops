@@ -2,7 +2,7 @@ from keopscore.formulas.VectorizedScalarOp import VectorizedScalarOp
 from keopscore.utils.math_functions import keops_pow
 
 
-class Pow(VectorizedScalarOp):
+class Pow_Impl(VectorizedScalarOp):
     """the integer power vectorized operation
     Pow(f,m) where m is integer, computes f^m
     """
@@ -29,3 +29,12 @@ class Pow(VectorizedScalarOp):
     test_ranges = [(0, 2)]  # ranges of arguments
     test_params = [2]  # values of parameters for testing
     torch_op = "lambda x,m : torch.pow(x, m)"
+
+
+# N.B. The following separate function could theoretically be implemented
+# as a __new__ method of the previous class, but this can generate infinite recursion problems
+def Pow(f, m):
+    if m == 1:
+        return f
+    else:
+        return Pow_Impl(f, m)
