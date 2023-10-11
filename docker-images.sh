@@ -48,6 +48,9 @@ done
 
 # Test your images with e.g.
 # docker run -dit getkeops/keops:latest
+# or
+# docker run --gpus all -dit getkeops/keops-full:latest
+# and then
 # docker exec -it <container_id> /bin/bash
 #
 # And push to Docker Hub:
