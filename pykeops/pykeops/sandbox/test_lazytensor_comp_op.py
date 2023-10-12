@@ -6,9 +6,9 @@ import math
 import torch
 from pykeops.torch import LazyTensor
 
-M, N, D = 1000, 1000, 3
+M, N, D = 5, 5, 3
 
-dtype = torch.float32
+dtype = torch.float16
 
 device_id = "cuda:0" if torch.cuda.is_available() else "cpu"
 
@@ -23,6 +23,8 @@ def fun(x, y, backend):
         x = LazyTensor(x)
         y = LazyTensor(y)
     Kxy = ((x < y) != (y >= 1)).sum(dim=2)
+    # Kxy = (x-y).clamp(x,x+y).sum(dim=2)
+    # Kxy = (x - y).sign().sum(dim=2)
     return Kxy.sum(dim=1).to(dtype)
 
 
