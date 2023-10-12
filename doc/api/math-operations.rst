@@ -73,6 +73,13 @@ To define formulas with KeOps, you can use simple arithmetics:
 ``f - g``                 difference between two vectors or minus sign
 ``f / g``                 element-wise division (N.B. ``f`` can be scalar, in fact ``f / g`` is the same as ``f * Inv(g)``)
 ``(f | g)``               scalar product between vectors
+``f==g``                  element-wise equal function (``1`` if ``f==g``, ``0`` otherwise)
+``f!=g``                  element-wise equal function (``1`` if ``f!=g``, ``0`` otherwise)
+``f<g``                   element-wise less-than function (``1`` if ``f<g``, ``0`` otherwise)
+``f>g``                   element-wise greater-than function (``1`` if ``f>g``, ``0`` otherwise)
+``f<=g``                  element-wise less-than-or-equal-to function (``1`` if ``f<=g``, ``0`` otherwise)
+``f>=g``                  element-wise greater-than-or-equal-to function (``1`` if ``f>=g``, ``0`` otherwise)
+
 ======================   =========================================================================================================
 
 Elementary functions:

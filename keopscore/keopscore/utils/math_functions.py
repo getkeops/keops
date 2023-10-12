@@ -89,7 +89,17 @@ keops_rsqrt = math_function(
 keops_sqrt = math_function(cpu_code="sqrt", gpu_half2_code="h2sqrt")
 
 keops_relu = math_function(cpu_code=lambda x: f"(({x}<0.0f)? 0.0f : {x})")
+
+keops_equal = math_function(cpu_code=lambda x, y: f"(({x}=={y})? 1.0f : 0.0f)")
+
+keops_notequal = math_function(cpu_code=lambda x, y: f"(({x}!={y})? 1.0f : 0.0f)")
+
+keops_lessthan = math_function(cpu_code=lambda x, y: f"(({x}<{y})? 1.0f : 0.0f)")
+
+keops_lessorequal = math_function(cpu_code=lambda x, y: f"(({x}<={y})? 1.0f : 0.0f)")
+
 keops_step = math_function(cpu_code=lambda x: f"(({x}<0.0f)? 0.0f : 1.0f)")
+
 keops_sign = math_function(
     cpu_code=lambda x: f"(({x}>0.0f)? 1.0f : ( ({x}<0.0f)? -1.0f : 0.0f ))"
 )
