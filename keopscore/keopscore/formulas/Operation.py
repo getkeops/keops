@@ -195,6 +195,26 @@ class Operation(Tree):
             and self.params == other.params
         )
 
+    def __lt__(self, other):
+        """f<g redirects to LessThan(f,g)"""
+        from keopscore.formulas.maths.LessThan import LessThan
+
+        return LessThan(self, int2Op(other))
+
+    def __gt__(self, other):
+        """f>g redirects to LessThan(g,f)"""
+        return int2Op(other) < self
+
+    def __le__(self, other):
+        """f<=g redirects to LessOrEqual(f,g)"""
+        from keopscore.formulas.maths.LessOrEqual import LessOrEqual
+
+        return LessOrEqual(self, int2Op(other))
+
+    def __ge__(self, other):
+        """f>=g redirects to LessOrEqual(g,f)"""
+        return int2Op(other) <= self
+
     def Op(self, out, table, param):
         pass
 
