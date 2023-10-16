@@ -47,10 +47,10 @@ extern "C" int Compile(const char *target_file_name, const char *cu_code,
 
   if (use_half) {
     numHeaders = 1;
-    std::string cuda_fp16_header = "cuda_fp16.h";
+    //std::string cuda_fp16_header = "cuda_fp16.h";
     std::ostringstream header_path;
-    header_path << cuda_include_path << cuda_fp16_header;
-    header_names[0] = cuda_fp16_header.c_str();
+    header_path << cuda_include_path << "cuda_fp16.h"; //cuda_fp16_header;
+    header_names[0] = "cuda_fp16.h"; //cuda_fp16_header.c_str();
     header_sources[0] = read_text_file(header_path.str().c_str());
   } else {
     numHeaders = 0;

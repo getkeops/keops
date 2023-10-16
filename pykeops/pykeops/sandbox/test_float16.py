@@ -8,7 +8,7 @@ from pykeops.torch import LazyTensor
 
 dtype = torch.float16
 
-M, N, D = 50, 50, 1
+M, N, D = 5, 5, 1
 
 test_grad = True
 
