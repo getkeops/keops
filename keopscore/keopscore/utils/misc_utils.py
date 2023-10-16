@@ -93,6 +93,9 @@ def find_library_abspath(lib):
 
 
 def file_to_string(file_path):
+    """
+    reads text file and returns its content as a string
+    """
     f = open(file_path, "r")
     out = f.read()
     f.close()
@@ -100,12 +103,21 @@ def file_to_string(file_path):
 
 
 def string_to_file(string, file_path):
+    """
+    writes string to file
+    """
     f = open(file_path, "w")
     out = f.write(string)
     f.close()
 
 
 def pack_header(filename, origin_folder, target_folder):
+    """
+    Given a C/C++ header file "filename", located in folder "origin_folder",
+    produces a stand-alone version of the header by recursiveley
+    replacing all #include "xxx" statements by the content of the corresponding
+    file. The resulting file is put into "target_folder".
+    """
     code = file_to_string(join(origin_folder, filename))
     used_headers = []
     while True:
