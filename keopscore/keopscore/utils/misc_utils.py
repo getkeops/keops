@@ -108,11 +108,15 @@ def string_to_file(string, file_path):
 def pack_header(filename, origin_folder, target_folder):
     code = file_to_string(join(origin_folder, filename))
     used_headers = []
+    print("in pack header")
+    print("origin_folder: ", origin_folder)
     while True:
         match = re.search('#include *"([^"]*)"', code)
+        print("match=", match)
         if match is None:
             break
         header = match.groups()[0]
+        print("header=", header)
         if header in used_headers:
             code_to_insert = ""
         else:

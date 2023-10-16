@@ -16,7 +16,7 @@ from keopscore.config.config import (
     get_build_folder,
 )
 from keopscore.utils.misc_utils import KeOps_Error, KeOps_Message, KeOps_OS_Run
-from keopscore.utils.gpu_utils import get_gpu_props, custom_cuda_include_fp16_path
+from keopscore.utils.gpu_utils import get_gpu_props, custom_cuda_include_fp16_path, orig_cuda_include_fp16_path
 
 jit_compile_src = os.path.join(
     os.path.abspath(os.path.dirname(__file__)), "nvrtc_jit.cpp"
@@ -72,7 +72,7 @@ class Gpu_link_compile(LinkCompile):
             c_int(self.use_fast_math),
             c_int(self.device_id),
             create_string_buffer(
-                (custom_cuda_include_fp16_path() + os.path.sep).encode("utf-8")
+                (orig_cuda_include_fp16_path() + os.path.sep).encode("utf-8")
             ),
         )
         if res != 0:
