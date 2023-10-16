@@ -142,28 +142,64 @@ if use_OpenMP:
             )
             use_OpenMP = False
         else:
-            # we try to import either mkl or numpy, because it will load
+            # we try to import either mkl, sklearn or numpy, because it will load
             # the shared libraries for OpenMP.
             import importlib.util
 
             if importlib.util.find_spec("mkl"):
                 import mkl
+            elif importlib.util.find_spec("sklearn"):
+                import sklearn
             elif importlib.util.find_spec("numpy"):
                 import numpy
-            # Now we can look if one of libmkl_rt, libomp and/or libiomp is loaded.
-            pid = os.getpid()
-            loaded_libs = {}
-            for lib in ["libomp", "libiomp", "libmkl_rt"]:
-                res = subprocess.run(
-                    f"lsof -p {pid} | grep {lib}", stdout=subprocess.PIPE, shell=True
-                )
-                loaded_libs[lib] = (
-                    os.path.dirname(res.stdout.split(b" ")[-1]).decode("utf-8")
-                    if res.returncode == 0
-                    else None
-                )
+
+            def check_openmp_loaded():
+                # we look if one of libmkl_rt, libomp and/or libiomp is loaded.
+                pid = os.getpid()
+                loaded_libs = {}
+                success = False
+                for lib in ["libomp", "libiomp", "libiomp5", "libmkl_rt"]:
+                    res = subprocess.run(
+                        f"lsof -p {pid} | grep {lib}",
+                        stdout=subprocess.PIPE,
+                        shell=True,
+                    )
+                    loaded_libs[lib] = (
+                        os.path.dirname(res.stdout.split(b" ")[-1]).decode("utf-8")
+                        if res.returncode == 0
+                        else None
+                    )
+                    success = success or (res.returncode == 0)
+                return success, loaded_libs
+
+            success, loaded_libs = check_openmp_loaded()
+            if not success:
+                # we try to directly load
+                # the shared libraries for OpenMP.
+                def load_dll(libname):
+                    from ctypes import cdll
+
+                    try:
+                        cdll.LoadLibrary("libmkl_rt.dylib")
+                        return True
+                    except:
+                        return False
+
+                if load_dll("libmkl_rt.dylib"):
+                    pass
+                elif load_dll("libiomp5.dylib"):
+                    pass
+                elif load_dll("libiomp.dylib"):
+                    pass
+                elif load_dll("libomp.dylib"):
+                    pass
+
+            success, loaded_libs = check_openmp_loaded()
+
             if loaded_libs["libmkl_rt"]:
                 cpp_flags += f' -Xclang -fopenmp -lmkl_rt -L{loaded_libs["libmkl_rt"]}'
+            elif loaded_libs["libiomp5"]:
+                cpp_flags += f' -Xclang -fopenmp -liomp5 -L{loaded_libs["libiomp5"]}'
             elif loaded_libs["libiomp"]:
                 cpp_flags += f' -Xclang -fopenmp -liomp5 -L{loaded_libs["libiomp"]}'
             elif loaded_libs["libomp"]:
@@ -255,3 +291,21 @@ def init_cudalibs():
         CDLL(find_library("cuda"), mode=RTLD_GLOBAL)
         CDLL(find_library("cudart"), mode=RTLD_GLOBAL)
         keopscore.config.config.init_cudalibs_flag = True
+
+
+def show_gpu_config():
+    if use_cuda:
+        for elem in (
+            "cuda_version",
+            "libcuda_folder",
+            "libnvrtc_folder",
+            "nvrtc_flags",
+            "nvrtc_include",
+            "cuda_include_path",
+            "jit_source_file",
+            "jit_source_header",
+            "jit_binary",
+        ):
+            print(elem + " : ", eval(elem))
+    else:
+        print("gpu disabled")

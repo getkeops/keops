@@ -38,3 +38,6 @@ class Reduction(Tree):
         updated during the reduction, with possibly a cast if the accumulator was of
         different data type."""
         return VectCopy(out, acc)
+
+    def nice_print(self):
+        return f"{self.string_id} reduction (with parameters {','.join(str(x) for x in self.params)}) of formula {self.children[0].nice_print()}"

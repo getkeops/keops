@@ -9,6 +9,8 @@ from keopscore.utils.misc_utils import KeOps_Error
 
 class Elem(Operation):
     string_id = "Elem"
+    print_spec = ("[", "]"), "item", 1
+    linearity_type = "all"
 
     def __init__(self, f, m=None, params=None):
         # N.B. init via params keyword is used for compatibility with base class.

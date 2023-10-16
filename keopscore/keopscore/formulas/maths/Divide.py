@@ -4,6 +4,8 @@ from keopscore.formulas.maths.Scalprod import Scalprod
 from keopscore.formulas.maths.Sum import Sum
 from keopscore.formulas.maths.Square import Square
 from keopscore.formulas.variables.Zero import Zero
+from keopscore.formulas.variables.IntCst import IntCst, IntCst_Impl
+from keopscore.formulas.variables.RatCst import RatCst, RatCst_Impl
 from keopscore.utils.misc_utils import KeOps_Error
 
 ##########################
@@ -16,6 +18,7 @@ class Divide_Impl(VectorizedScalarOp):
 
     string_id = "Divide"
     print_spec = "/", "mid", 3
+    linearity_type = "first"
 
     def ScalarOp(self, out, arg0, arg1):
         """returns the atomic piece of c++ code to evaluate the function on arg and return the result in out"""
@@ -44,5 +47,9 @@ def Divide(arg0, arg1):
         return Broadcast(arg0, arg1.dim)
     elif isinstance(arg1, Zero):
         KeOps_Error("division by zero")
+    elif isinstance(arg1, IntCst_Impl):
+        return RatCst(1, arg1.val) * arg0
+    elif isinstance(arg1, RatCst_Impl):
+        return RatCst(arg1.q, arg1.p) * arg0
     else:
         return Divide_Impl(arg0, arg1)

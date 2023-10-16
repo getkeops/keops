@@ -1,6 +1,6 @@
 from keopscore.utils.code_gen_utils import new_c_varname, c_array
 from keopscore.utils.Tree import Tree
-from keopscore import debug_ops, debug_ops_at_exec
+import keopscore
 from keopscore.utils.misc_utils import KeOps_Error
 
 ###################
@@ -10,6 +10,19 @@ from keopscore.utils.misc_utils import KeOps_Error
 
 class Operation(Tree):
     """Base class for all keops building block operations in a formula"""
+
+    linearity_type = None
+
+    def is_linear(self, v):
+        if self.linearity_type == "all":
+            return all(f.is_linear(v) for f in self.children)
+        elif self.linearity_type == "one":
+            return sum(f.is_linear(v) for f in self.children) == 1
+        elif self.linearity_type == "first":
+            f = self.children[0]
+            return f.is_linear(v)
+        else:
+            return False
 
     def __init__(self, *args, params=()):
         # *args are other instances of Operation, they are the child operations of self
@@ -36,13 +49,19 @@ class Operation(Tree):
                     res.append(v)
             return res
 
-    def replace(self, old, new):
+    def replace(self, old, new, cnt=[0]):
         # replace all occurences of subformula old by new in self.
         if self == old:
+            cnt[0] += 1
             return new
         else:
-            new_children = [child.replace(old, new) for child in self.children]
+            new_children = [child.replace(old, new, cnt) for child in self.children]
             return type(self)(*new_children, *self.params)
+
+    def replace_and_count(self, old, new):
+        cnt = [0]
+        formula = self.replace(old, new, cnt)
+        return formula, cnt[0]
 
     def __call__(self, out, table):
         """returns the C++ code string corresponding to the evaluation of the formula
@@ -52,14 +71,14 @@ class Operation(Tree):
         from keopscore.formulas.variables.Var import Var
 
         string = f"\n{{\n// Starting code block for {self.__repr__()}.\n\n"
-        if debug_ops:
+        if keopscore.debug_ops:
             print(f"Building code block for {self.__repr__()}")
             print("out=", out)
             print("dim of out : ", out.dim)
             print("table=", table)
             for v in table:
                 print(f"dim of {v} : ", v.dim)
-        if debug_ops_at_exec:
+        if keopscore.debug_ops_at_exec:
             string += f'printf("\\n\\nComputing {self.__repr__()} :\\n");\n'
         args = []
         # Evaluation of the child operations
@@ -85,12 +104,12 @@ class Operation(Tree):
         string += self.Op(out, table, *args)
 
         # some debugging helper :
-        if debug_ops_at_exec:
+        if keopscore.debug_ops_at_exec:
             for arg in args:
                 string += arg.c_print
             string += out.c_print
             string += f'printf("\\n\\n");\n'
-        if debug_ops:
+        if keopscore.debug_ops:
             print(f"Finished building code block for {self.__repr__()}")
 
         string += f"\n\n// Finished code block for {self.__repr__()}.\n}}\n\n"
@@ -175,6 +194,26 @@ class Operation(Tree):
             and self.children == other.children
             and self.params == other.params
         )
+
+    def __lt__(self, other):
+        """f<g redirects to LessThan(f,g)"""
+        from keopscore.formulas.maths.LessThan import LessThan
+
+        return LessThan(self, int2Op(other))
+
+    def __gt__(self, other):
+        """f>g redirects to LessThan(g,f)"""
+        return int2Op(other) < self
+
+    def __le__(self, other):
+        """f<=g redirects to LessOrEqual(f,g)"""
+        from keopscore.formulas.maths.LessOrEqual import LessOrEqual
+
+        return LessOrEqual(self, int2Op(other))
+
+    def __ge__(self, other):
+        """f>=g redirects to LessOrEqual(g,f)"""
+        return int2Op(other) <= self
 
     def Op(self, out, table, param):
         pass

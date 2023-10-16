@@ -1,4 +1,5 @@
 import torch
+import copy
 
 from pykeops.common.get_options import get_tag_backend
 from pykeops.common.keops_io import keops_binder
@@ -10,7 +11,11 @@ from pykeops.common.parse_type import (
     get_optional_flags,
 )
 from pykeops.common.utils import axis2cat
-from pykeops.torch.generic.generic_red import GenredAutograd
+from pykeops.torch.generic.generic_red import (
+    GenredAutograd_fun,
+    Genred_parameters,
+    set_device,
+)
 from pykeops import default_device_id
 from pykeops.common.utils import pyKeOps_Warning
 
@@ -21,105 +26,59 @@ class KernelSolveAutograd(torch.autograd.Function):
     """
 
     @staticmethod
-    def forward(
-        ctx,
-        formula,
-        aliases,
-        varinvpos,
-        alpha,
-        backend,
-        dtype,
-        device_id_request,
-        eps,
-        ranges,
-        optional_flags,
-        rec_multVar_highdim,
-        nx,
-        ny,
-        *args
-    ):
-        # N.B. when rec_multVar_highdim option is set, it means that formula is of the form "sum(F*b)", where b is a variable
-        # with large dimension. In this case we set option multVar_highdim to allow for the use of the special "final chunk" computation
-        # mode. However, this may not be also true for the gradients of the same formula. In fact only the gradient
-        # with respect to variable b will have the same form. Hence, we save optional_flags current status into ctx,
-        # before adding the multVar_highdim option.
-        ctx.optional_flags = optional_flags.copy()
-        if rec_multVar_highdim:
-            optional_flags["multVar_highdim"] = 1
-        else:
-            optional_flags["multVar_highdim"] = 0
+    def forward(ctx, params, *args):
+        params.optional_flags["multVar_highdim"] = (
+            1 if params.rec_multVar_highdim else 0
+        )
 
-        tagCPUGPU, tag1D2D, tagHostDevice = get_tag_backend(backend, args)
+        tagCPUGPU, tag1D2D, tagHostDevice = get_tag_backend(params.backend, args)
 
         # number of batch dimensions
         # N.B. we assume here that there is at least a cat=0 or cat=1 variable in the formula...
         nbatchdims = max(len(arg.shape) for arg in args) - 2
-        use_ranges = nbatchdims > 0 or ranges
+        use_ranges = nbatchdims > 0 or params.ranges
 
-        device_args = args[0].device
-        if tagCPUGPU == 1 & tagHostDevice == 1:
-            for i in range(1, len(args)):
-                if args[i].device.index != device_args.index:
-                    raise ValueError(
-                        "[KeOps] Input arrays must be all located on the same device."
-                    )
-
-        if device_id_request == -1:  # -1 means auto setting
-            if device_args.index:  # means args are on Gpu
-                device_id_request = device_args.index
-            else:
-                device_id_request = default_device_id if tagCPUGPU == 1 else -1
-        else:
-            if device_args.index:
-                if device_args.index != device_id_request:
-                    raise ValueError(
-                        "[KeOps] Gpu device id of arrays is different from device id requested for computation."
-                    )
+        device_id, device_args = set_device(
+            tagCPUGPU, tagHostDevice, params.device_id_request, *args
+        )
 
         myconv = keops_binder["nvrtc" if tagCPUGPU else "cpp"](
             tagCPUGPU,
             tag1D2D,
             tagHostDevice,
             use_ranges,
-            device_id_request,
-            formula,
-            aliases,
+            device_id,
+            params.formula,
+            params.aliases,
             len(args),
-            dtype,
+            params.dtype,
             "torch",
-            optional_flags,
+            params.optional_flags,
         ).import_module()
 
         # Context variables: save everything to compute the gradient:
-        ctx.formula = formula
-        ctx.aliases = aliases
-        ctx.varinvpos = varinvpos
-        ctx.alpha = alpha
-        ctx.backend = backend
-        ctx.dtype = dtype
-        ctx.device_id_request = device_id_request
-        ctx.eps = eps
-        ctx.nx = nx
-        ctx.ny = ny
+        ctx.params = params
+        ctx.device_id = device_id
         ctx.myconv = myconv
-        ctx.ranges = ranges
-        ctx.rec_multVar_highdim = rec_multVar_highdim
-        ctx.optional_flags = optional_flags
 
-        varinv = args[varinvpos]
-        ctx.varinvpos = varinvpos
+        varinv = args[params.varinvpos]
 
         def linop(var):
-            newargs = args[:varinvpos] + (var,) + args[varinvpos + 1 :]
+            newargs = args[: params.varinvpos] + (var,) + args[params.varinvpos + 1 :]
             res = myconv.genred_pytorch(
-                device_args, ranges, nx, ny, nbatchdims, None, *newargs
+                device_args,
+                params.ranges,
+                params.nx,
+                params.ny,
+                nbatchdims,
+                None,
+                *newargs,
             )
-            if alpha:
-                res += alpha * var
+            if params.alpha:
+                res += params.alpha * var
             return res
 
-        global copy
-        result = ConjugateGradientSolver("torch", linop, varinv.data, eps)
+        result = ConjugateGradientSolver("torch", linop, varinv.data, params.eps)
 
         # relying on the 'ctx.saved_variables' attribute is necessary  if you want to be able to differentiate the output
         #  of the backward once again. It helps pytorch to keep track of 'who is who'.
@@ -129,20 +88,9 @@ class KernelSolveAutograd(torch.autograd.Function):
 
     @staticmethod
     def backward(ctx, G):
-        formula = ctx.formula
-        aliases = ctx.aliases
-        varinvpos = ctx.varinvpos
-        backend = ctx.backend
-        alpha = ctx.alpha
-        dtype = ctx.dtype
-        device_id_request = ctx.device_id_request
-        eps = ctx.eps
-        nx = ctx.nx
-        ny = ctx.ny
+        params = ctx.params
+        device_id = ctx.params
         myconv = ctx.myconv
-        ranges = ctx.ranges
-        optional_flags = ctx.optional_flags
-        rec_multVar_highdim = ctx.rec_multVar_highdim
 
         args = ctx.saved_tensors[:-1]  # Unwrap the saved variables
         nargs = len(args)
@@ -151,56 +99,24 @@ class KernelSolveAutograd(torch.autograd.Function):
         # If formula takes 5 variables (numbered from 0 to 4), then the gradient
         # wrt. the output, G, should be given as a 6-th variable (numbered 5),
         # with the same dim-cat as the formula's output.
-        eta = (
-            "Var("
-            + str(nargs)
-            + ","
-            + str(myconv.dimout)
-            + ","
-            + str(myconv.tagIJ)
-            + ")"
-        )
+        eta = f"Var({nargs},{myconv.dimout},{myconv.tagIJ})"
 
         # there is also a new variable for the formula's output
-        resvar = (
-            "Var("
-            + str(nargs + 1)
-            + ","
-            + str(myconv.dimout)
-            + ","
-            + str(myconv.tagIJ)
-            + ")"
-        )
+        resvar = f"Var({nargs+1},{myconv.dimout},{myconv.tagIJ})"
 
-        newargs = args[:varinvpos] + (G,) + args[varinvpos + 1 :]
-        KinvG = KernelSolveAutograd.apply(
-            formula,
-            aliases,
-            varinvpos,
-            alpha,
-            backend,
-            dtype,
-            device_id_request,
-            eps,
-            ranges,
-            optional_flags,
-            rec_multVar_highdim,
-            nx,
-            ny,
-            *newargs
-        )
+        newargs = args[: params.varinvpos] + (G,) + args[params.varinvpos + 1 :]
+        KinvG = KernelSolveAutograd.apply(params, *newargs)
 
         grads = []  # list of gradients wrt. args;
 
-        for var_ind, sig in enumerate(aliases):  # Run through the arguments
+        for var_ind, sig in enumerate(params.aliases):  # Run through the arguments
             # If the current gradient is to be discarded immediatly...
             if not ctx.needs_input_grad[
-                var_ind + 13
-            ]:  # because of (formula, aliases, varinvpos, alpha, backend, dtype, device_id, eps, ranges, optional_flags, rec_multVar_highdim, nx, ny)
+                var_ind + 1
+            ]:  # N.B. "+1" because of params arg.
                 grads.append(None)  # Don't waste time computing it.
-
             else:  # Otherwise, the current gradient is really needed by the user:
-                if var_ind == varinvpos:
+                if var_ind == params.varinvpos:
                     grads.append(KinvG)
                 else:
                     # adding new aliases is way too dangerous if we want to compute
@@ -209,89 +125,44 @@ class KernelSolveAutograd(torch.autograd.Function):
                     # these will not be used in the C++ code,
                     # but are useful to keep track of the actual variables used in the formula
                     _, cat, dim, pos = get_type(sig, position_in_list=var_ind)
-                    var = "Var(" + str(pos) + "," + str(dim) + "," + str(cat) + ")"  # V
-                    formula_g = (
-                        "Grad_WithSavedForward("
-                        + formula
-                        + ", "
-                        + var
-                        + ", "
-                        + eta
-                        + ", "
-                        + resvar
-                        + ")"
-                    )  # Grad<F,V,G,R>
-                    aliases_g = aliases + [eta, resvar]
+                    var = f"Var({pos},{dim},{cat})"  # V
+                    formula_g = f"Grad_WithSavedForward({params.formula},{var},{eta},{resvar})"  # Grad<F,V,G,R>
+                    aliases_g = params.aliases + [eta, resvar]
                     args_g = (
-                        args[:varinvpos]
+                        args[: params.varinvpos]
                         + (result,)
-                        + args[varinvpos + 1 :]
+                        + args[params.varinvpos + 1 :]
                         + (-KinvG,)
                         + (result,)
                     )  # Don't forget the gradient to backprop !
 
+                    params_g = copy.copy(params)
+                    params_g.formula = formula_g
+                    params_g.aliases = aliases_g
+                    params_g.out = None
+
                     # N.B.: if I understand PyTorch's doc, we should redefine this function every time we use it?
-                    genconv = GenredAutograd.apply
+                    genconv = GenredAutograd_fun
+
+                    grad = genconv(params_g, *args_g)
 
                     if (
                         cat == 2
                     ):  # we're referring to a parameter, so we'll have to sum both wrt 'i' and 'j'
                         # WARNING !! : here we rely on the implementation of DiffT in files in folder keopscore/core/formulas/reductions
                         # if tagI==cat of V is 2, then reduction is done wrt j, so we need to further sum output wrt i
-                        grad = genconv(
-                            formula_g,
-                            aliases_g,
-                            backend,
-                            dtype,
-                            device_id_request,
-                            ranges,
-                            optional_flags,
-                            None,
-                            nx,
-                            ny,
-                            None,
-                            *args_g
-                        )
+                        grad = genconv(params_g, *args_g)
                         # Then, sum 'grad' wrt 'i' :
                         # I think that '.sum''s backward introduces non-contiguous arrays,
                         # and is thus non-compatible with GenredAutograd: grad = grad.sum(0)
                         # We replace it with a 'handmade hack' :
                         grad = torch.ones(1, grad.shape[0]).type_as(grad.data) @ grad
                         grad = grad.view(-1)
-                    else:
-                        grad = genconv(
-                            formula_g,
-                            aliases_g,
-                            backend,
-                            dtype,
-                            device_id_request,
-                            ranges,
-                            optional_flags,
-                            None,
-                            nx,
-                            ny,
-                            None,
-                            *args_g
-                        )
+
                     grads.append(grad)
 
-        # Grads wrt. formula, aliases, varinvpos, alpha, backend, dtype, device_id_request, eps, ranges, optional_flags, rec_multVar_highdim, nx, ny, *args
-        return (
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-            *grads,
-        )
+        # Grads wrt. params, *args
+        return (None, *grads)
 
 
 class KernelSolve:
@@ -350,6 +221,7 @@ class KernelSolve:
         rec_multVar_highdim=None,
         dtype=None,
         cuda_type=None,
+        use_fast_math=True,
     ):
         r"""
         Instantiate a new KernelSolve operation.
@@ -415,6 +287,8 @@ class KernelSolve:
 
             enable_chunks (bool, default True): enable automatic selection of special "chunked" computation mode for accelerating reductions
                                 with formulas involving large dimension variables.
+
+            use_fast_math (bool, default True): enables use_fast_math Cuda option
         """
 
         if dtype:
@@ -434,19 +308,15 @@ class KernelSolve:
             use_double_acc,
             sum_scheme,
             enable_chunks,
+            use_fast_math,
         )
 
-        self.formula = (
-            self.reduction_op
-            + "_Reduction("
-            + formula
-            + ","
-            + str(axis2cat(axis))
-            + ")"
-        )
+        self.formula = f"{self.reduction_op}_Reduction({formula},{axis2cat(axis)})"
+
         self.aliases = complete_aliases(
             formula, list(aliases)
         )  # just in case the user provided a tuple
+
         if varinvalias[:4] == "Var(":
             # varinv is given directly as Var(*,*,*) so we just have to read the index
             varinvpos = int(varinvalias[4 : varinvalias.find(",")])
@@ -517,19 +387,19 @@ class KernelSolve:
         dtype = args[0].dtype.__str__().split(".")[1]
         nx, ny = get_sizes(self.aliases, *args)
 
-        return KernelSolveAutograd.apply(
-            self.formula,
-            self.aliases,
-            self.varinvpos,
-            alpha,
-            backend,
-            dtype,
-            device_id,
-            eps,
-            ranges,
-            self.optional_flags,
-            self.rec_multVar_highdim,
-            nx,
-            ny,
-            *args
-        )
+        params = Genred_parameters()
+        params.formula = self.formula
+        params.aliases = self.aliases
+        params.varinvpos = self.varinvpos
+        params.alpha = alpha
+        params.backend = backend
+        params.dtype = dtype
+        params.device_id_request = device_id
+        params.eps = eps
+        params.ranges = ranges
+        params.optional_flags = self.optional_flags
+        params.rec_multVar_highdim = self.rec_multVar_highdim
+        params.nx = nx
+        params.ny = ny
+
+        return KernelSolveAutograd.apply(params, *args)

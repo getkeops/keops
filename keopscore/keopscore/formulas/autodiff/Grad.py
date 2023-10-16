@@ -13,6 +13,10 @@ from keopscore.utils.misc_utils import KeOps_Error
 
 def Grad(formula, v, gradin=None):
     if gradin is None:
+        # TODO : check why we do this here.
+        # Is this case gradin=None used anywhere in the code ??
+        # Why gradin.cat should be 1-v.cat ?
+        # Why v.cat should not be 2 ?
         if v.cat == 2:
             KeOps_Error("not implemented")
         inds = GetInds(formula.Vars_)

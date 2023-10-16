@@ -91,6 +91,7 @@ class LoadKeOps:
         else:
             raise ValueError("not implemented")
 
+        self.params.use_fast_math = optional_flags["use_fast_math"]
         if not self.params.c_dtype_acc:
             self.params.c_dtype_acc = self.params.c_dtype
 
@@ -110,6 +111,7 @@ class LoadKeOps:
             self.params.tagI,
             self.params.tagZero,
             self.params.use_half,
+            self.params.use_fast_math,
             self.params.cuda_block_size,
             self.params.use_chunk_mode,
             self.params.tag1D2D,
@@ -137,6 +139,7 @@ class LoadKeOps:
             tagCPUGPU,
             tag1D2D,
             self.params.use_half,
+            self.params.use_fast_math,
             device_id_request,
         )
 
@@ -227,7 +230,10 @@ class LoadKeOps:
 
         self.outshape = out.shape
 
-        self.call_keops(nx, ny)
+        if self.params.tagZero:
+            out[:] = 0
+        else:
+            self.call_keops(nx, ny)
 
         if self.params.dtype == "float16":
             from pykeops.torch.half2_convert import postprocess_half2

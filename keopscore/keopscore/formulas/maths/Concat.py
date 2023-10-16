@@ -11,6 +11,8 @@ from keopscore.utils.misc_utils import KeOps_Error
 
 class Concat(Operation):
     string_id = "Concat"
+    print_spec = ("[", "]"), "brackets", 9
+    linearity_type = "all"
 
     def __init__(self, arg0, arg1, params=()):
         # N.B. params keyword is used for compatibility with base class, but should always equal ()

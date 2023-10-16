@@ -328,7 +328,7 @@ public :
     }
 
     int launch_kernel(int tagHostDevice, int dimY, int nx, int ny,
-                      int tagI, int tagZero, int use_half,
+                      int tagI, int tagZero, int use_half, 
                       int tag1D2D, int dimred,
                       int cuda_block_size, int use_chunk_mode,
                       std::vector< int > indsi, std::vector< int > indsj, std::vector< int > indsp,

@@ -17,10 +17,6 @@ class IntCst_Impl(Operation):
         self.val = val
         self.dim = 1
 
-    # custom __eq__ method
-    def __eq__(self, other):
-        return type(self) == type(other) and self.val == other.val
-
     def Op(self, out, table):
         float_val = c_variable("float", f"(float){self.val}")
         return f"*{out.id} = {cast_to(out.dtype, float_val)};\n"

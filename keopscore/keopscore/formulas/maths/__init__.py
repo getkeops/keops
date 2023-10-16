@@ -15,6 +15,7 @@ from .DiffClampInt import DiffClampInt
 from .Divide import Divide
 from .Elem import Elem
 from .ElemT import ElemT
+from .Equal import Equal
 from .Exp import Exp
 from .Extract import Extract
 from .ExtractT import ExtractT
@@ -24,6 +25,8 @@ from .IfElse import IfElse
 from .IntInv import IntInv
 from .Inv import Inv
 from .Kron import Kron
+from .LessOrEqual import LessOrEqual
+from .LessThan import LessThan
 from .Log import Log
 from .MatVecMult import MatVecMult
 from .Max import Max
@@ -33,6 +36,7 @@ from .Mod import Mod
 from .Mult import Mult
 from .Norm2 import Norm2
 from .Normalize import Normalize
+from .NotEqual import NotEqual
 from .OneHot import OneHot
 from .Pow import Pow
 from .Powf import Powf
@@ -79,6 +83,7 @@ __all__ = [
     "Divide",
     "Elem",
     "ElemT",
+    "Equal",
     "Exp",
     "Extract",
     "ExtractT",
@@ -88,6 +93,8 @@ __all__ = [
     "IntInv",
     "Inv",
     "Kron",
+    "LessOrEqual",
+    "LessThan",
     "Log",
     "MatVecMult",
     "Max",
@@ -97,6 +104,7 @@ __all__ = [
     "Mult",
     "Norm2",
     "Normalize",
+    "NotEqual",
     "OneHot",
     "Pow",
     "Powf",

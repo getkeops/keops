@@ -3,7 +3,12 @@ import pickle
 import keopscore
 
 # global configuration parameter to be added for the lookup :
-env_param = keopscore.config.config.cpp_flags
+# N.B we turn this into a function because the parameters need to be read dynamically.
+env_param = (
+    lambda: keopscore.config.config.cpp_flags
+    + " auto_factorize="
+    + str(keopscore.auto_factorize)
+)
 
 
 class Cache:
@@ -22,7 +27,7 @@ class Cache:
             atexit.register(self.save_cache)
 
     def __call__(self, *args):
-        str_id = "".join(list(str(arg) for arg in args)) + str(env_param)
+        str_id = "".join(list(str(arg) for arg in args)) + str(env_param())
         if not str_id in self.library:
             self.library[str_id] = self.fun(*args)
         return self.library[str_id]

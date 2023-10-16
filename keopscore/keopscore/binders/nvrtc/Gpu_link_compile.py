@@ -16,7 +16,7 @@ from keopscore.config.config import (
     get_build_folder,
 )
 from keopscore.utils.misc_utils import KeOps_Error, KeOps_Message, KeOps_OS_Run
-from keopscore.utils.gpu_utils import get_gpu_props, cuda_include_fp16_path
+from keopscore.utils.gpu_utils import get_gpu_props, custom_cuda_include_fp16_path
 
 jit_compile_src = os.path.join(
     os.path.abspath(os.path.dirname(__file__)), "nvrtc_jit.cpp"
@@ -64,15 +64,21 @@ class Gpu_link_compile(LinkCompile):
         # write the code in the source file
         self.write_code()
         # we execute the main dll, passing the code as argument, and the name of the low level code file to save the assembly instructions
-        self.my_c_dll.Compile(
+
+        res = self.my_c_dll.Compile(
             create_string_buffer(self.low_level_code_file),
             create_string_buffer(self.code.encode("utf-8")),
             c_int(self.use_half),
+            c_int(self.use_fast_math),
             c_int(self.device_id),
             create_string_buffer(
-                (cuda_include_fp16_path() + os.path.sep).encode("utf-8")
+                (custom_cuda_include_fp16_path() + os.path.sep).encode("utf-8")
             ),
         )
+        if res != 0:
+            KeOps_Error(
+                f"Error when compiling formula (error in nvrtcCompileProgram, nvrtcResult={res})"
+            )
         # retreive some parameters that will be saved into info_file.
         self.tagI = self.red_formula.tagI
         self.dim = self.red_formula.dim
@@ -100,10 +106,8 @@ class Gpu_link_compile(LinkCompile):
     @staticmethod
     def compile_jit_compile_dll():
         KeOps_Message("Compiling cuda jit compiler engine ... ", flush=True, end="")
-        KeOps_OS_Run(
-            Gpu_link_compile.get_compile_command(
-                sourcename=jit_compile_src,
-                dllname=jit_compile_dll(),
-            ),
+        command = Gpu_link_compile.get_compile_command(
+            sourcename=jit_compile_src, dllname=jit_compile_dll()
         )
+        KeOps_OS_Run(command)
         KeOps_Message("OK", use_tag=False, flush=True)
