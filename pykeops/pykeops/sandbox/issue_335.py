@@ -1,9 +1,11 @@
 import math
 
 import torch
-import gpytorch
+
+# import gpytorch
 
 from pykeops.torch import LazyTensor as KEOLazyTensor
+
 
 def covar_func(x1, x2=None):
     if x2 is None:
@@ -15,13 +17,13 @@ def covar_func(x1, x2=None):
     distance = ((x1_ - x2_) ** 2).sum(-1).sqrt()
     exp_component = (-math.sqrt(5) * distance).exp()
 
-    constant_component = (math.sqrt(5) * distance) + (1 + 5.0 / 3.0 * distance ** 2)
+    constant_component = (math.sqrt(5) * distance) + (1 + 5.0 / 3.0 * distance**2)
 
     return constant_component * exp_component
 
 
 if __name__ == "__main__":
-    device = 'cuda:0'
+    device = "cuda:0"
     train_x = torch.randn(30, 5000, 3, device=device)
 
     # covar_module = gpytorch.kernels.keops.MaternKernel(nu=2.5).to(device)
@@ -30,7 +32,6 @@ if __name__ == "__main__":
     mat = covar_func(train_x)
 
     print(mat.shape)
-    
+
     eye = torch.eye(5000, device=device)
     mat @ eye
-
