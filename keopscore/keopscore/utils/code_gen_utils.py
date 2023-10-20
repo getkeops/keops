@@ -90,8 +90,11 @@ class c_variable:
 
     def add_assign(self, value):
         if type(value) in (int, float):
-            dtype = "int" if type(value) == int else "float"
-            return self.add_assign(c_variable(dtype, str(value)))
+            if type(value) == int:
+                c_dtype = "int" if value < 2e9 else "size_t"
+            else:
+                c_dtype = "float"
+            return self.add_assign(c_variable(c_dtype, str(value)))
         if type(value) == str:
             return f"{self.id} += ({self.dtype})({value});\n"
         elif value.dtype != self.dtype:
@@ -107,13 +110,25 @@ class c_variable:
 
     def binary_op(self, other, python_op, c_op, name, dtype=None):
         if type(other) in (int, float):
-            dtype = "int" if type(other) == int else "float"
+            if type(other) == int:
+                dtype = "int" if other < 2e9 else "size_t"
+            else:
+                dtype = "float"
             return python_op(self, c_variable(dtype, str(other)))
         elif type(other) == c_variable:
             if self.dtype != other.dtype:
-                KeOps_Error(
-                    f"{name} of two c_variable is only possible with same dtype"
-                )
+                if (
+                    self.dtype == "int"
+                    and other.dtype == "size_t"
+                    or self.dtype == "size_t"
+                    and other.dtype == "int"
+                ):
+                    if dtype is None:
+                        dtype = "size_t"
+                else:
+                    KeOps_Error(
+                        f"{name} of two c_variable is only possible with same dtype"
+                    )
             if dtype is None:
                 dtype = self.dtype
             return c_variable(dtype, f"({self.id}{c_op}{other.id})")
@@ -182,10 +197,13 @@ class c_variable:
 
     def __getitem__(self, other):
         if type(other) == int:
-            return self[c_variable("int", str(other))]
+            c_dtype = "int" if other < 2e9 else "size_t"
+            return self[c_variable(c_dtype, str(other))]
         elif type(other) == c_variable:
-            if other.dtype != "int":
-                KeOps_Error("v[i] with i and v c_variable requires i.dtype='int' ")
+            if other.dtype not in ("int", "size_t"):
+                KeOps_Error(
+                    "v[i] with i and v c_variable requires i.dtype='int' or i.dtype='size_t' "
+                )
             return c_variable(value(self.dtype), f"{self.id}[{other.id}]")
         else:
             KeOps_Error("not implemented")
@@ -202,24 +220,30 @@ def use_pragma_unroll(n=64):
 
 
 def c_for_loop(start, end, incr, pragma_unroll=False):
+    type_inc = "int"
+
     def to_string(x):
         if type(x) == c_variable:
-            if x.dtype != "int":
-                KeOps_Error("only simple int type for loops implemented")
+            if x.dtype not in ("int", "size_t"):
+                KeOps_Error("only simple integer type for loops implemented")
+            if x.dtype == "size_t":
+                type_inc = "size_t"
             return x.id
         elif type(x) == int:
+            if x > 2e9:
+                type_inc = "size_t"
             return str(x)
         else:
-            KeOps_Error("only simple int type for loops implemented")
+            KeOps_Error("only simple integer type for loops implemented")
 
     start, end, incr = map(to_string, (start, end, incr))
-    k = c_variable("int", new_c_varname("k"))
+    k = c_variable(type_inc, new_c_varname("k"))
 
     def printfun(body_code):
         string = ""
         if pragma_unroll:
             string += use_pragma_unroll()
-        string += f""" for(int {k.id}={start}; {k.id}<{end}; {k.id}+=({incr})) {{
+        string += f""" for({type_inc} {k.id}={start}; {k.id}<{end}; {k.id}+=({incr})) {{
                             {body_code}
                         }}
                     """
@@ -250,7 +274,7 @@ def infinity(dtype):
 
 def cast_to(dtype, var):
     # returns C++ code string to do a cast ; e.g. "(float)" if dtype is "float" for example
-    simple_dtypes = ["float", "double", "int", "bool"]
+    simple_dtypes = ["float", "double", "int", "size_t", "bool"]
     if (dtype in simple_dtypes) and (var.dtype in simple_dtypes):
         return f"({dtype})({var.id})"
     elif dtype == "half2" and var.dtype == "float":
@@ -331,10 +355,13 @@ class c_array:
 
     def __getitem__(self, other):
         if type(other) == int:
-            return self[c_variable("int", str(other))]
+            c_type_other = "size_t" if other > 2e9 else "int"
+            return self[c_variable(c_type_other, str(other))]
         elif type(other) == c_variable:
-            if other.dtype != "int":
-                KeOps_Error("v[i] with i and v c_array requires i.dtype='int' ")
+            if other.dtype not in ("int", "size_t"):
+                KeOps_Error(
+                    "v[i] with i and v c_array requires i.dtype='int' or i.dtype='size_t' "
+                )
             return c_variable(self.dtype, f"{self.id}[{other.id}]")
         else:
             KeOps_Error("not implemented")
@@ -343,7 +370,7 @@ class c_array:
     def c_print(self):
         if self.dtype in ["float", "double"]:
             tag = "%f, " * self.dim
-        elif self.dtype in ["int", "float*", "double*"]:
+        elif self.dtype in ["int", "size_t", "float*", "double*"]:
             tag = "%d, " * self.dim
         else:
             KeOps_Error(f"c_print not implemented for dtype={self.dtype}")
@@ -649,9 +676,9 @@ def load_vars(dims, inds, xloc, args, row_index=c_zero_int, offsets=None, indsre
     #   xi[5] = arg8[5*3+1];
     #   xi[6] = arg8[5*3+2];
     #
-    # Example (with offsets): assuming i=c_variable("int", "5"),
+    # Example (with offsets): assuming i=c_variable("size_t", "5"),
     # xloc=c_variable("float", "xi"), px=c_variable("float**", "px"),
-    # and offsets = c_array("int", 3, "offsets"), then
+    # and offsets = c_array("size_t", 3, "offsets"), then
     # if dims = [2,2,3] and inds = [7,9,8], the call to
     #   load_vars (dims, inds, xi, [arg0, arg1,..., arg9], row_index=i, offsets=offsets)
     # will output the following code:
@@ -663,9 +690,9 @@ def load_vars(dims, inds, xloc, args, row_index=c_zero_int, offsets=None, indsre
     #   xi[5] = arg8[(5+offsets[2])*3+1];
     #   xi[6] = arg8[(5+offsets[2])*3+2];
     #
-    # Example (with offsets and indsref): assuming i=c_variable("int", "5"),
+    # Example (with offsets and indsref): assuming i=c_variable("size_t", "5"),
     # xloc=c_variable("float", "xi"), px=c_variable("float**", "px"),
-    # offsets = c_array("int", 3, "offsets"),
+    # offsets = c_array("size_t", 3, "offsets"),
     # if dims = [2,2,3] and inds = [7,9,8],
     # and indsref = [8,1,7,3,9,2], then since 7,8,9 are at positions 2,0,4 in indsref,
     # the call to
@@ -681,14 +708,14 @@ def load_vars(dims, inds, xloc, args, row_index=c_zero_int, offsets=None, indsre
     string = ""
     if len(dims) > 0:
         string += "{\n"
-        string += "int a=0;\n"
+        string += "size_t a=0;\n"
         for u in range(len(dims)):
             l = indsref.index(inds[u]) if indsref else u
             row_index_str = (
                 f"({row_index.id}+{offsets.id}[{l}])" if offsets else row_index.id
             )
             string += use_pragma_unroll()
-            string += f"for(int v=0; v<{dims[u]}; v++) {{\n"
+            string += f"for(size_t v=0; v<{dims[u]}; v++) {{\n"
             string += (
                 f"    {xloc.id}[a] = {args[inds[u]].id}[{row_index_str}*{dims[u]}+v];\n"
             )
@@ -709,8 +736,8 @@ def load_vars_chunks(
     # with:
     # xi = c_variable("float", "xi"),
     # px = c_variable("float**", "px")
-    # i = c_variable("int","5"),
-    # k = c_variable("int","k")
+    # i = c_variable("size_t","5"),
+    # k = c_variable("size_t","k")
     # means : there are 3 chunks of vectors to load. They are located
     # at positions 7, 9 and 8 in px. Now i=5 and dim_org=11, so we start
     # to load vectors at positions px[7]+5*11, px[9]+5*11, px[8]+5*11.
@@ -727,10 +754,10 @@ def load_vars_chunks(
     string = ""
     if len(inds) > 0:
         string += "{"
-        string += "int a=0;\n"
+        string += "size_t a=0;\n"
         for u in range(len(inds)):
             string += use_pragma_unroll()
-            string += f"for(int v=0; v<{dim_chunk_load}; v++) {{\n"
+            string += f"for(size_t v=0; v<{dim_chunk_load}; v++) {{\n"
             string += f"    {xloc.id}[a] = {args[inds[u]].id}[{row_index.id}*{dim_org}+{k.id}*{dim_chunk}+v];\n"
             string += "     a++;\n"
             string += "}"
@@ -765,11 +792,11 @@ def load_vars_chunks_offsets(
     string = ""
     if len(inds) > 0:
         string = "{"
-        string += "int a=0;\n"
+        string += "size_t a=0;\n"
         for u in range(len(inds)):
             l = indsref.index(inds[u])
             string += use_pragma_unroll()
-            string += f"for(int v=0; v<{dim_chunk_load}; v++) {{\n"
+            string += f"for(size_t v=0; v<{dim_chunk_load}; v++) {{\n"
             string += f"    {xloc.id}[a] = {args[inds[u]].id}[({row_index.id}+{offsets.id}[{l}])*{dim_org}+{k.id}*{dim_chunk}+v];\n"
             string += "     a++;\n"
             string += "}"

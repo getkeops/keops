@@ -58,11 +58,11 @@ class MapReduce:
         nargs = self.nargs
         self.sum_scheme = eval(self.sum_scheme_string)(red_formula, dtype)
 
-        self.i = i = c_variable("int", "i")
-        self.j = j = c_variable("int", "j")
+        self.i = i = c_variable("size_t", "i")
+        self.j = j = c_variable("size_t", "j")
 
-        nx = c_variable("int", "nx")
-        ny = c_variable("int", "ny")
+        nx = c_variable("size_t", "nx")
+        ny = c_variable("size_t", "ny")
 
         self.xi = c_array(dtype, self.varloader.dimx, "xi")
         self.param_loc = c_array(dtype, self.varloader.dimp, "param_loc")
