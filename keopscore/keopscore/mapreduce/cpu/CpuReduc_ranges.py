@@ -99,11 +99,11 @@ void check_nargs(int nargs, int nminargs) {{
 #include "include/Ranges.h"
 
 template< typename TYPE>                 
-int CpuConv_ranges_{self.gencode_filename}(int nx, int ny, 
-                    int nbatchdims, int* shapes,
+int CpuConv_ranges_{self.gencode_filename}(size_t nx, size_t ny, 
+                    int nbatchdims, size_t* shapes,
                     std::vector< int > indsi, std::vector< int > indsj, std::vector< int > indsp,
-                    int nranges_x, int nranges_y, int **ranges,
-                    TYPE* out, std::vector< int > shapeout, TYPE **{arg.id}) {{
+                    size_t nranges_x, size_t nranges_y, size_t **ranges,
+                    TYPE* out, std::vector< size_t > shapeout, TYPE **{arg.id}) {{
                         
     int sizei = indsi.size();
     int sizej = indsj.size();
@@ -119,7 +119,7 @@ int CpuConv_ranges_{self.gencode_filename}(int nx, int ny,
     // [ A, .., 1, M, 1, D_4  ]  -> N.B.: we support broadcasting on the batch dimensions!
     // [ 1, .., 1, M, 1, D_5  ]  ->      (we'll just ask users to fill in the shapes with *explicit* ones)
             
-    int shapes_i[sizei * (nbatchdims + 1)], shapes_j[sizej * (nbatchdims + 1)], shapes_p[sizep * (nbatchdims + 1)];
+    size_t shapes_i[sizei * (nbatchdims + 1)], shapes_j[sizej * (nbatchdims + 1)], shapes_p[sizep * (nbatchdims + 1)];
 
     
     // First, we fill shapes_i with the "relevant" shapes of the "i" variables,
@@ -141,12 +141,12 @@ int CpuConv_ranges_{self.gencode_filename}(int nx, int ny,
 
     // for some reason the nx value is not correct for very special cases (like Zero reduction..)
     // so we compute the true value from the input shapeout...
-    int true_nx = 1;
-    for (int k=0; k<shapeout.size()-1; k++) {{
+    size_t true_nx = 1;
+    for (size_t k=0; k<shapeout.size()-1; k++) {{
         true_nx *= shapeout[k];
     }}
 
-    for (int i = 0; i < true_nx; i++) {{
+    for (size_t i = 0; i < true_nx; i++) {{
         {red_formula.InitializeReduction(acctmp)}
         {red_formula.FinalizeOutput(acctmp, outi, i)}
     }}
@@ -158,22 +158,22 @@ int CpuConv_ranges_{self.gencode_filename}(int nx, int ny,
     //    FUN::tagJ = 1 for a reduction over j, result indexed by i
     //    FUN::tagJ = 0 for a reduction over i, result indexed by j
 
-    int nranges = {red_formula.tagJ} ? nranges_x : nranges_y;
-    int* ranges_x = {red_formula.tagJ} ? ranges[0] : ranges[3];
-    int* slices_x = {red_formula.tagJ} ? ranges[1] : ranges[4];
-    int* ranges_y = {red_formula.tagJ} ? ranges[2] : ranges[5];
+    size_t nranges = {red_formula.tagJ} ? nranges_x : nranges_y;
+    size_t* ranges_x = {red_formula.tagJ} ? ranges[0] : ranges[3];
+    size_t* slices_x = {red_formula.tagJ} ? ranges[1] : ranges[4];
+    size_t* ranges_y = {red_formula.tagJ} ? ranges[2] : ranges[5];
 
-    int indices_i[sizei], indices_j[sizej], indices_p[sizep];  // Buffers for the "broadcasted indices"
-    for (int k = 0; k < sizei; k++) {{ indices_i[k] = 0; }}  // Fill the "offsets" with zeroes,
-    for (int k = 0; k < sizej; k++) {{ indices_j[k] = 0; }}  // the default value when nbatchdims == 0.
-    for (int k = 0; k < sizep; k++) {{ indices_p[k] = 0; }}
+    size_t indices_i[sizei], indices_j[sizej], indices_p[sizep];  // Buffers for the "broadcasted indices"
+    for (size_t k = 0; k < sizei; k++) {{ indices_i[k] = 0; }}  // Fill the "offsets" with zeroes,
+    for (size_t k = 0; k < sizej; k++) {{ indices_j[k] = 0; }}  // the default value when nbatchdims == 0.
+    for (size_t k = 0; k < sizep; k++) {{ indices_p[k] = 0; }}
     
     
-    for (int range_index = 0; range_index < nranges; range_index++) {{
-        int start_x = ranges_x[2 * range_index];
-        int end_x = ranges_x[2 * range_index + 1];
-        int start_slice = (range_index < 1) ? 0 : slices_x[range_index - 1];
-        int end_slice = slices_x[range_index];
+    for (size_t range_index = 0; range_index < nranges; range_index++) {{
+        size_t start_x = ranges_x[2 * range_index];
+        size_t end_x = ranges_x[2 * range_index + 1];
+        size_t start_slice = (range_index < 1) ? 0 : slices_x[range_index - 1];
+        size_t end_slice = slices_x[range_index];
 
         // If needed, compute the "true" start indices of the range, turning
         // the "abstract" index start_x into an array of actual "pointers/offsets" stored in indices_i:
@@ -185,7 +185,7 @@ int CpuConv_ranges_{self.gencode_filename}(int nx, int ny,
         }}
     
         #pragma omp parallel for   
-        for (int i = start_x; i < end_x; i++) {{
+        for (size_t i = start_x; i < end_x; i++) {{
             {xi.declare()}
             {yj.declare()}
             {fout.declare()}
@@ -198,9 +198,9 @@ int CpuConv_ranges_{self.gencode_filename}(int nx, int ny,
             }}
             {red_formula.InitializeReduction(acc)}
             {sum_scheme.initialize_temporary_accumulator()}
-            for (int slice = start_slice; slice < end_slice; slice++) {{
-                 int start_y = ranges_y[2 * slice];
-                 int end_y = ranges_y[2 * slice + 1];
+            for (size_t slice = start_slice; slice < end_slice; slice++) {{
+                 size_t start_y = ranges_y[2 * slice];
+                 size_t end_y = ranges_y[2 * slice + 1];
 
                 // If needed, compute the "true" start indices of the range, turning
                 // the "abstract" index start_y into an array of actual "pointers/offsets" stored in indices_j:
@@ -208,13 +208,13 @@ int CpuConv_ranges_{self.gencode_filename}(int nx, int ny,
                     vect_broadcast_index(start_y, nbatchdims, sizej, shapes, shapes_j, indices_j);
                 }}
                 if (nbatchdims == 0) {{
-                    for (int j = start_y; j < end_y; j++) {{
+                    for (size_t j = start_y; j < end_y; j++) {{
                         {varloader.load_vars("j", yj, args, row_index=j)}
                         {red_formula.formula(fout,table)}
                         {sum_scheme.accumulate_result(acc, fout, j)}
                     }}
                 }} else {{
-                    for (int j = start_y; j < end_y; j++) {{
+                    for (size_t j = start_y; j < end_y; j++) {{
                         {varloader.load_vars("j", yj, args, row_index=jmstarty, offsets=indices_j)}
                         {red_formula.formula(fout,table)}
                         {sum_scheme.accumulate_result(acc, fout, jmstarty)}
@@ -235,15 +235,15 @@ int CpuConv_ranges_{self.gencode_filename}(int nx, int ny,
 #include <vector>
 
 template < typename TYPE >
-int launch_keops_{self.gencode_filename}(int nx, int ny, 
-                                         int tagI, int use_half, int  dimred,
+int launch_keops_{self.gencode_filename}(size_t nx, size_t ny, 
+                                         int tagI, int use_half, size_t dimred,
                                          int use_chunk_mode,
                                          std::vector< int > indsi, std::vector< int > indsj, std::vector< int > indsp,
-                                         int dimout,
-                                         std::vector< int > dimsx, std::vector< int > dimsy, std::vector< int > dimsp,
-                                         int **ranges, 
-                                         TYPE *out, std::vector< int > shapeout, int nargs, TYPE** arg,
-                                         std::vector<std::vector< int >> argshape) {{
+                                         size_t dimout,
+                                         std::vector< size_t > dimsx, std::vector< size_t > dimsy, std::vector< size_t > dimsp,
+                                         size_t **ranges, 
+                                         TYPE *out, std::vector< size_t > shapeout, int nargs, TYPE** arg,
+                                         std::vector<std::vector< size_t >> argshape) {{
     
     Sizes< TYPE > SS (nargs, arg, argshape, nx, ny,tagI, use_half,
                       dimout,
@@ -260,19 +260,21 @@ int launch_keops_{self.gencode_filename}(int nx, int ny,
     ny = SS.ny;
     
     if (tagI==1) {{
-        int tmp = ny;
+        size_t tmp = ny;
         ny = nx;
         nx = tmp;
     
-        std::vector< int > tmp_v;
+        std::vector< int > tmp_v_ind;
         
-        tmp_v = indsj;
+        tmp_v_ind = indsj;
         indsj = indsi;
-        indsi = tmp_v;
+        indsi = tmp_v_ind;
 
-        tmp_v = dimsy;
+        std::vector< size_t > tmp_v_dim;
+
+        tmp_v_dim = dimsy;
         dimsy = dimsx;
-        dimsx = tmp_v;
+        dimsx = tmp_v_dim;
     }}
     
     return CpuConv_ranges_{self.gencode_filename}< TYPE> (nx, ny, SS.nbatchdims, SS.shapes,
@@ -282,21 +284,21 @@ int launch_keops_{self.gencode_filename}(int nx, int ny,
 }}
 
 template < typename TYPE >
-int launch_keops_cpu_{self.gencode_filename}(int dimY,
-                                             int nx,
-                                             int ny,
+int launch_keops_cpu_{self.gencode_filename}(size_t dimY,
+                                             size_t nx,
+                                             size_t ny,
                                              int tagI,
                                              int tagZero,
                                              int use_half,
-                                             int dimred,
+                                             size_t dimred,
                                              int use_chunk_mode,
                                              std::vector< int > indsi, std::vector< int > indsj, std::vector< int > indsp,
-                                             int dimout,
-                                             std::vector< int > dimsx, std::vector< int > dimsy, std::vector< int > dimsp,
-                                             int **ranges,
-                                             std::vector< int > shapeout, TYPE *out,
+                                             size_t dimout,
+                                             std::vector< size_t > dimsx, std::vector< size_t > dimsy, std::vector< size_t > dimsp,
+                                             size_t **ranges,
+                                             std::vector< size_t > shapeout, TYPE *out,
                                              TYPE **arg,
-                                             std::vector< std::vector< int > > argshape) {{
+                                             std::vector< std::vector< size_t > > argshape) {{
     
 
     

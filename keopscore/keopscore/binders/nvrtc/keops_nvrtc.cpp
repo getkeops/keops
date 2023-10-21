@@ -36,7 +36,7 @@
 #include "include/CudaSizes.h"
 #include <cuda_fp16.h>
 
-size_t *build_offset_tables(int nbatchdims, size_t *shapes, int nblocks,
+size_t *build_offset_tables(int nbatchdims, size_t *shapes, size_t nblocks,
                             size_t *lookup_h, const std::vector<int> &indsi,
                             const std::vector<int> &indsj,
                             const std::vector<int> &indsp, int tagJ) {
@@ -112,12 +112,15 @@ size_t *build_offset_tables(int nbatchdims, size_t *shapes, int nblocks,
   return offsets_d;
 }
 
-void range_preprocess_from_device(
-    size_t &nblocks, int tagI, int nranges_x, int nranges_y,
-    size_t **castedranges, int nbatchdims, size_t *&slices_x_d,
-    size_t *&ranges_y_d, size_t *&lookup_d, size_t *&offsets_d, int blockSize_x,
-    const std::vector<int> &indsi, const std::vector<int> &indsj,
-    const std::vector<int> &indsp, size_t *shapes) {
+void range_preprocess_from_device(size_t &nblocks, int tagI, size_t nranges_x,
+                                  size_t nranges_y, size_t **castedranges,
+                                  int nbatchdims, size_t *&slices_x_d,
+                                  size_t *&ranges_y_d, size_t *&lookup_d,
+                                  size_t *&offsets_d, size_t blockSize_x,
+                                  const std::vector<int> &indsi,
+                                  const std::vector<int> &indsj,
+                                  const std::vector<int> &indsp,
+                                  size_t *shapes) {
 
   // Ranges pre-processing...
   // ==================================================================
@@ -131,7 +134,7 @@ void range_preprocess_from_device(
   //    FUN::tagJ = 0 for a reduction over i, result indexed by j
 
   int tagJ = 1 - tagI;
-  int nranges = tagJ ? nranges_x : nranges_y;
+  size_t nranges = tagJ ? nranges_x : nranges_y;
 
   size_t *ranges_x = tagJ ? castedranges[0] : castedranges[3];
   size_t *slices_x = tagJ ? castedranges[1] : castedranges[4];
@@ -180,7 +183,7 @@ void range_preprocess_from_device(
   // ---------------------------------------------
   nblocks = 0;
   size_t len_range = 0;
-  for (int i = 0; i < nranges; i++) {
+  for (size_t i = 0; i < nranges; i++) {
     len_range = ranges_x_h[2 * i + 1] - ranges_x_h[2 * i];
     nblocks +=
         (len_range / blockSize_x) + (len_range % blockSize_x == 0 ? 0 : 1);
@@ -190,9 +193,9 @@ void range_preprocess_from_device(
   // --------------------------------------------
   std::vector<size_t> lookup_h_vec(3 * nblocks);
   size_t *lookup_h = lookup_h_vec.data();
-  int index = 0;
+  size_t index = 0;
 
-  for (int i = 0; i < nranges; i++) {
+  for (size_t i = 0; i < nranges; i++) {
     len_range = ranges_x_h[2 * i + 1] - ranges_x_h[2 * i];
     for (size_t j = 0; j < len_range; j += blockSize_x) {
       lookup_h[3 * index] = i;
@@ -221,12 +224,12 @@ void range_preprocess_from_device(
   }
 }
 
-void range_preprocess_from_host(size_t &nblocks, int tagI, int nranges_x,
-                                int nranges_y, int nredranges_x,
-                                int nredranges_y, size_t **castedranges,
+void range_preprocess_from_host(size_t &nblocks, int tagI, size_t nranges_x,
+                                size_t nranges_y, size_t nredranges_x,
+                                size_t nredranges_y, size_t **castedranges,
                                 int nbatchdims, size_t *&slices_x_d,
                                 size_t *&ranges_y_d, size_t *&lookup_d,
-                                size_t *&offsets_d, int blockSize_x,
+                                size_t *&offsets_d, size_t blockSize_x,
                                 const std::vector<int> &indsi,
                                 const std::vector<int> &indsj,
                                 const std::vector<int> &indsp, size_t *shapes) {
@@ -243,8 +246,8 @@ void range_preprocess_from_host(size_t &nblocks, int tagI, int nranges_x,
   //    FUN::tagJ = 0 for a reduction over i, result indexed by j
 
   int tagJ = 1 - tagI;
-  int nranges = tagJ ? nranges_x : nranges_y;
-  int nredranges = tagJ ? nredranges_y : nredranges_x;
+  size_t nranges = tagJ ? nranges_x : nranges_y;
+  size_t nredranges = tagJ ? nredranges_y : nredranges_x;
 
   size_t *ranges_x = tagJ ? castedranges[0] : castedranges[3];
   size_t *slices_x = tagJ ? castedranges[1] : castedranges[4];
@@ -254,7 +257,7 @@ void range_preprocess_from_host(size_t &nblocks, int tagI, int nranges_x,
   // ---------------------------------------------
   nblocks = 0;
   size_t len_range = 0;
-  for (int i = 0; i < nranges; i++) {
+  for (size_t i = 0; i < nranges; i++) {
     len_range = ranges_x[2 * i + 1] - ranges_x[2 * i];
     nblocks +=
         (len_range / blockSize_x) + (len_range % blockSize_x == 0 ? 0 : 1);
@@ -264,9 +267,9 @@ void range_preprocess_from_host(size_t &nblocks, int tagI, int nranges_x,
   // --------------------------------------------
   std::vector<size_t> lookup_h_vec(3 * nblocks);
   size_t *lookup_h = lookup_h_vec.data();
-  int index = 0;
+  size_t index = 0;
 
-  for (int i = 0; i < nranges; i++) {
+  for (size_t i = 0; i < nranges; i++) {
     len_range = ranges_x[2 * i + 1] - ranges_x[2 * i];
     for (size_t j = 0; j < len_range; j += blockSize_x) {
       lookup_h[3 * index] = i;
@@ -484,8 +487,8 @@ public:
     TYPE *out_d;
     TYPE **arg_d;
 
-    int sizeout = std::accumulate(shapeout.begin(), shapeout.end(), 1,
-                                  std::multiplies<size_t>());
+    size_t sizeout = std::accumulate(shapeout.begin(), shapeout.end(), 1,
+                                     std::multiplies<size_t>());
 
     if (tagHostDevice == 1) {
       p_data = buffer;
@@ -501,7 +504,7 @@ public:
 
     CUfunction kernel;
 
-    int gridSize_x = 1, gridSize_y = 1, gridSize_z = 1;
+    size_t gridSize_x = 1, gridSize_y = 1, gridSize_z = 1;
 
     if (tag1D2D == 1) { // 2D scheme
 

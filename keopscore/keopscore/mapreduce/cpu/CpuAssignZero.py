@@ -38,27 +38,27 @@ class CpuAssignZero(MapReduce, Cpu_link_compile):
 #include <vector>
 
 template < typename TYPE >
-int AssignZeroCpu_{self.gencode_filename}(int nx, int ny, std::vector< int > shapeout, TYPE* out,  TYPE **{arg.id}) {{
+int AssignZeroCpu_{self.gencode_filename}(size_t nx, size_t ny, std::vector< size_t > shapeout, TYPE* out,  TYPE **{arg.id}) {{
     
     // for some reason the nx value is not correct for very special cases (like Zero reduction..)
     // so we compute the true value from the input shapeout...
-    int true_nx = 1;
-    for (int k=0; k<shapeout.size()-1; k++) {{
+    size_t true_nx = 1;
+    for (size_t k=0; k<shapeout.size()-1; k++) {{
         true_nx *= shapeout[k];
     }}
     
     #pragma omp parallel for
-    for (int i = 0; i < true_nx; i++) {{
+    for (size_t i = 0; i < true_nx; i++) {{
         {outi.assign(c_zero_float)}
     }}
     return 0;
 }}
 
 template < typename TYPE >
-int launch_keops_{self.gencode_filename}(int nx, int ny, int tagI, std::vector< int > shapeout, TYPE *out, TYPE **arg) {{
+int launch_keops_{self.gencode_filename}(size_t nx, size_t ny, int tagI, std::vector< size_t > shapeout, TYPE *out, TYPE **arg) {{
 
     if (tagI==1) {{
-        int tmp = ny;
+        size_t tmp = ny;
         ny = nx;
         nx = tmp;
     }}
@@ -68,21 +68,21 @@ int launch_keops_{self.gencode_filename}(int nx, int ny, int tagI, std::vector< 
 }}
 
 template < typename TYPE >
-int launch_keops_cpu_{self.gencode_filename}(int dimY,
-                                         int nx,
-                                         int ny,
+int launch_keops_cpu_{self.gencode_filename}(size_t dimY,
+                                         size_t nx,
+                                         size_t ny,
                                          int tagI,
                                          int tagZero,
                                          int use_half,
-                                         int dimred,
+                                         size_t dimred,
                                          int use_chunk_mode,
                                          std::vector< int > indsi, std::vector< int > indsj, std::vector< int > indsp,
-                                         int dimout,
-                                         std::vector< int > dimsx, std::vector< int > dimsy, std::vector< int > dimsp,
-                                         int **ranges,
-                                         std::vector< int > shapeout, TYPE *out,
+                                         size_t dimout,
+                                         std::vector< size_t > dimsx, std::vector< size_t > dimsy, std::vector< size_t > dimsp,
+                                         size_t **ranges,
+                                         std::vector< size_t > shapeout, TYPE *out,
                                          TYPE **arg,
-                                         std::vector< std::vector< int > > argshape) {{
+                                         std::vector< std::vector< size_t > > argshape) {{
 
 
     return launch_keops_{self.gencode_filename}< TYPE > (nx, ny, tagI, shapeout, out, arg);

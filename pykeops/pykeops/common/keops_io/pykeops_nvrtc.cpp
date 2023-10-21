@@ -52,7 +52,7 @@ public:
 
     // Cast the ranges arrays
     std::vector<size_t *> ranges_v(py_ranges.size());
-    for (int i = 0; i < py_ranges.size(); i++)
+    for (size_t i = 0; i < py_ranges.size(); i++)
       ranges_v[i] = (size_t *)py::cast<long>(py_ranges[i]);
     size_t **ranges = (size_t **)ranges_v.data();
 

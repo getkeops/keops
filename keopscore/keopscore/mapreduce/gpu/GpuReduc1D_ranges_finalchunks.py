@@ -76,7 +76,7 @@ def do_finalchunk_sub_ranges(
                 for (size_t jrel = 0; (jrel < blockDim.x) && (jrel < {end_y.id} - {jstart.id}); jrel++, yjrel += {dimfinalchunk}) {{          
                     if ({i.id} < {end_x.id}) {{ // we compute only if needed
                         {use_pragma_unroll()}
-                        for (int k=0; k<{dimfinalchunk_curr}; k++) {{
+                        for (size_t k=0; k<{dimfinalchunk_curr}; k++) {{
                             {acc.id}[k] += yjrel[k] * fout[jrel];
                         }}
                     }}
@@ -84,7 +84,7 @@ def do_finalchunk_sub_ranges(
                 }}
                 if ({i.id} < {end_x.id}) {{
                     {use_pragma_unroll()}
-                    for (int k=0; k<{dimfinalchunk_curr}; k++)
+                    for (size_t k=0; k<{dimfinalchunk_curr}; k++)
                         {out.id}[i*{dimout}+{chunk.id}*{dimfinalchunk}+k] += {acc.id}[k];
                 }}
                 __syncthreads();

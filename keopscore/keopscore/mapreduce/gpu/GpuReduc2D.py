@@ -122,7 +122,7 @@ class GpuReduc2D(MapReduce, Gpu_link_compile):
                         
                         
                         
-                        extern "C" __global__ void GpuConv2DOnDevice(int nx, int ny, {dtype} *out, {dtype} **{arg.id}) {{
+                        extern "C" __global__ void GpuConv2DOnDevice(size_t nx, size_t ny, {dtype} *out, {dtype} **{arg.id}) {{
                             
                             {fout.declare()}
                             

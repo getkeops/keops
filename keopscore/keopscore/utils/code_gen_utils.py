@@ -73,7 +73,10 @@ class c_variable:
 
     def assign(self, value):
         if type(value) in (int, float):
-            dtype = "int" if type(value) == int else "float"
+            if type(value) == int:
+                dtype = "size_t" if value > 2e9 else "int"
+            else:
+                dtype = "float"
             return self.assign(c_variable(dtype, str(value)))
         elif type(value) == str:
             return f"{self.id} = ({self.dtype})({value});\n"
@@ -390,13 +393,13 @@ def VectApply(fun, out, *args):
     # Example : if out.dim = 3, arg0.dim = 1, arg1.dim = 3,
     # it will generate the following (in pseudo-code for clarity) :
     #   #pragma unroll
-    #   for(int k=0; k<out.dim; k++)
+    #   for(size_t k=0; k<out.dim; k++)
     #       fun(out[k], arg0[0], arg1[k]);
     #
     # Equivalently, if out.dim = 3, arg0 is c_variable, arg1.dim = 3,
     # it will generate the following (in pseudo-code for clarity) :
     #   #pragma unroll
-    #   for(int k=0; k<out.dim; k++)
+    #   for(size_t k=0; k<out.dim; k++)
     #       fun(out[k], arg0, arg1[k]);
 
     dims = [out.dim]
