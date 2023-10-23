@@ -18,3 +18,4 @@ class Equal(VectorizedScalarOp):
 
     # parameters for testing the operation (optional)
     nargs = 2  # number of arguments
+    torch_op = None  # "lambda x,y : torch.eq(x,y).float()"
