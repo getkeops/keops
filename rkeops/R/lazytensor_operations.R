@@ -3939,15 +3939,14 @@ sum.LazyTensor <- function(x, index = NA, ...) {
     
     if(is.na(index)) {
         if(is.ComplexLazyTensor(x)) {
-            res <- unaryop.LazyTensor(x, "ComplexSum", dim_res = 2) 
+            return(unaryop.LazyTensor(x, "ComplexSum", dim_res = 2))
         }
         else {
-            res <- unaryop.LazyTensor(x, "Sum", dim_res = 1)
+            return(unaryop.LazyTensor(x, "Sum", dim_res = 1))
         }
     }
-    else if(check_index(index))
-        res <- reduction.LazyTensor(x, "Sum", index)
-    return(res)
+    else
+        return(reduction.LazyTensor(x, "Sum", index))
 }
 
 
@@ -3970,13 +3969,12 @@ sum.LazyTensor <- function(x, index = NA, ...) {
 #' @export
 sum_reduction <- function(x, index) {
     if(check_index(index)) {
-        res <- reduction.LazyTensor(x, "Sum", index)
+        return(reduction.LazyTensor(x, "Sum", index))
     }
     else {
         stop(paste("`index` input argument should be a character,",
                    " either 'i' or 'j', or NA.", sep = ""))
     }
-    return(res)
 }
 
 
@@ -4061,13 +4059,12 @@ min <- function(x, ...) {
 #' @export
 min.LazyTensor <- function(x, index = NA, ...) {
     if(is.na(index))
-        res <- unaryop.LazyTensor(x, "Min")
+        return(unaryop.LazyTensor(x, "Min"))
     else if(check_index(index))
-        res <- reduction.LazyTensor(x, "Min", index)
+        return(reduction.LazyTensor(x, "Min", index))
     else 
         stop(paste("`index` input argument should be a character,",
                    " either 'i' or 'j', or NA.", sep = ""))
-    return(res)
 }
 
 
@@ -4090,12 +4087,11 @@ min.LazyTensor <- function(x, index = NA, ...) {
 #' @export
 min_reduction <- function(x, index) {
     if(check_index(index)) {
-        res <- reduction.LazyTensor(x, "Min", index)
+        return(reduction.LazyTensor(x, "Min", index))
     }
     else {
         stop("`index` input argument should be a character, either 'i' or 'j'.")
     }
-    return(res)
 }
 
 
@@ -4138,13 +4134,12 @@ min_reduction <- function(x, index) {
 #' @export
 argmin <- function(x, index = NA) {
     if(is.na(index))
-        res <- unaryop.LazyTensor(x, "ArgMin")
+        return(unaryop.LazyTensor(x, "ArgMin"))
     else if(check_index(index))
-        res <- reduction.LazyTensor(x, "ArgMin", index)
+        return(reduction.LazyTensor(x, "ArgMin", index))
     else
         stop(paste("`index` input argument should be a character,",
                    " either 'i' or 'j', or NA.", sep = ""))
-    return(res)
 }
 
 
@@ -4167,10 +4162,9 @@ argmin <- function(x, index = NA) {
 #' @export
 argmin_reduction <- function(x, index) {
     if(check_index(index))
-        res <- reduction.LazyTensor(x, "ArgMin", index)
+        return(reduction.LazyTensor(x, "ArgMin", index))
     else
         stop("`index` input argument should be a character, either 'i' or 'j'.")
-    return(res)
 }
 
 
@@ -4208,10 +4202,9 @@ argmin_reduction <- function(x, index) {
 #' @export
 min_argmin <- function(x, index) {
     if(check_index(index))
-        res <- reduction.LazyTensor(x, "Min_ArgMin", index)
+        return(reduction.LazyTensor(x, "Min_ArgMin", index))
     else
         stop("`index` input argument should be a character, either 'i' or 'j'.")
-    return(res)
 }
 
 
@@ -4220,7 +4213,7 @@ min_argmin <- function(x, index) {
 #' Min-ArgMin reduction
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @name min_argmin
-#' @name min_argmin_reduction
+#' @aliases min_argmin_reduction
 #' @examples
 #' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
@@ -4232,10 +4225,9 @@ min_argmin <- function(x, index) {
 #' @export
 min_argmin_reduction <- function(x, index) {
     if(check_index(index))
-        res <- min_argmin(x, index)
+        return(min_argmin(x, index))
     else
         stop("`index` input argument should be a character, either 'i' or 'j'.")
-    return(res)
 }
 
 
@@ -4326,13 +4318,12 @@ max <- function(x, ...) {
 #' @export
 max.LazyTensor <- function(x, index = NA, ...) {
     if(is.na(index))
-        res <- unaryop.LazyTensor(x, "Max")
+        return(unaryop.LazyTensor(x, "Max"))
     else if(check_index(index))
-        res <- reduction.LazyTensor(x, "Max", index)
+        return(reduction.LazyTensor(x, "Max", index))
     else 
         stop(paste("`index` input argument should be a character,",
                    " either 'i' or 'j', or NA.", sep = ""))
-    return(res)
 }
 
 
@@ -4355,10 +4346,9 @@ max.LazyTensor <- function(x, index = NA, ...) {
 #' @export
 max_reduction <- function(x, index) {
     if(check_index(index))
-        res <- reduction.LazyTensor(x, "Max", index)
+        return(reduction.LazyTensor(x, "Max", index))
     else 
         stop("`index` input argument should be a character, either 'i' or 'j'.")
-    return(res)
 }
 
 
@@ -4401,14 +4391,13 @@ max_reduction <- function(x, index) {
 #' @export
 argmax <- function(x, index = NA) {
     if(is.na(index)) {
-        res <- unaryop.LazyTensor(x, "ArgMax")
+        return(unaryop.LazyTensor(x, "ArgMax"))
     }
     else if(check_index(index))
-        res <- reduction.LazyTensor(x, "ArgMax", index)
+        return(reduction.LazyTensor(x, "ArgMax", index))
     else 
         stop(paste("`index` input argument should be a character,",
                    " either 'i' or 'j', or NA.", sep = ""))
-    return(res)
 }
 
 
@@ -4431,10 +4420,9 @@ argmax <- function(x, index = NA) {
 #' @export
 argmax_reduction <- function(x, index) {
     if(check_index(index))
-        res <- reduction.LazyTensor(x, "ArgMax", index)
+        return(reduction.LazyTensor(x, "ArgMax", index))
     else 
         stop("`index` input argument should be a character, either 'i' or 'j'.")
-    return(res)
 }
 
 
@@ -4472,10 +4460,9 @@ argmax_reduction <- function(x, index) {
 #' @export
 max_argmax <- function(x, index) {
     if(check_index(index))
-        res <- reduction.LazyTensor(x, "Max_ArgMax", index)
+        return(reduction.LazyTensor(x, "Max_ArgMax", index))
     else 
         stop("`index` input argument should be a character, either 'i' or 'j'.")
-    return(res)
 }
 
 
@@ -4497,10 +4484,9 @@ max_argmax <- function(x, index) {
 #' @export
 max_argmax_reduction <- function(x, index) {
     if(check_index(index))
-        res <- max_argmax(x, index)
+        return(max_argmax(x, index))
     else 
         stop("`index` input argument should be a character, either 'i' or 'j'.")
-    return(res)
 }
 
 
@@ -4560,8 +4546,7 @@ Kmin <- function(x, K, index) {
 #' }
 #' @export
 Kmin_reduction <- function(x, K, index) {
-    res <- Kmin(x, K, index)
-    return(res)
+    return(Kmin(x, K, index))
 }
 
 
@@ -4627,8 +4612,7 @@ argKmin <- function(x, K, index) {
 #' }
 #' @export
 argKmin_reduction <- function(x, K, index) {
-    res <- argKmin(x, K, index)
-    return(res)
+    return(argKmin(x, K, index))
 }
 
 
@@ -4640,10 +4624,9 @@ argKmin_reduction <- function(x, K, index) {
 #' @details If `x` is a `LazyTensor` or a `ComplexLazyTensor`,
 #' `Kmin_argKmin(x, K, index)` will:
 #' - if `index = i`, return the `K` minimal values of `x` (i.e. Kmin) and 
-#'   the corresponding indexes over 
-#' the `i` indices.
-#' - if `index = j`, return the `K` minimal values of `x` and its indices over the `j` indices (columns).}
-#' }
+#'   the corresponding indexes over  the `i` indices.
+#' - if `index = j`, return the `K` minimal values of `x` and its indices 
+#'   over the `j` indices (columns).
 #' 
 #' **Note**: Run `browseVignettes("rkeops")` to access the vignettes and find 
 #' details about this function in the *"RKeOps LazyTensor"* vignette, at 
@@ -4672,35 +4655,16 @@ Kmin_argKmin <- function(x, K, index) {
         stop("`K` input argument should be an integer.")
     if(!check_index(index))
         stop("`index` input argument should be a character, either 'i' or 'j'.")
-    res <- reduction.LazyTensor(x, "KMin_ArgKMin", index, opt_arg = K)
-    return(res)
+    return(reduction.LazyTensor(x, "KMin_ArgKMin", index, opt_arg = K))
 }
 
 
 # Kmin-argKmin reduction -------------------------------------------------------
 
 #' Kmin-argKmin reduction.
-#' @description
-#' K-Min-argK-min reduction. Redirects to `Kmin_argKmin` function.
-#' @details If `x` is a `LazyTensor` or a `ComplexLazyTensor`,
-#' `Kmin_argKmin(x, K, index)` will:
-#' \itemize{
-#'     \item{if **index = i**,}{ return the **K** minimal values of **x**
-#'     and its indices over the **i** indices (rows);}
-#'     \item{if **index = j**,}{ return the **K** minimal values of **x**
-#'     and its indices over the **j** indices (columns).}
-#' } 
-#' @details 
-#' FIXME
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A `LazyTensor` or a `ComplexLazyTensor`.
-#' @param index A `character` corresponding to the reduction dimension that 
-#' should be either **i** or **j** to specify whether if the reduction is 
-#' indexed by **i** (rows) or **j** (columns).
-#' @param K An `integer` corresponding to the  number of minimal values 
-#' required.
-#' @return A matrix corresponding to the Kmin-argKmin reduction.
-#' @seealso [rkeops::Kmin_argKmin()]
+#' @name Kmin_argKmin
+#' @aliases Kmin_argKmin_reduction
 #' @examples
 #' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
@@ -4713,8 +4677,7 @@ Kmin_argKmin <- function(x, K, index) {
 #' }
 #' @export
 Kmin_argKmin_reduction <- function(x, K, index) {
-    res <- Kmin_argKmin(x, K, index)
-    return(res)
+    return(Kmin_argKmin(x, K, index))
 }
 
 
@@ -4722,26 +4685,25 @@ Kmin_argKmin_reduction <- function(x, K, index) {
 
 #' Log-Sum-Exp reduction.
 #' @description
-#' Log-Sum-Exp reduction.
-#' @details `logsumexp(x, index, weight)` will:
-#' \itemize{
-#'     \item{if **index = i**,}{ return the Log-Sum-Exp reduction of **x** 
-#'     over the **i** indices (rows);}
-#'     \item{if **index = j**,}{ return the Log-Sum-Exp reduction of **x** 
-#'     over the **j** indices (columns).}
-#' }
+#' Log-Sum-Exp reduction for `LazyTensor` objects.
+#' @details If `x` is a `LazyTensor` or a `ComplexLazyTensor`, 
+#' `logsumexp(x, index, weight)` will:
+#' - if `index = "i"`, return the Log-Sum-Exp reduction of `x` 
+#'   over the `i` indexes;
+#' - if `index = "j"`, return the Log-Sum-Exp reduction of `x` 
+#'   over the `j` indexes.
 #' 
 #' **Note**: Run `browseVignettes("rkeops")` to access the vignettes and find 
 #' details about this function in the *"RKeOps LazyTensor"* vignette, at 
 #' section *"Reductions"*.
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A `LazyTensor` or a `ComplexLazyTensor` indexed by 'i' and 'j'.
-#' @param index A `character` corresponding to the reduction dimension that
-#' should be either **i** or **j** to specify whether if the reduction
-#' is indexed by **i** (rows) or **j** (columns).
-#' @param weight An optional object (`LazyTensor` or `ComplexLazyTensor`) that 
+#' @param x a `LazyTensor` or a `ComplexLazyTensor`.
+#' @param index a `character` corresponding to the reduction dimension that 
+#' should be either `"i"` or `"j"` to specify whether if the reduction is 
+#' indexed by `"i"` or `"j"`.
+#' @param weight an optional object (`LazyTensor` or `ComplexLazyTensor`) that 
 #' specifies scalar or vector-valued weights.
-#' @return A matrix corresponding to the Log-Sum-Exp reduction.
+#' @return a matrix corresponding to the Log-Sum-Exp reduction.
 #' @examples
 #' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) 
@@ -4762,7 +4724,7 @@ Kmin_argKmin_reduction <- function(x, K, index) {
 logsumexp <- function(x, index, weight = NA) {
     if(check_index(index) && is.na(weight)) {
         #res <- reduction.LazyTensor(x, "Max_SumShiftExp", index)
-        res <- reduction.LazyTensor(x, "LogSumExp", index)
+        return(reduction.LazyTensor(x, "LogSumExp", index))
     }
     else if(check_index(index) && !is.na(weight)) {
         #res <- reduction.LazyTensor(x, "Max_SumShiftExpWeight", 
@@ -4774,31 +4736,15 @@ logsumexp <- function(x, index, weight = NA) {
     }
     else
         stop("`index` input argument should be a character, either 'i' or 'j'.")
-    return(res)
 }
 
 
 # LogSumExp reduction  ---------------------------------------------------------
 
 #' Log-Sum-Exp reduction.
-#' @description
-#' Log-Sum-Exp reduction.
-#' @details `logsumexp_reduction(x, index, weight)` will:
-#' \itemize{
-#'     \item{if **index = i**,}{ return the Log-Sum-Exp reduction of **x** 
-#'     over the **i** indices (rows);}
-#'     \item{if **index = j**,}{ return the Log-Sum-Exp reduction of **x** 
-#'     over the **j** indices (columns).}
-#' }
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A `LazyTensor` or a `ComplexLazyTensor`.
-#' @param index A `character` corresponding to the reduction dimension that 
-#' should be either **i** or **j** to specify whether if the reduction is 
-#' indexed by **i** (rows) or **j** (columns).
-#' @param weight An optional object (`LazyTensor` or `ComplexLazyTensor`) that 
-#' specifies scalar or vector-valued weights.
-#' @return A matrix corresponding to the Log-Sum-Exp reduction.
-#' @seealso [rkeops::logsumexp()]
+#' @name logsumexp
+#' @aliases logsumexp_reduction
 #' @examples
 #' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) 
@@ -4817,35 +4763,31 @@ logsumexp <- function(x, index, weight = NA) {
 #' }
 #' @export
 logsumexp_reduction <- function(x, index, weight = NA) {
-    res <- logsumexp(x, index)
-    return(res)
+    return(logsumexp(x, index))
 }
 
 
 # SumSoftMaxWeight -------------------------------------------------------------
 
 #' Sum of weighted Soft-Max reduction.
-#' @description
-#' Sum of weighted Soft-Max reduction.
-#' @details `sumsoftmaxweight(x, index, weight)` will:
-#' \itemize{
-#'     \item{if **index = i**,}{ return the Log-Sum-Exp reduction of **x** 
-#'     over the **i** indices (rows);}
-#'     \item{if **index = j**,}{ return the Log-Sum-Exp reduction of **x** 
-#'     over the **j** indices (columns).}
-#' }
+#' @details If `x` is a `LazyTensor` or a `ComplexLazyTensor`, 
+#' `logsumexp(x, index, weight)` will:
+#' - if `index = "i"`, return the Sum of weighted Soft-Max reduction of `x` 
+#'   over the `i` indexes;
+#' - if `index = "j"`, return the Sum of weighted Soft-Max reduction of `x` 
+#'   over the `j` indexes.
 #' 
 #' **Note**: Run `browseVignettes("rkeops")` to access the vignettes and find 
 #' details about this function in the *"RKeOps LazyTensor"* vignette, at 
 #' section *"Reductions"*.
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A `LazyTensor` or a `ComplexLazyTensor` indexed by 'i' and 'j'.
-#' @param index A `character` corresponding to the reduction dimension that 
-#' should be either **i** or **j** to specify whether if the reduction is 
-#' indexed by **i** (rows) or **j** (columns).
-#' @param weight An optional object (`LazyTensor` or `ComplexLazyTensor`) that 
+#' @param x a `LazyTensor` or a `ComplexLazyTensor`.
+#' @param index a `character` corresponding to the reduction dimension that 
+#' should be either `"i"` or `"j"` to specify whether if the reduction is 
+#' indexed by `"i"` or `"j"`.
+#' @param weight an optional object (`LazyTensor` or `ComplexLazyTensor`) that 
 #' specifies scalar or vector-valued weights.
-#' @return A matrix corresponding to the Sum of weighted Soft-Max reduction.
+#' @return a matrix corresponding to the Sum of weighted Soft-Max reduction.
 #' @examples
 #' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) 
@@ -4863,40 +4805,20 @@ logsumexp_reduction <- function(x, index, weight = NA) {
 sumsoftmaxweight <- function(x, index, weight) {
     tmp_weight <- concat(1, weight)
     if(check_index(index)) {
-        res <- reduction.LazyTensor(x, "SumSoftMaxWeight", 
-                                    index, opt_arg = tmp_weight)
+        return(reduction.LazyTensor(x, "SumSoftMaxWeight", 
+                                    index, opt_arg = tmp_weight))
     }
     else
         stop("`index` input argument should be a character, either 'i' or 'j'.")
-    
-    return(res)
 }
 
 
 # SumSoftMaxWeight Reduction ---------------------------------------------------
 
 #' Sum of weighted Soft-Max reduction.
-#' @description
-#' Sum of weighted Soft-Max reduction.
-#' @details `sumsoftmaxweight_reduction(x, index, weight)` will:
-#' \itemize{
-#'     \item{if **index = i**,}{ return the Log-Sum-Exp reduction of **x** 
-#'     over the **i** indices (rows);}
-#'     \item{if **index = j**,}{ return the Log-Sum-Exp reduction of **x** 
-#'     over the **j** indices (columns).}
-#' }
-#' 
-#' **Note**: Run `browseVignettes("rkeops")` to access the vignettes and find 
-#' details about this function in the *"RKeOps LazyTensor"* vignette, at 
-#' section *"Reductions"*.
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A `LazyTensor` or a `ComplexLazyTensor` indexed by 'i' and 'j'.
-#' @param index A `character` corresponding to the reduction dimension that 
-#' should be either **i** or **j** to specify whether if the reduction is 
-#' indexed by **i** (rows) or **j** (columns).
-#' @param weight An optional object (`LazyTensor` or `ComplexLazyTensor`) that 
-#' specifies scalar or vector-valued weights.
-#' @return A matrix corresponding to the Sum of weighted Soft-Max reduction.
+#' @name sumsoftmaxweight
+#' @aliases sumsoftmaxweight_reduction
 #' @examples
 #' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) 
@@ -4913,8 +4835,7 @@ sumsoftmaxweight <- function(x, index, weight) {
 #' }
 #' @export
 sumsoftmaxweight_reduction <- function(x, index, weight) {
-    res <- sumsoftmaxweight(x, index, weight)
-    return(res)
+    return(sumsoftmaxweight(x, index, weight))
 }
 
 
