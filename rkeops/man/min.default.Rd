@@ -2,9 +2,12 @@
 % Please edit documentation in R/lazytensor_operations.R
 \name{min.default}
 \alias{min.default}
-\title{Minimum.}
+\title{Minimum operation}
 \usage{
-\method{min}{default}()
+\method{min}{default}(...)
+}
+\arguments{
+\item{...}{numeric or character arguments (see Note).}
 }
 \value{
 For \code{min} or \code{max}, a length-one vector.  For \code{pmin} or

@@ -11,7 +11,7 @@
 values, or a scalar value.}
 
 \item{...}{not used, only present for method compatibility with
-corresponding generic.}
+corresponding generic function.}
 }
 \value{
 An object of class \code{LazyTensor}.

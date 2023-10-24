@@ -27,11 +27,11 @@ objects.
 symbolically, the weighted squared distance of a vector \code{x} with weights
 stored in the LazyTensor \code{s}, same as \code{weightedsqnorm(x - y, s)}.
 
-Run \code{browseVignettes("rkeops")} to access the vignettes and find details
-about the function in "RKeOps LazyTensor" vignette at section
-"Simple vector operations".
-
 \strong{Note}: \code{x}, \code{y} and \code{s} should all have the same inner dimension.
+
+\strong{Note}: Run \code{browseVignettes("rkeops")} to access the vignettes and find
+details about this function in the \emph{"RKeOps LazyTensor"} vignette, at
+section \emph{"Simple vector operations"}.
 }
 \examples{
 \dontrun{

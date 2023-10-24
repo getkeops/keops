@@ -18,7 +18,7 @@ a \code{LazyTensor} or a \code{ComplexLazyTensor}.
 Tensor product for \code{LazyTensor} objects.
 }
 \details{
-If \code{x} and \code{y} are \code{LazyTensor}s encoding matrix,
+If \code{x} and \code{y} are \code{LazyTensor} objects encoding matrices,
 respectively of length \code{nx*px} and \code{ny*py}, then \code{tensorprod(x, y)} encodes,
 symbolically, the tensor product between matrix \code{x} and \code{y}, which is
 a symbolic matrix of dimension (\code{nx*ny}, \code{px*py}).

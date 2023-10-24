@@ -11,8 +11,9 @@ reduction.LazyTensor(x, opstr, index, opt_arg = NA)
 
 \item{opstr}{a \code{string} formula (like "Sum" or "Max").}
 
-\item{index}{a \code{character} that should be either \code{i} or \code{j} to specify
-whether if the reduction is indexed by \code{i} (rows), or \code{j} (columns).}
+\item{index}{a \code{character} corresponding to the wanted reduction dimension,
+either \code{"i"} or \code{"j"}, to specify whether if the reduction is done along
+the index \code{i} or \code{j}.}
 
 \item{opt_arg}{an optional argument: an \code{integer} (e.g. for \code{Kmin}
 reduction), a \code{character}, a \code{LazyTensor} or a \code{ComplexLazyTensor}.}

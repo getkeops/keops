@@ -12,7 +12,7 @@ log(x, base = NULL)
 or a scalar value.}
 
 \item{base}{NULL, not used, only present for method compatibility with
-corresponding generic.}
+corresponding generic function.}
 }
 \value{
 An object of class \code{LazyTensor}.

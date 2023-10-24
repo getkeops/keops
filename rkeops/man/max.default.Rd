@@ -2,9 +2,12 @@
 % Please edit documentation in R/lazytensor_operations.R
 \name{max.default}
 \alias{max.default}
-\title{Maximum.}
+\title{Maximum operation}
 \usage{
-\method{max}{default}()
+\method{max}{default}(...)
+}
+\arguments{
+\item{...}{numeric or character arguments (see Note).}
 }
 \value{
 For \code{min} or \code{max}, a length-one vector.  For \code{pmin} or
@@ -102,4 +105,10 @@ stopifnot(identical(D,  cut01(D) ),
           identical(n0, cut01(NULL)),
           identical(n0, pmax(3:1, n0, 2)),
           identical(n0, pmax(n0, 4)))
+}
+\seealso{
+\code{\link[base:Extremes]{base::max()}}
+}
+\author{
+R core team and contributors
 }

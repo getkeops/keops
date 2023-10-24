@@ -26,9 +26,9 @@ in the LazyTensor \code{s}.
 
 \strong{Note}: \code{x}, and \code{s} should have the same inner dimension.
 
-Run \code{browseVignettes("rkeops")} to access the vignettes and find details
-about the function in "RKeOps LazyTensor" vignette, at section
-"Simple vector operations".
+\strong{Note}: Run \code{browseVignettes("rkeops")} to access the vignettes and find
+details about this function in the \emph{"RKeOps LazyTensor"} vignette, at
+section \emph{"Simple vector operations"}.
 }
 \examples{
 \dontrun{

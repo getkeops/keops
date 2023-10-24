@@ -2,37 +2,39 @@
 % Please edit documentation in R/lazytensor_operations.R
 \name{min_argmin}
 \alias{min_argmin}
-\title{Min-ArgMin.}
+\alias{min_argmin_reduction}
+\title{Min-ArgMin reduction}
 \usage{
 min_argmin(x, index)
+
+min_argmin_reduction(x, index)
 }
 \arguments{
-\item{x}{A \code{LazyTensor} or a \code{ComplexLazyTensor}.}
+\item{x}{a \code{LazyTensor} or a \code{ComplexLazyTensor}.}
 
-\item{index}{A \code{character} corresponding to the reduction dimension that
-should be either \strong{i} or \strong{j} to specify whether if the reduction is
-indexed by \strong{i} (rows) or \strong{j} (columns).}
+\item{index}{a \code{character} corresponding to the wanted reduction dimension,
+either \code{"i"} or \code{"j"}, to specify whether if the Min-ArgMin reduction is done
+along the index \code{i} or \code{j}.}
 }
 \value{
-A matrix corresponding to the min-argmin reduction.
+an array storing the result of the specified Min-ArgMin
+reduction otherwise.
 }
 \description{
-Min-ArgMin reduction.
+Min-ArgMin reduction for \code{LazyTensor} objects.
 }
 \details{
-\code{min_argmin(x, index)} will :
+If \code{x} is a \code{LazyTensor}, \code{min_argmin(x, index)} will :
 \itemize{
-\item{ if \strong{index = "i"}, return the minimal values and its indices
-of \strong{x} over the "i" indexes.}
-\item{ if \strong{index = "j"}, return the minimal values and its indices
-of \strong{x} over the "j" indexes.}
+\item if \code{index = "i"}, return the Min-ArgMin reduction of \code{x}, i.e. the minimal
+values and its position, over the \code{i} indexes.
+\item if \code{index = "j"}, return the Min-ArgMin reduction of \code{x}, i.e. the minimal
+values and its position, over the \code{j} indexes.
 }
 
-\strong{Note}
-
-Run \code{browseVignettes("rkeops")} to access the vignettes and find details
-about the function in "RKeOps LazyTensor",
-at section #Reductions.
+\strong{Note}: Run \code{browseVignettes("rkeops")} to access the vignettes and find
+details about this function in the \emph{"RKeOps LazyTensor"} vignette, at
+section \emph{"Reductions"}.
 }
 \examples{
 \dontrun{
@@ -40,7 +42,14 @@ x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
                                     # indexed by 'i'
 
-min_argmin_xi <- min_argmin(x_i, "i")  # min argmin reduction indexed by "i"
+min_argmin_xi <- min_argmin(x_i, "i")  # min argmin reduction indexed by 'i'
+}
+\dontrun{
+x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
+x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
+                                    # indexed by 'i'
+
+min_argmin_red <- min_argmin_reduction(x_i, "i") # min reduction indexed by 'i'
 }
 }
 \author{
