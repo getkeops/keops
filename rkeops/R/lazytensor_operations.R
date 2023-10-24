@@ -1212,7 +1212,7 @@ log <- function(x, base = exp(1)) {
 #' @param x a `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values,
 #' or a scalar value.
 #' @param base NULL, not used, only present for method compatibility with
-#' corresponding generic.
+#' corresponding generic function.
 #' @return An object of class `LazyTensor`.
 #' @seealso [rkeops::log()]
 #' @examples
@@ -2505,7 +2505,7 @@ mod <- function(x, ...) {
 #' @param x,a,b a `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric 
 #' values, or a scalar value.
 #' @param ... not used, only present for method compatibility with
-#' corresponding generic.
+#' corresponding generic function.
 #' @return An object of class `LazyTensor`.
 #' @examples
 #' \dontrun{
@@ -2659,9 +2659,9 @@ sqdist <- function(x, y) {
 #' 
 #' **Note**: `x`, and `s` should have the same inner dimension.
 #' 
-#' Run `browseVignettes("rkeops")` to access the vignettes and find details
-#' about the function in "RKeOps LazyTensor" vignette, at section 
-#' "Simple vector operations".
+#' **Note**: Run `browseVignettes("rkeops")` to access the vignettes and find 
+#' details about this function in the *"RKeOps LazyTensor"* vignette, at 
+#' section *"Simple vector operations"*.
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x a `vector` of numeric values or a scalar value.
 #' @param s a `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, 
@@ -2697,12 +2697,11 @@ weightedsqnorm <- function(x, s) {
 #' symbolically, the weighted squared distance of a vector `x` with weights 
 #' stored in the LazyTensor `s`, same as `weightedsqnorm(x - y, s)`.
 #' 
-#' Run `browseVignettes("rkeops")` to access the vignettes and find details
-#' about the function in "RKeOps LazyTensor" vignette at section 
-#' "Simple vector operations".
-#' 
 #' **Note**: `x`, `y` and `s` should all have the same inner dimension.
 #' 
+#' **Note**: Run `browseVignettes("rkeops")` to access the vignettes and find 
+#' details about this function in the *"RKeOps LazyTensor"* vignette, at 
+#' section *"Simple vector operations"*.
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `vector` of numeric values or a scalar value.
 #' @param y a `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, 
@@ -3770,7 +3769,7 @@ vecmatmult <- function(v, m) {
 #' Tensor product
 #' @description
 #' Tensor product for `LazyTensor` objects.
-#' @details If `x` and `y` are `LazyTensor`s encoding matrix,
+#' @details If `x` and `y` are `LazyTensor` objects encoding matrices,
 #' respectively of length `nx*px` and `ny*py`, then `tensorprod(x, y)` encodes,
 #' symbolically, the tensor product between matrix `x` and `y`, which is
 #' a symbolic matrix of dimension (`nx*ny`, `px*py`).
@@ -3810,8 +3809,9 @@ tensorprod <- function(x, y) {
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x a `LazyTensor` or a `ComplexLazyTensor`.
 #' @param opstr a `string` formula (like "Sum" or "Max").
-#' @param index a `character` that should be either `i` or `j` to specify 
-#' whether if the reduction is indexed by `i` (rows), or `j` (columns).
+#' @param index a `character` corresponding to the wanted reduction dimension, 
+#' either `"i"` or `"j"`, to specify whether if the reduction is done along 
+#' the index `i` or `j`.
 #' @param opt_arg an optional argument: an `integer` (e.g. for `Kmin` 
 #' reduction), a `character`, a `LazyTensor` or a `ComplexLazyTensor`.
 #' @return an array storing the result of the specified reduction.
@@ -3901,25 +3901,21 @@ sum <- function(x, ...) {
 #' Sum operation or sum reduction for `LazyTensor` objects.
 #' @details
 #' If `x` is a `LazyTensor`, `sum(x, index)` will :
-#' - if `index = "i"`, return the sum reduction of `x` over the `"i"` 
-#'   indexes.
-#' - if `index = "j"`, return the sum reduction of `x` over the `"j"` 
-#'   indexes.
-#' - if `index = NA` (default), return a new `LazyTensor` object 
-#'   representing the symbolic sum of the values along the inner dimension of 
-#'   `x`.
+#' - if `index = "i"`, return the sum reduction of `x` over the `i` index.
+#' - if `index = "j"`, return the sum reduction of `x` over the `j` index.
+#' - if `index = NA` (default), return a new `LazyTensor` object representing 
+#' the symbolic sum of the values along the inner dimension of `x`.
 #' 
-#' `Notes`: If `index = NA`, `x` input argument should be a `LazyTensor` 
-#' encoding a parameter vector.
-#' 
-#' Run `browseVignettes("rkeops")` to access the vignettes and find details
-#' about the function in "RKeOps LazyTensor" vignette, at section "Reductions".
-#' @param x a `LazyTensor`, a `ComplexLazyTensor`, a vector or a matrix of 
-#' numeric values, or a scalar value.
+#' **Note**: Run `browseVignettes("rkeops")` to access the vignettes and find 
+#' details about this function in the *"RKeOps LazyTensor"* vignette, at 
+#' section *"Reductions"*.
+#' @param x a `LazyTensor` or a `ComplexLazyTensor`.
 #' @param index a `character` corresponding to the wanted reduction dimension, 
-#' either `i` or `j`, to specify whether if the sum reduction is done along the
-#' index `i` or `j`.
+#' either `"i"` or `"j"`, to specify whether if the reduction is done along 
+#' the index `i` or `j`.
 #' It can be `NA` (default) when no reduction is desired.
+#' @param ... not used, only present for method compatibility with the
+#' corresponding generic function.
 #' @return a `LazyTensor` if `index = NA` or an array storing the result of 
 #' the specified sum reduction otherwise.
 #' @seealso [rkeops::sum_reduction()]
@@ -3959,16 +3955,10 @@ sum.LazyTensor <- function(x, index = NA, ...) {
 
 #' Sum reduction
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @description
-#' Sum reduction for `LazyTensor` objects.
-#' @details `sum_reduction(x, index)` will return the sum reduction of `x` 
-#' over the given `index`.
-#' @param x a `LazyTensor` or a `ComplexLazyTensor`.
-#' @param index a `character` corresponding to the wanted reduction dimension, 
-#' either `i` or `j`, to specify whether if the sum reduction is done along the
-#' index `i` or `j`.
-#' @return an array storing the result of the specified sum reduction.
-#' @seealso [rkeops::sum()]
+#' @name sum.LazyTensor
+#' @aliases sum_reduction
+#' @details **Note**: `index` input argument cannot be `NA` for the 
+#' `sum_reduction()` function.
 #' @examples
 #' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
@@ -4041,28 +4031,24 @@ min <- function(x, ...) {
 #' Minimum operation or minimum reduction for `LazyTensor` objects.
 #' @details
 #' If `x` is a `LazyTensor`, `min(x, index)` will :
-#' - if `index = "i"`, return the min reduction of `x` over the `"i"` 
-#'   indexes.
-#' - if `index = "j"`, return the min reduction of `x` over the `"j"` 
-#'   indexes.
+#' - if `index = "i"`, return the min reduction of `x` over the `i` index.
+#' - if `index = "j"`, return the min reduction of `x` over the `j` index.
 #' - if `index = NA` (default), return a new `LazyTensor` object 
 #'   representing the symbolic min of the values along the inner dimension of 
 #'   `x`.
 #' 
-#' `Notes`: If `index = NA`, `x` input argument should be a `LazyTensor` 
-#' encoding a parameter vector.
-#' 
-#' Run `browseVignettes("rkeops")` to access the vignettes and find details
-#' about the function in "RKeOps LazyTensor" vignette, at section "Reductions".
-#' @param x a `LazyTensor`, a `ComplexLazyTensor`, a vector or a matrix of 
-#' numeric values, or a scalar value.
+#' **Note**: Run `browseVignettes("rkeops")` to access the vignettes and find 
+#' details about this function in the *"RKeOps LazyTensor"* vignette, at 
+#' section *"Reductions"*.
+#' @param a `LazyTensor` or a `ComplexLazyTensor`.
 #' @param index a `character` corresponding to the wanted reduction dimension, 
-#' either `i` or `j`, to specify whether if the min reduction is done along the
-#' index `i` or `j`.
+#' either `"i"` or `"j"`, to specify whether if the min reduction is done along 
+#' the index `i` or `j`.
 #' It can be `NA` (default) when no reduction is desired.
+#' @param ... not used, only present for method compatibility with the
+#' corresponding generic function.
 #' @return a `LazyTensor` if `index = NA` or an array storing the result of 
 #' the specified min reduction otherwise.
-#' @seealso [rkeops::min_reduction()]
 #' @examples
 #' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
@@ -4089,16 +4075,10 @@ min.LazyTensor <- function(x, index = NA, ...) {
 
 #' Minimum reduction
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @description
-#' Minimum reduction for `LazyTensor` objects.
-#' @details `min_reduction(x, index)` will return the min reduction of `x` 
-#' over the given `index`.
-#' @param x a `LazyTensor` or a `ComplexLazyTensor`.
-#' @param index a `character` corresponding to the wanted reduction dimension, 
-#' either `i` or `j`, to specify whether if the min reduction is done along the
-#' index `i` or `j`.
-#' @return an array storing the result of the specified min reduction.
-#' @seealso [rkeops::min()]
+#' @name min.LazyTensor
+#' @aliases min_reduction
+#' @details **Note**: `index` input argument cannot be `NA` for the 
+#' `min_reduction()` function.
 #' @examples
 #' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
@@ -4127,23 +4107,20 @@ min_reduction <- function(x, index) {
 #' ArgMin operation or ArgMin reduction for `LazyTensor` objects.
 #' @details
 #' If `x` is a `LazyTensor`, `argmin(x, index)` will :
-#' - if `index = "i"`, return the argmin reduction of `x` over the `"i"` 
+#' - if `index = "i"`, return the argmin reduction of `x` over the `i` 
 #'   indexes.
-#' - if `index = "j"`, return the argmin reduction of `x` over the `"j"` 
+#' - if `index = "j"`, return the argmin reduction of `x` over the `j` 
 #'   indexes.
 #' - if `index = NA` (default), return a new `LazyTensor` object 
 #'   representing the symbolic argmin of the values along the inner dimension 
 #'   of `x`.
 #' 
-#' `Notes`: If `index = NA`, `x` input argument should be a `LazyTensor` 
-#' encoding a parameter vector.
-#' 
-#' Run `browseVignettes("rkeops")` to access the vignettes and find details
-#' about the function in "RKeOps LazyTensor" vignette, at section "Reductions".
-#' @param x a `LazyTensor`, a `ComplexLazyTensor`, a vector or a matrix of 
-#' numeric values, or a scalar value.
+#' **Note**: Run `browseVignettes("rkeops")` to access the vignettes and find 
+#' details about this function in the *"RKeOps LazyTensor"* vignette, at 
+#' section *"Reductions"*.
+#' @param a `LazyTensor` or a `ComplexLazyTensor`.
 #' @param index a `character` corresponding to the wanted reduction dimension, 
-#' either `i` or `j`, to specify whether if the argmin reduction is done 
+#' either `"i"` or `"j"`, to specify whether if the argmin reduction is done 
 #' along the index `i` or `j`.
 #' It can be `NA` (default) when no reduction is desired.
 #' @return a `LazyTensor` if `index = NA` or an array storing the result of 
@@ -4175,16 +4152,10 @@ argmin <- function(x, index = NA) {
 
 #' ArgMin reduction
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @description
-#' ArgMin reduction for `LazyTensor` objects.
-#' @details `argmin_reduction(x, index)` will return the argmin reduction of 
-#' `x` over the given `index`.
-#' @param x a `LazyTensor` or a `ComplexLazyTensor`.
-#' @param index a `character` corresponding to the wanted reduction dimension, 
-#' either `i` or `j`, to specify whether if the argmin reduction is done along 
-#' the index `i` or `j`.
-#' @return an array storing the result of the specified argmin reduction.
-#' @seealso [rkeops::argmin()]
+#' @name argmin
+#' @aliases argmin_reduction
+#' @details **Note**: `index`  input argument cannot be `NA` for the 
+#' `argmin_reduction()` function.
 #' @examples
 #' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
@@ -4207,24 +4178,25 @@ argmin_reduction <- function(x, index) {
 
 #' Min-ArgMin reduction
 #' @author Chloe Serre-Combe, Amelie Vernay
+#' @name min_argmin
 #' @description
 #' Min-ArgMin reduction for `LazyTensor` objects.
 #' @details
 #' If `x` is a `LazyTensor`, `min_argmin(x, index)` will :
-#' - if `index = "i"`, return the Min-ArgMin reduction of `x` over the `"i"` 
-#'   indexes.
-#' - if `index = "j"`, return the Min-ArgMin reduction of `x` over the `"j"` 
-#'   indexes.
+#' - if `index = "i"`, return the Min-ArgMin reduction of `x`, i.e. the minimal 
+#'   values and its position, over the `i` indexes.
+#' - if `index = "j"`, return the Min-ArgMin reduction of `x`, i.e. the minimal 
+#'   values and its position, over the `j` indexes.
 #' 
-#' Run `browseVignettes("rkeops")` to access the vignettes and find details
-#' about the function in "RKeOps LazyTensor" vignette, at section "Reductions".
+#' **Note**: Run `browseVignettes("rkeops")` to access the vignettes and find 
+#' details about this function in the *"RKeOps LazyTensor"* vignette, at 
+#' section *"Reductions"*.
 #' @param x a `LazyTensor` or a `ComplexLazyTensor`.
 #' @param index a `character` corresponding to the wanted reduction dimension, 
-#' either `i` or `j`, to specify whether if the Min-ArgMin reduction is done 
+#' either `"i"` or `"j"`, to specify whether if the Min-ArgMin reduction is done 
 #' along the index `i` or `j`.
 #' @return an array storing the result of the specified Min-ArgMin 
 #' reduction otherwise.
-#' @seealso [rkeops::min_argmin_reduction()]
 #' @examples
 #' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
@@ -4247,16 +4219,8 @@ min_argmin <- function(x, index) {
 
 #' Min-ArgMin reduction
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @description
-#' Min-ArgMin reduction for `LazyTensor` objects.
-#' @details `min_argmin_reduction(x, index)` will return the Min-ArgMin 
-#' reduction of `x` over the given `index`.
-#' @param x a `LazyTensor` or a `ComplexLazyTensor`.
-#' @param index a `character` corresponding to the wanted reduction dimension, 
-#' either `i` or `j`, to specify whether if the Min-ArgMin reduction is done 
-#' along the index `i` or `j`.
-#' @return an array storing the result of the specified Min-ArgMin reduction.
-#' @seealso [rkeops::min_argmin()]
+#' @name min_argmin
+#' @name min_argmin_reduction
 #' @examples
 #' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
@@ -4326,25 +4290,27 @@ max <- function(x, ...) {
 #' Maximum operation or maximum reduction for `LazyTensor` objects.
 #' @details
 #' If `x` is a `LazyTensor`, `max(x, index)` will :
-#' - if `index = "i"`, return the max reduction of `x` over the `"i"` 
+#' - if `index = "i"`, return the max reduction of `x` over the `i` 
 #'   indexes.
-#' - if `index = "j"`, return the max reduction of `x` over the `"j"` 
+#' - if `index = "j"`, return the max reduction of `x` over the `j` 
 #'   indexes.
 #' - if `index = NA` (default), return a new `LazyTensor` object 
 #'   representing the symbolic max of the values along the inner dimension of 
 #'   `x`.
 #' 
-#' `Notes`: If `index = NA`, `x` input argument should be a `LazyTensor` 
+#' **Notes**: If `index = NA`, `x` input argument should be a `LazyTensor` 
 #' encoding a parameter vector.
 #' 
-#' Run `browseVignettes("rkeops")` to access the vignettes and find details
-#' about the function in "RKeOps LazyTensor" vignette, at section "Reductions".
-#' @param x a `LazyTensor`, a `ComplexLazyTensor`, a vector or a matrix of 
-#' numeric values, or a scalar value.
+#' **Note**: Run `browseVignettes("rkeops")` to access the vignettes and find 
+#' details about this function in the *"RKeOps LazyTensor"* vignette, at 
+#' section *"Reductions"*.
+#' @param a `LazyTensor` or a `ComplexLazyTensor`.
 #' @param index a `character` corresponding to the wanted reduction dimension, 
-#' either `i` or `j`, to specify whether if the max reduction is done along the
-#' index `i` or `j`.
+#' either `"i"` or `"j"`, to specify whether if the max reduction is done along 
+#' the index `i` or `j`.
 #' It can be `NA` (default) when no reduction is desired.
+#' @param ... not used, only present for method compatibility with the
+#' corresponding generic function.
 #' @return a `LazyTensor` if `index = NA` or an array storing the result of 
 #' the specified max reduction otherwise.
 #' @seealso [rkeops::max_reduction()]
@@ -4374,17 +4340,10 @@ max.LazyTensor <- function(x, index = NA, ...) {
 
 #' Maximum reduction
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @description
-#' Maximum reduction for `LazyTensor` objects.
-#' @details `max_reduction(x, index)` will return the max reduction of `x` 
-#' over the given `index`.
-#' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x a `LazyTensor` or a `ComplexLazyTensor`.
-#' @param index a `character` corresponding to the wanted reduction dimension, 
-#' either `i` or `j`, to specify whether if the max reduction is done along the
-#' index `i` or `j`.
-#' @return an array storing the result of the specified max reduction.
-#' @seealso [rkeops::max()]
+#' @name max.LazyTensor
+#' @aliases max_reduction
+#' @details **Note**: `index` input argument cannot be `NA` for the 
+#' `max_reduction()` function.
 #' @examples
 #' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
@@ -4411,23 +4370,20 @@ max_reduction <- function(x, index) {
 #' ArgMax operation or ArgMax reduction for `LazyTensor` objects.
 #' @details
 #' If `x` is a `LazyTensor`, `argmax(x, index)` will :
-#' - if `index = "i"`, return the argmax reduction of `x` over the `"i"` 
+#' - if `index = "i"`, return the argmax reduction of `x` over the `i` 
 #'   indexes.
-#' - if `index = "j"`, return the argmax reduction of `x` over the `"j"` 
+#' - if `index = "j"`, return the argmax reduction of `x` over the `j` 
 #'   indexes.
 #' - if `index = NA` (default), return a new `LazyTensor` object 
 #'   representing the symbolic argmax of the values along the inner dimension 
 #'   of `x`.
 #' 
-#' `Notes`: If `index = NA`, `x` input argument should be a `LazyTensor` 
-#' encoding a parameter vector.
-#' 
-#' Run `browseVignettes("rkeops")` to access the vignettes and find details
-#' about the function in "RKeOps LazyTensor" vignette, at section "Reductions".
-#' @param x a `LazyTensor`, a `ComplexLazyTensor`, a vector or a matrix of 
-#' numeric values, or a scalar value.
+#' **Note**: Run `browseVignettes("rkeops")` to access the vignettes and find 
+#' details about this function in the *"RKeOps LazyTensor"* vignette, at 
+#' section *"Reductions"*.
+#' @param a `LazyTensor` or a `ComplexLazyTensor`.
 #' @param index a `character` corresponding to the wanted reduction dimension, 
-#' either `i` or `j`, to specify whether if the argmax reduction is done 
+#' either `"i"` or `"j"`, to specify whether if the argmax reduction is done 
 #' along the index `i` or `j`.
 #' It can be `NA` (default) when no reduction is desired.
 #' @return a `LazyTensor` if `index = NA` or an array storing the result of 
@@ -4460,16 +4416,10 @@ argmax <- function(x, index = NA) {
 
 #' ArgMax reduction
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @description
-#' ArgMax reduction for `LazyTensor` objects.
-#' @details `argmax_reduction(x, index)` will return the argmax reduction of 
-#' `x` over the given `index`.
-#' @param x a `LazyTensor` or a `ComplexLazyTensor`.
-#' @param index a `character` corresponding to the wanted reduction dimension, 
-#' either `i` or `j`, to specify whether if the argmax reduction is done along 
-#' the index `i` or `j`.
-#' @return an array storing the result of the specified argmax reduction.
-#' @seealso [rkeops::argmax()]
+#' @name argmax
+#' @aliases argmax_reduction
+#' @details **Note**: `index` input argument cannot be `NA` for the 
+#' `argmax_reduction()` function.
 #' @examples
 #' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
@@ -4492,24 +4442,25 @@ argmax_reduction <- function(x, index) {
 
 #' Max-ArgMax reduction
 #' @author Chloe Serre-Combe, Amelie Vernay
+#' @name max_argmax
 #' @description
 #' Max-ArgMax reduction for `LazyTensor` objects.
 #' @details
 #' If `x` is a `LazyTensor`, `max_argmax(x, index)` will :
-#' - if `index = "i"`, return the Max-ArgMax reduction of `x` over the `"i"` 
+#' - if `index = "i"`, return the Max-ArgMax reduction of `x` over the `i` 
 #'   indexes.
-#' - if `index = "j"`, return the Max-ArgMax reduction of `x` over the `"j"` 
+#' - if `index = "j"`, return the Max-ArgMax reduction of `x` over the `j` 
 #'   indexes.
 #' 
-#' Run `browseVignettes("rkeops")` to access the vignettes and find details
-#' about the function in "RKeOps LazyTensor" vignette, at section "Reductions".
+#' **Note**: Run `browseVignettes("rkeops")` to access the vignettes and find 
+#' details about this function in the *"RKeOps LazyTensor"* vignette, at 
+#' section *"Reductions"*.
 #' @param x a `LazyTensor` or a `ComplexLazyTensor`.
 #' @param index a `character` corresponding to the wanted reduction dimension, 
-#' either `i` or `j`, to specify whether if the Max-ArgMax reduction is done 
+#' either `"i"` or `"j"`, to specify whether if the Max-ArgMax reduction is done 
 #' along the index `i` or `j`.
 #' @return an array storing the result of the specified Max-ArgMax 
 #' reduction otherwise.
-#' @seealso [rkeops::max_argmax_reduction()]
 #' @examples
 #' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
@@ -4532,16 +4483,8 @@ max_argmax <- function(x, index) {
 
 #' Max-ArgMax reduction
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @description
-#' Max-ArgMax reduction for `LazyTensor` objects.
-#' @details `max_argmax_reduction(x, index)` will return the Max-ArgMax 
-#' reduction of `x` over the given `index`.
-#' @param x a `LazyTensor` or a `ComplexLazyTensor`.
-#' @param index a `character` corresponding to the wanted reduction dimension, 
-#' either `i` or `j`, to specify whether if the Max-ArgMax reduction is done 
-#' along the index `i` or `j`.
-#' @return an array storing the result of the specified Max-ArgMax reduction.
-#' @seealso [rkeops::max_argmax()]
+#' @name max_argmax
+#' @aliases max_argmax_reduction
 #' @examples
 #' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
@@ -4563,29 +4506,25 @@ max_argmax_reduction <- function(x, index) {
 
 # Kmin -------------------------------------------------------------------------
 
-#' Kmin.
-#' @description
-#' K-Min reduction.
-#' @details If `x` is a `LazyTensor` or a `ComplexLazyTensor`, 
-#' `Kmin(x, K, index)`
-#' will:
-#' \itemize{
-#'     \item{if **index = i**,}{ return the **K** minimal values of **x**
-#'     over the **i** indices (rows);}
-#'     \item{if **index = j**,}{ return the **K** minimal values of **x**
-#'     over the **j** indices (columns).}
-#' }
-#' 
-#' **Note**
-#' 
-#' Run `browseVignettes("rkeops")` to access the vignettes and find details
-#' about the function in "RKeOps LazyTensor",
-#' at section #Reductions.
+#' K-Min reduction
+#' @name Kmin
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A `LazyTensor` or a `ComplexLazyTensor`.
-#' @param index A `character` corresponding to the reduction dimension that 
-#' should be either **i** or **j** to specify whether if the reduction is 
-#' indexed by **i** (rows) or **j** (columns).
+#' @description
+#' K-Min reduction for `LazyTensor` objects.
+#' @details If `x` is a `LazyTensor` or a `ComplexLazyTensor`, 
+#' `Kmin(x, K, index)` will:
+#' - if `index = "i"`, return the `K` minimal values of `x` over the `i` 
+#'   indexes.
+#' - if `index = "j"`, return the `K` minimal values of `x` over the `j` 
+#'   indexes.
+#' 
+#' **Note**: Run `browseVignettes("rkeops")` to access the vignettes and find 
+#' details about this function in the *"RKeOps LazyTensor"* vignette, at 
+#' section *"Reductions"*.
+#' @param x a `LazyTensor` or a `ComplexLazyTensor`.
+#' @param index a `character` corresponding to the reduction dimension that 
+#' should be either `"i"` or `"j"` to specify whether if the reduction is 
+#' indexed by `"i"` or `"j"`.
 #' @param K An `integer` corresponding to the  number of minimal values 
 #' required.
 #' @return A matrix corresponding to the Kmin reduction.
@@ -4594,7 +4533,7 @@ max_argmax_reduction <- function(x, index) {
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # LazyTensor from matrix x, indexed by 'i'
 #' K <- 2
-#' kmin_x <- Kmin(x_i, K, "i")         # Kmin reduction, over the "i" indices
+#' kmin_x <- Kmin(x_i, K, "i")         # Kmin reduction, over the 'i' indices
 #' }
 #' @export
 Kmin <- function(x, K, index) {
@@ -4602,33 +4541,16 @@ Kmin <- function(x, K, index) {
         stop("`K` input argument should be an integer.")
     if(!check_index(index))
         stop("`index` input argument should be a character, either 'i' or 'j'.")
-    res <- reduction.LazyTensor(x, "KMin", index, opt_arg = K)
-    return(res)
+    return(reduction.LazyTensor(x, "KMin", index, opt_arg = K))
 }
 
 
 # Kmin reduction ---------------------------------------------------------------
 
-#' Kmin reduction.
-#' @description
-#' K-Min reduction. Redirects to `Kmin` function.
-#' @details If `x` is a `LazyTensor` or a `ComplexLazyTensor`,
-#' `Kmin(x, K, index)` will:
-#' \itemize{
-#'     \item{if **index = i**,}{ return the **K** minimal values of **x**
-#'     over the **i** indices (rows);}
-#'     \item{if **index = j**,}{ return the **K** minimal values of **x**
-#'     over the **j** indices (columns).}
-#' }
+#' Kmin reduction
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A `LazyTensor` or a `ComplexLazyTensor`.
-#' @param index A `character` corresponding to the reduction dimension that 
-#' should be either **i** or **j** to specify whether if the reduction is 
-#' indexed by **i** (rows) or **j** (columns).
-#' @param K An `integer` corresponding to the  number of minimal values 
-#' required.
-#' @return A matrix corresponding to the Kmin reduction.
-#' @seealso [rkeops::Kmin()]
+#' @name Kmin
+#' @aliases Kmin_reduction
 #' @examples
 #' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
@@ -4646,30 +4568,25 @@ Kmin_reduction <- function(x, K, index) {
 # argKmin ----------------------------------------------------------------------
 
 
-#' argKmin.
+#' Arg-K-min reduction
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @name argKmin
 #' @description
-#' argKmin reduction.
+#' Arg-K-min reduction for `LazyTensor` objects.
 #' @details If `x` is a `LazyTensor` or a `ComplexLazyTensor`,
 #' `argKmin(x, K, index)` will:
-#' \itemize{
-#'     \item{if **index = i**,}{ return the indices of the **K** minimal
-#'     values of **x**
-#'     over the **i** indexes (rows);}
-#'     \item{if **index = j**,}{ return the indices of the **K** minimal
-#'     values of **x**
-#'     over the **j** indexes (columns).}
-#' }
+#' - if `index = "i"`, return the indices of the `K` minimal values of `x` 
+#'   over the `i` indexes.
+#' - if `index = "j"`, return the indices of the `K` minimal values of `x`
+#'   over the `j` indexes.
 #' 
-#' **Note**
-#' 
-#' Run `browseVignettes("rkeops")` to access the vignettes and find details
-#' about the function in "RKeOps LazyTensor",
-#' at section #Reductions.
-#' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A `LazyTensor` or a `ComplexLazyTensor`.
-#' @param index A `character` corresponding to the reduction dimension that 
-#' should be either **i** or **j** to specify whether if the reduction is 
-#' indexed by **i** (rows) or **j** (columns).
+#' **Note**: Run `browseVignettes("rkeops")` to access the vignettes and find 
+#' details about this function in the *"RKeOps LazyTensor"* vignette, at 
+#' section *"Reductions"*.
+#' @param x a `LazyTensor` or a `ComplexLazyTensor`.
+#' @param index a `character` corresponding to the reduction dimension that 
+#' should be either `"i"` or `"j"` to specify whether if the reduction is 
+#' indexed by `"i"` or `"j"`.
 #' @param K An `integer` corresponding to the  number of minimal values 
 #' required.
 #' @return A matrix corresponding to the argKmin reduction.
@@ -4689,35 +4606,16 @@ argKmin <- function(x, K, index) {
         stop("`K` input argument should be an integer.")
     if(!check_index(index))
         stop("`index` input argument should be a character, either 'i' or 'j'.")
-    res <- reduction.LazyTensor(x, "ArgKMin", index, opt_arg = K)
-    return(res)
+    return(reduction.LazyTensor(x, "ArgKMin", index, opt_arg = K))
 }
 
 
 # argKmin reduction ------------------------------------------------------------
 
-#' argKmin reduction.
-#' @description
-#' argKmin reduction. Redirects to `argKmin` function.
-#' @details If `x` is a `LazyTensor` or a `ComplexLazyTensor`,
-#' `argKmin(x, K, index)` will:
-#' \itemize{
-#'     \item{if **index = i**,}{ return the indices of the **K** minimal
-#'     values of **x**
-#'     over the **i** indexes (rows);}
-#'     \item{if **index = j**,}{ return the indices of the **K** minimal
-#'     values of **x**
-#'     over the **j** indexes (columns).}
-#' }
+#' Arg-K-min reduction
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A `LazyTensor` or a `ComplexLazyTensor`.
-#' @param index A `character` corresponding to the reduction dimension that 
-#' should be either **i** or **j** to specify whether if the reduction is 
-#' indexed by **i** (rows) or **j** (columns).
-#' @param K An `integer` corresponding to the  number of minimal values 
-#' required.
-#' @return A matrix corresponding to the argKmin reduction.
-#' @seealso [rkeops::argKmin()]
+#' @name argKmin
+#' @aliases argKmin_reduction
 #' @examples
 #' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
@@ -4736,28 +4634,25 @@ argKmin_reduction <- function(x, K, index) {
 
 # Kmin-argKmin -----------------------------------------------------------------
 
-#' Kmin-argKmin.
+#' K-Min-arg-K-min reduction
 #' @description
-#' K-Min-argK-min reduction.
+#' K-Min-arg-K-min reduction for `LazyTensor` objects.
 #' @details If `x` is a `LazyTensor` or a `ComplexLazyTensor`,
 #' `Kmin_argKmin(x, K, index)` will:
-#' \itemize{
-#'     \item{if **index = i**,}{ return the **K** minimal values of **x**
-#'     and its indices over the **i** indices (rows);}
-#'     \item{if **index = j**,}{ return the **K** minimal values of **x**
-#'     and its indices over the **j** indices (columns).}
+#' - if `index = i`, return the `K` minimal values of `x` (i.e. Kmin) and 
+#'   the corresponding indexes over 
+#' the `i` indices.
+#' - if `index = j`, return the `K` minimal values of `x` and its indices over the `j` indices (columns).}
 #' }
 #' 
-#' **Note**
-#' 
-#' Run `browseVignettes("rkeops")` to access the vignettes and find details
-#' about the function in "RKeOps LazyTensor",
-#' at section #Reductions.
+#' **Note**: Run `browseVignettes("rkeops")` to access the vignettes and find 
+#' details about this function in the *"RKeOps LazyTensor"* vignette, at 
+#' section *"Reductions"*.
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `LazyTensor` or a `ComplexLazyTensor`.
 #' @param index A `character` corresponding to the reduction dimension that 
-#' should be either **i** or **j** to specify whether if the reduction is 
-#' indexed by **i** (rows) or **j** (columns).
+#' should be either `i` or `j` to specify whether if the reduction is 
+#' indexed by `i` (rows) or `j` (columns).
 #' @param K An `integer` corresponding to the  number of minimal values
 #' required.
 #' @return A matrix corresponding to the Kmin-argKmin reduction.
@@ -4836,11 +4731,9 @@ Kmin_argKmin_reduction <- function(x, K, index) {
 #'     over the **j** indices (columns).}
 #' }
 #' 
-#' **Note**
-#' 
-#' Run `browseVignettes("rkeops")` to access the vignettes and find details
-#' about the function in "RKeOps LazyTensor",
-#' at section #Reductions.
+#' **Note**: Run `browseVignettes("rkeops")` to access the vignettes and find 
+#' details about this function in the *"RKeOps LazyTensor"* vignette, at 
+#' section *"Reductions"*.
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `LazyTensor` or a `ComplexLazyTensor` indexed by 'i' and 'j'.
 #' @param index A `character` corresponding to the reduction dimension that
@@ -4942,11 +4835,9 @@ logsumexp_reduction <- function(x, index, weight = NA) {
 #'     over the **j** indices (columns).}
 #' }
 #' 
-#' **Note**
-#' 
-#' Run `browseVignettes("rkeops")` to access the vignettes and find details
-#' about the function in "RKeOps LazyTensor",
-#' at section #Reductions.
+#' **Note**: Run `browseVignettes("rkeops")` to access the vignettes and find 
+#' details about this function in the *"RKeOps LazyTensor"* vignette, at 
+#' section *"Reductions"*.
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `LazyTensor` or a `ComplexLazyTensor` indexed by 'i' and 'j'.
 #' @param index A `character` corresponding to the reduction dimension that 
@@ -4995,11 +4886,9 @@ sumsoftmaxweight <- function(x, index, weight) {
 #'     over the **j** indices (columns).}
 #' }
 #' 
-#' **Note**
-#' 
-#' Run `browseVignettes("rkeops")` to access the vignettes and find details
-#' about the function in "RKeOps LazyTensor",
-#' at section #Reductions.
+#' **Note**: Run `browseVignettes("rkeops")` to access the vignettes and find 
+#' details about this function in the *"RKeOps LazyTensor"* vignette, at 
+#' section *"Reductions"*.
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `LazyTensor` or a `ComplexLazyTensor` indexed by 'i' and 'j'.
 #' @param index A `character` corresponding to the reduction dimension that 
@@ -5147,5 +5036,3 @@ grad <- function(f, gradin, opstr, var, index) {
     res <- grad_op(c(f$data, gradin$data))
     return(res)
 }
-
-
