@@ -1326,8 +1326,8 @@ test_that("relu", {
     expect_equal(relu(1:10), 1:10)
     expect_equal(relu(-9:10), c(rep(0, 10), 1:10))
     expect_equal(
-        relu(matrix(-9:10, 5, 2)), 
-        matrix(c(rep(0, 10), 1:10), 5, 2))
+        relu(matrix(-9:10, 10, 2)), 
+        matrix(c(rep(0, 10), 1:10), 10, 2))
     
   # basic example
   D <- 3
