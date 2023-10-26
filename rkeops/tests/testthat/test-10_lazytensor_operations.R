@@ -1337,8 +1337,9 @@ test_that("relu", {
   x_i <- LazyTensor(x, index = 'i')
   
   # check results, formulas & classes
-  expect_true(is.LazyTensor(relu(2)))
+  expect_false(is.LazyTensor(relu(2)))
   expect_true(is.LazyTensor(relu(x_i)))
+  expect_true(is.LazyTensor(relu(x_i + 5)))
   
   obj <- relu(x_i)
   expect_equal(length(obj$args), 1)
@@ -1346,7 +1347,7 @@ test_that("relu", {
   bool_grep_formula <- grep("ReLU\\(A0x.*i\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
   
-  obj <- relu(4)
+  obj <- relu(LazyTensor(4))
   expect_null(obj$args)
   expect_null(obj$data)
   bool_grep_formula <- grep("ReLU\\(IntCst\\(.*\\)\\)", obj$formula)
@@ -2724,6 +2725,21 @@ test_that("sum", {
   
   res <- sum(Pm_complex)
   expect_true(is.ComplexLazyTensor(res))
+  
+  x <- matrix(runif(150 * 3), 150, 3)
+  y <- matrix(runif(150 * 3), 150, 3)
+  x <- matrix(runif(4 * 3), 4, 3)
+  y <- matrix(runif(6 * 3), 6, 3)
+  x_i <- LazyTensor(x, index = 'i')
+  y_j <- LazyTensor(x, index = 'j')
+  K <- sum(x_i - y_j)
+  res <- sum(K, index = "i")
+  expected_res <- apply(
+      t(sapply(
+          1:nrow(x), function(id_x) 
+              sapply(1:nrow(y), function(id_y) sum(x[id_x,] - y[id_y,]))
+      )), 1, sum)
+  expect_true(sum(abs(res - expected_res)) < 1E-5)
   
   # check formulae
   bool_grep_formula <- grep("Sum\\(A0x.*NA\\)", sum(Pm_v)$formula)
