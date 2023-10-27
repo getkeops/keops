@@ -34,7 +34,7 @@
 // device, so we will set them at each call using predefined
 // MAXTHREADSPERBLOCK0, SHAREDMEMPERBLOCK0, MAXTHREADSPERBLOCK1,
 // SHAREDMEMPERBLOCK1, etc. through the function SetGpuProps
-size_t maxThreadsPerBlock, sharedMemPerBlock;
+signed long int maxThreadsPerBlock, sharedMemPerBlock;
 
 #define SET_GPU_PROPS_MACRO(n)                                                 \
   if (device == n) {                                                           \

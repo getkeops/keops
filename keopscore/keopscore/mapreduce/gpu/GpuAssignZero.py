@@ -28,10 +28,10 @@ class GpuAssignZero(MapReduce, Gpu_link_compile):
         self.code = f"""
                         {self.headers}
 
-                        extern "C" __global__ void GpuConv1DOnDevice(size_t nx, size_t ny, {dtype} *out, {dtype} **{arg.id}) {{
+                        extern "C" __global__ void GpuConv1DOnDevice(signed long int nx, signed long int ny, {dtype} *out, {dtype} **{arg.id}) {{
     
                           // get the index of the current thread
-                          size_t i = blockIdx.x * blockDim.x + threadIdx.x;
+                          signed long int i = blockIdx.x * blockDim.x + threadIdx.x;
 
                           if (i < nx) {{
                             {outi.assign(c_zero_float)}

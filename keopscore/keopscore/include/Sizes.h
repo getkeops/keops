@@ -16,13 +16,13 @@ void error(std::string message) { throw std::runtime_error(message); }
 
 #if C_CONTIGUOUS
 
-int get_val_batch(std::vector<size_t> _shape, int nbatch, int b) {
+int get_val_batch(std::vector<signed long int> _shape, int nbatch, int b) {
   return _shape[b];
 }
 
 #else
 
-int get_val_batch(std::vector<size_t> _shape, int nbatch, int b) {
+int get_val_batch(std::vector<signed long int> _shape, int nbatch, int b) {
   return _shape[nbatch - b];
 }
 
@@ -32,15 +32,15 @@ template <typename TYPE> class Sizes {
 public:
   // attributs
   int nargs;
-  size_t nx, ny;
-  size_t M, N;
+  signed long int nx, ny;
+  signed long int M, N;
   int nbatchdims;
   int nbatches;
 
-  std::vector<size_t> _shapes;
-  size_t *shapes;
-  std::vector<size_t> _shape_out;
-  size_t *shape_out;
+  std::vector<signed long int> _shapes;
+  signed long int *shapes;
+  std::vector<signed long int> _shape_out;
+  signed long int *shape_out;
 
   int tagIJ;
   int use_half;
@@ -49,22 +49,22 @@ public:
   std::vector<int> indsP;
   int pos_first_argI;
   int pos_first_argJ;
-  size_t dimout;
+  signed long int dimout;
   int nminargs;
   int nvarsI;
   int nvarsJ;
   int nvarsP;
-  std::vector<size_t> dimsX;
-  std::vector<size_t> dimsY;
-  std::vector<size_t> dimsP;
+  std::vector<signed long int> dimsX;
+  std::vector<signed long int> dimsY;
+  std::vector<signed long int> dimsP;
 
   // constructors
   Sizes(int _nargs, TYPE **args,
-        const std::vector<std::vector<size_t>> &argshapes, size_t _nx,
-        size_t _ny, int tagIJ_, int use_half_, size_t dimout_,
+        const std::vector<std::vector<signed long int>> &argshapes, signed long int _nx,
+        signed long int _ny, int tagIJ_, int use_half_, signed long int dimout_,
         const std::vector<int> &indsI_, std::vector<int> indsJ_,
-        const std::vector<int> &indsP_, const std::vector<size_t> &dimsX_,
-        std::vector<size_t> dimsY_, const std::vector<size_t> &dimsP_) {
+        const std::vector<int> &indsP_, const std::vector<signed long int> &dimsX_,
+        std::vector<signed long int> dimsY_, const std::vector<signed long int> &dimsP_) {
 
     tagIJ = tagIJ_;
     use_half = use_half_;
@@ -131,7 +131,7 @@ public:
 
     // Compute the product of all "batch dimensions"
     nbatches = std::accumulate(_shapes.begin(), _shapes.begin() + nbatchdims, 1,
-                               std::multiplies<size_t>());
+                               std::multiplies<signed long int>());
 
     nx = nbatches * M; // = A * ... * B * M
     ny = nbatches * N; // = A * ... * B * N
@@ -146,16 +146,16 @@ public:
 
 private:
   void fill_shape(const int nargs,
-                  const std::vector<std::vector<size_t>> &argshapes);
+                  const std::vector<std::vector<signed long int>> &argshapes);
 
-  void check_ranges(const std::vector<std::vector<size_t>> &argshapes);
+  void check_ranges(const std::vector<std::vector<signed long int>> &argshapes);
 
   int MN_pos, D_pos;
 };
 
 template <typename TYPE>
 void Sizes<TYPE>::fill_shape(
-    const int nargs, const std::vector<std::vector<size_t>> &argshapes) {
+    const int nargs, const std::vector<std::vector<signed long int>> &argshapes) {
 
   int pos = std::max(pos_first_argI, pos_first_argJ);
 
@@ -206,7 +206,7 @@ void Sizes<TYPE>::fill_shape(
 
 template <typename TYPE>
 void Sizes<TYPE>::check_ranges(
-    const std::vector<std::vector<size_t>> &argshapes) {
+    const std::vector<std::vector<signed long int>> &argshapes) {
 
   // Check the compatibility of all tensor shapes
   // ==================================
@@ -371,7 +371,7 @@ void Sizes<TYPE>::check_ranges(
       }
       _shapes[off_i + nbatchdims + 2] = argshapes[i][nbatchdims]; // = "D"
 #if do_checks
-      size_t dim_param;
+      signed long int dim_param;
       if (use_half)
         dim_param = _shapes[off_i + nbatchdims + 2] / 2;
       else

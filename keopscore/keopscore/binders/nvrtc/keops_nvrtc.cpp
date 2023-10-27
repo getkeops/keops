@@ -36,8 +36,8 @@
 #include "include/CudaSizes.h"
 #include <cuda_fp16.h>
 
-size_t *build_offset_tables(int nbatchdims, size_t *shapes, size_t nblocks,
-                            size_t *lookup_h, const std::vector<int> &indsi,
+signed long int *build_offset_tables(int nbatchdims, signed long int *shapes, signed long int nblocks,
+                            signed long int *lookup_h, const std::vector<int> &indsi,
                             const std::vector<int> &indsj,
                             const std::vector<int> &indsp, int tagJ) {
 
@@ -62,12 +62,12 @@ size_t *build_offset_tables(int nbatchdims, size_t *shapes, size_t nblocks,
   // dimensions! [ 1, .., 1, M, 1, D_5  ]  ->      (we'll just ask users to fill
   // in the shapes with *explicit* ones)
 
-  std::vector<size_t> shapes_i_vec(sizei * (nbatchdims + 1));
-  size_t *shapes_i = shapes_i_vec.data();
-  std::vector<size_t> shapes_j_vec(sizej * (nbatchdims + 1));
-  size_t *shapes_j = shapes_j_vec.data();
-  std::vector<size_t> shapes_p_vec(sizep * (nbatchdims + 1));
-  size_t *shapes_p = shapes_p_vec.data();
+  std::vector<signed long int> shapes_i_vec(sizei * (nbatchdims + 1));
+  signed long int *shapes_i = shapes_i_vec.data();
+  std::vector<signed long int> shapes_j_vec(sizej * (nbatchdims + 1));
+  signed long int *shapes_j = shapes_j_vec.data();
+  std::vector<signed long int> shapes_p_vec(sizep * (nbatchdims + 1));
+  signed long int *shapes_p = shapes_p_vec.data();
 
   // First, we fill shapes_i with the "relevant" shapes of the "i" variables,
   // making it look like, say:
@@ -81,20 +81,20 @@ size_t *build_offset_tables(int nbatchdims, size_t *shapes, size_t nblocks,
 
   int tagIJ =
       tagJ; // 1 if the reduction is made "over j", 0 if it is made "over i"
-  size_t M = shapes[nbatchdims], N = shapes[nbatchdims + 1];
+  signed long int M = shapes[nbatchdims], N = shapes[nbatchdims + 1];
 
   // We create a lookup table, "offsets", of shape (nblocks, SIZEVARS) --------
-  size_t *offsets_d = NULL;
+  signed long int *offsets_d = NULL;
 
-  std::vector<size_t> offsets_h_vec(nblocks * sizevars);
-  size_t *offsets_h = offsets_h_vec.data();
+  std::vector<signed long int> offsets_h_vec(nblocks * sizevars);
+  signed long int *offsets_h = offsets_h_vec.data();
 
-  for (size_t k = 0; k < nblocks; k++) {
-    size_t range_id = (size_t)lookup_h[3 * k];
-    size_t start_x = tagIJ ? range_id * M : range_id * N;
-    size_t start_y = tagIJ ? range_id * N : range_id * M;
+  for (signed long int k = 0; k < nblocks; k++) {
+    signed long int range_id = (signed long int)lookup_h[3 * k];
+    signed long int start_x = tagIJ ? range_id * M : range_id * N;
+    signed long int start_y = tagIJ ? range_id * N : range_id * M;
 
-    size_t patch_offset = (size_t)(lookup_h[3 * k + 1] - start_x);
+    signed long int patch_offset = (signed long int)(lookup_h[3 * k + 1] - start_x);
 
     vect_broadcast_index(start_x, nbatchdims, sizei, shapes, shapes_i,
                          offsets_h + k * sizevars, patch_offset);
@@ -105,22 +105,22 @@ size_t *build_offset_tables(int nbatchdims, size_t *shapes, size_t nblocks,
   }
 
   CUDA_SAFE_CALL(cuMemAlloc((CUdeviceptr *)&offsets_d,
-                            sizeof(size_t) * nblocks * sizevars));
+                            sizeof(signed long int) * nblocks * sizevars));
   CUDA_SAFE_CALL(cuMemcpyHtoD((CUdeviceptr)offsets_d, offsets_h,
-                              sizeof(size_t) * nblocks * sizevars));
+                              sizeof(signed long int) * nblocks * sizevars));
 
   return offsets_d;
 }
 
-void range_preprocess_from_device(size_t &nblocks, int tagI, size_t nranges_x,
-                                  size_t nranges_y, size_t **castedranges,
-                                  int nbatchdims, size_t *&slices_x_d,
-                                  size_t *&ranges_y_d, size_t *&lookup_d,
-                                  size_t *&offsets_d, size_t blockSize_x,
+void range_preprocess_from_device(signed long int &nblocks, int tagI, signed long int nranges_x,
+                                  signed long int nranges_y, signed long int **castedranges,
+                                  int nbatchdims, signed long int *&slices_x_d,
+                                  signed long int *&ranges_y_d, signed long int *&lookup_d,
+                                  signed long int *&offsets_d, signed long int blockSize_x,
                                   const std::vector<int> &indsi,
                                   const std::vector<int> &indsj,
                                   const std::vector<int> &indsp,
-                                  size_t *shapes) {
+                                  signed long int *shapes) {
 
   // Ranges pre-processing...
   // ==================================================================
@@ -134,15 +134,15 @@ void range_preprocess_from_device(size_t &nblocks, int tagI, size_t nranges_x,
   //    FUN::tagJ = 0 for a reduction over i, result indexed by j
 
   int tagJ = 1 - tagI;
-  size_t nranges = tagJ ? nranges_x : nranges_y;
+  signed long int nranges = tagJ ? nranges_x : nranges_y;
 
-  size_t *ranges_x = tagJ ? castedranges[0] : castedranges[3];
-  size_t *slices_x = tagJ ? castedranges[1] : castedranges[4];
-  size_t *ranges_y = tagJ ? castedranges[2] : castedranges[5];
+  signed long int *ranges_x = tagJ ? castedranges[0] : castedranges[3];
+  signed long int *slices_x = tagJ ? castedranges[1] : castedranges[4];
+  signed long int *ranges_y = tagJ ? castedranges[2] : castedranges[5];
 
-  std::vector<size_t> ranges_x_h_arr_vec(2 * nranges);
-  size_t *ranges_x_h_arr = ranges_x_h_arr_vec.data();
-  size_t *ranges_x_h;
+  std::vector<signed long int> ranges_x_h_arr_vec(2 * nranges);
+  signed long int *ranges_x_h_arr = ranges_x_h_arr_vec.data();
+  signed long int *ranges_x_h;
 
   // The code below needs a pointer to ranges_x on *host* memory,
   // ------------------- as well as pointers to slices_x and ranges_y on
@@ -167,23 +167,23 @@ void range_preprocess_from_device(size_t &nblocks, int tagI, size_t nranges_x,
     ranges_x_h = ranges_x;
     // Copy "slices_x" to the device:
     CUDA_SAFE_CALL(
-        cuMemAlloc((CUdeviceptr *)&slices_x_d, sizeof(size_t) * nranges));
+        cuMemAlloc((CUdeviceptr *)&slices_x_d, sizeof(signed long int) * nranges));
     CUDA_SAFE_CALL(cuMemcpyHtoD((CUdeviceptr)slices_x_d, slices_x,
-                                sizeof(size_t) * nranges));
+                                sizeof(signed long int) * nranges));
 
     // Copy "redranges_y" to the device: with batch processing, we KNOW that
     // they have the same shape as ranges_x
     CUDA_SAFE_CALL(
-        cuMemAlloc((CUdeviceptr *)&ranges_y_d, sizeof(size_t) * 2 * nranges));
+        cuMemAlloc((CUdeviceptr *)&ranges_y_d, sizeof(signed long int) * 2 * nranges));
     CUDA_SAFE_CALL(cuMemcpyHtoD((CUdeviceptr)ranges_y_d, ranges_y,
-                                sizeof(size_t) * 2 * nranges));
+                                sizeof(signed long int) * 2 * nranges));
   }
 
   // Computes the number of blocks needed
   // ---------------------------------------------
   nblocks = 0;
-  size_t len_range = 0;
-  for (size_t i = 0; i < nranges; i++) {
+  signed long int len_range = 0;
+  for (signed long int i = 0; i < nranges; i++) {
     len_range = ranges_x_h[2 * i + 1] - ranges_x_h[2 * i];
     nblocks +=
         (len_range / blockSize_x) + (len_range % blockSize_x == 0 ? 0 : 1);
@@ -191,17 +191,17 @@ void range_preprocess_from_device(size_t &nblocks, int tagI, size_t nranges_x,
 
   // Create a lookup table for the blocks
   // --------------------------------------------
-  std::vector<size_t> lookup_h_vec(3 * nblocks);
-  size_t *lookup_h = lookup_h_vec.data();
-  size_t index = 0;
+  std::vector<signed long int> lookup_h_vec(3 * nblocks);
+  signed long int *lookup_h = lookup_h_vec.data();
+  signed long int index = 0;
 
-  for (size_t i = 0; i < nranges; i++) {
+  for (signed long int i = 0; i < nranges; i++) {
     len_range = ranges_x_h[2 * i + 1] - ranges_x_h[2 * i];
-    for (size_t j = 0; j < len_range; j += blockSize_x) {
+    for (signed long int j = 0; j < len_range; j += blockSize_x) {
       lookup_h[3 * index] = i;
       lookup_h[3 * index + 1] = ranges_x_h[2 * i] + j;
       lookup_h[3 * index + 2] =
-          ranges_x_h[2 * i] + j + std::min((size_t)blockSize_x, len_range - j);
+          ranges_x_h[2 * i] + j + std::min((signed long int)blockSize_x, len_range - j);
       index++;
     }
   }
@@ -209,9 +209,9 @@ void range_preprocess_from_device(size_t &nblocks, int tagI, size_t nranges_x,
   // Load the table on the device
   // -----------------------------------------------------
   CUDA_SAFE_CALL(
-      cuMemAlloc((CUdeviceptr *)&lookup_d, sizeof(size_t) * 3 * nblocks));
+      cuMemAlloc((CUdeviceptr *)&lookup_d, sizeof(signed long int) * 3 * nblocks));
   CUDA_SAFE_CALL(cuMemcpyHtoD((CUdeviceptr)lookup_d, lookup_h,
-                              sizeof(size_t) * 3 * nblocks));
+                              sizeof(signed long int) * 3 * nblocks));
 
   // Support for broadcasting over batch dimensions
   // =============================================
@@ -224,15 +224,15 @@ void range_preprocess_from_device(size_t &nblocks, int tagI, size_t nranges_x,
   }
 }
 
-void range_preprocess_from_host(size_t &nblocks, int tagI, size_t nranges_x,
-                                size_t nranges_y, size_t nredranges_x,
-                                size_t nredranges_y, size_t **castedranges,
-                                int nbatchdims, size_t *&slices_x_d,
-                                size_t *&ranges_y_d, size_t *&lookup_d,
-                                size_t *&offsets_d, size_t blockSize_x,
+void range_preprocess_from_host(signed long int &nblocks, int tagI, signed long int nranges_x,
+                                signed long int nranges_y, signed long int nredranges_x,
+                                signed long int nredranges_y, signed long int **castedranges,
+                                int nbatchdims, signed long int *&slices_x_d,
+                                signed long int *&ranges_y_d, signed long int *&lookup_d,
+                                signed long int *&offsets_d, signed long int blockSize_x,
                                 const std::vector<int> &indsi,
                                 const std::vector<int> &indsj,
-                                const std::vector<int> &indsp, size_t *shapes) {
+                                const std::vector<int> &indsp, signed long int *shapes) {
 
   // Ranges pre-processing...
   // ==================================================================
@@ -246,18 +246,18 @@ void range_preprocess_from_host(size_t &nblocks, int tagI, size_t nranges_x,
   //    FUN::tagJ = 0 for a reduction over i, result indexed by j
 
   int tagJ = 1 - tagI;
-  size_t nranges = tagJ ? nranges_x : nranges_y;
-  size_t nredranges = tagJ ? nredranges_y : nredranges_x;
+  signed long int nranges = tagJ ? nranges_x : nranges_y;
+  signed long int nredranges = tagJ ? nredranges_y : nredranges_x;
 
-  size_t *ranges_x = tagJ ? castedranges[0] : castedranges[3];
-  size_t *slices_x = tagJ ? castedranges[1] : castedranges[4];
-  size_t *ranges_y = tagJ ? castedranges[2] : castedranges[5];
+  signed long int *ranges_x = tagJ ? castedranges[0] : castedranges[3];
+  signed long int *slices_x = tagJ ? castedranges[1] : castedranges[4];
+  signed long int *ranges_y = tagJ ? castedranges[2] : castedranges[5];
 
   // Computes the number of blocks needed
   // ---------------------------------------------
   nblocks = 0;
-  size_t len_range = 0;
-  for (size_t i = 0; i < nranges; i++) {
+  signed long int len_range = 0;
+  for (signed long int i = 0; i < nranges; i++) {
     len_range = ranges_x[2 * i + 1] - ranges_x[2 * i];
     nblocks +=
         (len_range / blockSize_x) + (len_range % blockSize_x == 0 ? 0 : 1);
@@ -265,17 +265,17 @@ void range_preprocess_from_host(size_t &nblocks, int tagI, size_t nranges_x,
 
   // Create a lookup table for the blocks
   // --------------------------------------------
-  std::vector<size_t> lookup_h_vec(3 * nblocks);
-  size_t *lookup_h = lookup_h_vec.data();
-  size_t index = 0;
+  std::vector<signed long int> lookup_h_vec(3 * nblocks);
+  signed long int *lookup_h = lookup_h_vec.data();
+  signed long int index = 0;
 
-  for (size_t i = 0; i < nranges; i++) {
+  for (signed long int i = 0; i < nranges; i++) {
     len_range = ranges_x[2 * i + 1] - ranges_x[2 * i];
-    for (size_t j = 0; j < len_range; j += blockSize_x) {
+    for (signed long int j = 0; j < len_range; j += blockSize_x) {
       lookup_h[3 * index] = i;
       lookup_h[3 * index + 1] = ranges_x[2 * i] + j;
       lookup_h[3 * index + 2] =
-          ranges_x[2 * i] + j + std::min((size_t)blockSize_x, len_range - j);
+          ranges_x[2 * i] + j + std::min((signed long int)blockSize_x, len_range - j);
       index++;
     }
   }
@@ -283,20 +283,20 @@ void range_preprocess_from_host(size_t &nblocks, int tagI, size_t nranges_x,
   // Load the table on the device
   // -----------------------------------------------------
   CUDA_SAFE_CALL(
-      cuMemAlloc((CUdeviceptr *)&lookup_d, sizeof(size_t) * 3 * nblocks));
+      cuMemAlloc((CUdeviceptr *)&lookup_d, sizeof(signed long int) * 3 * nblocks));
   CUDA_SAFE_CALL(cuMemcpyHtoD((CUdeviceptr)lookup_d, lookup_h,
-                              sizeof(size_t) * 3 * nblocks));
+                              sizeof(signed long int) * 3 * nblocks));
 
   // Send data from host to device:
   CUDA_SAFE_CALL(
-      cuMemAlloc((CUdeviceptr *)&slices_x_d, sizeof(size_t) * 2 * nranges));
+      cuMemAlloc((CUdeviceptr *)&slices_x_d, sizeof(signed long int) * 2 * nranges));
   CUDA_SAFE_CALL(cuMemcpyHtoD((CUdeviceptr)slices_x_d, slices_x,
-                              sizeof(size_t) * 2 * nranges));
+                              sizeof(signed long int) * 2 * nranges));
 
   CUDA_SAFE_CALL(
-      cuMemAlloc((CUdeviceptr *)&ranges_y_d, sizeof(size_t) * 2 * nredranges));
+      cuMemAlloc((CUdeviceptr *)&ranges_y_d, sizeof(signed long int) * 2 * nredranges));
   CUDA_SAFE_CALL(cuMemcpyHtoD((CUdeviceptr)ranges_y_d, ranges_y,
-                              sizeof(size_t) * 2 * nredranges));
+                              sizeof(signed long int) * 2 * nredranges));
 
   // Support for broadcasting over batch dimensions
   // =============================================
@@ -328,8 +328,8 @@ public:
 
   void Read_Target(const char *target_file_name) {
     std::ifstream rf(target_file_name, std::ifstream::binary);
-    size_t targetSize;
-    rf.read((char *)&targetSize, sizeof(size_t));
+    signed long int targetSize;
+    rf.read((char *)&targetSize, sizeof(signed long int));
     target = new char[targetSize];
     rf.read(target, targetSize);
     rf.close();
@@ -373,15 +373,15 @@ public:
     delete[] target;
   }
 
-  int launch_kernel(int tagHostDevice, size_t dimY, size_t nx, size_t ny,
+  int launch_kernel(int tagHostDevice, signed long int dimY, signed long int nx, signed long int ny,
                     int tagI, int tagZero, int use_half, int tag1D2D,
-                    size_t dimred, size_t cuda_block_size, int use_chunk_mode,
+                    signed long int dimred, signed long int cuda_block_size, int use_chunk_mode,
                     std::vector<int> indsi, std::vector<int> indsj,
-                    std::vector<int> indsp, size_t dimout,
-                    std::vector<size_t> dimsx, std::vector<size_t> dimsy,
-                    std::vector<size_t> dimsp, size_t **ranges,
-                    std::vector<size_t> shapeout, TYPE *out, TYPE **arg,
-                    std::vector<std::vector<size_t>> argshape) {
+                    std::vector<int> indsp, signed long int dimout,
+                    std::vector<signed long int> dimsx, std::vector<signed long int> dimsy,
+                    std::vector<signed long int> dimsp, signed long int **ranges,
+                    std::vector<signed long int> shapeout, TYPE *out, TYPE **arg,
+                    std::vector<std::vector<signed long int>> argshape) {
 
     SetContext();
 
@@ -420,7 +420,7 @@ public:
       indsj = indsi;
       indsi = tmpind;
 
-      std::vector<size_t> tmpdim;
+      std::vector<signed long int> tmpdim;
       tmpdim = dimsy;
       dimsy = dimsx;
       dimsx = tmpdim;
@@ -434,10 +434,10 @@ public:
       blockSize_x = std::min(
           cuda_block_size,
           std::min(
-              (size_t)maxThreadsPerBlock,
-              (size_t)(sharedMemPerBlock /
-                       std::max((size_t)1,
-                                (size_t)(dimY *
+              (signed long int)maxThreadsPerBlock,
+              (signed long int)(sharedMemPerBlock /
+                       std::max((signed long int)1,
+                                (signed long int)(dimY *
                                          sizeof(TYPE)))))); // number of threads
                                                             // in each block
     } else {
@@ -445,23 +445,23 @@ public:
       // GpuReduc1D_chunks.py, line 59 and file GpuReduc1D_finalchunks.py, line
       // 67
       blockSize_x =
-          std::min((size_t)cuda_block_size,
-                   std::min((size_t)1024,
-                            (size_t)((size_t)49152 /
-                                     std::max((size_t)1,
-                                              (size_t)(dimY * sizeof(TYPE))))));
+          std::min((signed long int)cuda_block_size,
+                   std::min((signed long int)1024,
+                            (signed long int)((signed long int)49152 /
+                                     std::max((signed long int)1,
+                                              (signed long int)(dimY * sizeof(TYPE))))));
     }
 
-    size_t nblocks;
+    signed long int nblocks;
 
     if (tagI == 1) {
-      size_t tmp = ny;
+      signed long int tmp = ny;
       ny = nx;
       nx = tmp;
     }
 
-    size_t *lookup_d = NULL, *slices_x_d = NULL, *ranges_y_d = NULL;
-    size_t *offsets_d = NULL;
+    signed long int *lookup_d = NULL, *slices_x_d = NULL, *ranges_y_d = NULL;
+    signed long int *offsets_d = NULL;
 
     if (RR.tagRanges == 1) {
       if (tagHostDevice == 1) {
@@ -487,8 +487,8 @@ public:
     TYPE *out_d;
     TYPE **arg_d;
 
-    size_t sizeout = std::accumulate(shapeout.begin(), shapeout.end(), 1,
-                                     std::multiplies<size_t>());
+    signed long int sizeout = std::accumulate(shapeout.begin(), shapeout.end(), 1,
+                                     std::multiplies<signed long int>());
 
     if (tagHostDevice == 1) {
       p_data = buffer;

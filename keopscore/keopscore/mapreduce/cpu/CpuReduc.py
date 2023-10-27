@@ -42,15 +42,15 @@ class CpuReduc(MapReduce, Cpu_link_compile):
         self.code = f"""
 {self.headers}
 template < typename TYPE > 
-int CpuConv_{self.gencode_filename}(size_t nx, size_t ny, TYPE* out, TYPE **{arg.id}) {{
+int CpuConv_{self.gencode_filename}(signed long int nx, signed long int ny, TYPE* out, TYPE **{arg.id}) {{
     #pragma omp parallel for
-    for (size_t i = 0; i < nx; i++) {{
+    for (signed long int i = 0; i < nx; i++) {{
         {fout.declare()}
         {acc.declare()}
         {sum_scheme.declare_temporary_accumulator()}
         {red_formula.InitializeReduction(acc)}
         {sum_scheme.initialize_temporary_accumulator()}
-        for (size_t j = 0; j < ny; j++) {{
+        for (signed long int j = 0; j < ny; j++) {{
             {red_formula.formula(fout,table)}
             {sum_scheme.accumulate_result(acc, fout, j)}
             {sum_scheme.periodic_accumulate_temporary(acc, j)}
@@ -67,10 +67,10 @@ int CpuConv_{self.gencode_filename}(size_t nx, size_t ny, TYPE* out, TYPE **{arg
 #include <vector>
 
 template < typename TYPE > 
-int launch_keops_{self.gencode_filename}(size_t nx, size_t ny, int tagI, TYPE *out, TYPE **arg) {{
+int launch_keops_{self.gencode_filename}(signed long int nx, signed long int ny, int tagI, TYPE *out, TYPE **arg) {{
     
     if (tagI==1) {{
-        size_t tmp = ny;
+        signed long int tmp = ny;
         ny = nx;
         nx = tmp;
     }}
@@ -79,21 +79,21 @@ int launch_keops_{self.gencode_filename}(size_t nx, size_t ny, int tagI, TYPE *o
 
 }}
 template < typename TYPE >
-int launch_keops_cpu_{self.gencode_filename}(size_t dimY,
-                                             size_t nx,
-                                             size_t ny,
+int launch_keops_cpu_{self.gencode_filename}(signed long int dimY,
+                                             signed long int nx,
+                                             signed long int ny,
                                              int tagI,
                                              int tagZero,
                                              int use_half,
-                                             size_t dimred,
+                                             signed long int dimred,
                                              int use_chunk_mode,
                                              std::vector< int > indsi, std::vector< int > indsj, std::vector< int > indsp,
-                                             size_t dimout,
-                                             std::vector< size_t > dimsx, std::vector< size_t > dimsy, std::vector< size_t > dimsp,
-                                             size_t **ranges,
-                                             std::vector< size_t > shapeout, TYPE *out,
+                                             signed long int dimout,
+                                             std::vector< signed long int > dimsx, std::vector< signed long int > dimsy, std::vector< signed long int > dimsp,
+                                             signed long int **ranges,
+                                             std::vector< signed long int > shapeout, TYPE *out,
                                              TYPE **arg,
-                                             std::vector< std::vector< size_t > > argshape) {{
+                                             std::vector< std::vector< signed long int > > argshape) {{
 
     
     return launch_keops_{self.gencode_filename} < TYPE >(nx, ny, tagI, out, arg);
