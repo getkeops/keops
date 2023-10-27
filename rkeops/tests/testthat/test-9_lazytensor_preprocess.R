@@ -1000,23 +1000,80 @@ test_that("fixvariables", {
 
 
 test_that("fix_op_reduction", {
-  op_sum <- "Sum"
-  op_lse <- "LogSumExp"
-  op_ssm <- "SumSoftMaxWeight"
   
-  expect_equal(fix_op_reduction(op_sum), op_sum)
-  expect_equal(fix_op_reduction(op_sum, with_weight = TRUE), op_sum)
+  op <- "Sum"
+  expect_equal(fix_op_reduction(op), op)
+  expect_equal(fix_op_reduction(op, with_weight = TRUE), op)
   
-  expect_equal(fix_op_reduction(op_lse), "Max_SumShiftExp")
+  op <- "Argmin"
+  expect_equal(fix_op_reduction(op), op)
+  expect_equal(fix_op_reduction(op, with_weight = TRUE), op)
+  
+  op <- "Min_Argmin"
+  expect_equal(fix_op_reduction(op), op)
+  expect_equal(fix_op_reduction(op, with_weight = TRUE), op)
+  
+  op <- "LogSumExp"
+  expect_equal(fix_op_reduction(op), "Max_SumShiftExp")
   expect_equal(
-    fix_op_reduction(op_lse, with_weight = TRUE), 
+    fix_op_reduction(op, with_weight = TRUE), 
     "Max_SumShiftExpWeight"
   )
   
-  expect_equal(fix_op_reduction(op_ssm), "Max_SumShiftExpWeight")
+  op <- "SumSoftMaxWeight"
+  expect_equal(fix_op_reduction(op), "Max_SumShiftExpWeight")
   expect_equal(
-    fix_op_reduction(op_ssm, with_weight = TRUE), 
+    fix_op_reduction(op, with_weight = TRUE), 
     "Max_SumShiftExpWeight"
   )
   
+})
+
+
+test_that("preprocess_reduction", {
+    
+    x <- matrix(runif(10), 5, 2)
+    x_i <- LazyTensor(x, index = "i")
+    opstr <- "Sum"
+    index <- "i"
+    opt_arg <- NA
+    
+    op <- preprocess_reduction(x_i, opstr, index, opt_arg = NA)
+    expect_equal(
+        op(),
+        list(
+            formula = "Sum_Reduction(V0,0)", args = "V0=Vi(2)",
+            args_info = list(
+                args = "V0=Vi(2)", var_name = "V0", var_type = "Vi", 
+                var_pos = 0, var_dim = 2, decl = "dim"), 
+            sum_scheme = "auto"
+        )
+    )
+    res <- op(list(x))
+    expected_res <- apply(x, 2, sum)
+    expect_equal(as.vector(res), expected_res, tolerance = 1e-5)
+    
+    
+    x <- matrix(runif(10), 5, 2)
+    x_i <- LazyTensor(x, index = "i")
+    opstr <- "Min_ArgMin"
+    index <- "i"
+    opt_arg <- NA
+    op <- preprocess_reduction(x_i, opstr, index, opt_arg = NA)
+    expect_equal(
+        op(),
+        list(
+            formula = "Min_ArgMin_Reduction(V0,0)", args = "V0=Vi(2)",
+            args_info = list(
+                args = "V0=Vi(2)", var_name = "V0", var_type = "Vi", 
+                var_pos = 0, var_dim = 2, decl = "dim"), 
+            sum_scheme = "auto"
+        )
+    )
+    res <- op(list(x))
+    expected_res <- list(
+        apply(x, 2, min),
+        apply(x, 2, which.min) - 1
+    )
+    expect_equal(lapply(res, as.vector), expected_res, tolerance = 1e-5)
 })
