@@ -226,12 +226,16 @@ class GpuReduc1D_ranges_chunks(MapReduce, Gpu_link_compile):
         indices_j = c_array("signed long int", nvarsj, "indices_j")
         indices_p = c_array("signed long int", nvarsp, "indices_p")
 
-        declare_assign_indices_i = "signed long int *indices_i = offsets;" if nvarsi > 0 else ""
+        declare_assign_indices_i = (
+            "signed long int *indices_i = offsets;" if nvarsi > 0 else ""
+        )
         declare_assign_indices_j = (
             f"signed long int *indices_j = offsets + {nvarsi};" if nvarsj > 0 else ""
         )
         declare_assign_indices_p = (
-            f"signed long int *indices_p = offsets + {nvarsi} + {nvarsj};" if nvarsp > 0 else ""
+            f"signed long int *indices_p = offsets + {nvarsi} + {nvarsj};"
+            if nvarsp > 0
+            else ""
         )
 
         yjrel = c_array(dtype, varloader_global.dimy, "yjrel")
