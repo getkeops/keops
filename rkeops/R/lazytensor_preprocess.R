@@ -1246,15 +1246,14 @@ fixvariables <- function(x, is_opt = FALSE){
 #' internal reduction operation according to `reduction_op` and a possible 
 #' optional weight argument. Some advance operations defined at user level use, 
 #' in fact, other internal reductions:
-#' \itemize{
-#'     \item If `reduction_op == "LogSumExp"`, the internal reduction operation
-#'     is `"Max_SumShiftExp"` or `"Max_SumShiftExpWeight"` depending on 
-#'     `with_weight`;
-#'     \item If `reduction_op == "SumSoftMax"`, the internal reduction operation
-#'     is `"Max_SumShiftExpWeight"`;
-#'     \item Else, for every other value of `reduction_op`, the internal 
-#'     reduction operation is `reduction_op`.
-#'}
+#' - If `reduction_op == "LogSumExp"`, the internal reduction operation
+#'   is `"Max_SumShiftExp"` or `"Max_SumShiftExpWeight"` depending on 
+#'   `with_weight`;
+#' - If `reduction_op == "SumSoftMax"`, the internal reduction operation
+#'   is `"Max_SumShiftExpWeight"`;
+#' - Else, for every other value of `reduction_op`, the internal 
+#'   reduction operation is `reduction_op`.
+#' 
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param reduction_op A text `string` corresponding to a reduction.
 #' @param with_weight A `boolean` which is `TRUE` when there is an optional 
@@ -1288,18 +1287,17 @@ fix_op_reduction <- function(reduction_op, with_weight = FALSE){
 #' @description
 #' Returns a `function` for a reduction to a `LazyTensor` and it is called in 
 #' `rkeops::reduction.LazyTensor()`.
-#' @details `preprocess_reduction(x, opstr, index)` will :
-#' \itemize{
-#'   \item{ if **index = "i"**, return a `function` corresponding to the 
-#'   **opstr** reduction of **x** over the "i" indexes;}
-#'   \item{ if **index = "j"**, return a `function` corresponding to the 
-#'   **opstr** reduction of **x** over the "j" indexes.}
-#' }
+#' @details `preprocess_reduction(x, opstr, index)` will:
+#' - if `index = "i"`, return a `function` corresponding to the 
+#'   `opstr` reduction of `x` over the `i` indexes;
+#' - if `index = "j"`, return a `function` corresponding to the 
+#'   `opstr` reduction of `x` over the `j` indexes.
+#' 
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `LazyTensor` or a `ComplexLazyTensor`.
 #' @param opstr A `string` formula (like "Sum" or "Max").
-#' @param index A `character` that should be either **i** or **j** to specify 
-#' whether if the reduction is indexed by **i** (rows), or **j** (columns).
+#' @param index A `character` that should be either `i` or `j` to specify 
+#' whether if the reduction is indexed by `i` (rows), or `j` (columns).
 #' @param opt_arg An optional argument : an `interger` (for "Kmin" reduction),
 #' a `character`, `LazyTensor` or a `ComplexLazyTensor`.
 #' @return A `function`.
@@ -1340,8 +1338,7 @@ preprocess_reduction <- function(x, opstr, index, opt_arg = NA) {
                         ",",  opt_arg, ",", tag, ")", sep = "")
     }
     
-  }
-  else {
+  } else {
     formula <- paste(opstr_internal, "_Reduction(", tmp$formula, ",", 
                      tag, ")", sep = "")
   }
