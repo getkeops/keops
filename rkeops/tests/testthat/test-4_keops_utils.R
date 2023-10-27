@@ -61,4 +61,31 @@ test_that("get_pykeops_formula", {
         list(reduction_op = "Sum", main_formula = "Grad(SqNorm2(x-y),x,eta)", 
              axis = 0L, opt_arg = NULL)
     )
+    
+    formula <- "Min_ArgMin_Reduction(x, 0)"
+    res <- get_pykeops_formula(formula)
+    expect_equal(
+        res,
+        list(reduction_op = "Min_ArgMin", main_formula = "x", 
+             axis = 0L, opt_arg = NULL)
+    )
+    
+    formula <- "Grad(Min_ArgMin_Reduction(SqNorm2(x-y), 0), x, eta)"
+    res <- get_pykeops_formula(formula)
+    expect_equal(
+        res,
+        list(reduction_op = "Min_ArgMin", 
+             main_formula = "Grad(SqNorm2(x-y),x,eta)", 
+             axis = 0L, opt_arg = NULL)
+    )
+    
+    formula <- "Min_ArgMin_Reduction(Grad(SqNorm2(x-y), x, eta), 0)"
+    res <- get_pykeops_formula(formula)
+    expect_equal(
+        res,
+        list(reduction_op = "Min_ArgMin", 
+             main_formula = "Grad(SqNorm2(x-y),x,eta)", 
+             axis = 0L, opt_arg = NULL)
+    )
+    
 })

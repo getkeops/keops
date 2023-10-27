@@ -198,7 +198,7 @@ get_pykeops_formula <- function(
     }
     
     # extract reduction operator
-    reduction_op <- str_extract(formula, "[^_]+")
+    reduction_op <- str_extract(formula, ".+(?=_Reduction)")
     # extract reduction arguments
     reduction_args <- unlist(strsplit(tmp_form, ","))
     
