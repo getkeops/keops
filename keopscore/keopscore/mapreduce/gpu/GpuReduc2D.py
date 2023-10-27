@@ -6,7 +6,12 @@ from keopscore.formulas.reductions.sum_schemes import (
 )
 from keopscore.mapreduce.gpu.GpuAssignZero import GpuAssignZero
 from keopscore.mapreduce.MapReduce import MapReduce
-from keopscore.utils.code_gen_utils import c_variable, c_array, use_pragma_unroll
+from keopscore.utils.code_gen_utils import (
+    c_variable,
+    c_array,
+    use_pragma_unroll,
+    c_zero_float,
+)
 from keopscore.utils.misc_utils import KeOps_Error
 
 
@@ -77,7 +82,7 @@ class GpuReduc2D(MapReduce, Gpu_link_compile):
                           
                         {self.headers}
                         
-                        extern "C" __global__ void reduce2D({dtype} *in, {dtype} *out, size_t sizeY, size_t nx) {{
+                        extern "C" __global__ void reduce2D({dtype} *in, {dtype} *out, unsigned int sizeY, size_t nx) {{
                             /* Function used as a final reduction pass in the 2D scheme,
                              * once the block reductions have been made.
                              * Takes as input:

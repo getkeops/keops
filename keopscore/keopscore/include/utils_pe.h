@@ -57,7 +57,6 @@ char *read_text_file(char const *path) {
 template <typename TYPE>
 void load_args_FromDevice(CUdeviceptr &p_data, TYPE *out, TYPE *&out_d,
                           int nargs, TYPE **arg, TYPE **&arg_d) {
-  CUDA_SAFE_CALL(cuMemAlloc(&p_data, sizeof(TYPE *) * nargs));
   out_d = out;
   arg_d = (TYPE **)p_data;
   // copy array of pointers

@@ -426,7 +426,7 @@ public:
       dimsx = tmpdim;
     }
 
-    size_t blockSize_x = 1, blockSize_y = 1, blockSize_z = 1;
+    unsigned int blockSize_x = 1, blockSize_y = 1, blockSize_z = 1;
 
     if (use_chunk_mode == 0) {
       // warning : blockSize.x was previously set to CUDA_BLOCK_SIZE; currently
@@ -504,7 +504,7 @@ public:
 
     CUfunction kernel;
 
-    size_t gridSize_x = 1, gridSize_y = 1, gridSize_z = 1;
+    unsigned int gridSize_x = 1, gridSize_y = 1, gridSize_z = 1;
 
     if (tag1D2D == 1) { // 2D scheme
 
@@ -512,9 +512,9 @@ public:
       gridSize_y = ny / blockSize_x + (ny % blockSize_x == 0 ? 0 : 1);
 
       // Reduce : grid and block are both 1d
-      size_t blockSize2_x = 1, blockSize2_y = 1, blockSize2_z = 1;
+      unsigned int blockSize2_x = 1, blockSize2_y = 1, blockSize2_z = 1;
       blockSize2_x = blockSize_x; // number of threads in each block
-      size_t gridSize2_x = 1, gridSize2_y = 1, gridSize2_z = 1;
+      unsigned int gridSize2_x = 1, gridSize2_y = 1, gridSize2_z = 1;
       gridSize2_x = (nx * dimred) / blockSize2_x +
                     ((nx * dimred) % blockSize2_x == 0 ? 0 : 1);
 
@@ -527,7 +527,7 @@ public:
       CUDA_SAFE_CALL(
           cuMemAlloc(&p_data_outB, sizeof(TYPE) * (nx * dimred * gridSize_y)));
 
-      outB = (TYPE *)((TYPE **)p_data);
+      outB = (TYPE *)((TYPE **)p_data_outB);
 
       CUDA_SAFE_CALL(cuModuleGetFunction(&kernel, module, "GpuConv2DOnDevice"));
 
@@ -563,6 +563,8 @@ public:
           blockSize2_x, blockSize2_y, blockSize2_z,             // block dim
           0, NULL, // shared mem and stream
           kernel_reduce_params, 0));
+
+      CUDA_SAFE_CALL(cuMemFree(p_data_outB));
 
     } else if (RR.tagRanges == 1 && tagZero == 0) {
       // ranges mode
@@ -628,7 +630,8 @@ public:
           cuMemcpyDtoH(out, (CUdeviceptr)out_d, sizeof(TYPE) * sizeout));
     }
 
-    CUDA_SAFE_CALL(cuMemFree(p_data));
+    if (tagHostDevice == 0)
+      CUDA_SAFE_CALL(cuMemFree(p_data));
 
     if (RR.tagRanges == 1) {
       CUDA_SAFE_CALL(cuMemFree((CUdeviceptr)lookup_d));
