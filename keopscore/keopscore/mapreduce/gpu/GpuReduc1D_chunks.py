@@ -107,7 +107,7 @@ def do_chunk_sub(
                 __syncthreads();
                 if ({i.id} < {nx.id}) {{ // we compute only if needed
                     {dtype} *yjrel = {yj.id}; // Loop on the columns of the current block.
-                    for (int jrel = 0; (jrel < blockDim.x) && (jrel < {ny.id} - jstart); jrel++, yjrel += {chk.dimy}) {{
+                    for (signed long int jrel = 0; (jrel < blockDim.x) && (jrel < {ny.id} - jstart); jrel++, yjrel += {chk.dimy}) {{
                         {dtype} *foutj = {fout.id} + jrel*{chk.fun_chunked.dim};
                         {fun_chunked_curr(fout_tmp_chunk, chktable)}
                         {chk.fun_chunked.acc_chunk(foutj, fout_tmp_chunk)}
@@ -148,7 +148,7 @@ class GpuReduc1D_chunks(MapReduce, Gpu_link_compile):
 
         yjrel = c_array(dtype, varloader.dimy, "yjrel")
 
-        jreltile = c_variable("int", "(jrel + tile * blockDim.x)")
+        jreltile = c_variable("signed long int", "(jrel + tile * blockDim.x)")
 
         chk = self.chk
         param_loc = c_array(dtype, chk.dimp, "param_loc")
@@ -165,12 +165,12 @@ class GpuReduc1D_chunks(MapReduce, Gpu_link_compile):
             pointer(dtype), f"({fout_chunk.id}+jrel*{chk.dimout_chunk})"
         )
 
-        tile = c_variable("int", "tile")
-        nx = c_variable("int", "nx")
-        ny = c_variable("int", "ny")
+        tile = c_variable("signed long int", "tile")
+        nx = c_variable("signed long int", "nx")
+        ny = c_variable("signed long int", "ny")
 
-        jstart = c_variable("int", "jstart")
-        chunk = c_variable("int", "chunk")
+        jstart = c_variable("signed long int", "jstart")
+        chunk = c_variable("signed long int", "chunk")
 
         chunk_sub_routine = do_chunk_sub(
             dtype,
@@ -202,7 +202,7 @@ class GpuReduc1D_chunks(MapReduce, Gpu_link_compile):
             param_loc,
         )
 
-        last_chunk = c_variable("int", f"{chk.nchunks - 1}")
+        last_chunk = c_variable("signed long int", f"{chk.nchunks - 1}")
         chunk_sub_routine_last = do_chunk_sub(
             dtype,
             red_formula,
@@ -256,10 +256,10 @@ class GpuReduc1D_chunks(MapReduce, Gpu_link_compile):
                           
                         {self.headers}
                         
-                        extern "C" __global__ void GpuConv1DOnDevice(int nx, int ny, {dtype} *out, {dtype} **{arg.id}) {{
+                        extern "C" __global__ void GpuConv1DOnDevice(signed long int nx, signed long int ny, {dtype} *out, {dtype} **{arg.id}) {{
     
                           // get the index of the current thread
-                          int i = blockIdx.x * blockDim.x + threadIdx.x;
+                          signed long int i = blockIdx.x * blockDim.x + threadIdx.x;
 
                           // declare shared mem
                           extern __shared__ {dtype} yj[];
@@ -285,10 +285,10 @@ class GpuReduc1D_chunks(MapReduce, Gpu_link_compile):
                             {load_vars(chk.dimsx_notchunked, chk.indsi_notchunked, xi, args, row_index=i)} // load xi variables from global memory to local thread memory
                           }}
 
-                          for (int jstart = 0, tile = 0; jstart < ny; jstart += blockDim.x, tile++) {{
+                          for (signed long int jstart = 0, tile = 0; jstart < ny; jstart += blockDim.x, tile++) {{
 
                             // get the current column
-                            int j = tile * blockDim.x + threadIdx.x;
+                            signed long int j = tile * blockDim.x + threadIdx.x;
 
                             if (j < ny) {{ // we load yj from device global memory only if j<ny
                               {load_vars(chk.dimsy_notchunked, chk.indsj_notchunked, yjloc, args, row_index=j)} 
@@ -296,7 +296,7 @@ class GpuReduc1D_chunks(MapReduce, Gpu_link_compile):
                             __syncthreads();
 
                             if (i < nx) {{ // we compute x1i only if needed
-                              for (int jrel = 0; (jrel < blockDim.x) && (jrel < ny - jstart); jrel++) {{
+                              for (signed long int jrel = 0; (jrel < blockDim.x) && (jrel < ny - jstart); jrel++) {{
                                 {chk.fun_chunked.initacc_chunk(fout_chunk_loc)}
                               }}
                               {sum_scheme.initialize_temporary_accumulator_block_init()}
@@ -304,7 +304,7 @@ class GpuReduc1D_chunks(MapReduce, Gpu_link_compile):
                             
                             // looping on chunks (except the last)
                     		{use_pragma_unroll()}
-                    		for (int chunk=0; chunk<{chk.nchunks}-1; chunk++) {{
+                    		for (signed long int chunk=0; chunk<{chk.nchunks}-1; chunk++) {{
                               {chunk_sub_routine}
                             }}
                             // last chunk
@@ -312,7 +312,7 @@ class GpuReduc1D_chunks(MapReduce, Gpu_link_compile):
                             
                             if (i < nx) {{
                                 {dtype} * yjrel = yj; // Loop on the columns of the current block.
-                                for (int jrel = 0; (jrel < blockDim.x) && (jrel < ny - jstart); jrel++, yjrel += {chk.dimy}) {{
+                                for (signed long int jrel = 0; (jrel < blockDim.x) && (jrel < ny - jstart); jrel++, yjrel += {chk.dimy}) {{
                                     {dtype} *foutj = fout_chunk + jrel*{chk.dimout_chunk};
                                     {fout_tmp.declare()}
                                     {chk.fun_postchunk(fout_tmp, chktable_out)}

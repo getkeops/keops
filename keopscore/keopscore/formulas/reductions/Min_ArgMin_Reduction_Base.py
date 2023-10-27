@@ -6,6 +6,7 @@ from keopscore.utils.code_gen_utils import (
 )
 from keopscore.formulas.reductions.Reduction import Reduction
 from keopscore.utils.misc_utils import KeOps_Error
+from keopscore.utils.code_gen_utils import c_variable
 
 
 class Min_ArgMin_Reduction_Base(Reduction):

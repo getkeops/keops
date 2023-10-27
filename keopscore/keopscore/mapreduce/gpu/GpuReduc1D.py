@@ -38,16 +38,16 @@ class GpuReduc1D(MapReduce, Gpu_link_compile):
         yjloc = c_array(dtype, varloader.dimy, f"(yj + threadIdx.x * {varloader.dimy})")
         yjrel = c_array(dtype, varloader.dimy, "yjrel")
         table = varloader.table(self.xi, yjrel, self.param_loc)
-        jreltile = c_variable("int", "(jrel + tile * blockDim.x)")
+        jreltile = c_variable("signed long int", "(jrel + tile * blockDim.x)")
 
         self.code = f"""
                           
                         {self.headers}
                         
-                        extern "C" __global__ void GpuConv1DOnDevice(int nx, int ny, {dtype} *out, {dtype} **{arg.id}) {{
+                        extern "C" __global__ void GpuConv1DOnDevice(signed long int nx, signed long int ny, {dtype} *out, {dtype} **{arg.id}) {{
     
                           // get the index of the current thread
-                          int i = blockIdx.x * blockDim.x + threadIdx.x;
+                          signed long int i = blockIdx.x * blockDim.x + threadIdx.x;
 
                           // declare shared mem
                           extern __shared__ {dtype} yj[];
@@ -67,10 +67,10 @@ class GpuReduc1D(MapReduce, Gpu_link_compile):
                             {varloader.load_vars('i', xi, args, row_index=i)} // load xi variables from global memory to local thread memory
                           }}
 
-                          for (int jstart = 0, tile = 0; jstart < ny; jstart += blockDim.x, tile++) {{
+                          for (signed long int jstart = 0, tile = 0; jstart < ny; jstart += blockDim.x, tile++) {{
 
                             // get the current column
-                            int j = tile * blockDim.x + threadIdx.x;
+                            signed long int j = tile * blockDim.x + threadIdx.x;
 
                             if (j < ny) {{ // we load yj from device global memory only if j<ny
                               {varloader.load_vars("j", yjloc, args, row_index=j)} 
@@ -80,7 +80,7 @@ class GpuReduc1D(MapReduce, Gpu_link_compile):
                             if (i < nx) {{ // we compute x1i only if needed
                               {dtype} * yjrel = yj;
                               {sum_scheme.initialize_temporary_accumulator_block_init()}
-                              for (int jrel = 0; (jrel < blockDim.x) && (jrel < ny - jstart); jrel++, yjrel += {varloader.dimy}) {{
+                              for (signed long int jrel = 0; (jrel < blockDim.x) && (jrel < ny - jstart); jrel++, yjrel += {varloader.dimy}) {{
                                 {red_formula.formula(fout, table)} // Call the function, which outputs results in fout
                                 {sum_scheme.accumulate_result(acc, fout, jreltile)}
                               }}

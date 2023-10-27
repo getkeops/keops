@@ -26,7 +26,7 @@ class OneHot(Operation):
         if out.dtype == "half2" and arg0.dtype == "half2":
             return f"""
                         #pragma unroll
-                        for (int k = 0; k < {self.dim}; k++)
+                        for (signed long int k = 0; k < {self.dim}; k++)
                             {out.id}[k] = __heq2(h2rint(*{arg0.id}),__float2half2_rn(k));
                     """
         else:
