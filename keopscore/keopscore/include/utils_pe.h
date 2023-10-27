@@ -66,13 +66,13 @@ void load_args_FromDevice(CUdeviceptr &p_data, TYPE *out, TYPE *&out_d,
 template <typename TYPE>
 void load_args_FromHost(CUdeviceptr &p_data, TYPE *out, TYPE *&out_d, int nargs,
                         TYPE **arg, TYPE **&arg_d,
-                        const std::vector<std::vector<size_t>> &argshape,
-                        size_t sizeout) {
-  size_t sizes[nargs];
-  size_t totsize = sizeout;
+                        const std::vector<std::vector<signed long int>> &argshape,
+                        signed long int sizeout) {
+  signed long int sizes[nargs];
+  signed long int totsize = sizeout;
   for (int k = 0; k < nargs; k++) {
     sizes[k] = std::accumulate(argshape[k].begin(), argshape[k].end(), 1,
-                               std::multiplies<size_t>());
+                               std::multiplies<signed long int>());
     totsize += sizes[k];
   }
 

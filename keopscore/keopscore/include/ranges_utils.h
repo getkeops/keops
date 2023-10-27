@@ -1,9 +1,9 @@
 #pragma once
 
-int broadcast_index(size_t i, int nbatchdims, size_t *full_shape,
-                    size_t *shape) {
-  size_t M_N = shape[nbatchdims];
-  size_t res = i % M_N, step = M_N, full_step = M_N;
+int broadcast_index(signed long int i, int nbatchdims, signed long int *full_shape,
+                    signed long int *shape) {
+  signed long int M_N = shape[nbatchdims];
+  signed long int res = i % M_N, step = M_N, full_step = M_N;
   for (int b = nbatchdims; b > 0; b--) {
     if (shape[b - 1] != 1) {
       res += ((i / full_step) % shape[b - 1]) * step;
@@ -14,9 +14,9 @@ int broadcast_index(size_t i, int nbatchdims, size_t *full_shape,
   return res;
 }
 
-void vect_broadcast_index(size_t i, int nbatchdims, int nvars,
-                          size_t *full_shape, size_t *reduced_shapes,
-                          size_t *out, size_t add_offset = 0) {
+void vect_broadcast_index(signed long int i, int nbatchdims, int nvars,
+                          signed long int *full_shape, signed long int *reduced_shapes,
+                          signed long int *out, signed long int add_offset = 0) {
   for (int k = 0; k < nvars; k++) {
     out[k] =
         add_offset + broadcast_index(i, nbatchdims, full_shape,
@@ -24,8 +24,8 @@ void vect_broadcast_index(size_t i, int nbatchdims, int nvars,
   }
 }
 
-void fill_shapes(int nbatchdims, size_t *shapes, size_t *shapes_i,
-                 size_t *shapes_j, size_t *shapes_p, int tagJ,
+void fill_shapes(int nbatchdims, signed long int *shapes, signed long int *shapes_i,
+                 signed long int *shapes_j, signed long int *shapes_p, int tagJ,
                  const std::vector<int> &indsi, const std::vector<int> &indsj,
                  const std::vector<int> &indsp) {
 

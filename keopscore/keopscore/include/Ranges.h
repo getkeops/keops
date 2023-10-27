@@ -6,11 +6,11 @@ template <typename TYPE> class Ranges {
 public:
   int tagRanges, nranges_x, nranges_y, nredranges_x, nredranges_y;
 
-  std::vector<size_t> ranges_i, slices_i, redranges_j;
-  std::vector<size_t *> _castedranges;
-  size_t **castedranges;
+  std::vector<signed long int> ranges_i, slices_i, redranges_j;
+  std::vector<signed long int *> _castedranges;
+  signed long int **castedranges;
 
-  Ranges(Sizes<TYPE> sizes, size_t **ranges) {
+  Ranges(Sizes<TYPE> sizes, signed long int **ranges) {
 
     _castedranges.resize(6);
 

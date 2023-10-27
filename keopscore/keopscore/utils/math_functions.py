@@ -29,7 +29,7 @@ def math_function(
         args = list(args)
         for k, arg in enumerate(args):
             if isinstance(arg, int):
-                c_dtype = "size_t" if arg > 2e9 else "int"
+                c_dtype = "signed long int" if arg > 2e9 else "int"
                 args[k] = c_variable(c_dtype, str(arg))
         # N.B. first argument gives main dtype
         dtype = args[0].dtype
