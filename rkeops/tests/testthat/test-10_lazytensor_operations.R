@@ -3257,6 +3257,25 @@ test_that("max_argmax_reduction", {
 
 test_that("Kmin", {
     
+    x <- matrix(c(1, 2, 3), 2, 3, byrow = TRUE)
+    x_i <- LazyTensor(x, index = 'i')
+    
+    res <- Kmin(x_i, 2, "i")
+    expect_false(is.LazyTensor(res))
+    checkmate::expect_array(res, d = 3)
+    expect_equal(dim(res), c(1, 2, 3))
+    expected_res <- array(x, dim = c(1,2,3))
+    expect_equal(res, expected_res, tolerance = 1e-5)
+    
+    res <- Kmin(x_i, 2, "j")
+    expect_false(is.LazyTensor(res))
+    checkmate::expect_array(res, d = 3)
+    expect_equal(dim(res), c(2, 2, 3))
+    expected_res <- array(0, dim = c(2,2,3))
+    expected_res[1,,] <- matrix(c(1:3, rep(Inf, 3)), 2, 3, byrow = TRUE)
+    expected_res[2,,] <- matrix(c(1:3, rep(Inf, 3)), 2, 3, byrow = TRUE)
+    expect_equal(res, expected_res, tolerance = 1e-5)
+    
     # basic example
     w <- matrix(c(2, 4, 6, 3, 2, 8, 9, 1, 3), 3, 3)
     w_i <- LazyTensor(w, index = 'i')
@@ -3271,24 +3290,30 @@ test_that("Kmin", {
     S_ij <- sum((x_i - y_j)^2)
     res <- Kmin(S_ij, K, "i")
     expect_false(is.LazyTensor(res))
-    expect_true(is.matrix(res))
+    checkmate::expect_matrix(res)
     
     # check very simple results
     res <- Kmin(x_i, 1, 'j')
-    expect_equal(res, x)
+    expect_equal(res, array(x, dim = c(2, 1, 3)), tolerance = 1e-5)
     # ---
     res <- Kmin(x_i, 1, 'i')
-    expect_equal(as.vector(res), c(min(x[, 1]), min(x[, 2]), min(x[, 3])))
+    expect_equal(
+        res, array(c(min(x[, 1]), min(x[, 2]), min(x[, 3])), dim = c(1, 1, 3)))
     # ---
-    res_Kmin <- Kmin(w_i, K, 'i')
+    res <- Kmin(w_i, K, 'i')
+    expect_false(is.LazyTensor(res))
+    checkmate::expect_array(res, d = 3)
+    expect_equal(dim(res), c(1, 2, 3))
     K_1 <- c(min(w[, 1]),
              min(w[, 2]),
              min(w[, 3]))
     K_2 <- c(min(w[, 1][-which.min(w[, 1])]),
              min(w[, 2][-which.min(w[, 2])]),
              min(w[, 3][-which.min(w[, 3])]))
-    expected_vect_res <- c(K_1, K_2)
-    expect_equal(as.vector(res_Kmin), expected_vect_res)
+    expected_res <- array(
+        matrix(c(K_1, K_2), 2, 3, byrow = TRUE), dim = c(1, 2, 3)
+    )
+    expect_equal(res, expected_res, tolerance = 1e-5)
     
     # errors
     expect_error(
@@ -3306,6 +3331,27 @@ test_that("Kmin", {
 
 
 test_that("Kmin_reduction", {
+    
+    x <- matrix(c(1, 2, 3), 2, 3, byrow = TRUE)
+    x_i <- LazyTensor(x, index = 'i')
+    
+    res <- Kmin_reduction(x_i, 2, "i")
+    expect_false(is.LazyTensor(res))
+    checkmate::expect_array(res, d = 3)
+    expect_equal(dim(res), c(1, 2, 3))
+    expected_res <- array(x, dim = c(1,2,3))
+    expect_equal(res, expected_res, tolerance = 1e-5)
+    
+    res <- Kmin_reduction(x_i, 2, "j")
+    expect_false(is.LazyTensor(res))
+    checkmate::expect_array(res, d = 3)
+    expect_equal(dim(res), c(2, 2, 3))
+    expected_res <- array(0, dim = c(2,2,3))
+    expected_res[1,,] <- matrix(c(1:3, rep(Inf, 3)), 2, 3, byrow = TRUE)
+    expected_res[2,,] <- matrix(c(1:3, rep(Inf, 3)), 2, 3, byrow = TRUE)
+    expect_equal(res, expected_res, tolerance = 1e-5)
+    
+    
     x <- matrix(runif(150 * 3), 150, 3) 
     x_i <- LazyTensor(x, index = 'i') 
     y <- matrix(runif(100 * 3), 100, 3)
