@@ -3813,7 +3813,8 @@ tensorprod <- function(x, y) {
 #' either `"i"` or `"j"`, to specify whether if the reduction is done along 
 #' the index `i` or `j`.
 #' @param opt_arg an optional argument: an `integer` (e.g. for `Kmin` 
-#' reduction), a `character`, a `LazyTensor` or a `ComplexLazyTensor`.
+#' reduction), a `character`, a `LazyTensor` or a `ComplexLazyTensor`. `NULL` 
+#' if not used (default).
 #' @return an array storing the result of the specified reduction.
 #' @examples
 #' \dontrun{
@@ -3824,7 +3825,7 @@ tensorprod <- function(x, y) {
 #' red_x <- reduction.LazyTensor(x_i, "Sum", "i")
 #' }
 #' @export
-reduction.LazyTensor <- function(x, opstr, index, opt_arg = NA) {
+reduction.LazyTensor <- function(x, opstr, index, opt_arg = NULL) {
     
     res <- NULL
     
@@ -3836,15 +3837,14 @@ reduction.LazyTensor <- function(x, opstr, index, opt_arg = NA) {
     
     if(check_index(index)) {
         op <- preprocess_reduction(x, opstr, index, opt_arg)
-        if(!any(is.na(opt_arg)) && is.LazyTensor(opt_arg))
+        if(!is.null(opt_arg) && is.LazyTensor(opt_arg))
             res <- op(c(x$data, opt_arg$data))
         else {
             res <- op(x$data)
         }
-    }
-    
-    else
+    } else {
         stop("`index` input argument should be a character, either 'i' or 'j'.")
+    }
     
     return(res)
 }
@@ -4702,7 +4702,7 @@ Kmin_argKmin_reduction <- function(x, K, index) {
 #' should be either `"i"` or `"j"` to specify whether if the reduction is 
 #' indexed by `"i"` or `"j"`.
 #' @param weight an optional object (`LazyTensor` or `ComplexLazyTensor`) that 
-#' specifies scalar or vector-valued weights.
+#' specifies scalar or vector-valued weights. `NULL` by default and not used.
 #' @return a matrix corresponding to the Log-Sum-Exp reduction.
 #' @examples
 #' \dontrun{
@@ -4721,12 +4721,12 @@ Kmin_argKmin_reduction <- function(x, K, index) {
 #'                                          # weight over the 'i' indices
 #' }
 #' @export
-logsumexp <- function(x, index, weight = NA) {
-    if(check_index(index) && is.na(weight)) {
+logsumexp <- function(x, index, weight = NULL) {
+    if(check_index(index) && is.null(weight)) {
         #res <- reduction.LazyTensor(x, "Max_SumShiftExp", index)
         return(reduction.LazyTensor(x, "LogSumExp", index))
     }
-    else if(check_index(index) && !is.na(weight)) {
+    else if(check_index(index) && !is.null(weight)) {
         #res <- reduction.LazyTensor(x, "Max_SumShiftExpWeight", 
         #                           index, opt_arg = weight)
         #res <- reduction.LazyTensor(x, "LogSumExp", 
@@ -4762,8 +4762,8 @@ logsumexp <- function(x, index, weight = NA) {
 #'                                                # weight over the 'i' indices
 #' }
 #' @export
-logsumexp_reduction <- function(x, index, weight = NA) {
-    return(logsumexp(x, index))
+logsumexp_reduction <- function(x, index, weight = NULL) {
+    return(logsumexp(x, index, weight))
 }
 
 
@@ -4893,7 +4893,7 @@ sumsoftmaxweight_reduction <- function(x, index, weight) {
 #' @export
 grad <- function(f, gradin, opstr, var, index) {
     if(is.LazyTensor(var)) {
-        var <- fixvariables(var)$formula
+        var <- fix_variables(var)$formula
     }
     
     if(!is.LazyTensor(f) || !is.LazyTensor(gradin)) {
