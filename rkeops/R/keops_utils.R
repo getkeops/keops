@@ -180,7 +180,7 @@ get_pykeops_formula <- function(
     
     # manage 'Grad' case
     # note: no problem if gradient inside reduction
-    if(str_detect(formula, "^Grad")){
+    if(str_detect(formula, "^Grad")) {
         
         # extract grad argument
         grad_args <- unlist(str_split(tmp_form, ","))
