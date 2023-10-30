@@ -409,7 +409,7 @@ test_that("binaryop.LazyTensor", {
     expect_equal(bool_grep_args1, 1)
     bool_grep_args2 <- grep("A0x.*j=Vj\\(3\\)", obj$args[2])
     expect_equal(bool_grep_args2, 1)
-    expect_is(obj, "LazyTensor")
+    expect_s3_class(obj, "LazyTensor")
     
     obj <-  binaryop.LazyTensor(x_i, y_j, "-", is_operator = TRUE)
     bool_grep_formula <- grep("A0x.*i-A0x.*j", obj$formula)
@@ -418,7 +418,7 @@ test_that("binaryop.LazyTensor", {
     expect_equal(bool_grep_formula, 1)
     expect_equal(bool_grep_args1, 1)
     expect_equal(bool_grep_args2, 1)
-    expect_is(obj, "LazyTensor")
+    expect_s3_class(obj, "LazyTensor")
     
     obj <-  binaryop.LazyTensor(x_i, 3.9, "Powf")
     bool_grep_formula <- grep("Powf\\(A0x.*i,A0x.*NA\\)", obj$formula)
@@ -426,7 +426,7 @@ test_that("binaryop.LazyTensor", {
     expect_equal(bool_grep_formula, 1)
     expect_equal(bool_grep_args1, 1)
     expect_equal(length(obj$args), 2)
-    expect_is(obj, "LazyTensor")
+    expect_s3_class(obj, "LazyTensor")
     
     obj <-  binaryop.LazyTensor(x_i, 3, "+", is_operator = TRUE)
     bool_grep_formula <- grep("A0x.*i\\+IntCst\\(3\\)", obj$formula)
@@ -435,7 +435,7 @@ test_that("binaryop.LazyTensor", {
     bool_grep_args <- grep("A0x.*i=Vi\\(3\\)", obj$args)
     expect_equal(length(obj$data), 1) # no data added for IntCst
     expect_equal(obj$dimres, 3)
-    expect_is(obj, "LazyTensor")
+    expect_s3_class(obj, "LazyTensor")
     
     obj <-  binaryop.LazyTensor(x_i, x_i, "+", is_operator = TRUE)
     expect_equal(length(obj$args), 1)
@@ -528,7 +528,7 @@ test_that("ternaryop.LazyTensor", {
     expect_equal(bool_grep_args1, 1)
     expect_equal(bool_grep_args2, 1)
     expect_equal(bool_grep_args3, 1)
-    expect_is(obj, "LazyTensor")
+    expect_s3_class(obj, "LazyTensor")
     
     # with an IntCst
     obj <-  ternaryop.LazyTensor(x_i, w_j, 7, "IfElse")
@@ -540,7 +540,7 @@ test_that("ternaryop.LazyTensor", {
     expect_equal(bool_grep_args1, 1)
     expect_equal(bool_grep_args2, 1)
     expect_equal(length(obj$data), 2) # no data added for IntCst input
-    expect_is(obj, "LazyTensor")
+    expect_s3_class(obj, "LazyTensor")
     
     obj <-  ternaryop.LazyTensor(4, y_j, z_i, "Clamp")
     bool_grep_formula <- grep("Clamp\\(IntCst\\(4\\),A0x.*j,A0x.*i\\)", obj$formula)
@@ -888,7 +888,7 @@ test_that("check_inner_dim", {
 
 
 test_that("check_index", {
-    expect_is(check_index("i"), "logical")
+    expect_type(check_index("i"), "logical")
     
     expect_true(check_index("i"))
     expect_true(check_index("j"))
