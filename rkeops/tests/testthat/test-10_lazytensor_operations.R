@@ -3381,6 +3381,25 @@ test_that("Kmin_reduction", {
 
 
 test_that("argKmin", {
+    
+    x <- matrix(c(1, 2, 3), 2, 3, byrow = TRUE)
+    x_i <- LazyTensor(x, index = 'i')
+    
+    res <- argKmin(x_i, 2, "i")
+    expect_false(is.LazyTensor(res))
+    checkmate::expect_array(res, d = 3)
+    expect_equal(dim(res), c(1, 2, 3))
+    expected_res <- array(matrix(c(0,1), 2, 3), dim = c(1,2,3))
+    expect_equal(res, expected_res, tolerance = 1e-5)
+    
+    res <- argKmin(x_i, 2, "j")
+    expect_false(is.LazyTensor(res))
+    checkmate::expect_array(res, d = 3)
+    expect_equal(dim(res), c(2, 2, 3))
+    expected_res <- array(0, dim = c(2,2,3))
+    expect_equal(res, expected_res, tolerance = 1e-5)
+    
+    
     w <- matrix(c(2, 4, 6, 3, 2, 8, 9, 1, 3), 3, 3)
     w_i <- LazyTensor(w, index = 'i')
     x <- matrix(runif(150 * 3), 150, 3) 
@@ -3397,22 +3416,25 @@ test_that("argKmin", {
     expect_true(is.matrix(res))
     
     # check result for simple example
-    res_argKmin <- argKmin(w_i, K, 'i')
+    res <- argKmin(w_i, K, 'i')
     # grab index of min values
-    K_1 <- c(which.min(w[, 1]) - 1,
-             which.min(w[, 2]) - 1,
-             which.min(w[, 3]) - 1)
+    arg_K_1 <- c(which.min(w[, 1]) - 1,
+                 which.min(w[, 2]) - 1,
+                 which.min(w[, 3]) - 1)
     # replace min values by huge ones
     w[, 1][which.min(w[, 1])] <- 100
     w[, 2][which.min(w[, 2])] <- 100
     w[, 3][which.min(w[, 3])] <- 100
     # grab index of (second) min values
-    K_2 <- c(which.min(w[, 1]) - 1,
-             which.min(w[, 2]) - 1,
-             which.min(w[, 3]) - 1)
+    arg_K_2 <- c(which.min(w[, 1]) - 1,
+                 which.min(w[, 2]) - 1,
+                 which.min(w[, 3]) - 1)
     
-    expected_vect_res <- c(K_1, K_2)
-    expect_equal(as.vector(res_argKmin), expected_vect_res)
+    expected_res <- array(
+        matrix(c(arg_K_1, arg_K_2), 2, 3, byrow = TRUE), 
+        dim = c(1, 2, 3)
+    )
+    expect_equal(res, expected_res, tolerance = 1e-5)
     
     # errors
     expect_error(
@@ -3430,6 +3452,26 @@ test_that("argKmin", {
 
 
 test_that("argKmin_reduction", {
+    
+    x <- matrix(c(1, 2, 3), 2, 3, byrow = TRUE)
+    x_i <- LazyTensor(x, index = 'i')
+    
+    res <- argKmin_reduction(x_i, 2, "i")
+    expect_false(is.LazyTensor(res))
+    checkmate::expect_array(res, d = 3)
+    expect_equal(dim(res), c(1, 2, 3))
+    expected_res <- array(matrix(c(0,1), 2, 3), dim = c(1,2,3))
+    expect_equal(res, expected_res, tolerance = 1e-5)
+    
+    res <- argKmin_reduction(x_i, 2, "j")
+    expect_false(is.LazyTensor(res))
+    checkmate::expect_array(res, d = 3)
+    expect_equal(dim(res), c(2, 2, 3))
+    expected_res <- array(0, dim = c(2,2,3))
+    expect_equal(res, expected_res, tolerance = 1e-5)
+    
+    
+    
     x <- matrix(runif(150 * 3), 150, 3) 
     x_i <- LazyTensor(x, index = 'i') 
     y <- matrix(runif(100 * 3), 100, 3)
