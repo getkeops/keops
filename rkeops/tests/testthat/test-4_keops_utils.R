@@ -88,4 +88,9 @@ test_that("get_pykeops_formula", {
              axis = 0L, opt_arg = NULL)
     )
     
+    # formula <- "Max_SumShiftExpWeight_Reduction(Sum(V0-V1),0,OptV0)"
+    # res <- get_pykeops_formula(formula)
+    ## FIXME: optional weight arguments for reduction not supported at the 
+    ## moment (because last argument is expected to be the index, not 
+    ## anything else)
 })
