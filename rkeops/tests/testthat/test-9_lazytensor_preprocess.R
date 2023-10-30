@@ -939,7 +939,7 @@ test_that("identifier", {
 })
 
 
-test_that("fixvariables", {
+test_that("fix_variables", {
     # basic example
     D <- 3
     E <- 7
@@ -954,25 +954,25 @@ test_that("fixvariables", {
     l <- LazyTensor(314)            # fixed scalar parameter across indices
     
     # weird formulae for verification purpose
-    fix_expr1 <- fixvariables(x_i + y_j + x_i + x_j)
-    fix_expr2 <- fixvariables(exp(sqdist(x_i, y_j)^l) - x_i*x_j)
-    fix_expr3 <- fixvariables(norm2(y_j) + (p|x_i)*l)
-    fix_expr4 <- fixvariables(clamp(x_i, x_j, y_j))
+    fix_expr1 <- fix_variables(x_i + y_j + x_i + x_j)
+    fix_expr2 <- fix_variables(exp(sqdist(x_i, y_j)^l) - x_i*x_j)
+    fix_expr3 <- fix_variables(norm2(y_j) + (p|x_i)*l)
+    fix_expr4 <- fix_variables(clamp(x_i, x_j, y_j))
     
     # check classes
-    expect_true(is.LazyTensor(fixvariables(l)))
-    expect_true(is.LazyTensor(fixvariables(x_i)))
+    expect_true(is.LazyTensor(fix_variables(l)))
+    expect_true(is.LazyTensor(fix_variables(x_i)))
     expect_true(is.LazyTensor(fix_expr1))
     expect_true(is.LazyTensor(fix_expr2))
     expect_true(is.LazyTensor(fix_expr3))
     expect_true(is.LazyTensor(fix_expr4))
     
     # check formulae
-    expect_equal(fixvariables(l)$formula,
+    expect_equal(fix_variables(l)$formula,
                  "IntCst(314)")
-    expect_equal(fixvariables(l + l*l)$formula,
+    expect_equal(fix_variables(l + l*l)$formula,
                  "IntCst(314)+IntCst(314)*IntCst(314)")
-    expect_equal(fixvariables(x_i)$formula,
+    expect_equal(fix_variables(x_i)$formula,
                  "V0")
     expect_equal(fix_expr1$formula,
                  "V0+V1+V0+V2")
@@ -984,7 +984,7 @@ test_that("fixvariables", {
                  "Clamp(V0,V1,V2)")
     
     # check args
-    expect_equal(fixvariables(x_i)$args, "V0=Vi(3)")
+    expect_equal(fix_variables(x_i)$args, "V0=Vi(3)")
     expect_equal(fix_expr2$args[1], "V0=Vi(3)")
     expect_equal(fix_expr2$args[2], "V1=Vj(3)")
     expect_equal(fix_expr2$args[3], "V2=Vj(3)")
@@ -993,7 +993,7 @@ test_that("fixvariables", {
     expect_equal(fix_expr3$args[3], "V2=Vi(3)")
     
     # errors
-    expect_error(fixvariables(x),
+    expect_error(fix_variables(x),
                  "`x` input must be a LazyTensor or a ComplexLazyTensor.",
                  fixed = TRUE)
 })
@@ -1036,9 +1036,9 @@ test_that("preprocess_reduction", {
     x_i <- LazyTensor(x, index = "i")
     opstr <- "Sum"
     index <- "i"
-    opt_arg <- NA
+    opt_arg <- NULL
     
-    op <- preprocess_reduction(x_i, opstr, index, opt_arg = NA)
+    op <- preprocess_reduction(x_i, opstr, index, opt_arg)
     expect_equal(
         op(),
         list(
@@ -1058,8 +1058,8 @@ test_that("preprocess_reduction", {
     x_i <- LazyTensor(x, index = "i")
     opstr <- "Min_ArgMin"
     index <- "i"
-    opt_arg <- NA
-    op <- preprocess_reduction(x_i, opstr, index, opt_arg = NA)
+    opt_arg <- NULL
+    op <- preprocess_reduction(x_i, opstr, index, opt_arg)
     expect_equal(
         op(),
         list(
@@ -1076,4 +1076,10 @@ test_that("preprocess_reduction", {
         apply(x, 2, which.min) - 1
     )
     expect_equal(lapply(res, as.vector), expected_res, tolerance = 1e-5)
+})
+
+test_that("cplx_warning", {
+    expect_warning(cplx_warning(TRUE))
+    
+    cplx_warning(FALSE) # should not produce warning
 })

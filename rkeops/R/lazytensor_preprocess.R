@@ -1181,7 +1181,7 @@ identifier <- function(arg){
 #' Fix variables.
 #' @keywords internal
 #' @description Assigns final labels to each variable for the `KeOps` routine.
-#' @details `fixvariables(x)` will change the identifiers of `x` variables in 
+#' @details `fix_variables(x)` will change the identifiers of `x` variables in 
 #' `x$args` and `x$formula` into simpler ordered labels of the form `V<n>` where
 #' `n` is the apparition order of the variable in the formula.
 #' @author Chloe Serre-Combe, Amelie Vernay
@@ -1199,12 +1199,12 @@ identifier <- function(arg){
 #' a <- x_i + y_j       # combination of LazyTensors with variable labels 
 #'                      # of the form "A0x.*"
 #' 
-#' b <- fixvariables(a) # combination of LazyTensors with variable labels 
+#' b <- fix_variables(a) # combination of LazyTensors with variable labels 
 #'                      # of the form "V0" and "V1"
 #' b$formula            # returns "V0+V1"
 #' b$args               # returns a vector containing "V0=Vi(3)" and "V1=Vj(3)"
 #' }
-fixvariables <- function(x, is_opt = FALSE){
+fix_variables <- function(x, is_opt = FALSE) {
   if(!is.LazyTensor(x)) {
     stop("`x` input must be a LazyTensor or a ComplexLazyTensor.")
   }
@@ -1259,24 +1259,23 @@ fixvariables <- function(x, is_opt = FALSE){
 #' @param with_weight A `boolean` which is `TRUE` when there is an optional 
 #' argument corresponding to a weight argument.
 #' @return A text `string`.
-fix_op_reduction <- function(reduction_op, with_weight = FALSE){
+fix_op_reduction <- function(reduction_op, with_weight = FALSE) {
   if(reduction_op == "SumSoftMaxWeight") {
     # SumSoftMaxWeight relies on KeOps Max_SumShiftExpWeight reduction.
-    reduction_op_internal = "Max_SumShiftExpWeight"
+    reduction_op_internal <- "Max_SumShiftExpWeight"
   }
   else if(reduction_op == "LogSumExp") {
     # LogSumExp relies also on Max_SumShiftExp or Max_SumShiftExpWeight reductions
-    if(with_weight){
+    if(with_weight) {
       # here we want to compute a log-sum-exp with weights: log(sum_j(exp(f_ij)g_ij))
-      reduction_op_internal = "Max_SumShiftExpWeight"
+      reduction_op_internal <- "Max_SumShiftExpWeight"
     } else {
       # here we want to compute a usual log-sum-exp: log(sum_j(exp(f_ij)))
-      reduction_op_internal = "Max_SumShiftExp"
+      reduction_op_internal <- "Max_SumShiftExp"
     }
     
-  }
-  else {
-    reduction_op_internal = reduction_op
+  } else {
+    reduction_op_internal <- reduction_op
   }
   return(reduction_op_internal)
 }
@@ -1298,8 +1297,9 @@ fix_op_reduction <- function(reduction_op, with_weight = FALSE){
 #' @param opstr A `string` formula (like "Sum" or "Max").
 #' @param index A `character` that should be either `i` or `j` to specify 
 #' whether if the reduction is indexed by `i` (rows), or `j` (columns).
-#' @param opt_arg An optional argument : an `interger` (for "Kmin" reduction),
-#' a `character`, `LazyTensor` or a `ComplexLazyTensor`.
+#' @param opt_arg An optional argument: an `integer` (e.g. for "Kmin" 
+#' reduction), a `character`, a `LazyTensor` or a `ComplexLazyTensor`. `NULL` 
+#' if not used (default).
 #' @return A `function`.
 #' @seealso [rkeops::reduction.LazyTensor()]
 #' @examples
@@ -1310,7 +1310,8 @@ fix_op_reduction <- function(reduction_op, with_weight = FALSE){
 #' 
 #' op <- preprocess_reduction(x_i, "Sum", "i")
 #' }
-preprocess_reduction <- function(x, opstr, index, opt_arg = NA) {
+preprocess_reduction <- function(x, opstr, index, opt_arg = NULL) {
+
   # init
   formula <- NULL
     
@@ -1318,21 +1319,19 @@ preprocess_reduction <- function(x, opstr, index, opt_arg = NA) {
   tag <- index_to_int(index)
   
   # Change the identifiers of every variables for the KeOps routine
-  tmp <- fixvariables(x)
+  tmp <- fix_variables(x)
   args <- tmp$args
   # change internal reduction operation if needed
-  opstr_internal <- fix_op_reduction(opstr, !is.na(opt_arg))
+  opstr_internal <- fix_op_reduction(opstr, !is.null(opt_arg))
   
-  if(!any(is.na(opt_arg))) {
+  if(!is.null(opt_arg)) {
     if(is.LazyTensor(opt_arg)) {
-      tmp_opt <- fixvariables(opt_arg, is_opt = TRUE)
+      tmp_opt <- fix_variables(opt_arg, is_opt = TRUE)
       # put `opt_arg$formula` at the end of the formula
       formula <- paste(opstr_internal,  "_Reduction(",  tmp$formula, 
                         ",",  tag, ",", tmp_opt$formula, ")", sep = "")
       args <- c(tmp$args, tmp_opt$args)
-    }
-    
-    else if(is.int(opt_arg)) {
+    } else if(is.int(opt_arg)) {
       # put `opt_arg` in the middle of the formula
       formula <- paste(opstr_internal,  "_Reduction(",  tmp$formula, 
                         ",",  opt_arg, ",", tag, ")", sep = "")
