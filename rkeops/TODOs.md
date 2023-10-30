@@ -6,16 +6,14 @@
 
 Remaining issues:
 
-- [ ] output for
+- [ ] fix following reductions:
   + [x] Min_ArgMin (missing argmin)
   + [x] Max_ArgMax (same)
-  + [ ] KMin (dim of output)
-  + [ ] argKMin (dim of output)
+  + [x] KMin (dim of output)
+  + [x] argKMin (dim of output)
   + [x] KMin_ArgKMin (dim of output)
   + [ ] LogSumExp (check output value)
   + [ ] SumSoftMaxWeight (Python error: "Axis should be 0 or 1")
-
-> More in [`dev/debug_LazyTensor.R`](dev/debug_LazyTensor.R) and [`dev/debut_LazyTensor.py`](dev/debut_LazyTensor.py)
 
 - [x] fix inline doc for min, max (following sum), and other default functions
 - [ ] fix issue with `?"/"`
