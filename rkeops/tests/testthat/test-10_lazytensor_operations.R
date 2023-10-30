@@ -2630,12 +2630,11 @@ test_that("reduction.LazyTensor", {
     expect_false(is.LazyTensor(res))
     expect_true(is.matrix(res))
     
-    # # with an optional argument
-    # opstr <- "KMin"
-    # K <- 2
-    # res <- reduction.LazyTensor(x_i, opstr, "i", opt_arg = K)
-    # expect_true(is.matrix(res))
-    # FIXME: issue with PyKeOps output for KMin
+    # with an optional argument
+    opstr <- "KMin"
+    K <- 2
+    res <- reduction.LazyTensor(x_i, opstr, "i", opt_arg = K)
+    checkmate::expect_array(res, d = 3)
     
     # errors
     expect_error(reduction.LazyTensor(3, opstr, "i"),
@@ -2726,20 +2725,20 @@ test_that("sum", {
     res <- sum(Pm_complex)
     expect_true(is.ComplexLazyTensor(res))
     
+    
+    # more complex examples
     x <- matrix(runif(150 * 3), 150, 3)
     y <- matrix(runif(150 * 3), 150, 3)
-    x <- matrix(runif(4 * 3), 4, 3)
-    y <- matrix(runif(6 * 3), 6, 3)
     x_i <- LazyTensor(x, index = 'i')
-    y_j <- LazyTensor(x, index = 'j')
+    y_j <- LazyTensor(y, index = 'j')
     K <- sum(x_i - y_j)
     res <- sum(K, index = "i")
     expected_res <- apply(
         t(sapply(
             1:nrow(x), function(id_x) 
                 sapply(1:nrow(y), function(id_y) sum(x[id_x,] - y[id_y,]))
-        )), 1, sum)
-    expect_true(sum(abs(res - expected_res)) < 1E-5)
+        )), 2, sum)
+    expect_equal(as.vector(res), expected_res, tolerance = 1E-5)
     
     # check formulae
     bool_grep_formula <- grep("Sum\\(A0x.*NA\\)", sum(Pm_v)$formula)
@@ -2771,6 +2770,8 @@ test_that("sum_reduction", {
     res <- sum_reduction(x_i, "i")
     expect_false(is.LazyTensor(res))
     expect_true(is.matrix(res))
+    
+    expect_equal(as.vector(res), apply(x, 2, sum), tolerance = 1e-5)
     
     # errors
     expect_error(sum_reduction(x_i, "b"),
@@ -3666,12 +3667,11 @@ test_that("logsumexp", {
     V_ij <- x_i - y_j
     S_ij <- sum(V_ij^2)
     
-    # check formulas, args & classes
-    expect_error(res <- logsumexp(sum(V_ij), 'i', w_j))
-    # expect_false(is.LazyTensor(res))
-    # expect_true(is.matrix(res))
+    expect_error(logsumexp(sum(V_ij), 'i', w_j))
     
-    # res <- logsumexp(S_ij, 'j', w_j)
+    res <- logsumexp(S_ij, 'i')
+    expect_false(is.LazyTensor(res))
+    expect_true(is.matrix(res))
     
     # TODO expected_res comparison with R standard code
     
@@ -3689,9 +3689,6 @@ test_that("logsumexp", {
     #
     # out_res <- expected_res[1,] + log(expected_res[2:nrow(expected_res),])
     
-    res <- logsumexp(S_ij, 'i')
-    expect_false(is.LazyTensor(res))
-    expect_true(is.matrix(res))
     expect_equal(dim(res), c(1, 3))
     expect_true(is.matrix(res))
     expected_res <- c(max(x[, 1]), max(x[, 2]), max(x[, 3]))
