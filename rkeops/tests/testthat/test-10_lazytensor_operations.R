@@ -3657,9 +3657,10 @@ test_that("Kmin_argKmin_reduction", {
 
 
 test_that("logsumexp", {
-    x <- matrix(c(2.5, 1.5, 3.5), 2, 3)
-    y <- matrix(c(3., 0.6, 5.), 2, 3)
-    w <- matrix(c(1., 1., 1.), 2, 3)
+    x <- matrix(runif(12), 4, 3)
+    y <- matrix(runif(15), 5, 3)
+    w <- matrix(c(1., 1., 1.), 5, 3)
+    
     x_i <- LazyTensor(x, index = 'i')
     y_j <- LazyTensor(y, index = 'j')
     w_j <- LazyTensor(w, index = 'j')
@@ -3672,27 +3673,14 @@ test_that("logsumexp", {
     res <- logsumexp(S_ij, 'i')
     expect_false(is.LazyTensor(res))
     expect_true(is.matrix(res))
-    
-    # TODO expected_res comparison with R standard code
-    
-    # expected_V <- matrix(c(x[1,] - y[1,] + x[1,] - y[2,],
-    #                        x[2,] - y[1,] + x[2,] - y[2,]), 2, 3, byrow = TRUE)
-    #
-    # expected_res <- sapply(1:2, function(i) {
-    #   tmp <- sapply(1:2, function(j) {
-    #     m <- max(sum(expected_V[,i]))
-    #     s <- exp(sum(expected_V[j,]) - m)
-    #     return(c(m, s))
-    #   })
-    #   return(apply(tmp,1,sum))
-    # })
-    #
-    # out_res <- expected_res[1,] + log(expected_res[2:nrow(expected_res),])
-    
-    expect_equal(dim(res), c(1, 3))
+    expect_equal(dim(res), c(5, 1))
     expect_true(is.matrix(res))
-    expected_res <- c(max(x[, 1]), max(x[, 2]), max(x[, 3]))
-    expect_true(sum(abs(res - expected_res)) < 1E-5)
+    expected_res <- apply(
+        t(sapply(
+            1:nrow(x), function(id_x) 
+                sapply(1:nrow(y), function(id_y) sum((x[id_x,] - y[id_y,])^2))
+        )), 2, function(vec) return(log(sum(exp(vec)))))
+    expect_equal(as.vector(res), expected_res, tolerance = 1e-5)
     
     # errors
     expect_error(
@@ -3713,13 +3701,20 @@ test_that("logsumexp_reduction", {
     
     S_ij <- sum( (x_i - y_j)^2 )
     # check formulas, args & classes
-    res <- logsumexp_reduction(S_ij, 'i', w_j)
-    expect_false(is.LazyTensor(res))
-    expect_true(is.matrix(res))
+    expect_error(logsumexp(sum(V_ij), 'i', w_j))
     
     res <- logsumexp(S_ij, 'i')
     expect_false(is.LazyTensor(res))
     expect_true(is.matrix(res))
+    expect_equal(dim(res), c(100, 1))
+    expect_true(is.matrix(res))
+    expected_res <- apply(
+        t(sapply(
+            1:nrow(x), function(id_x) 
+                sapply(1:nrow(y), function(id_y) sum((x[id_x,] - y[id_y,])^2))
+        )), 2, function(vec) return(log(sum(exp(vec)))))
+    expect_equal(as.vector(res), expected_res, tolerance = 1e-5)
+    
     
     # errors
     expect_error(
