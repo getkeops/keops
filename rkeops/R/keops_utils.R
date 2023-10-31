@@ -199,6 +199,8 @@ get_pykeops_formula <- function(
     
     # extract reduction operator
     reduction_op <- str_extract(formula, ".+(?=_Reduction)")
+    checkmate::expect_string(reduction_op)
+    
     # extract reduction arguments
     reduction_args <- unlist(strsplit(tmp_form, ","))
     
