@@ -1338,9 +1338,9 @@ preprocess_reduction <- function(x, opstr, index, opt_arg = NULL) {
     if(!is.null(opt_arg)) {
         if(is.LazyTensor(opt_arg)) {
             tmp_opt <- fix_variables(opt_arg, is_opt = TRUE)
-            # put `opt_arg$formula` at the end of the formula
+            # put `opt_arg$formula` at the middle of the formula
             formula <- paste(opstr_internal,  "_Reduction(",  tmp$formula, 
-                             ",",  tag, ",", tmp_opt$formula, ")", sep = "")
+                             ",", tmp_opt$formula, ",", tag, ")", sep = "")
             args <- c(tmp$args, tmp_opt$args)
         } else if(is.int(opt_arg)) {
             # put `opt_arg` in the middle of the formula

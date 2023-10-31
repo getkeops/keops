@@ -207,27 +207,23 @@ get_pykeops_formula <- function(
     # number of reduction arguments
     nargs <- length(reduction_args)
     
-    ## reduction axis and optional arguments
-    axis <- NULL
+    # reduction axis
+    axis <- as.integer(reduction_args[nargs])
+    
+    # reduction optional arguments
     opt_arg <- NULL
-    # specific case for Max_SumShiftExpWeight reduction
-    if(reduction_op != "Max_SumShiftExpWeight") {
-        # reduction axis
-        axis <- as.integer(reduction_args[nargs])
+    weighted_reduction <- FALSE
+    # specific case for weighted reduction
+    if(reduction_op %in% c("LogSumExpWeight", "SumSoftMaxWeight")) {
+        weighted_reduction <- TRUE
+        # weighted reduction argument: operand, weight, index
+        # optional reduction arguments
+        if(nargs > 2) {
+            opt_arg <- str_replace_all(reduction_args[nargs-1], "\\$", ",")
+        }
+    } else {
         # optional reduction arguments
         if(nargs > 2) opt_arg <- as.integer(reduction_args[nargs - 1])
-    } else {
-        # Max_SumShiftExpWeight reduction argument: operand, index, weight
-        if(nargs > 2) {
-            # reduction axis
-            axis <- as.integer(reduction_args[nargs-1])
-            # optional reduction arguments
-            opt_arg <- reduction_args[nargs]
-        } else {
-            # reduction axis
-            axis <- as.integer(reduction_args[nargs])
-        }
-        
     }
     
     # formula inside reduction
@@ -240,6 +236,6 @@ get_pykeops_formula <- function(
     }
     
     # output
-    out <- lst(reduction_op, main_formula, axis, opt_arg)
+    out <- lst(reduction_op, main_formula, axis, opt_arg, weighted_reduction)
     return(out)
 }
