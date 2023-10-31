@@ -204,11 +204,30 @@ get_pykeops_formula <- function(
     
     # number of reduction arguments
     nargs <- length(reduction_args)
-    # reduction axis
-    axis <- as.integer(reduction_args[nargs])
-    # optional reduction arguments
+    
+    ## reduction axis and optional arguments
+    axis <- NULL
     opt_arg <- NULL
-    if(nargs > 2) opt_arg <- as.integer(reduction_args[nargs - 1])
+    # specific case for Max_SumShiftExpWeight reduction
+    if(reduction_op != "Max_SumShiftExpWeight") {
+        # reduction axis
+        axis <- as.integer(reduction_args[nargs])
+        # optional reduction arguments
+        if(nargs > 2) opt_arg <- as.integer(reduction_args[nargs - 1])
+    } else {
+        # Max_SumShiftExpWeight reduction argument: operand, index, weight
+        if(nargs > 2) {
+            # reduction axis
+            axis <- as.integer(reduction_args[nargs-1])
+            # optional reduction arguments
+            opt_arg <- reduction_args[nargs]
+        } else {
+            # reduction axis
+            axis <- as.integer(reduction_args[nargs])
+        }
+        
+    }
+    
     # formula inside reduction
     main_formula <- str_replace_all(reduction_args[1], "\\$", ",")
     
