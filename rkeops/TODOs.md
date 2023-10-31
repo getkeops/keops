@@ -12,7 +12,7 @@ Remaining issues:
   + [x] KMin (dim of output)
   + [x] argKMin (dim of output)
   + [x] KMin_ArgKMin (dim of output)
-  + [ ] LogSumExp (check output value)
+  + [x] LogSumExp (check output value)
   + [ ] SumSoftMaxWeight (Python error: "Axis should be 0 or 1")
 
 - [x] fix inline doc for min, max (following sum), and other default functions
