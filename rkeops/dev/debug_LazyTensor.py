@@ -1,7 +1,7 @@
 import numpy as np
 from pykeops.numpy import Genred
 
-# single operand
+### single operand
 formula = "V0"
 variables = ["V0=Vi(4)"]
 
@@ -37,7 +37,7 @@ arg = np.random.randn(10, 4)
 res = op(arg, backend="CPU")
 res.shape
 
-# single operand
+### more complex formula
 formula = "Sum(V0-V1)"
 variables = ["V0=Vi(3)", "V1=Vj(3)"]
 
@@ -53,3 +53,25 @@ y = np.random.randn(5, 3)
 res = op(x, y, backend="CPU")
 
 expected_res = np.sum(np.sum(x.T[:,:,np.newaxis] - y.T[:,np.newaxis,:], axis = 0), axis = 0)
+
+## LogSumExp
+# Compile corresponding operator
+op = Genred(formula, variables, reduction_op="LogSumExp", axis=0)
+
+# data
+x = np.random.randn(4, 3)
+y = np.random.randn(5, 3)
+
+# Perform reduction
+res = op(x, y, backend="CPU")
+res.shape
+
+expected_res = np.log(
+    np.sum(
+        np.exp(np.sum(x.T[:,:,np.newaxis] - y.T[:,np.newaxis,:], axis = 0)), 
+        axis = 0
+    )
+)
+
+np.sum(np.square(res.flatten() - expected_res))
+
