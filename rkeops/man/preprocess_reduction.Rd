@@ -4,18 +4,19 @@
 \alias{preprocess_reduction}
 \title{Preprocess reduction operation.}
 \usage{
-preprocess_reduction(x, opstr, index, opt_arg = NA)
+preprocess_reduction(x, opstr, index, opt_arg = NULL)
 }
 \arguments{
 \item{x}{A \code{LazyTensor} or a \code{ComplexLazyTensor}.}
 
 \item{opstr}{A \code{string} formula (like "Sum" or "Max").}
 
-\item{index}{A \code{character} that should be either \strong{i} or \strong{j} to specify
-whether if the reduction is indexed by \strong{i} (rows), or \strong{j} (columns).}
+\item{index}{A \code{character} that should be either \code{i} or \code{j} to specify
+whether if the reduction is indexed by \code{i} (rows), or \code{j} (columns).}
 
-\item{opt_arg}{An optional argument : an \code{interger} (for "Kmin" reduction),
-a \code{character}, \code{LazyTensor} or a \code{ComplexLazyTensor}.}
+\item{opt_arg}{An optional argument: an \code{integer} (e.g. for "Kmin"
+reduction), a \code{character}, a \code{LazyTensor} or a \code{ComplexLazyTensor}. \code{NULL}
+if not used (default).}
 }
 \value{
 A \code{function}.
@@ -25,12 +26,12 @@ Returns a \code{function} for a reduction to a \code{LazyTensor} and it is calle
 \code{rkeops::reduction.LazyTensor()}.
 }
 \details{
-\code{preprocess_reduction(x, opstr, index)} will :
+\code{preprocess_reduction(x, opstr, index)} will:
 \itemize{
-\item{ if \strong{index = "i"}, return a \code{function} corresponding to the
-\strong{opstr} reduction of \strong{x} over the "i" indexes;}
-\item{ if \strong{index = "j"}, return a \code{function} corresponding to the
-\strong{opstr} reduction of \strong{x} over the "j" indexes.}
+\item if \code{index = "i"}, return a \code{function} corresponding to the
+\code{opstr} reduction of \code{x} over the \code{i} indexes;
+\item if \code{index = "j"}, return a \code{function} corresponding to the
+\code{opstr} reduction of \code{x} over the \code{j} indexes.
 }
 }
 \examples{

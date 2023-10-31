@@ -5,9 +5,9 @@
 \alias{logsumexp_reduction}
 \title{Log-Sum-Exp reduction.}
 \usage{
-logsumexp(x, index, weight = NA)
+logsumexp(x, index, weight = NULL)
 
-logsumexp_reduction(x, index, weight = NA)
+logsumexp_reduction(x, index, weight = NULL)
 }
 \arguments{
 \item{x}{a \code{LazyTensor} or a \code{ComplexLazyTensor}.}
@@ -17,7 +17,7 @@ should be either \code{"i"} or \code{"j"} to specify whether if the reduction is
 indexed by \code{"i"} or \code{"j"}.}
 
 \item{weight}{an optional object (\code{LazyTensor} or \code{ComplexLazyTensor}) that
-specifies scalar or vector-valued weights.}
+specifies scalar or vector-valued weights. \code{NULL} by default and not used.}
 }
 \value{
 a matrix corresponding to the Log-Sum-Exp reduction.

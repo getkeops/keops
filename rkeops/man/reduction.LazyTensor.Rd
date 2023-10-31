@@ -4,7 +4,7 @@
 \alias{reduction.LazyTensor}
 \title{Reduction operation}
 \usage{
-reduction.LazyTensor(x, opstr, index, opt_arg = NA)
+reduction.LazyTensor(x, opstr, index, opt_arg = NULL)
 }
 \arguments{
 \item{x}{a \code{LazyTensor} or a \code{ComplexLazyTensor}.}
@@ -16,7 +16,8 @@ either \code{"i"} or \code{"j"}, to specify whether if the reduction is done alo
 the index \code{i} or \code{j}.}
 
 \item{opt_arg}{an optional argument: an \code{integer} (e.g. for \code{Kmin}
-reduction), a \code{character}, a \code{LazyTensor} or a \code{ComplexLazyTensor}.}
+reduction), a \code{character}, a \code{LazyTensor} or a \code{ComplexLazyTensor}. \code{NULL}
+if not used (default).}
 }
 \value{
 an array storing the result of the specified reduction.

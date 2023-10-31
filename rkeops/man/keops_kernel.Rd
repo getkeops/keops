@@ -4,7 +4,7 @@
 \alias{keops_kernel}
 \title{Defines a new KeOps operator to compute a specific symbolic formula}
 \usage{
-keops_kernel(formula, args, sum_scheme = "auto", reduction_op = NULL)
+keops_kernel(formula, args, sum_scheme = "auto")
 }
 \arguments{
 \item{formula}{text string, an operator formula (see Details).}
@@ -23,8 +23,6 @@ accumulating in the output. This improves accuracy for large sized data.
 \item \code{"kahan_scheme"}: use Kahan summation algorithm to compensate for
 round-off errors. This improves accuracy for large sized data.
 }}
-
-\item{reduction_op}{NULL, not used at the moment (FIXME).}
 }
 \value{
 a function that can be used to compute the value of the
