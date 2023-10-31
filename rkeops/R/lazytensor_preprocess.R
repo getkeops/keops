@@ -1260,22 +1260,25 @@ fix_variables <- function(x, is_opt = FALSE) {
 #' argument corresponding to a weight argument.
 #' @return A text `string`.
 fix_op_reduction <- function(reduction_op, with_weight = FALSE) {
+    
+    reduction_op_internal <- reduction_op
+    
     if(reduction_op == "SumSoftMaxWeight") {
         # SumSoftMaxWeight relies on KeOps Max_SumShiftExpWeight reduction.
         reduction_op_internal <- "Max_SumShiftExpWeight"
     }
     else if(reduction_op == "LogSumExp") {
-        # LogSumExp relies also on Max_SumShiftExp or Max_SumShiftExpWeight reductions
+        # LogSumExp relies also on Max_SumShiftExp or 
+        # Max_SumShiftExpWeight reductions
         if(with_weight) {
-            # here we want to compute a log-sum-exp with weights: log(sum_j(exp(f_ij)g_ij))
+            # here we want to compute a log-sum-exp with weights:
+            # log(sum_j(exp(f_ij)g_ij))
             reduction_op_internal <- "Max_SumShiftExpWeight"
         } else {
-            # here we want to compute a usual log-sum-exp: log(sum_j(exp(f_ij)))
+            # here we want to compute a usual log-sum-exp:
+            # log(sum_j(exp(f_ij)))
             reduction_op_internal <- "Max_SumShiftExp"
         }
-        
-    } else {
-        reduction_op_internal <- reduction_op
     }
     return(reduction_op_internal)
 }
@@ -1342,7 +1345,7 @@ preprocess_reduction <- function(x, opstr, index, opt_arg = NULL) {
                          tag, ")", sep = "")
     }
     
-    op <- keops_kernel(formula, args, reduction_op = opstr)
+    op <- keops_kernel(formula, args, reduction_op = opstr_internal)
     return(op)
 }
 

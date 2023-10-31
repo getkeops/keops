@@ -4733,9 +4733,9 @@ logsumexp <- function(x, index, weight = NULL) {
         #                           index, opt_arg = weight)
         stop(paste("`logsumexp` reduction is not yet supported with weights.",
                    "\nThis should be fixed in a future release.", sep = ""))
-    }
-    else
+    } else {
         stop("`index` input argument should be a character, either 'i' or 'j'.")
+    }
 }
 
 
