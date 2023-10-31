@@ -1241,7 +1241,11 @@ fix_variables <- function(x, is_opt = FALSE) {
 
 #' Fix internal reduction operation.
 #' @keywords internal
-#' @description Returns the internal reduction operation. 
+#' @description Returns the internal reduction operation.
+#' 
+#' `r lifecycle::badge("deprecated")` `fix_op_reduction()` is not useful 
+#' anymore because `rkeops` is using `pykeops` Python package as an internal
+#' engine where this is managed.
 #' @details `fix_op_reduction(reduction_op, with_weight)` will return the 
 #' internal reduction operation according to `reduction_op` and a possible 
 #' optional weight argument. Some advance operations defined at user level use, 
@@ -1260,6 +1264,10 @@ fix_variables <- function(x, is_opt = FALSE) {
 #' argument corresponding to a weight argument.
 #' @return A text `string`.
 fix_op_reduction <- function(reduction_op, with_weight = FALSE) {
+    
+    lifecycle::deprecate_warn(
+        "2.0.0", "fix_op_reduction()", 
+        detail = "Not used anymore. See documentation")
     
     reduction_op_internal <- reduction_op
     

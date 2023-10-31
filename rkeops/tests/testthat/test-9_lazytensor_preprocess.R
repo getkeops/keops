@@ -1002,30 +1002,40 @@ test_that("fix_variables", {
 test_that("fix_op_reduction", {
     
     op <- "Sum"
-    expect_equal(fix_op_reduction(op), op)
-    expect_equal(fix_op_reduction(op, with_weight = TRUE), op)
+    expected_res <- op
+    expect_warning(res <- fix_op_reduction(op))
+    expect_equal(res, expected_res)
+    expect_warning(res <- fix_op_reduction(op, with_weight = TRUE))
+    expect_equal(res, expected_res)
     
     op <- "Argmin"
-    expect_equal(fix_op_reduction(op), op)
-    expect_equal(fix_op_reduction(op, with_weight = TRUE), op)
+    expected_res <- op
+    expect_warning(res <- fix_op_reduction(op))
+    expect_equal(res, expected_res)
+    expect_warning(res <- fix_op_reduction(op, with_weight = TRUE))
+    expect_equal(res, expected_res)
     
     op <- "Min_Argmin"
-    expect_equal(fix_op_reduction(op), op)
-    expect_equal(fix_op_reduction(op, with_weight = TRUE), op)
+    expected_res <- op
+    expect_warning(res <- fix_op_reduction(op))
+    expect_equal(res, expected_res)
+    expect_warning(res <- fix_op_reduction(op, with_weight = TRUE))
+    expect_equal(res, expected_res)
     
     op <- "LogSumExp"
-    expect_equal(fix_op_reduction(op), "Max_SumShiftExp")
-    expect_equal(
-        fix_op_reduction(op, with_weight = TRUE), 
-        "Max_SumShiftExpWeight"
-    )
+    expected_res <- "Max_SumShiftExp"
+    expect_warning(res <- fix_op_reduction(op))
+    expect_equal(res, expected_res)
+    expected_res <- "Max_SumShiftExpWeight"
+    expect_warning(res <- fix_op_reduction(op, with_weight = TRUE))
+    expect_equal(res, expected_res)
     
     op <- "SumSoftMaxWeight"
-    expect_equal(fix_op_reduction(op), "Max_SumShiftExpWeight")
-    expect_equal(
-        fix_op_reduction(op, with_weight = TRUE), 
-        "Max_SumShiftExpWeight"
-    )
+    expected_res <- "Max_SumShiftExpWeight"
+    expect_warning(res <- fix_op_reduction(op))
+    expect_equal(res, expected_res)
+    expect_warning(res <- fix_op_reduction(op, with_weight = TRUE))
+    expect_equal(res, expected_res)
     
 })
 
