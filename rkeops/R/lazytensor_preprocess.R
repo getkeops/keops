@@ -1318,7 +1318,6 @@ preprocess_reduction <- function(x, opstr, index, opt_arg = NULL) {
     # init
     formula <- NULL
     
-    
     tag <- index_to_int(index)
     
     # Change the identifiers of every variables for the KeOps routine
@@ -1345,7 +1344,7 @@ preprocess_reduction <- function(x, opstr, index, opt_arg = NULL) {
                          tag, ")", sep = "")
     }
     
-    op <- keops_kernel(formula, args, reduction_op = opstr_internal)
+    op <- keops_kernel(formula, args)
     return(op)
 }
 
