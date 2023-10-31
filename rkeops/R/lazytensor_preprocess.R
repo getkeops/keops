@@ -1323,8 +1323,9 @@ preprocess_reduction <- function(x, opstr, index, opt_arg = NULL) {
     # Change the identifiers of every variables for the KeOps routine
     tmp <- fix_variables(x)
     args <- tmp$args
-    # change internal reduction operation if needed
-    opstr_internal <- fix_op_reduction(opstr, !is.null(opt_arg))
+    # change internal reduction operation if needed (DEPRECATED)
+    # fix_op_reducrtion() not neeeded anymore
+    opstr_internal <- opstr
     
     if(!is.null(opt_arg)) {
         if(is.LazyTensor(opt_arg)) {
