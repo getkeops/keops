@@ -33,6 +33,8 @@ reticulate::py_config()
 
 ### Metadata
 
+:warning: Code chunk in this section should be run only once. :warning:
+
 ```{r dev-metadata}
 # description
 usethis::use_description(
@@ -95,6 +97,7 @@ usethis::use_package("reticulate", type = "Imports")
 usethis::use_package("withr", type = "Suggests")
 usethis::use_package("Rdpack", type = "Imports")
 usethis::use_testthat()
+usethis::use_lifecycle()
 ```
 
 ### Documentation
