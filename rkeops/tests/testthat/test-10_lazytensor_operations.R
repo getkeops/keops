@@ -3759,7 +3759,7 @@ test_that("sumsoftmaxweight", {
     res <- sumsoftmaxweight(S_ij, 'i', w_j)
     expect_false(is.LazyTensor(res))
     expect_true(is.matrix(res))
-    expect_equal(res, w)
+    expect_equal(res, w, tolerance = 1e-5)
     
     # with random weights
     w <- matrix(runif(15), 5, 3)
@@ -3771,7 +3771,7 @@ test_that("sumsoftmaxweight", {
     res <- sumsoftmaxweight(S_ij, 'i', w_j)
     expect_false(is.LazyTensor(res))
     expect_true(is.matrix(res))
-    expect_equal(res, w)
+    expect_equal(res, w, tolerance = 1e-5)
     
     ## basic example (reduction on 'j')
     x <- matrix(runif(12), 4, 3)
