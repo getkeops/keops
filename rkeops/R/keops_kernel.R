@@ -185,14 +185,27 @@ keops_kernel <- function(formula, args, sum_scheme = "auto") {
         } else {
             aliases <- list(args)
         }
-        routine <- GenredR(
-            formula = pykeops_formula$main_formula,
-            aliases = aliases,
-            reduction_op = pykeops_formula$reduction_op,
-            axis = pykeops_formula$axis,
-            opt_arg = pykeops_formula$opt_arg,
-            sum_scheme = sum_scheme
-        )
+        # manage specific case for weighted reduction
+        routine <- NULL
+        if(pykeops_formula$weighted_reduction) {
+            routine <- GenredR(
+                formula = pykeops_formula$main_formula,
+                aliases = aliases,
+                reduction_op = pykeops_formula$reduction_op,
+                axis = pykeops_formula$axis,
+                formula2 = pykeops_formula$opt_arg,
+                sum_scheme = sum_scheme
+            )
+        } else {
+            routine <- GenredR(
+                formula = pykeops_formula$main_formula,
+                aliases = aliases,
+                reduction_op = pykeops_formula$reduction_op,
+                axis = pykeops_formula$axis,
+                opt_arg = pykeops_formula$opt_arg,
+                sum_scheme = sum_scheme
+            )
+        }
         
         # check input type
         if(!is.list(input)) {
