@@ -29,7 +29,7 @@ Sum of weighted Soft-Max reduction.
 }
 \details{
 If \code{x} is a \code{LazyTensor} or a \code{ComplexLazyTensor},
-\code{logsumexp(x, index, weight)} will:
+\code{sumsoftmaxweight(x, index, weight)} will:
 \itemize{
 \item if \code{index = "i"}, return the Sum of weighted Soft-Max reduction of \code{x}
 over the \code{i} indexes;
@@ -51,8 +51,8 @@ y_j <- LazyTensor(y, index = 'j')
 V_ij <- x_i - y_j   # weight matrix
 S_ij = sum(V_ij^2)     
 
-ssmaxweight <- sumsoftmaxweight(S_ij, 'i', V_ij) # sumsoftmaxweight reduction 
-                                                   # over the 'i' indices
+ssmaxweight <- sumsoftmaxweight(S_ij, 'i', V_ij) # sumsoftmaxweight reduction
+                                                 # over the 'i' indices
 }
 \dontrun{
 x <- matrix(runif(150 * 3), 150, 3) 
