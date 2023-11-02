@@ -461,7 +461,7 @@ binaryop.LazyTensor <- function(x, y, opstr, is_operator = FALSE,
         stop(
             paste(
                 "`x` input argument should be a LazyTensor, a vector or ", 
-                "a scalar. \nIf you want to use a matrix, convert it to ", 
+                "a scalar.\nIf you want to use a matrix, convert it to ", 
                 "LazyTensor first.",
                 sep = ""
             )
