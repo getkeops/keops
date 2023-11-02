@@ -6,26 +6,27 @@
 
 Remaining issues:
 
-- [ ] fix following reductions:
+- [x] fix following reductions:
   + [x] Min_ArgMin (missing argmin)
   + [x] Max_ArgMax (same)
   + [x] KMin (dim of output)
   + [x] argKMin (dim of output)
   + [x] KMin_ArgKMin (dim of output)
   + [x] LogSumExp (check output value)
-  + [ ] SumSoftMaxWeight (Python error: "Axis should be 0 or 1")
+  + [x] SumSoftMaxWeight (Python error: "Axis should be 0 or 1")
 
 - [x] fix inline doc for min, max (following sum), and other default functions
 - [ ] fix issue with `?"/"`
-- [ ] fix issue with `%*%` (including code and doc)
+- [x] fix issue with `%*%` (including code and doc)
 
-- [ ] check if concatenation is done along the inner dimension for `concat` function
+- [x] check if concatenation is done along the inner dimension for `concat` function
+- [x] fix doc of function `concat` in `R/lazytensor_operations.R`
 
 - [ ] revamp vignettes regarding LazyTensor, and mention it in main vignette
 
 - [ ] fix issue from `devtools::check()`
 
-- [ ] fix doc of function `concat` in `R/lazytensor_operations.R`
+- [ ] update website page with new vignettes
 
 ## Implement RKeOps v2+
 
