@@ -460,8 +460,9 @@ binaryop.LazyTensor <- function(x, y, opstr, is_operator = FALSE,
     if(is.matrix(x))
         stop(
             paste(
-                "`x` input argument should be a LazyTensor, a vector or a scalar.",
-                "\nIf you want to use a matrix, convert it to LazyTensor first.", 
+                "`x` input argument should be a LazyTensor, a vector or ", 
+                "a scalar. \nIf you want to use a matrix, convert it to ", 
+                "LazyTensor first.",
                 sep = ""
             )
         )
@@ -469,8 +470,9 @@ binaryop.LazyTensor <- function(x, y, opstr, is_operator = FALSE,
     if(is.matrix(y))
         stop(
             paste(
-                "`y` input argument should be a LazyTensor, a vector or a scalar.",
-                "\nIf you want to use a matrix, convert it to LazyTensor first.", 
+                "`y` input argument should be a LazyTensor, a vector or ", 
+                "a scalar. \nIf you want to use a matrix, convert it to ", 
+                "LazyTensor first.", 
                 sep = ""
             )
         )
@@ -510,8 +512,10 @@ binaryop.LazyTensor <- function(x, y, opstr, is_operator = FALSE,
                 stop(
                     paste(
                         "Operation `", opstr, 
-                        "` expects inputs of the same dimension or dimension 1. Received ",
-                        get_inner_dim(x), " and ", get_inner_dim(y), ".", sep = ""
+                        "` expects inputs of the same dimension or ",
+                        "dimension 1. Received ",
+                        get_inner_dim(x), " and ", get_inner_dim(y), ".", 
+                        sep = ""
                     )
                 )
             }
@@ -522,7 +526,8 @@ binaryop.LazyTensor <- function(x, y, opstr, is_operator = FALSE,
                     paste(
                         "Operation `", opstr,
                         "` expects inputs of the same dimension. Received ",
-                        get_inner_dim(x), " and ", get_inner_dim(y), ".", sep = ""
+                        get_inner_dim(x), " and ", 
+                        get_inner_dim(y), ".", sep = ""
                     )
                 )
             }
@@ -1335,6 +1340,7 @@ preprocess_reduction <- function(x, opstr, index, opt_arg = NULL) {
     # fix_op_reducrtion() not neeeded anymore
     opstr_internal <- opstr
     
+    # manage optional arguments
     if(!is.null(opt_arg)) {
         if(is.LazyTensor(opt_arg)) {
             tmp_opt <- fix_variables(opt_arg, is_opt = TRUE)

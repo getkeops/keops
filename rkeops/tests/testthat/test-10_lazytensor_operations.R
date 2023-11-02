@@ -2413,6 +2413,21 @@ test_that("extractT", {
 
 
 test_that("concat", {
+    # toy example
+    x <- matrix(1, 1, 3)
+    y <- matrix(2, 1, 3)
+    x_i <- LazyTensor(x, index = 'i')
+    y_j <- LazyTensor(y, index = 'j')
+    
+    obj <- concat(x_i, y_j)
+    expect_true(is.LazyTensor(obj))
+    bool_grep_formula <- grep("Concat\\(A0x.*i,A0x.*j\\)", obj$formula)
+    expect_equal(bool_grep_formula, 1)
+    
+    res <- sum(concat(x_i,y_j), "i")
+    expected_res <- rep(1:2, each = 3)
+    expect_equal(as.vector(res), expected_res)
+    
     # basic example
     x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
     y <- matrix(runif(250 * 3), 250, 3) # arbitrary R matrix, 250 rows, 3 columns
@@ -3727,28 +3742,97 @@ test_that("logsumexp_reduction", {
 
 
 test_that("sumsoftmaxweight", {
-    x <- matrix(c(2.5, 1.5, 3.5, .5, 2., 4.7), 2, 3)
-    y <- matrix(c(2., 6., 9., 3., 0.6, 5.), 2, 3)
-    w <- matrix(c(1., 1., 1.), 2, 3)
     
+    ## basic example (reduction on 'i' -> gives back weights)
+    x <- matrix(runif(12), 4, 3)
+    y <- matrix(runif(15), 5, 3)
     x_i <- LazyTensor(x, index = 'i') 
     y_j <- LazyTensor(y, index = 'j')
+    
+    # with weights equal to 1
+    w <- matrix(1, 5, 3)
     w_j <- LazyTensor(w, index = 'j')
     
     V_ij <- x_i - y_j
     S_ij <- sum(V_ij^2)
     
-    # with weights equal to 1
     res <- sumsoftmaxweight(S_ij, 'i', w_j)
-    expected_res <- w
-    expect_true(any(abs(res - expected_res) < 1E-2))
+    expect_false(is.LazyTensor(res))
+    expect_true(is.matrix(res))
+    expect_equal(res, w)
     
-    # TODO expected_res comparison with R standard code
+    # with random weights
+    w <- matrix(runif(15), 5, 3)
+    w_j <- LazyTensor(w, index = 'j')
     
-    # check formulas, args & classes
+    V_ij <- x_i - y_j
+    S_ij <- sum(V_ij^2)
+    
+    res <- sumsoftmaxweight(S_ij, 'i', w_j)
+    expect_false(is.LazyTensor(res))
+    expect_true(is.matrix(res))
+    expect_equal(res, w)
+    
+    ## basic example (reduction on 'j')
+    x <- matrix(runif(12), 4, 3)
+    y <- matrix(runif(15), 5, 3)
+    x_i <- LazyTensor(x, index = 'i') 
+    y_j <- LazyTensor(y, index = 'j')
+    
+    # with weights equal to 1
+    w <- matrix(1, 5, 3)
+    w_j <- LazyTensor(w, index = 'j')
+    
+    V_ij <- x_i - y_j
+    S_ij <- sum(V_ij^2)
+    
+    res <- sumsoftmaxweight(S_ij, 'j', w_j)
+    expect_false(is.LazyTensor(res))
+    expect_true(is.matrix(res))
+    expect_equal(res, matrix(1, 4, 3))
+    
+    # with random weights
+    w <- matrix(runif(15), 5, 3)
+    w_j <- LazyTensor(w, index = 'j')
+    
+    V_ij <- x_i - y_j
+    S_ij <- sum(V_ij^2)
+    
+    res <- sumsoftmaxweight(S_ij, 'j', w_j)
+    expect_false(is.LazyTensor(res))
+    expect_true(is.matrix(res))
+    
+    S_val <- t(sapply(
+        1:nrow(x), function(id_x) 
+            sapply(1:nrow(y), function(id_y) sum((x[id_x,] - y[id_y,])^2))
+    ))
+    exp_S_val <- t(apply(
+        S_val, 1, 
+        function(vec) {
+            return(exp(vec - max(vec)))
+        }
+    ))
+    expected_res <- exp_S_val %*% w / matrix(apply(exp_S_val, 1, sum), 4, 3)
+    expect_equal(res, expected_res, tolerance = 1e-5)
+    
+    # more complicated example
+    x <- matrix(runif(150 * 3), 150, 3)
+    x_i <- LazyTensor(x, index = 'i')
+    y <- matrix(runif(100 * 3), 100, 3)
+    y_j <- LazyTensor(y, index = 'j')
+
+    V_ij <- x_i - y_j   # weight matrix
+    S_ij = sum(V_ij^2)
+
     res <- sumsoftmaxweight(S_ij, 'i', V_ij)
     expect_false(is.LazyTensor(res))
     expect_true(is.matrix(res))
+    # TODO: compare results with R code
+    
+    res <- sumsoftmaxweight(S_ij, 'j', V_ij)
+    expect_false(is.LazyTensor(res))
+    expect_true(is.matrix(res))
+    # TODO: compare results with R code
     
     # errors
     expect_error(

@@ -3596,8 +3596,6 @@ extractT <- function(x, m, d) {
 #' @details If `x` and `y` are two `LazyTensor` or `ComplexLazyTensor`,
 #' `concat(x, y)` encodes, symbolically, the concatenation of `x` and `y` along
 #' their inner dimension.
-#' 
-#' TODO check if this is, indeed, along the inner dimension !
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x a `LazyTensor` or a `ComplexLazyTensor`.
 #' @param y a `LazyTensor` or a `ComplexLazyTensor`.
@@ -4771,7 +4769,7 @@ logsumexp_reduction <- function(x, index, weight = NULL) {
 
 #' Sum of weighted Soft-Max reduction.
 #' @details If `x` is a `LazyTensor` or a `ComplexLazyTensor`, 
-#' `logsumexp(x, index, weight)` will:
+#' `sumsoftmaxweight(x, index, weight)` will:
 #' - if `index = "i"`, return the Sum of weighted Soft-Max reduction of `x` 
 #'   over the `i` indexes;
 #' - if `index = "j"`, return the Sum of weighted Soft-Max reduction of `x` 
@@ -4798,18 +4796,18 @@ logsumexp_reduction <- function(x, index, weight = NULL) {
 #' V_ij <- x_i - y_j   # weight matrix
 #' S_ij = sum(V_ij^2)     
 #' 
-#' ssmaxweight <- sumsoftmaxweight(S_ij, 'i', V_ij) # sumsoftmaxweight reduction 
-#'                                                    # over the 'i' indices
+#' ssmaxweight <- sumsoftmaxweight(S_ij, 'i', V_ij) # sumsoftmaxweight reduction
+#'                                                  # over the 'i' indices
 #' }
 #' @export
 sumsoftmaxweight <- function(x, index, weight) {
-    tmp_weight <- concat(1, weight)
+    tmp_weight <- weight #concat(1, weight)
     if(check_index(index)) {
         return(reduction.LazyTensor(x, "SumSoftMaxWeight", 
                                     index, opt_arg = tmp_weight))
-    }
-    else
+    } else {
         stop("`index` input argument should be a character, either 'i' or 'j'.")
+    }
 }
 
 
