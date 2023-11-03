@@ -26,9 +26,13 @@ public:
     /*         Cast input args            */
     /*------------------------------------*/
 
+    std::cout << "here !!!! 0" << std::endl;
+
     std::vector<int> indsi_v(py_indsi.size());
     for (auto i = 0; i < py_indsi.size(); i++)
       indsi_v[i] = py::cast<int>(py_indsi[i]);
+
+    std::cout << "here !!!! 1" << std::endl;
 
     std::vector<int> indsj_v(py_indsj.size());
     for (auto i = 0; i < py_indsj.size(); i++)
@@ -50,11 +54,15 @@ public:
     for (auto i = 0; i < py_dimsp.size(); i++)
       dimsp_v[i] = py::cast<signed long int>(py_dimsp[i]);
 
+    std::cout << "here !!!! 2" << std::endl;
+
     // Cast the ranges arrays
     std::vector<signed long int *> ranges_v(py_ranges.size());
     for (signed long int i = 0; i < py_ranges.size(); i++)
       ranges_v[i] = (signed long int *)py::cast<long>(py_ranges[i]);
     signed long int **ranges = (signed long int **)ranges_v.data();
+
+    std::cout << "here !!!! 3" << std::endl;
 
     // for (auto i: ranges_v)
     //    std::cout << " " <<  (long) i << " ";
@@ -70,6 +78,10 @@ public:
 
     TYPE *out = (TYPE *)out_void;
     // std::cout << "out_ptr : " << (long) out << std::endl;
+
+
+    std::cout << "here !!!! 4" << std::endl;
+
 
     std::vector<TYPE *> arg_v(py_arg.size());
     for (int i = 0; i < py_arg.size(); i++)
@@ -88,6 +100,8 @@ public:
     //        for (auto i : argshape_v)
     //            for (auto j : i)
     //                std::cout << j << " " ;
+
+    std::cout << "here !!!! 5" << std::endl;
 
     return KeOps_module<TYPE>::launch_kernel(
         tagHostDevice, dimY, nx, ny, tagI, tagZero, use_half, tag1D2D, dimred,
