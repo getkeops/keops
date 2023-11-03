@@ -167,7 +167,7 @@ std::cout << "in range_preprocess_from_device !!!! 4" << std::endl;
   if (ranges_on_device) { // The ranges are on the device
     ranges_x_h = &ranges_x_h_arr[0];
     // Send data from device to host.
-    cuMemcpyDtoH(ranges_x_h, (CUdeviceptr)ranges_x, sizeof(int) * 2 * nranges);
+    cuMemcpyDtoH(ranges_x_h, (CUdeviceptr)ranges_x, sizeof(signed long int) * 2 * nranges);
     slices_x_d = slices_x;
     ranges_y_d = ranges_y;
   } else { // The ranges are on host memory; this is typically what happens with
@@ -230,12 +230,15 @@ std::cout << "in range_preprocess_from_device !!!! 5d" << std::endl;
     }
   }
 
-std::cout << "in range_preprocess_from_device !!!! 6" << std::endl;
+std::cout << "in range_preprocess_from_device !!!! 6a" << std::endl;
 
   // Load the table on the device
   // -----------------------------------------------------
   CUDA_SAFE_CALL(
       cuMemAlloc((CUdeviceptr *)&lookup_d, sizeof(signed long int) * 3 * nblocks));
+
+std::cout << "in range_preprocess_from_device !!!! 6b" << std::endl;
+
   CUDA_SAFE_CALL(cuMemcpyHtoD((CUdeviceptr)lookup_d, lookup_h,
                               sizeof(signed long int) * 3 * nblocks));
 

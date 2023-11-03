@@ -198,12 +198,6 @@ class LoadKeOps:
             print("hi in LoadKeOps.py 2 !!")
             self.ranges_ptr_new = self.empty_ranges_new
         else:
-            print("hi in LoadKeOps.py 3 !!")
-            print(type(ranges))
-            print(type(ranges[0]))
-            print(ranges[0].shape)
-            print(ranges[0].device)
-            input()
             ranges_shapes = self.tools.array(
                 [r.shape[0] for r in ranges], dtype="int64", device="cpu"
             )
