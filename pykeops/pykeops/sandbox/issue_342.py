@@ -9,18 +9,21 @@ import nvsmi
 
 use_cuda = torch.cuda.is_available()
 if use_cuda:
-    torch.set_default_tensor_type("torch.cuda.FloatTensor")   #All tensors should be on the GPU
+    torch.set_default_tensor_type(
+        "torch.cuda.FloatTensor"
+    )  # All tensors should be on the GPU
     device = "cuda"
-    
-M, N = (1000, 1000)    #Dimensions
-T = 5000   #Number of iterations
+
+M, N = (100000, 100000)  # Dimensions
+T = 5000  # Number of iterations
+
 
 def bsr_test(update_ranges=True):
     t = torch.linspace(0, 2 * np.pi, M + 1)[:-1]
     x = torch.stack((0.4 + 0.4 * (t / 7) * t.cos(), 0.5 + 0.3 * t.sin()), 1)
     x = x + 0.01 * torch.randn(x.shape)
 
-    y = torch.randn((N,2))
+    y = torch.randn((N, 2))
     y = y / 10 + torch.tensor([0.6, 0.6])
 
     eps = 0.05  # Size of our square bins
@@ -50,20 +53,20 @@ def bsr_test(update_ranges=True):
     K = (-D_ij / 2).exp()  # Symbolic (M,N,1) Gaussian kernel matrix
 
     b = torch.randn((N, 1))
-    
+
     if update_ranges:
         K.ranges = ranges_ij
-    
+
     a_sparse = K @ b
-    
+
     return a_sparse
+
 
 for it in range(T):
     a = bsr_test(update_ranges=True)
-    if (it+1)%1000==0:
-        print("Iteration: " + str(it),flush=True)
-        print("Memory allocated: " + str(torch.cuda.memory_allocated()),flush=True)
-        print("Memory cached: " + str(torch.cuda.memory_reserved()),flush=True)
-        print(nvsmi.get_gpu_processes()[0],flush=True)
-        print("------",flush=True)
-
+    if (it + 1) % 1000 == 0:
+        print("Iteration: " + str(it), flush=True)
+        print("Memory allocated: " + str(torch.cuda.memory_allocated()), flush=True)
+        print("Memory cached: " + str(torch.cuda.memory_reserved()), flush=True)
+        print(nvsmi.get_gpu_processes()[0], flush=True)
+        print("------", flush=True)
