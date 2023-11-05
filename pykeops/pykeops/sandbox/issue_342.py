@@ -14,8 +14,8 @@ if use_cuda:
     )  # All tensors should be on the GPU
     device = "cuda"
 
-M, N = (100000, 100000)  # Dimensions
-T = 5000  # Number of iterations
+M, N = (10, 10)  # Dimensions
+T = 5  # Number of iterations
 
 
 def bsr_test(update_ranges=True):
