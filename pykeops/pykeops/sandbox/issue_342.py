@@ -15,7 +15,7 @@ if use_cuda:
     device = "cuda"
 
 M, N = (100000, 100000)  # Dimensions
-T = 5000  # Number of iterations
+T = 10  # Number of iterations
 
 
 def bsr_test(update_ranges=True):
