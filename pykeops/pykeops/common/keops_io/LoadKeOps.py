@@ -191,12 +191,15 @@ class LoadKeOps:
                 args, self.params.aliases_old, self.params.axis, ranges, nx, ny
             )
 
+        print("hi in LoadKeOps.py 1 !!")
+
         # get ranges argument
         if not ranges:
+            print("hi in LoadKeOps.py 2 !!")
             self.ranges_ptr_new = self.empty_ranges_new
         else:
             ranges_shapes = self.tools.array(
-                [r.shape[0] for r in ranges], dtype="int32", device="cpu"
+                [r.shape[0] for r in ranges], dtype="int64", device="cpu"
             )
             ranges = [*ranges, ranges_shapes]
             self.ranges_ptr_new = tuple([self.tools.get_pointer(r) for r in ranges])
