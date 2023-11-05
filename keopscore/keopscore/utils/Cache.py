@@ -44,15 +44,15 @@ class Cache:
 
 
 class Cache_partial:
-    """ 
+    """
     with use_cache_file==False:
-        - first call : 
+        - first call :
             - call to get obj
             - save obj in self.library[str_id]
         - next calls :
             - retrieve obj from self.library[str_id]
     with use_cache_file==True:
-        - very first call : 
+        - very first call :
             - call to get obj
             - save obj.params in self.library_params[str_id], saved in file at exit
             - save obj in self.library[str_id]
