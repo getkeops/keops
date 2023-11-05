@@ -133,8 +133,6 @@ void range_preprocess_from_device(signed long int &nblocks, int tagI, signed lon
   //    FUN::tagJ = 1 for a reduction over j, result indexed by i
   //    FUN::tagJ = 0 for a reduction over i, result indexed by j
 
-std::cout << "in range_preprocess_from_device !!!! 1" << std::endl;
-
   int tagJ = 1 - tagI;
   signed long int nranges = tagJ ? nranges_x : nranges_y;
 
@@ -142,11 +140,7 @@ std::cout << "in range_preprocess_from_device !!!! 1" << std::endl;
   signed long int *slices_x = tagJ ? castedranges[1] : castedranges[4];
   signed long int *ranges_y = tagJ ? castedranges[2] : castedranges[5];
 
-std::cout << "in range_preprocess_from_device !!!! 2" << std::endl;
-
   std::vector<signed long int> ranges_x_h_arr_vec(2 * nranges);
-
-std::cout << "in range_preprocess_from_device !!!! 3" << std::endl;
 
   signed long int *ranges_x_h_arr = ranges_x_h_arr_vec.data();
   signed long int *ranges_x_h;
@@ -161,8 +155,6 @@ std::cout << "in range_preprocess_from_device !!!! 3" << std::endl;
   // N.B.: We only support Host ranges with Device data when these ranges were
   // created
   //       to emulate block-sparse reductions.
-
-std::cout << "in range_preprocess_from_device !!!! 4" << std::endl;
 
   if (ranges_on_device) { // The ranges are on the device
     ranges_x_h = &ranges_x_h_arr[0];
@@ -188,15 +180,12 @@ std::cout << "in range_preprocess_from_device !!!! 4" << std::endl;
                                 sizeof(signed long int) * 2 * nranges));
   }
 
-std::cout << "in range_preprocess_from_device !!!! 5a" << std::endl;
-
   // Computes the number of blocks needed
   // ---------------------------------------------
   nblocks = 0;
   signed long int len_range = 0;
   for (signed long int i = 0; i < nranges; i++) {
     len_range = ranges_x_h[2 * i + 1] - ranges_x_h[2 * i];
-    std::cout << "len_range=" << len_range << std::endl;
     nblocks +=
         (len_range / blockSize_x) + (len_range % blockSize_x == 0 ? 0 : 1);
   }
@@ -204,20 +193,10 @@ std::cout << "in range_preprocess_from_device !!!! 5a" << std::endl;
   // Create a lookup table for the blocks
   // --------------------------------------------
 
-std::cout << "in range_preprocess_from_device !!!! 5b" << std::endl;
-
-std::cout << "nranges=" << nranges << std::endl;
-std::cout << "blockSize_x=" << blockSize_x << std::endl;
-std::cout << "3 * nblocks=" << 3 * nblocks << std::endl;
-
   std::vector<signed long int> lookup_h_vec(3 * nblocks);
-
-std::cout << "in range_preprocess_from_device !!!! 5c" << std::endl;
 
   signed long int *lookup_h = lookup_h_vec.data();
   signed long int index = 0;
-
-std::cout << "in range_preprocess_from_device !!!! 5d" << std::endl;
 
   for (signed long int i = 0; i < nranges; i++) {
     len_range = ranges_x_h[2 * i + 1] - ranges_x_h[2 * i];
@@ -230,14 +209,10 @@ std::cout << "in range_preprocess_from_device !!!! 5d" << std::endl;
     }
   }
 
-std::cout << "in range_preprocess_from_device !!!! 6a" << std::endl;
-
   // Load the table on the device
   // -----------------------------------------------------
   CUDA_SAFE_CALL(
       cuMemAlloc((CUdeviceptr *)&lookup_d, sizeof(signed long int) * 3 * nblocks));
-
-std::cout << "in range_preprocess_from_device !!!! 6b" << std::endl;
 
   CUDA_SAFE_CALL(cuMemcpyHtoD((CUdeviceptr)lookup_d, lookup_h,
                               sizeof(signed long int) * 3 * nblocks));
@@ -247,14 +222,10 @@ std::cout << "in range_preprocess_from_device !!!! 6b" << std::endl;
 
   // We create a lookup table, "offsets", of shape (nblock, SIZEVARS):
 
-std::cout << "in range_preprocess_from_device !!!! 7" << std::endl;
-
   if (nbatchdims > 0) {
     offsets_d = build_offset_tables(nbatchdims, shapes, nblocks, lookup_h,
                                     indsi, indsj, indsp, tagJ);
   }
-
-std::cout << "in range_preprocess_from_device !!!! 8" << std::endl;
 
 }
 
@@ -417,8 +388,6 @@ public:
                     std::vector<signed long int> shapeout, TYPE *out, TYPE **arg,
                     std::vector<std::vector<signed long int>> argshape) {
 
-    std::cout << "in launch_kernel !!!! 1" << std::endl;
-
     SetContext();
 
     ////end_ = clock();
@@ -428,8 +397,6 @@ public:
 
     Sizes<TYPE> SS(nargs, arg, argshape, nx, ny, tagI, use_half, dimout, indsi,
                    indsj, indsp, dimsx, dimsy, dimsp);
-
-    std::cout << "in launch_kernel !!!! 2" << std::endl;
 
     // end_ = clock();
     // std::cout << "  time for Sizes : " << double(//end_ - start_) /
@@ -441,8 +408,6 @@ public:
     Ranges<TYPE> RR(SS, ranges);
     nx = SS.nx;
     ny = SS.ny;
-
-    std::cout << "in launch_kernel !!!! 3" << std::endl;
 
     // end_ = clock();
     // std::cout << "  time for Ranges : " << double(//end_ - start_) /
@@ -465,8 +430,6 @@ public:
       dimsy = dimsx;
       dimsx = tmpdim;
     }
-
-    std::cout << "in launch_kernel !!!! 4" << std::endl;
 
     unsigned int blockSize_x = 1, blockSize_y = 1, blockSize_z = 1;
 
@@ -494,8 +457,6 @@ public:
                                               (signed long int)(dimY * sizeof(TYPE))))));
     }
 
-    std::cout << "in launch_kernel !!!! 5a" << std::endl;
-
     signed long int nblocks;
 
     if (tagI == 1) {
@@ -507,17 +468,13 @@ public:
     signed long int *lookup_d = NULL, *slices_x_d = NULL, *ranges_y_d = NULL;
     signed long int *offsets_d = NULL;
 
-    std::cout << "in launch_kernel !!!! 5b" << std::endl;
-
     if (RR.tagRanges == 1) {
       if (tagHostDevice == 1) {
-        std::cout << "in launch_kernel !!!! 5c" << std::endl;
         range_preprocess_from_device(
             nblocks, tagI, RR.nranges_x, RR.nranges_y, RR.castedranges,
             SS.nbatchdims, slices_x_d, ranges_y_d, lookup_d, offsets_d,
             blockSize_x, indsi, indsj, indsp, SS.shapes);
       } else { // tagHostDevice==0
-      std::cout << "in launch_kernel !!!! 5d" << std::endl;
         range_preprocess_from_host(nblocks, tagI, RR.nranges_x, RR.nranges_y,
                                    RR.nredranges_x, RR.nredranges_y,
                                    RR.castedranges, SS.nbatchdims, slices_x_d,
@@ -525,8 +482,6 @@ public:
                                    indsi, indsj, indsp, SS.shapes);
       }
     }
-
-    std::cout << "in launch_kernel !!!! 6" << std::endl;
 
     ////end_ = clock();
     ////std::cout << "  time for interm : " << double(//end_ - start_) /
@@ -547,9 +502,6 @@ public:
       load_args_FromHost(p_data, out, out_d, nargs, arg, arg_d, argshape,
                          sizeout);
 
-
-    std::cout << "in launch_kernel !!!! 7" << std::endl;
-
     ////end_ = clock();
     ////std::cout << "  time for load_args : " << double(//end_ - start_) /
     /// CLOCKS_PER_SEC << std::endl;
@@ -558,11 +510,6 @@ public:
     CUfunction kernel;
 
     unsigned int gridSize_x = 1, gridSize_y = 1, gridSize_z = 1;
-
-
-
-    std::cout << "in launch_kernel !!!! 8" << std::endl;
-
 
 
     if (tag1D2D == 1) { // 2D scheme
@@ -628,13 +575,10 @@ public:
     } else if (RR.tagRanges == 1 && tagZero == 0) {
       // ranges mode
 
-      std::cout << "in launch_kernel !!!! 9" << std::endl;
-
       gridSize_x = nblocks;
 
       CUDA_SAFE_CALL(
           cuModuleGetFunction(&kernel, module, "GpuConv1DOnDevice_ranges"));
-      // std::cout << "GpuConv1DOnDevice_ranges " << nx << " " << gridSize_x ;
       void *kernel_params[9];
       kernel_params[0] = &nx;
       kernel_params[1] = &ny;
@@ -651,8 +595,6 @@ public:
           blockSize_x, blockSize_y, blockSize_z,      // block dim
           blockSize_x * dimY * sizeof(TYPE), NULL,    // shared mem and stream
           kernel_params, 0));                         // arguments
-
-      std::cout << "in launch_kernel !!!! 10" << std::endl;
 
     } else {
       // simple mode
@@ -687,9 +629,6 @@ public:
     // start_ = clock();
 
     // Send data from device to host.
-
-
-    std::cout << "in launch_kernel !!!! 11" << std::endl;
 
     if (tagHostDevice == 0) {
       CUDA_SAFE_CALL(
