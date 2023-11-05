@@ -511,7 +511,6 @@ public:
 
     unsigned int gridSize_x = 1, gridSize_y = 1, gridSize_z = 1;
 
-
     if (tag1D2D == 1) { // 2D scheme
 
       gridSize_x = nx / blockSize_x + (nx % blockSize_x == 0 ? 0 : 1);
@@ -609,11 +608,6 @@ public:
       kernel_params[2] = &out_d;
       kernel_params[3] = &arg_d;
 
-      // std::cout << "GpuConv1DOnDevice " << nx << " " << gridSize_x ;//<< " "
-      // << gridSize_y << " " << gridSize_z << " " <<  blockSize_x << " " <<
-      // blockSize_y << " " <<  blockSize_z << " " <<   blockSize_x * dimY *
-      // sizeof(TYPE)  << std::endl;
-
       CUDA_SAFE_CALL(cuLaunchKernel(
           kernel, gridSize_x, gridSize_y, gridSize_z, // grid dim
           blockSize_x, blockSize_y, blockSize_z,      // block dim
@@ -629,6 +623,7 @@ public:
     // start_ = clock();
 
     // Send data from device to host.
+
 
     if (tagHostDevice == 0) {
       CUDA_SAFE_CALL(
