@@ -80,7 +80,7 @@ class GenredAutograd_base:
         # number of batch dimensions
         # N.B. we assume here that there is at least a cat=0 or cat=1 variable in the formula...
         nbatchdims = max(len(arg.shape) for arg in args) - 2
-        use_ranges = nbatchdims > 0 or ranges is not None
+        use_ranges = nbatchdims > 0 or params.ranges is not None
 
         device_id, device_args = set_device(
             tagCPUGPU, tagHostDevice, params.device_id_request, *args
