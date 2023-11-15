@@ -125,7 +125,7 @@ fun_gaussianconv_keops_no_fast_math = generic_sum(
     "X = Vi({})".format(D),  # 1st argument
     "Y = Vj({})".format(D),  # 2nd argument
     "B = Vj(1)",  # 3rd argument
-    use_fast_math = False,
+    use_fast_math=False,
 )
 
 
@@ -133,6 +133,7 @@ def gaussianconv_keops(x, y, b, backend="GPU", **kwargs):
     """(B,N,D), (B,N,D), (B,N,1) -> (B,N,1)"""
     x, y, b = x.squeeze(), y.squeeze(), b.squeeze()
     return fun_gaussianconv_keops(x, y, b, backend=backend)
+
 
 def gaussianconv_keops_no_fast_math(x, y, b, backend="GPU", **kwargs):
     """(B,N,D), (B,N,D), (B,N,1) -> (B,N,1)"""

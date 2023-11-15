@@ -135,7 +135,7 @@ if use_OpenMP:
             stderr=subprocess.PIPE,
             shell=True,
         )
-        
+
         if res.returncode != 0:
             KeOps_Warning(
                 """omp.h header is not in the path, disabling OpenMP. To fix this, you can set the environment
