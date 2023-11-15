@@ -1,5 +1,6 @@
 import ctypes
 from ctypes.util import find_library
+import tempfile
 
 import keopscore.config.config
 from keopscore.utils.misc_utils import (
@@ -87,7 +88,7 @@ def get_cuda_include_path():
 
 
 def get_include_file_abspath(filename):
-    tmp_file = join(get_build_folder(), "tmp.txt")
+    tmp_file = tempfile.NamedTemporaryFile(dir=get_build_folder()).name
     KeOps_OS_Run(
         f'echo "#include <{filename}>" | {cxx_compiler} -M -E -x c++ - | head -n 2 > {tmp_file}'
     )
