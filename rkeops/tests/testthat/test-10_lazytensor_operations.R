@@ -1558,7 +1558,8 @@ test_that("ifelse", {
     expect_error(
         ifelse(x_i, y_j, w_i),
         paste(
-            "Operation `IfElse` expects inputs of the same dimension or dimension 1.",
+            "Operation `IfElse` expects inputs of the same dimension or ", 
+            "dimension 1.",
             " Received 3, 3 and 7.", sep = ""
         ),
         fixed = TRUE
@@ -1566,13 +1567,17 @@ test_that("ifelse", {
     
     expect_error(
         ifelse(xc_i, y_j, z_i),
-        paste0("`x`, `a` and `b` input arguments cannot be ComplexLazyTensors."),
+        paste0(
+            "`test`, `yes` and `no` input arguments cannot be ",
+            "ComplexLazyTensors."),
         fixed = TRUE
     )
     
     expect_error(
         ifelse(x_i, yc_j, zc_i),
-        paste0("`x`, `a` and `b` input arguments cannot be ComplexLazyTensors."),
+        paste0(
+            "`test`, `yes` and `no` input arguments cannot be ",
+            "ComplexLazyTensors."),
         fixed = TRUE
     )
     
