@@ -3,3 +3,5 @@
 *.so
 inst/doc
 Meta
+/doc/
+/Meta/

@@ -111,21 +111,36 @@ library(checkmate)
 library(tibble)
 # Generate documentation and deal with dependencies
 attachment::att_amend_desc(path = pkg_dir)
+```
 
+```{r dev-readme}
 # generate README.md from README.Rmd
 devtools::build_readme(pkg_dir)
 ```
 
+```{r dev-vignette}
+devtools::build_vignettes(pkg_dir)
+```
+
 ### Test and check
 
-```{r development-check}
-# Run the test
+```{r dev-test}
+# run the unit tests
 devtools::test(pkg_dir)
+```
 
+```{r dev-cov}
 # test coverage
 covr::package_coverage(
     pkg_dir, line_exclusions = list("R/init.R", "R/python.R"))
+```
 
-# Check the package
+```{r dev-check-doc}
+# check the package doc
+devtools::check_man(pkg_dir)
+```
+
+```{r dev-check}
+# fully check the package
 devtools::check(pkg_dir, run_dont_test = TRUE)
 ```
