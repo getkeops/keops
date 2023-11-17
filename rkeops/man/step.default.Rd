@@ -4,9 +4,15 @@
 \alias{step.default}
 \title{Choose a model by AIC in a Stepwise Algorithm}
 \usage{
-\method{step}{default}(x, ...)
+\method{step}{default}(object, ...)
 }
 \arguments{
+\item{object}{
+    an object representing a model of an appropriate class (mainly
+    \code{"lm"} and \code{"glm"}).
+    This is used as the initial model in the stepwise search.
+  }
+
 \item{...}{
     any additional arguments to \code{\link[stats]{extractAIC}}.
   }

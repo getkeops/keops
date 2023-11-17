@@ -10,12 +10,12 @@ argmin(x, index = NA)
 argmin_reduction(x, index)
 }
 \arguments{
+\item{x}{a \code{LazyTensor} or a \code{ComplexLazyTensor}.}
+
 \item{index}{a \code{character} corresponding to the wanted reduction dimension,
 either \code{"i"} or \code{"j"}, to specify whether if the argmin reduction is done
 along the index \code{i} or \code{j}.
 It can be \code{NA} (default) when no reduction is desired.}
-
-\item{a}{\code{LazyTensor} or a \code{ComplexLazyTensor}.}
 }
 \value{
 a \code{LazyTensor} if \code{index = NA} or an array storing the result of

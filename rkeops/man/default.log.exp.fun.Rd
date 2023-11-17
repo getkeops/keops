@@ -6,9 +6,9 @@
 \alias{log.default}
 \title{Logarithms and Exponentials}
 \usage{
-exp(x)
+\method{exp}{default}(x)
 
-log(x)
+\method{log}{default}(x, base = exp(1))
 }
 \arguments{
 \item{x}{a numeric or complex vector.}

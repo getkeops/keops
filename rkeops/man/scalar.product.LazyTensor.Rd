@@ -5,8 +5,8 @@
 \alias{|.LazyTensor}
 \title{Euclidean scalar product operation}
 \usage{
-x | y
-(x | y)
+\special{x | y}
+\special{(x | y)}
 }
 \arguments{
 \item{x, y}{a \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric values,
@@ -16,16 +16,10 @@ or a scalar value.}
 An object of class \code{LazyTensor}.
 }
 \description{
-Symbolic uclidean scalar product binary operation for \code{LazyTensor} objects.
+Symbolic Euclidean scalar product binary operation for \code{LazyTensor} objects.
 }
 \details{
-If \code{x} or \code{y} is a \code{LazyTensor}, \code{x^y} returns a \code{LazyTensor}
-that encodes, symbolically, the element-wise value of \code{x} to the power
-of \code{y}.
-(In case one of the arguments is a vector or a scalar, it is first converted
-to \code{LazyTensor}).
-
-If \code{x} or \code{y} is a \code{LazyTensor}, \code{(x|y)} (or \code{x | y}) returns a
+If \code{x} or \code{y} is a \code{LazyTensor}, \code{x|y} returns a
 \code{LazyTensor} that encodes, symbolically, the Euclidean scalar product between
 \code{x} and \code{y}, which must have the same shape. (In case one of the arguments is
 a vector or a scalar, it is first converted to \code{LazyTensor}).

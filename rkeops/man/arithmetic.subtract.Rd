@@ -5,8 +5,8 @@
 \alias{-}
 \title{Subtraction or minus sign}
 \usage{
--x
-x - y
+\special{-x}
+\special{x - y}
 }
 \arguments{
 \item{x, y}{input for \code{\link[=-.default]{-.default()}} or \code{\link[=-.LazyTensor]{-.LazyTensor()}}.}

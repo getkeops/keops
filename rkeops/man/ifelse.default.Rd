@@ -4,7 +4,14 @@
 \alias{ifelse.default}
 \title{Conditional Element Selection}
 \usage{
-\method{ifelse}{default}(x, a, b)
+\method{ifelse}{default}(test, yes, no)
+}
+\arguments{
+\item{test}{an object which can be coerced to logical mode.}
+
+\item{yes}{return values for true elements of \code{test}.}
+
+\item{no}{return values for false elements of \code{test}.}
 }
 \value{
 A vector of the same length and attributes (including dimensions and

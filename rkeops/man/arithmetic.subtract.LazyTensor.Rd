@@ -6,13 +6,13 @@
 \alias{-.ComplexLazyTensor}
 \title{Subtraction or minus sign}
 \usage{
-# if x or y is a LazyTensor
-- x
-x - y
+## S3 method for class 'LazyTensor'
+\special{-x}
+\special{x - y}
 
-# if x or y is a ComplexLazyTensor
-- x
-x - y
+## S3 method for class 'ComplexLazyTensor'
+\special{-x}
+\special{x - y}
 }
 \arguments{
 \item{x, y}{a \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric values,

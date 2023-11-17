@@ -6,9 +6,9 @@
 \alias{abs.default}
 \title{Miscellaneous Mathematical Functions}
 \usage{
-sqrt(x)
+\method{sqrt}{default}(x)
 
-abs(x)
+\method{abs}{default}(x)
 }
 \arguments{
 \item{x}{a numeric or \code{\link[base]{complex}} vector or array.}

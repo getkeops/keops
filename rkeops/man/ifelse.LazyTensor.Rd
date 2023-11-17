@@ -4,10 +4,10 @@
 \alias{ifelse.LazyTensor}
 \title{Element-wise if-else function.}
 \usage{
-\method{ifelse}{LazyTensor}(x, a, b)
+\method{ifelse}{LazyTensor}(test, yes, no)
 }
 \arguments{
-\item{x, a, b}{A \code{LazyTensor}, a vector of numeric values,
+\item{test, yes, no}{a \code{LazyTensor}, a vector of numeric values,
 or a scalar value.}
 }
 \value{
@@ -18,13 +18,14 @@ Symbolic element-wise if-else function  (ternary operation) for
 \code{LazyTensor} objects.
 }
 \details{
-If \code{x} is a \code{LazyTensor}, \code{ifelse(x, a, b)} returns a \code{LazyTensor}
-that encodes, symbolically, \code{a} if \code{x >= 0} and \code{b} if \code{x < 0}.
+If \code{test} is a \code{LazyTensor}, \code{ifelse(test, yes, no)} returns a
+\code{LazyTensor} that encodes, symbolically, \code{yes} if \code{test >= 0} and
+\code{no} if \code{test < 0}.
 Broadcasting rules apply.
-\code{a} and \code{b} may be fixed integers or floats, or other \code{LazyTensor}.
+\code{yes} and \code{no} may be fixed integers or floats, or other \code{LazyTensor}.
 
-\strong{Note}: If \code{a} and \code{b} are not scalar values, these should have the same inner
-dimension as \code{x}.
+\strong{Note}: If \code{yes} and \code{no} are not scalar values, these should have the same
+inner dimension as \code{test}.
 }
 \examples{
 \dontrun{

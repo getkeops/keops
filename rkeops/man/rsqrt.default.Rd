@@ -4,7 +4,7 @@
 \alias{rsqrt.default}
 \title{Element-wise inverse square root operation}
 \usage{
-rsqrt(x)
+\method{rsqrt}{default}(x)
 }
 \arguments{
 \item{x}{a numeric or \code{\link[base]{complex}} vector or array.}

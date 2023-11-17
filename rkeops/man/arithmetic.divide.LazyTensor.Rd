@@ -6,9 +6,9 @@
 \alias{/.ComplexLazyTensor}
 \title{Division}
 \usage{
-x / y  # if x or y is a LazyTensor
+\method{/}{LazyTensor}(x, y)
 
-x / y  # if x or y is a ComplexLazyTensor
+\method{/}{ComplexLazyTensor}(x, y)
 }
 \arguments{
 \item{x, y}{a \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric values,

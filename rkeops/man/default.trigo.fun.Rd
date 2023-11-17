@@ -10,17 +10,17 @@
 \alias{atan2.default}
 \title{Trigonometric Functions}
 \usage{
-cos(x)
+\method{cos}{default}(x)
 
-sin(x)
+\method{sin}{default}(x)
 
-acos(x)
+\method{acos}{default}(x)
 
-asin(x)
+\method{asin}{default}(x)
 
-atan(x)
+\method{atan}{default}(x)
 
-atan2(y, x)
+\method{atan2}{default}(x, y)
 }
 \arguments{
 \item{x, y}{numeric or complex vectors.}

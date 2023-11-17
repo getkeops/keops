@@ -5,7 +5,7 @@
 \alias{\%*\%.default}
 \title{Matrix multiplication}
 \usage{
-x \%*\% y
+\method{\%*\%}{default}(x, y)
 }
 \arguments{
 \item{x, y}{numeric or complex matrices or vectors.}

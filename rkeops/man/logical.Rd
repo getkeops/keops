@@ -5,7 +5,7 @@
 \alias{|.default}
 \title{Logical.or}
 \usage{
-x | y
+\method{|}{default}(x, y)
 }
 \arguments{
 \item{x, y}{\code{\link[base]{raw}}, \code{\link[base]{logical}} or \sQuote{number-like} vectors (i.e., of

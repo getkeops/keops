@@ -10,7 +10,7 @@ Kmin_argKmin(x, K, index)
 Kmin_argKmin_reduction(x, K, index)
 }
 \arguments{
-\item{x}{A \code{LazyTensor} or a \code{ComplexLazyTensor}.}
+\item{x}{a \code{LazyTensor} or a \code{ComplexLazyTensor}.}
 
 \item{K}{An \code{integer} corresponding to the  number of minimal values
 required.}

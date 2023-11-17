@@ -4,7 +4,7 @@
 \alias{square.default}
 \title{Element-wise square (power-2) operation}
 \usage{
-square(x)
+\method{square}{default}(x)
 }
 \arguments{
 \item{x}{numeric or complex vectors or objects which can be coerced to such,

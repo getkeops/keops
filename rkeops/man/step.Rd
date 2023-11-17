@@ -5,10 +5,11 @@
 \title{Element-wise 0-1 step function (for LazyTensors) or default stepwise model
 selection}
 \usage{
-step(x, ...)
+step(object, ...)
 }
 \arguments{
-\item{x}{input for \code{\link[=step.default]{step.default()}} or \code{\link[=step.LazyTensor]{step.LazyTensor()}}.}
+\item{object}{input for \code{\link[=step.default]{step.default()}} or
+\code{\link[=step.LazyTensor]{step.LazyTensor()}}.}
 
 \item{...}{optional additional input arguments.}
 }
@@ -17,8 +18,8 @@ See value of \code{\link[=step.default]{step.default()}} or \code{\link[=step.La
 }
 \description{
 Symbolic element-wise 0-1 step function for \code{LazyTensor} objects
-(i.e. \code{0} if \code{x < 0}, \code{1} if \code{x >= 0}) or stepwise model
-selection.
+(i.e. \code{0} if \code{x < 0}, \code{1} if \code{x >= 0} for an input \code{x}) or stepwise
+model selection otherwise.
 }
 \details{
 If \code{x} is a \code{LazyTensor}, see \code{\link[=step.LazyTensor]{step.LazyTensor()}}, else

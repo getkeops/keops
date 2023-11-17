@@ -7,7 +7,7 @@
 \method{sqrt}{LazyTensor}(x)
 }
 \arguments{
-\item{x, y}{a \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric values,
+\item{x}{a \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric values,
 or a scalar value.}
 }
 \value{

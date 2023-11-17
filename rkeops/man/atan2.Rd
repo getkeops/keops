@@ -7,7 +7,7 @@
 atan2(x, y)
 }
 \arguments{
-\item{x}{input for \code{\link[=atan2.default]{atan2.default()}} or
+\item{x, y}{input for \code{\link[=atan2.default]{atan2.default()}} or
 \code{\link[=atan2.LazyTensor]{atan2.LazyTensor()}}.}
 }
 \value{

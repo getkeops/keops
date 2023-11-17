@@ -9,17 +9,19 @@
 \alias{^.default}
 \title{Default arithmetic operations}
 \usage{
-+x
-x + y
+## Default S3 method:
+\special{+x}
+\special{x + y}
 
--x
-x - y
+## Default S3 method:
+\special{-x}
+\special{x - y}
 
-x * y
+\method{*}{default}(x, y)
 
-x / y
+\method{/}{default}(x, y)
 
-x^y
+\method{^}{default}(x, y)
 }
 \arguments{
 \item{x, y}{numeric or complex vectors or objects which can be

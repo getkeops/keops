@@ -6,7 +6,6 @@
 \title{Euclidean scalar product (for LazyTensors) or default logical "or"}
 \usage{
 x | y
-(x | y)
 }
 \arguments{
 \item{x, y}{input for \code{\link[=|.default]{|.default()}} or \code{\link[=|.LazyTensor]{|.LazyTensor()}}.}

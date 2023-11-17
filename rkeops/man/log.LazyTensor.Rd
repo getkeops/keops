@@ -4,14 +4,13 @@
 \alias{log.LazyTensor}
 \title{Element-wise natural logarithm operation}
 \usage{
-log(x)
-log(x, base = NULL)
+\special{log(x)}
 }
 \arguments{
 \item{x}{a \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric values,
 or a scalar value.}
 
-\item{base}{NULL, not used, only present for method compatibility with
+\item{base}{not used, only present for method compatibility with
 corresponding generic function.}
 }
 \value{

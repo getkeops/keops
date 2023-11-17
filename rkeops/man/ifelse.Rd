@@ -4,10 +4,10 @@
 \alias{ifelse}
 \title{Element-wise if-else function}
 \usage{
-ifelse(x, a, b)
+ifelse(test, yes, no)
 }
 \arguments{
-\item{x, a, b}{input for \code{\link[=ifelse.default]{ifelse.default()}} or
+\item{test, yes, no}{input for \code{\link[=ifelse.default]{ifelse.default()}} or
 \code{\link[=ifelse.LazyTensor]{ifelse.LazyTensor()}}.}
 }
 \value{
@@ -19,7 +19,7 @@ Symbolic element-wise if-else function for \code{LazyTensor} objects or
 standard element-wise if-else function otherwise.
 }
 \details{
-If \code{x} is a \code{LazyTensor}, see \code{\link[=ifelse.LazyTensor]{ifelse.LazyTensor()}}, else
+If \code{test} is a \code{LazyTensor}, see \code{\link[=ifelse.LazyTensor]{ifelse.LazyTensor()}}, else
 see \code{\link[=ifelse.default]{ifelse.default()}}.
 }
 \examples{

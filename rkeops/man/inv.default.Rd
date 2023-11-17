@@ -4,7 +4,7 @@
 \alias{inv.default}
 \title{Element-wise inverse operation}
 \usage{
-inv(x)
+\method{inv}{default}(x)
 }
 \arguments{
 \item{x}{numeric or complex vectors or objects which can be coerced to such,

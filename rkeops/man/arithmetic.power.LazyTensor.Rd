@@ -6,7 +6,7 @@
 \alias{^.lazyTensor}
 \title{Element-wise power operation}
 \usage{
-x^y
+\method{^}{LazyTensor}(x, y)
 }
 \arguments{
 \item{x, y}{a \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric values,

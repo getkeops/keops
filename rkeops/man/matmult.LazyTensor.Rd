@@ -5,7 +5,7 @@
 \alias{\%*\%.LazyTensor}
 \title{Matrix multiplication}
 \usage{
-x \%*\% y
+\method{\%*\%}{LazyTensor}(x, y)
 }
 \arguments{
 \item{x, y}{a \code{LazyTensor}, a \code{ComplexLazyTensor}.}
