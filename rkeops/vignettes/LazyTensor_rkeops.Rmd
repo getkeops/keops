@@ -22,13 +22,8 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r library, eval=FALSE}
+```{r library}
 library(rkeops)
-```
-
-```{r devtools, message=FALSE, include=FALSE}
-#library(rkeops)
-devtools::load_all("..")
 ```
 
 

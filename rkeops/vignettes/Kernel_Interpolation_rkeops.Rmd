@@ -22,12 +22,6 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r devtools, message=FALSE, include=FALSE, eval=FALSE}
-#library(rkeops)
-devtools::load_all("..")
-set_rkeops_options()
-```
-
 This tutorial is highly inspired by the [pyKeOps tutorial on kernel interpolation](https://www.kernel-operations.io/keops/_auto_tutorials/interpolation/plot_RBF_interpolation_numpy.html#sphx-glr-auto-tutorials-interpolation-plot-rbf-interpolation-numpy-py).
 
 The goal here is to solve a linear system of the form,
@@ -151,7 +145,7 @@ D <- as.data.frame(cbind(x, b, t, mean_t))
 colnames(D) <- c("x", "b", "t", "mean_t")
 
 # 1D plot
-require(ggplot2)
+library(ggplot2)
 ggplot(aes(x = x, y = b), data = D) +
   geom_point(color = '#1193a8', alpha = 0.5, size = 0.4) +
   geom_line(aes(x = t, y = mean_t), color = 'darkred') +
@@ -216,7 +210,7 @@ print(paste("Time to perform an RBF interpolation with",
 Display the (fitted) model:
 
 ```{r plot2D, fig.width=7, fig.height=6, fig.align='center', message=FALSE, warning=FALSE, eval=FALSE}
-require(pracma) # to create the meshgrid
+library(pracma) # to create the meshgrid
 
 # Extrapolate on a uniform sample:
 X <- seq(from = 0, to = 1, length.out = 100)
@@ -232,7 +226,7 @@ mean_t <- matrix(mean_t, 100, 100)
 mean_t <- mean_t[nrow(mean_t):1, ]
 
 # 2D plot: noisy samples and interpolation in the background
-require(plotly)
+library(plotly)
 fig <- plot_ly(z = mean_t,
                type = "heatmap",
                colors = colorRamp(c("#C2C2C9", "darkred")),

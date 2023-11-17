@@ -45,7 +45,10 @@ Suggests:
     knitr,
     rmarkdown,
     testthat (>= 3.0.0),
-    withr
+    withr,
+    ggplot2,
+    pracma,
+    plotly
 VignetteBuilder: 
     knitr
 RdMacros: 
