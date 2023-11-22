@@ -300,4 +300,7 @@ To use GPU computing mode, you can call `use_gpu()` (with an optional argument `
 
 # Installing and using RKeOps
 
-See the specific vignette **Using RKeOps**.
+See the specific "Using RKeOps" vignette:
+```{r eval=FALSE}
+vignette("using_rkeops", package = "rkeops")
+```
