@@ -1,1 +1,1 @@
-from .Factorize import Factorize, AutoFactorize
+from .Factorize import Factorize, AutoFactorize, Factorize_Impl

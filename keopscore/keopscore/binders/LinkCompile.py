@@ -96,7 +96,7 @@ class LinkCompile:
         # and the name of the assembly code file.
         if not os.path.exists(self.file_to_check):
             KeOps_Message(
-                "Generating code for " + self.red_formula.__str__() + " ... ",
+                "Generating code for " + self.red_formula.__str__()[:300] + " ... ",
                 flush=True,
                 end="",
             )

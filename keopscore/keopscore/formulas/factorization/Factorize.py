@@ -12,7 +12,7 @@ class Factorize_Impl(Operation):
     def recursive_str(self):
         f, g = self.children
         (aliasvar,) = self.params
-        return f"{f.__repr__()} with {aliasvar.__repr__()}={g.__repr__()}"
+        return f"({f.__repr__()} with {aliasvar.__repr__()}={g.__repr__()})"
 
     def __init__(self, f, g, aliasvar):
         super().__init__(f, g, params=(aliasvar,))
@@ -62,10 +62,13 @@ class Factorize_Impl(Operation):
         # change the index of this temp variable to match its position in table.
         newind = len(table) - 1
         newaliasvar = Var(newind, aliasvar.dim, aliasvar.cat)
-        newf = f.replace(aliasvar, newaliasvar)
+
+        aliasvar = f.get_var(aliasvar)
+
+        f.replace_var(aliasvar, newaliasvar)
 
         # Evaluation of f
-        string += newf(out, table)
+        string += f(out, table)
 
         if keopscore.debug_ops:
             print(f"Finished building code block for {self.__repr__()}")

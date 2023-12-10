@@ -76,7 +76,6 @@ void load_args_FromHost(CUdeviceptr &p_data, TYPE *out, TYPE *&out_d, int nargs,
     totsize += sizes[k];
   }
 
-std::cout << "allocating p_data" << std::endl;
   CUDA_SAFE_CALL(
       cuMemAlloc(&p_data, sizeof(TYPE *) * nargs + sizeof(TYPE) * totsize));
 

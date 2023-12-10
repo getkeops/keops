@@ -10,7 +10,7 @@ from keopscore.formulas.variables import *
 from keopscore.formulas.autodiff import *
 from keopscore.formulas.LinearOperators import *
 from keopscore.formulas.factorization import *
-
+from functools import reduce
 
 class GetReduction:
     library = {}
@@ -45,5 +45,6 @@ class GetReduction:
             if isinstance(node, ast.Call) and (
                 node.func.id not in formula_class.keys()
             ):
-                print(node.func.id)
+                pass
+                #print(node.func.id)
                 # raise NotImplementedError

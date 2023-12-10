@@ -26,16 +26,39 @@ class Operation(Tree):
 
     def __init__(self, *args, params=()):
         # *args are other instances of Operation, they are the child operations of self
-        self.children = args
+        self.children = list(args)
         self.params = params
 
         # The variables in the current formula is the union of the variables in the child operations.
         # Note that this requires implementing properly __eq__ and __hash__ methods in Var class.
+        # Here we do more than just getting the list of vars ; we also assign a unique object for each
+        # distinct variable in the formula. This will be useful in order to change the "ind" property
+        # of a given variable without having to search for each occurrence of the variable in the tree structure.
+        from keopscore.formulas.variables.Var import Var 
+        vars = []
+        vars_parents = []
+        for k,arg in enumerate(args):
+            if isinstance(arg,Var):
+                vars.append(arg)
+                vars_parents.append([(self,k)])
+        for arg in args:
+            if not isinstance(arg,Var):
+                for i,u in enumerate(arg.Vars_):
+                    test_new = True
+                    for j,v in enumerate(vars):
+                        if u==v:
+                            test_new = False
+                            arg.replace_var(u,v)
+                            vars_parents[j] += arg.Vars_Parents[i]
+                    if test_new:
+                        vars.append(u)
+                        vars_parents.append(arg.Vars_Parents[i])
+
         # N.B. We need to sort according to ind.
-        set_vars = (
-            set.union(*(set(arg.Vars_) for arg in args)) if len(args) > 0 else set()
-        )
-        self.Vars_ = sorted(list(set_vars), key=lambda v: v.ind)
+        if len(vars)>0:
+            self.Vars_, self.Vars_Parents = [list(x) for x in zip(*sorted(zip(vars,vars_parents), key=lambda v: v[0].ind))]
+        else:
+            self.Vars_, self.Vars_Parents = [],[]
 
     def Vars(self, cat="all"):
         # if cat=="all", returns the list of all variables in a formula, stored in self.Vars_
@@ -57,7 +80,20 @@ class Operation(Tree):
         else:
             new_children = [child.replace(old, new, cnt) for child in self.children]
             return type(self)(*new_children, *self.params)
+        
+    def replace_var(self, oldvar, newvar):
+        # same as replace when old and new are variables
+        # we bypass recursive search by using Vars_ list and parents attribute
+        pos = self.Vars_.index(oldvar)
+        self.Vars_[pos] = newvar
+        for parent,k in self.Vars_Parents[pos]:
+            parent.children[k] = newvar
 
+    def get_var(self, var):
+        # get actual object variable in self, matching var
+        pos = self.Vars_.index(var)
+        return self.Vars_[pos]
+                    
     def replace_and_count(self, old, new):
         cnt = [0]
         formula = self.replace(old, new, cnt)
@@ -214,6 +250,11 @@ class Operation(Tree):
     def __ge__(self, other):
         """f>=g redirects to LessOrEqual(g,f)"""
         return int2Op(other) <= self
+    
+    def __getitem__(self, i):
+        """f[i] redirects to Elem(f,i)"""
+        from keopscore.formulas.maths.Elem import Elem
+        return Elem(self,i)
 
     def Op(self, out, table, param):
         pass

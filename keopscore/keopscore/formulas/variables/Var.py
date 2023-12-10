@@ -31,12 +31,22 @@ class Var(Operation):
         super().__init__(params=(ind, dim, cat))
         if label is None:
             # N.B. label is just a string used as an alias when printing the formulas ; it plays no role in computations.
-            label = chr(ord("a") + ind) if ind >= 0 else chr(944 - ind)
+            if ind >= 0:
+                if ind > 25:
+                    label = chr(ord("a") + ind % 26) + str(ind // 26 - 1)
+                else:
+                    label = chr(ord("a") + ind)
+            else:
+                if ind < -25:
+                    label = chr(945 + (-ind - 1) % 25) + str(-(ind + 1) // 25 - 1)
+                else:
+                    label = chr(944 - ind)
+
         self.ind = ind
         self.dim = dim
         self.cat = cat
         self.label = label
-        self.Vars_ = {self}
+        self.Vars_ = [self]
 
     # custom __eq__ and __hash__ methods, required to handle properly the union of two sets of Var objects
     def __eq__(self, other):
@@ -82,4 +92,4 @@ class Var(Operation):
         return self.Vars(cat)
 
     def notchunked_vars(self, cat):
-        return set()
+        return []
