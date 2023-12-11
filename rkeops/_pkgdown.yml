@@ -1,0 +1,8 @@
+url: https://www.kernel-operations.io/rkeops/
+template:
+  bootstrap: 5
+
+home:
+  links:
+  - text: Source code
+    href: https://github.com/getkeops/keops
