@@ -56,13 +56,14 @@ py_config()
 
 ## Install from CRAN
 
-<!-- > **Note:** RKeOps is avaible on CRAN but only for UNIX environment (GNU/Linux and MacOS) and not for Windows. -->
-<!-- ```{r install, eval=FALSE} -->
-<!-- install.packages("rkeops") -->
-<!-- ``` -->
+> **Note:** RKeOps is avaible on CRAN but only for UNIX environment
+> (GNU/Linux and MacOS) and not for Windows.
 
-RKeOps \>=2 is not available on CRAN yet, please refer to the next
-section.
+``` r
+install.packages("rkeops")
+```
+
+<!-- RKeOps >=2 is not available on CRAN yet, please refer to the next section. -->
 
 ## Install development version
 
@@ -99,7 +100,69 @@ check_rkeops()
 RKeOps allows to define and compile new operators that run computations
 on GPU.
 
-## Example
+## LazyTensors
+
+Lazy evaluation allows to write intermediate computations as symbolic
+operations that are not directly evaluated. The real evaluation is only
+made on final computation.
+
+To do so, you can use `LazyTensors`. These are objects wrapped around R
+matrices or vectors used to create symbolic formulas for the `KeOps`
+reduction operations. A typical use case is the following:
+
+Let us say that we want to compute
+
+$$
+a_j =\displaystyle\sum_{i=1}^{N} \mathrm{exp}\big(-\frac{\|x_i - y_j\|^2}{s^2}\big)
+$$
+
+The associated code would be:
+
+``` r
+# to run computation on CPU (default mode)
+rkeops_use_cpu()
+# OR
+# to run computations on GPU (to be used only if relevant)
+rkeops_use_gpu()
+
+# Data
+N <- 10000
+M <- 15000
+x <- matrix(runif(N * 3), nrow = N, ncol = 3) # arbitrary R matrix representing 
+                                              # 10000 data points in R^3
+y <- matrix(runif(M * 3), nrow = M, ncol = 3) # arbitrary R matrix representing 
+                                              # 15000 data points in R^3
+s <- 0.1                                      # scale parameter
+
+# Turn our Tensors into KeOps symbolic variables:
+x_i <- LazyTensor(x, "i")     # symbolic object representing an arbitrary row of x, 
+                              # indexed by the letter "i"
+y_j <- LazyTensor(y, "j")     # symbolic object representing an arbitrary row of y, 
+                              # indexed by the letter "j"
+
+# Perform large-scale computations, without memory overflows:
+D_ij <- sum((x_i - y_j)^2)    # symbolic matrix of pairwise squared distances, 
+                              # with 10000 rows and 10000 columns
+
+K_ij <- exp(- D_ij / s^2)     # symbolic matrix, 10000 rows and 10000 columns
+
+a_j <- sum(K_ij, index = "i") # actual R matrix (in fact a row vector of 
+                              # length 15000 here)
+                              # containing the column sums of K_ij
+                              # (i.e. the sums over the "i" index, for each 
+                              # "j" index)
+```
+
+More details in the dedicated “RKeOps LazyTensor” vignette:
+
+``` r
+vignette("LazyTensor_rkeops", package = "rkeops")
+```
+
+## Generic reductions
+
+With RKeOps, you can also directly define new operator with plain
+mathematical formula written as a character string:
 
 ``` r
 # implementation of a convolution with a Gaussian kernel
@@ -131,7 +194,7 @@ res <- op(list(X, Y, B, s))
 The different elements (formula, arguments, compilation, computation) in
 the previous example will be detailed in the next sections.
 
-## Formula
+### Formula
 
 To use RKeOps and define new operators, you need to write the
 corresponding *formula* which is a text string defining a composition of
@@ -176,14 +239,14 @@ formula = "Sum_Reduction(Exp(-s * SqNorm2(x - y)) * b, 0)"
 - `Sum_reduction(..., 0)` = sum reduction over the dimension 0 i.e. sum
   on the $j$’s (1 to sum over the $i$’s)<br>
 
-## Arguments
+### Arguments
 
 The formula describing your computation can take several input
 arguments: variables and parameters. The input variables will generally
 corresponds to rows or columns of your data matrices, you need to be
 cautious with their dimensions.
 
-### Input matrix
+#### Input matrix
 
 You can use two type of input matrices with RKeOps:<br>
 
@@ -208,7 +271,7 @@ of the data in memory:<br>
   in memory (this point is handled for you in RKeOps, see this
   [section](#data-storage-orientation)).<br>
 
-> ***Note 1:*** The outer dimension can correspond to the rows or the
+> **Note 1:** The outer dimension can correspond to the rows or the
 > columns of the input matrices (and vice-versa for the inner
 > dimension). The optimal orientation of input matrices is discussed in
 > this [section](#data-storage-orientation) .
@@ -220,7 +283,7 @@ of the data in memory:<br>
 > dimensions $M$ and $N$ are discovered at runtime (and can change from
 > one run to another).<br>
 
-### Notations
+#### Notations
 
 Input arguments of the formula are defined by using keywords, they can
 be of different types:
@@ -254,7 +317,7 @@ where
 
 of the `X`$^\text{th}$ variable in the formula.<br><br>
 
-> ***Important:*** The names should correspond to the ones used in the
+> **Important:** The names should correspond to the ones used in the
 > formula. The input parameter order will be the one used when calling
 > the compiled operator.
 
@@ -269,7 +332,7 @@ args = c("x = Vi(3)",      # vector indexed by i (of dim 3)
          "s = Pm(1)")      # parameter (scalar)
 ```
 
-## Creating a new operator
+### Creating a new operator
 
 By using the function `keops_kernel`, based on the formula and its
 arguments that we previously defined, we can compile and load into R the
@@ -293,7 +356,7 @@ and will be reused when calling again the function `keops_kernel` on the
 same formula with the same arguments and the same conditions
 (e.g. precision), to avoid useless recompilation.
 
-## Run computations
+### Run computations
 
 We generate data with inner dimensions (number of columns) corresponding
 to each arguments expected by the operator `op`. The function `op` takes
@@ -312,15 +375,16 @@ B <- matrix(runif(ny*6), nrow=ny)   # matrix 150 x 6
 s <- 0.2
 
 # to run computation on CPU (default mode)
-use_cpu()
+rkeops_use_cpu()
+# OR
 # to run computations on GPU (to be used only if relevant)
-use_gpu()
+rkeops_use_gpu()
 
 # computation (order of the input arguments should be similar to `args`)
 res <- op(list(x, y, beta, s))
 ```
 
-## Computing gradients
+### Computing gradients
 
 You can define gradients directly in the formula, e.g.
 
