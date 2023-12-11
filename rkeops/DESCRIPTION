@@ -41,14 +41,13 @@ Imports:
     tibble,
     utils
 Suggests: 
-    devtools,
+    ggplot2,
     knitr,
+    plotly,
+    pracma,
     rmarkdown,
     testthat (>= 3.0.0),
-    withr,
-    ggplot2,
-    pracma,
-    plotly
+    withr
 VignetteBuilder: 
     knitr
 RdMacros: 
