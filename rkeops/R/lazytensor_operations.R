@@ -3209,7 +3209,7 @@ Mod <- function(z) {
     UseMethod("Mod", z)
 }
 
-#' #' Element-wise complex modulus (absolute value)
+#' Element-wise complex modulus (absolute value)
 #' @name Mod.LazyTensor
 #' @description
 #' Symbolic element-wise complex modulus (absolute value) operation for 
