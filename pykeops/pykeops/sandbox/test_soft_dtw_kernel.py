@@ -6,7 +6,7 @@ from pykeops.torch import LazyTensor, Genred
 from keopscore.formulas import *
 from functools import reduce
 
-M, N, D = 1000, 1000, 50
+M, N, D = 1000, 1000, 5
 
 test_grad = False
 
