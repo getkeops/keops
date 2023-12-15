@@ -9,10 +9,15 @@ from keopscore.utils.code_gen_utils import GetInds
 class Factorize_Impl(Operation):
     string_id = "Factorize"
 
+    @property
     def recursive_str(self):
         f, g = self.children
         (aliasvar,) = self.params
-        return f"({f.__repr__()} with {aliasvar.__repr__()}={g.__repr__()})"
+        string = f"\n{aliasvar.label}={g.recursive_str};"
+        if not isinstance(f,Factorize_Impl):
+            string += "\n"
+        string += f.recursive_str
+        return string
 
     def __init__(self, f, g, aliasvar):
         super().__init__(f, g, params=(aliasvar,))

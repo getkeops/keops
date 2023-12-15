@@ -117,7 +117,7 @@ if platform.system() == "Darwin":
 else:
     cpp_flags = f"{cpp_flags} -flto=auto"
 
-disable_pragma_unrolls = True
+disable_pragma_unrolls = False
 
 # OpenMP setting
 # adds compile flags for OpenMP support.

@@ -384,14 +384,13 @@ class c_array:
         return string
 
 
-def VectApply(fun, out, *args):
+def VectApply(fun, *args):
     # returns C++ code string to apply a scalar operation to fixed-size arrays, following broadcasting rules.
     # - fun is the scalar unary function to be applied, it must accept two c_variable or c_array inputs and output a string
-    # - out must be a c_array instance
     # - args may be c_array or c_variable instances
     #
     # Example : if out.dim = 3, arg0.dim = 1, arg1.dim = 3,
-    # it will generate the following (in pseudo-code for clarity) :
+    # then VectApply(fun,out, arg0, arg1) will generate the following (in pseudo-code for clarity) :
     #   #pragma unroll
     #   for(signed long int k=0; k<out.dim; k++)
     #       fun(out[k], arg0[0], arg1[k]);
@@ -402,7 +401,7 @@ def VectApply(fun, out, *args):
     #   for(signed long int k=0; k<out.dim; k++)
     #       fun(out[k], arg0, arg1[k]);
 
-    dims = [out.dim]
+    dims = []
     for arg in args:
         if isinstance(arg, c_variable):
             dims.append(1)
@@ -413,8 +412,7 @@ def VectApply(fun, out, *args):
     dimloop = max(dims)
     if not set(dims) in ({dimloop}, {1, dimloop}):
         KeOps_Error("incompatible dimensions in VectApply")
-    incr_out = 1 if out.dim == dimloop else 0
-    incr_args = list((1 if dim == dimloop else 0) for dim in dims[1:])
+    incr_args = list((1 if dim == dimloop else 0) for dim in dims)
 
     forloop, k = c_for_loop(0, dimloop, 1, pragma_unroll=True)
 
@@ -425,7 +423,7 @@ def VectApply(fun, out, *args):
         elif isinstance(arg, c_array):
             argsk.append(arg[k * incr])
 
-    return forloop(fun(out[k * incr_out], *argsk))
+    return forloop(fun(*argsk))
 
 
 def ComplexVectApply(fun, out, *args):

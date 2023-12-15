@@ -60,6 +60,9 @@ class Operation(Tree):
         else:
             self.Vars_, self.Vars_Parents = [],[]
 
+        self.recursive_str
+        self.__repr__()
+
     def Vars(self, cat="all"):
         # if cat=="all", returns the list of all variables in a formula, stored in self.Vars_
         # if cat is an integer between 0 and 2, returns the list of variables v such that v.cat=cat
@@ -106,7 +109,8 @@ class Operation(Tree):
         required for evaluation : each Var(ind,*,*) corresponds to table[ind]"""
         from keopscore.formulas.variables.Var import Var
 
-        string = f"\n{{\n// Starting code block for {self.__repr__()}.\n\n"
+        #string = f"\n{{\n// Starting code block for {self.__repr__()}.\n\n"
+        string = f"\n{{\n// Starting code block for ---formula---.\n\n"
         if keopscore.debug_ops:
             print(f"Building code block for {self.__repr__()}")
             print("out=", out)
@@ -148,7 +152,8 @@ class Operation(Tree):
         if keopscore.debug_ops:
             print(f"Finished building code block for {self.__repr__()}")
 
-        string += f"\n\n// Finished code block for {self.__repr__()}.\n}}\n\n"
+        #string += f"\n\n// Finished code block for {self.__repr__()}.\n}}\n\n"
+        string += f"\n\n// Finished code block for ---formula---.\n}}\n\n"
         return string
 
     def __mul__(self, other):

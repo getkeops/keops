@@ -19,6 +19,9 @@ class Var(Operation):
 
     string_id = "Var"
 
+    def __str__(self):
+        return self.label
+
     def is_linear(self, v):
         return self == v
 

@@ -40,4 +40,4 @@ class Reduction(Tree):
         return VectCopy(out, acc)
 
     def nice_print(self):
-        return f"{self.string_id} reduction (with parameters {','.join(str(x) for x in self.params)}) of formula {self.children[0].nice_print()}"
+        return f"{self.string_id} reduction (with parameters {','.join(str(x) for x in self.params)}) of formula\n{self.children[0].nice_print()}"

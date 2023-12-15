@@ -2,7 +2,10 @@ class Tree:
     """a custom class for handling a tree structure.
     Currently we use it only to recursively print a formula or reduction"""
 
+    @property
     def recursive_str(self):
+        if hasattr(self, "recursive_str_"):
+            return self.recursive_str_
         if hasattr(self, "print_spec"):
             idstr, mode, level = self.print_spec
             if mode == "pre":
@@ -37,22 +40,26 @@ class Tree:
                 and child.print_spec[2] >= level
             )
             string += "(" if test else ""
-            string += child.recursive_str()
+            string += child.recursive_str
             string += ")" if test else ""
             string += middle_string if k < len(self.children) - 1 else ""
         for k, param in enumerate(self.params):
             if k > 0 or len(self.children) > 0:
                 string += middle_string
-            string += param.__repr__()
+            string += param.__str__()
         string += post_string
+        self.recursive_str_ = string
         return string
 
-    def print_expand(self, depth=0):
+    def print_expand(self):
+        print(self.str_expand())
+
+    def str_expand(self, depth=0):
         depth += 1
         string = self.string_id
         for child in self.children:
             string += (
-                "\n" + depth * 4 * " " + "{}".format(child.recursive_str(depth=depth))
+                "\n" + depth * 4 * " " + "{}".format(child.str_expand(depth=depth))
             )
         for param in self.params:
             string += "\n" + depth * 4 * " " + str(param)
@@ -67,19 +74,19 @@ class Tree:
 
     def nice_print(self):
         import os
+        from keopscore.formulas.variables.Var import Var
 
-        formula_string = self.__repr__()
-        varstrings = []
-        for v in self.Vars_:
-            var_string = v.__repr__()
-            formula_string = formula_string.replace(var_string, v.label)
-            if v.ind >= 0:
-                varstrings.append(f"{v.label}={var_string}")
-        string = formula_string
-        if len(varstrings)>0:
-            formula_string += " with " + ", ".join(varstrings)
-
-        return string
+        formula_string = self.recursive_str
+        if not isinstance(self,Var):
+            varstrings = []
+            for v in self.Vars_:
+                var_string = v.__repr__()
+                formula_string = formula_string.replace(var_string, v.label)
+                if v.ind >= 0:
+                    varstrings.append(f"{v.label}={var_string}")
+            if len(varstrings)>0:
+                formula_string += "\nwith " + ", ".join(varstrings)
+        return formula_string
 
     def make_dot(self, filename=None):
         if filename is None:
@@ -114,10 +121,14 @@ class Tree:
         print(f"Saved formula graph to file {filename}.")
 
     def __str__(self):
-        return self.nice_print()  # self.recursive_str()
+        return self.nice_print()
 
     def __repr__(self):
-        return self.recursive_str()
+        if hasattr(self, "repr_"):
+            return self.repr_
+        string = self.string_id + "(" + ",".join(arg.__repr__() for arg in (*self.children,*self.params)) + ")"
+        self.repr_ = string
+        return string
 
     # custom __eq__ method
     def __eq__(self, other):

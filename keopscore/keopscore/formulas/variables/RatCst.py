@@ -9,6 +9,7 @@ class RatCst_Impl(Operation):
     # constant rational number "operation"
     string_id = "RatCst"
 
+    @property
     def recursive_str(self):
         return f"{self.p}/{self.q}"
 
