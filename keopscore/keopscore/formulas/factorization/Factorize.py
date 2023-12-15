@@ -35,7 +35,8 @@ class Factorize_Impl(Operation):
         required for evaluation : each Var(ind,*,*) corresponds to table[ind]"""
         from keopscore.formulas.variables.Var import Var
 
-        string = f"\n{{\n// Starting code block for {self.__repr__()}.\n\n"
+        #string = f"\n{{\n// Starting code block for {self.__repr__()}.\n\n"
+        string = f"\n{{\n// Starting code block for ---formula---.\n\n"
         if keopscore.debug_ops:
             print(f"Building code block for {self.__repr__()}")
             print("out=", out)
@@ -78,7 +79,8 @@ class Factorize_Impl(Operation):
         if keopscore.debug_ops:
             print(f"Finished building code block for {self.__repr__()}")
 
-        string += f"\n\n// Finished code block for {self.__repr__()}.\n}}\n\n"
+        #string += f"\n\n// Finished code block for {self.__repr__()}.\n}}\n\n"
+        string += f"\n\n// Finished code block for ---formula---.\n}}\n\n"
         return string
 
     def DiffT(self, v, gradin):

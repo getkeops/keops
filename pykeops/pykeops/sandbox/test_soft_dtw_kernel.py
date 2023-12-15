@@ -5,7 +5,7 @@ import torch
 from pykeops.torch import LazyTensor, Genred
 from keopscore.formulas import *
 
-M, N, D = 1000, 1000, 20
+M, N, D = 1000, 1000, 5
 
 test_grad = False
 
