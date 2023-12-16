@@ -24,7 +24,7 @@ class Elem(Operation):
         self.m = m
 
     def Op(self, out, table, arg):
-        return out.assign(arg[self.m])
+        return value(out).assign(arg[self.m])
 
     def DiffT(self, v, gradin):
         from keopscore.formulas.maths.ElemT import ElemT

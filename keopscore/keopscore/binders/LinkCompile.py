@@ -82,12 +82,6 @@ class LinkCompile:
         self.dimy = eval(tmp_dimy[1])
 
     def write_code(self):
-        
-        if self.gencode_filename=="aad1a8eca1":
-            f = open("/home/glaunes/aad1a8eca1.cu", "r")
-            self.code = f.read()
-            f.close()
-
         # write the generated code in the source file ; this is used as a subfunction of compile_code
         f = open(self.gencode_file, "w")
         f.write(self.code)
