@@ -320,7 +320,16 @@ def pointer(x):
 
 
 class c_array:
-    def __init__(self, dtype, dim, string_id=new_c_varname("array")):
+
+    def __new__(cls, dtype, dim, string_id=None):
+        if dim==1:
+            return c_variable(dtype, string_id)
+        else:
+            return super(c_array, cls).__new__(cls)
+        
+    def __init__(self, dtype, dim, string_id=None):
+        if string_id is None:
+            string_id = new_c_varname("array")
         if dim < 0:
             KeOps_Error("negative dimension for array")
         self.c_var = c_variable(pointer(dtype), string_id)
@@ -456,6 +465,11 @@ def VectCopy(out, arg, dim=None):
     # - dim is dimension of arrays
     # - out is c_variable representing the output array
     # - arg is c_variable representing the input array
+    if isinstance(out, c_variable):
+        if isinstance(arg, c_variable):
+            return out.assign(arg)
+        else:
+            raise ValueError("bug!!!!")
     if dim is None:
         dim = out.dim
     forloop, k = c_for_loop(0, dim, 1, pragma_unroll=True)

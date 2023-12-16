@@ -5,7 +5,7 @@ import torch
 from pykeops.torch import LazyTensor, Genred
 from keopscore.formulas import *
 
-M, N, D = 1000, 1000, 5
+M, N, D = 1000, 1000, 2
 
 test_grad = False
 
@@ -18,16 +18,16 @@ y = torch.rand(1, N, D, device=device_id)
 gamma = torch.tensor(.1, device=device_id)
 
 backends = []
-"""
 if M * N * D < 1e8:
     backends.append("torch")
+"""
 if D<5:
     backends.append("lazytensor_naive")
 if D<15:
     backends.append("lazytensor")
 """
 backends.append("keopscore")
-#backends.append("keops_custom")
+backends.append("keops_custom")
 
 def SoftDTW_torch(x, y, gamma):
     n, m = x.shape[2], y.shape[2]
@@ -200,8 +200,8 @@ class SoftDTW(Operation):
                     //printf("i,j,rj[i]=%d,%d,%f\\n",i,j,rj[i]);
                 }}
             }}
-            *{out} = rj[{n}-1];
-            //printf("*out=%f\\n",*out);
+            {out} = rj[{n}-1];
+            //printf("out=%f\\n",{out});
                 """
         return code
 import builtins

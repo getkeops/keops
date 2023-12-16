@@ -1,4 +1,4 @@
-from keopscore.utils.code_gen_utils import new_c_varname, c_array
+from keopscore.utils.code_gen_utils import new_c_varname, c_array, c_variable
 from keopscore.utils.Tree import Tree
 import keopscore
 from keopscore.utils.misc_utils import KeOps_Error
@@ -109,8 +109,8 @@ class Operation(Tree):
         required for evaluation : each Var(ind,*,*) corresponds to table[ind]"""
         from keopscore.formulas.variables.Var import Var
 
-        #string = f"\n{{\n// Starting code block for {self.__repr__()}.\n\n"
-        string = f"\n{{\n// Starting code block for ---formula---.\n\n"
+        string = ""
+        #string += f"\n{{\n// Starting code block for {self.__repr__()}.\n\n"
         if keopscore.debug_ops:
             print(f"Building code block for {self.__repr__()}")
             print("out=", out)
@@ -153,7 +153,6 @@ class Operation(Tree):
             print(f"Finished building code block for {self.__repr__()}")
 
         #string += f"\n\n// Finished code block for {self.__repr__()}.\n}}\n\n"
-        string += f"\n\n// Finished code block for ---formula---.\n}}\n\n"
         return string
 
     def __mul__(self, other):
