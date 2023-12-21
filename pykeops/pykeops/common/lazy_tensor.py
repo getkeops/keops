@@ -1584,6 +1584,24 @@ class GenericLazyTensor:
             s = self.lt_constructor(s)
 
         return (self - g).weightedsqnorm(s)
+    
+    def softdtw_(self, other, gamma):
+        return self.binary(
+            other,
+            "SoftDTW",
+            opt_arg = gamma,
+            dimres=1, 
+            dimcheck=None,
+        )
+
+    def softdtw(self, other, gamma):
+        return self.ternary(
+            other,
+            gamma,
+            "SoftDTW",
+            dimres=1, 
+            dimcheck=None,
+        )
 
     def elem(self, i):
         r"""

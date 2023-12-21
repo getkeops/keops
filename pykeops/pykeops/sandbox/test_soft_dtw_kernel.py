@@ -140,11 +140,18 @@ def fun_keops(x, y, gamma):
     Kxy = Genred(formula, aliases, reduction_op="Sum", axis=1)
     return Kxy(x,y,gamma.view((1,1)))
 
+def fun_lazytensor(x, y, gamma):
+    x = LazyTensor(x[:,None,:])
+    y = LazyTensor(y[None,:,:])
+    sdtw = x.softdtw(y,gamma)
+    K = (-sdtw).exp()
+    return K.sum(axis=1)
+
 ##################################
 # test
 ##################################
 
-funs = (fun_torch, fun_keops)
+funs = (fun_torch, fun_keops, fun_lazytensor)
 out = []
 for fun in funs:
     print("**************************")
