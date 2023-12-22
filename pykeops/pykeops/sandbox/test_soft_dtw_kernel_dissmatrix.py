@@ -43,6 +43,73 @@ def SoftDTW_torch(x, y, gamma):
         rjm1[i] = rij
     return rij
 
+
+####################################################################
+# helper for SoftDTW operations in keops
+####################################################################
+
+
+def code_softdtw(dtype, out, inputs, n, m, gamma, mode="x,y"):
+    if mode=="x,y":
+        x, y = inputs
+        def diss(i,j):
+            return f"""
+            rij = {x}[{i}] - {y}[{j}];
+            rij *= rij;
+            """
+    elif mode=="Delta":
+        Delta = inputs
+        def diss(i,j):
+            return f"""
+            rij = {Delta}[{j}*{n}+{i}];
+            """
+        
+    code = f"""
+            #define MIN2(a,b) fminf(a,b) //(((a)<(b))?(a):(b))
+            #define MIN3(a,b,c) MIN2(MIN2(a,b),c)
+            
+            {dtype} rjm1[{n}], rim1j, rij, min;
+            // j=0, i=0
+            {diss("0","0")}
+            rim1j = rij;
+
+            // j=0, i=1...n-1
+            {use_pragma_unroll()}
+            for (int i=1; i<{n}; i++)
+            {{
+                {diss("i","0")}
+                rij += rim1j;
+                rjm1[i-1] = rim1j;
+                rim1j = rij;
+            }}
+            rjm1[{n}-1] = rij;
+
+            {use_pragma_unroll()}
+            for (int j=1; j<{m}; j++)
+            {{
+                // j=1...m-1, i=0
+                {diss("0","j")}
+                rij += rjm1[0];
+                rim1j = rij;
+
+                {use_pragma_unroll()}
+                for (int i=1; i<{n}; i++)
+                {{
+                    // j=1...m-1, i=1...n-1
+                    {diss("i","j")}
+                    min = MIN3(rjm1[i-1],rjm1[i],rim1j);
+                    rij += min - {gamma}[0] * log( exp((min-rjm1[i-1])/{gamma}[0]) + exp((min-rim1j)/{gamma}[0]) + exp((min-rjm1[i])/{gamma}[0]) );
+                    rjm1[i-1] = rim1j;
+                    rim1j = rij;
+                }}
+                rjm1[{n}-1] = rij;
+            }}
+            {out}[0] = rij;
+                """
+    
+    return code
+
+
 ####################################################################
 # SoftDTW operation in keops for squared difference dissimilarity
 ####################################################################
@@ -50,7 +117,6 @@ def SoftDTW_torch(x, y, gamma):
 from keopscore.formulas.Operation import Operation
 from keopscore.utils.misc_utils import KeOps_Error
 from keopscore.utils.code_gen_utils import c_variable, pointer, c_array, c_for_loop, c_zero_float
-from keopscore.utils.code_gen_utils import use_pragma_unroll
 
 class SoftDTW_L2(Operation):
     string_id = "SoftDTW_L2"
@@ -67,64 +133,11 @@ class SoftDTW_L2(Operation):
     def Op(self, out, table, x, y, gamma):
         dtype = x.dtype
         n,m = self.n, self.m
-        code = f"""
-            #define MIN2(a,b) fminf(a,b) //(((a)<(b))?(a):(b))
-            #define MIN3(a,b,c) MIN2(MIN2(a,b),c)
-            
-            {dtype} rjm1[{n}], rim1j, rij, min;
-            // j=0, i=0
-            rij = {x}[0] - {y}[0];
-            rij *= rij;
-            rim1j = rij;
-
-            // j=0, i=1...n-1
-            {use_pragma_unroll()}
-            for (int i=1; i<{n}; i++)
-            {{
-                rij = {x}[i] - {y}[0];
-                rij *= rij;
-                rij += rim1j;
-                rjm1[i-1] = rim1j;
-                rim1j = rij;
-            }}
-            rjm1[{n}-1] = rij;
-
-            {use_pragma_unroll()}
-            for (int j=1; j<{m}; j++)
-            {{
-                // j=1...m-1, i=0
-                rij = {x}[0] - {y}[j];
-                rij *= rij;
-                rij += rjm1[0];
-                rim1j = rij;
-
-                {use_pragma_unroll()}
-                for (int i=1; i<{n}; i++)
-                {{
-                    // j=1...m-1, i=1...n-1
-                    rij = {x}[i] - {y}[j];
-                    rij *= rij;
-                    min = MIN3(rjm1[i-1],rjm1[i],rim1j);
-                    rij += min - {gamma}[0] * log( exp((min-rjm1[i-1])/{gamma}[0]) + exp((min-rim1j)/{gamma}[0]) + exp((min-rjm1[i])/{gamma}[0]) );
-                    rjm1[i-1] = rim1j;
-                    rim1j = rij;
-                }}
-                rjm1[{n}-1] = rij;
-            }}
-            {out}[0] = rij;
-                """
-    
-        return code
+        return code_softdtw(dtype, out, (x,y), n, m, gamma, mode="x,y")  
     
     def DiffT(self, v, gradin):
-        x, y, gamma = self.children
-        n,m = self.n, self.m
-        if v in gamma.Vars_:
-            KeOps_Error("autograd wrt gamma in SoftDTW operation not implemented.")
-        grad = GradSoftDTW(x, y, gamma)
-        gradx = Extract(grad,0,n)
-        grady = Extract(grad,n,n+m)
-        return x.DiffT(v, gradx) + y.DiffT(v, grady)
+        KeOps_Error("autograd for SoftDTW_L2 operation not yet implemented.")
+        pass
 
 import builtins
 builtins.SoftDTW_L2 = SoftDTW_L2
@@ -141,23 +154,146 @@ from keopscore.utils.misc_utils import KeOps_Error
 from keopscore.utils.code_gen_utils import c_variable, pointer, c_array, c_for_loop, c_zero_float
 from keopscore.utils.code_gen_utils import use_pragma_unroll
 
+class SumOverRows(Operation):
+    string_id = "SumOverRows"
+    def __init__(self, x, n, m, params=()):
+        # x is vector of size n*m, interpreted as matrix of shape (n,m)
+        super().__init__(x, params=(m,n))
+        self.n = n
+        self.m = m
+        self.dim = m
 
+    def Op(self, out, table, x):
+        n,m = self.n, self.m
+        code = f"""
+            {use_pragma_unroll()}
+            for (int j=0; j<{m}; j++)
+            {{
+                {out}[j] = 0.0;
+                {use_pragma_unroll()}
+                for (int i=0; i<{n}; i++)
+                {{
+                    {out}[j] += {x}[j*{n}+i];
+                    printf("i,j,out[j] = %d,%d,%f\\n", i,j,out[j]);
+                }}
+            }}
+                """
+        return code
+
+class SumOverCols(Operation):
+    string_id = "SumOverCols"
+    def __init__(self, x, n, m, params=()):
+        # x is vector of size n*m, interpreted as matrix of shape (n,m)
+        super().__init__(x, params=(m,n))
+        self.n = n
+        self.m = m
+        self.dim = n
+
+    def Op(self, out, table, x):
+        n,m = self.n, self.m
+        code = f"""
+            {use_pragma_unroll()}
+            for (int i=0; i<{n}; i++)
+                {out}[i] = 0.0;
+            {use_pragma_unroll()}
+            for (int j=0; j<{m}; j++)
+            {{
+                {use_pragma_unroll()}
+                for (int i=0; i<{n}; i++)
+                {{
+                    {out}[i] += {x}[j*{n}+i];
+                    printf("i,j,out[i] = %d,%d,%f\\n", i,j,out[i]);
+                }}
+            }}
+                """
+        return code
+
+
+class DifferenceMatrix(Operation):
+    string_id = "DifferenceMatrix"
+    def __init__(self, x, y, params=()):
+        # x is vector of size n, y is vector of size m
+        super().__init__(x, y, params=())
+        self.n = x.dim
+        self.m = y.dim
+        self.dim = self.n * self.m
+
+    def Op(self, out, table, x, y):
+        n,m = self.n, self.m
+        code = f"""
+            {use_pragma_unroll()}
+            for (int j=0; j<{m}; j++)
+            {{
+                {use_pragma_unroll()}
+                for (int i=0; i<{n}; i++)
+                {{
+                    {out}[j*{n}+i] = {x}[i]-{y}[j];
+                }}
+            }}
+                """
+        
+        return code
+    
+    def DiffT(self, v, gradin):
+        x,y = self.children
+        n,m = self.n, self.m
+        gradx = SumOverCols(gradin, n, m)
+        grady = -SumOverRows(gradin, n, m)
+        return x.DiffT(v,gradx) + y.DiffT(v,grady)
+
+
+import builtins
+builtins.DifferenceMatrix = DifferenceMatrix
+
+
+
+
+
+class SoftDTW(Operation):
+    string_id = "SoftDTW"
+    def __init__(self, Delta, gamma, input_shape, params=()):
+        # Delta is vector of size n*m, interpreted as matrix (n,m), gamma is scalar,
+        # output is scalar
+        if gamma.dim != 1:
+            KeOps_Error("input gamma should be scalar")
+        n,m = input_shape
+        if n*m != Delta.dim:
+            KeOps_Error("inputs dimensions n,m should match size of Delta")
+        super().__init__(Delta, gamma, params=(input_shape,))
+        self.input_shape = input_shape
+        self.dim = 1
+
+    def Op(self, out, table, Delta, gamma):
+        dtype = Delta.dtype
+        n,m = self.input_shape
+        return code_softdtw(dtype, out, Delta, n, m, gamma, mode="Delta")    
+    
+    def DiffT(self, v, gradin):
+        Delta, gamma = self.children
+        if v in gamma.Vars_:
+            KeOps_Error("autograd wrt gamma in SoftDTW operation not implemented.")
+        return Delta.DiffT(v, GradSoftDTW(Delta, gamma, self.input_shape))
+
+import builtins
+builtins.SoftDTW = SoftDTW
 
 class GradSoftDTW(Operation):
     string_id = "GradSoftDTW"
-    def __init__(self, x, y, gamma, params=()):
-        # x is vector of size n, y is vector of size m, gamma is scalar,
-        # output is of size n+m, corresponding to concatenation of grads wrt x and y
+    def __init__(self, Delta, gamma, input_shape, params=()):
+        # Delta is vector of size n*m, interpreted as matrix (n,m), gamma is scalar,
+        # output is scalar
         if gamma.dim != 1:
             KeOps_Error("input gamma should be scalar")
-        n,m = x.dim, y.dim
-        super().__init__(x, y, gamma, params=())
+        n,m = input_shape
+        if n*m != Delta.dim:
+            KeOps_Error("inputs dimensions n,m should match size of Delta")
+        super().__init__(Delta, gamma, params=(input_shape,))
         self.n = n
         self.m = m
         self.dim = 1
 
-    def Op(self, out, table, x, y, gamma):
-        dtype = x.dtype
+    def Op(self, out, table, Delta, gamma):
+        dtype = Delta.dtype
         n,m = self.n, self.m
         code = f"""
             #define MIN2(a,b) fminf(a,b) //(((a)<(b))?(a):(b))
@@ -168,30 +304,24 @@ class GradSoftDTW(Operation):
             // Forward pass to fill in r matrix
 
             // j=0, i=0
-            r[0] = {x}[0] - {y}[0];
-            r[0] *= r[0];
+            r[0] = {Delta}[0];
 
             // j=0, i=1...n-1
             {use_pragma_unroll()}
             for (int i=1; i<{n}; i++)
-                r[i] = {x}[i] - {y}[j];
-                r[i] *= r[i];
-                r[i] += r[i-1];
+                r[i] = {Delta}[i] + r[i-1];
 
             {use_pragma_unroll()}
             for (int j=1; j<{m}; j++)
             {{
                 // j=1...m-1, i=0
-                r[j*{n}] = {x}[0] - {y}[j];
-                r[j*{n}] *= r[j*{n}];
-                r[j*{n}] += r[(j-1)*{n}];
+                r[j*{n}] = {Delta}[j*{n}];
 
                 {use_pragma_unroll()}
                 for (int i=1; i<{n}; i++)
                 {{
                     // j=1...m-1, i=1...n-1
-                    r[j*{n}+i] = {x}[i] - {y}[j];
-                    r[j*{n}+i] *= r[j*{n}+i];
+                    r[j*{n}+i] = {Delta}[j*{n}+i];
                     min = MIN3(r[(j-1)*{n}+i-1],r[(j-1)*{n}+i],r[j*{n}+i-1]);
                     r[j*{n}+i] += min - {gamma}[0] * log( exp((min-r[(j-1)*{n}+i-1])/{gamma}[0]) + exp((min-r[j*{n}+i-1])/{gamma}[0]) + exp((min-r[(j-1)*{n}+i])/{gamma}[0]) );
                 }}
@@ -208,9 +338,7 @@ class GradSoftDTW(Operation):
             {use_pragma_unroll()}
             for (int i={n-2}; i>=0; i--)
             {{
-                d = {Delta}[{(m-1)*n}+i+1]
-                d = {x}[{m-1}] - {y}[]
-                a = exp((r[{(m-1)*n}+i+1]-r[{(m-1)*n}+i]-d)/{gamma}[0]);
+                a = exp((r[{(m-1)*n}+i+1]-r[{(m-1)*n}+i]-{Delta}[{(m-1)*n}+i+1])/{gamma}[0]);
                 out[{(m-1)*n}+i] = a * out[{(m-1)*n}+i+1];
             }}
 
