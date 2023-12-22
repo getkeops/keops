@@ -154,7 +154,7 @@ class GradSoftDTW(Operation):
         super().__init__(x, y, gamma, params=())
         self.n = n
         self.m = m
-        self.dim = 1
+        self.dim = n+m
 
     def Op(self, out, table, x, y, gamma):
         dtype = x.dtype
@@ -163,35 +163,35 @@ class GradSoftDTW(Operation):
             #define MIN2(a,b) fminf(a,b) //(((a)<(b))?(a):(b))
             #define MIN3(a,b,c) MIN2(MIN2(a,b),c)
             
-            {dtype} r[{n*m}], min, a, b, c;
+            {dtype} r[{n*m}], min, d;
 
             // Forward pass to fill in r matrix
 
             // j=0, i=0
-            r[0] = {x}[0] - {y}[0];
-            r[0] *= r[0];
+            d = {x}[0] - {y}[0];
+            r[0] = d*d;
 
             // j=0, i=1...n-1
             {use_pragma_unroll()}
             for (int i=1; i<{n}; i++)
-                r[i] = {x}[i] - {y}[j];
-                r[i] *= r[i];
-                r[i] += r[i-1];
+            {{
+                d = {x}[i] - {y}[j];
+                r[i] = d*d + r[i-1];
+            }}                
 
             {use_pragma_unroll()}
             for (int j=1; j<{m}; j++)
             {{
                 // j=1...m-1, i=0
-                r[j*{n}] = {x}[0] - {y}[j];
-                r[j*{n}] *= r[j*{n}];
-                r[j*{n}] += r[(j-1)*{n}];
+                d = {x}[0] - {y}[j];
+                r[j*{n}] = d*d + r[(j-1)*{n}];
 
                 {use_pragma_unroll()}
                 for (int i=1; i<{n}; i++)
                 {{
                     // j=1...m-1, i=1...n-1
-                    r[j*{n}+i] = {x}[i] - {y}[j];
-                    r[j*{n}+i] *= r[j*{n}+i];
+                    d = {x}[i] - {y}[j];
+                    r[j*{n}+i] = d*d;
                     min = MIN3(r[(j-1)*{n}+i-1],r[(j-1)*{n}+i],r[j*{n}+i-1]);
                     r[j*{n}+i] += min - {gamma}[0] * log( exp((min-r[(j-1)*{n}+i-1])/{gamma}[0]) + exp((min-r[j*{n}+i-1])/{gamma}[0]) + exp((min-r[(j-1)*{n}+i])/{gamma}[0]) );
                 }}
@@ -201,37 +201,54 @@ class GradSoftDTW(Operation):
 
             // backward pass
 
+            {dtype} ejp1[{n}], eip1j, eij, a, b, c;
+
             // j=m-1, i=n-1
-            out[{m*n-1}] = 1.0;
+            eij = 1.0;
+            eip1j = eij;
+
+
+
+
+
+
+            
             
             // j=m-1, i=n-2..0
             {use_pragma_unroll()}
             for (int i={n-2}; i>=0; i--)
             {{
-                d = {Delta}[{(m-1)*n}+i+1]
-                d = {x}[{m-1}] - {y}[]
-                a = exp((r[{(m-1)*n}+i+1]-r[{(m-1)*n}+i]-d)/{gamma}[0]);
-                out[{(m-1)*n}+i] = a * out[{(m-1)*n}+i+1];
+                d = {x}[i+1] - {y}[{m-1}];
+                a = exp((r[{(m-1)*n}+i+1]-r[{(m-1)*n}+i]-d*d)/{gamma}[0]);
+                eij = a * eip1j;
+                ejp1[i+1] = eip1j;
+                eip1j = eij;
             }}
+            ejp1[0] = eij;
 
             {use_pragma_unroll()}
             for (int j={m-2}; j>=0; j--)
             {{
                 // j=m-2..0, i=n-1
-                b = exp((r[(j+1)*{n}+{n-1}]-r[j*{n}+{n-1}]-{Delta}[(j+1)*{n}+{n-1}])/{gamma}[0]);
-                out[j*{n}+{n-1}] = b * out[(j+1)*{n}+{n-1}];
+                d = {x}[{n-1}] - {y}[j+1];
+                b = exp((r[(j+1)*{n}+{n-1}]-r[j*{n}+{n-1}]-d*d)/{gamma}[0]);
+                eip1j = b * ejp1[{n-1}];
 
                 {use_pragma_unroll()}
                 for (int i={n-2}; i>=0; i--)
                 {{
                     // j=m-2..0, i=n-2..0
-                    a = exp((r[j*{n}+i+1]-r[j*{n}+i]-{Delta}[j*{n}+i+1])/{gamma}[0]);
-                    b = exp((r[(j+1)*{n}+i]-r[j*{n}+i]-{Delta}[(j+1)*{n}+i])/{gamma}[0]);
-                    c = exp((r[(j+1)*{n}+i+1]-r[j*{n}+i]-{Delta}[(j+1)*{n}+i+1])/{gamma}[0]);
-                    out[j*{n}+i] = a * out[j*{n}+i+1] + b * out[(j+1)*{n}+i] + c * out[(j+1)*{n}+i+1];
-
-                    printf("i,j,out[i,j] = %d,%d,%f\\n", i,j,out[j*{n}+i]);
+                    d = {x}[i+1] - {y}[j];
+                    a = exp((r[j*{n}+i+1]-r[j*{n}+i]-d*d)/{gamma}[0]);
+                    d = {x}[i] - {y}[j+1];
+                    b = exp((r[(j+1)*{n}+i]-r[j*{n}+i]-d*d)/{gamma}[0]);
+                    d = {x}[i+1] - {y}[j+1];
+                    c = exp((r[(j+1)*{n}+i+1]-r[j*{n}+i]-d*d)/{gamma}[0]);
+                    eij = a * eip1j + b * ejp1[i] + c * ejp1[i+1];
+                    ejp1[i+1] = eip1j;
+                    eip1j = eij;
                 }}
+                ejp1[0] = eij;
             }}
                 """
         
