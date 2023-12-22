@@ -1,22 +1,22 @@
 # Requirements for the KeOps doc and tutorials:
-sphinx==5.0.2
-sphinx-gallery==0.10.1
-recommonmark==0.7.1
-myst-parser==0.18.0
-sphinxcontrib-httpdomain==1.8.0
-sphinx_rtd_theme==1.0.0
-sphinx-prompt==1.5.0
-breathe==4.34.0
-imageio==2.19.3
-gpytorch==1.7.0
-plotly==5.9.0
-si_prefix==1.2.2
-scikit-learn==1.0.2
-multiprocess==0.70.13
+sphinx
+sphinx-gallery
+recommonmark
+myst-parser
+sphinxcontrib-httpdomain
+sphinx_rtd_theme
+sphinx-prompt
+breathe
+imageio
+gpytorch
+plotly
+si_prefix
+scikit-learn
+multiprocess
 
 # Extra requirements for the GeomLoss doc:
-plyfile==0.7.4
-SimpleITK==2.1.1.2
-scikit-image==0.19.3
-pyvtk==0.5.18
-pyvista==0.34.2
+plyfile
+SimpleITK
+scikit-image
+pyvtk
+pyvista
