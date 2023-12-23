@@ -121,10 +121,10 @@ def from_matrix(ranges_i, ranges_j, keep):
         np.sum(keep, axis=0), axis=0
     )  # slice indices in the "stacked" array redranges_i
     return (
-        ranges_i.astype("int32"),
-        slices_i.astype("int32"),
-        redranges_j.astype("int32"),
-        ranges_j.astype("int32"),
-        slices_j.astype("int32"),
-        redranges_i.astype("int32"),
+        ranges_i.astype("int64"),
+        slices_i.astype("int64"),
+        redranges_j.astype("int64"),
+        ranges_j.astype("int64"),
+        slices_j.astype("int64"),
+        redranges_i.astype("int64"),
     )
