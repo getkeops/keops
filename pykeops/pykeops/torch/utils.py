@@ -179,6 +179,8 @@ class torchtools:
             dtype = torch.float16
         elif dtype == "int32":
             dtype = torch.int32
+        elif dtype == "int64":
+            dtype = torch.int64
         else:
             raise ValueError(
                 "[KeOps] data type " + str(dtype) + " is incompatible with KeOps."

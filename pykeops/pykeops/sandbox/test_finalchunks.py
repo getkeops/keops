@@ -6,7 +6,7 @@ import math
 import torch
 from pykeops.torch import LazyTensor
 
-M, N, D, DV = 10000, 10000, 3, 1
+M, N, D, DV = 10000, 10000, 3, 10000
 
 dtype = torch.float32
 
@@ -26,19 +26,32 @@ def fun(x, y, b, backend):
     if backend == "keops":
         x = LazyTensor(x)
         y = LazyTensor(y)
-    Dxy = ((x - y) ** 2).sum(dim=2)
-    Kxy = (-Dxy).exp()
-    if backend == "keops":
-        out = LazyTensor.__matmul__(Kxy, b)
+    if backend == "keops_alt":
+        x = LazyTensor(x[None, ...])  # (M,1,D) -> (1,M,1,D)
+        y = LazyTensor(y[None, ...])  # (1,N,D) -> (1,1,N,D)
+    if backend == "keops_alt":
+        Dxy = ((x - y) ** 2).sum(dim=3)
     else:
+        Dxy = ((x - y) ** 2).sum(dim=2)
+    Kxy = (-Dxy).exp()
+    if backend == "torch":
         out = Kxy @ b
+    elif backend == "keops":
+        b = LazyTensor(b[None, ...])  # (N,DV) -> (1,N,DV)
+        out = (Kxy * b).sum(dim=1)
+    else:
+        b = LazyTensor(
+            b.transpose(0, 1).contiguous()[:, None, :, None]
+        )  # (N,DV) -> (DV,1,N,1)
+        out = (Kxy * b).sum(dim=2)  # (DV,M,1)
+        out = out.transpose(0, 1)  # (DV,M,1) -> (M,DV,1)
+        out = out.view(out.shape[:-1])  # (M,DV,1) -> (M,DV)
     if device_id != "cpu":
         torch.cuda.synchronize()
-    # print("out:",out.flatten()[:10])
     return out
 
 
-backends = ["keops", "torch"]
+backends = ["torch", "keops", "keops_alt"]
 
 out = []
 for backend in backends:
@@ -55,7 +68,12 @@ for backend in backends:
     print("time for " + backend + ":", end - start)
 
 if len(out) > 1:
-    print("relative error:", (torch.norm(out[0] - out[1]) / torch.norm(out[0])).item())
+    for k in range(1, len(out)):
+        print(
+            f"relative error:({backends[k]})",
+            (torch.norm(out[0] - out[1]) / torch.norm(out[0])).item(),
+        )
+
 
 if test_grad:
     out_g = []
@@ -67,9 +85,9 @@ if test_grad:
         end = time.time()
         print("time for " + backend + " (grad):", end - start)
 
-    if len(out_g) > 1:
+    for k in range(1, len(out_g)):
         print(
-            "relative error grad:",
+            f"relative error grad:({backends[k]})",
             (torch.norm(out_g[0] - out_g[1]) / torch.norm(out_g[0])).item(),
         )
 
@@ -81,8 +99,8 @@ if test_grad2:
         end = time.time()
         print("time for " + backend + " (grad):", end - start)
 
-    if len(out_g2) > 1:
+    for k in range(1, len(out_g2)):
         print(
-            "relative error grad2:",
+            f"relative error grad2:({backends[k]})",
             (torch.norm(out_g2[0] - out_g2[1]) / torch.norm(out_g2[0])).item(),
         )

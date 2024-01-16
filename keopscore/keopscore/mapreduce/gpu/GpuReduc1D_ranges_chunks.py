@@ -75,7 +75,7 @@ def do_chunk_sub_ranges(
     indsj_global = varloader_global.indsj
     indsp_global = varloader_global.indsp
 
-    threadIdx_x = c_variable("int", "threadIdx.x")
+    threadIdx_x = c_variable("signed long int", "threadIdx.x")
     load_chunks_routine_i_batches = load_vars_chunks_offsets(
         indsi_chunked,
         indsi_global,
@@ -173,7 +173,7 @@ def do_chunk_sub_ranges(
                 __syncthreads();
                 if ({i.id} < {end_x.id}) {{ // we compute only if needed
             		{dtype} *yjrel = {yj.id}; // Loop on the columns of the current block.
-            		for (int jrel = 0; (jrel < blockDim.x) && (jrel < {end_y.id} - jstart); jrel++, yjrel += {chk.dimy}) {{
+            		for (signed long int jrel = 0; (jrel < blockDim.x) && (jrel < {end_y.id} - jstart); jrel++, yjrel += {chk.dimy}) {{
             			{dtype} *foutj = {fout.id} + jrel*{chk.fun_chunked.dim};
                         {fun_chunked_curr(fout_tmp_chunk, chktable)}
                         {chk.fun_chunked.acc_chunk(foutj, fout_tmp_chunk)}
@@ -222,21 +222,25 @@ class GpuReduc1D_ranges_chunks(MapReduce, Gpu_link_compile):
         )
         nvars = nvarsi + nvarsj + nvarsp
 
-        indices_i = c_array("int", nvarsi, "indices_i")
-        indices_j = c_array("int", nvarsj, "indices_j")
-        indices_p = c_array("int", nvarsp, "indices_p")
+        indices_i = c_array("signed long int", nvarsi, "indices_i")
+        indices_j = c_array("signed long int", nvarsj, "indices_j")
+        indices_p = c_array("signed long int", nvarsp, "indices_p")
 
-        declare_assign_indices_i = "int *indices_i = offsets;" if nvarsi > 0 else ""
+        declare_assign_indices_i = (
+            "signed long int *indices_i = offsets;" if nvarsi > 0 else ""
+        )
         declare_assign_indices_j = (
-            f"int *indices_j = offsets + {nvarsi};" if nvarsj > 0 else ""
+            f"signed long int *indices_j = offsets + {nvarsi};" if nvarsj > 0 else ""
         )
         declare_assign_indices_p = (
-            f"int *indices_p = offsets + {nvarsi} + {nvarsj};" if nvarsp > 0 else ""
+            f"signed long int *indices_p = offsets + {nvarsi} + {nvarsj};"
+            if nvarsp > 0
+            else ""
         )
 
         yjrel = c_array(dtype, varloader_global.dimy, "yjrel")
 
-        jreltile = c_variable("int", "(jrel + tile * blockDim.x)")
+        jreltile = c_variable("signed long int", "(jrel + tile * blockDim.x)")
 
         chk = self.chk
         param_loc = c_array(dtype, chk.dimp, "param_loc")
@@ -253,17 +257,17 @@ class GpuReduc1D_ranges_chunks(MapReduce, Gpu_link_compile):
             pointer(dtype), f"({fout_chunk.id}+jrel*{chk.dimout_chunk})"
         )
 
-        tile = c_variable("int", "tile")
-        nx = c_variable("int", "nx")
-        ny = c_variable("int", "ny")
+        tile = c_variable("signed long int", "tile")
+        nx = c_variable("signed long int", "nx")
+        ny = c_variable("signed long int", "ny")
 
-        jstart = c_variable("int", "jstart")
-        chunk = c_variable("int", "chunk")
+        jstart = c_variable("signed long int", "jstart")
+        chunk = c_variable("signed long int", "chunk")
 
-        end_x = c_variable("int", "end_x")
-        end_y = c_variable("int", "end_y")
+        end_x = c_variable("signed long int", "end_x")
+        end_y = c_variable("signed long int", "end_y")
 
-        starty = c_variable("int", "start_y")
+        starty = c_variable("signed long int", "start_y")
 
         nbatchdims = c_variable("int", "nbatchdims")
 
@@ -302,7 +306,7 @@ class GpuReduc1D_ranges_chunks(MapReduce, Gpu_link_compile):
             param_loc,
         )
 
-        last_chunk = c_variable("int", f"{chk.nchunks-1}")
+        last_chunk = c_variable("signed long int", f"{chk.nchunks-1}")
         chunk_sub_routine_last = do_chunk_sub_ranges(
             dtype,
             red_formula,
@@ -358,17 +362,17 @@ class GpuReduc1D_ranges_chunks(MapReduce, Gpu_link_compile):
         fout_tmp = c_array(dtype, chk.dimfout, "fout_tmp")
         outi = c_array(dtype, chk.dimout, f"(out + i * {chk.dimout})")
 
-        threadIdx_x = c_variable("int", "threadIdx.x")
+        threadIdx_x = c_variable("signed long int", "threadIdx.x")
 
         self.code = f"""
                           
                         {self.headers}
                         
-                        extern "C" __global__ void GpuConv1DOnDevice_ranges(int nx, int ny, int nbatchdims,
-                                                    int *offsets_d, int *lookup_d, int *slices_x,
-                                                    int *ranges_y, {dtype} *out, {dtype} **{arg.id}) {{
+                        extern "C" __global__ void GpuConv1DOnDevice_ranges(signed long int nx, signed long int ny, int nbatchdims,
+                                                    signed long int *offsets_d, signed long int *lookup_d, signed long int *slices_x,
+                                                    signed long int *ranges_y, {dtype} *out, {dtype} **{arg.id}) {{
                                                         
-                          int offsets[{nvars}];
+                          signed long int offsets[{nvars}];
                           {declare_assign_indices_i}
                           {declare_assign_indices_j}
                           {declare_assign_indices_p}
@@ -378,18 +382,18 @@ class GpuReduc1D_ranges_chunks(MapReduce, Gpu_link_compile):
                                   offsets[k] = offsets_d[ {nvars} * blockIdx.x + k ];
                                   
                           // Retrieve our position along the laaaaarge [1,~nx] axis: -----------------
-                          int range_id= (lookup_d)[3*blockIdx.x] ;
-                          int start_x = (lookup_d)[3*blockIdx.x+1] ;
-                          int end_x   = (lookup_d)[3*blockIdx.x+2] ;
+                          signed long int range_id= (lookup_d)[3*blockIdx.x] ;
+                          signed long int start_x = (lookup_d)[3*blockIdx.x+1] ;
+                          signed long int end_x   = (lookup_d)[3*blockIdx.x+2] ;
                           
                           // The "slices_x" vector encodes a set of cutting points in
                           // the "ranges_y" array of ranges.
                           // As discussed in the Genred docstring, the first "0" is implicit:
-                          int start_slice = range_id < 1 ? 0 : slices_x[range_id-1];
-                          int end_slice   = slices_x[range_id];
+                          signed long int start_slice = range_id < 1 ? 0 : slices_x[range_id-1];
+                          signed long int end_slice   = slices_x[range_id];
                           
                           // get the index of the current thread
-                          int i = start_x + threadIdx.x;
+                          signed long int i = start_x + threadIdx.x;
                           
                           // declare shared mem
                           extern __shared__ {dtype} yj[];
@@ -425,15 +429,15 @@ class GpuReduc1D_ranges_chunks(MapReduce, Gpu_link_compile):
                               }} 
                           }}
                           
-                          int start_y = ranges_y[2*start_slice], end_y = 0;
-                          for( int index = start_slice ; index < end_slice ; index++ ) {{
+                          signed long int start_y = ranges_y[2*start_slice], end_y = 0;
+                          for( signed long int index = start_slice ; index < end_slice ; index++ ) {{
                               if( (index+1 >= end_slice) || (ranges_y[2*index+2] != ranges_y[2*index+1]) ) {{
                                   //start_y = ranges_y[2*index] ;
                                   end_y = ranges_y[2*index+1];
                                   
-                                  for(int jstart = start_y, tile = 0; jstart < end_y; jstart += blockDim.x, tile++) {{
+                                  for(signed long int jstart = start_y, tile = 0; jstart < end_y; jstart += blockDim.x, tile++) {{
                                       // get the current column
-                                      int j = jstart + threadIdx.x;
+                                      signed long int j = jstart + threadIdx.x;
                                       
                                       if(j<end_y) // we load yj from device global memory only if j<end_y
                                           if (nbatchdims == 0) {{
@@ -447,7 +451,7 @@ class GpuReduc1D_ranges_chunks(MapReduce, Gpu_link_compile):
                                       __syncthreads();
                                       
                                       if(i<end_x) {{ // we compute x1i only if needed
-                                      for (int jrel = 0; (jrel < blockDim.x) && (jrel < end_y - jstart); jrel++) {{
+                                      for (signed long int jrel = 0; (jrel < blockDim.x) && (jrel < end_y - jstart); jrel++) {{
                                           {chk.fun_chunked.initacc_chunk(fout_chunk_loc)}
                                       }}
                                       {sum_scheme.initialize_temporary_accumulator_block_init()}
@@ -455,7 +459,7 @@ class GpuReduc1D_ranges_chunks(MapReduce, Gpu_link_compile):
                                   
                                   // looping on chunks (except the last)
                           		  {use_pragma_unroll()}
-                          		  for (int chunk=0; chunk<{chk.nchunks}-1; chunk++) {{
+                          		  for (signed long int chunk=0; chunk<{chk.nchunks}-1; chunk++) {{
                                       {chunk_sub_routine}
                                   }}
                                   // last chunk
@@ -464,14 +468,14 @@ class GpuReduc1D_ranges_chunks(MapReduce, Gpu_link_compile):
                                   if (i < end_x) {{
                                       {dtype} * yjrel = yj; // Loop on the columns of the current block.
                                       if (nbatchdims == 0) {{
-                                          for (int jrel = 0; (jrel < blockDim.x) && (jrel <end_y - jstart); jrel++, yjrel += {chk.dimy}) {{
+                                          for (signed long int jrel = 0; (jrel < blockDim.x) && (jrel <end_y - jstart); jrel++, yjrel += {chk.dimy}) {{
                                               {dtype} *foutj = fout_chunk + jrel*{chk.dimout_chunk};
                                               {fout_tmp.declare()}
                                               {chk.fun_postchunk(fout_tmp, chktable_out)}
                                               {sum_scheme.accumulate_result(acc, fout_tmp, jreltile)}
                                           }}
                                       }} else {{
-                                          for (int jrel = 0; (jrel < blockDim.x) && (jrel <end_y - jstart); jrel++, yjrel += {chk.dimy}) {{
+                                          for (signed long int jrel = 0; (jrel < blockDim.x) && (jrel <end_y - jstart); jrel++, yjrel += {chk.dimy}) {{
                                               {dtype} *foutj = fout_chunk + jrel*{chk.dimout_chunk};
                                               {fout_tmp.declare()}
                                               {chk.fun_postchunk(fout_tmp, chktable_out)}

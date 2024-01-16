@@ -8,7 +8,7 @@ from pykeops.common.parse_type import parse_dtype_acc
 
 
 class LoadKeOps:
-    null_range = np.array([-1], dtype="int32")
+    null_range = np.array([-1])
     empty_ranges_new = tuple([null_range.__array_interface__["data"][0]] * 7)
 
     def __init__(self, *args, fast_init):
@@ -196,7 +196,7 @@ class LoadKeOps:
             self.ranges_ptr_new = self.empty_ranges_new
         else:
             ranges_shapes = self.tools.array(
-                [r.shape[0] for r in ranges], dtype="int32", device="cpu"
+                [r.shape[0] for r in ranges], dtype="int64", device="cpu"
             )
             ranges = [*ranges, ranges_shapes]
             self.ranges_ptr_new = tuple([self.tools.get_pointer(r) for r in ranges])

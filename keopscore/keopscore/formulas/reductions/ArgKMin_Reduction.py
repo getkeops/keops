@@ -20,7 +20,7 @@ class ArgKMin_Reduction(KMin_ArgKMin_Reduction):
 
     def FinalizeOutput(self, acc, out, i):
         fdim = self.formula.dim
-        p = c_variable("int", new_c_varname("p"))
+        p = c_variable("signed long int", new_c_varname("p"))
         loop, k = c_for_loop(0, fdim, 1, pragma_unroll=True)
         body = p.declare_assign(k)
         inner_loop, l = c_for_loop(

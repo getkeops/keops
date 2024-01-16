@@ -99,11 +99,11 @@ void check_nargs(int nargs, int nminargs) {{
 #include "include/Ranges.h"
 
 template< typename TYPE>                 
-int CpuConv_ranges_{self.gencode_filename}(int nx, int ny, 
-                    int nbatchdims, int* shapes,
+int CpuConv_ranges_{self.gencode_filename}(signed long int nx, signed long int ny, 
+                    int nbatchdims, signed long int* shapes,
                     std::vector< int > indsi, std::vector< int > indsj, std::vector< int > indsp,
-                    int nranges_x, int nranges_y, int **ranges,
-                    TYPE* out, std::vector< int > shapeout, TYPE **{arg.id}) {{
+                    signed long int nranges_x, signed long int nranges_y, signed long int **ranges,
+                    TYPE* out, std::vector< signed long int > shapeout, TYPE **{arg.id}) {{
                         
     int sizei = indsi.size();
     int sizej = indsj.size();
@@ -119,7 +119,7 @@ int CpuConv_ranges_{self.gencode_filename}(int nx, int ny,
     // [ A, .., 1, M, 1, D_4  ]  -> N.B.: we support broadcasting on the batch dimensions!
     // [ 1, .., 1, M, 1, D_5  ]  ->      (we'll just ask users to fill in the shapes with *explicit* ones)
             
-    int shapes_i[sizei * (nbatchdims + 1)], shapes_j[sizej * (nbatchdims + 1)], shapes_p[sizep * (nbatchdims + 1)];
+    signed long int shapes_i[sizei * (nbatchdims + 1)], shapes_j[sizej * (nbatchdims + 1)], shapes_p[sizep * (nbatchdims + 1)];
 
     
     // First, we fill shapes_i with the "relevant" shapes of the "i" variables,
@@ -141,12 +141,12 @@ int CpuConv_ranges_{self.gencode_filename}(int nx, int ny,
 
     // for some reason the nx value is not correct for very special cases (like Zero reduction..)
     // so we compute the true value from the input shapeout...
-    int true_nx = 1;
-    for (int k=0; k<shapeout.size()-1; k++) {{
+    signed long int true_nx = 1;
+    for (signed long int k=0; k<shapeout.size()-1; k++) {{
         true_nx *= shapeout[k];
     }}
 
-    for (int i = 0; i < true_nx; i++) {{
+    for (signed long int i = 0; i < true_nx; i++) {{
         {red_formula.InitializeReduction(acctmp)}
         {red_formula.FinalizeOutput(acctmp, outi, i)}
     }}
@@ -158,22 +158,22 @@ int CpuConv_ranges_{self.gencode_filename}(int nx, int ny,
     //    FUN::tagJ = 1 for a reduction over j, result indexed by i
     //    FUN::tagJ = 0 for a reduction over i, result indexed by j
 
-    int nranges = {red_formula.tagJ} ? nranges_x : nranges_y;
-    int* ranges_x = {red_formula.tagJ} ? ranges[0] : ranges[3];
-    int* slices_x = {red_formula.tagJ} ? ranges[1] : ranges[4];
-    int* ranges_y = {red_formula.tagJ} ? ranges[2] : ranges[5];
+    signed long int nranges = {red_formula.tagJ} ? nranges_x : nranges_y;
+    signed long int* ranges_x = {red_formula.tagJ} ? ranges[0] : ranges[3];
+    signed long int* slices_x = {red_formula.tagJ} ? ranges[1] : ranges[4];
+    signed long int* ranges_y = {red_formula.tagJ} ? ranges[2] : ranges[5];
 
-    int indices_i[sizei], indices_j[sizej], indices_p[sizep];  // Buffers for the "broadcasted indices"
-    for (int k = 0; k < sizei; k++) {{ indices_i[k] = 0; }}  // Fill the "offsets" with zeroes,
-    for (int k = 0; k < sizej; k++) {{ indices_j[k] = 0; }}  // the default value when nbatchdims == 0.
-    for (int k = 0; k < sizep; k++) {{ indices_p[k] = 0; }}
+    signed long int indices_i[sizei], indices_j[sizej], indices_p[sizep];  // Buffers for the "broadcasted indices"
+    for (signed long int k = 0; k < sizei; k++) {{ indices_i[k] = 0; }}  // Fill the "offsets" with zeroes,
+    for (signed long int k = 0; k < sizej; k++) {{ indices_j[k] = 0; }}  // the default value when nbatchdims == 0.
+    for (signed long int k = 0; k < sizep; k++) {{ indices_p[k] = 0; }}
     
     
-    for (int range_index = 0; range_index < nranges; range_index++) {{
-        int start_x = ranges_x[2 * range_index];
-        int end_x = ranges_x[2 * range_index + 1];
-        int start_slice = (range_index < 1) ? 0 : slices_x[range_index - 1];
-        int end_slice = slices_x[range_index];
+    for (signed long int range_index = 0; range_index < nranges; range_index++) {{
+        signed long int start_x = ranges_x[2 * range_index];
+        signed long int end_x = ranges_x[2 * range_index + 1];
+        signed long int start_slice = (range_index < 1) ? 0 : slices_x[range_index - 1];
+        signed long int end_slice = slices_x[range_index];
 
         // If needed, compute the "true" start indices of the range, turning
         // the "abstract" index start_x into an array of actual "pointers/offsets" stored in indices_i:
@@ -185,7 +185,7 @@ int CpuConv_ranges_{self.gencode_filename}(int nx, int ny,
         }}
     
         #pragma omp parallel for   
-        for (int i = start_x; i < end_x; i++) {{
+        for (signed long int i = start_x; i < end_x; i++) {{
             {xi.declare()}
             {yj.declare()}
             {fout.declare()}
@@ -198,9 +198,9 @@ int CpuConv_ranges_{self.gencode_filename}(int nx, int ny,
             }}
             {red_formula.InitializeReduction(acc)}
             {sum_scheme.initialize_temporary_accumulator()}
-            for (int slice = start_slice; slice < end_slice; slice++) {{
-                 int start_y = ranges_y[2 * slice];
-                 int end_y = ranges_y[2 * slice + 1];
+            for (signed long int slice = start_slice; slice < end_slice; slice++) {{
+                 signed long int start_y = ranges_y[2 * slice];
+                 signed long int end_y = ranges_y[2 * slice + 1];
 
                 // If needed, compute the "true" start indices of the range, turning
                 // the "abstract" index start_y into an array of actual "pointers/offsets" stored in indices_j:
@@ -208,13 +208,13 @@ int CpuConv_ranges_{self.gencode_filename}(int nx, int ny,
                     vect_broadcast_index(start_y, nbatchdims, sizej, shapes, shapes_j, indices_j);
                 }}
                 if (nbatchdims == 0) {{
-                    for (int j = start_y; j < end_y; j++) {{
+                    for (signed long int j = start_y; j < end_y; j++) {{
                         {varloader.load_vars("j", yj, args, row_index=j)}
                         {red_formula.formula(fout,table)}
                         {sum_scheme.accumulate_result(acc, fout, j)}
                     }}
                 }} else {{
-                    for (int j = start_y; j < end_y; j++) {{
+                    for (signed long int j = start_y; j < end_y; j++) {{
                         {varloader.load_vars("j", yj, args, row_index=jmstarty, offsets=indices_j)}
                         {red_formula.formula(fout,table)}
                         {sum_scheme.accumulate_result(acc, fout, jmstarty)}
@@ -235,15 +235,15 @@ int CpuConv_ranges_{self.gencode_filename}(int nx, int ny,
 #include <vector>
 
 template < typename TYPE >
-int launch_keops_{self.gencode_filename}(int nx, int ny, 
-                                         int tagI, int use_half, int  dimred,
+int launch_keops_{self.gencode_filename}(signed long int nx, signed long int ny, 
+                                         int tagI, int use_half, signed long int dimred,
                                          int use_chunk_mode,
                                          std::vector< int > indsi, std::vector< int > indsj, std::vector< int > indsp,
-                                         int dimout,
-                                         std::vector< int > dimsx, std::vector< int > dimsy, std::vector< int > dimsp,
-                                         int **ranges, 
-                                         TYPE *out, std::vector< int > shapeout, int nargs, TYPE** arg,
-                                         std::vector<std::vector< int >> argshape) {{
+                                         signed long int dimout,
+                                         std::vector< signed long int > dimsx, std::vector< signed long int > dimsy, std::vector< signed long int > dimsp,
+                                         signed long int **ranges, 
+                                         TYPE *out, std::vector< signed long int > shapeout, int nargs, TYPE** arg,
+                                         std::vector<std::vector< signed long int >> argshape) {{
     
     Sizes< TYPE > SS (nargs, arg, argshape, nx, ny,tagI, use_half,
                       dimout,
@@ -260,19 +260,21 @@ int launch_keops_{self.gencode_filename}(int nx, int ny,
     ny = SS.ny;
     
     if (tagI==1) {{
-        int tmp = ny;
+        signed long int tmp = ny;
         ny = nx;
         nx = tmp;
     
-        std::vector< int > tmp_v;
+        std::vector< int > tmp_v_ind;
         
-        tmp_v = indsj;
+        tmp_v_ind = indsj;
         indsj = indsi;
-        indsi = tmp_v;
+        indsi = tmp_v_ind;
 
-        tmp_v = dimsy;
+        std::vector< signed long int > tmp_v_dim;
+
+        tmp_v_dim = dimsy;
         dimsy = dimsx;
-        dimsx = tmp_v;
+        dimsx = tmp_v_dim;
     }}
     
     return CpuConv_ranges_{self.gencode_filename}< TYPE> (nx, ny, SS.nbatchdims, SS.shapes,
@@ -282,21 +284,21 @@ int launch_keops_{self.gencode_filename}(int nx, int ny,
 }}
 
 template < typename TYPE >
-int launch_keops_cpu_{self.gencode_filename}(int dimY,
-                                             int nx,
-                                             int ny,
+int launch_keops_cpu_{self.gencode_filename}(signed long int dimY,
+                                             signed long int nx,
+                                             signed long int ny,
                                              int tagI,
                                              int tagZero,
                                              int use_half,
-                                             int dimred,
+                                             signed long int dimred,
                                              int use_chunk_mode,
                                              std::vector< int > indsi, std::vector< int > indsj, std::vector< int > indsp,
-                                             int dimout,
-                                             std::vector< int > dimsx, std::vector< int > dimsy, std::vector< int > dimsp,
-                                             int **ranges,
-                                             std::vector< int > shapeout, TYPE *out,
+                                             signed long int dimout,
+                                             std::vector< signed long int > dimsx, std::vector< signed long int > dimsy, std::vector< signed long int > dimsp,
+                                             signed long int **ranges,
+                                             std::vector< signed long int > shapeout, TYPE *out,
                                              TYPE **arg,
-                                             std::vector< std::vector< int > > argshape) {{
+                                             std::vector< std::vector< signed long int > > argshape) {{
     
 
     

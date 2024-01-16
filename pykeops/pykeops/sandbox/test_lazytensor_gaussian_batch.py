@@ -6,16 +6,16 @@ import math
 import torch
 from pykeops.torch import LazyTensor
 
-B1, B2, M, N, D, DV = 3, 4, 20, 25, 3, 2
+B1, B2, M, N, D, DV = 30, 1000, 1000, 1000, 3, 1
 
 
 test_grad = True
 device_id = "cuda" if torch.cuda.is_available() else "cpu"
 do_warmup = False
 
-x = torch.rand(1, B2, M, 1, D, device=device_id) / math.sqrt(D)
-y = torch.rand(B1, B2, 1, N, D, device=device_id) / math.sqrt(D)
-b = torch.randn(B1, 1, N, DV, requires_grad=test_grad, device=device_id)
+x = torch.rand(B1, 1, M, 1, D, device=device_id) / math.sqrt(D)
+y = torch.rand(B1, 1, 1, N, D, device=device_id) / math.sqrt(D)
+b = torch.randn(1, B2, N, DV, requires_grad=test_grad, device=device_id)
 
 
 def fun(x, y, b, backend):
@@ -33,7 +33,7 @@ def fun(x, y, b, backend):
     return out
 
 
-backends = ["torch", "keops"]
+backends = ["keops"]  # , "torch"]
 
 out = []
 for backend in backends:
@@ -67,9 +67,6 @@ if test_grad:
         print("time for " + backend + " (grad):", end - start)
 
     if len(out_g) > 1:
-        print()
-        print("out_g[0]:", out_g[0].flatten()[:10])
-        print("out_g[1]:", out_g[1].flatten()[:10])
         print(
             "relative error grad:",
             (torch.norm(out_g[0] - out_g[1]) / torch.norm(out_g[0])).item(),

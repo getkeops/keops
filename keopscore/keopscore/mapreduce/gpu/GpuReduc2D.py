@@ -1,8 +1,17 @@
 from keopscore.binders.nvrtc.Gpu_link_compile import Gpu_link_compile
-from keopscore.formulas.reductions.sum_schemes import block_sum, kahan_scheme
+from keopscore.formulas.reductions.sum_schemes import (
+    block_sum,
+    kahan_scheme,
+    direct_sum,
+)
 from keopscore.mapreduce.gpu.GpuAssignZero import GpuAssignZero
 from keopscore.mapreduce.MapReduce import MapReduce
-from keopscore.utils.code_gen_utils import c_variable, c_array, use_pragma_unroll
+from keopscore.utils.code_gen_utils import (
+    c_variable,
+    c_array,
+    use_pragma_unroll,
+    c_zero_float,
+)
 from keopscore.utils.misc_utils import KeOps_Error
 
 
@@ -65,15 +74,15 @@ class GpuReduc2D(MapReduce, Gpu_link_compile):
         yjrel = c_array(dtype, dimy, "yjrel")
         table = varloader.table(self.xi, yjrel, self.param_loc)
 
-        jrelloc = c_variable("int", "(blockDim.x*blockIdx.y+jrel)")
+        jrelloc = c_variable("signed long int", "(blockDim.x*blockIdx.y+jrel)")
 
-        tid = c_variable("int", "tid")
+        tid = c_variable("signed long int", "tid")
 
         self.code = f"""
                           
                         {self.headers}
                         
-                        extern "C" __global__ void reduce2D({dtype} *in, {dtype} *out, int sizeY, int nx) {{
+                        extern "C" __global__ void reduce2D({dtype} *in, {dtype} *out, unsigned int sizeY, signed long int nx) {{
                             /* Function used as a final reduction pass in the 2D scheme,
                              * once the block reductions have been made.
                              * Takes as input:
@@ -83,12 +92,12 @@ class GpuReduc2D(MapReduce, Gpu_link_compile):
                              * Computes, in parallel, the "columnwise"-reduction (which correspond to lines of blocks)
                              * of *in and stores the result in out.
                              */
-                            int tid = blockIdx.x * blockDim.x + threadIdx.x;
+                            signed long int tid = blockIdx.x * blockDim.x + threadIdx.x;
 
                             /* As shown below, the code that is used to store the block-wise sum
                               "tmp" in parallel is:
                                 if(i<nx)
-                                    for(int k=0; k<DIMX1; k++)
+                                    for(signed long int k=0; k<DIMX1; k++)
                                         (*px)[blockIdx.y*DIMX1*nx+i*DIMX1+k] = tmp[k];
                             */
 
@@ -96,7 +105,7 @@ class GpuReduc2D(MapReduce, Gpu_link_compile):
                                // of a simple "fully parallel" reduction op such as "sum", "max" or "min"
                             TYPE res = 0;
                             if(tid < nx*DIMVECT) {{
-                                for (int i = 0; i < sizeY; i++)
+                                for (signed long int i = 0; i < sizeY; i++)
                                     res += in[tid + i*nx*DIMVECT]; // We use "+=" as a reduction op. But it could be anything, really!
                                 // res = in[tid+ nx* DIMVECT];
                                 out[tid] = res;
@@ -108,7 +117,7 @@ class GpuReduc2D(MapReduce, Gpu_link_compile):
                             {acc2.declare()}
                             {red_formula.InitializeReduction(acc2)} // acc = 0
                             if(tid < nx) {{
-                                for (int y = 0; y < sizeY; y++) {{
+                                for (signed long int y = 0; y < sizeY; y++) {{
                                     {red_formula.ReducePair(acc2, inloc)} // acc += in[(tid+y*nx) *DIMVECT : +DIMVECT]; 
                                 }}
                                 {red_formula.FinalizeOutput(acc2, outloc, tid)}
@@ -118,7 +127,7 @@ class GpuReduc2D(MapReduce, Gpu_link_compile):
                         
                         
                         
-                        extern "C" __global__ void GpuConv2DOnDevice(int nx, int ny, {dtype} *out, {dtype} **{arg.id}) {{
+                        extern "C" __global__ void GpuConv2DOnDevice(signed long int nx, signed long int ny, {dtype} *out, {dtype} **{arg.id}) {{
                             
                             {fout.declare()}
                             
@@ -131,7 +140,7 @@ class GpuReduc2D(MapReduce, Gpu_link_compile):
                             {dtype}* const yj = reinterpret_cast<{dtype}*>(yj_char);
                             
                             // Step 1 : Load in Thread Memory the information needed in the current line ---------------------------
-                            int i = blockIdx.x * blockDim.x + threadIdx.x;
+                            signed long int i = blockIdx.x * blockDim.x + threadIdx.x;
                             {xi.declare()}
                             
                             {acc.declare()}
@@ -152,7 +161,7 @@ class GpuReduc2D(MapReduce, Gpu_link_compile):
                             // In the 1D scheme, we use a loop to run through the line.
                             // In the 2D scheme presented here, the computation is done in parallel wrt both lines and columns.
                             // Hence, we use "blockId.y" to get our current column number.
-                            int j = blockIdx.y * blockDim.x + threadIdx.x; // Same blockDim in x and y : squared tiles.
+                            signed long int j = blockIdx.y * blockDim.x + threadIdx.x; // Same blockDim in x and y : squared tiles.
                             if(j<ny) {{ // we load yj from device global memory only if j<ny
                                 {varloader.load_vars("j", yjloc, args, row_index=j)} // load yj variables from global memory to shared memory
                             }}
@@ -167,7 +176,7 @@ class GpuReduc2D(MapReduce, Gpu_link_compile):
                             //       In the future, we could provide other reductions: max, min, ... whatever's needed.
                             if(i<nx) {{ // we compute x1i only if needed
                                 {dtype}* yjrel = yj; // Loop on the columns of the current block.
-                                for(int jrel = 0; (jrel<blockDim.x) && ((blockDim.x*blockIdx.y+jrel)< ny); jrel++, yjrel+={dimy}) {{
+                                for(signed long int jrel = 0; (jrel<blockDim.x) && ((blockDim.x*blockIdx.y+jrel)< ny); jrel++, yjrel+={dimy}) {{
                                     {red_formula.formula(fout,table)} // Call the function, which outputs results in fout
                                     {sum_scheme.accumulate_result(acc, fout, jrelloc, hack=True)}
                                 }}
@@ -183,7 +192,7 @@ class GpuReduc2D(MapReduce, Gpu_link_compile):
                             // shall be done in a later step.
                             if(i<nx) {{
                                 {use_pragma_unroll()}
-                                for(int k=0; k<{dimred}; k++) {{
+                                for(signed long int k=0; k<{dimred}; k++) {{
                                     out[blockIdx.y*{dimred}*nx+i*{dimred}+k] = acc[k];
                                 }}
                             }}

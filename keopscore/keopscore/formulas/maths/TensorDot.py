@@ -159,7 +159,7 @@ class TensorDot(Operation):
 
         for i in range(len(self.loopdim)):
             str_code += (
-                f"for(int TD_var_{chr(70 + i)}=0; TD_var_{chr(70 + i)}<{self.loopdim[i]}; ++TD_var_{chr(70 + i)})"
+                f"for(signed long int TD_var_{chr(70 + i)}=0; TD_var_{chr(70 + i)}<{self.loopdim[i]}; ++TD_var_{chr(70 + i)})"
                 + "{\n"
                 + i * "    "
             )
@@ -189,7 +189,7 @@ class TensorDot(Operation):
         return f"""
                     #if C_CONTIGUOUS     // row major
                         {use_pragma_unroll()}
-                        for (int i = 0; i < {out.dim}; i++)
+                        for (signed long int i = 0; i < {out.dim}; i++)
                             {out.id}[i] = ({out.dtype})(0.0f);
                         
                         {use_pragma_unroll()}                       

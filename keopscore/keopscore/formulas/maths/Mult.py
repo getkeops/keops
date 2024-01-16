@@ -124,8 +124,9 @@ def Mult(arg0, arg1):
     elif isinstance(arg0, Exp) and isinstance(arg1, Exp):
         # Exp(f)*Exp(g) -> Exp(f+g)
         return Exp(arg0.children[0] + arg1.children[0])
-    elif isinstance(arg0, Exp):
-        # Exp(f)*g -> g*Exp(f)
+    elif isinstance(arg0, Exp) and arg0.dim >= arg1.dim:
+        # Exp(f)*g -> g*Exp(f) except if g.dim > f.dim
+        # This is to bring exponentials to the right for further simplifications
         return arg1 * arg0
     elif isinstance(arg0, Mult_Impl):
         u, v = arg0.children
@@ -137,8 +138,9 @@ def Mult(arg0, arg1):
                 (b,) = arg1.children
                 # (u*Exp(a))*Exp(b) -> u*Exp(a+b)
                 return u * Exp(a + b)
-            # (u*Exp(a))*g -> (u*g)*Exp(a)
-            return (u * arg1) * v
+            elif arg1.dim <= a.dim:
+                # (u*Exp(a))*g -> (u*g)*Exp(a) except if g.dim > a.dim
+                return (u * arg1) * v
     elif (
         isinstance(arg1, Mult_Impl)
         and isinstance(arg1.children[1], Exp)

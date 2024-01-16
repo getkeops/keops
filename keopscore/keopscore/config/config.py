@@ -131,9 +131,11 @@ if use_OpenMP:
 
         res = subprocess.run(
             f'echo "#include <omp.h>" | {cxx_compiler} {cpp_env_flags} -E - -o /dev/null',
-            stderr=subprocess.DEVNULL,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.PIPE,
             shell=True,
         )
+
         if res.returncode != 0:
             KeOps_Warning(
                 """omp.h header is not in the path, disabling OpenMP. To fix this, you can set the environment
@@ -291,3 +293,21 @@ def init_cudalibs():
         CDLL(find_library("cuda"), mode=RTLD_GLOBAL)
         CDLL(find_library("cudart"), mode=RTLD_GLOBAL)
         keopscore.config.config.init_cudalibs_flag = True
+
+
+def show_gpu_config():
+    if use_cuda:
+        for elem in (
+            "cuda_version",
+            "libcuda_folder",
+            "libnvrtc_folder",
+            "nvrtc_flags",
+            "nvrtc_include",
+            "cuda_include_path",
+            "jit_source_file",
+            "jit_source_header",
+            "jit_binary",
+        ):
+            print(elem + " : ", eval(elem))
+    else:
+        print("gpu disabled")

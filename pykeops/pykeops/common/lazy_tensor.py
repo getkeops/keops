@@ -478,7 +478,7 @@ class GenericLazyTensor:
         r"""Symbolically applies **operation** to **self**, with optional arguments if needed.
 
         Keyword args:
-          - dimres (int): May be used to specify the dimension of the output **result**.
+          - dimres (int or None): May be used to specify the dimension of the output **result**.
           - is_operator (bool, default=False): May be used to specify if **operation** is
             an operator like ``+``, ``-`` or a "genuine" function.
           - dimcheck (string): shall we check the input dimensions?
@@ -1381,6 +1381,60 @@ class GenericLazyTensor:
         that encodes, symbolically, the element-wise square of ``x``.
         """
         return self.unary("Square")
+
+    def __eq__(self, other):
+        r"""
+        "equal to" - a binary operation.
+
+        ``x==y`` returns a :class:`LazyTensor` that encodes, symbolically,
+        the element-wise operation ``x==y`` (with outputs values 0 or 1).
+        """
+        return self.binary(other, "Equal", dimcheck="sameor1")
+
+    def __ne__(self, other):
+        r"""
+        "not equal to" - a binary operation.
+
+        ``x!=y`` returns a :class:`LazyTensor` that encodes, symbolically,
+        the element-wise operation ``x!=y`` (with outputs values 0 or 1).
+        """
+        return self.binary(other, "NotEqual", dimcheck="sameor1")
+
+    def __lt__(self, other):
+        r"""
+        "less than" - a binary operation.
+
+        ``x<y`` returns a :class:`LazyTensor` that encodes, symbolically,
+        the element-wise operation ``x<y`` (with outputs values 0 or 1).
+        """
+        return self.binary(other, "<", is_operator=True, dimcheck="sameor1")
+
+    def __gt__(self, other):
+        r"""
+        "greater than" - a binary operation.
+
+        ``x>y`` returns a :class:`LazyTensor` that encodes, symbolically,
+        the element-wise operation ``x>y`` (with outputs values 0 or 1).
+        """
+        return self.binary(other, ">", is_operator=True, dimcheck="sameor1")
+
+    def __le__(self, other):
+        r"""
+        "less than or equal to" - a binary operation.
+
+        ``x<=y`` returns a :class:`LazyTensor` that encodes, symbolically,
+        the element-wise operation ``x<=y`` (with outputs values 0 or 1).
+        """
+        return self.binary(other, "<=", is_operator=True, dimcheck="sameor1")
+
+    def __ge__(self, other):
+        r"""
+        "greater than" - a binary operation.
+
+        ``x>=y`` returns a :class:`LazyTensor` that encodes, symbolically,
+        the element-wise operation ``x>=y`` (with outputs values 0 or 1).
+        """
+        return self.binary(other, ">=", is_operator=True, dimcheck="sameor1")
 
     def sign(self):
         r"""

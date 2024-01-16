@@ -154,8 +154,8 @@ Introduction to RKeOps
       .. rubric:: KeOps
          :name: keops
 
-         Seamless Kernel Operations on GPU (or CPU), with
-         auto-differentiation and without memory overflows
+      Seamless Kernel Operations on GPU (or CPU), with
+      auto-differentiation and without memory overflows
 
       The KeOps library (http://www.kernel-operations.io) provides
       routines to compute generic reductions of large 2d arrays whose
