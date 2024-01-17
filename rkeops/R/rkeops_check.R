@@ -59,7 +59,7 @@ check_pypkg <- function(package, warn = TRUE) {
     have_pypkg <- reticulate::py_module_available(package)
     if(have_pypkg) {
         pypkg_import_try <- tryCatch({
-            tmp_pypkg <- reticulate::import("pykeops")
+            tmp_pypkg <- reticulate::import(package)
             tmp_pypkg$verbose
         }, error = function(e) return(NULL))
         import_pypkg <- !test_null(pypkg_import_try)
