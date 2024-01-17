@@ -101,7 +101,7 @@ you may also consider our [NeurIPS 2020 paper](https://www.jeanfeydy.com/Papers/
 
 # What is RKeOps?
 
-RKeOps is the R package interfacing the KeOps library. [Here](https://gdurif.perso.math.cnrs.fr/files/material/slides_Toulouse_2019_Durif_KeOps.pdf) you can find a few slides explaining functionalities of the KeOps library.
+RKeOps is the R package interfacing the KeOps library.
 
 ## KeOps
 
@@ -129,6 +129,8 @@ RKeOps is a library that can<br><br>
 
 RKeOps provides<br>
 
+* a **symbolic computation** framework to seamlessly process very large arrays writing **R-base-matrix-like operations** based on lazy evaluations.<br>
+
 * an API to create **user-defined operators** based on generic mathematical formulae, that can be applied to data matrices such as $\mathbf X = [x_{ik}]_{M \times D}$ and $\mathbf Y = [y_{jk}]_{N \times D}$.<br>
 
 * fast computation on **GPU** without memory overflow, especially to process **very large dimensions** $M$ and $N$ (e.g. $\approx 10^4$ or $10^6$) over indexes $i$ and $j$.<br>
@@ -137,39 +139,7 @@ RKeOps provides<br>
 
 ---
 
-# Matrix reduction and kernel operator
-
-The general framework of RKeOps (and KeOps) is to provide fast and scalable matrix operations on GPU, in particular kernel-based computations of the form $$\underset{i=1,...,M}{\text{reduction}}\ G(\boldsymbol{\sigma}, \mathbf x_i, \mathbf y_j) \ \ \ \ \text{or}\ \ \ \ \underset{j=1,...,N}{\text{reduction}}\ G(\boldsymbol{\sigma}, \mathbf x_i, \mathbf y_j)$$ where<br>
-
-* $\boldsymbol{\sigma}\in\mathbb R^L$ is a vector of parameters<br>
-
-* $\mathbf x_i\in \mathbb{R}^D$ and $\mathbf y_j\in \mathbb{R}^{D'}$ are two vectors of data (potentially with different dimensions)<br>
-
-* $G: \mathbb R^L \times \mathbb R^D \times \mathbb R^{D'} \to \mathbb R$ is a function of the data and the parameters, that can be expressed through a composition of generic operators<br>
-
-* $\text{reduction}$ is a generic reduction operation over the index $i$ or $j$ (e.g. sum)<br><br>
-
-RKeOps creates (and compiles on the fly) an operator implementing your formula. You can apply it to your data, or compute its gradient regarding some data points.<br><br>
-
-> **_Note:_** You can use a wide range of reduction such as `sum`, `min`, `argmin`, `max`, `argmax`, etc.
-
-## What you need to do
-
-To use RKeOps you only need to express your computations as a formula with the previous form.<br><br>
-
-RKeOps allows to use a wide range of mathematical functions to define your operators (see <https://www.kernel-operations.io/keops/api/math-operations.html>).<br><br>
-
-You can use two type of input matrices with RKeOps:<br>
-
-* ones whose rows (or columns) are indexed by $i=1,...,M$ such as $\mathbf X = [x_{ik}]_{M \times D}$<br>
-
-* others whose rows (or columns) are indexed by $j=1,...,N$ such as $\mathbf Y = [y_{ik'}]_{N \times D'}$<br><br>
-
-More details about input matrices (size, storage order) are given in the 'Using RKeOps' vignette:
-```{r eval=FALSE}
-vignette("using_rkeops", package = "rkeops")
-```
-
+# Examples in R
 
 ## Example in R with LazyTensors
 
@@ -177,15 +147,23 @@ Lazy evaluation allows to write intermediate computations as symbolic operations
 
 To do so, you can use `LazyTensors`. These are objects wrapped around R matrices or vectors used to create symbolic formulas for the `KeOps` reduction operations. A typical use case is the following: 
 
-Let us say that we want to compute
+Let us say that we want to compute (for all $j=1,\dots,N$):
 
 $$
-a_j =\displaystyle\sum_{i=1}^{N} \mathrm{exp}\big(-\frac{\|x_i - y_j\|^2}{s^2}\big)
+a_j = \sum_{i=1}^{M} \exp\left(-\frac{\Vert \mathbf x_i - \mathbf y_j\Vert^2}{s^2}\right)
 $$
+
+with
+
+* parameter: $s \in\mathbb R$<br>
+
+* $i$-indexed variables $\mathbf X = [\mathbf x_i]_{i=1,...,M} \in\mathbb R^{M\times 3}$<br>
+
+* $j$-indexed variables $\mathbf Y = [\mathbf y_j]_{j=1,...,N} \in\mathbb R^{N\times 3}$<br><br>
 
 The associated code would be:
 
-```{r full_example, eval=FALSE}
+```{r, eval=FALSE}
 # to run computation on CPU (default mode)
 rkeops_use_cpu()
 # OR
@@ -193,11 +171,11 @@ rkeops_use_cpu()
 rkeops_use_gpu()
 
 # Data
-N <- 10000
-M <- 15000
-x <- matrix(runif(N * 3), nrow = N, ncol = 3) # arbitrary R matrix representing 
+M <- 10000
+N <- 15000
+x <- matrix(runif(N * 3), nrow = M, ncol = 3) # arbitrary R matrix representing 
                                               # 10000 data points in R^3
-y <- matrix(runif(M * 3), nrow = M, ncol = 3) # arbitrary R matrix representing 
+y <- matrix(runif(M * 3), nrow = N, ncol = 3) # arbitrary R matrix representing 
                                               # 15000 data points in R^3
 s <- 0.1                                      # scale parameter
 
@@ -209,10 +187,13 @@ y_j <- LazyTensor(y, "j")     # symbolic object representing an arbitrary row of
 
 # Perform large-scale computations, without memory overflows:
 D_ij <- sum((x_i - y_j)^2)    # symbolic matrix of pairwise squared distances, 
-                              # with 10000 rows and 10000 columns
+                              # with 10000 rows and 15000 columns
 
-K_ij <- exp(- D_ij / s^2)     # symbolic matrix, 10000 rows and 10000 columns
+K_ij <- exp(- D_ij / s^2)     # symbolic matrix, 10000 rows and 15000 columns
 
+# D_ij and K_ij are only symbolic at that point, no computation is done
+
+# Computing the result without storing D_ij and K_ij:
 a_j <- sum(K_ij, index = "i") # actual R matrix (in fact a row vector of 
                               # length 15000 here)
                               # containing the column sums of K_ij
@@ -266,6 +247,41 @@ B <- matrix(runif(ny*6), nrow=ny)   # matrix 150 x 6
 s <- 0.2
 # computation (order of the input arguments should be similar to `args`)
 res <- op(list(X, Y, B, s))
+```
+
+---
+
+# Matrix reduction and kernel operator
+
+The general framework of RKeOps (and KeOps) is to provide fast and scalable matrix operations on GPU, in particular kernel-based computations of the form $$\underset{i=1,...,M}{\text{reduction}}\ G(\boldsymbol{\sigma}, \mathbf x_i, \mathbf y_j) \ \ \ \ \text{or}\ \ \ \ \underset{j=1,...,N}{\text{reduction}}\ G(\boldsymbol{\sigma}, \mathbf x_i, \mathbf y_j)$$ where<br>
+
+* $\boldsymbol{\sigma}\in\mathbb R^L$ is a vector of parameters<br>
+
+* $\mathbf x_i\in \mathbb{R}^D$ and $\mathbf y_j\in \mathbb{R}^{D'}$ are two vectors of data (potentially with different dimensions)<br>
+
+* $G: \mathbb R^L \times \mathbb R^D \times \mathbb R^{D'} \to \mathbb R$ is a function of the data and the parameters, that can be expressed through a composition of generic operators<br>
+
+* $\text{reduction}$ is a generic reduction operation over the index $i$ or $j$ (e.g. sum)<br><br>
+
+RKeOps creates (and compiles on the fly) an operator implementing your formula. You can apply it to your data, or compute its gradient regarding some data points.<br><br>
+
+> **_Note:_** You can use a wide range of reduction such as `sum`, `min`, `argmin`, `max`, `argmax`, etc.
+
+## What you need to do
+
+To use RKeOps you only need to express your computations as a formula with the previous form.<br><br>
+
+RKeOps allows to use a wide range of mathematical functions to define your operators (see <https://www.kernel-operations.io/keops/api/math-operations.html>).<br><br>
+
+You can use two type of input matrices with RKeOps:<br>
+
+* ones whose rows (or columns) are indexed by $i=1,...,M$ such as $\mathbf X = [x_{ik}]_{M \times D}$<br>
+
+* others whose rows (or columns) are indexed by $j=1,...,N$ such as $\mathbf Y = [y_{ik'}]_{N \times D'}$<br><br>
+
+More details about input matrices (size, storage order) are given in the 'Using RKeOps' vignette:
+```{r eval=FALSE}
+vignette("using_rkeops", package = "rkeops")
 ```
 
 ## Generic kernel function

@@ -10,7 +10,7 @@ author: ""
 date: "`r Sys.Date()`"
 vignette: >
   %\VignetteEncoding{UTF-8}
-  %\VignetteIndexEntry{RKeOps: R bindings for KeOps}
+  %\VignetteIndexEntry{Using RKeOps}
   %\VignetteEngine{knitr::rmarkdown}
 ---
 
@@ -100,15 +100,23 @@ Lazy evaluation allows to write intermediate computations as symbolic operations
 
 To do so, you can use `LazyTensors`. These are objects wrapped around R matrices or vectors used to create symbolic formulas for the `KeOps` reduction operations. A typical use case is the following: 
 
-Let us say that we want to compute
+Let us say that we want to compute (for all $j=1,\dots,N$):
 
 $$
-a_j =\displaystyle\sum_{i=1}^{N} \mathrm{exp}\big(-\frac{\|x_i - y_j\|^2}{s^2}\big)
+a_j = \sum_{i=1}^{M} \exp\left(-\frac{\Vert \mathbf x_i - \mathbf y_j\Vert^2}{s^2}\right)
 $$
+
+with
+
+* parameter: $s \in\mathbb R$<br>
+
+* $i$-indexed variables $\mathbf X = [\mathbf x_i]_{i=1,...,M} \in\mathbb R^{M\times 3}$<br>
+
+* $j$-indexed variables $\mathbf Y = [\mathbf y_j]_{j=1,...,N} \in\mathbb R^{N\times 3}$<br><br>
 
 The associated code would be:
 
-```{r full_example_LazyT, eval=FALSE}
+```{r, eval=FALSE}
 # to run computation on CPU (default mode)
 rkeops_use_cpu()
 # OR
@@ -116,11 +124,11 @@ rkeops_use_cpu()
 rkeops_use_gpu()
 
 # Data
-N <- 10000
-M <- 15000
-x <- matrix(runif(N * 3), nrow = N, ncol = 3) # arbitrary R matrix representing 
+M <- 10000
+N <- 15000
+x <- matrix(runif(N * 3), nrow = M, ncol = 3) # arbitrary R matrix representing 
                                               # 10000 data points in R^3
-y <- matrix(runif(M * 3), nrow = M, ncol = 3) # arbitrary R matrix representing 
+y <- matrix(runif(M * 3), nrow = N, ncol = 3) # arbitrary R matrix representing 
                                               # 15000 data points in R^3
 s <- 0.1                                      # scale parameter
 
@@ -132,10 +140,13 @@ y_j <- LazyTensor(y, "j")     # symbolic object representing an arbitrary row of
 
 # Perform large-scale computations, without memory overflows:
 D_ij <- sum((x_i - y_j)^2)    # symbolic matrix of pairwise squared distances, 
-                              # with 10000 rows and 10000 columns
+                              # with 10000 rows and 15000 columns
 
-K_ij <- exp(- D_ij / s^2)     # symbolic matrix, 10000 rows and 10000 columns
+K_ij <- exp(- D_ij / s^2)     # symbolic matrix, 10000 rows and 15000 columns
 
+# D_ij and K_ij are only symbolic at that point, no computation is done
+
+# Computing the result without storing D_ij and K_ij:
 a_j <- sum(K_ij, index = "i") # actual R matrix (in fact a row vector of 
                               # length 15000 here)
                               # containing the column sums of K_ij
@@ -152,7 +163,7 @@ vignette("LazyTensor_rkeops", package = "rkeops")
 
 With RKeOps, you can also directly define new operator with plain mathematical formula written as a character string:
 
-```{r full_example, eval=FALSE}
+```{r, eval=FALSE}
 # implementation of a convolution with a Gaussian kernel
 formula = "Sum_Reduction(Exp(-s * SqNorm2(x - y)) * b, 0)"
 # input arguments
