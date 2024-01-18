@@ -4,13 +4,21 @@
 
 from keopscore.formulas.Operation import Operation
 from keopscore.utils.misc_utils import KeOps_Error
-from keopscore.utils.code_gen_utils import c_variable, pointer, c_array, c_for_loop, c_zero_float
+from keopscore.utils.code_gen_utils import (
+    c_variable,
+    pointer,
+    c_array,
+    c_for_loop,
+    c_zero_float,
+)
 from keopscore.utils.code_gen_utils import use_pragma_unroll
 from keopscore.formulas.variables.Zero import Zero
 from keopscore.formulas.maths.Extract import Extract
 
+
 class SoftDTW_SqDist(Operation):
     string_id = "SoftDTW_SqDist"
+
     def __init__(self, x, y, gamma, params=()):
         # x is vector of size n, y is vector of size m, gamma is scalar,
         # output is scalar
@@ -23,7 +31,7 @@ class SoftDTW_SqDist(Operation):
 
     def Op(self, out, table, x, y, gamma):
         dtype = x.dtype
-        n,m = self.n, self.m
+        n, m = self.n, self.m
         code = f"""
             #define MIN2(a,b) fminf(a,b) //(((a)<(b))?(a):(b))
             #define MIN3(a,b,c) MIN2(MIN2(a,b),c)
@@ -71,39 +79,39 @@ class SoftDTW_SqDist(Operation):
             {out}[0] = rij;
 
                 """
-    
+
         return code
-    
+
     def DiffT(self, v, gradin):
         x, y, gamma = self.children
-        n,m = self.n, self.m
+        n, m = self.n, self.m
         if v in gamma.Vars_:
-            KeOps_Error("autograd wrt gamma in SoftDTW_SqDist operation not implemented.")
+            KeOps_Error(
+                "autograd wrt gamma in SoftDTW_SqDist operation not implemented."
+            )
         grad = GradSoftDTW_SqDist(x, y, gamma) * gradin
-        gradx = Extract(grad,0,n)
-        grady = Extract(grad,n,m)
+        gradx = Extract(grad, 0, n)
+        grady = Extract(grad, n, m)
         return x.DiffT(v, gradx) + y.DiffT(v, grady)
-    
-
-
 
 
 class GradSoftDTW_SqDist(Operation):
     string_id = "GradSoftDTW_SqDist"
+
     def __init__(self, x, y, gamma, params=()):
         # x is vector of size n, y is vector of size m, gamma is scalar,
         # output is of size n+m, corresponding to concatenation of grads wrt x and y
         if gamma.dim != 1:
             KeOps_Error("input gamma should be scalar")
-        n,m = x.dim, y.dim
+        n, m = x.dim, y.dim
         super().__init__(x, y, gamma, params=())
         self.n = n
         self.m = m
-        self.dim = n+m
+        self.dim = n + m
 
     def Op(self, out, table, x, y, gamma):
         dtype = x.dtype
-        n,m = self.n, self.m
+        n, m = self.n, self.m
         code = f"""
             #define MIN2(a,b) fminf(a,b) //(((a)<(b))?(a):(b))
             #define MIN3(a,b,c) MIN2(MIN2(a,b),c)
@@ -200,9 +208,9 @@ class GradSoftDTW_SqDist(Operation):
                 ejp1[0] = eij;
             }}
                 """
-        
+
         return code
-    
+
     def DiffT(self, v, gradin):
         KeOps_Error("autograd for GradSoftDTW_SqDist operation not implemented.")
         pass

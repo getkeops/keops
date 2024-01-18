@@ -1,3 +1,14 @@
+* v2.2 - Jan 18, 2024
+   - added option to disable fast_math Cuda compiler option
+   - added comparison operators between LazyTensor
+	 - added support for symbolic differentiation of symbolic operations : Grad, Diff, Laplacian, Divergence
+	 - added support for forward autodiff, compatible with PyTorch forward autodiff tools (torch.jvp, etc.)
+	 - added support for torch.vmap
+	 - added support for intermediate variables in formulas (factorize and auto_factorize methods of LazyTensor class)
+   - changed cache folder name, now include name of local host
+   - added torch.compile comparison to the benchmarks
+   - fixed issues 294, 305, 310, 325, 342, ...
+
 * v2.1.2 - Apr 4, 2023
    - Fixes a memory leaks introduced in version v2.x (issues 284 and 300).
    - The name of the cache folder now include the hostname.
