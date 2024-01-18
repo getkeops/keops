@@ -47,6 +47,7 @@ from .Scalprod import Scalprod
 from .Sign import Sign
 from .Sin import Sin
 from .SinXDivX import SinXDivX
+from .SoftDTW_SqDist import SoftDTW_SqDist
 from .SqDist import SqDist
 from .SqNorm2 import SqNorm2
 from .SqNormDiag import SqNormDiag
@@ -115,6 +116,7 @@ __all__ = [
     "Sign",
     "Sin",
     "SinXDivX",
+    "SoftDTW_SqDist",
     "SqDist",
     "SqNorm2",
     "SqNormDiag",
