@@ -1,5 +1,5 @@
 # requirements
-if(! "pkgdown" in .packages(all.available = TRUE)) install.packages("pkgdown")
+if(! "pkgdown" %in% .packages(all.available = TRUE)) install.packages("pkgdown")
 
 # setup
 proj_dir <- rprojroot::find_root(".git/index")
