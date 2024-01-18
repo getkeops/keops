@@ -1592,7 +1592,7 @@ class GenericLazyTensor:
         return self.binary(
             other,
             "DifferenceMatrix",
-            dimres=(other.ndim * self.ndim), 
+            dimres=(other.ndim * self.ndim),
             dimcheck=None,
         )
 
@@ -1607,7 +1607,7 @@ class GenericLazyTensor:
             other,
             gamma,
             "SoftDTW_SqDist",
-            dimres=1, 
+            dimres=1,
             dimcheck=None,
         )
 

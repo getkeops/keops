@@ -113,7 +113,10 @@ class GenredAutograd_base:
 
         # N.B.: KeOps C++ expects contiguous int64 arrays as ranges
         if params.ranges:
-            params.ranges = tuple(r.to(memory_format=torch.contiguous_format, dtype=torch.int64) for r in params.ranges)
+            params.ranges = tuple(
+                r.to(memory_format=torch.contiguous_format, dtype=torch.int64)
+                for r in params.ranges
+            )
 
         result = myconv.genred_pytorch(
             device_args,
