@@ -75,7 +75,7 @@ extT_Pm_v <- extract(Pm_v, 2, 3)
 # [1,]    0    1    2    3    1    5    0    0
 
 
-3) Same again with a scalar value:
+# 3) Same again with a scalar value:
 scal <- 3.14
 Pm_scal <- Pm(scal) # `Pm(x)` is an aliases for `LazyTensor(x, index = NA)`
 

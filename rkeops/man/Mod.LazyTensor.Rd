@@ -3,7 +3,7 @@
 \name{Mod.LazyTensor}
 \alias{Mod.LazyTensor}
 \alias{Mod.ComplexLazyTensor}
-\title{#' Element-wise complex modulus (absolute value)}
+\title{Element-wise complex modulus (absolute value)}
 \usage{
 \method{Mod}{LazyTensor}(z)
 
