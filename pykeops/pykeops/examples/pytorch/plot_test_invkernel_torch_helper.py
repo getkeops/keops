@@ -62,7 +62,13 @@ start = time.time()
 K_xx = alpha * torch.eye(N) + torch.exp(
     -torch.sum((x[:, None, :] - x[None, :, :]) ** 2, dim=2) / (2 * sigma**2)
 )
-c_py = torch.solve(b, K_xx)[0]
+
+if torch.__version__ >= "1.8":
+    torchsolve = lambda A, B: torch.linalg.solve(A, B)
+else:
+    torchsolve = lambda A, B: torch.solve(B, A)[0]
+
+c_py = torchsolve(K_xx, b)
 end = time.time()
 print("Timing (PyTorch implementation):", round(end - start, 5), "s")
 print("Relative error = ", (torch.norm(c - c_py) / torch.norm(c_py)).item())

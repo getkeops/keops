@@ -281,6 +281,7 @@ class KernelSolve:
 
             sum_scheme (string, default ``"auto"``): method used to sum up results for reductions.
                 Default value "auto" will set this option to "block_red". Possible values are:
+
                   - **sum_scheme** =  ``"direct_sum"``: direct summation
                   - **sum_scheme** =  ``"block_sum"``: use an intermediate accumulator in each block before accumulating in the output. This improves accuracy for large sized data.
                   - **sum_scheme** =  ``"kahan_scheme"``: use Kahan summation algorithm to compensate for round-off errors. This improves accuracy for large sized data.

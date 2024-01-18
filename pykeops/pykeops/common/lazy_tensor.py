@@ -96,6 +96,7 @@ class GenericLazyTensor:
             please make sure **not to mix** :class:`LazyTensor`
             that come from different frameworks/devices or which are stored
             with different precisions.
+
         """
 
         # Duck typing attribute, to be used instead of "isinstance(self, GenericLazyTensor)"
@@ -688,26 +689,28 @@ class GenericLazyTensor:
           dtype_acc (string, default ``"auto"``): type for accumulator of reduction, before casting to dtype.
             It improves the accuracy of results in case of large sized data, but is slower.
             Default value "auto" will set this option to the value of dtype. The supported values are:
+
               - **dtype_acc** = ``"float16"`` : allowed only if dtype is "float16".
               - **dtype_acc** = ``"float32"`` : allowed only if dtype is "float16" or "float32".
-              - **dtype_acc** = ``"float64"`` : allowed only if dtype is "float32" or "float64"..
-          use_double_acc (bool, default False): same as setting dtype_acc="float64" (only one of the two options can be set)
+              - **dtype_acc** = ``"float64"`` : allowed only if dtype is "float32" or "float64".
+
+          use_double_acc (bool, default False): same as setting dtype_acc="float64" (only one of the two options can be set).
             If True, accumulate results of reduction in float64 variables, before casting to float32.
             This can only be set to True when data is in float32 or float64.
             It improves the accuracy of results in case of large sized data, but is slower.
           sum_scheme (string, default ``"auto"``): method used to sum up results for reductions. This option may be changed only
             when reduction_op is one of: "Sum", "MaxSumShiftExp", "LogSumExp", "Max_SumShiftExpWeight", "LogSumExpWeight", "SumSoftMaxWeight".
             Default value "auto" will set this option to "block_red" for these reductions. Possible values are:
+
               - **sum_scheme** =  ``"direct_sum"``: direct summation
-              - **sum_scheme** =  ``"block_sum"``: use an intermediate accumulator in each block before accumulating
-                in the output. This improves accuracy for large sized data.
-              - **sum_scheme** =  ``"kahan_scheme"``: use Kahan summation algorithm to compensate for round-off errors. This improves
-                accuracy for large sized data.
+              - **sum_scheme** =  ``"block_sum"``: use an intermediate accumulator in each block before accumulating in the output. This improves accuracy for large sized data.
+              - **sum_scheme** =  ``"kahan_scheme"``: use Kahan summation algorithm to compensate for round-off errors. This improves accuracy for large sized data.
+
           enable_chunks (bool, default True): enable automatic selection of special "chunked" computation mode for accelerating reductions
-                                with formulas involving large dimension variables.
+            with formulas involving large dimension variables.
           out (2d NumPy array or PyTorch Tensor, None by default): The output numerical array, for in-place computation.
-              If provided, the output array should all have the same ``dtype``, be **contiguous** and be stored on
-              the **same device** as the arguments. Moreover it should have the correct shape for the output.
+            If provided, the output array should all have the same ``dtype``, be **contiguous** and be stored on
+            the **same device** as the arguments. Moreover it should have the correct shape for the output.
         """
 
         if is_complex is None:
@@ -809,23 +812,23 @@ class GenericLazyTensor:
           dtype_acc (string, default ``"auto"``): type for accumulator of reduction, before casting to dtype.
             It improves the accuracy of results in case of large sized data, but is slower.
             Default value "auto" will set this option to the value of dtype. The supported values are:
+
               - **dtype_acc** = ``"float16"`` : allowed only if dtype is "float16".
               - **dtype_acc** = ``"float32"`` : allowed only if dtype is "float16" or "float32".
-              - **dtype_acc** = ``"float64"`` : allowed only if dtype is "float32" or "float64"..
+              - **dtype_acc** = ``"float64"`` : allowed only if dtype is "float32" or "float64".
+
           use_double_acc (bool, default False): same as setting dtype_acc="float64" (only one of the two options can be set)
-            If True, accumulate results of reduction in float64 variables, before casting to float32.
-            This can only be set to True when data is in float32 or float64.
-            It improves the accuracy of results in case of large sized data, but is slower.
+            If True, accumulate results of reduction in float64 variables, before casting to float32. This can only be set to True when data is in float32 or float64. It improves the accuracy of results in case of large sized data, but is slower.
           sum_scheme (string, default ``"auto"``): method used to sum up results for reductions. This option may be changed only
             when reduction_op is one of: "Sum", "MaxSumShiftExp", "LogSumExp", "Max_SumShiftExpWeight", "LogSumExpWeight", "SumSoftMaxWeight".
             Default value "auto" will set this option to "block_red" for these reductions. Possible values are:
+
               - **sum_scheme** =  ``"direct_sum"``: direct summation
-              - **sum_scheme** =  ``"block_sum"``: use an intermediate accumulator in each block before accumulating
-                in the output. This improves accuracy for large sized data.
-              - **sum_scheme** =  ``"kahan_scheme"``: use Kahan summation algorithm to compensate for round-off errors. This improves
-                accuracy for large sized data.
-            enable_chunks (bool, default True): enable automatic selection of special "chunked" computation mode for accelerating reductions
-                                with formulas involving large dimension variables.
+              - **sum_scheme** =  ``"block_sum"``: use an intermediate accumulator in each block before accumulating in the output. This improves accuracy for large sized data.
+              - **sum_scheme** =  ``"kahan_scheme"``: use Kahan summation algorithm to compensate for round-off errors. This improves accuracy for large sized data.
+
+          enable_chunks (bool, default True): enable automatic selection of special "chunked" computation mode for accelerating reductions
+            with formulas involving large dimension variables.
 
         .. warning::
 

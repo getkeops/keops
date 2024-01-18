@@ -433,7 +433,7 @@ KNN_sklearn_brute = partial(KNN_sklearn, algorithm="brute")
 #
 # Finally, we include run times for the reference FAISS library:
 # out of the many (excellent) packages that are showcased on the
-# `ANN-benchmarks website <http://ann-benchmarks.com>`_,
+# `ANN-benchmarks website <http://ann-benchmarks.com>`__,
 # it is probably the most popular option and the package that provides the
 # best GPU support.
 #
@@ -481,7 +481,7 @@ def KNN_faiss_HNSW(K, metric="euclidean", M=36, **kwargs):
 # Choosing good parameter values for approximate nearest neighbors schemes
 # is a non-trivial problem.
 # To keep things simple, we stick to the guidelines of the
-# reference `ANN-Benchmarks website <https://github.com/erikbern/ann-benchmarks/blob/cb954d1af7124c201aa2c8dfc77681e639fce586/algos.yaml#L95>`_
+# reference `ANN-Benchmarks website <https://github.com/erikbern/ann-benchmarks/blob/cb954d1af7124c201aa2c8dfc77681e639fce586/algos.yaml#L95>`__
 # and consider two configurations with an **increasing level of precision**,
 # but **slower run times**:
 #

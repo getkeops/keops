@@ -11,6 +11,12 @@ def is_on_device(x):
     return x.is_cuda
 
 
+if torch.__version__ >= "1.8":
+    torchsolve = lambda A, B: torch.linalg.solve(A, B)
+else:
+    torchsolve = lambda A, B: torch.solve(B, A)[0]
+
+
 class torchtools:
     copy = torch.clone
     exp = torch.exp
@@ -45,7 +51,7 @@ class torchtools:
 
     @staticmethod
     def solve(A, b):
-        return torch.solve(b, A)[0].contiguous()
+        return torchsolve(A, b).contiguous()
 
     @staticmethod
     def arraysum(x, axis=None):

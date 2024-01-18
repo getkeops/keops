@@ -28,27 +28,31 @@ ARG GEOMLOSS_VERSION=0.2.5
 # Base OS:
 ARG BASE_IMAGE=ubuntu:22.04
 # Useful to test support across Python versions:
-ARG PYTHON_VERSION=3.8
+ARG PYTHON_VERSION=3.10
 
 # Cuda version for the Pytorch install:
-ARG CUDA_VERSION=11.3
+ARG CUDA_VERSION=11.8
 # Cuda version for the "full" install with development headers, nvcc, etc.:
-ARG CUDA_CHANNEL=nvidia/label/cuda-11.3.1
+ARG CUDA_CHANNEL=nvidia/label/cuda-11.8.0
 
 # Check https://pytorch.org/ and https://pytorch.org/get-started/previous-versions/
 # for compatible version numbers:
-ARG PYTORCH_VERSION=1.11.0
-ARG TORCHVISION_VERSION=0.12.0
-ARG TORCHAUDIO_VERSION=0.11.0
+ARG PYTORCH_VERSION=2.0.0
+ARG TORCHVISION_VERSION=0.15.0
+ARG TORCHAUDIO_VERSION=2.0.0
 
 # PyTorch scatter (used by the "survival" environment)
 # is a dependency that may lag behind PyTorch releases by a few days.
 # Please check https://github.com/rusty1s/pytorch_scatter for compatibility info.
-ARG PYTORCH_SCATTER_VERSION=2.0.9
+ARG PYTORCH_SCATTER_VERSION=2.1.1
 
-# KeOps relies on PyTest for unit tests, and Black for code formatting:
-ARG PYTEST_VERSION=7.1.2
-ARG BLACK_VERSION=22.6.0
+# KeOps relies on PyTest, Hypothesis, Beartype and Jaxtyping for unit tests...
+ARG PYTEST_VERSION=7.2.2
+ARG HYPOTHESIS_VERSION=6.70.0
+ARG JAXTYPING_VERSION=0.2.14
+ARG BEARTYPE_VERSION=0.12.0
+# and Black for code formatting:
+ARG BLACK_VERSION=23.1.0
 
 
 # First step: 
@@ -80,6 +84,9 @@ FROM dev-base AS r-env
 #       the time zone prompt from the tzdata package.
 # N.B.: We install as many packages as possible from the Ubuntu repository
 #       to save on compilation times.
+# N.B.: We install the latest version of roxygen2 from CRAN, to avoid
+#       conflicts with collaborators who may not be working with the
+#       exact same version of Ubuntu.
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y \
     r-base \
@@ -91,8 +98,9 @@ RUN apt-get update && \
     r-cran-tidyverse \
     r-cran-plyr \
     r-cran-matrix \
-    r-cran-testthat && \
-    Rscript -e 'install.packages(c("WCE", "languageserver", "profvis", "tictoc"))'
+    r-cran-testthat \
+    r-cran-devtools && \
+    Rscript -e 'install.packages(c("WCE", "languageserver", "profvis", "tictoc", "roxygen2", "qpdf"))'
 # Encoding for R:
 ENV LC_ALL=C.UTF-8
 
@@ -128,14 +136,18 @@ ARG PYTORCH_VERSION
 ARG TORCHVISION_VERSION
 ARG TORCHAUDIO_VERSION
 ENV CONDA_OVERRIDE_CUDA=${CUDA_VERSION}
-RUN /opt/conda/bin/conda install -y -c pytorch \
+RUN /opt/conda/bin/conda install -y -c pytorch -c nvidia \
         pytorch==${PYTORCH_VERSION} \
         torchvision==${TORCHVISION_VERSION} \
         torchaudio==${TORCHAUDIO_VERSION} \
         python=${PYTHON_VERSION} \
-        cudatoolkit=${CUDA_VERSION} && \
+        pytorch-cuda=${CUDA_VERSION} && \
     /opt/conda/bin/conda clean -ya
 
+# torch.compile(...) introduced by PyTorch 2.0 links to libcuda.so instead 
+# of the usual runtime library libcudart.so. We must therefore export the
+# LIBRARY_PATH environment variable to make sure that the linker can find it:
+ENV LIBRARY_PATH=/opt/conda/lib/stubs
 
 # KeOps, GeomLoss, black and pytest:
 FROM pytorch AS keops
@@ -143,22 +155,28 @@ ARG KEOPS_VERSION
 ARG GEOMLOSS_VERSION
 ARG PYTEST_VERSION
 ARG BLACK_VERSION
+ARG HYPOTHESIS_VERSION
+ARG JAXTYPING_VERSION
+ARG BEARTYPE_VERSION
 RUN /opt/conda/bin/pip install \
     pykeops==${KEOPS_VERSION} \
     geomloss==${GEOMLOSS_VERSION} \
     pytest==${PYTEST_VERSION} \
-    black==${BLACK_VERSION}
+    black==${BLACK_VERSION} \
+    hypothesis==${HYPOTHESIS_VERSION} \
+    jaxtyping==${JAXTYPING_VERSION} \
+    beartype==${BEARTYPE_VERSION}
 
 # Work around a compatibility bug for KeOps, caused by the fact that conda 
 # currently ships a version of libstdc++ that is slightly older than
 # that of Ubuntu 22.04:
-RUN rm /opt/conda/lib/libstdc++.so.6 && \
-    ln -s /usr/lib/x86_64-linux-gnu/libstdc++.so.6 /opt/conda/lib/libstdc++.so.6
+#RUN rm /opt/conda/lib/libstdc++.so.6 && \
+#    ln -s /usr/lib/x86_64-linux-gnu/libstdc++.so.6 /opt/conda/lib/libstdc++.so.6
 
 # Tell KeOps that the CUDA headers can be found in /opt/conda/include/...
 ENV CUDA_PATH=/opt/conda/
-# If survival-GPU, geomloss or keops are mounted in the opt folder, they will override the pip version:
-ENV PYTHONPATH=/opt/survival-GPU/:/opt/geomloss/:/opt/keops/pykeops/:/opt/keops/keopscore/:$PYTHONPATH
+# If survivalGPU, geomloss or keops are mounted in the opt folder, they will override the pip version:
+ENV PYTHONPATH=/opt/survivalGPU/:/opt/geomloss/:/opt/keops/pykeops/:/opt/keops/keopscore/:$PYTHONPATH
 
 
 # Dependencies for the KeOps and GeomLoss documentations:

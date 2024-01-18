@@ -2,7 +2,7 @@
 Scaling up Gaussian convolutions on 3D point clouds
 ===========================================================
 
-Let's compare the performances of PyTorch and KeOps on 
+Let's compare the performance of PyTorch and KeOps on 
 simple Gaussian RBF kernel products,
 as the number of samples grows from 100 to 1,000,000.
 
@@ -10,7 +10,7 @@ as the number of samples grows from 100 to 1,000,000.
     In this demo, we use exact **bruteforce** computations 
     (tensorized for PyTorch and online for KeOps), without leveraging any multiscale
     or low-rank (Nystroem/multipole) decomposition of the Kernel matrix.
-    We are working on providing transport support for these approximations in KeOps.
+    We are working on providing transparent support for these approximations in KeOps.
 
 
 """
@@ -37,7 +37,7 @@ problem_sizes = flatten(
     [[1 * 10**k, 2 * 10**k, 5 * 10**k] for k in [2, 3, 4, 5]] + [[10**6]]
 )
 D = 3  # We work with 3D points
-
+MAX_TIME = 0.1  # Run each experiment for at most 0.1 second
 
 ##############################################
 # Synthetic dataset. Feel free to use
@@ -89,12 +89,41 @@ def gaussianconv_numpy(x, y, b, **kwargs):
     return K_xy @ b
 
 
-def gaussianconv_pytorch(x, y, b, tf32=False, **kwargs):
+def gaussianconv_pytorch_eager(x, y, b, tf32=False, cdist=False, **kwargs):
     """(B,N,D), (B,N,D), (B,N,1) -> (B,N,1)"""
 
     # If False, we stick to float32 computations.
     # If True, we use TensorFloat32 whenever possible.
+    # As of PyTorch 2.0, this has no impact on run times so we
+    # do not use this option.
     torch.backends.cuda.matmul.allow_tf32 = tf32
+
+    # We may use the cdist function to compute the squared norms:
+    if cdist:
+        D_xy = torch.cdist(x, y, p=2)  # (B,N,M)
+    else:
+        D_xx = (x * x).sum(-1).unsqueeze(2)  # (B,N,1)
+        D_xy = torch.matmul(x, y.permute(0, 2, 1))  # (B,N,D) @ (B,D,M) = (B,N,M)
+        D_yy = (y * y).sum(-1).unsqueeze(1)  # (B,1,M)
+        D_xy = D_xx - 2 * D_xy + D_yy  # (B,N,M)
+
+    K_xy = (-D_xy).exp()  # (B,N,M)
+
+    return K_xy @ b  # (B,N,1)
+
+
+##############################################
+# PyTorch 2.0 introduced a new compiler that improves speed and memory usage.
+# We use it with dynamic shapes to avoid re-compilation for every value of `N`.
+# Please note that ``torch.compile(...)`` is still experimental:
+# we will update this demo with new PyTorch releases.
+#
+
+
+# Inner function to be compiled:
+def _gaussianconv_pytorch(x, y, b):
+    """(B,N,D), (B,N,D), (B,N,1) -> (B,N,1)"""
+    # Note that cdist is not currently supported by torch.compile with dynamic=True.
 
     D_xx = (x * x).sum(-1).unsqueeze(2)  # (B,N,1)
     D_xy = torch.matmul(x, y.permute(0, 2, 1))  # (B,N,D) @ (B,D,M) = (B,N,M)
@@ -103,6 +132,22 @@ def gaussianconv_pytorch(x, y, b, tf32=False, **kwargs):
     K_xy = (-D_xy).exp()  # (B,N,M)
 
     return K_xy @ b  # (B,N,1)
+
+
+# Compile the function:
+gaussianconv_pytorch_compiled = torch.compile(_gaussianconv_pytorch, dynamic=True)
+
+
+# Wrap it to ignore optional keyword arguments:
+def gaussianconv_pytorch_dynamic(x, y, b, **kwargs):
+    return gaussianconv_pytorch_compiled(x, y, b)
+
+
+# And apply our function to compile the function once and for all:
+# On the GPU, if it is available:
+_ = gaussianconv_pytorch_compiled(*generate_samples(1000))
+# And on the CPU, in any case:
+# _ = gaussianconv_pytorch_compiled(*generate_samples(1000, device="cpu"))
 
 
 ##############################################
@@ -164,9 +209,15 @@ def gaussianconv_lazytensor(x, y, b, backend="GPU", **kwargs):
 if use_cuda:
     routines = [
         (gaussianconv_numpy, "Numpy (CPU)", {"lang": "numpy"}),
-        (gaussianconv_pytorch, "PyTorch (GPU, TF32=False)", {"tf32": False}),
-        (gaussianconv_pytorch, "PyTorch (GPU, TF32=True)", {"tf32": True}),
-        (gaussianconv_keops, "KeOps (GPU)", {}),
+        (gaussianconv_pytorch_eager, "PyTorch (GPU, matmul)", {"cdist": False}),
+        (gaussianconv_pytorch_eager, "PyTorch (GPU, cdist)", {"cdist": True}),
+        (
+            gaussianconv_pytorch_dynamic,
+            "PyTorch (GPU, compiled with dynamic shapes)",
+            {},
+        ),
+        (gaussianconv_lazytensor, "KeOps (GPU, LazyTensor)", {}),
+        (gaussianconv_keops, "KeOps (GPU, Genred)", {}),
         (gaussianconv_keops_no_fast_math, "KeOps (GPU, use_fast_math=False)", {}),
     ]
 
@@ -175,9 +226,29 @@ if use_cuda:
         routines,
         generate_samples,
         problem_sizes=problem_sizes,
-        max_time=1,
+        max_time=MAX_TIME,
     )
 
+##############################################
+# We make several observations:
+#
+# - Asymptotically, all routines scale in `O(N^2)`: multiplying `N` by 10 increases
+#   the computation time by a factor of 100. This is expected, since we are
+#   performing bruteforce computations. However, constants vary wildly between
+#   different implementations.
+# - The NumPy implementation is slow, and prevents us from working efficiently
+#   with more than 10k points at a time.
+# - The PyTorch GPU implementation is typically 100 times faster than the NumPy CPU code.
+# - The ``torch.compile(...)`` function, introduced by PyTorch 2.0, is making a real difference.
+#   It outperforms eager mode by a factor of 2 to 3.
+# - The CUDA kernel generated by KeOps is faster and more scalable
+#   than the PyTorch GPU implementation.
+# - All GPU implementations have a constant overhead (< 1ms) which makes them
+#   less attractive when working with a single, small point cloud.
+# - This overhead is especially large for the convenient ``LazyTensor`` syntax.
+#   As detailed below, this issue can be mitigated through the use
+#   of a **batch dimension**.
+#
 
 ##############################################
 # NumPy vs. PyTorch vs. KeOps (Cpu)
@@ -185,8 +256,22 @@ if use_cuda:
 
 routines = [
     (gaussianconv_numpy, "Numpy (CPU)", {"device": "cpu", "lang": "numpy"}),
-    (gaussianconv_pytorch, "PyTorch (CPU)", {"device": "cpu"}),
-    (gaussianconv_keops, "KeOps (CPU)", {"device": "cpu", "backend": "CPU"}),
+    (
+        gaussianconv_pytorch_eager,
+        "PyTorch (CPU, matmul)",
+        {"device": "cpu", "cdist": False},
+    ),
+    (
+        gaussianconv_pytorch_eager,
+        "PyTorch (CPU, cdist)",
+        {"device": "cpu", "cdist": True},
+    ),
+    (
+        gaussianconv_lazytensor,
+        "KeOps (CPU, LazyTensor)",
+        {"device": "cpu", "backend": "CPU"},
+    ),
+    (gaussianconv_keops, "KeOps (CPU, Genred)", {"device": "cpu", "backend": "CPU"}),
 ]
 
 full_benchmark(
@@ -194,9 +279,17 @@ full_benchmark(
     routines,
     generate_samples,
     problem_sizes=problem_sizes,
-    max_time=1,
+    max_time=MAX_TIME,
 )
 
+##############################################
+# We note that the KeOps CPU implementation is typically slower than the PyTorch CPU
+# implementation. This is because over the 2017-22 period, we prioritized
+# "peak GPU performance" for research codes and provided a CPU backend mostly
+# for testing and debugging.
+# Going forward, as we work on making KeOps easier to integrate as a backend
+# dependency in mature libraries, improving the performance of the KeOps CPU backend
+# is a priority - both for compilation and runtime performance.
 
 ################################################
 # Genred vs. LazyTensor vs. batched LazyTensor
@@ -218,8 +311,12 @@ if use_cuda:
         routines,
         generate_samples,
         problem_sizes=problem_sizes,
-        max_time=1,
+        max_time=MAX_TIME,
     )
 
 
 plt.show()
+
+##############################################
+# As expected, using a batch dimension reduces the relative overhead of
+# the ``LazyTensor`` syntax.

@@ -107,7 +107,7 @@ For debugging purposes, you can force a "verbose" compilation mode by setting
 
     verbosity=1
 
-in the file `/path/to/keops/keopslab/default_options.m`_.
+in the file ``/path/to/keops/keopslab/default_options.m``.
 
 Old versions of Cuda
 ^^^^^^^^^^^^^^^^^^^^

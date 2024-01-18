@@ -113,7 +113,8 @@ def from_matrix(ranges_i, ranges_j, keep):
         (
             torch.arange(0, keep.shape[0], device=keep.device),
             torch.arange(0, keep.shape[1], device=keep.device),
-        )
+        ),
+        indexing="ij",
     )
     redranges_i = ranges_i[
         I.t()[keep.t()]
