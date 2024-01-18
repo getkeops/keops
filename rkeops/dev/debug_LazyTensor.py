@@ -94,7 +94,7 @@ res.shape
 
 expected_res = np.log(
     np.sum(
-        np.exp(np.sum(x.T[:, :, np.newaxis] - y.T[:, np.newaxis,:], axis = 0)), axis=0
+        np.exp(np.sum(x.T[:, :, np.newaxis] - y.T[:, np.newaxis, :], axis = 0)), axis=0
     )
 )
 
