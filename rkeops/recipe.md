@@ -47,9 +47,18 @@ should be defined with the value `1` before running the CI scripts, i.e.
 export TEST_GPU=1
 ```
 
-## Documentation and website integration
+## Documentation and webpage generation
 
 The RKeOps package webpage is generated with [`pkgdown`](https://pkgdown.r-lib.org/).
+
+You should be able to generate it with:
+
+```bash
+cd rkeops/ci
+bash build_website.sh
+cd ../..
+cp -r rkeops/docs/ WEBSITE_ROOT_DIR/rkeops/
+```
 
 ### Legacy doc (version <2)
 

@@ -1,13 +1,11 @@
 # RKeOps Continuous Integration (CI)
 
-## Automatic test
+## Automatic testing
 
 To run the CI of RKeOps 
 ```bash
 bash run_ci.sh
 ```
-
-> **Note 1**: this script creates a file `${HOME}/.R/Makevars` to add options to R compilation engine (it backs up any pre-existing version of the file and restore it afterwards).
 
 To enable automatic tests to be run on GPU, the environment variable `TEST_GPU` should be defined with the value `1` before running the CI scripts, i.e.
 ```bash
@@ -45,3 +43,16 @@ Rscript run_check.R
 ```
 
 > **Note:** you should run `Rscript prepare_ci.R` before calling `run_tests.R` or `run_check.R` to install dependencies.
+
+## Webpage generation
+
+The RKeOps package webpage is generated with [`pkgdown`](https://pkgdown.r-lib.org/).
+
+You should be able to generate it with:
+
+```bash
+cd rkeops/ci
+bash build_website.sh
+cd ../..
+cp -r rkeops/docs/ WEBSITE_ROOT_DIR/rkeops/
+```
