@@ -327,9 +327,9 @@ class Genred:
             )
             args = tuple(np.ascontiguousarray(arg) for arg in args)
 
-        # N.B.: KeOps C++ expects contiguous integer arrays as ranges
+        # N.B.: KeOps C++ expects contiguous int64 arrays as ranges
         if ranges:
-            ranges = tuple(np.ascontiguousarray(r) for r in ranges)
+            ranges = tuple(r.astype("int64", order="C") for r in ranges)
 
         nx, ny = get_sizes(self.aliases, *args)
         nout, nred = (nx, ny) if self.axis == 1 else (ny, nx)
