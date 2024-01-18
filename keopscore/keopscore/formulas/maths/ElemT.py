@@ -3,18 +3,19 @@ from keopscore.utils.code_gen_utils import value, c_zero_float, c_for_loop
 from keopscore.utils.misc_utils import KeOps_Error
 
 ############################
-######    ELEMENT "INJECTION" : ElemT(f,m,n)
+######    ELEMENT "INJECTION" : ElemT(f,n,m)
 ############################
 
 
 class ElemT(Operation):
     string_id = "ElemT"
+    linearity_type = "all"
 
     def __init__(self, f, n=None, m=None, params=None):
         # N.B. init via params keyword is used for compatibility with base class.
         if n is None:
-            # here we assume m is also None and params is be a tuple containing m and n
-            n, n = params
+            # here we assume m is also None and params is be a tuple containing n and m
+            n, m = params
         super().__init__(f, params=(n, m))
         if f.dim != 1:
             KeOps_Error("Input of ElemT should be a scalar")

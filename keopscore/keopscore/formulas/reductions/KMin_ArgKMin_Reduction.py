@@ -15,7 +15,7 @@ from keopscore.utils.misc_utils import KeOps_Error
 
 class KMin_ArgKMin_Reduction(Reduction):
     """Implements the k-min-arg-k-min reduction operation : for each i or each j, find the
-    values and indices of the k minimal values of Fij operation is vectorized: if Fij is vector-valued,
+    values and indices of the k minimal values of Fij. The operation is vectorized: if Fij is vector-valued,
      arg-k-min is computed for each dimension."""
 
     string_id = "KMin_ArgKMin_Reduction"
@@ -50,8 +50,8 @@ class KMin_ArgKMin_Reduction(Reduction):
         fdim = self.formula.dim
         out = c_array(dtype, self.dimred, new_c_varname("out"))
         outer_loop, k = c_for_loop(0, fdim, 1)
-        p = c_variable("int", new_c_varname("p"))
-        q = c_variable("int", new_c_varname("q"))
+        p = c_variable("signed long int", new_c_varname("p"))
+        q = c_variable("signed long int", new_c_varname("q"))
         inner_loop, l = c_for_loop(k, self.dimred, 2 * fdim)
         inner_body = c_if(
             xi[p] < acc[q],
@@ -73,16 +73,16 @@ class KMin_ArgKMin_Reduction(Reduction):
         dtype = xi.dtype
 
         xik = c_variable(dtype, new_c_varname("xik"))
-        l = c_variable("int", new_c_varname("l"))
-        k = c_variable("int", new_c_varname("k"))
+        l = c_variable("signed long int", new_c_varname("l"))
+        k = c_variable("signed long int", new_c_varname("k"))
         tmpl = c_variable(dtype, new_c_varname("tmpl"))
-        indtmpl = c_variable("int", new_c_varname("indtmpl"))
+        indtmpl = c_variable("signed long int", new_c_varname("indtmpl"))
         return f"""
                     {{
                         {xik.declare()}
                         {l.declare()}
                         {use_pragma_unroll()}
-                        for(int {k.id}=0; {k.id}<{fdim}; {k.id}++) {{
+                        for(signed long int {k.id}=0; {k.id}<{fdim}; {k.id}++) {{
                             {xik.assign(xi[k])}
                             {use_pragma_unroll()}                 
                             for({l.id}={(k+(K-1)*2*fdim).id}; {l.id}>={k.id} && {(xik<acc[l]).id}; {l.id}-={2*fdim}) {{

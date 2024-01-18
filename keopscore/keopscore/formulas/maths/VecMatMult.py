@@ -13,6 +13,7 @@ from keopscore.utils.misc_utils import KeOps_Error
 
 class VecMatMult(Operation):
     string_id = "VecMatMult"
+    linearity_type = "one"
 
     def __init__(self, B, A, params=()):
         # N.B. params keyword is used for compatibility with base class, but should always equal ()

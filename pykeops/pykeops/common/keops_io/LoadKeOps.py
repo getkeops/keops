@@ -8,7 +8,7 @@ from pykeops.common.parse_type import parse_dtype_acc
 
 
 class LoadKeOps:
-    null_range = np.array([-1], dtype="int32")
+    null_range = np.array([-1])
     empty_ranges_new = tuple([null_range.__array_interface__["data"][0]] * 7)
 
     def __init__(self, *args, fast_init):
@@ -91,6 +91,7 @@ class LoadKeOps:
         else:
             raise ValueError("not implemented")
 
+        self.params.use_fast_math = optional_flags["use_fast_math"]
         if not self.params.c_dtype_acc:
             self.params.c_dtype_acc = self.params.c_dtype
 
@@ -110,6 +111,7 @@ class LoadKeOps:
             self.params.tagI,
             self.params.tagZero,
             self.params.use_half,
+            self.params.use_fast_math,
             self.params.cuda_block_size,
             self.params.use_chunk_mode,
             self.params.tag1D2D,
@@ -137,6 +139,7 @@ class LoadKeOps:
             tagCPUGPU,
             tag1D2D,
             self.params.use_half,
+            self.params.use_fast_math,
             device_id_request,
         )
 
@@ -193,7 +196,7 @@ class LoadKeOps:
             self.ranges_ptr_new = self.empty_ranges_new
         else:
             ranges_shapes = self.tools.array(
-                [r.shape[0] for r in ranges], dtype="int32", device="cpu"
+                [r.shape[0] for r in ranges], dtype="int64", device="cpu"
             )
             ranges = [*ranges, ranges_shapes]
             self.ranges_ptr_new = tuple([self.tools.get_pointer(r) for r in ranges])
@@ -227,7 +230,10 @@ class LoadKeOps:
 
         self.outshape = out.shape
 
-        self.call_keops(nx, ny)
+        if self.params.tagZero:
+            out[:] = 0
+        else:
+            self.call_keops(nx, ny)
 
         if self.params.dtype == "float16":
             from pykeops.torch.half2_convert import postprocess_half2

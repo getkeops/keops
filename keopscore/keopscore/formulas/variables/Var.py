@@ -19,16 +19,23 @@ class Var(Operation):
 
     string_id = "Var"
 
-    def __init__(self, ind=None, dim=None, cat=None, params=None):
+    def is_linear(self, v):
+        return self == v
+
+    def __init__(self, ind=None, dim=None, cat=None, params=None, label=None):
         # N.B. init via params keyword is used for compatibility with base class.
         if ind is None:
             # here we assume dim and cat are also None, and
             # that params is a tuple containing ind, dim, cat
             ind, dim, cat = params
         super().__init__(params=(ind, dim, cat))
+        if label is None:
+            # N.B. label is just a string used as an alias when printing the formulas ; it plays no role in computations.
+            label = chr(ord("a") + ind) if ind >= 0 else chr(944 - ind)
         self.ind = ind
         self.dim = dim
         self.cat = cat
+        self.label = label
         self.Vars_ = {self}
 
     # custom __eq__ and __hash__ methods, required to handle properly the union of two sets of Var objects

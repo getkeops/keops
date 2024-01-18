@@ -1,5 +1,6 @@
 import ast, inspect
 
+import keopscore
 import keopscore.formulas
 from keopscore.utils.code_gen_utils import get_hash_name
 from keopscore.formulas.reductions import *
@@ -7,13 +8,17 @@ from keopscore.formulas.maths import *
 from keopscore.formulas.complex import *
 from keopscore.formulas.variables import *
 from keopscore.formulas.autodiff import *
+from keopscore.formulas.LinearOperators import *
+from keopscore.formulas.factorization import *
 
 
 class GetReduction:
     library = {}
 
     def __new__(self, red_formula_string, aliases=[]):
-        string_id_hash = get_hash_name(red_formula_string, aliases)
+        string_id_hash = get_hash_name(
+            red_formula_string, aliases, keopscore.auto_factorize
+        )
         if string_id_hash in GetReduction.library:
             return GetReduction.library[string_id_hash]
         else:
@@ -25,6 +30,10 @@ class GetReduction:
                     varname, var = alias.split("=")
                     aliases_dict[varname] = eval(var)
             reduction = eval(red_formula_string, globals(), aliases_dict)
+            if keopscore.auto_factorize:
+                formula = reduction.children[0]
+                new_formula = AutoFactorize(formula)
+                reduction.children[0] = new_formula
             GetReduction.library[string_id_hash] = reduction
             return reduction
 

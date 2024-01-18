@@ -1,4 +1,4 @@
-from keopscore import debug_ops_at_exec
+import keopscore
 from keopscore.binders.cpp.Cpu_link_compile import Cpu_link_compile
 from keopscore.mapreduce.cpu.CpuAssignZero import CpuAssignZero
 from keopscore.mapreduce.MapReduce import MapReduce
@@ -35,22 +35,22 @@ class CpuReduc(MapReduce, Cpu_link_compile):
         headers = ["cmath", "stdlib.h"]
         if keopscore.config.config.use_OpenMP:
             headers.append("omp.h")
-        if debug_ops_at_exec:
+        if keopscore.debug_ops_at_exec:
             headers.append("iostream")
         self.headers += c_include(*headers)
 
         self.code = f"""
 {self.headers}
 template < typename TYPE > 
-int CpuConv_{self.gencode_filename}(int nx, int ny, TYPE* out, TYPE **{arg.id}) {{
+int CpuConv_{self.gencode_filename}(signed long int nx, signed long int ny, TYPE* out, TYPE **{arg.id}) {{
     #pragma omp parallel for
-    for (int i = 0; i < nx; i++) {{
+    for (signed long int i = 0; i < nx; i++) {{
         {fout.declare()}
         {acc.declare()}
         {sum_scheme.declare_temporary_accumulator()}
         {red_formula.InitializeReduction(acc)}
         {sum_scheme.initialize_temporary_accumulator()}
-        for (int j = 0; j < ny; j++) {{
+        for (signed long int j = 0; j < ny; j++) {{
             {red_formula.formula(fout,table)}
             {sum_scheme.accumulate_result(acc, fout, j)}
             {sum_scheme.periodic_accumulate_temporary(acc, j)}
@@ -67,10 +67,10 @@ int CpuConv_{self.gencode_filename}(int nx, int ny, TYPE* out, TYPE **{arg.id}) 
 #include <vector>
 
 template < typename TYPE > 
-int launch_keops_{self.gencode_filename}(int nx, int ny, int tagI, TYPE *out, TYPE **arg) {{
+int launch_keops_{self.gencode_filename}(signed long int nx, signed long int ny, int tagI, TYPE *out, TYPE **arg) {{
     
     if (tagI==1) {{
-        int tmp = ny;
+        signed long int tmp = ny;
         ny = nx;
         nx = tmp;
     }}
@@ -79,21 +79,21 @@ int launch_keops_{self.gencode_filename}(int nx, int ny, int tagI, TYPE *out, TY
 
 }}
 template < typename TYPE >
-int launch_keops_cpu_{self.gencode_filename}(int dimY,
-                                             int nx,
-                                             int ny,
+int launch_keops_cpu_{self.gencode_filename}(signed long int dimY,
+                                             signed long int nx,
+                                             signed long int ny,
                                              int tagI,
                                              int tagZero,
                                              int use_half,
-                                             int dimred,
+                                             signed long int dimred,
                                              int use_chunk_mode,
                                              std::vector< int > indsi, std::vector< int > indsj, std::vector< int > indsp,
-                                             int dimout,
-                                             std::vector< int > dimsx, std::vector< int > dimsy, std::vector< int > dimsp,
-                                             int **ranges,
-                                             std::vector< int > shapeout, TYPE *out,
+                                             signed long int dimout,
+                                             std::vector< signed long int > dimsx, std::vector< signed long int > dimsy, std::vector< signed long int > dimsp,
+                                             signed long int **ranges,
+                                             std::vector< signed long int > shapeout, TYPE *out,
                                              TYPE **arg,
-                                             std::vector< std::vector< int > > argshape) {{
+                                             std::vector< std::vector< signed long int > > argshape) {{
 
     
     return launch_keops_{self.gencode_filename} < TYPE >(nx, ny, tagI, out, arg);

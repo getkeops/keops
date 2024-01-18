@@ -120,10 +120,10 @@ def from_matrix(ranges_i, ranges_j, keep):
     ]  # Use PyTorch indexing to "stack" copies of ranges_i[...]
     redranges_j = ranges_j[J[keep]]
     slices_i = (
-        keep.sum(1).cumsum(0).int()
+        keep.sum(1).cumsum(0).to(dtype=torch.int64)
     )  # slice indices in the "stacked" array redranges_j
     slices_j = (
-        keep.sum(0).cumsum(0).int()
+        keep.sum(0).cumsum(0).to(dtype=torch.int64)
     )  # slice indices in the "stacked" array redranges_i
     return (ranges_i, slices_i, redranges_j, ranges_j, slices_j, redranges_i)
 

@@ -1,4 +1,5 @@
 import torch
+import copy
 
 from pykeops.common.get_options import get_tag_backend
 from pykeops.common.operations import preprocess, postprocess
@@ -13,64 +14,77 @@ from pykeops import default_device_id
 from pykeops.common.utils import pyKeOps_Warning
 
 
-class GenredAutograd(torch.autograd.Function):
-    """
-    This class is the entry point to pytorch auto grad engine.
-    """
+class Genred_parameters:
+    pass
 
-    @staticmethod
-    def forward(
-        ctx,
-        formula,
-        aliases,
-        backend,
-        dtype,
-        device_id_request,
-        ranges,
-        optional_flags,
-        rec_multVar_highdim,
-        nx,
-        ny,
-        out,
-        *args
-    ):
-        # N.B. when rec_multVar_highdim option is set, it means that formula is of the form "sum(F*b)", where b is a variable
-        # with large dimension. In this case we set option multVar_highdim to allow for the use of the special "final chunk" computation
-        # mode. However, this may not be also true for the gradients of the same formula. In fact only the gradient
-        # with respect to variable b will have the same form. Hence, we save optional_flags current status into ctx,
-        # before adding the multVar_highdim option.
-        ctx.optional_flags = optional_flags.copy()
-        if rec_multVar_highdim:
-            optional_flags["multVar_highdim"] = 1
+
+def check_AD_supported(formula):
+    not_supported = [
+        "Min_ArgMin_Reduction",
+        "Min_Reduction",
+        "Max_ArgMax_Reduction",
+        "Max_Reduction",
+        "KMin_ArgKMin_Reduction",
+        "KMin_Reduction",
+    ]
+    for red in not_supported:
+        if formula.startswith(red):
+            raise NotImplementedError(
+                "As of today, KeOps does not support "
+                + "autodiff through the "
+                + red
+                + " reduction. "
+                + "Adding this feature to LazyTensors is on the cards "
+                + "for future releases... But until then, you may want "
+                + "to consider extracting the relevant integer indices "
+                + "with a '.argmin()', '.argmax()' or '.argKmin()' reduction "
+                + "before using PyTorch advanced indexing to create a fully-differentiable "
+                + "tensor containing the relevant 'minimal' values."
+            )
+
+
+def set_device(tagCPUGPU, tagHostDevice, device_id_request, *args):
+    device_args = args[0].device
+    if tagCPUGPU == 1 & tagHostDevice == 1:
+        for i in range(1, len(args)):
+            if args[i].device.index != device_args.index:
+                raise ValueError(
+                    "[KeOps] Input arrays must be all located on the same device."
+                )
+
+    if device_id_request == -1:  # -1 means auto setting
+        if device_args.index:  # means args are on Gpu
+            device_id = device_args.index
         else:
-            optional_flags["multVar_highdim"] = 0
+            device_id = default_device_id if tagCPUGPU == 1 else -1
+    else:
+        device_id = device_id_request
+        if device_args.index:
+            if device_args.index != device_id:
+                raise ValueError(
+                    "[KeOps] Gpu device id of arrays is different from device id requested for computation."
+                )
+    return device_id, device_args
 
-        tagCPUGPU, tag1D2D, tagHostDevice = get_tag_backend(backend, args)
+
+class GenredAutograd_base:
+    @staticmethod
+    def _forward(params, *args):
+        if isinstance(params.rec_multVar_highdim, int) or params.rec_multVar_highdim:
+            params.optional_flags["multVar_highdim"] = 1
+        else:
+            params.optional_flags["multVar_highdim"] = 0
+
+        tagCPUGPU, tag1D2D, tagHostDevice = get_tag_backend(params.backend, args)
 
         # number of batch dimensions
         # N.B. we assume here that there is at least a cat=0 or cat=1 variable in the formula...
         nbatchdims = max(len(arg.shape) for arg in args) - 2
-        use_ranges = nbatchdims > 0 or ranges
+        use_ranges = nbatchdims > 0 or params.ranges is not None
 
-        device_args = args[0].device
-        if tagCPUGPU == 1 & tagHostDevice == 1:
-            for i in range(1, len(args)):
-                if args[i].device.index != device_args.index:
-                    raise ValueError(
-                        "[KeOps] Input arrays must be all located on the same device."
-                    )
-
-        if device_id_request == -1:  # -1 means auto setting
-            if device_args.index:  # means args are on Gpu
-                device_id_request = device_args.index
-            else:
-                device_id_request = default_device_id if tagCPUGPU == 1 else -1
-        else:
-            if device_args.index:
-                if device_args.index != device_id_request:
-                    raise ValueError(
-                        "[KeOps] Gpu device id of arrays is different from device id requested for computation."
-                    )
+        device_id, device_args = set_device(
+            tagCPUGPU, tagHostDevice, params.device_id_request, *args
+        )
 
         from pykeops.common.keops_io import keops_binder
 
@@ -79,26 +93,14 @@ class GenredAutograd(torch.autograd.Function):
             tag1D2D,
             tagHostDevice,
             use_ranges,
-            device_id_request,
-            formula,
-            aliases,
+            device_id,
+            params.formula,
+            params.aliases,
             len(args),
-            dtype,
+            params.dtype,
             "torch",
-            optional_flags,
+            params.optional_flags,
         ).import_module()
-
-        # Context variables: save everything to compute the gradient:
-        ctx.formula = formula
-        ctx.aliases = aliases
-        ctx.backend = backend
-        ctx.dtype = dtype
-        ctx.device_id_request = device_id_request
-        ctx.ranges = ranges
-        ctx.rec_multVar_highdim = rec_multVar_highdim
-        ctx.myconv = myconv
-        ctx.nx = nx
-        ctx.ny = ny
 
         # N.B.: KeOps C++ expects contiguous data arrays
         test_contig = all(arg.is_contiguous() for arg in args)
@@ -110,81 +112,61 @@ class GenredAutograd(torch.autograd.Function):
             args = tuple(arg.contiguous() for arg in args)
 
         # N.B.: KeOps C++ expects contiguous integer arrays as ranges
-        if ranges:
-            ranges = tuple(r.contiguous() for r in ranges)
+        if params.ranges:
+            params.ranges = tuple(r.contiguous() for r in params.ranges)
 
         result = myconv.genred_pytorch(
-            device_args, ranges, nx, ny, nbatchdims, out, *args
+            device_args,
+            params.ranges,
+            params.nx,
+            params.ny,
+            nbatchdims,
+            params.out,
+            *args,
         )
+
+        return result, torch.tensor([myconv.dimout, myconv.tagIJ])
+
+    @staticmethod
+    def _setup_context(ctx, inputs, outputs):
+        params, *args = inputs
+        result, info = outputs
+        ctx.mark_non_differentiable(info)
+        dimout, tagIJ = int(info[0]), int(info[1])
+
+        ctx.optional_flags = params.optional_flags.copy()
+
+        # Context variables: save everything to compute the gradient:
+        ctx.params = params
+        ctx.dimout = dimout
+        ctx.tagIJ = tagIJ
 
         # relying on the 'ctx.saved_variables' attribute is necessary  if you want to be able to differentiate the output
         #  of the backward once again. It helps pytorch to keep track of 'who is who'.
         ctx.save_for_backward(*args, result)
 
-        return result
+        # for forward AD we cannot use save_for_backward, so we put also args and result in ctx...
+        ctx.args = args
+        ctx.result = result
 
     @staticmethod
-    def backward(ctx, G):
-        formula = ctx.formula
-        aliases = ctx.aliases
-        backend = ctx.backend
-        dtype = ctx.dtype
-        ranges = ctx.ranges
-        optional_flags = ctx.optional_flags
-        device_id_request = ctx.device_id_request
-        myconv = ctx.myconv
-        nx = ctx.nx
-        ny = ctx.ny
+    def _backward(ctx, G, _):
+        params = ctx.params
+        dimout = ctx.dimout
+        tagIJ = ctx.tagIJ
         args = ctx.saved_tensors[:-1]  # Unwrap the saved variables
         nargs = len(args)
         result = ctx.saved_tensors[-1].detach()
 
-        not_supported = [
-            "Min_ArgMin_Reduction",
-            "Min_Reduction",
-            "Max_ArgMax_Reduction",
-            "Max_Reduction",
-            "KMin_ArgKMin_Reduction",
-            "KMin_Reduction",
-        ]
-        for red in not_supported:
-            if formula.startswith(red):
-                raise NotImplementedError(
-                    "As of today, KeOps does not support "
-                    + "backpropagation through the "
-                    + red
-                    + " reduction. "
-                    + "Adding this feature to LazyTensors is on the cards "
-                    + "for future releases... But until then, you may want "
-                    + "to consider extracting the relevant integer indices "
-                    + "with a '.argmin()', '.argmax()' or '.argKmin()' reduction "
-                    + "before using PyTorch advanced indexing to create a fully-differentiable "
-                    + "tensor containing the relevant 'minimal' values."
-                )
+        check_AD_supported(params.formula)
 
         # If formula takes 5 variables (numbered from 0 to 4), then the gradient
         # wrt. the output, G, should be given as a 6-th variable (numbered 5),
         # with the same dim-cat as the formula's output.
-        eta = (
-            "Var("
-            + str(nargs)
-            + ","
-            + str(myconv.dimout)
-            + ","
-            + str(myconv.tagIJ)
-            + ")"
-        )
+        eta = f"Var({nargs},{dimout},{tagIJ})"
 
         # there is also a new variable for the formula's output
-        resvar = (
-            "Var("
-            + str(nargs + 1)
-            + ","
-            + str(myconv.dimout)
-            + ","
-            + str(myconv.tagIJ)
-            + ")"
-        )
+        resvar = f"Var({nargs+1},{dimout},{tagIJ})"
 
         # convert to contiguous:
         G = G.contiguous()
@@ -192,14 +174,11 @@ class GenredAutograd(torch.autograd.Function):
         grads = []  # list of gradients wrt. args;
 
         for var_ind, (sig, arg_ind) in enumerate(
-            zip(aliases, args)
+            zip(params.aliases, args)
         ):  # Run through the arguments
             # If the current gradient is to be discarded immediatly...
-            if not ctx.needs_input_grad[
-                var_ind + 11
-            ]:  # because of (formula, aliases, backend, dtype, device_id_request, ranges, optional_flags, rec_multVar_highdim, nx, ny, out)
+            if not ctx.needs_input_grad[var_ind + 1]:  # NB "+1" because of params
                 grads.append(None)  # Don't waste time computing it.
-
             else:
                 # Otherwise, the current gradient is really needed by the user. Adding new aliases is way too dangerous if we want to compute
                 # second derivatives, etc. So we make explicit references to Var<ind,dim,cat> instead.
@@ -207,58 +186,40 @@ class GenredAutograd(torch.autograd.Function):
                 # giving new aliases for them) these will not be used in the C++ code,
                 # but are useful to keep track of the actual variables used in the formula
                 _, cat, dim, pos = get_type(sig, position_in_list=var_ind)
-                var = "Var(" + str(pos) + "," + str(dim) + "," + str(cat) + ")"  # V
-                formula_g = (
-                    "Grad_WithSavedForward("
-                    + formula
-                    + ", "
-                    + var
-                    + ", "
-                    + eta
-                    + ", "
-                    + resvar
-                    + ")"
-                )  # Grad<F,V,G,R>
-                aliases_g = aliases + [eta, resvar]
-                args_g = (
-                    args + (G,) + (result,)
-                )  # Don't forget the gradient to backprop !
+                var = f"Var({pos},{dim},{cat})"  # V
+                formula_g = f"Grad_WithSavedForward({params.formula},{var},{eta},{resvar})"  # Grad<F,V,G,R>
+                aliases_g = params.aliases + [eta, resvar]
+                args_g = (*args, G, result)  # Don't forget the gradient to backprop !
 
                 # N.B.: if I understand PyTorch's doc, we should redefine this function every time we use it?
-                genconv = GenredAutograd.apply
+                genconv = GenredAutograd_fun
 
                 # For a reduction of the type sum(F*b), with b a variable, and if we require the gradient
                 # with respect to b, the gradient will be of same type sum(F*eta). So we set again rec_multVar option
                 # in this case.
                 if (
-                    not isinstance(ctx.rec_multVar_highdim, bool)
-                    and pos == ctx.rec_multVar_highdim
+                    not isinstance(params.rec_multVar_highdim, bool)
+                    and pos == params.rec_multVar_highdim
                 ):
-                    rec_multVar_highdim = (
+                    params.rec_multVar_highdim = (
                         nargs  # nargs is the position of variable eta.
                     )
                 else:
-                    rec_multVar_highdim = None
+                    params.rec_multVar_highdim = None
+
+                params_g = copy.copy(params)
+                params_g.formula = formula_g
+                params_g.aliases = aliases_g
+                params_g.out = None
+
+                grad = genconv(params_g, *args_g)
 
                 if (
                     cat == 2
                 ):  # we're referring to a parameter, so we'll have to sum both wrt 'i' and 'j'
                     # WARNING !! : here we rely on the implementation of DiffT in files in folder keopscore/core/formulas/reductions
                     # if tagI==cat of V is 2, then reduction is done wrt j, so we need to further sum output wrt i
-                    grad = genconv(
-                        formula_g,
-                        aliases_g,
-                        backend,
-                        dtype,
-                        device_id_request,
-                        ranges,
-                        optional_flags,
-                        rec_multVar_highdim,
-                        nx,
-                        ny,
-                        None,
-                        *args_g
-                    )
+
                     # Then, sum 'grad' wrt 'i' :
                     # I think that '.sum''s backward introduces non-contiguous arrays,
                     # and is thus non-compatible with GenredAutograd: grad = grad.sum(0)
@@ -275,21 +236,6 @@ class GenredAutograd(torch.autograd.Function):
                     )
 
                 else:
-                    grad = genconv(
-                        formula_g,
-                        aliases_g,
-                        backend,
-                        dtype,
-                        device_id_request,
-                        ranges,
-                        optional_flags,
-                        rec_multVar_highdim,
-                        nx,
-                        ny,
-                        None,
-                        *args_g
-                    )
-
                     # N.B.: 'grad' is always a full [A, .., B, M, D] or [A, .., B, N, D] or [A, .., B, D] tensor,
                     #       whereas 'arg_ind' may have some broadcasted batched dimensions.
                     #       Before returning our gradient, we must collapse 'grad' with a .sum() operation,
@@ -310,21 +256,129 @@ class GenredAutograd(torch.autograd.Function):
                 )  # The gradient should have the same shape as the input!
                 grads.append(grad)
 
-        # Grads wrt. formula, aliases, backend, dtype, device_id_request, ranges, optional_flags, rec_multVar_highdim, nx, ny, out, *args
-        return (
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-            *grads,
-        )
+        # Grads wrt. params, *args
+        return None, *grads
+
+
+if torch.__version__ < "2.0":
+
+    class GenredAutograd(torch.autograd.Function):
+        """
+        This class is the entry point to pytorch auto grad engine.
+        """
+
+        @staticmethod
+        def forward(ctx, *inputs):
+            outputs = GenredAutograd_base._forward(*inputs)
+            GenredAutograd_base._setup_context(ctx, inputs, outputs)
+            result, _ = outputs
+            return result
+
+        @staticmethod
+        def backward(ctx, G):
+            return GenredAutograd_base._backward(ctx, G, None)
+
+    GenredAutograd_fun = GenredAutograd.apply
+
+else:
+
+    class GenredAutograd(torch.autograd.Function):
+        """
+        This class is the entry point to pytorch auto grad engine.
+        """
+
+        @staticmethod
+        def forward(*inputs):
+            return GenredAutograd_base._forward(*inputs)
+
+        @staticmethod
+        def setup_context(ctx, inputs, outputs):
+            GenredAutograd_base._setup_context(ctx, inputs, outputs)
+
+        @staticmethod
+        def backward(ctx, G, _):
+            return GenredAutograd_base._backward(ctx, G, _)
+
+        @staticmethod
+        def vmap(ctx, in_dims, params, *args):
+            ind_vmap_args = in_dims[1:]
+            args = list(args)
+            n = len(args)
+
+            for k in range(n):
+                if ind_vmap_args[k] is None:
+                    args[k] = args[k][None, ...]
+                else:
+                    args[k] = args[k].transpose(0, ind_vmap_args[k]).contiguous()
+
+            return GenredAutograd.apply(params, *args), (0, None)
+
+        @staticmethod
+        def jvp(ctx, *grad_inputs):
+            params = ctx.params
+            formula = params.formula
+            aliases = params.aliases
+            backend = params.backend
+            dtype = params.dtype
+            ranges = params.ranges
+            optional_flags = params.optional_flags
+            device_id_request = params.device_id_request
+            dimout = ctx.dimout
+            tagIJ = ctx.tagIJ
+            nx = params.nx
+            ny = params.ny
+            args = ctx.args
+            nargs = len(args)
+            result = ctx.result
+
+            check_AD_supported(formula)
+
+            # we define a new variable for the formula's output
+            resvar = f"Var({nargs+1},{dimout},{tagIJ})"
+
+            # We define Var objects corresponding to grad_inputs tensors.
+            # Each Var has the same dim and cat as the corresponding input arg.
+            out = 0
+            for var_ind, (sig, arg_ind) in enumerate(
+                zip(aliases, args)
+            ):  # Run through the arguments
+                grad_input = grad_inputs[var_ind + 1]
+                if grad_input is not None:
+                    grad_input = grad_input.contiguous()
+                    _, cat, dim, pos = get_type(sig, position_in_list=var_ind)
+                    var = f"Var({pos},{dim},{cat})"
+                    eta = f"Var({nargs},{dim},{cat})"
+                    formula_d = f"Diff_WithSavedForward({formula},{var},{eta},{resvar})"
+                    aliases_d = aliases + [eta] + [resvar]
+                    args_d = (*args, grad_input, result)
+                    genconv = GenredAutograd_fun
+
+                    params_d = copy.copy(params)
+                    params_d.formula = formula_d
+                    params_d.aliases = aliases_d
+                    params_d.out = None
+
+                    # For a reduction of the type sum(F*b), with b a variable, and if we require the diff
+                    # with respect to b, the diff will be of same type sum(F*eta). So we set again rec_multVar option
+                    # in this case.
+                    if (
+                        not isinstance(params.rec_multVar_highdim, bool)
+                        and pos == params.rec_multVar_highdim
+                    ):
+                        params_d.rec_multVar_highdim = (
+                            nargs  # nargs is the position of variable eta.
+                        )
+                    else:
+                        params_d.rec_multVar_highdim = None
+
+                    diff = genconv(params_d, *args_d)
+
+                    out = out + diff
+
+            return out, None
+
+    def GenredAutograd_fun(*inputs):
+        return GenredAutograd.apply(*inputs)[0]
 
 
 class Genred:
@@ -378,6 +432,7 @@ class Genred:
         sum_scheme="auto",
         enable_chunks=True,
         rec_multVar_highdim=False,
+        use_fast_math=True,
     ):
         r"""
         Instantiate a new generic operation.
@@ -449,6 +504,8 @@ class Genred:
                                 with formulas involving large dimension variables. Beware ! This will only work if the formula has the very special form
                                 that allows such computation mode.
 
+            use_fast_math (bool, default True): enables use_fast_math Cuda option
+
         """
 
         if dtype:
@@ -469,21 +526,12 @@ class Genred:
             use_double_acc,
             sum_scheme,
             enable_chunks,
+            use_fast_math,
         )
 
-        str_opt_arg = "," + str(opt_arg) if opt_arg else ""
-        str_formula2 = "," + formula2 if formula2 else ""
-
-        self.formula = (
-            reduction_op_internal
-            + "_Reduction("
-            + formula
-            + str_opt_arg
-            + ","
-            + str(axis2cat(axis))
-            + str_formula2
-            + ")"
-        )
+        str_opt_arg = f",{opt_arg}" if opt_arg else ""
+        str_formula2 = f",{formula2}" if formula2 else ""
+        self.formula = f"{reduction_op_internal}_Reduction({formula}{str_opt_arg},{axis2cat(axis)}{str_formula2})"
         self.aliases = complete_aliases(
             self.formula, list(aliases)
         )  # just in case the user provided a tuple
@@ -623,19 +671,18 @@ class Genred:
                     "size of input array is too large for Arg type reduction with float16 dtype.."
                 )
 
-        out = GenredAutograd.apply(
-            self.formula,
-            self.aliases,
-            backend,
-            dtype,
-            device_id,
-            ranges,
-            self.optional_flags,
-            self.rec_multVar_highdim,
-            nx,
-            ny,
-            out,
-            *args
-        )
+        params = Genred_parameters()
+        params.formula = self.formula
+        params.aliases = self.aliases
+        params.backend = backend
+        params.dtype = dtype
+        params.device_id_request = device_id
+        params.ranges = ranges
+        params.optional_flags = self.optional_flags
+        params.rec_multVar_highdim = self.rec_multVar_highdim
+        params.nx = nx
+        params.ny = ny
+        params.out = out
+        out = GenredAutograd_fun(params, *args)
 
         return postprocess(out, "torch", self.reduction_op, nout, self.opt_arg, dtype)

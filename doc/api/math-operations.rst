@@ -73,6 +73,13 @@ To define formulas with KeOps, you can use simple arithmetics:
 ``f - g``                 difference between two vectors or minus sign
 ``f / g``                 element-wise division (N.B. ``f`` can be scalar, in fact ``f / g`` is the same as ``f * Inv(g)``)
 ``(f | g)``               scalar product between vectors
+``f==g``                  element-wise equal function (``1`` if ``f==g``, ``0`` otherwise)
+``f!=g``                  element-wise equal function (``1`` if ``f!=g``, ``0`` otherwise)
+``f<g``                   element-wise less-than function (``1`` if ``f<g``, ``0`` otherwise)
+``f>g``                   element-wise greater-than function (``1`` if ``f>g``, ``0`` otherwise)
+``f<=g``                  element-wise less-than-or-equal-to function (``1`` if ``f<=g``, ``0`` otherwise)
+``f>=g``                  element-wise greater-than-or-equal-to function (``1`` if ``f>=g``, ``0`` otherwise)
+
 ======================   =========================================================================================================
 
 Elementary functions:
@@ -169,20 +176,25 @@ Constants and padding/concatenation operations:
 
 Elementary tensor algebra:
 
-==============================================     ====================================================================================================================================================================================================================================================================================
+==============================================     ================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================
 ``MatVecMult(f, g)``                                matrix-vector product ``f x g``: ``f`` is vector interpreted as matrix (column-major), ``g`` is vector
 ``VecMatMult(f, g)``                                vector-matrix product ``f x g``: ``f`` is vector, ``g`` is vector interpreted as matrix (column-major)
 ``TensorProd(f, g)``                                tensor cross product ``f x g^T``: ``f`` and ``g`` are vectors of sizes M and N, output is of size MN.
-``Kron(f, g, dimf, dimg)``                          kronecker product (to `numpy\'s tensordot <https://numpy.org/devdocs/reference/generated/numpy.kron.html>`_ in the spirit)
-``TensorDot(f, g, dimf, dimg, contf, contg)``       tensordot product ``f : g``(similar to `numpy\'s tensordot <https://numpy.org/doc/stable/reference/generated/numpy.tensordot.html>`_ in the spirit): ``f`` and ``g`` are tensors of sizes listed in ``dimf`` and ``dimg`` :ref:`index sequences <part.reservedWord>` and contracted along the dimensions listed in ``contf`` and ``contg`` :ref:`index sequences <part.reservedWord>`. The ``MatVecMult``, ``VecMatMult``, ``Kron`` and ``TensorProd`` operations are special cases of ``TensorDot``.
-==============================================     ====================================================================================================================================================================================================================================================================================
+``Kron(f, g, dimf, dimg)``                          kronecker product (similar to `numpy\'s kron <https://numpy.org/devdocs/reference/generated/numpy.kron.html>`_ in the spirit)
+``TensorDot(f, g, dimf, dimg, contf, contg)``       tensordot product ``f : g`` (similar to `numpy\'s tensordot <https://numpy.org/doc/stable/reference/generated/numpy.tensordot.html>`_ in the spirit): ``f`` and ``g`` are tensors of sizes listed in ``dimf`` and ``dimg`` :ref:`index sequences <part.reservedWord>` and contracted along the dimensions listed in ``contf`` and ``contg`` :ref:`index sequences <part.reservedWord>`. The ``MatVecMult``, ``VecMatMult``, ``Kron`` and ``TensorProd`` operations are special cases of ``TensorDot``.
+==============================================     ================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================
 
-Symbolic gradients:
+Symbolic gradients and linear operators:
 
-======================   =========================================================================================================
-``Grad(f,x,e)``           gradient of ``f`` with respect to the variable ``x``, with ``e`` as the "grad_input" to backpropagate
-``GradMatrix(f, v)``      matrix of gradient (i.e. transpose of the jacobian matrix)
-======================   =========================================================================================================
+========================   =========================================================================================================
+``Grad(f,x,e)``            gradient of ``f`` with respect to the variable ``x``, with ``e`` as the "grad_input" to backpropagate
+``Diff(f,x,e)``            differential of ``f`` with respect to the variable ``x``, with ``e`` as the "diff_input" to propagate
+``GradMatrix(f, v)``       matrix of gradient (i.e. transpose of the jacobian matrix)
+``Divergence(f,x)``        divergence of ``f`` with respect to the variable ``x``
+``Laplacian(f,x)``         laplacian of ``f`` with respect to the variable ``x``
+``TraceOperator(f,x)``     trace of ``f`` with respect to the variable ``x`` (``f`` must be a linear function of ``x``)
+``AdjointOperator(f,x)``   adjoint of ``f`` with respect to the variable ``x`` (``f`` must be a linear function of ``x``)
+========================   =========================================================================================================
 
 
 .. _`part.reduction`:

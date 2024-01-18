@@ -9,6 +9,7 @@ from keopscore.utils.misc_utils import KeOps_Error
 
 class ExtractT(Operation):
     string_id = "ExtractT"
+    linearity_type = "all"
 
     def __init__(self, f, start=None, dim=None, params=None):
         # N.B. init via params keyword is used for compatibility with base class.

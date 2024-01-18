@@ -7,6 +7,9 @@ class Zero(Operation):
 
     string_id = "Zero"
 
+    def is_linear(self, v):
+        return True
+
     def __init__(self, dim=None, params=None):
         # N.B. init via params keyword is used for compatibility with base class.
         if dim is None:

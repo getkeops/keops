@@ -18,6 +18,7 @@ class LinkCompile:
         # we create the hash string id corresponding to all parameters, e.g. 7b9a611f7e
         self.gencode_filename = get_hash_name(
             type(self),
+            self.red_formula,
             self.red_formula_string,
             self.aliases,
             self.nargs,
@@ -28,6 +29,7 @@ class LinkCompile:
             self.tagCpuGpu,
             self.tag1D2D,
             self.use_half,
+            self.use_fast_math,
             self.device_id,
             cpp_flags,
         )
@@ -94,7 +96,7 @@ class LinkCompile:
         # and the name of the assembly code file.
         if not os.path.exists(self.file_to_check):
             KeOps_Message(
-                "Generating code for formula " + self.red_formula.__str__() + " ... ",
+                "Generating code for " + self.red_formula.__str__() + " ... ",
                 flush=True,
                 end="",
             )
@@ -109,6 +111,7 @@ class LinkCompile:
             low_level_code_file=self.low_level_code_file,
             tagI=self.tagI,
             use_half=self.use_half,
+            use_fast_math=self.use_fast_math,
             tag1D2D=self.tag1D2D,
             dimred=self.red_formula.dimred,
             dim=self.dim,

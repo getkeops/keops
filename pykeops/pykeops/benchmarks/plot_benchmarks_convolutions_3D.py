@@ -119,11 +119,26 @@ fun_gaussianconv_keops = generic_sum(
     "B = Vj(1)",  # 3rd argument
 )
 
+fun_gaussianconv_keops_no_fast_math = generic_sum(
+    "Exp(-SqDist(X,Y)) * B",  # Formula
+    "A = Vi(1)",  # Output
+    "X = Vi({})".format(D),  # 1st argument
+    "Y = Vj({})".format(D),  # 2nd argument
+    "B = Vj(1)",  # 3rd argument
+    use_fast_math=False,
+)
+
 
 def gaussianconv_keops(x, y, b, backend="GPU", **kwargs):
     """(B,N,D), (B,N,D), (B,N,1) -> (B,N,1)"""
     x, y, b = x.squeeze(), y.squeeze(), b.squeeze()
     return fun_gaussianconv_keops(x, y, b, backend=backend)
+
+
+def gaussianconv_keops_no_fast_math(x, y, b, backend="GPU", **kwargs):
+    """(B,N,D), (B,N,D), (B,N,1) -> (B,N,1)"""
+    x, y, b = x.squeeze(), y.squeeze(), b.squeeze()
+    return fun_gaussianconv_keops_no_fast_math(x, y, b, backend=backend)
 
 
 #############################################
@@ -152,6 +167,7 @@ if use_cuda:
         (gaussianconv_pytorch, "PyTorch (GPU, TF32=False)", {"tf32": False}),
         (gaussianconv_pytorch, "PyTorch (GPU, TF32=True)", {"tf32": True}),
         (gaussianconv_keops, "KeOps (GPU)", {}),
+        (gaussianconv_keops_no_fast_math, "KeOps (GPU, use_fast_math=False)", {}),
     ]
 
     full_benchmark(

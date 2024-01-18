@@ -12,6 +12,7 @@ from keopscore.utils.code_gen_utils import (
 
 class TensorProd(Operation):
     string_id = "TensorProd"
+    linearity_type = "one"
 
     def __init__(self, arg0, arg1, params=()):
         # N.B. params keyword is used for compatibility with base class, but should always equal ()

@@ -20,5 +20,8 @@ class ArgMax_Reduction(Max_ArgMax_Reduction_Base):
         acc_val, acc_ind = acc.split(self.dim, self.dim)
         return VectCopy(out, acc_ind)
 
-    def DiffT(self, v, gradin):
+    def DiffT(self, v, gradin, f0=None):
         return Zero_Reduction(v.dim, v.cat % 2)
+
+    def Diff(self, v, diffin, f0=None):
+        return Zero_Reduction(self.dim, self.tagI)

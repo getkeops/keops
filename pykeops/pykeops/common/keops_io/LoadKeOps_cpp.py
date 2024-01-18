@@ -75,12 +75,12 @@ class LoadKeOps_cpp_class(LoadKeOps):
 namespace py = pybind11;
 
 template < typename TYPE >
-int launch_pykeops_{self.params.tag}_cpu(int dimY, int nx, int ny,
+int launch_pykeops_{self.params.tag}_cpu(signed long int dimY, signed long int nx, signed long int ny,
                                          int tagI, int tagZero, int use_half,
-                                         int dimred,
+                                         signed long int dimred,
                                          int use_chunk_mode,
                                          py::tuple py_indsi, py::tuple py_indsj, py::tuple py_indsp,
-                                         int dimout,
+                                         signed long int dimout,
                                          py::tuple py_dimsx, py::tuple py_dimsy, py::tuple py_dimsp,
                                          py::tuple py_ranges,
                                          py::tuple py_shapeout,
@@ -107,30 +107,30 @@ int launch_pykeops_{self.params.tag}_cpu(int dimY, int nx, int ny,
         indsp_v[i] = py::cast< int >(py_indsp[i]);
 
 
-    std::vector< int > dimsx_v(py_dimsx.size());
+    std::vector< signed long int > dimsx_v(py_dimsx.size());
     for (auto i = 0; i < py_dimsx.size(); i++)
-        dimsx_v[i] = py::cast< int >(py_dimsx[i]);
+        dimsx_v[i] = py::cast< signed long int >(py_dimsx[i]);
 
 
-    std::vector< int > dimsy_v(py_dimsy.size());
+    std::vector< signed long int > dimsy_v(py_dimsy.size());
     for (auto i = 0; i < py_dimsy.size(); i++)
-        dimsy_v[i] = py::cast< int >(py_dimsy[i]);
+        dimsy_v[i] = py::cast< signed long int >(py_dimsy[i]);
         
     
-    std::vector< int > dimsp_v(py_dimsp.size());
+    std::vector< signed long int > dimsp_v(py_dimsp.size());
     for (auto i = 0; i < py_dimsp.size(); i++)
-        dimsp_v[i] = py::cast< int >(py_dimsp[i]);
+        dimsp_v[i] = py::cast< signed long int >(py_dimsp[i]);
 
 
     // Cast the ranges arrays
-    std::vector< int* > ranges_v(py_ranges.size());
-    for (int i = 0; i < py_ranges.size(); i++)
-        ranges_v[i] = (int*) py::cast< long >(py_ranges[i]);
-    int **ranges = (int**) ranges_v.data();
+    std::vector< signed long int* > ranges_v(py_ranges.size());
+    for (signed long int i = 0; i < py_ranges.size(); i++)
+        ranges_v[i] = (signed long int*) py::cast< signed long int >(py_ranges[i]);
+    signed long int **ranges = (signed long int**) ranges_v.data();
     
-    std::vector< int > shapeout_v(py_shapeout.size());
+    std::vector< signed long int > shapeout_v(py_shapeout.size());
     for (auto i = 0; i < py_shapeout.size(); i++)
-        shapeout_v[i] = py::cast< int >(py_shapeout[i]);
+        shapeout_v[i] = py::cast< signed long int >(py_shapeout[i]);
     
     TYPE *out = (TYPE*) out_void;
     // std::cout << "out_ptr : " << (long) out << std::endl;
@@ -140,12 +140,12 @@ int launch_pykeops_{self.params.tag}_cpu(int dimY, int nx, int ny,
         arg_v[i] = (TYPE*) py::cast< long >(py_arg[i]);
     TYPE **arg = (TYPE**) arg_v.data();
     
-    std::vector< std::vector< int > > argshape_v(py_argshape.size());
+    std::vector< std::vector< signed long int > > argshape_v(py_argshape.size());
     for (auto i = 0; i < py_argshape.size(); i++){{
         py::tuple tmp = py_argshape[i];
-        std::vector< int > tmp_v(tmp.size());
+        std::vector< signed long int > tmp_v(tmp.size());
         for (auto j =0; j < tmp.size(); j++)
-            tmp_v[j] = py::cast< int >(tmp[j]);
+            tmp_v[j] = py::cast< signed long int >(tmp[j]);
         argshape_v[i] = tmp_v;
     }}
 

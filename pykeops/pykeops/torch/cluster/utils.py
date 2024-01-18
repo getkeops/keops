@@ -95,7 +95,7 @@ def cluster_ranges(lab, Nlab=None):
     if Nlab is None:
         Nlab = torch.bincount(lab).float()
     pivots = torch.cat((torch.Tensor([0.0]).to(Nlab.device), Nlab.cumsum(0)))
-    return torch.stack((pivots[:-1], pivots[1:]), dim=1).int()
+    return torch.stack((pivots[:-1], pivots[1:]), dim=1).to(torch.int64)
 
 
 def cluster_centroids(x, lab, Nlab=None, weights=None, weights_c=None):

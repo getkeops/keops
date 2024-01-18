@@ -1,5 +1,6 @@
 import ctypes
 from ctypes.util import find_library
+import tempfile
 
 import keopscore.config.config
 from keopscore.utils.misc_utils import (
@@ -87,7 +88,7 @@ def get_cuda_include_path():
 
 
 def get_include_file_abspath(filename):
-    tmp_file = join(get_build_folder(), "tmp.txt")
+    tmp_file = tempfile.NamedTemporaryFile(dir=get_build_folder()).name
     KeOps_OS_Run(
         f'echo "#include <{filename}>" | {cxx_compiler} -M -E -x c++ - | head -n 2 > {tmp_file}'
     )
@@ -100,7 +101,7 @@ def get_include_file_abspath(filename):
     return abspath
 
 
-def cuda_include_fp16_path():
+def orig_cuda_include_fp16_path():
     """
     We look for float 16 cuda headers cuda_fp16.h and cuda_fp16.hpp
     based on cuda_path locations and return their directory
@@ -118,6 +119,27 @@ def cuda_include_fp16_path():
         return path
     else:
         KeOps_Error("cuda_fp16.h and cuda_fp16.hpp were not found")
+
+
+def custom_cuda_include_fp16_path():
+    """
+    Here we will create (if not done already) a custom cuda_fp16.h file
+    to be included in nvrtc code compilation, and put it in the keops
+    build folder.
+    We need to create this custom cuda_fp16.h header because the original
+    cuda_fp16.h includes other cuda headers, and for some unknown reason,
+    providing all the recursively required headers to the nvrtc compiler
+    does not work. Hence we produce a packed stand-alone version of cuda_fp16.h
+    by replacing all #include statements by the corresponding headers contents.
+    """
+    from keopscore.utils.misc_utils import pack_header
+
+    build_folder = get_build_folder()
+    fp16_header = "cuda_fp16.h"
+    fp16_header_path = join(build_folder, fp16_header)
+    if not os.path.isfile(fp16_header_path):
+        pack_header(fp16_header, orig_cuda_include_fp16_path(), build_folder)
+    return build_folder
 
 
 def get_cuda_version(out_type="single_value"):

@@ -20,6 +20,7 @@ class MapReduce:
         tagCpuGpu,
         tag1D2D,
         use_half,
+        use_fast_math,
         device_id,
     ):
         self.red_formula_string = red_formula_string
@@ -37,6 +38,7 @@ class MapReduce:
             tag1D2D,
         )
         self.use_half = use_half
+        self.use_fast_math = use_fast_math
         self.device_id = device_id
         self.varloader = Var_loader(self.red_formula)
 
@@ -56,11 +58,11 @@ class MapReduce:
         nargs = self.nargs
         self.sum_scheme = eval(self.sum_scheme_string)(red_formula, dtype)
 
-        self.i = i = c_variable("int", "i")
-        self.j = j = c_variable("int", "j")
+        self.i = i = c_variable("signed long int", "i")
+        self.j = j = c_variable("signed long int", "j")
 
-        nx = c_variable("int", "nx")
-        ny = c_variable("int", "ny")
+        nx = c_variable("signed long int", "nx")
+        ny = c_variable("signed long int", "ny")
 
         self.xi = c_array(dtype, self.varloader.dimx, "xi")
         self.param_loc = c_array(dtype, self.varloader.dimp, "param_loc")

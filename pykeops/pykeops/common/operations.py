@@ -22,6 +22,13 @@ def preprocess(reduction_op, formula2):
         else:
             # here we want to compute a usual log-sum-exp: log(sum_j(exp(f_ij)))
             reduction_op_internal = "Max_SumShiftExp"
+    elif reduction_op == "LogSumExpWeight":
+        # LogSumExpWeight is just the same as LogSumExp with weights
+        if not formula2:
+            raise ValueError(
+                "LogSumExpWeight reduction requires a weight formula (given as formula2 kwarg)"
+            )
+        reduction_op_internal = "Max_SumShiftExpWeight"
     else:
         reduction_op_internal = reduction_op
 

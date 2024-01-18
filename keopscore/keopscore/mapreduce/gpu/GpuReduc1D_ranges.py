@@ -46,23 +46,27 @@ class GpuReduc1D_ranges(MapReduce, Gpu_link_compile):
         yjloc = c_array(dtype, varloader.dimy, f"(yj + threadIdx.x * {varloader.dimy})")
         yjrel = c_array(dtype, varloader.dimy, "yjrel")
         table = varloader.table(self.xi, yjrel, self.param_loc)
-        jreltile = c_variable("int", "(jrel + tile * blockDim.x)")
+        jreltile = c_variable("signed long int", "(jrel + tile * blockDim.x)")
 
-        indices_i = c_array("int", nvarsi, "indices_i")
-        indices_j = c_array("int", nvarsj, "indices_j")
-        indices_p = c_array("int", nvarsp, "indices_p")
+        indices_i = c_array("signed long int", nvarsi, "indices_i")
+        indices_j = c_array("signed long int", nvarsj, "indices_j")
+        indices_p = c_array("signed long int", nvarsp, "indices_p")
 
-        declare_assign_indices_i = "int *indices_i = offsets;" if nvarsi > 0 else ""
+        declare_assign_indices_i = (
+            "signed long int *indices_i = offsets;" if nvarsi > 0 else ""
+        )
         declare_assign_indices_j = (
-            f"int *indices_j = offsets + {nvarsi};" if nvarsj > 0 else ""
+            f"signed long int *indices_j = offsets + {nvarsi};" if nvarsj > 0 else ""
         )
         declare_assign_indices_p = (
-            f"int *indices_p = offsets + {nvarsi} + {nvarsj};" if nvarsp > 0 else ""
+            f"signed long int *indices_p = offsets + {nvarsi} + {nvarsj};"
+            if nvarsp > 0
+            else ""
         )
 
-        starty = c_variable("int", "start_y")
+        starty = c_variable("signed long int", "start_y")
 
-        threadIdx_x = c_variable("int", "threadIdx.x")
+        threadIdx_x = c_variable("signed long int", "threadIdx.x")
 
         if dtype == "half2":
             self.headers += c_include("cuda_fp16.h")
@@ -70,11 +74,11 @@ class GpuReduc1D_ranges(MapReduce, Gpu_link_compile):
         self.code = f"""
                         {self.headers}
 
-                        extern "C" __global__ void GpuConv1DOnDevice_ranges(int nx, int ny, int nbatchdims,
-                                                    int *offsets_d, int *lookup_d, int *slices_x,
-                                                    int *ranges_y, {dtype} *out, {dtype} **{arg.id}) {{
+                        extern "C" __global__ void GpuConv1DOnDevice_ranges(signed long int nx, signed long int ny, int nbatchdims,
+                                                    signed long int *offsets_d, signed long int *lookup_d, signed long int *slices_x,
+                                                    signed long int *ranges_y, {dtype} *out, {dtype} **{arg.id}) {{
                                                         
-                          int offsets[{nvars}];
+                          signed long int offsets[{nvars}];
                           {declare_assign_indices_i}
                           {declare_assign_indices_j}
                           {declare_assign_indices_p}
@@ -83,18 +87,18 @@ class GpuReduc1D_ranges(MapReduce, Gpu_link_compile):
                               for (int k = 0; k < {nvars}; k++)
                                   offsets[k] = offsets_d[ {nvars} * blockIdx.x + k ];
                           // Retrieve our position along the laaaaarge [1,~nx] axis: -----------------
-                          int range_id= (lookup_d)[3*blockIdx.x] ;
-                          int start_x = (lookup_d)[3*blockIdx.x+1] ;
-                          int end_x   = (lookup_d)[3*blockIdx.x+2] ;
+                          signed long int range_id= (lookup_d)[3*blockIdx.x] ;
+                          signed long int start_x = (lookup_d)[3*blockIdx.x+1] ;
+                          signed long int end_x   = (lookup_d)[3*blockIdx.x+2] ;
   
                           // The "slices_x" vector encodes a set of cutting points in
                           // the "ranges_y" array of ranges.
                           // As discussed in the Genred docstring, the first "0" is implicit:
-                          int start_slice = range_id < 1 ? 0 : slices_x[range_id-1];
-                          int end_slice   = slices_x[range_id];
+                          signed long int start_slice = range_id < 1 ? 0 : slices_x[range_id-1];
+                          signed long int end_slice   = slices_x[range_id];
 
                           // get the index of the current thread
-                          int i = start_x + threadIdx.x;
+                          signed long int i = start_x + threadIdx.x;
 
                           // declare shared mem
                           extern __shared__ {dtype} yj[];
@@ -122,15 +126,15 @@ class GpuReduc1D_ranges(MapReduce, Gpu_link_compile):
                               }}
                           }}
                           
-                          int start_y = ranges_y[2*start_slice], end_y = 0;
-                          for( int index = start_slice ; index < end_slice ; index++ ) {{
+                          signed long int start_y = ranges_y[2*start_slice], end_y = 0;
+                          for( signed long int index = start_slice ; index < end_slice ; index++ ) {{
                               if( (index+1 >= end_slice) || (ranges_y[2*index+2] != ranges_y[2*index+1]) ) {{
                                   //start_y = ranges_y[2*index] ;
                                   end_y = ranges_y[2*index+1];
 
-                                  for(int jstart = start_y, tile = 0; jstart < end_y; jstart += blockDim.x, tile++) {{
+                                  for(signed long int jstart = start_y, tile = 0; jstart < end_y; jstart += blockDim.x, tile++) {{
                                       // get the current column
-                                      int j = jstart + threadIdx.x;
+                                      signed long int j = jstart + threadIdx.x;
 
                                       if(j<end_y) // we load yj from device global memory only if j<end_y
                                           if (nbatchdims == 0) {{
@@ -144,12 +148,12 @@ class GpuReduc1D_ranges(MapReduce, Gpu_link_compile):
                                           {dtype} * yjrel = yj; // Loop on the columns of the current block.
                                           {sum_scheme.initialize_temporary_accumulator_block_init()}
                                           if (nbatchdims == 0) {{
-                                              for(int jrel = 0; (jrel < blockDim.x) && (jrel<end_y-jstart); jrel++, yjrel+={varloader.dimy}) {{
+                                              for(signed long int jrel = 0; (jrel < blockDim.x) && (jrel<end_y-jstart); jrel++, yjrel+={varloader.dimy}) {{
                                                   {red_formula.formula(fout,table)} // Call the function, which outputs results in xi[0:DIMX1]
                                                   {sum_scheme.accumulate_result(acc, fout, jreltile+starty)}
                                               }} 
                                           }} else {{
-                                              for(int jrel = 0; (jrel < blockDim.x) && (jrel<end_y-jstart); jrel++, yjrel+={varloader.dimy}) {{
+                                              for(signed long int jrel = 0; (jrel < blockDim.x) && (jrel<end_y-jstart); jrel++, yjrel+={varloader.dimy}) {{
                                                   {red_formula.formula(fout,table)} // Call the function, which outputs results in fout
                                                   {sum_scheme.accumulate_result(acc, fout, jreltile)}
                                               }}

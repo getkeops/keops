@@ -97,10 +97,26 @@ class Max_SumShiftExpWeight_Reduction(Reduction):
         """
         from keopscore.formulas.autodiff import Grad
 
-        M = Extract(MS, 0, self.formulaF.dim)
-        S = Extract(gradin, self.formulaF.dim, self.formulaG.dim)
-        return Grad(
-            Sum_Reduction(Exp(self.formulaF - M) * self.formulaG, self.tagI), v, S
+        F, G = self.formulaF, self.formulaG
+        M = Extract(MS, 0, F.dim)
+        gradin_S = Extract(gradin, F.dim, G.dim)
+        return Grad(Sum_Reduction(Exp(F - M) * G, self.tagI), v, gradin_S)
+
+    def Diff(self, v, diffin, MS):
+        """
+        // Beware: the formula that we use for the differential is *only* valid
+        // if the output [M,S] = Max_SumShiftExp(F,G) has been flattened through a
+        // L = M + log(S) (Log-Sum-Exp) or a weighted Soft-Max
+        // operation (as done by the Python bindings).
+        """
+        from keopscore.formulas.autodiff import Diff
+        from keopscore.formulas.variables import Zero
+
+        F, G = self.formulaF, self.formulaG
+        M = Extract(MS, 0, F.dim)
+
+        return Diff(
+            Sum_Reduction(Concat(Zero(F.dim), Exp(F - M) * G), self.tagI), v, diffin
         )
 
 

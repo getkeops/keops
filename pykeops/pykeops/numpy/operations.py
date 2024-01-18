@@ -57,6 +57,7 @@ class KernelSolve:
         sum_scheme="auto",
         enable_chunks=True,
         rec_multVar_highdim=None,
+        use_fast_math=True,
     ):
         r"""
         Instantiate a new KernelSolve operation.
@@ -120,6 +121,8 @@ class KernelSolve:
             enable_chunks (bool, default True): enable automatic selection of special "chunked" computation mode for accelerating reductions
                                 with formulas involving large dimension variables.
 
+            use_fast_math (bool, default True): enables use_fast_math Cuda option
+
         """
         if dtype:
             pyKeOps_Warning(
@@ -144,7 +147,12 @@ class KernelSolve:
             )
 
         optional_flags = get_optional_flags(
-            reduction_op, dtype_acc, use_double_acc, sum_scheme, enable_chunks
+            reduction_op,
+            dtype_acc,
+            use_double_acc,
+            sum_scheme,
+            enable_chunks,
+            use_fast_math,
         )
 
         if rec_multVar_highdim:

@@ -20,7 +20,7 @@ class ArgKMin_Reduction(KMin_ArgKMin_Reduction):
 
     def FinalizeOutput(self, acc, out, i):
         fdim = self.formula.dim
-        p = c_variable("int", new_c_varname("p"))
+        p = c_variable("signed long int", new_c_varname("p"))
         loop, k = c_for_loop(0, fdim, 1, pragma_unroll=True)
         body = p.declare_assign(k)
         inner_loop, l = c_for_loop(
@@ -30,5 +30,8 @@ class ArgKMin_Reduction(KMin_ArgKMin_Reduction):
         return loop(body)
         outer_body
 
-    def DiffT(self, v, gradin):
+    def DiffT(self, v, gradin, f0=None):
         return Zero_Reduction(v.dim, v.cat % 2)
+
+    def Diff(self, v, diffin, f0=None):
+        return Zero_Reduction(self.dim, self.tagI)

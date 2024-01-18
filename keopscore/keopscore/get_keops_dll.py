@@ -14,6 +14,7 @@ This is the main entry point for all binders. It takes as inputs :
   - tagCPUGPU : 0 or 1, indicates whether we use Cpu (0) or Gpu (1) mode, i.e. reduction is performed on Cpu or Gpu
   - tag1D2D : 0 or 1, for Gpu mode only, use 1D (0) or 2D (1) computation map-reduce scheme
   - use_half : 0 or 1, for Gpu mode only, enable special routines for half-precision data type
+  - use_fast_math : 0 or 1, for Gpu mode only, enable -use_fast_math Cuda option (faster but less accurate)
   - device_id : integer, for Gpu mode only, id of Gpu device to build the code for
 
 It returns
@@ -27,6 +28,7 @@ It returns
       - tagI : integer, 0 or 1, specifying if reduction must be performed over i or j indices,
       - tagZero : integer, 0 or 1, specifying if reduction just consists in filling output with zeros,
       - use_half : 0 or 1, enable special routines for half-precision data type,
+      - use_fast_math : 0 or 1, enable -use_fast_math Cuda option (faster but less accurate)
       - cuda_block_size : integer, prefered block size for Gpu kernel
       - use_chunk_mode : 0, 1 or 2, if 1 or 2, enables special routines for high dimensions,
       - tag1D2D : same as input
@@ -49,6 +51,7 @@ It can be used as a Python function or as a standalone Python script (in which c
 import inspect
 import sys
 
+import keopscore
 import keopscore.config.config
 from keopscore.config.config import get_build_folder
 import keopscore.mapreduce
@@ -109,6 +112,13 @@ def get_keops_dll_impl(
 
     map_reduce_obj = map_reduce_class(red_formula_string, aliases, *args)
 
+    rf = map_reduce_obj.red_formula
+
+    if keopscore.debug_ops:
+        print("In get_keops_dll, formula is :", rf)
+        print("formula.__repr__() is : ", rf.__repr__())
+        rf.make_dot()
+
     # detecting the case of formula being equal to zero, to bypass reduction.
     rf = map_reduce_obj.red_formula
     if isinstance(rf, Zero_Reduction) or (
@@ -132,6 +142,7 @@ def get_keops_dll_impl(
         res["tagI"],
         tagZero,
         res["use_half"],
+        res["use_fast_math"],
         cuda_block_size,
         use_chunk_mode,
         tag1D2D,
@@ -172,6 +183,7 @@ if __name__ == "__main__":
         "tagCPUGPU": int,
         "tag1D2D": int,
         "use_half": int,
+        "use_fast_math": int,
         "device_id": int,
     }
 

@@ -3,6 +3,8 @@
 #######################################################################
 
 import keopscore
+from os.path import join
+import re
 
 
 def KeOps_Message(message, use_tag=True, **kwargs):
@@ -37,9 +39,7 @@ def KeOps_OS_Run(command):
 
         out = subprocess.run(command, shell=True, capture_output=True)
         if out.stderr != b"":
-            KeOps_Warning(
-                "There were warnings or errors compiling formula :", newline=True
-            )
+            KeOps_Warning("There were warnings or errors :", newline=True)
             print(out.stderr.decode("utf-8"))
     elif python_version >= (3, 5):
         import subprocess
@@ -90,3 +90,45 @@ def find_library_abspath(lib):
     abspath = cast(lmptr, POINTER(LINKMAP)).contents.l_name
 
     return abspath.decode("utf-8")
+
+
+def file_to_string(file_path):
+    """
+    reads text file and returns its content as a string
+    """
+    f = open(file_path, "r")
+    out = f.read()
+    f.close()
+    return out
+
+
+def string_to_file(string, file_path):
+    """
+    writes string to file
+    """
+    f = open(file_path, "w")
+    out = f.write(string)
+    f.close()
+
+
+def pack_header(filename, origin_folder, target_folder):
+    """
+    Given a C/C++ header file "filename", located in folder "origin_folder",
+    produces a stand-alone version of the header by recursiveley
+    replacing all #include "xxx" statements by the content of the corresponding
+    file. The resulting file is put into "target_folder".
+    """
+    code = file_to_string(join(origin_folder, filename))
+    used_headers = []
+    while True:
+        match = re.search('#include *"([^"]*)"', code)
+        if match is None:
+            break
+        header = match.groups()[0]
+        if header in used_headers:
+            code_to_insert = ""
+        else:
+            code_to_insert = file_to_string(join(origin_folder, header))
+            used_headers.append(header)
+        code = code[: match.start()] + code_to_insert + code[match.end() :]
+    string_to_file(code, join(target_folder, filename))

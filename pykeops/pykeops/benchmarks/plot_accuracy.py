@@ -86,13 +86,19 @@ def generate_samples(N, D, device, lang):
 from pykeops.torch import LazyTensor
 
 
-def conv_lazytensor(x, y, b, dtype, dtype_acc, sum_scheme):
+def conv_lazytensor(x, y, b, dtype, dtype_acc, sum_scheme, use_fast_math):
     backend = "GPU" if use_cuda else "CPU"
     x_i = LazyTensor(x.unsqueeze(-2))  # (M, 1, D)
     y_j = LazyTensor(y.unsqueeze(-3))  # (1, N, D)
     K_ij = ((x_i - y_j) ** 2).sum(-1)  # (M, N, 1)
     S_ij = K_ij * b.unsqueeze(-3)  # (M, N, 1) * (1, N, 1)
-    return S_ij.sum(dim=1, backend=backend, dtype_acc=dtype_acc, sum_scheme=sum_scheme)
+    return S_ij.sum(
+        dim=1,
+        backend=backend,
+        dtype_acc=dtype_acc,
+        sum_scheme=sum_scheme,
+        use_fast_math=use_fast_math,
+    )
 
 
 ##############################################
@@ -100,7 +106,9 @@ def conv_lazytensor(x, y, b, dtype, dtype_acc, sum_scheme):
 # -----------------------
 
 
-def benchmark(Routine, dev, N, D, loops, lang, dtype, dtype_acc, sum_scheme):
+def benchmark(
+    Routine, dev, N, D, loops, lang, dtype, dtype_acc, sum_scheme, use_fast_math
+):
     """Times a convolution on an N-by-N problem, and evaluate accuracy."""
 
     importlib.reload(torch)  # In case we had a memory overflow just before...
@@ -118,12 +126,12 @@ def benchmark(Routine, dev, N, D, loops, lang, dtype, dtype_acc, sum_scheme):
 
     N0 = min(N, 100)
     Routine(
-        x[:N0, :], y[:N0, :], b[:N0, :], dtype, dtype_acc, sum_scheme
+        x[:N0, :], y[:N0, :], b[:N0, :], dtype, dtype_acc, sum_scheme, use_fast_math
     )  # Warmup run, to compile and load everything
 
     # timings
     if loops > 0:
-        code = "out = Routine( x, y, b, dtype, dtype_acc, sum_scheme ) "
+        code = "out = Routine( x, y, b, dtype, dtype_acc, sum_scheme, use_fast_math ) "
         t_0 = time.perf_counter()  # Actual benchmark --------------------
         if use_cuda:
             torch.cuda.synchronize()
@@ -146,8 +154,10 @@ def benchmark(Routine, dev, N, D, loops, lang, dtype, dtype_acc, sum_scheme):
     M = min(
         N, 1000
     )  # we evaluate accuracy on a subsample of outputs only because computations with full precisions are slow.
-    out = Routine(x[:M, :], y[ind, :], b[ind, :], dtype, dtype_acc, sum_scheme)
-    ref_out = Routine(x_[:M, :], y_, b_, "float64", "float64", "kahan_scheme")
+    out = Routine(
+        x[:M, :], y[ind, :], b[ind, :], dtype, dtype_acc, sum_scheme, use_fast_math
+    )
+    ref_out = Routine(x_[:M, :], y_, b_, "float64", "float64", "kahan_scheme", False)
     mean_err = (
         (out.double() - ref_out.double()).abs().mean() / ref_out.double().abs().mean()
     ).item()
@@ -165,12 +175,14 @@ def benchmark(Routine, dev, N, D, loops, lang, dtype, dtype_acc, sum_scheme):
     return elapsed, mean_err, max_err
 
 
-def bench_config(Routine, backend, dev, lang, dtype, dtype_acc, sum_scheme):
+def bench_config(
+    Routine, backend, dev, lang, dtype, dtype_acc, sum_scheme, use_fast_math
+):
     """Times a convolution for an increasing number of samples."""
 
     print(
-        "Backend : {}, Device : {}, dtype : {}, dtype_acc : {}, sum_scheme : {} -------------".format(
-            backend, dev, dtype, dtype_acc, sum_scheme
+        "Backend : {}, Device : {}, dtype : {}, dtype_acc : {}, sum_scheme : {}, use_fast_math : {} -------------".format(
+            backend, dev, dtype, dtype_acc, sum_scheme, use_fast_math
         )
     )
 
@@ -183,7 +195,16 @@ def bench_config(Routine, backend, dev, lang, dtype, dtype_acc, sum_scheme):
         nloops = Nloops.pop(0)
         for n in NS:
             elapsed, mean_err, max_err = benchmark(
-                Routine, dev, n, D, nloops, lang, dtype, dtype_acc, sum_scheme
+                Routine,
+                dev,
+                n,
+                D,
+                nloops,
+                lang,
+                dtype,
+                dtype_acc,
+                sum_scheme,
+                use_fast_math,
             )
             times.append(elapsed)
             mean_errs.append(mean_err)
@@ -204,16 +225,14 @@ def bench_config(Routine, backend, dev, lang, dtype, dtype_acc, sum_scheme):
 
 
 def full_bench(title, routines):
-    """Benchmarks the varied options of a geometric loss function."""
-
-    backends = [backend for (_, backend, _, _, _, _) in routines]
+    backends = [backend for (_, backend, _, _, _, _, _) in routines]
 
     print("Benchmarking : {} ===============================".format(title))
 
     lines_times = [NS]
     lines_mean_errs = [NS]
     lines_max_errs = [NS]
-    for routine, backend, lang, dtype, dtype_acc, sum_scheme in routines:
+    for routine, backend, lang, dtype, dtype_acc, sum_scheme, use_fast_math in routines:
         res = bench_config(
             routine,
             backend,
@@ -222,6 +241,7 @@ def full_bench(title, routines):
             dtype,
             dtype_acc,
             sum_scheme,
+            use_fast_math,
         )
         lines_times.append(res[0])
         lines_mean_errs.append(res[1])
@@ -236,7 +256,20 @@ def full_bench(title, routines):
     ):
         # Creates a pyplot figure:
         plt.figure(figsize=(12, 8))
-        linestyles = ["o-", "s-", "^-", "<-", ">-", "v-", "+-", "*-", "x-", "p-", "d-"]
+        linestyles = [
+            "o-",
+            "s-",
+            "^-",
+            "<-",
+            ">-",
+            "v-",
+            "1-",
+            "+-",
+            "*-",
+            "x-",
+            "p-",
+            "d-",
+        ]
         for i, config in enumerate(routines):
             plt.plot(
                 benches[:, 0],
@@ -293,8 +326,17 @@ routines = [
         "float16",
         "float16",
         "direct_sum",
+        True,
     ),
-    (conv_lazytensor, "float16, block_sum", "torch", "float16", "float16", "block_sum"),
+    (
+        conv_lazytensor,
+        "float16, block_sum",
+        "torch",
+        "float16",
+        "float16",
+        "block_sum",
+        True,
+    ),
     (
         conv_lazytensor,
         "float16, kahan_scheme",
@@ -302,6 +344,7 @@ routines = [
         "float16",
         "float16",
         "kahan_scheme",
+        True,
     ),
     (
         conv_lazytensor,
@@ -310,6 +353,7 @@ routines = [
         "float16",
         "float32",
         "block_sum",
+        True,
     ),
     (
         conv_lazytensor,
@@ -318,8 +362,26 @@ routines = [
         "float32",
         "float32",
         "direct_sum",
+        True,
     ),
-    (conv_lazytensor, "float32, block_sum", "torch", "float32", "float32", "block_sum"),
+    (
+        conv_lazytensor,
+        "float32, block_sum",
+        "torch",
+        "float32",
+        "float32",
+        "block_sum",
+        True,
+    ),
+    (
+        conv_lazytensor,
+        "float32, block_sum",
+        "torch",
+        "float32",
+        "float32",
+        "block_sum",
+        False,
+    ),
     (
         conv_lazytensor,
         "float32, kahan_scheme",
@@ -327,6 +389,7 @@ routines = [
         "float32",
         "float32",
         "kahan_scheme",
+        True,
     ),
     (
         conv_lazytensor,
@@ -335,6 +398,7 @@ routines = [
         "float32",
         "float64",
         "block_sum",
+        True,
     ),
     (
         conv_lazytensor,
@@ -343,8 +407,17 @@ routines = [
         "float64",
         "float64",
         "direct_sum",
+        True,
     ),
-    (conv_lazytensor, "float64, block_sum", "torch", "float64", "float64", "block_sum"),
+    (
+        conv_lazytensor,
+        "float64, block_sum",
+        "torch",
+        "float64",
+        "float64",
+        "block_sum",
+        True,
+    ),
     (
         conv_lazytensor,
         "float64, kahan_scheme",
@@ -352,6 +425,7 @@ routines = [
         "float64",
         "float64",
         "kahan_scheme",
+        True,
     ),
 ]
 full_bench(" Matrix-Vector products", routines)

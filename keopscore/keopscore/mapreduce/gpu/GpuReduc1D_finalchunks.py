@@ -51,10 +51,10 @@ def do_finalchunk_sub(
                     {load_chunks_routine_j}
                 }}
                 __syncthreads();
-                for (int jrel = 0; (jrel < blockDim.x) && (jrel < {ny.id} - {jstart.id}); jrel++, yjrel += {dimfinalchunk}) {{          
+                for (signed long int jrel = 0; (jrel < blockDim.x) && (jrel < {ny.id} - {jstart.id}); jrel++, yjrel += {dimfinalchunk}) {{          
                     if ({i.id} < {nx.id}) {{ // we compute only if needed
                         {use_pragma_unroll()}
-                        for (int k=0; k<{dimfinalchunk_curr}; k++) {{
+                        for (signed long int k=0; k<{dimfinalchunk_curr}; k++) {{
                             {acc.id}[k] += yjrel[k] * fout[jrel];
                         }}
                     }}
@@ -62,7 +62,7 @@ def do_finalchunk_sub(
                 }}
                 if ({i.id} < {nx.id}) {{
                     {use_pragma_unroll()}
-                    for (int k=0; k<{dimfinalchunk_curr}; k++)
+                    for (signed long int k=0; k<{dimfinalchunk_curr}; k++)
                         {out.id}[i*{dimout}+{chunk.id}*{dimfinalchunk}+k] += {acc.id}[k];
                 }}
                 __syncthreads();
@@ -84,21 +84,20 @@ class GpuReduc1D_finalchunks(MapReduce, Gpu_link_compile):
         dtypeacc = self.dtypeacc
         i = self.i
         j = self.j
-        nx = c_variable("int", "nx")
-        ny = c_variable("int", "ny")
-        jstart = c_variable("int", "jstart")
-        chunk = c_variable("int", "chunk")
+        nx = c_variable("signed long int", "nx")
+        ny = c_variable("signed long int", "ny")
+        jstart = c_variable("signed long int", "jstart")
+        chunk = c_variable("signed long int", "chunk")
         arg = self.arg
         args = self.args
         yj = c_variable(pointer(dtype), "yj")
         out = c_variable(pointer(dtype), "out")
-
+        ind_fun_internal = 0 if self.red_formula.formula.children[0].dim == 1 else 1
         fun_internal = Sum_Reduction(
-            self.red_formula.formula.children[0], self.red_formula.tagI
+            self.red_formula.formula.children[ind_fun_internal], self.red_formula.tagI
         )
         formula = fun_internal.formula
-
-        varfinal = self.red_formula.formula.children[1]
+        varfinal = self.red_formula.formula.children[1 - ind_fun_internal]
         nchunks = 1 + (varfinal.dim - 1) // dimfinalchunk
         dimlastfinalchunk = varfinal.dim - (nchunks - 1) * dimfinalchunk
         varloader = Var_loader(fun_internal)
@@ -133,7 +132,7 @@ class GpuReduc1D_finalchunks(MapReduce, Gpu_link_compile):
         yjrel = c_array(dtype, dimy, "yjrel")
         table = self.varloader.table(xi, yjrel, param_loc)
 
-        last_chunk = c_variable("int", f"{nchunks-1}")
+        last_chunk = c_variable("signed long int", f"{nchunks-1}")
 
         chunk_sub_routine = do_finalchunk_sub(
             dtype,
@@ -173,10 +172,10 @@ class GpuReduc1D_finalchunks(MapReduce, Gpu_link_compile):
                           
                         {self.headers}
                         
-                        extern "C" __global__ void GpuConv1DOnDevice(int nx, int ny, {dtype} *out, {dtype} **{arg.id}) {{
+                        extern "C" __global__ void GpuConv1DOnDevice(signed long int nx, signed long int ny, {dtype} *out, {dtype} **{arg.id}) {{
     
                           // get the index of the current thread
-                          int i = blockIdx.x * blockDim.x + threadIdx.x;
+                          signed long int i = blockIdx.x * blockDim.x + threadIdx.x;
 
                           // declare shared mem
                           extern __shared__ {dtype} yj[];
@@ -192,17 +191,17 @@ class GpuReduc1D_finalchunks(MapReduce, Gpu_link_compile):
                           if (i < nx) {{
                               {load_vars(dimsx, indsi, xi, args, row_index=i)} // load xi variables from global memory to local thread memory
                               {use_pragma_unroll()}
-                              for (int k=0; k<{dimout}; k++) {{
+                              for (signed long int k=0; k<{dimout}; k++) {{
                                   out[i*{dimout}+k] = 0.0f;
                               }}
                           }}
                           
                           {acc.declare()}
 
-                          for (int jstart = 0, tile = 0; jstart < ny; jstart += blockDim.x, tile++) {{
+                          for (signed long int jstart = 0, tile = 0; jstart < ny; jstart += blockDim.x, tile++) {{
 
                               // get the current column
-                              int j = tile * blockDim.x + threadIdx.x;
+                              signed long int j = tile * blockDim.x + threadIdx.x;
                               if (j < ny) {{ // we load yj from device global memory only if j<ny
                                   {load_vars(dimsy, indsj, yjloc, args, row_index=j)} // load yj variables from global memory to shared memory
                               }}
@@ -210,14 +209,14 @@ class GpuReduc1D_finalchunks(MapReduce, Gpu_link_compile):
 
                               if (i < nx) {{ // we compute x1i only if needed
                                   {dtype} * yjrel = yj; // Loop on the columns of the current block.
-                                  for (int jrel = 0; (jrel < {blocksize_chunks}) && (jrel < ny - jstart); jrel++, yjrel += {dimy}) {{
+                                  for (signed long int jrel = 0; (jrel < {blocksize_chunks}) && (jrel < ny - jstart); jrel++, yjrel += {dimy}) {{
                                       {formula(foutjrel, table)} // Call the function, which outputs results in fout
                                   }}
                               }}
         
                               __syncthreads();
         
-                              for (int chunk=0; chunk<{nchunks-1}; chunk++) {{
+                              for (signed long int chunk=0; chunk<{nchunks-1}; chunk++) {{
                                   {chunk_sub_routine}
                               }}
                               {chunk_sub_routine_last}

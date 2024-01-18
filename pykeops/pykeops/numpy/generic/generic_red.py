@@ -64,6 +64,7 @@ class Genred:
         sum_scheme="auto",
         enable_chunks=True,
         rec_multVar_highdim=False,
+        use_fast_math=True,
     ):
         r"""
         Instantiate a new generic operation.
@@ -135,6 +136,8 @@ class Genred:
                                 with formulas involving large dimension variables. Beware ! This will only work if the formula has the very special form
                                 that allows such computation mode.
 
+            use_fast_math (bool, default True): enables use_fast_math Cuda option
+
         """
 
         if dtype:
@@ -155,6 +158,7 @@ class Genred:
             use_double_acc,
             sum_scheme,
             enable_chunks,
+            use_fast_math,
         )
 
         if rec_multVar_highdim:
@@ -291,7 +295,7 @@ class Genred:
         # N.B. we assume here that there is at least a cat=0 or cat=1 variable in the formula...
         nbatchdims = max(len(arg.shape) for arg in args) - 2
 
-        use_ranges = nbatchdims > 0 or ranges
+        use_ranges = (nbatchdims > 0) or (ranges is not None)
 
         dtype = args[0].dtype.__str__()
 
