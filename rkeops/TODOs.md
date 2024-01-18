@@ -22,11 +22,11 @@ Remaining issues:
 - [x] check if concatenation is done along the inner dimension for `concat` function
 - [x] fix doc of function `concat` in `R/lazytensor_operations.R`
 
-- [ ] revamp vignettes regarding LazyTensor, and mention it in main vignette
+- [x] revamp vignettes regarding LazyTensor, and mention it in main vignette
 
-- [ ] fix issue from `devtools::check()`
+- [x] fix issue from `devtools::check()`
 
-- [ ] update website page with new vignettes
+- [x] update website page with new vignettes
 
 ## Implement RKeOps v2+
 
