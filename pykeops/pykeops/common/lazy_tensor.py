@@ -1593,20 +1593,11 @@ class GenericLazyTensor:
             dimcheck=None,
         )
 
-    def softdtw(self, gamma, input_shape):
-        return self.binary(
-            gamma,
-            "SoftDTW",
-            dimres=1, 
-            opt_arg=input_shape,
-            dimcheck=None,
-        )
-
-    def softdtw_l2(self, other, gamma):
+    def softdtw_sqdist(self, other, gamma):
         return self.ternary(
             other,
             gamma,
-            "SoftDTW_L2",
+            "SoftDTW_SqDist",
             dimres=1, 
             dimcheck=None,
         )
