@@ -1,4 +1,3 @@
-# Latest version numbers as of the 10th of October, 2023:
 # Requirements for the KeOps doc and tutorials:
 sphinx
 sphinx-gallery
@@ -17,8 +16,8 @@ multiprocess
 pandas
 
 # Extra requirements for the GeomLoss doc:
-plyfile==1.0.1
-SimpleITK==2.3.0
-scikit-image==0.22.0
-pyvtk==0.5.18
-pyvista==0.42.3
+plyfile
+SimpleITK
+scikit-image
+pyvtk
+pyvista
