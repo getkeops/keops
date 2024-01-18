@@ -13,6 +13,7 @@ plotly
 si_prefix
 scikit-learn
 multiprocess
+pandas
 
 # Extra requirements for the GeomLoss doc:
 plyfile
