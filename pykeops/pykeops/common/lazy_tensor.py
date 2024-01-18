@@ -1585,6 +1585,23 @@ class GenericLazyTensor:
 
         return (self - g).weightedsqnorm(s)
 
+    def difference_matrix(self, other):
+        return self.binary(
+            other,
+            "DifferenceMatrix",
+            dimres=(other.ndim * self.ndim), 
+            dimcheck=None,
+        )
+
+    def softdtw_sqdist(self, other, gamma):
+        return self.ternary(
+            other,
+            gamma,
+            "SoftDTW_SqDist",
+            dimres=1, 
+            dimcheck=None,
+        )
+
     def elem(self, i):
         r"""
         Indexing of a vector - a unary operation.
