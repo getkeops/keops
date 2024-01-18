@@ -185,6 +185,16 @@ RKeOps provides<br>
 
 ------------------------------------------------------------------------
 
+# Installing and using RKeOps
+
+See the specific “Using RKeOps” vignette/article:
+
+``` r
+vignette("using_rkeops", package = "rkeops")
+```
+
+------------------------------------------------------------------------
+
 # Examples in R
 
 ## Example in R with LazyTensors
@@ -253,7 +263,7 @@ a_j <- sum(K_ij, index = "i") # actual R matrix (in fact a row vector of
                               # "j" index)
 ```
 
-**More in the dedicated “RKeOps LazyTensor” vignette**:
+**More in the dedicated “RKeOps LazyTensor” vignette/article**:
 
 ``` r
 vignette("LazyTensor_rkeops", package = "rkeops")
@@ -420,13 +430,3 @@ computations).
 
 To use GPU computing mode, you can call `use_gpu()` (with an optional
 argument `device` to choose a specific GPU id to run computations).
-
-------------------------------------------------------------------------
-
-# Installing and using RKeOps
-
-See the specific “Using RKeOps” vignette:
-
-``` r
-vignette("using_rkeops", package = "rkeops")
-```

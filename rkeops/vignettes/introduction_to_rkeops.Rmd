@@ -6,7 +6,7 @@ output:
   pdf_document:
     toc: true
     number_sections: yes
-author: ""
+author: "Ghislain Durif"
 date: "`r Sys.Date()`"
 vignette: >
   %\VignetteIndexEntry{Introduction to RKeOps}
@@ -139,6 +139,15 @@ RKeOps provides<br>
 
 ---
 
+# Installing and using RKeOps
+
+See the specific "Using RKeOps" vignette/article:
+```{r eval=FALSE}
+vignette("using_rkeops", package = "rkeops")
+```
+
+---
+
 # Examples in R
 
 ## Example in R with LazyTensors
@@ -201,7 +210,7 @@ a_j <- sum(K_ij, index = "i") # actual R matrix (in fact a row vector of
                               # "j" index)
 ```
 
-**More in the dedicated "RKeOps LazyTensor" vignette**:
+**More in the dedicated "RKeOps LazyTensor" vignette/article**:
 
 ```{r eval=FALSE}
 vignette("LazyTensor_rkeops", package = "rkeops")
@@ -311,12 +320,3 @@ Based on your formulae, RKeOps compiles on the fly operators that can be used to
 To use CPU computing mode, you can call `use_cpu()` (with an optional argument `ncore` specifying the number of cores used to run parallel computations).
 
 To use GPU computing mode, you can call `use_gpu()` (with an optional argument `device` to choose a specific GPU id to run computations).
-
----
-
-# Installing and using RKeOps
-
-See the specific "Using RKeOps" vignette:
-```{r eval=FALSE}
-vignette("using_rkeops", package = "rkeops")
-```

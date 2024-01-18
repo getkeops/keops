@@ -6,7 +6,10 @@ output:
   pdf_document:
     toc: true
     number_sections: yes
-author: ""
+author:
+  - Amelie Vernay
+  - Chloe Serre-Combe
+  - Ghislain Durif
 date: "`r Sys.Date()`"
 vignette: >
   %\VignetteEncoding{UTF-8}
