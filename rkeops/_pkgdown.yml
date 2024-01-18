@@ -2,6 +2,10 @@ url: https://www.kernel-operations.io/rkeops
 
 template:
   bootstrap: 5
+  bootswatch: sandstone
+  bslib:
+    primary: "#24519e"
+    link-color: "#c8a000"
 
 home:
   links:
@@ -13,13 +17,17 @@ navbar:
   left:
   - text: Intro
     href: articles/introduction_to_rkeops.html
+  - text: Getting started
+    href: articles/using_rkeops.html
   - text: Reference
     href: reference/index.html
   - text: Articles
     menu:
+    - text: Introduction to RKeOps
+      href: articles/introduction_to_rkeops.html
     - text: Using RKeOps
       href: articles/using_rkeops.html
     - text: RKeOps LazyTensor
       href: articles/LazyTensor_rkeops.html
     - text: Kernel Interpolation with RKeOps
-      href: Kernel_Interpolation_rkeops.html
+      href: articles/Kernel_Interpolation_rkeops.html
