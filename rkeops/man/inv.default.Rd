@@ -2,14 +2,35 @@
 % Please edit documentation in R/lazytensor_operations.R
 \name{inv.default}
 \alias{inv.default}
-\title{Inverse.}
+\title{Element-wise inverse operation}
 \usage{
 \method{inv}{default}(x)
 }
+\arguments{
+\item{x}{numeric or complex vectors or objects which can be coerced to such,
+or other objects for which methods have been written.}
+}
+\value{
+Vector or array of inverted elements from \code{x}.
+}
 \description{
-Inverse.
+Element-wise inverse operations on numeric or complex vectors
+(or objects which can be coerced to them), i.e. \code{1/x}.
+}
+\details{
+\code{inv(x)} is equivalent to \code{1/x} where \code{/} is the default division operator.
+
+From \link[base:Arithmetic]{base::Arithmetic}: if applied to arrays the result will be an array if
+this is sensible
+(for example it will not if the recycling rule has been invoked).
+}
+\examples{
+inv(4)
+inv(1:10)
+}
+\seealso{
+\link[base:Arithmetic]{base::Arithmetic}
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay
 }
-\keyword{internal}

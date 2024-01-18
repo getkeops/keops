@@ -2,42 +2,46 @@
 % Please edit documentation in R/lazytensor_operations.R
 \name{argmin}
 \alias{argmin}
-\title{ArgMin.}
+\alias{argmin_reduction}
+\title{ArgMin operation or ArgMin reduction}
 \usage{
 argmin(x, index = NA)
+
+argmin_reduction(x, index)
 }
 \arguments{
-\item{x}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector or a matrix of
-numeric values, or a scalar value.}
+\item{x}{a \code{LazyTensor} or a \code{ComplexLazyTensor}.}
 
-\item{index}{A \code{character} corresponding to the reduction dimension that
-should be either \strong{i} or \strong{j} to specify whether if the reduction is
-indexed by \strong{i} (rows) or \strong{j} (columns).
-It can be NA (default) when no reduction is desired.}
+\item{index}{a \code{character} corresponding to the wanted reduction dimension,
+either \code{"i"} or \code{"j"}, to specify whether if the argmin reduction is done
+along the index \code{i} or \code{j}.
+It can be \code{NA} (default) when no reduction is desired.}
 }
 \value{
-A matrix corresponding to the argmin reduction or an object of class
-"LazyTensor" corresponding to a symbolic matrix.
+a \code{LazyTensor} if \code{index = NA} or an array storing the result of
+the specified argmin reduction otherwise.
 }
 \description{
-ArgMin unary operation, or ArgMin reduction.
+ArgMin operation or ArgMin reduction for \code{LazyTensor} objects.
 }
 \details{
-\code{argmin(x, index)} will :
+If \code{x} is a \code{LazyTensor}, \code{argmin(x, index)} will :
 \itemize{
-\item if \strong{index = "i"}, return the argmin reduction of \strong{x} over the "i"
+\item if \code{index = "i"}, return the argmin reduction of \code{x} over the \code{i}
 indexes.
-\item if \strong{index = "j"}, return the argmin reduction of \strong{x} over the "j"
+\item if \code{index = "j"}, return the argmin reduction of \code{x} over the \code{j}
 indexes.
-\item if \strong{index = NA} (default), return a new \code{LazyTensor} object
-representing the argmin  of the values of the vector.
+\item if \code{index = NA} (default), return a new \code{LazyTensor} object
+representing the symbolic argmin of the values along the inner dimension
+of \code{x}.
 }
 
-\strong{Note}
+\strong{Note}: Run \code{browseVignettes("rkeops")} to access the vignettes and find
+details about this function in the \emph{"RKeOps LazyTensor"} vignette, at
+section \emph{"Reductions"}.
 
-Run \code{browseVignettes("rkeops")} to access the vignettes and find details
-about the function in "RKeOps LazyTensor",
-at section #Reductions.
+\strong{Note}: \code{index}  input argument cannot be \code{NA} for the
+\code{argmin_reduction()} function.
 }
 \examples{
 \dontrun{
@@ -45,9 +49,19 @@ x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
                                     # indexed by 'i'
 
-argmin_xi <- argmin(x_i, "i")  # argmin reduction indexed by "i"
+argmin_xi <- argmin(x_i, "i")  # argmin reduction indexed by 'i'
 argmin_x <- argmin(x_i)        # symbolic matrix
 }
+\dontrun{
+x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
+x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
+                                    # indexed by 'i'
+
+argmin_red <- argmin(x_i, "i")      # argmin reduction indexed by 'i'
+}
+}
+\seealso{
+\code{\link[=argmin_reduction]{argmin_reduction()}}
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay

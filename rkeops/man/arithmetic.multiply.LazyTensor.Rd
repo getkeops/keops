@@ -4,14 +4,14 @@
 \alias{arithmetic.multiply.LazyTensor}
 \alias{*.LazyTensor}
 \alias{*.ComplexLazyTensor}
-\title{Multiplication.}
+\title{Multiplication}
 \usage{
-x * y  # if x or y is a LazyTensor
+\method{*}{LazyTensor}(x, y)
 
-x * y  # if x or y is a ComplexLazyTensor
+\method{*}{ComplexLazyTensor}(x, y)
 }
 \arguments{
-\item{x, y}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric values,
+\item{x, y}{a \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric values,
 or a scalar value.}
 }
 \value{
@@ -32,12 +32,11 @@ or be of dimension 1.
 \examples{
 \dontrun{
 x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
-y <- matrix(runif(250 * 3), 250, 3) # arbitrary R matrix, 250 rows and 3 columns
+y <- matrix(runif(250 * 3), 250, 3) # arbitrary R matrix, 250 rows, 3 columns
 x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
                                     # indexed by 'i'
 y_j <- LazyTensor(y, index = 'j')   # creating LazyTensor from matrix y, 
                                     # indexed by 'j'
-
 x_times_y <- x_i * y_j              # symbolic matrix
 }
 }

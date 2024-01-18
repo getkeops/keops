@@ -12,3 +12,7 @@ TODOs.md
 ^LICENSE\.md$
 ^README\.Rmd$
 ^Meta$
+^dev_history\.Rmd$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$

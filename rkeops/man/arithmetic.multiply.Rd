@@ -3,7 +3,7 @@
 \name{arithmetic.multiply}
 \alias{arithmetic.multiply}
 \alias{*}
-\title{Multiplication.}
+\title{Multiplication}
 \usage{
 x * y
 }
@@ -15,7 +15,7 @@ See value of \code{\link[=*.default]{*.default()}} or \code{\link[=*.LazyTensor]
 }
 \description{
 Symbolic multiplication for \code{LazyTensor} objects or default multiplication
-for other types.
+otherwise.
 }
 \details{
 If \code{x} or \code{y} is a \code{LazyTensor}, see \code{\link[=*.LazyTensor]{*.LazyTensor()}}, else see
@@ -28,12 +28,11 @@ If \code{x} or \code{y} is a \code{LazyTensor}, see \code{\link[=*.LazyTensor]{*
 1 + 3
 # LazyTensor symbolic multiplication
 x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
-y <- matrix(runif(250 * 3), 250, 3) # arbitrary R matrix, 250 rows and 3 columns
+y <- matrix(runif(250 * 3), 250, 3) # arbitrary R matrix, 250 rows, 3 columns
 x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
                                     # indexed by 'i'
 y_j <- LazyTensor(y, index = 'j')   # creating LazyTensor from matrix y, 
                                     # indexed by 'j'
-
 x_times_y <- x_i * y_j              # symbolic matrix
 }
 }

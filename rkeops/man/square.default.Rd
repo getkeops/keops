@@ -2,14 +2,36 @@
 % Please edit documentation in R/lazytensor_operations.R
 \name{square.default}
 \alias{square.default}
-\title{Square}
+\title{Element-wise square (power-2) operation}
 \usage{
 \method{square}{default}(x)
 }
+\arguments{
+\item{x}{numeric or complex vectors or objects which can be coerced to such,
+or other objects for which methods have been written.}
+}
+\value{
+Vector or array of elements from \code{x} elevated to the power-2.
+}
 \description{
-Square
+Element-wise square or power-2 operations on numeric or complex vectors
+(or objects which can be coerced to them).
+}
+\details{
+\code{square(x)} is equivalent to \code{x^2} where \code{^} is the default power function,
+i.e. \eqn{x^2}.
+
+From \link[base:Arithmetic]{base::Arithmetic}: if applied to arrays the result will be an array if
+this is sensible
+(for example it will not if the recycling rule has been invoked).
+}
+\examples{
+square(4)
+square(1:10)
+}
+\seealso{
+\link[base:Arithmetic]{base::Arithmetic}
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay
 }
-\keyword{internal}

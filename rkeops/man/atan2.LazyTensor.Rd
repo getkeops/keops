@@ -2,14 +2,44 @@
 % Please edit documentation in R/lazytensor_operations.R
 \name{atan2.LazyTensor}
 \alias{atan2.LazyTensor}
-\title{Element-wise 2-argument arc-tangent.}
+\title{Element-wise 2-argument arc-tangent operation}
 \usage{
 \method{atan2}{LazyTensor}(x, y)
 }
+\arguments{
+\item{x, y}{a \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric values,
+or a scalar value.}
+}
+\value{
+An object of class \code{LazyTensor}.
+}
 \description{
-Element-wise 2-argument arc-tangent.
+Symbolic element-wise 2-argument arc-tangent operation for
+\code{LazyTensor} objects.
+}
+\details{
+If \code{x} or \code{y} is a \code{LazyTensor}, \code{atan2(x, y)} returns a
+\code{LazyTensor} that encodes, symbolically, the element-wise 2-argument
+arc-tangent of \code{x} and \code{y}. i.e. \code{atan2(x, y) == atan(x/y)}.
+(In case one of the arguments is
+a vector or a scalar, it is first converted to \code{LazyTensor}).
+
+\strong{Note}: \code{x} and \code{y} input arguments should have the same inner dimension.
+}
+\examples{
+\dontrun{
+x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
+y <- matrix(runif(250 * 3), 250, 3) # arbitrary R matrix, 250 rows, 3 columns
+x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
+                                    # indexed by 'i'
+y_j <- LazyTensor(y, index = 'j')   # creating LazyTensor from matrix y, 
+                                    # indexed by 'j'
+Atan2_xy <- atan2(x_i, y_j)         # symbolic matrix
+}
+}
+\seealso{
+\code{\link[=atan2]{atan2()}}
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay
 }
-\keyword{internal}

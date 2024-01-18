@@ -2,14 +2,39 @@
 % Please edit documentation in R/lazytensor_operations.R
 \name{step.LazyTensor}
 \alias{step.LazyTensor}
-\title{Element-wise step function.}
+\title{Element-wise 0-1 step function}
 \usage{
-\method{step}{LazyTensor}(x, ...)
+\method{step}{LazyTensor}(object, ...)
+}
+\arguments{
+\item{object}{a \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric
+values, or a scalar value.}
+
+\item{...}{not used, only present for method compatibility with the
+corresponding generic function.}
+}
+\value{
+An object of class \code{LazyTensor}.
 }
 \description{
-Element-wise step function.
+Symbolic element-wise 0-1 step function for \code{LazyTensor} objects.
+}
+\details{
+If \code{x} is a \code{LazyTensor}, \code{step(x)} returns a \code{LazyTensor}
+that encodes, symbolically, the element-wise 0-1 step of \code{x}, i.e.
+\code{0} if \code{x < 0}, \code{1} if \code{x >= 0}.
+}
+\examples{
+\dontrun{
+x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
+x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
+                                    # indexed by 'i'
+Step_x <- step.LazyTensor(x_i)      # symbolic matrix, 150 rows and 3 columns
+}
+}
+\seealso{
+\code{\link[=step]{step()}}
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay
 }
-\keyword{internal}

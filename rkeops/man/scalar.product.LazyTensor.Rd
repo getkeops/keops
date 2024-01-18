@@ -3,14 +3,40 @@
 \name{scalar.product.LazyTensor}
 \alias{scalar.product.LazyTensor}
 \alias{|.LazyTensor}
-\title{Euclidean scalar product for LazyTensors.}
+\title{Euclidean scalar product operation}
 \usage{
-\method{|}{LazyTensor}(x, y)
+\special{x | y}
+\special{(x | y)}
+}
+\arguments{
+\item{x, y}{a \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric values,
+or a scalar value.}
+}
+\value{
+An object of class \code{LazyTensor}.
 }
 \description{
-Euclidean scalar product for LazyTensors.
+Symbolic Euclidean scalar product binary operation for \code{LazyTensor} objects.
+}
+\details{
+If \code{x} or \code{y} is a \code{LazyTensor}, \code{x|y} returns a
+\code{LazyTensor} that encodes, symbolically, the Euclidean scalar product between
+\code{x} and \code{y}, which must have the same shape. (In case one of the arguments is
+a vector or a scalar, it is first converted to \code{LazyTensor}).
+
+\strong{Note}: \code{x} and \code{y} input arguments should have the same inner dimension.
+}
+\examples{
+\dontrun{
+x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
+y <- matrix(runif(250 * 3), 250, 3) # arbitrary R matrix, 250 rows, 3 columns
+x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
+                                    # indexed by 'i'
+y_j <- LazyTensor(y, index = 'j')   # creating LazyTensor from matrix y, 
+                                    # indexed by 'j'
+x_sp_y <- x_i | y_j                 # symbolic matrix
+}
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay
 }
-\keyword{internal}

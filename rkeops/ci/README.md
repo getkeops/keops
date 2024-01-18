@@ -45,11 +45,3 @@ Rscript run_check.R
 ```
 
 > **Note:** you should run `Rscript prepare_ci.R` before calling `run_tests.R` or `run_check.R` to install dependencies.
-
-### Vignette to online doc conversion
-
-To generate html files from the vignettes that can be integrated into the 
-Sphinx doc, see this script [`./html2doc.sh`](./html2doc.sh).
-
-> Note: on MacOS, you need to install pdflatex to run check, e.g. with `brew cask install basictex`.
-

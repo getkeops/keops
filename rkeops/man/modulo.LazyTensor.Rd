@@ -2,14 +2,60 @@
 % Please edit documentation in R/lazytensor_operations.R
 \name{mod.LazyTensor}
 \alias{mod.LazyTensor}
-\title{Element-wise modulo with offset function.}
+\title{Element-wise modulo with offset function}
 \usage{
 \method{mod}{LazyTensor}(x, a, b = 0, ...)
 }
+\arguments{
+\item{x, a, b}{a \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric
+values, or a scalar value.}
+
+\item{...}{not used, only present for method compatibility with
+corresponding generic function.}
+}
+\value{
+An object of class \code{LazyTensor}.
+}
 \description{
-Element-wise modulo with offset function.
+Symbolic element-wise modulo with offset function (ternary operation) for
+\code{LazyTensor} objects
+}
+\details{
+If \code{x} is a \code{LazyTensor}, \code{mod(x, a, b)} returns a \code{LazyTensor}
+that encodes, symbolically, the element-wise modulo of \code{x} with
+divisor \code{a} and offset \code{b}, i.e. \code{x - a * floor((x - b)/a)}.
+By default \code{b = 0}, \code{mod(x, a)} corresponds to the standard R
+function \code{\%\%}.
+
+\code{a} and \code{b} may be fixed integers or floats, or other \code{LazyTensor}.
+Broadcasting rules apply.
+
+\strong{Note}: If \code{a} and \code{b} are not scalar values, these should have the same
+inner dimension as \code{x}.
+
+\strong{Warning}: Do not confuse with \code{\link[=Mod]{Mod()}}.
+}
+\examples{
+\dontrun{
+# basic example
+D <- 3
+M <- 100
+N <- 150
+P <- 200
+x <- matrix(runif(M * D), M, D)
+y <- matrix(runif(N * D), N, D)
+z <- matrix(runif(P * D), P, D)
+x_i <- LazyTensor(x, index = 'i')
+y_j <- LazyTensor(y, index = 'j')
+z_i <- LazyTensor(z, index = 'i')
+
+# call mod function
+mod_x72 <- mod(x_i, 7, 2)
+
+# works also with LazyTensors with same inner dimension or dimension 1
+mod_xyz <- mod(x_i, y_j, z_i)
+}
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay
 }
-\keyword{internal}

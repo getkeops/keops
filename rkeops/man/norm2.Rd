@@ -2,19 +2,19 @@
 % Please edit documentation in R/lazytensor_operations.R
 \name{norm2}
 \alias{norm2}
-\title{Euclidean norm.}
+\title{Euclidean norm}
 \usage{
 norm2(x)
 }
 \arguments{
-\item{x}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric values,
+\item{x}{a \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric values,
 or a scalar value.}
 }
 \value{
-An object of class "LazyTensor".
+An object of class \code{LazyTensor}.
 }
 \description{
-Symbolic unary operation for Euclidean norm.
+Symbolic Euclidean norm operation for \code{LazyTensor} objects.
 }
 \details{
 \code{norm2(x)} returns a \code{LazyTensor} that encodes, symbolically,
@@ -27,6 +27,9 @@ x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x,
                                     # indexed by 'i'
 N_x <- norm2(x_i)                   # symbolic matrix, 150 rows and 3 columns
 }
+}
+\seealso{
+\code{\link[=|.LazyTensor]{|.LazyTensor()}}, \code{\link[=sqrt]{sqrt()}}
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay

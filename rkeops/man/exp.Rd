@@ -2,47 +2,41 @@
 % Please edit documentation in R/lazytensor_operations.R
 \name{exp}
 \alias{exp}
-\title{Element-wise exponential.}
+\title{Element-wise exponential operation}
 \usage{
 exp(x)
 }
 \arguments{
-\item{x}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric values,
-or a scalar value.}
+\item{x}{input for \code{\link[=exp.default]{exp.default()}} or
+\code{\link[=exp.LazyTensor]{exp.LazyTensor()}}.}
 }
 \value{
-An object of class "LazyTensor" if the function is called with a
-\code{LazyTensor}, and an object of class "numeric", "matrix", or "array"
-otherwise, depending on the input class (see R default \code{exp()} function).
+See value of \code{\link[=exp.default]{exp.default()}} or
+\code{\link[=exp.LazyTensor]{exp.LazyTensor()}}.
 }
 \description{
-Symbolic unary operation for element-wise exponential.
+Symbolic element-wise exponential operation for \code{LazyTensor} objects or
+default element-wise exponential operation otherwise, i.e.
+\eqn{e^x}.
 }
 \details{
-\strong{Different use cases}:
-
-\itemize{
-\item{\code{x} is a \code{LazyTensor},}{ \code{exp(x)} returns a \code{LazyTensor} that
-encodes, symbolically, the element-wise exponential of \code{x};}
-\item{\code{x} is a \code{ComplexLazyTensor},}{ \code{exp(x)} returns
-a \code{ComplexLazyTensor} that encodes, symbolically, the element-wise
-complex exponential of \code{x};}
-\item{else,}{ \code{exp(x)} applies R default exponential to \code{x}.}
-}
+If \code{x} is a \code{LazyTensor}, see \code{\link[=exp.LazyTensor]{exp.LazyTensor()}}, else
+see \code{\link[=exp.default]{exp.default()}}.
 }
 \examples{
 \dontrun{
-# basic example
+# R base operation
+exp(0)
+exp(1:10)
+# LazyTensor symbolic element-wise exponential
 x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
                                     # indexed by 'i'
 Exp_x <- exp(x_i)                   # symbolic matrix, 150 rows and 3 columns
-
-# basic example with complex exponential
-z <- matrix(1i^ (-6:5), nrow = 4)        # create a complex 4x3 matrix
-z_i <- LazyTensor(z, index = 'i', is_complex = TRUE) # create a ComplexLazyTensor
-Exp_z_i <- exp(z_i)                                  # symbolic matrix
 }
+}
+\seealso{
+\code{\link[=exp.default]{exp.default()}}, \code{\link[=exp.LazyTensor]{exp.LazyTensor()}}
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay

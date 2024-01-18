@@ -2,35 +2,42 @@
 % Please edit documentation in R/lazytensor_operations.R
 \name{xlogx}
 \alias{xlogx}
-\title{Element-wise x*log(x) function.}
+\title{Element-wise \code{x*log(x)} operation}
 \usage{
 xlogx(x)
 }
 \arguments{
-\item{x}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector or a matrix of
-numeric values, or a scalar value.}
+\item{x}{input for \code{\link[=xlogx.default]{xlogx.default()}} or
+\code{\link[=xlogx.LazyTensor]{xlogx.LazyTensor()}}.}
 }
 \value{
-An object of class "LazyTensor" if the function is called with a
-\code{LazyTensor}, and an object of class "numeric", "matrix", or "array"
-otherwise, depending on the input class.
+See value of \code{\link[=xlogx.default]{xlogx.default()}} or
+\code{\link[=xlogx.LazyTensor]{xlogx.LazyTensor()}}
 }
 \description{
-Symbolic unary operation for element-wise sign.
+Symbolic element-wise \code{x*log(x)} function for \code{LazyTensor} objects or
+standard element-wise \code{x*log(x)} function otherwise.
 }
 \details{
-If \code{x} is a \code{LazyTensor}, \code{xlogx(x)} returns a \code{LazyTensor} that
-encodes, symbolically, the element-wise \code{x} times logarithm of \code{x}
-(with value 0 at 0); else, computes \code{x * log(x)}.
+If \code{x} is a \code{LazyTensor}, see \code{\link[=xlogx.LazyTensor]{xlogx.LazyTensor()}},
+else see \code{\link[=xlogx.default]{xlogx.default()}}.
+
+\strong{Note}: by convention \code{xlogx(0)} returns \code{0}.
 }
 \examples{
 \dontrun{
+# Numerical input
+xlog(4)
+xlog(1:10)
+# LazyTensor symbolic element-wise `x*log(x)`
 x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
                                     # indexed by 'i'
-                                    
 xlog_x <- xlogx(x_i)                # symbolic matrix, 150 rows and 3 columns
 }
+}
+\seealso{
+\code{\link[=xlogx.default]{xlogx.default()}}, \code{\link[=xlogx.LazyTensor]{xlogx.LazyTensor()}}
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay

@@ -2,29 +2,27 @@
 % Please edit documentation in R/lazytensor_operations.R
 \name{vecmatmult}
 \alias{vecmatmult}
-\title{Vector-matrix product.}
+\title{Vector-matrix product}
 \usage{
 vecmatmult(v, m)
 }
 \arguments{
-\item{v}{A \code{LazyTensor} or a \code{ComplexLazyTensor} encoding a parameter vector.}
+\item{v}{a \code{LazyTensor} or a \code{ComplexLazyTensor} encoding a parameter vector.}
 
-\item{m}{A \code{LazyTensor} or a \code{ComplexLazyTensor} encoding a matrix.}
+\item{m}{a \code{LazyTensor} or a \code{ComplexLazyTensor} encoding a matrix.}
 }
 \value{
-A \code{LazyTensor} or a \code{ComplexLazyTensor}.
+a \code{LazyTensor} or a \code{ComplexLazyTensor}.
 }
 \description{
-Vector-matrix product - a binary operation.
+Vector-matrix product for \code{LazyTensor} objects.
 }
 \details{
-\code{vecmatmult(v, m)} encodes, symbolically,
-the vector-matrix product of \code{v} and \code{m}.
+\code{vecmatmult(v, m)} encodes, symbolically, the vector-matrix product
+of vector \code{v} and matrix \code{m}.
 
-\strong{Note}
-
-\code{v} and \code{m} should have the same inner dimension or \code{v} should be of
-dimension 1.
+\strong{Note}: \code{v} and \code{m} should have the same inner dimension or \code{v} should be
+of dimension 1.
 }
 \examples{
 \dontrun{

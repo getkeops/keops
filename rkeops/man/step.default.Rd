@@ -2,14 +2,81 @@
 % Please edit documentation in R/lazytensor_operations.R
 \name{step.default}
 \alias{step.default}
-\title{Step.}
+\title{Choose a model by AIC in a Stepwise Algorithm}
 \usage{
-\method{step}{default}(x, ...)
+\method{step}{default}(object, ...)
+}
+\arguments{
+\item{object}{
+    an object representing a model of an appropriate class (mainly
+    \code{"lm"} and \code{"glm"}).
+    This is used as the initial model in the stepwise search.
+  }
+
+\item{...}{
+    any additional arguments to \code{\link[stats]{extractAIC}}.
+  }
+}
+\value{
+the stepwise-selected model is returned, with up to two additional
+  components.  There is an \code{"anova"} component corresponding to the
+  steps taken in the search, as well as a \code{"keep"} component if the
+  \code{keep=} argument was supplied in the call. The
+  \code{"Resid. Dev"} column of the analysis of deviance table refers
+  to a constant minus twice the maximized log likelihood: it will be a
+  deviance only in cases where a saturated model is well-defined
+  (thus excluding \code{lm}, \code{aov} and \code{survreg} fits,
+  for example).
 }
 \description{
-Step.
+Select a formula-based model by AIC.
+}
+\details{
+\code{step} uses \code{\link[stats]{add1}} and \code{\link[stats]{drop1}}
+  repeatedly; it will work for any method for which they work, and that
+  is determined by having a valid method for \code{\link[stats]{extractAIC}}.
+  When the additive constant can be chosen so that AIC is equal to
+  Mallows' \eqn{C_p}{Cp}, this is done and the tables are labelled
+  appropriately.
+
+  The set of models searched is determined by the \code{scope} argument.
+  The right-hand-side of its \code{lower} component is always included
+  in the model, and right-hand-side of the model is included in the
+  \code{upper} component.  If \code{scope} is a single formula, it
+  specifies the \code{upper} component, and the \code{lower} model is
+  empty.  If \code{scope} is missing, the initial model is used as the
+  \code{upper} model.
+
+  Models specified by \code{scope} can be templates to update
+  \code{object} as used by \code{\link[stats]{update.formula}}.  So using
+  \code{.} in a \code{scope} formula means \sQuote{what is
+  already there}, with \code{.^2} indicating all interactions of
+  existing terms.
+
+  There is a potential problem in using \code{\link[stats]{glm}} fits with a
+  variable \code{scale}, as in that case the deviance is not simply
+  related to the maximized log-likelihood.  The \code{"glm"} method for
+  function \code{\link[stats]{extractAIC}} makes the
+  appropriate adjustment for a \code{gaussian} family, but may need to be
+  amended for other cases.  (The \code{binomial} and \code{poisson}
+  families have fixed \code{scale} by default and do not correspond
+  to a particular maximum-likelihood problem for variable \code{scale}.)
+}
+\examples{
+\donttest{
+## following on from example(lm)
+\dontshow{utils::example("lm", echo = FALSE)}
+step(lm.D9)
+
+summary(lm1 <- lm(Fertility ~ ., data = swiss))
+slm1 <- step(lm1)
+summary(slm1)
+slm1$anova
+}
+}
+\seealso{
+\code{\link[stats:step]{stats::step()}}
 }
 \author{
-Chloe Serre-Combe, Amelie Vernay
+R core team and contributors
 }
-\keyword{internal}

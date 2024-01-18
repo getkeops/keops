@@ -3,10 +3,10 @@
 \name{arithmetic.subtract}
 \alias{arithmetic.subtract}
 \alias{-}
-\title{Subtraction or minus sign.}
+\title{Subtraction or minus sign}
 \usage{
--x
-x - y
+\special{-x}
+\special{x - y}
 }
 \arguments{
 \item{x, y}{input for \code{\link[=-.default]{-.default()}} or \code{\link[=-.LazyTensor]{-.LazyTensor()}}.}
@@ -16,7 +16,7 @@ See value of \code{\link[=-.default]{-.default()}} or \code{\link[=-.LazyTensor]
 }
 \description{
 Symbolic subtraction for \code{LazyTensor} objects or default subtraction for
-other types.
+otherwise.
 }
 \details{
 If \code{x} or \code{y} is a \code{LazyTensor}, see \code{\link[=-.LazyTensor]{-.LazyTensor()}}, else see
@@ -33,12 +33,11 @@ the "minus sign", both for \code{LazyTensor} objects or other types.
 1 + 3
 # LazyTensor symbolic subtraction
 x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
-y <- matrix(runif(250 * 3), 250, 3) # arbitrary R matrix, 250 rows and 3 columns
+y <- matrix(runif(250 * 3), 250, 3) # arbitrary R matrix, 250 rows, 3 columns
 x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
                                     # indexed by 'i'
 y_j <- LazyTensor(y, index = 'j')   # creating LazyTensor from matrix y, 
                                     # indexed by 'j'
-                                    
 Sub_xy <- x_i - y_j                 # symbolic matrix
 Minus_x <- -x_i                     # symbolic matrix
 }

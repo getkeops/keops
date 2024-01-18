@@ -33,7 +33,7 @@ install.packages("devtools")
 
 ## Development pipeline
 
-Refer to [`dev/dev_history.Rmd`](dev/dev_history.Rmd) for information and details about RKeOps pipeline development.
+Refer to [`dev_history.Rmd`](dev_history.Rmd) for information and details about RKeOps pipeline development.
 
 ## Continuous Integration (CI)
 
@@ -46,6 +46,12 @@ should be defined with the value `1` before running the CI scripts, i.e.
 ```bash
 export TEST_GPU=1
 ```
+
+## Documentation and website integration
+
+The RKeOps package webpage is generated with [`pkgdown`](https://pkgdown.r-lib.org/).
+
+### Legacy doc (version <2)
 
 To generate html files from the vignettes that can be integrated into the 
 Sphinx doc, see this [script](./ci/html2doc.sh).

@@ -2,14 +2,65 @@
 % Please edit documentation in R/lazytensor_operations.R
 \name{min.LazyTensor}
 \alias{min.LazyTensor}
-\title{Minimum.}
+\alias{min_reduction}
+\title{Minimum operation or minimum reduction}
 \usage{
 \method{min}{LazyTensor}(x, index = NA, ...)
+
+min_reduction(x, index)
+}
+\arguments{
+\item{x}{a \code{LazyTensor} or a \code{ComplexLazyTensor}.}
+
+\item{index}{a \code{character} corresponding to the wanted reduction dimension,
+either \code{"i"} or \code{"j"}, to specify whether if the min reduction is done along
+the index \code{i} or \code{j}.
+It can be \code{NA} (default) when no reduction is desired.}
+
+\item{...}{not used, only present for method compatibility with the
+corresponding generic function.}
+}
+\value{
+a \code{LazyTensor} if \code{index = NA} or an array storing the result of
+the specified min reduction otherwise.
 }
 \description{
-Minimum.
+Minimum operation or minimum reduction for \code{LazyTensor} objects.
+}
+\details{
+If \code{x} is a \code{LazyTensor}, \code{min(x, index)} will :
+\itemize{
+\item if \code{index = "i"}, return the min reduction of \code{x} over the \code{i} index.
+\item if \code{index = "j"}, return the min reduction of \code{x} over the \code{j} index.
+\item if \code{index = NA} (default), return a new \code{LazyTensor} object
+representing the symbolic min of the values along the inner dimension of
+\code{x}.
+}
+
+\strong{Note}: Run \code{browseVignettes("rkeops")} to access the vignettes and find
+details about this function in the \emph{"RKeOps LazyTensor"} vignette, at
+section \emph{"Reductions"}.
+
+\strong{Note}: \code{index} input argument cannot be \code{NA} for the
+\code{min_reduction()} function.
+}
+\examples{
+\dontrun{
+x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
+x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
+                                    # indexed by 'i'
+
+min_x <- min(x_i)                   # LazyTensor object
+min_red_x <- min(x_i, "i")          # min reduction indexed by 'i'
+}
+\dontrun{
+x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
+x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
+                                    # indexed by 'i'
+
+min_reduction(x_i, "i")
+}
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay
 }
-\keyword{internal}

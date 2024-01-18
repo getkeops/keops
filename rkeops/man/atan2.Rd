@@ -2,49 +2,48 @@
 % Please edit documentation in R/lazytensor_operations.R
 \name{atan2}
 \alias{atan2}
-\title{Element-wise 2-argument arc-tangent.}
+\title{Element-wise 2-argument arc-tangent operation.}
 \usage{
 atan2(x, y)
 }
 \arguments{
-\item{x}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric values,
-or a scalar value.}
-
-\item{y}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric values,
-or a scalar value.}
+\item{x, y}{input for \code{\link[=atan2.default]{atan2.default()}} or
+\code{\link[=atan2.LazyTensor]{atan2.LazyTensor()}}.}
 }
 \value{
-An object of class "LazyTensor" if the function is called with a
-\code{LazyTensor}, and an object of class "numeric", "matrix", or "array"
-otherwise, depending on the input class (see R default \code{atan2()} function).
+See value of \code{\link[=atan2.default]{atan2.default()}} or
+\code{\link[=atan2.LazyTensor]{atan2.LazyTensor()}}.
 }
 \description{
-Symbolic binary operation for element-wise 2-argument arc-tangent function.
+Symbolic element-wise 2-argument arc-tangent operation for \code{LazyTensor}
+objects or standard element-wise 2-argument arc-tangent operation
+otherwise.
 }
 \details{
-If \code{x} or \code{y} is a \code{LazyTensor}, \code{atan2(x, y)} returns a
-\code{LazyTensor} that encodes, symbolically, the element-wise atan2 of \code{x} and
-\code{y}.
-(In case one of the arguments is a vector or a scalar, it is first converted
-to LazyTensor).
-If none of the arguments is a LazyTensor, it computes R default atan2
-function.
+If \code{x} is a \code{LazyTensor}, see \code{\link[=atan2.LazyTensor]{atan2.LazyTensor()}}, else
+see \code{\link[=atan2.default]{atan2.default()}}.
 
-\strong{Note}
-
-\code{x} and \code{y} input arguments should have the same inner dimension.
+\strong{Note}: the arc-tangent of two arguments \code{atan2(y, x)} returns the angle
+between the x-axis and the vector from the origin to (x, y), i.e.,
+for positive arguments \code{atan2(y, x) == atan(y/x)}.
 }
 \examples{
 \dontrun{
+# R base operation
+atan2(0, 1)
+atan2(1, 0)
+# LazyTensor symbolic element-wise 2-argument arc-tangent
 x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
-y <- matrix(runif(250 * 3), 250, 3) # arbitrary R matrix, 250 rows and 3 columns
+y <- matrix(runif(250 * 3), 250, 3) # arbitrary R matrix, 250 rows, 3 columns
 x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
                                     # indexed by 'i'
 y_j <- LazyTensor(y, index = 'j')   # creating LazyTensor from matrix y, 
                                     # indexed by 'j'
-                                    
 Atan2_xy <- atan2(x_i, y_j)         # symbolic matrix
 }
+}
+\seealso{
+\code{\link[=atan2.default]{atan2.default()}}, \code{\link[=atan2.LazyTensor]{atan2.LazyTensor()}}
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay

@@ -2,35 +2,40 @@
 % Please edit documentation in R/lazytensor_operations.R
 \name{asin}
 \alias{asin}
-\title{Element-wise arc-sine.}
+\title{Element-wise arc-sine operation.}
 \usage{
 asin(x)
 }
 \arguments{
-\item{x}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector or a matrix of
-numeric values, or a scalar value.}
+\item{x}{input for \code{\link[=asin.default]{asin.default()}} or
+\code{\link[=asin.LazyTensor]{asin.LazyTensor()}}.}
 }
 \value{
-An object of class "LazyTensor" if the function is called with a
-\code{LazyTensor}, and an object of class "numeric", "matrix", or "array"
-otherwise, depending on the input class (see R default \code{asin()} function).
+See value of \code{\link[=asin.default]{asin.default()}} or
+\code{\link[=asin.LazyTensor]{asin.LazyTensor()}}.
 }
 \description{
-Symbolic unary operation for element-wise arc-sine.
+Symbolic element-wise arc-sine operation for \code{LazyTensor}
+objects or standard element-wise arc-sine operation otherwise.
 }
 \details{
-If \code{x} is a \code{LazyTensor}, \code{asin(x)} returns a \code{LazyTensor} that
-encodes, symbolically, the element-wise arc-sine of \code{x} ; else, computes
-R default arc-sine function.
+If \code{x} is a \code{LazyTensor}, see \code{\link[=asin.LazyTensor]{asin.LazyTensor()}}, else
+see \code{\link[=asin.default]{asin.default()}}.
 }
 \examples{
 \dontrun{
+# R base operation
+asin(0)
+asin(-1)
+# LazyTensor symbolic element-wise arc-sine
 x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
                                     # indexed by 'i'
-                                    
 Asin_x <- asin(x_i)                 # symbolic matrix, 150 rows and 3 columns
 }
+}
+\seealso{
+\code{\link[=asin.default]{asin.default()}}, \code{\link[=asin.LazyTensor]{asin.LazyTensor()}}
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay

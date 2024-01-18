@@ -2,40 +2,44 @@
 % Please edit documentation in R/lazytensor_operations.R
 \name{sumsoftmaxweight}
 \alias{sumsoftmaxweight}
+\alias{sumsoftmaxweight_reduction}
 \title{Sum of weighted Soft-Max reduction.}
 \usage{
 sumsoftmaxweight(x, index, weight)
+
+sumsoftmaxweight_reduction(x, index, weight)
 }
 \arguments{
-\item{x}{A \code{LazyTensor} or a \code{ComplexLazyTensor} indexed by 'i' and 'j'.}
+\item{x}{a \code{LazyTensor} or a \code{ComplexLazyTensor}.}
 
-\item{index}{A \code{character} corresponding to the reduction dimension that
-should be either \strong{i} or \strong{j} to specify whether if the reduction is
-indexed by \strong{i} (rows) or \strong{j} (columns).}
+\item{index}{a \code{character} corresponding to the reduction dimension that
+should be either \code{"i"} or \code{"j"} to specify whether if the reduction is
+indexed by \code{"i"} or \code{"j"}.}
 
-\item{weight}{An optional object (\code{LazyTensor} or \code{ComplexLazyTensor}) that
+\item{weight}{an optional object (\code{LazyTensor} or \code{ComplexLazyTensor}) that
 specifies scalar or vector-valued weights.}
 }
 \value{
-A matrix corresponding to the Sum of weighted Soft-Max reduction.
+a matrix corresponding to the Sum of weighted Soft-Max reduction.
 }
 \description{
 Sum of weighted Soft-Max reduction.
+
+Sum of weighted Soft-Max reduction.
 }
 \details{
+If \code{x} is a \code{LazyTensor} or a \code{ComplexLazyTensor},
 \code{sumsoftmaxweight(x, index, weight)} will:
 \itemize{
-\item{if \strong{index = i},}{ return the Log-Sum-Exp reduction of \strong{x}
-over the \strong{i} indices (rows);}
-\item{if \strong{index = j},}{ return the Log-Sum-Exp reduction of \strong{x}
-over the \strong{j} indices (columns).}
+\item if \code{index = "i"}, return the Sum of weighted Soft-Max reduction of \code{x}
+over the \code{i} indexes;
+\item if \code{index = "j"}, return the Sum of weighted Soft-Max reduction of \code{x}
+over the \code{j} indexes.
 }
 
-\strong{Note}
-
-Run \code{browseVignettes("rkeops")} to access the vignettes and find details
-about the function in "RKeOps LazyTensor",
-at section #Reductions.
+\strong{Note}: Run \code{browseVignettes("rkeops")} to access the vignettes and find
+details about this function in the \emph{"RKeOps LazyTensor"} vignette, at
+section \emph{"Reductions"}.
 }
 \examples{
 \dontrun{
@@ -47,8 +51,21 @@ y_j <- LazyTensor(y, index = 'j')
 V_ij <- x_i - y_j   # weight matrix
 S_ij = sum(V_ij^2)     
 
-ssmaxweight <- sumsoftmaxweight(S_ij, 'i', V_ij) # sumsoftmaxweight reduction 
-                                                   # over the 'i' indices
+ssmaxweight <- sumsoftmaxweight(S_ij, 'i', V_ij) # sumsoftmaxweight reduction
+                                                 # over the 'i' indices
+}
+\dontrun{
+x <- matrix(runif(150 * 3), 150, 3) 
+x_i <- LazyTensor(x, index = 'i') 
+y <- matrix(runif(100 * 3), 100, 3)
+y_j <- LazyTensor(y, index = 'j')
+
+V_ij <- x_i - y_j   # weight matrix
+S_ij = sum(V-ij^2)     
+
+# sumsoftmaxweight reduction over the 'i' indices
+ssmaxw_red <- sumsoftmaxweight_reduction(S_ij, 'i', V_ij) 
+
 }
 }
 \author{

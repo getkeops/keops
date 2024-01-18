@@ -2,49 +2,55 @@
 % Please edit documentation in R/lazytensor_operations.R
 \name{Kmin}
 \alias{Kmin}
-\title{Kmin.}
+\alias{Kmin_reduction}
+\title{K-Min reduction}
 \usage{
 Kmin(x, K, index)
+
+Kmin_reduction(x, K, index)
 }
 \arguments{
-\item{x}{A \code{LazyTensor} or a \code{ComplexLazyTensor}.}
+\item{x}{a \code{LazyTensor} or a \code{ComplexLazyTensor}.}
 
 \item{K}{An \code{integer} corresponding to the  number of minimal values
 required.}
 
-\item{index}{A \code{character} corresponding to the reduction dimension that
-should be either \strong{i} or \strong{j} to specify whether if the reduction is
-indexed by \strong{i} (rows) or \strong{j} (columns).}
+\item{index}{a \code{character} corresponding to the reduction dimension that
+should be either \code{"i"} or \code{"j"} to specify whether if the reduction is
+indexed by \code{"i"} or \code{"j"}.}
 }
 \value{
 A matrix corresponding to the Kmin reduction.
 }
 \description{
-K-Min reduction.
+K-Min reduction for \code{LazyTensor} objects.
 }
 \details{
 If \code{x} is a \code{LazyTensor} or a \code{ComplexLazyTensor},
-\code{Kmin(x, K, index)}
-will:
+\code{Kmin(x, K, index)} will:
 \itemize{
-\item{if \strong{index = i},}{ return the \strong{K} minimal values of \strong{x}
-over the \strong{i} indices (rows);}
-\item{if \strong{index = j},}{ return the \strong{K} minimal values of \strong{x}
-over the \strong{j} indices (columns).}
+\item if \code{index = "i"}, return the \code{K} minimal values of \code{x} over the \code{i}
+indexes.
+\item if \code{index = "j"}, return the \code{K} minimal values of \code{x} over the \code{j}
+indexes.
 }
 
-\strong{Note}
-
-Run \code{browseVignettes("rkeops")} to access the vignettes and find details
-about the function in "RKeOps LazyTensor",
-at section #Reductions.
+\strong{Note}: Run \code{browseVignettes("rkeops")} to access the vignettes and find
+details about this function in the \emph{"RKeOps LazyTensor"} vignette, at
+section \emph{"Reductions"}.
 }
 \examples{
 \dontrun{
 x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 x_i <- LazyTensor(x, index = 'i')   # LazyTensor from matrix x, indexed by 'i'
 K <- 2
-kmin_x <- Kmin(x_i, K, "i")         # Kmin reduction, over the "i" indices
+kmin_x <- Kmin(x_i, K, "i")         # Kmin reduction, over the 'i' indices
+}
+\dontrun{
+x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
+x_i <- LazyTensor(x, index = 'i')   # LazyTensor from matrix x, indexed by 'i'
+K <- 2
+kmin_red_x <- Kmin_reduction(x_i, K, "i")   # Kmin reduction, indexed by 'i'
 }
 }
 \author{

@@ -2,37 +2,36 @@
 % Please edit documentation in R/lazytensor_operations.R
 \name{weightedsqdist}
 \alias{weightedsqdist}
-\title{Generic squared distance.}
+\title{Generic weighted squared distance}
 \usage{
 weightedsqdist(x, y, s)
 }
 \arguments{
 \item{x}{A \code{vector} of numeric values or a scalar value.}
 
-\item{y}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric values,
+\item{y}{a \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric values,
 or a scalar value.}
 
-\item{s}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric values,
+\item{s}{a \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric values,
 or a scalar value.}
 }
 \value{
-An object of class "LazyTensor".
+An object of class \code{LazyTensor}.
 }
 \description{
-Symbolic binary operation for weighted squared distance of a LazyTensor.
+Symbolic weighted squared distance binary operation for \code{LazyTensor}
+objects.
 }
 \details{
 \code{weightedsqdist(x, y, s)} returns a \code{LazyTensor} that encodes,
 symbolically, the weighted squared distance of a vector \code{x} with weights
 stored in the LazyTensor \code{s}, same as \code{weightedsqnorm(x - y, s)}.
 
-Run \code{browseVignettes("rkeops")} to access the vignettes and find details
-about the function in "RKeOps LazyTensor",
-at section #Simple vector operations.
+\strong{Note}: \code{x}, \code{y} and \code{s} should all have the same inner dimension.
 
-\strong{Note}
-
-\code{x}, \code{y} and \code{s} should all have the same inner dimension.
+\strong{Note}: Run \code{browseVignettes("rkeops")} to access the vignettes and find
+details about this function in the \emph{"RKeOps LazyTensor"} vignette, at
+section \emph{"Simple vector operations"}.
 }
 \examples{
 \dontrun{
@@ -45,10 +44,13 @@ x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x,
 y_j <- LazyTensor(y, index = 'j')   # creating LazyTensor from matrix y, 
                                     # indexed by 'j'
 s_i <- LazyTensor(s, index = 'i')   # creating LazyTensor from matrix s, 
-                                    # indexed by 'i'                                                                        
+                                    # indexed by 'i'
 
 wsqd_xy <- weightedsqdist(x_i, y_j, s_i)    # symbolic matrix
 }
+}
+\seealso{
+\code{\link[=weightedsqnorm]{weightedsqnorm()}}, \code{\link[=sqdist]{sqdist()}}
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay

@@ -6,26 +6,27 @@
 
 Remaining issues:
 
-- [ ] output for
-  + [ ] Min_ArgMin (missing argmin)
-  + [ ] Max_ArgMax (same)
-  + [ ] KMin (dim of output)
-  + [ ] argKMin (dim of output)
-  + [ ] KMin_ArgKMin (dim of output)
-  + [ ] LogSumExp (check output value)
-  + [ ] SumSoftMaxWeight (Python error: "Axis should be 0 or 1")
+- [x] fix following reductions:
+  + [x] Min_ArgMin (missing argmin)
+  + [x] Max_ArgMax (same)
+  + [x] KMin (dim of output)
+  + [x] argKMin (dim of output)
+  + [x] KMin_ArgKMin (dim of output)
+  + [x] LogSumExp (check output value)
+  + [x] SumSoftMaxWeight (Python error: "Axis should be 0 or 1")
 
-> More in [`dev/debug_LazyTensor.R`](dev/debug_LazyTensor.R) and [`dev/debut_LazyTensor.py`](dev/debut_LazyTensor.py)
+- [x] fix inline doc for min, max (following sum), and other default functions
+- [ ] fix issue with `?"/"`
+- [x] fix issue with `%*%` (including code and doc)
 
-- [ ] fix inline doc for min, max (following sum), and other default functions
+- [x] check if concatenation is done along the inner dimension for `concat` function
+- [x] fix doc of function `concat` in `R/lazytensor_operations.R`
 
-- [ ] fix issue with `%*%`
+- [x] revamp vignettes regarding LazyTensor, and mention it in main vignette
 
-- [ ] revamp vignettes regarding LazyTensor, and mention it in main vignette
+- [x] fix issue from `devtools::check()`
 
-- [ ] fix issue from `devtools::check()`
-
-- [ ] fix doc of function `concat` in `R/lazytensor_operations.R`
+- [x] update website page with new vignettes
 
 ## Implement RKeOps v2+
 

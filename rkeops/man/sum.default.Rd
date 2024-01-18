@@ -2,9 +2,12 @@
 % Please edit documentation in R/lazytensor_operations.R
 \name{sum.default}
 \alias{sum.default}
-\title{Sum operation.}
+\title{Sum operation}
 \usage{
-\method{sum}{default}()
+\method{sum}{default}(...)
+}
+\arguments{
+\item{...}{numeric or complex or logical vectors.}
 }
 \value{
 The sum.  If all of the \code{\dots} arguments are of type
@@ -55,4 +58,10 @@ sum(1:2, 3:5)
 sum(1:5, NA)
 ## ... unless  we exclude missing values explicitly:
 sum(1:5, NA, na.rm = TRUE)
+}
+\seealso{
+\code{\link[base:sum]{base::sum()}}
+}
+\author{
+R core team and contributors
 }

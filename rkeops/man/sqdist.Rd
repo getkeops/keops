@@ -2,31 +2,30 @@
 % Please edit documentation in R/lazytensor_operations.R
 \name{sqdist}
 \alias{sqdist}
-\title{Squared distance.}
+\title{Squared distance}
 \usage{
 sqdist(x, y)
 }
 \arguments{
-\item{x}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric values,
+\item{x}{a \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric values,
 or a scalar value.}
 
-\item{y}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric values,
+\item{y}{a \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric values,
 or a scalar value.}
 }
 \value{
-An object of class "LazyTensor".
+An object of class \code{LazyTensor}.
 }
 \description{
-Symbolic binary operation for squared Euclidean distance.
+Symbolic squared Euclidean distance binary operation for \code{LazyTensor}
+objects.
 }
 \details{
 \code{sqdist(x)} returns a \code{LazyTensor} that encodes, symbolically,
 the squared Euclidean distance between \code{x} and \code{y}, same as \code{sqnorm2(x - y)}.
 
-\strong{Note}
-
-\code{x} and \code{y} input arguments should have the same inner dimension or be of
-dimension 1.
+\strong{Note}: \code{x} and \code{y} input arguments should have the same inner dimension
+or be of dimension 1.
 }
 \examples{
 \dontrun{
@@ -36,6 +35,9 @@ x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x,
                                     
 SqD_x <- sqdist(x_i)                # symbolic matrix, 150 rows and 3 columns
 }
+}
+\seealso{
+\code{\link[=sqnorm2]{sqnorm2()}}
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay

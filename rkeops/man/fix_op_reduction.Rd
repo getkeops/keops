@@ -17,6 +17,10 @@ A text \code{string}.
 }
 \description{
 Returns the internal reduction operation.
+
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} \code{fix_op_reduction()} is not useful
+anymore because \code{rkeops} is using \code{pykeops} Python package as an internal
+engine where this is managed.
 }
 \details{
 \code{fix_op_reduction(reduction_op, with_weight)} will return the
