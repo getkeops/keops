@@ -1597,6 +1597,12 @@ class GenericLazyTensor:
         )
 
     def softdtw_sqdist(self, other, gamma):
+        r"""
+        Soft-DTW distance (based on the squared euclidean distance)
+
+        ``x.softdtw_sqdist(y, gamma)`` computes the Soft-DTW distance between vectors ``x`` and ``y```
+        with smoothness parameter ``gamma``, the base dissimilarity being given by the sqaured euclidean distance.
+        """
         return self.ternary(
             other,
             gamma,

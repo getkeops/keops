@@ -196,6 +196,12 @@ Symbolic gradients and linear operators:
 ``AdjointOperator(f,x)``   adjoint of ``f`` with respect to the variable ``x`` (``f`` must be a linear function of ``x``)
 ========================   =========================================================================================================
 
+Other:
+
+=========================   ===================================================================================================================
+``SoftDTW_SqDist(f,g,c)``   Soft-DTW distance (based on the sqaured euclidean distance) between ``f`` and ``g`` with smoothness parameter ``c``
+=========================   ===================================================================================================================
+
 
 .. _`part.reduction`:
 
