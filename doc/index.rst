@@ -237,7 +237,7 @@ a report on our `GitHub issue tracker <https://github.com/getkeops/keops/issues>
 **Core library - KeOps, PyKeOps, KeOpsLab:**
 
 - `Benjamin Charlier <http://imag.umontpellier.fr/~charlier/>`_, from the University of Montpellier.
-- `Jean Feydy <https://www.jeanfeydy.com/>`_, from Inria Paris.
+- `Jean Feydy <https://www.jeanfeydy.com/>`_, from the `HeKA team <https://team.inria.fr/heka/fr/>`_ (Inria Paris, Inserm, Université Paris-Cité).
 - `Joan Alexis Glaunès <http://www.mi.parisdescartes.fr/~glaunes/>`_, from the University of Paris.
 
 **R bindings - RKeOps:**
@@ -268,6 +268,8 @@ for their valuable suggestions and financial support.
 
 This website was rendered on the `Jean Zay <http://www.idris.fr/eng/jean-zay/index.html>`_ scientific cluster with a Nvidia A100 GPU and 8 cores of an AMD Milan EPYC 7543.
 Access to the HPC resources of IDRIS was granted to Jean Feydy under the allocation 2022-AD011013722 made by GENCI.
+
+KeOps was awarded an `open science prize <https://www.enseignementsup-recherche.gouv.fr/fr/remise-des-prix-science-ouverte-du-logiciel-libre-de-la-recherche-2023-93732>`_ by the French Ministry of Higher Education and Research in 2023 ("Espoir - Documentation").
 
 Table of contents
 -------------------

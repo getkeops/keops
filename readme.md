@@ -230,7 +230,7 @@ a report on our [GitHub issue tracker](https://github.com/getkeops/keops/issues)
 **Core library - KeOps, PyKeOps, KeOpsLab:**
 
 - [Benjamin Charlier](https://imag.umontpellier.fr/~charlier/), from the University of Montpellier.
-- [Jean Feydy](https://www.jeanfeydy.com), from Imperial College London.
+- [Jean Feydy](https://www.jeanfeydy.com), from the [HeKA team](https://team.inria.fr/heka/fr/) (Inria Paris, Inserm, Université Paris-Cité).
 - [Joan Alexis Glaunès](http://helios.mi.parisdescartes.fr/~glaunes/), from the University of Paris.
 
 **R bindings - RKeOps:**
@@ -258,3 +258,5 @@ Beyond explicit code contributions, KeOps has grown out of numerous discussions 
 [Gabriel Peyré](http://www.gpeyre.com/) and 
 [Michael Bronstein](https://people.lu.usi.ch/bronstem/)
 for their valuable suggestions and financial support.
+
+KeOps was awarded an [open science prize](https://www.enseignementsup-recherche.gouv.fr/fr/remise-des-prix-science-ouverte-du-logiciel-libre-de-la-recherche-2023-93732) by the French Ministry of Higher Education and Research in 2023 ("Espoir - Documentation").
