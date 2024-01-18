@@ -286,7 +286,6 @@ def benchmark(
     generate_samples=None,
     **kwargs,
 ):
-    importlib.reload(torch)  # In case we had a memory overflow just before...
     args = generate_samples(N, **kwargs)
 
     benchmark_loop = train_test_loop if type(args) is dict else simple_loop

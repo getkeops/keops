@@ -111,7 +111,6 @@ def benchmark(
 ):
     """Times a convolution on an N-by-N problem, and evaluate accuracy."""
 
-    importlib.reload(torch)  # In case we had a memory overflow just before...
     device = torch.device(dev)
     x_, y_, b_ = generate_samples(N, D, device, lang)
     if dtype == "float16":
