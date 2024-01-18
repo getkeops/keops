@@ -2,14 +2,51 @@
 % Please edit documentation in R/lazytensor_operations.R
 \name{exp.LazyTensor}
 \alias{exp.LazyTensor}
-\title{Element-wise exponential.}
+\alias{exp.ComplexLazyTensor}
+\title{Element-wise exponential operation}
 \usage{
 \method{exp}{LazyTensor}(x)
+
+\method{exp}{ComplexLazyTensor}(x)
+}
+\arguments{
+\item{x}{a \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric values,
+or a scalar value.}
+}
+\value{
+An object of class \code{LazyTensor} or \code{ComplexLazyTensor} depending on
+input.
 }
 \description{
-Element-wise exponential.
+Symbolic element-wise exponential operation for \code{LazyTensor} objects.
+}
+\details{
+\strong{Different use cases}:
+\itemize{
+\item If \code{x} is a \code{LazyTensor}, \code{exp(x)} returns a \code{LazyTensor} that
+encodes, symbolically, the element-wise exponential of \code{x}, i.e.
+\eqn{e^x}.
+\item If \code{x} is a \code{ComplexLazyTensor}, \code{exp(x)} returns a \code{LazyTensor} that
+encodes, symbolically, the element-wise complex exponential of \code{x}
+}
+}
+\examples{
+\dontrun{
+# basic example
+x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
+x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
+                                    # indexed by 'i'
+Exp_x <- exp(x_i)                   # symbolic matrix, 150 rows and 3 columns
+
+# basic example with complex exponential
+z <- matrix(1i^ (-6:5), nrow = 4)        # create a complex 4x3 matrix
+z_i <- LazyTensor(z, index = 'i', is_complex = TRUE) # create a ComplexLazyTensor
+Exp_z_i <- exp(z_i)                                  # symbolic matrix
+}
+}
+\seealso{
+\code{\link[=exp]{exp()}}
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay
 }
-\keyword{internal}

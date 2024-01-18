@@ -2,34 +2,44 @@
 % Please edit documentation in R/lazytensor_operations.R
 \name{log}
 \alias{log}
-\title{Element-wise natural logarithm.}
+\title{Element-wise natural logarithm operation}
 \usage{
-log(x)
+log(x, base = exp(1))
 }
 \arguments{
-\item{x}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric values,
-or a scalar value.}
+\item{x}{input for \code{\link[=log.default]{log.default()}} or
+\code{\link[=log.LazyTensor]{log.LazyTensor()}}.}
+
+\item{base}{numeric, see \code{\link[=log.default]{log.default()}}, not used with \code{LazyTensor}
+input.}
 }
 \value{
-An object of class "LazyTensor" if the function is called with a
-\code{LazyTensor}, and an object of class "numeric", "matrix", or "array"
-otherwise, depending on the input class (see R default \code{log()} function).
+See value of \code{\link[=log.default]{log.default()}} or
+\code{\link[=log.LazyTensor]{log.LazyTensor()}}.
 }
 \description{
-Symbolic unary operation for element-wise natural logarithm.
+Symbolic element-wise natural logarithm operation for \code{LazyTensor}
+objects or default element-wise natural logarithm operation otherwise,
+i.e. \eqn{\log(x)}.
 }
 \details{
-If \code{x} is a \code{LazyTensor}, \code{exp(x)} returns a \code{LazyTensor} that
-encodes, symbolically, the element-wise natural logarithm of \code{x} ;
-else, computes R default logarithm.
+If \code{x} is a \code{LazyTensor}, see \code{\link[=log.LazyTensor]{log.LazyTensor()}}, else
+see \code{\link[=log.default]{log.default()}}.
 }
 \examples{
 \dontrun{
+# R base operation
+log(1)
+log(1:10)
+# LazyTensor symbolic element-wise natural logarithm
 x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
                                     # indexed by 'i'
 Log_x <- log(x_i)                   # symbolic matrix, 150 rows and 3 columns
 }
+}
+\seealso{
+\code{\link[=log.default]{log.default()}}, \code{\link[=log.LazyTensor]{log.LazyTensor()}}
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay

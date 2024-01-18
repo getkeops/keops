@@ -1,8 +1,6 @@
 The MIT License (MIT)
 
-Copyright (c) 2015-2019 Daniel Frey (included C++ library 'sequences')
-
-Copyright (c) 2018-2021 B. Charlier, J. Feydy, J. Glaunès, G. Durif, F.-D. Collin (KeOps/PyKeOps/KeOpslab/RKeOps)
+Copyright (c) 2023 B. Charlier, J. Feydy, J. Glaunès, G. Durif, F.-D. Collin, A. Vernay, C. Serre-Combe (KeOps/PyKeOps/KeOpslab/RKeOps)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

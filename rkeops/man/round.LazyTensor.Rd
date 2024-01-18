@@ -2,14 +2,39 @@
 % Please edit documentation in R/lazytensor_operations.R
 \name{round.LazyTensor}
 \alias{round.LazyTensor}
-\title{Element-wise rounding function.}
+\title{Element-wise rounding function}
 \usage{
-\method{round}{LazyTensor}(x, d, ...)
+\method{round}{LazyTensor}(x, digits = 0)
+}
+\arguments{
+\item{x}{a \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric values,
+or a scalar value.}
+
+\item{digits}{integer indicating the number of decimal places to be used
+when rounding.}
+}
+\value{
+An object of class \code{LazyTensor}.
 }
 \description{
-Element-wise rounding function.
+Symbolic element-wise rounding function for \code{LazyTensor} objects.
+}
+\details{
+If \code{x} is a \code{LazyTensor}, \code{round(x, digits)} returns a \code{LazyTensor}
+that encodes, symbolically, the element-wise rounding of \code{x} to \code{digits}
+decimal places.
+}
+\examples{
+\dontrun{
+x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
+x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
+                                    # indexed by 'i'
+Round_x <- round(x_i, 2)            # symbolic matrix
+}
+}
+\seealso{
+\code{\link[=round]{round()}}
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay
 }
-\keyword{internal}

@@ -4,14 +4,18 @@
 \alias{arithmetic.add.LazyTensor}
 \alias{+.LazyTensor}
 \alias{+.ComplexLazyTensor}
-\title{Addition.}
+\title{Addition}
 \usage{
-x + y  # if x or y is a LazyTensor
+## S3 method for class 'LazyTensor'
+\special{+x}
+\special{x + y}
 
-x + y  # if x or y is a ComplexLazyTensor
+## S3 method for class 'ComplexLazyTensor'
+\special{+x}
+\special{x + y}
 }
 \arguments{
-\item{x, y}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric values,
+\item{x, y}{a \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric values,
 or a scalar value.}
 }
 \value{

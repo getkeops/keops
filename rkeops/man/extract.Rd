@@ -2,36 +2,36 @@
 % Please edit documentation in R/lazytensor_operations.R
 \name{extract}
 \alias{extract}
-\title{Extract.}
+\title{Extract a range of elements}
 \usage{
 extract(x, m, d)
 }
 \arguments{
-\item{x}{A \code{LazyTensor} or a \code{ComplexLazyTensor}.}
+\item{x}{a \code{LazyTensor} or a \code{ComplexLazyTensor}.}
 
-\item{m}{An \code{integer} corresponding to the starting index.}
+\item{m}{an \code{integer} corresponding to the starting index (starting from 0)
+of the range of elements from \code{x} that will be extracted.}
 
-\item{d}{An \code{integer} corresponding to the output dimension.}
+\item{d}{an \code{integer} corresponding to the output dimension, i.e. the number
+of consecutive elements from \code{x} that will be extracted.}
 }
 \value{
-A \code{LazyTensor}.
+a \code{LazyTensor}.
 }
 \description{
-Symbolic sub-element extraction. A unary operation.
+Symbolic extraction range of elements for \code{LazyTensor} objects.
 }
 \details{
 \code{extract(x_i, m, d)} encodes, symbolically, the extraction
 of a range of values \code{x[m:m+d]} in the \code{LazyTensor} \code{x}; (\code{m} is the
 starting index, and \code{d} is the dimension of the extracted sub-vector).
 
-\strong{IMPORTANT}
+\strong{IMPORTANT}: IN THIS CASE, INDICES START AT ZERO, therefore, \code{m} should
+be in \verb{[0, n)}, where \code{n} is the inner dimension of \code{x}. And \code{d} should be
+in \verb{[0, n-m]}.
 
-IN THIS CASE, INDICES START AT ZERO, therefore, \code{m} should be in \verb{[0, n)},
-where \code{n} is the inner dimension of \code{x}. And \code{d} should be in \verb{[0, n-m]}.
-
-\strong{Note}
-
-See @examples for a more concrete explanation of the use of \code{extract()}.
+\strong{Note}: See the examples for a more concrete explanation regarding the
+use of \code{extract()}.
 }
 \examples{
 \dontrun{

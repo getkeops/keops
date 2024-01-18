@@ -56,7 +56,6 @@
 #' accumulating in the output. This improves accuracy for large sized data.
 #' - `"kahan_scheme"`: use Kahan summation algorithm to compensate for 
 #' round-off errors. This improves accuracy for large sized data.
-#' @param reduction_op NULL, not used at the moment (FIXME).
 #' 
 #' @return a function that can be used to compute the value of the 
 #' symbolic formula on actual data. This function takes as input a list of 
@@ -138,15 +137,13 @@
 #' res <- op(list(X, Y, beta, lambda))
 #' }
 #' @export
-keops_kernel <- function(
-        formula, args, sum_scheme = "auto", reduction_op = NULL) {
+keops_kernel <- function(formula, args, sum_scheme = "auto") {
 
     # check input
     assert_string(formula)
     assert_character(args, min.len = 1)
     assert_choice(
         sum_scheme, c("auto", "direct_sum", "block_sum", "kahan_scheme"))
-    assert_string(reduction_op, null.ok = TRUE)
     
     # args parsing
     args_info <- parse_args(formula, args)
@@ -188,14 +185,27 @@ keops_kernel <- function(
         } else {
             aliases <- list(args)
         }
-        routine <- GenredR(
-            formula = pykeops_formula$main_formula,
-            aliases = aliases,
-            reduction_op = pykeops_formula$reduction_op,
-            axis = pykeops_formula$axis,
-            opt_arg = pykeops_formula$opt_arg,
-            sum_scheme = sum_scheme
-        )
+        # manage specific case for weighted reduction
+        routine <- NULL
+        if(pykeops_formula$weighted_reduction) {
+            routine <- GenredR(
+                formula = pykeops_formula$main_formula,
+                aliases = aliases,
+                reduction_op = pykeops_formula$reduction_op,
+                axis = pykeops_formula$axis,
+                formula2 = pykeops_formula$opt_arg,
+                sum_scheme = sum_scheme
+            )
+        } else {
+            routine <- GenredR(
+                formula = pykeops_formula$main_formula,
+                aliases = aliases,
+                reduction_op = pykeops_formula$reduction_op,
+                axis = pykeops_formula$axis,
+                opt_arg = pykeops_formula$opt_arg,
+                sum_scheme = sum_scheme
+            )
+        }
         
         # check input type
         if(!is.list(input)) {

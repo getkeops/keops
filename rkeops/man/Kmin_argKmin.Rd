@@ -2,41 +2,42 @@
 % Please edit documentation in R/lazytensor_operations.R
 \name{Kmin_argKmin}
 \alias{Kmin_argKmin}
-\title{Kmin-argKmin.}
+\alias{Kmin_argKmin_reduction}
+\title{K-Min-arg-K-min reduction}
 \usage{
 Kmin_argKmin(x, K, index)
+
+Kmin_argKmin_reduction(x, K, index)
 }
 \arguments{
-\item{x}{A \code{LazyTensor} or a \code{ComplexLazyTensor}.}
+\item{x}{a \code{LazyTensor} or a \code{ComplexLazyTensor}.}
 
 \item{K}{An \code{integer} corresponding to the  number of minimal values
 required.}
 
 \item{index}{A \code{character} corresponding to the reduction dimension that
-should be either \strong{i} or \strong{j} to specify whether if the reduction is
-indexed by \strong{i} (rows) or \strong{j} (columns).}
+should be either \code{i} or \code{j} to specify whether if the reduction is
+indexed by \code{i} (rows) or \code{j} (columns).}
 }
 \value{
 A matrix corresponding to the Kmin-argKmin reduction.
 }
 \description{
-K-Min-argK-min reduction.
+K-Min-arg-K-min reduction for \code{LazyTensor} objects.
 }
 \details{
 If \code{x} is a \code{LazyTensor} or a \code{ComplexLazyTensor},
 \code{Kmin_argKmin(x, K, index)} will:
 \itemize{
-\item{if \strong{index = i},}{ return the \strong{K} minimal values of \strong{x}
-and its indices over the \strong{i} indices (rows);}
-\item{if \strong{index = j},}{ return the \strong{K} minimal values of \strong{x}
-and its indices over the \strong{j} indices (columns).}
+\item if \code{index = i}, return the \code{K} minimal values of \code{x} (i.e. Kmin) and
+the corresponding indexes over  the \code{i} indices.
+\item if \code{index = j}, return the \code{K} minimal values of \code{x} and its indices
+over the \code{j} indices (columns).
 }
 
-\strong{Note}
-
-Run \code{browseVignettes("rkeops")} to access the vignettes and find details
-about the function in "RKeOps LazyTensor",
-at section #Reductions.
+\strong{Note}: Run \code{browseVignettes("rkeops")} to access the vignettes and find
+details about this function in the \emph{"RKeOps LazyTensor"} vignette, at
+section \emph{"Reductions"}.
 }
 \examples{
 \dontrun{
@@ -45,8 +46,17 @@ x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x,
                                     # indexed by 'i'
 K <- 2
 k_argk_x <- Kmin_argKmin(x_i, K, "i")  # Kmin-argKmin reduction 
-                                       # indexed by "i"
+                                       # indexed by 'i'
 
+}
+\dontrun{
+x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
+x_i <- LazyTensor(x, index = 'i')   # LazyTensor from matrix x, 
+                                    # indexed by 'i'
+
+K <- 2
+k_argk_x <- Kmin_argKmin_reduction(x_i, K, "i")  # Kmin-argKmin reduction 
+                                                 # over the "i" indices
 }
 }
 \author{

@@ -2,14 +2,36 @@
 % Please edit documentation in R/lazytensor_operations.R
 \name{sqrt.LazyTensor}
 \alias{sqrt.LazyTensor}
-\title{Element-wise square root.}
+\title{Element-wise square root operation}
 \usage{
 \method{sqrt}{LazyTensor}(x)
 }
+\arguments{
+\item{x}{a \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric values,
+or a scalar value.}
+}
+\value{
+An object of class \code{LazyTensor}.
+}
 \description{
-Element-wise square root.
+Symbolic element-wise square root operation for \code{LazyTensor} objects.
+}
+\details{
+If \code{x} is a \code{LazyTensor}, \code{sqrt(x)} returns a \code{LazyTensor} that
+encodes, symbolically, the element-wise square root of \code{x}, i.e.
+\eqn{\sqrt{x}}.
+}
+\examples{
+\dontrun{
+x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
+x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
+                                    # indexed by 'i'
+Sqrt_x <- sqrt(x_i)                 # symbolic matrix, 150 rows and 3 columns
+}
+}
+\seealso{
+\code{\link[=sqrt]{sqrt()}}
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay
 }
-\keyword{internal}

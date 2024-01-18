@@ -2,34 +2,33 @@
 % Please edit documentation in R/lazytensor_operations.R
 \name{weightedsqnorm}
 \alias{weightedsqnorm}
-\title{Generic squared Euclidean norm.}
+\title{Generic weighted squared Euclidean norm}
 \usage{
 weightedsqnorm(x, s)
 }
 \arguments{
-\item{x}{A \code{vector} of numeric values or a scalar value.}
+\item{x}{a \code{vector} of numeric values or a scalar value.}
 
-\item{s}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric values,
-or a scalar value.
-
-\strong{Note}
-
-\code{x}, and \code{s} should have the same inner dimension.}
+\item{s}{a \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric values,
+or a scalar value.}
 }
 \value{
-An object of class "LazyTensor".
+An object of class \code{LazyTensor}.
 }
 \description{
-Symbolic binary operation for weighted squared norm of a LazyTensor.
+Symbolic weighted squared norm of a LazyTensor binary operation for
+\code{LazyTensor} objects.
 }
 \details{
 \code{weightedsqnorm(x, s)} returns a \code{LazyTensor} that encodes,
 symbolically, the weighted squared norm of a vector \code{x} with weights stored
 in the LazyTensor \code{s}.
 
-Run \code{browseVignettes("rkeops")} to access the vignettes and find details
-about the function in "RKeOps LazyTensor",
-at section #Simple vector operations.
+\strong{Note}: \code{x}, and \code{s} should have the same inner dimension.
+
+\strong{Note}: Run \code{browseVignettes("rkeops")} to access the vignettes and find
+details about this function in the \emph{"RKeOps LazyTensor"} vignette, at
+section \emph{"Simple vector operations"}.
 }
 \examples{
 \dontrun{
@@ -39,9 +38,11 @@ x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x,
                                     # indexed by 'i'
 s_j <- LazyTensor(s, index = 'j')   # creating LazyTensor from matrix s, 
                                     # indexed by 'j'
-
-wsqn_xy <- weightedsqnorm(x_i, s_j)
+wsqn_xy <- weightedsqnorm(x_i, s_j) # symbolic matrix, 100 rows,1 columns
 }
+}
+\seealso{
+\code{\link[=sqnorm2]{sqnorm2()}}, \code{\link[=weightedsqdist]{weightedsqdist()}}
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay

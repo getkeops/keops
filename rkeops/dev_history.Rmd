@@ -1,0 +1,155 @@
+---
+title: "Development actions history"
+author: "Ghislain DURIF"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+## Usethis setup
+
+```{r dev-setup}
+proj_dir <- rprojroot::find_root(".git/index")
+pkg_dir <- file.path(proj_dir, "rkeops")
+setwd(pkg_dir)
+usethis::proj_set(pkg_dir, force = TRUE)
+usethis::proj_sitrep()
+```
+
+## Reticulate config
+
+```{r dev-reticulate}
+# create virtualenv
+reticulate::virtualenv_create("rkeops")
+# install pykeops
+reticulate::virtualenv_install("rkeops", "pykeops")
+# activate python environment
+reticulate::use_virtualenv(virtualenv = "rkeops", required = TRUE)
+# check Python config
+reticulate::py_config()
+```
+
+## Package development
+
+### Metadata
+
+:warning: Code chunk in this section should be run only once. :warning:
+
+```{r dev-metadata}
+# description
+usethis::use_description(
+    fields = list(
+        Title = "Kernel Operations on GPU or CPU, with Autodiff, without Memory Overflows",
+        Description = "The 'KeOps' library lets you compute generic reductions of very 
+    large arrays whose entries are given by a mathematical formula with CPU and 
+    GPU computing support. It combines a tiled reduction scheme with an 
+    automatic differentiation engine. It is perfectly suited to the efficient 
+    computation of Kernel dot products and the associated gradients, even when 
+    the full kernel matrix does not fit into the GPU memory.",
+        `Authors@R` = c(
+            person(given = "Ghislain", family = "Durif", 
+                   comment = c(
+                       ORCID = "0000-0003-2567-1401", 
+                       website = "<https://gdurif.perso.math.cnrs.fr/>"
+                   ), 
+                   email="gd.dev@libertymail.net", 
+                   role=c("aut", "cre")),
+            person(given = "Amelie", family = "Vernay", 
+                   email="amelie.vernay@umontpellier.fr", 
+                   role=c("aut")),
+            person(given="Benjamin", family="Charlier", 
+                   comment="<http://imag.umontpellier.fr/~charlier/>", 
+                   role="aut"), 
+            person(given="Jean", family="Feydy", 
+                   comment="<https://www.jeanfeydy.com>", 
+                   role="aut"), 
+            person(given="Joan A.", family="Glaunès", 
+                   comment="<https://www.mi.parisdescartes.fr/~glaunes/>", 
+                   role="aut"),
+            person(given="François-David", family="Collin", 
+                   comment="Development-related consulting and support", 
+                   role="ctb")
+        ),
+        URL = "https://www.kernel-operations.io/, https://github.com/getkeops/keops/",
+        BugReports = "https://github.com/getkeops/keops/issues",
+        Encoding = "UTF-8",
+        LazyData = "true",
+        Version = paste0(readLines(file.path(proj_dir, "keops_version")), ".0"),
+        `Date/Publication` = format(Sys.time(), "%Y-%m-%d"),
+        SystemRequirements = "Python (>= 3.5.0), C++ compiler (gcc/clang), CUDA (optional but recommended)",
+        `Config/reticulate` = list(packages = list(list(package = "pykeops"))),
+        VignetteBuilder = "knitr",
+        RdMacros = "Rdpack"
+        
+    ),
+    check_name = TRUE, 
+    roxygen = TRUE
+)
+# License
+usethis::use_mit_license()
+# Roxygen markdown
+usethis::use_roxygen_md()
+```
+
+```{r dev-req}
+# requirements
+usethis::use_package("reticulate", type = "Imports")
+usethis::use_package("withr", type = "Suggests")
+usethis::use_package("Rdpack", type = "Imports")
+usethis::use_testthat()
+usethis::use_lifecycle()
+```
+
+### Documentation
+
+```{r dev-doc}
+# Simulate package installation
+pkgload::load_all(pkg_dir)
+
+# load required package
+library(checkmate)
+library(tibble)
+# Generate documentation and deal with dependencies
+attachment::att_amend_desc(path = pkg_dir)
+usethis::use_package("ggplot2", type = "Suggests")
+usethis::use_package("dplyr", type = "Suggests")
+usethis::use_package("pracma", type = "Suggests")
+usethis::use_package("plotly", type = "Suggests")
+usethis::use_package("reshape", type = "Suggests")
+```
+
+```{r dev-readme}
+# generate README.md from README.Rmd
+devtools::build_readme(pkg_dir)
+```
+
+```{r dev-vignette}
+devtools::build_vignettes(pkg_dir)
+```
+
+```{r dev-website}
+pkgdown::build_site(pkg = pkg_dir)
+```
+
+### Test and check
+
+```{r dev-test}
+# run the unit tests
+devtools::test(pkg_dir)
+```
+
+```{r dev-cov}
+# test coverage
+covr::package_coverage(
+    pkg_dir, line_exclusions = list("R/init.R", "R/python.R"))
+```
+
+```{r dev-check-doc}
+# check the package doc
+devtools::check_man(pkg_dir)
+```
+
+```{r dev-check}
+# fully check the package
+devtools::check(pkg_dir, run_dont_test = TRUE)
+```

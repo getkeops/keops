@@ -2,14 +2,42 @@
 % Please edit documentation in R/lazytensor_operations.R
 \name{Im.LazyTensor}
 \alias{Im.LazyTensor}
-\title{Element-wise imaginary part of complex.}
+\alias{Im.ComplexLazyTensor}
+\title{Element-wise complex imaginery part}
 \usage{
 \method{Im}{LazyTensor}(z)
+
+\method{Im}{ComplexLazyTensor}(z)
+}
+\arguments{
+\item{z}{A \code{ComplexLazyTensor} or any type of values accepted by R default
+\code{\link[base:complex]{base::Im()}} function.}
+}
+\value{
+An object of class \code{ComplexLazyTensor}.
 }
 \description{
-Element-wise imaginary part of complex.
+Symbolic element-wise complex imaginery part operation for
+\code{ComplexLazyTensor} objects.
+}
+\details{
+If \code{z} is a \code{ComplexLazyTensor}, \code{Im(z)} returns a
+\code{ComplexLazyTensor} that encodes, symbolically, the element-wise imaginary
+part of complex \code{z}.
+
+\strong{Note}: \code{Im(z)} will exit with an error if \code{z} is a \code{LazyTensor} but not
+a \code{ComplexLazyTensor}.
+}
+\examples{
+\dontrun{
+z <- matrix(2 + 1i^ (-6:5), nrow = 4)        # complex matrix
+z_i <- LazyTensor(z, "i", is_complex = TRUE) # creating ComplexLazyTensor
+Im_z <- Im(z_i)                              # symbolic matrix
+}
+}
+\seealso{
+\code{\link[=Im]{Im()}}
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay
 }
-\keyword{internal}

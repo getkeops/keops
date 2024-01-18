@@ -6,7 +6,10 @@ output:
   pdf_document:
     toc: true
     number_sections: yes
-author: ""
+author:
+  - Amelie Vernay
+  - Chloe Serre-Combe
+  - Ghislain Durif
 date: "`r Sys.Date()`"
 vignette: >
   %\VignetteEncoding{UTF-8}
@@ -14,18 +17,31 @@ vignette: >
   %\VignetteEngine{knitr::rmarkdown}
 ---
 
-```{r setup, include = FALSE}
+```{r setup, include=FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
   progress = TRUE,
-  warning = FALSE
+  warning = FALSE,
+  eval = TRUE
 )
 ```
 
-```{r devtools, message=FALSE, include=FALSE, eval=FALSE}
-#library(rkeops)
-devtools::load_all("..")
-set_rkeops_options()
+```{r requirement, include=FALSE}
+required <- c("ggplot2", "dplyr", "pracma", "plotly", "reshape")
+sapply(
+    required,
+    function(pkg) {
+        if(! pkg %in% .packages(all.available = TRUE)) install.packages(pkg)
+    }
+)
+```
+
+```{r library}
+library(ggplot2) # graph generation
+library(dplyr)   # data.frame manipulation
+library(pracma)  # to create the meshgrid
+library(plotly)  # reactive graph generation
+library(reshape) # matrix to data.frame reformatting
 ```
 
 This tutorial is highly inspired by the [pyKeOps tutorial on kernel interpolation](https://www.kernel-operations.io/keops/_auto_tutorials/interpolation/plot_RBF_interpolation_numpy.html#sphx-glr-auto-tutorials-interpolation-plot-rbf-interpolation-numpy-py).
@@ -43,7 +59,7 @@ where $K_{xx}$ is a symmetric, positive definite matrix encoded as an `RKeOps La
 
 ## Setup
 
-```{r init, eval=FALSE}
+```{r init}
 library(rkeops)
 rkeops_use_float64()
 ```
@@ -53,7 +69,7 @@ rkeops_use_float64()
 
 Generate some data:
 
-```{r data1D, eval=FALSE}
+```{r data1D}
 N <- 10000 # number of samples
 
 x <- matrix(runif(N * 1), N, 1)
@@ -65,7 +81,7 @@ b <- x + 0.5 * sin(6 * x) + 0.1 * sin(20 * x) + 0.05 * pert
 
 Specify our **regression model** - a simple **Gaussian** variogram or **kernel matrix** of deviation `sigma`.
 
-```{r gaussian_kernel, eval=FALSE}
+```{r gaussian_kernel}
 gaussian_kernel <- function(x, y, sigma = 0.1) {
     x_i <- Vi(x) # symbolic 'i'-indexed matrix
     y_j <- Vj(y) # symbolic 'j'-indexed matrix
@@ -75,11 +91,11 @@ gaussian_kernel <- function(x, y, sigma = 0.1) {
 }
 ```
 
-**Kernel Interpolation**
+### Kernel Interpolation
 
 We implement the conjugate gradient algorithm, that includes the `lambda` regularization parameter.
 
-```{r CGS, eval=FALSE}
+```{r CGS}
 CG_solve <- function(K, b, lambda, eps = 1e-6) {
     # ----------------------------------------------------------------
     # Conjugate gradient algorithm to solve linear systems of the form
@@ -120,7 +136,7 @@ CG_solve <- function(K, b, lambda, eps = 1e-6) {
 
 Perform the **Kernel interpolation**, without forgetting to specify the ridge regularization parameter `lambda` which controls the trade-off between a perfect fit (`lambda` = $0$) and a smooth interpolation (`lambda` = $+\infty$):
 
-```{r call1D, eval=FALSE}
+```{r call1D}
 K_xx <- gaussian_kernel(x, x)
 
 lambda <- 1
@@ -140,7 +156,7 @@ print(paste("Time to perform an RBF interpolation with",
 
 Display the (fitted) model on the unit interval:
 
-```{r plot1D, fig.width=7, fig.height=6, fig.align='center', message=FALSE, eval=FALSE}
+```{r plot1D, fig.width=7, fig.height=6, fig.align='center', message=FALSE}
 # extrapolate on a uniform sample
 t <- as.matrix(seq(from = 0, to = 1, length.out = N))
 
@@ -151,7 +167,6 @@ D <- as.data.frame(cbind(x, b, t, mean_t))
 colnames(D) <- c("x", "b", "t", "mean_t")
 
 # 1D plot
-require(ggplot2)
 ggplot(aes(x = x, y = b), data = D) +
   geom_point(color = '#1193a8', alpha = 0.5, size = 0.4) +
   geom_line(aes(x = t, y = mean_t), color = 'darkred') +
@@ -166,7 +181,7 @@ ggplot(aes(x = x, y = b), data = D) +
 
 Generate some data:
 
-```{r data2D, eval=FALSE}
+```{r data2D}
 N <- 10000
 # Sampling locations:
 x <- matrix(runif(N * 2), N, 2)
@@ -187,7 +202,7 @@ b[(length(b) - Nout + 1):length(b)] <- matrix(runif(Nout * 1), Nout, 1)
 
 Specify our **regression model** - a simple **Exponential** variogram or **Laplacian** kernel matrix of deviation `sigma`:
 
-```{r laplacian_kernel, eval=FALSE}
+```{r laplacian_kernel}
 laplacian_kernel <- function(x, y, sigma = 0.1) {
   x_i <- Vi(x)
   y_j <- Vj(y)
@@ -199,7 +214,7 @@ laplacian_kernel <- function(x, y, sigma = 0.1) {
 
 Perform the **Kernel interpolation**, without forgetting to specify the ridge regularization parameter `lambda` which controls the trade-off between a perfect fit (`lambda` = $0$) and a smooth interpolation (`lambda` = $+\infty$):
 
-```{r call2D, eval=FALSE}
+```{r call2D}
 lambda <- 10  # Ridge regularization
 
 start <- Sys.time()
@@ -213,12 +228,10 @@ print(paste("Time to perform an RBF interpolation with",
             sep = " "))
 ```
 
-Display the (fitted) model:
+Interpolate and display the (fitted) model:
 
-```{r plot2D, fig.width=7, fig.height=6, fig.align='center', message=FALSE, warning=FALSE, eval=FALSE}
-require(pracma) # to create the meshgrid
-
-# Extrapolate on a uniform sample:
+```{r interpolate_2D, fig.width=7, fig.height=6, fig.align='center', message=FALSE, warning=FALSE}
+# Interpolate on a uniform sample:
 X <- seq(from = 0, to = 1, length.out = 100)
 Y <- seq(from = 0, to = 1, length.out = 100)
 
@@ -230,9 +243,40 @@ mean_t <- K_tx %*% Vj(a)
 
 mean_t <- matrix(mean_t, 100, 100)
 mean_t <- mean_t[nrow(mean_t):1, ]
+```
 
+```{r plot2D_ggplot_sample, fig.width=7, fig.height=6, fig.align='center', message=FALSE, warning=FALSE, fig.cap="Data sample"}
+# Data
+data2plot_sample <- data.frame(
+    X = x[,1],
+    Y = x[,2],
+    value = b
+)
+
+ggplot(data2plot_sample, aes(x = X, y = Y, col = value)) + 
+    geom_point() +
+    scale_color_gradient(low = "#C2C2C9", high = "darkred") + 
+    coord_fixed() +
+    theme_bw()
+```
+
+```{r plot2D_ggplot_interpol, fig.width=7, fig.height=6, fig.align='center', message=FALSE, warning=FALSE, fig.cap="Kernel interpolation"}
+# Interpolation
+data2plot_interpol <- reshape::melt(mean_t) %>% 
+    mutate(X = X[X1], Y = Y[X2]) %>% dplyr::select(!c(X1, X2))
+
+ggplot(data2plot_interpol, aes(x = X, y = Y, fill = value)) + 
+    geom_tile() + 
+    scale_fill_gradient(low = "#C2C2C9", high = "darkred") + 
+    coord_fixed() +
+    theme_bw()
+
+```
+
+`Plotly` interactive graph:
+
+```{r plot2D_plotly, fig.width=7, fig.height=6, fig.align='center', message=FALSE, warning=FALSE, eval=FALSE}
 # 2D plot: noisy samples and interpolation in the background
-require(plotly)
 fig <- plot_ly(z = mean_t,
                type = "heatmap",
                colors = colorRamp(c("#C2C2C9", "darkred")),
@@ -246,11 +290,8 @@ fig <- fig %>% add_trace(type = "scatter",
                          marker = list(size = 4, color = as.vector(b))
                          )
 
-fig <- fig %>% layout(xaxis = list(title = ""),
+fig <- fig %>% plotly::layout(xaxis = list(title = ""),
                       yaxis = list(title = ""))
 
 colorbar(fig, limits = c(0, 1), x = 1, y = 0.75)
 ```
-
-
-

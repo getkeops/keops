@@ -4,12 +4,47 @@
 \alias{ifelse.LazyTensor}
 \title{Element-wise if-else function.}
 \usage{
-\method{ifelse}{LazyTensor}(x, a, b)
+\method{ifelse}{LazyTensor}(test, yes, no)
+}
+\arguments{
+\item{test, yes, no}{a \code{LazyTensor}, a vector of numeric values,
+or a scalar value.}
+}
+\value{
+An object of class \code{LazyTensor}.
 }
 \description{
-Element-wise if-else function.
+Symbolic element-wise if-else function  (ternary operation) for
+\code{LazyTensor} objects.
+}
+\details{
+If \code{test} is a \code{LazyTensor}, \code{ifelse(test, yes, no)} returns a
+\code{LazyTensor} that encodes, symbolically, \code{yes} if \code{test >= 0} and
+\code{no} if \code{test < 0}.
+Broadcasting rules apply.
+\code{yes} and \code{no} may be fixed integers or floats, or other \code{LazyTensor}.
+
+\strong{Note}: If \code{yes} and \code{no} are not scalar values, these should have the same
+inner dimension as \code{test}.
+}
+\examples{
+\dontrun{
+# basic example
+D <- 3
+M <- 100
+N <- 150
+P <- 200
+x <- matrix(runif(M * D), M, D)
+y <- matrix(runif(N * D), N, D)
+z <- matrix(runif(P * D), P, D)
+x_i <- LazyTensor(x, index = 'i')
+y_j <- LazyTensor(y, index = 'j')
+z_i <- LazyTensor(z, index = 'i')
+
+# call ifelse function
+if_else_xyz <- ifelse(x_i, y_j, z_i)
+}
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay
 }
-\keyword{internal}

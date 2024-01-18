@@ -2,35 +2,40 @@
 % Please edit documentation in R/lazytensor_operations.R
 \name{square}
 \alias{square}
-\title{Element-wise square.}
+\title{Element-wise square (power-2) operation}
 \usage{
 square(x)
 }
 \arguments{
-\item{x}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector or a matrix of
-numeric values, or a scalar value.}
+\item{x}{input for \code{\link[=square.default]{square.default()}} or
+\code{\link[=square.LazyTensor]{square.LazyTensor()}}.}
 }
 \value{
-An object of class "LazyTensor" if the function is called with a
-\code{LazyTensor}, and an object of class "numeric", "matrix", or "array"
-otherwise, same as the input class.
+See value of \code{\link[=square.default]{square.default()}} or
+\code{\link[=square.LazyTensor]{square.LazyTensor()}}
 }
 \description{
-Symbolic unary operation for element-wise square.
+Symbolic element-wise square operation for \code{LazyTensor} objects or
+standard element-wise square operation otherwise, i.e. \eqn{x^2}.
 }
 \details{
-If \code{x} is a \code{LazyTensor}, \code{square(x)} returns a \code{LazyTensor} that
-encodes, symbolically, the element-wise square of \code{x} ;
-else, is equivalent to the "^2" R operator.
+If \code{x} is a \code{LazyTensor}, see \code{\link[=square.LazyTensor]{square.LazyTensor()}}, else
+see \code{\link[=square.default]{square.default()}}.
 }
 \examples{
 \dontrun{
+# Numerical input
+square(4)
+square(1:4)
+# LazyTensor symbolic element-wise square
 x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
                                     # indexed by 'i'
-                                    
 Square_x <- square(x_i)             # symbolic matrix, 150 rows and 3 columns
 }
+}
+\seealso{
+\code{\link[=square.default]{square.default()}}, \code{\link[=square.LazyTensor]{square.LazyTensor()}}
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay

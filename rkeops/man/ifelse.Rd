@@ -2,45 +2,32 @@
 % Please edit documentation in R/lazytensor_operations.R
 \name{ifelse}
 \alias{ifelse}
-\title{Element-wise if-else function.}
+\title{Element-wise if-else function}
 \usage{
-ifelse(x, a, b)
+ifelse(test, yes, no)
 }
 \arguments{
-\item{x}{A \code{LazyTensor}, a vector of numeric values,
-or a scalar value.}
-
-\item{a}{A \code{LazyTensor}, a vector of numeric values,
-or a scalar value.}
-
-\item{b}{A \code{LazyTensor}, a vector of numeric values,
-or a scalar value.}
+\item{test, yes, no}{input for \code{\link[=ifelse.default]{ifelse.default()}} or
+\code{\link[=ifelse.LazyTensor]{ifelse.LazyTensor()}}.}
 }
 \value{
-An object of class "LazyTensor" if the function is called with a
-\code{LazyTensor}, and an object of class "numeric", "matrix", or "array"
-otherwise, depending on the input class (see R default \code{base::ifelse()}
-function).
+See value of \code{\link[=ifelse.default]{ifelse.default()}} or
+\code{\link[=ifelse.LazyTensor]{ifelse.LazyTensor()}}
 }
 \description{
-Symbolic ternary operation for element-wise if-else function.
+Symbolic element-wise if-else function for \code{LazyTensor} objects or
+standard element-wise if-else function otherwise.
 }
 \details{
-If \code{x} is a \code{LazyTensor}, \code{ifelse(x, a, b)} returns a \code{LazyTensor}
-that encodes, symbolically,
-\code{a} if \code{x >= 0} and \code{b} if \code{x < 0}.  Broadcasting rules apply.
-\code{a} and \code{b} may be fixed integers or floats, or other \code{LazyTensor}.
-
-Else, computes R default if-else function.
-
-\strong{Note}
-
-If \code{a} and \code{b} are not scalar values, these should have the same inner
-dimension as \code{x}.
+If \code{test} is a \code{LazyTensor}, see \code{\link[=ifelse.LazyTensor]{ifelse.LazyTensor()}}, else
+see \code{\link[=ifelse.default]{ifelse.default()}}.
 }
 \examples{
 \dontrun{
-# basic example
+# R base operation
+x <- c(6:-4)
+sqrt(ifelse(x >= 0, x, NA))
+# LazyTensor symbolic element-wise square
 D <- 3
 M <- 100
 N <- 150
@@ -52,9 +39,11 @@ x_i <- LazyTensor(x, index = 'i')
 y_j <- LazyTensor(y, index = 'j')
 z_i <- LazyTensor(z, index = 'i')
 
-# call ifelse function
 if_else_xyz <- ifelse(x_i, y_j, z_i)
 }
+}
+\seealso{
+\code{\link[=ifelse.default]{ifelse.default()}}, \code{\link[=ifelse.LazyTensor]{ifelse.LazyTensor()}}
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay

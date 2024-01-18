@@ -3,10 +3,10 @@
 \name{arithmetic.add}
 \alias{arithmetic.add}
 \alias{+}
-\title{Addition.}
+\title{Addition}
 \usage{
-+x
-x + y
+\special{+x}
+\special{x + y}
 }
 \arguments{
 \item{x, y}{input for \code{\link[=+.default]{+.default()}} or \code{\link[=+.LazyTensor]{+.LazyTensor()}}.}
@@ -37,9 +37,9 @@ or \code{x + y}.
 # LazyTensor symbolic addition
 x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 y <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
-x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
+x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x,
                                     # indexed by 'i'
-y_j <- LazyTensor(y, index = 'j')   # creating LazyTensor from matrix y, 
+y_j <- LazyTensor(y, index = 'j')   # creating LazyTensor from matrix y,
                                     # indexed by 'j'
 Sum_xy <- x_i + y_j                 # symbolic matrix, 150 rows and 3 columns
 }

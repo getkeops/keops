@@ -2,7 +2,7 @@
 % Please edit documentation in R/lazytensor_operations.R
 \name{sum}
 \alias{sum}
-\title{Sum operation or Sum reduction.}
+\title{Sum operation or sum reduction}
 \usage{
 sum(x, ...)
 }
@@ -16,12 +16,26 @@ sum(x, ...)
 Sum of input.
 }
 \description{
-Sum operation for vector or LazyTensor, or Sum reduction for
-LazyTensor.
+Sum operation for vector/matrix/array or \code{LazyTensor}, or sum reduction for
+\code{LazyTensor}.
 }
 \details{
 If \code{x} is a \code{LazyTensor}, see \code{\link[=sum.LazyTensor]{sum.LazyTensor()}}, else see
 \code{\link[=sum.default]{sum.default()}}.
+}
+\examples{
+\dontrun{
+# R base operation
+sum(1:10)
+sum(c(NA, 1, 2), na.rm = TRUE)
+# LazyTensor operation
+x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
+x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
+                                    # indexed by 'i'
+
+sum_x <- sum(x_i)                   # LazyTensor object
+sum_red_x <- sum(x_i, "i")          # sum reduction indexed by 'i'
+}
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay

@@ -138,4 +138,50 @@ test_that("keops_kernel", {
     expected_res <- apply(
         x + matrix(rep(y, nx), byrow = TRUE, ncol = 3), 2, sum)
     expect_true(sum(abs(res - expected_res)) < 1E-9)
+    
+    
+    ## weighted reduction (e.g. SumSoftMaxWeight)
+    formula = "SumSoftMaxWeight_Reduction(SqNorm2(x-y), w, 1)"
+    args = c("x=Vi(3)", "y=Vj(3)", "w=Vj(3)")
+    # define and compile operator
+    op <- keops_kernel(formula, args)
+    expect_true(is.function(op))
+    
+    # data
+    nx <- 10
+    ny <- 15
+    x <- matrix(runif(nx*3), nrow=nx, ncol=3)
+    y <- matrix(runif(ny*3), nrow=ny, ncol=3)
+    
+    # with weights equal to 1
+    w <- matrix(1, nrow = ny, ncol = 3)
+    
+    # run
+    input <- list(x, y, w)
+    res <- op(input, inner_dim = "col")
+    expect_true(is.matrix(res))
+    expect_equal(dim(res), c(nx, 3))
+    expect_equal(res, matrix(1, nx, 3))
+    
+    # with random weights
+    w <- matrix(1, nrow = ny, ncol = 3)
+    input <- list(x, y, w)
+    res <- op(input, inner_dim = "col")
+    expect_true(is.matrix(res))
+    expect_equal(dim(res), c(nx, 3))
+    expect_equal(res, matrix(1, nx, 3))
+    
+    S_val <- t(sapply(
+        1:nrow(x), function(id_x) 
+            sapply(1:nrow(y), function(id_y) sum((x[id_x,] - y[id_y,])^2))
+    ))
+    exp_S_val <- t(apply(
+        S_val, 1, 
+        function(vec) {
+            return(exp(vec - max(vec)))
+        }
+    ))
+    expected_res <- exp_S_val %*% w / matrix(apply(exp_S_val, 1, sum), nx, 3)
+    expect_equal(res, expected_res, tolerance = 1e-5)
+    
 })

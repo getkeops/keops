@@ -2,39 +2,40 @@
 % Please edit documentation in R/lazytensor_operations.R
 \name{extractT}
 \alias{extractT}
-\title{ExtractT.}
+\title{Insert a range of elements}
 \usage{
 extractT(x, m, d)
 }
 \arguments{
-\item{x}{A \code{LazyTensor} or a \code{ComplexLazyTensor}.}
+\item{x}{a \code{LazyTensor} or a \code{ComplexLazyTensor}.}
 
-\item{m}{An \code{integer} corresponding to the starting index.}
+\item{m}{an \code{integer} corresponding to the starting index (starting from 0)
+where the elements from \code{x} will be inserted.}
 
-\item{d}{An \code{integer} corresponding to the output inner dimension.}
+\item{d}{an \code{integer} corresponding to the output inner dimension.}
 }
 \value{
 A \code{LazyTensor}.
 }
 \description{
-Insert a given value, vector of values or matrix of values in a symbolic
-vector or matrix of zeros -
-a unary operation.
+Insert a given value, vector of values or matrix of values (stored in a
+\code{LazyTensor}) in a symbolic vector or matrix of zeros.
 }
 \details{
 If \code{x} is a \code{LazyTensor} encoding a vector (resp. a matrix),
 \code{extractT(x, m, d)} encodes, symbolically, a \code{d}-inner-dimensional
 vector (resp. matrix) of zeros in which is inserted \code{x},
-at starting position \code{m}.
+at starting position \code{m+1}.
 
-\strong{Note 1}
+\strong{IMPORTANT}: IN THIS CASE, INDICES START AT ZERO, therefore, \code{m} should
+be in \verb{[0, n)}, where \code{n} is the inner dimension of \code{x}. And \code{d} should be
+in \verb{[0, n-m]}.
 
-\code{x} can also encode a single value, in which case the operation works
-the same way as in the case of a vector of values.
+\strong{Note 1}: \code{x} can also encode a single value, in which case the
+operation works the same way as in the case of a vector of values.
 
-\strong{Note 2}
-
-See @examples for a more concrete explanation of the use of \code{extractT()}.
+\strong{Note 2}: See the examples for a more concrete explanation regarding the
+use of \code{extractT()}.
 }
 \examples{
 \dontrun{
@@ -74,7 +75,7 @@ extT_Pm_v <- extract(Pm_v, 2, 3)
 # [1,]    0    1    2    3    1    5    0    0
 
 
-3) Same again with a scalar value:
+# 3) Same again with a scalar value:
 scal <- 3.14
 Pm_scal <- Pm(scal) # `Pm(x)` is an aliases for `LazyTensor(x, index = NA)`
 

@@ -180,7 +180,7 @@ get_pykeops_formula <- function(
     
     # manage 'Grad' case
     # note: no problem if gradient inside reduction
-    if(str_detect(formula, "^Grad")){
+    if(str_detect(formula, "^Grad")) {
         
         # extract grad argument
         grad_args <- unlist(str_split(tmp_form, ","))
@@ -198,17 +198,34 @@ get_pykeops_formula <- function(
     }
     
     # extract reduction operator
-    reduction_op <- str_extract(formula, "[^_]+")
+    reduction_op <- str_extract(formula, ".+(?=_Reduction)")
+    checkmate::expect_string(reduction_op)
+    
     # extract reduction arguments
     reduction_args <- unlist(strsplit(tmp_form, ","))
     
     # number of reduction arguments
     nargs <- length(reduction_args)
+    
     # reduction axis
     axis <- as.integer(reduction_args[nargs])
-    # optional reduction arguments
+    
+    # reduction optional arguments
     opt_arg <- NULL
-    if(nargs > 2) opt_arg <- as.integer(reduction_args[nargs - 1])
+    weighted_reduction <- FALSE
+    # specific case for weighted reduction
+    if(reduction_op %in% c("LogSumExpWeight", "SumSoftMaxWeight")) {
+        weighted_reduction <- TRUE
+        # weighted reduction argument: operand, weight, index
+        # optional reduction arguments
+        if(nargs > 2) {
+            opt_arg <- str_replace_all(reduction_args[nargs-1], "\\$", ",")
+        }
+    } else {
+        # optional reduction arguments
+        if(nargs > 2) opt_arg <- as.integer(reduction_args[nargs - 1])
+    }
+    
     # formula inside reduction
     main_formula <- str_replace_all(reduction_args[1], "\\$", ",")
     
@@ -219,6 +236,6 @@ get_pykeops_formula <- function(
     }
     
     # output
-    out <- lst(reduction_op, main_formula, axis, opt_arg)
+    out <- lst(reduction_op, main_formula, axis, opt_arg, weighted_reduction)
     return(out)
 }

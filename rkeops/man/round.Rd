@@ -2,37 +2,41 @@
 % Please edit documentation in R/lazytensor_operations.R
 \name{round}
 \alias{round}
-\title{Element-wise rounding function.}
+\title{Element-wise rounding function}
 \usage{
-round(x, ...)
+round(x, digits = 0)
 }
 \arguments{
-\item{x}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector or a matrix of
-numeric values, or a scalar value.}
+\item{x}{input for \code{\link[=round.default]{round.default()}} or \code{\link[=round.LazyTensor]{round.LazyTensor()}}.}
 
-\item{d}{A scalar value. (or a complex ?)}
+\item{digits}{integer indicating the number of decimal places to be used
+when rounding.}
 }
 \value{
-An object of class "LazyTensor" if the function is called with a
-\code{LazyTensor}, and an object of class "numeric", "matrix", or "array"
-otherwise, depending on the input class (see R default \code{round()} function).
+See value of \code{\link[=round.default]{round.default()}} or \code{\link[=round.LazyTensor]{round.LazyTensor()}}.
 }
 \description{
-Symbolic binary operation for element-wise rounding function.
+Symbolic element-wise rounding function for \code{LazyTensor} objects or
+default element-wise rounding function otherwise.
 }
 \details{
-If \code{x} is a \code{LazyTensor}, \code{round(x, d)} returns a \code{LazyTensor} that
-encodes, symbolically, the element-wise rounding of \code{x} to \code{d} decimal
-places ; else, computes R default rounding function.
+If \code{x} is a \code{LazyTensor}, see \code{\link[=round.LazyTensor]{round.LazyTensor()}}, else
+see \code{\link[=round.default]{round.default()}}.
 }
 \examples{
 \dontrun{
+# R base operation
+round(5)
+round(runif(10), 4)
+# LazyTensor symbolic element-wise rounding
 x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
                                     # indexed by 'i'
-                                    
 Round_x <- round(x_i, 2)            # symbolic matrix
 }
+}
+\seealso{
+\code{\link[=round.default]{round.default()}}, \code{\link[=round.LazyTensor]{round.LazyTensor()}}
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay

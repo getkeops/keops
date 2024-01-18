@@ -2,36 +2,36 @@
 % Please edit documentation in R/lazytensor_operations.R
 \name{elemT}
 \alias{elemT}
-\title{ElemT.}
+\title{Insert element in a vector of zeros}
 \usage{
 elemT(x, m, n)
 }
 \arguments{
-\item{x}{A \code{LazyTensor} or a \code{ComplexLazyTensor} encoding a single
+\item{x}{a \code{LazyTensor} or a \code{ComplexLazyTensor} encoding a single
 parameter value.}
 
-\item{m}{An \code{integer} corresponding to the position \code{m} of the created
-vector of zeros at which we want to insert the value \code{x}.}
+\item{m}{an \code{integer} corresponding to the position \code{m} (starting from 0)
+of the created vector of zeros at which we want to insert the value \code{x}.}
 
-\item{n}{An \code{integer} corresponding to the length of the vector of zeros.}
+\item{n}{an \code{integer} corresponding to the length of the vector of zeros.}
 }
 \value{
-A \code{LazyTensor} or a \code{ComplexLazyTensor}.
+a \code{LazyTensor} or a \code{ComplexLazyTensor}.
 }
 \description{
-Insert a given value in a symbolic vector of zeros - a unary operation.
+Insert a given value (stored in a \code{LazyTensor}) in a symbolic vector of
+zeros.
 }
 \details{
 \code{elemT(x, m, n)} insert scalar value \code{x} (encoded as a \code{LazyTensor}) at
-position \code{m} in a vector of zeros of length \code{n}.
+position \code{m+1} in a vector of zeros of length \code{n} (encoded as a \code{LazyTensor}
+of inner dimension \code{n}).
 
-\strong{Note}
+\strong{Note}: Input \code{x} should be a \code{LazyTensor} encoding a single parameter
+value.
 
-Input \code{x} should be a \code{LazyTensor} encoding a single parameter value.
-
-\strong{IMPORTANT}
-
-IN THIS CASE, INDICES START AT ZERO, therefore, \code{m} should be in \verb{[0, n)}.
+\strong{IMPORTANT}: IN THIS CASE, INDICES START AT ZERO, therefore, \code{m} should
+be in \verb{[0, n)}.
 }
 \examples{
 \dontrun{

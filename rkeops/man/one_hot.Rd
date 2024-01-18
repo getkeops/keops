@@ -2,25 +2,25 @@
 % Please edit documentation in R/lazytensor_operations.R
 \name{one_hot}
 \alias{one_hot}
-\title{One-hot.}
+\title{One-hot encoding vector}
 \usage{
 one_hot(x, D)
 }
 \arguments{
 \item{x}{A \code{LazyTensor} encoding a scalar value.}
 
-\item{D}{An \code{integer} corresponding to the output dimension.}
+\item{D}{an \code{integer} corresponding to the output dimension.}
 }
 \value{
-A \code{LazyTensor}.
+a \code{LazyTensor}.
 }
 \description{
-One-hot
+Create one-hot encoding vector as a \code{LazyTensor} object.
 }
 \details{
 If \code{x} is a scalar value encoded as a \code{LazyTensor},
 \code{one_hot(x, D)} encodes, symbolically, a vector of length \strong{D}
-whose round(\code{x})-th coordinate is equal to 1, and the other ones to 0.
+where round(\code{x})-th coordinate is equal to 1, and the other ones to 0.
 }
 \examples{
 \dontrun{

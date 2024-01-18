@@ -2,9 +2,15 @@
 % Please edit documentation in R/lazytensor_operations.R
 \name{exp1j}
 \alias{exp1j}
+\alias{exp1j.LazyTensor}
+\alias{exp1j.ComplexLazyTensor}
 \title{Element-wise "complex exponential of 1j x" operation.}
 \usage{
 exp1j(x)
+
+\method{exp1j}{LazyTensor}(x)
+
+\method{exp1j}{ComplexLazyTensor}(x)
 }
 \arguments{
 \item{x}{A \code{LazyTensor}.}
@@ -13,18 +19,21 @@ exp1j(x)
 An object of class "ComplexLazyTensor".
 }
 \description{
-Symbolic unary operation for element-wise "complex exponential of 1j x".
+Symbolic element-wise "complex exponential of 1j x" operation for
+\code{LazyTensor} object.
 }
 \details{
 \code{exp1j(x)} returns a \code{ComplexLazyTensor} that encodes, symbolically,
 the multiplication of \verb{1j} with \code{x}.
+
+\strong{Note}: \code{exp1j(x)} will exit with an error if \code{x} is
+a \code{ComplexLazyTensor}.
 }
 \examples{
 \dontrun{
 x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 x_i <- LazyTensor(x, "i")           # creating LazyTensor from matrix x, 
                                     # indexed by 'i'
-
 z <- exp1j(x_i)                     # ComplexLazyTensor object
 }
 }

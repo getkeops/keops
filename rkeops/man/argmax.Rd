@@ -2,43 +2,46 @@
 % Please edit documentation in R/lazytensor_operations.R
 \name{argmax}
 \alias{argmax}
-\title{ArgMax.}
+\alias{argmax_reduction}
+\title{ArgMax operation or ArgMax reduction}
 \usage{
 argmax(x, index = NA)
+
+argmax_reduction(x, index)
 }
 \arguments{
-\item{x}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector or a matrix of
-numeric values, or a scalar value.}
+\item{x}{a \code{LazyTensor} or a \code{ComplexLazyTensor}.}
 
-\item{index}{A \code{character} corresponding to the reduction dimension that
-should be either \strong{i} or \strong{j} to specify whether if the reduction is
-indexed by \strong{i} (rows) or \strong{j} (columns).
-It can be NA (default) when no reduction is desired.}
+\item{index}{a \code{character} corresponding to the wanted reduction dimension,
+either \code{"i"} or \code{"j"}, to specify whether if the argmax reduction is done
+along the index \code{i} or \code{j}.
+It can be \code{NA} (default) when no reduction is desired.}
 }
 \value{
-A matrix corresponding to the argmax reduction or an object of class
-"LazyTensor" corresponding to a symbolic matrix.
+a \code{LazyTensor} if \code{index = NA} or an array storing the result of
+the specified argmax reduction otherwise.
 }
 \description{
-ArgMax unary operation, or ArgMax reduction.
+ArgMax operation or ArgMax reduction for \code{LazyTensor} objects.
 }
 \details{
-If \code{x} is a \code{LazyTensor} or a \code{ComplexLazyTensor},
-\code{argmax(x, index)} will:
+If \code{x} is a \code{LazyTensor}, \code{argmax(x, index)} will :
 \itemize{
-\item{if \strong{index = NA} (default),}{ return a new \code{LazyTensor} object
-representing the argmax of the values of \strong{x};}
-\item{if \strong{index = i},}{ return the argmax reduction of \strong{x} over the
-\strong{i} indices (rows);}
-\item{if \strong{index = j},}{ return the argmax reduction of \strong{x} over the
-\strong{i} indices (columns).}
+\item if \code{index = "i"}, return the argmax reduction of \code{x} over the \code{i}
+indexes.
+\item if \code{index = "j"}, return the argmax reduction of \code{x} over the \code{j}
+indexes.
+\item if \code{index = NA} (default), return a new \code{LazyTensor} object
+representing the symbolic argmax of the values along the inner dimension
+of \code{x}.
 }
 
-\strong{Note}
+\strong{Note}: Run \code{browseVignettes("rkeops")} to access the vignettes and find
+details about this function in the \emph{"RKeOps LazyTensor"} vignette, at
+section \emph{"Reductions"}.
 
-Run \code{browseVignettes("rkeops")} to access the vignettes and find details
-about the function in "RKeOps LazyTensor",
-at section #Reductions.
+\strong{Note}: \code{index} input argument cannot be \code{NA} for the
+\code{argmax_reduction()} function.
 }
 \examples{
 \dontrun{
@@ -46,9 +49,19 @@ x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
                                     # indexed by 'i'
 
-argmax_xi <- argmax(x_i, "i")  # argmax reduction indexed by "i"
+argmax_xi <- argmax(x_i, "i")  # argmax reduction indexed by 'i'
 argmax_x <- argmax(x_i)        # symbolic matrix
 }
+\dontrun{
+x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
+x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
+                                    # indexed by 'i'
+
+argmax_red <- argmax_reduction(x_i, "i")  # argmax reduction indexed by 'i'
+}
+}
+\seealso{
+\code{\link[=argmax_reduction]{argmax_reduction()}}
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay

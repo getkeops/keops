@@ -2,14 +2,73 @@
 % Please edit documentation in R/lazytensor_operations.R
 \name{max.LazyTensor}
 \alias{max.LazyTensor}
-\title{Maximum.}
+\alias{max_reduction}
+\title{Maximum operation or maximum reduction}
 \usage{
 \method{max}{LazyTensor}(x, index = NA, ...)
+
+max_reduction(x, index)
+}
+\arguments{
+\item{x}{a \code{LazyTensor} or a \code{ComplexLazyTensor}.}
+
+\item{index}{a \code{character} corresponding to the wanted reduction dimension,
+either \code{"i"} or \code{"j"}, to specify whether if the max reduction is done along
+the index \code{i} or \code{j}.
+It can be \code{NA} (default) when no reduction is desired.}
+
+\item{...}{not used, only present for method compatibility with the
+corresponding generic function.}
+}
+\value{
+a \code{LazyTensor} if \code{index = NA} or an array storing the result of
+the specified max reduction otherwise.
 }
 \description{
-Maximum.
+Maximum operation or maximum reduction for \code{LazyTensor} objects.
+}
+\details{
+If \code{x} is a \code{LazyTensor}, \code{max(x, index)} will :
+\itemize{
+\item if \code{index = "i"}, return the max reduction of \code{x} over the \code{i}
+indexes.
+\item if \code{index = "j"}, return the max reduction of \code{x} over the \code{j}
+indexes.
+\item if \code{index = NA} (default), return a new \code{LazyTensor} object
+representing the symbolic max of the values along the inner dimension of
+\code{x}.
+}
+
+\strong{Notes}: If \code{index = NA}, \code{x} input argument should be a \code{LazyTensor}
+encoding a parameter vector.
+
+\strong{Note}: Run \code{browseVignettes("rkeops")} to access the vignettes and find
+details about this function in the \emph{"RKeOps LazyTensor"} vignette, at
+section \emph{"Reductions"}.
+
+\strong{Note}: \code{index} input argument cannot be \code{NA} for the
+\code{max_reduction()} function.
+}
+\examples{
+\dontrun{
+x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
+x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
+                                    # indexed by 'i'
+
+max_x <- max(x_i)                   # LazyTensor object
+max_red_x <- max(x_i, "i")          # max reduction indexed by 'i'
+}
+\dontrun{
+x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
+x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
+                                    # indexed by 'i'
+
+max_reduction(x_i, "i")
+}
+}
+\seealso{
+\code{\link[=max_reduction]{max_reduction()}}
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay
 }
-\keyword{internal}

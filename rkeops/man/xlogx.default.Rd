@@ -2,14 +2,33 @@
 % Please edit documentation in R/lazytensor_operations.R
 \name{xlogx.default}
 \alias{xlogx.default}
-\title{x*log(x) function.}
+\title{x*log(x) function}
 \usage{
 \method{xlogx}{default}(x)
 }
+\arguments{
+\item{x}{numeric or complex vectors or objects which can be coerced to such.}
+}
+\value{
+Vector or array containing the values of \code{x*log(x)}.
+}
 \description{
-x*log(x) function.
+Element-wise \eqn{x \times \log(x)} function on numeric or complex vectors
+(or objects which can be coerced to them).
+}
+\details{
+See \link[base:Arithmetic]{base::Arithmetic} and \code{\link[base:Log]{base::log()}} for details about the
+multiplication operation and log function.
+
+\strong{Note}: by convention \code{xlogx(0)} returns \code{0}.
+}
+\examples{
+xlogx(4)
+xlogx(1:10)
+}
+\seealso{
+\link[base:Arithmetic]{base::Arithmetic}, \code{\link[base:Log]{base::log()}}
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay
 }
-\keyword{internal}

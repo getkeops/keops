@@ -2,38 +2,41 @@
 % Please edit documentation in R/lazytensor_operations.R
 \name{step}
 \alias{step}
-\title{Element-wise step function.}
+\title{Element-wise 0-1 step function (for LazyTensors) or default stepwise model
+selection}
 \usage{
-step(x, ...)
+step(object, ...)
 }
 \arguments{
-\item{x}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector or a matrix
-of numeric values, or a scalar value.}
+\item{object}{input for \code{\link[=step.default]{step.default()}} or
+\code{\link[=step.LazyTensor]{step.LazyTensor()}}.}
+
+\item{...}{optional additional input arguments.}
 }
 \value{
-An object of class "LazyTensor" if the function is called with a
-\code{LazyTensor}, and an object of class "numeric", "matrix", or "array"
-otherwise, depending on the input class (see R default \code{stats::step()}
-function).
+See value of \code{\link[=step.default]{step.default()}} or \code{\link[=step.LazyTensor]{step.LazyTensor()}}.
 }
 \description{
-Symbolic unary operation for element-wise step function.
+Symbolic element-wise 0-1 step function for \code{LazyTensor} objects
+(i.e. \code{0} if \code{x < 0}, \code{1} if \code{x >= 0} for an input \code{x}) or stepwise
+model selection otherwise.
 }
 \details{
-If \code{x} is a \code{LazyTensor}, \code{step(x)} returns a \code{LazyTensor} that
-encodes, symbolically, the element-wise step function of \code{x}
-(\code{0} if \code{x < 0}, \code{1} if \code{x >= 0}); else, computes R default
-step function with other specific arguments (see R default \code{step()}
-function).
+If \code{x} is a \code{LazyTensor}, see \code{\link[=step.LazyTensor]{step.LazyTensor()}}, else
+see \code{\link[=step.default]{step.default()}}.
 }
 \examples{
 \dontrun{
+# R base operation: see `?step.default`
+# LazyTensor symbolic element-wise sign
 x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
                                     # indexed by 'i'
-                                    
 Step_x <- step.LazyTensor(x_i)      # symbolic matrix, 150 rows and 3 columns
 }
+}
+\seealso{
+\code{\link[=step.default]{step.default()}}, \code{\link[=step.LazyTensor]{step.LazyTensor()}}
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay

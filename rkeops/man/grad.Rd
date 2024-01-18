@@ -9,7 +9,7 @@ grad(f, gradin, opstr, var, index)
 \arguments{
 \item{f}{A \code{LazyTensor} or a \code{ComplexLazyTensor}.}
 
-\item{gradin}{A \code{LazyTensor}, a \code{ComplexLazyTensor} encoding a matrix of ones
+\item{gradin}{a \code{LazyTensor}, a \code{ComplexLazyTensor} encoding a matrix of ones
 with an inner dimension equal to 1 and indexed by the
 same index and with number of rows equal to
 the number of rows of the first \code{x} variable (in \code{x$data}).}

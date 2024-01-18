@@ -2,14 +2,31 @@
 % Please edit documentation in R/lazytensor_operations.R
 \name{rsqrt.default}
 \alias{rsqrt.default}
-\title{Inverse square root.}
+\title{Element-wise inverse square root operation}
 \usage{
 \method{rsqrt}{default}(x)
 }
+\arguments{
+\item{x}{a numeric or \code{\link[base]{complex}} vector or array.}
+}
+\value{
+a numeric or complex vector or array.
+}
 \description{
-Inverse square root.
+Element-wise inverse square root on numeric or complex vectors
+(or objects which can be coerced to them).
+}
+\details{
+\code{rsqrt(x)} is equivalent to \code{1 / sqrt(x)} where \code{sqrt()} is the
+default square root function, i.e. \eqn{1/\sqrt{x}}.
+}
+\examples{
+rsqrt(4)
+rsqrt(c(1,4,9,16))
+}
+\seealso{
+\code{\link[=rsqrt]{rsqrt()}}, \code{\link[=sqrt]{sqrt()}}, \code{\link[base:MathFun]{base::sqrt()}}
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay
 }
-\keyword{internal}

@@ -2,37 +2,39 @@
 % Please edit documentation in R/lazytensor_operations.R
 \name{max_argmax}
 \alias{max_argmax}
-\title{Max-ArgMax.}
+\alias{max_argmax_reduction}
+\title{Max-ArgMax reduction}
 \usage{
 max_argmax(x, index)
+
+max_argmax_reduction(x, index)
 }
 \arguments{
-\item{x}{A \code{LazyTensor} or a \code{ComplexLazyTensor}.}
+\item{x}{a \code{LazyTensor} or a \code{ComplexLazyTensor}.}
 
-\item{index}{A \code{character} corresponding to the reduction dimension that
-should be either \strong{i} or \strong{j} to specify whether if the reduction is
-indexed by \strong{i} (rows) or \strong{j} (columns).}
+\item{index}{a \code{character} corresponding to the wanted reduction dimension,
+either \code{"i"} or \code{"j"}, to specify whether if the Max-ArgMax reduction is done
+along the index \code{i} or \code{j}.}
 }
 \value{
-A matrix corresponding to the max-argmax reduction.
+an array storing the result of the specified Max-ArgMax
+reduction otherwise.
 }
 \description{
-Max-ArgMax reduction.
+Max-ArgMax reduction for \code{LazyTensor} objects.
 }
 \details{
-\code{max_argmax(x, index)} will :
+If \code{x} is a \code{LazyTensor}, \code{max_argmax(x, index)} will :
 \itemize{
-\item if \strong{index = "i"}, return the maximal values of \strong{x} and its
-indices over the \strong{i} indices;
-\item if \strong{index = "j"}, return the maximal values of \strong{x} and its
-indices over the \strong{j} indices.
+\item if \code{index = "i"}, return the Max-ArgMax reduction of \code{x} over the \code{i}
+indexes.
+\item if \code{index = "j"}, return the Max-ArgMax reduction of \code{x} over the \code{j}
+indexes.
 }
 
-\strong{Note}
-
-Run \code{browseVignettes("rkeops")} to access the vignettes and find details
-about the function in "RKeOps LazyTensor",
-at section #Reductions.
+\strong{Note}: Run \code{browseVignettes("rkeops")} to access the vignettes and find
+details about this function in the \emph{"RKeOps LazyTensor"} vignette, at
+section \emph{"Reductions"}.
 }
 \examples{
 \dontrun{
@@ -40,7 +42,15 @@ x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
                                     # indexed by 'i'
 
-max_argmax_x <- max_argmax(x_i, "i")  # max argmax reduction indexed by "i"
+max_argmax_x <- max_argmax(x_i, "i")  # max argmax reduction indexed by 'i'
+}
+\dontrun{
+x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
+x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
+                                    # indexed by 'i'
+
+max_argmax_red <- max_argmax_reduction(x_i, "i")  # max argmax reduction 
+                                                  # indexed by 'i'
 }
 }
 \author{

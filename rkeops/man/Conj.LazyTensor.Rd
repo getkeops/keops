@@ -2,14 +2,42 @@
 % Please edit documentation in R/lazytensor_operations.R
 \name{Conj.LazyTensor}
 \alias{Conj.LazyTensor}
-\title{Element-wise complex conjugate.}
+\alias{Conj.ComplexLazyTensor}
+\title{Element-wise complex conjugate}
 \usage{
 \method{Conj}{LazyTensor}(z)
+
+\method{Conj}{ComplexLazyTensor}(z)
+}
+\arguments{
+\item{z}{A \code{ComplexLazyTensor} or any type of values accepted by R default
+\code{\link[base:complex]{base::Conj()}} function.}
+}
+\value{
+An object of class \code{ComplexLazyTensor}.
 }
 \description{
-Element-wise complex conjugate.
+Symbolic element-wise complex conjugate operation for
+\code{ComplexLazyTensor} objects.
+}
+\details{
+If \code{z} is a \code{ComplexLazyTensor}, \code{Conj(z)} returns a
+\code{ComplexLazyTensor} that encodes, symbolically, the element-wise complex
+conjugate of \code{z}.
+
+\strong{Note}: \code{Conj(z)} will exit with an error if \code{z} is a \code{LazyTensor} but not
+a \code{ComplexLazyTensor}.
+}
+\examples{
+\dontrun{
+z <- matrix(1i^ (-6:5), nrow = 4)                     # complex 4x3 matrix
+z_i <- LazyTensor(z, index = 'i', is_complex = TRUE)  # ComplexLazyTensor
+Conj_z_i <- Conj(z_i)                                 # symbolic matrix
+}
+}
+\seealso{
+\code{\link[=Conj]{Conj()}}
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay
 }
-\keyword{internal}

@@ -2,40 +2,42 @@
 % Please edit documentation in R/lazytensor_operations.R
 \name{logsumexp}
 \alias{logsumexp}
+\alias{logsumexp_reduction}
 \title{Log-Sum-Exp reduction.}
 \usage{
-logsumexp(x, index, weight = NA)
+logsumexp(x, index, weight = NULL)
+
+logsumexp_reduction(x, index, weight = NULL)
 }
 \arguments{
-\item{x}{A \code{LazyTensor} or a \code{ComplexLazyTensor} indexed by 'i' and 'j'.}
+\item{x}{a \code{LazyTensor} or a \code{ComplexLazyTensor}.}
 
-\item{index}{A \code{character} corresponding to the reduction dimension that
-should be either \strong{i} or \strong{j} to specify whether if the reduction
-is indexed by \strong{i} (rows) or \strong{j} (columns).}
+\item{index}{a \code{character} corresponding to the reduction dimension that
+should be either \code{"i"} or \code{"j"} to specify whether if the reduction is
+indexed by \code{"i"} or \code{"j"}.}
 
-\item{weight}{An optional object (\code{LazyTensor} or \code{ComplexLazyTensor}) that
-specifies scalar or vector-valued weights.}
+\item{weight}{an optional object (\code{LazyTensor} or \code{ComplexLazyTensor}) that
+specifies scalar or vector-valued weights. \code{NULL} by default and not used.}
 }
 \value{
-A matrix corresponding to the Log-Sum-Exp reduction.
+a matrix corresponding to the Log-Sum-Exp reduction.
 }
 \description{
-Log-Sum-Exp reduction.
+Log-Sum-Exp reduction for \code{LazyTensor} objects.
 }
 \details{
+If \code{x} is a \code{LazyTensor} or a \code{ComplexLazyTensor},
 \code{logsumexp(x, index, weight)} will:
 \itemize{
-\item{if \strong{index = i},}{ return the Log-Sum-Exp reduction of \strong{x}
-over the \strong{i} indices (rows);}
-\item{if \strong{index = j},}{ return the Log-Sum-Exp reduction of \strong{x}
-over the \strong{j} indices (columns).}
+\item if \code{index = "i"}, return the Log-Sum-Exp reduction of \code{x}
+over the \code{i} indexes;
+\item if \code{index = "j"}, return the Log-Sum-Exp reduction of \code{x}
+over the \code{j} indexes.
 }
 
-\strong{Note}
-
-Run \code{browseVignettes("rkeops")} to access the vignettes and find details
-about the function in "RKeOps LazyTensor",
-at section #Reductions.
+\strong{Note}: Run \code{browseVignettes("rkeops")} to access the vignettes and find
+details about this function in the \emph{"RKeOps LazyTensor"} vignette, at
+section \emph{"Reductions"}.
 }
 \examples{
 \dontrun{
@@ -52,6 +54,21 @@ logsumexp_xw <- logsumexp(S_ij, 'i', w_j) # logsumexp reduction
                                          
 logsumexp_x <- logsumexp(S_ij, 'i')      # logsumexp reduction without
                                          # weight over the 'i' indices
+}
+\dontrun{
+x <- matrix(runif(150 * 3), 150, 3) 
+x_i <- LazyTensor(x, index = 'i') 
+y <- matrix(runif(100 * 3), 100, 3)
+y_j <- LazyTensor(y, index = 'j')
+w <- matrix(runif(150 * 3), 150, 3) # weight LazyTensor
+w_j <- LazyTensor(y, index = 'j')
+
+S_ij = sum( (x_i - y_j)^2 )                                           
+logsumexp_xw <- logsumexp_reduction(S_ij, 'i', w_j) # logsumexp reduction 
+                                                    # over the 'i' indices
+                                         
+logsumexp_x <- logsumexp_reduction(S_ij, 'i')  # logsumexp reduction without
+                                               # weight over the 'i' indices
 }
 }
 \author{

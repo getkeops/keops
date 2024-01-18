@@ -2,58 +2,39 @@
 % Please edit documentation in R/lazytensor_operations.R
 \name{min}
 \alias{min}
-\title{Minimum.}
+\title{Minimum operation or minimum reduction}
 \usage{
 min(x, ...)
 }
 \arguments{
-\item{x}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector or a matrix of
-numeric values, or a scalar value.}
+\item{x}{input for \code{\link[=min.default]{min.default()}} or \code{\link[=min.LazyTensor]{min.LazyTensor()}}.}
 
-\item{index}{A \code{character} corresponding to the reduction dimension that
-should be either \strong{i} or \strong{j} to specify whether if the reduction is
-indexed by \strong{i} (rows), or \strong{j} (columns).
-It can be NA (default) when no reduction is desired.}
-
-\item{na.rm}{logical. Should missing values (including NaN)
-be removed? (only for \code{base::sum} operation).}
+\item{...}{optional arguments for \code{\link[=min.default]{min.default()}} or
+\code{\link[=min.LazyTensor]{min.LazyTensor()}}.}
 }
 \value{
-A matrix corresponding to the min reduction or an object of class
-"LazyTensor" corresponding to a symbolic matrix, otherwise, depending on the
-input class (see R default \code{min()} function).
+Minimum of input.
 }
 \description{
-Minimum unary operation or Minimum reduction.
+Minimum operation for vector/matrix/array or \code{LazyTensor}, or minimum
+reduction for \code{LazyTensor}.
 }
 \details{
-If \code{x} is a \code{LazyTensor}, \code{min(x, index)} will :
-\itemize{
-\item if \strong{index = "i"}, return the min reduction of \strong{x} over the "i"
-indexes.
-\item if \strong{index = "j"}, return the min reduction of \strong{x} over the "j"
-indexes.
-\item if \strong{index = NA} (default), return a new \code{LazyTensor} object
-representing the min of the values of the vector.
-}
-
-\strong{Notes}
-
-If \code{x} is not a \code{LazyTensor} it computes R default "min" function with
-other specific arguments (see R default \code{min()} function).
-
-Run \code{browseVignettes("rkeops")} to access the vignettes and find details
-about the function in "RKeOps LazyTensor",
-at section #Reductions.
+If \code{x} is a \code{LazyTensor}, see \code{\link[=min.LazyTensor]{min.LazyTensor()}}, else see
+\code{\link[=min.default]{min.default()}}.
 }
 \examples{
 \dontrun{
+# R base operation
+min(1:10)
+min(c(NA, 1, 2), na.rm = TRUE)
+# LazyTensor operation
 x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
                                     # indexed by 'i'
 
-min_xi <- min(x_i, "i")  # min reduction indexed by "i"
-min_x <- min(x_i)        # symbolic matrix
+min_x <- min(x_i)                   # LazyTensor object
+min_red_x <- min(x_i, "i")          # min reduction indexed by 'i'
 }
 }
 \author{
