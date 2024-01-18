@@ -112,8 +112,10 @@ library(tibble)
 # Generate documentation and deal with dependencies
 attachment::att_amend_desc(path = pkg_dir)
 usethis::use_package("ggplot2", type = "Suggests")
+usethis::use_package("dplyr", type = "Suggests")
 usethis::use_package("pracma", type = "Suggests")
 usethis::use_package("plotly", type = "Suggests")
+usethis::use_package("reshape", type = "Suggests")
 ```
 
 ```{r dev-readme}
