@@ -1,8 +1,25 @@
-url: https://www.kernel-operations.io/rkeops/
+url: https://www.kernel-operations.io/rkeops
+
 template:
   bootstrap: 5
 
 home:
   links:
-  - text: Source code
-    href: https://github.com/getkeops/keops
+  - text: Official website
+    href: https://www.kernel-operations.io
+
+navbar:
+  type: default
+  left:
+  - text: Intro
+    href: articles/introduction_to_rkeops.html
+  - text: Reference
+    href: reference/index.html
+  - text: Articles
+    menu:
+    - text: Using RKeOps
+      href: articles/using_rkeops.html
+    - text: RKeOps LazyTensor
+      href: articles/LazyTensor_rkeops.html
+    - text: Kernel Interpolation with RKeOps
+      href: Kernel_Interpolation_rkeops.html
