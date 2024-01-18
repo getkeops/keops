@@ -19,26 +19,30 @@ y = torch.rand(N, D, device=device_id)
 gamma = torch.tensor(0.1, device=device_id)
 
 ##################################
-# SoftDTW operation in pytorch 
+# SoftDTW operation in pytorch
 ##################################
 
+
 def softmin(args, gamma):
-    minargs = reduce(lambda x,y:torch.min(x,y), args)
-    if gamma>0:
-        minargs -= gamma * sum(((minargs-arg)/gamma).exp() for arg in args).log() 
+    minargs = reduce(lambda x, y: torch.min(x, y), args)
+    if gamma > 0:
+        minargs -= gamma * sum(((minargs - arg) / gamma).exp() for arg in args).log()
     return minargs
+
 
 def SoftDTW_torch(x, y, gamma):
     n, m = x.shape[1], y.shape[1]
-    x, y = x[:,None,:], y[None,:,:]
-    rjm1 = [torch.tensor(torch.inf, device=device_id) for _ in range(n+1)]
-    rjm1[0] = torch.tensor(0., device=device_id)
+    x, y = x[:, None, :], y[None, :, :]
+    rjm1 = [torch.tensor(torch.inf, device=device_id) for _ in range(n + 1)]
+    rjm1[0] = torch.tensor(0.0, device=device_id)
     torchinf = torch.tensor(torch.inf, device=device_id)
-    for j in range(1,m+1):
+    for j in range(1, m + 1):
         rim1j = torchinf
-        for i in range(1,n+1):
-            rij = (x[:,:,i-1]-y[:,:,j-1])**2 + softmin((rjm1[i], rjm1[i-1], rim1j), gamma)
-            rjm1[i-1] = rim1j
+        for i in range(1, n + 1):
+            rij = (x[:, :, i - 1] - y[:, :, j - 1]) ** 2 + softmin(
+                (rjm1[i], rjm1[i - 1], rim1j), gamma
+            )
+            rjm1[i - 1] = rim1j
             rim1j = rij
         rjm1[i] = rij
     return rij
@@ -50,20 +54,23 @@ def SoftDTW_torch(x, y, gamma):
 
 
 def code_softdtw(dtype, out, inputs, n, m, gamma, mode="x,y"):
-    if mode=="x,y":
+    if mode == "x,y":
         x, y = inputs
-        def diss(i,j):
+
+        def diss(i, j):
             return f"""
             rij = {x}[{i}] - {y}[{j}];
             rij *= rij;
             """
-    elif mode=="Delta":
+
+    elif mode == "Delta":
         Delta = inputs
-        def diss(i,j):
+
+        def diss(i, j):
             return f"""
             rij = {Delta}[{j}*{n}+{i}];
             """
-        
+
     code = f"""
             #define MIN2(a,b) fminf(a,b) //(((a)<(b))?(a):(b))
             #define MIN3(a,b,c) MIN2(MIN2(a,b),c)
@@ -106,7 +113,7 @@ def code_softdtw(dtype, out, inputs, n, m, gamma, mode="x,y"):
             }}
             {out}[0] = rij;
                 """
-    
+
     return code
 
 
@@ -116,10 +123,18 @@ def code_softdtw(dtype, out, inputs, n, m, gamma, mode="x,y"):
 
 from keopscore.formulas.Operation import Operation
 from keopscore.utils.misc_utils import KeOps_Error
-from keopscore.utils.code_gen_utils import c_variable, pointer, c_array, c_for_loop, c_zero_float
+from keopscore.utils.code_gen_utils import (
+    c_variable,
+    pointer,
+    c_array,
+    c_for_loop,
+    c_zero_float,
+)
+
 
 class SoftDTW_L2(Operation):
     string_id = "SoftDTW_L2"
+
     def __init__(self, x, y, gamma, params=()):
         # x is vector of size n, y is vector of size m, gamma is scalar,
         # output is scalar
@@ -132,16 +147,17 @@ class SoftDTW_L2(Operation):
 
     def Op(self, out, table, x, y, gamma):
         dtype = x.dtype
-        n,m = self.n, self.m
-        return code_softdtw(dtype, out, (x,y), n, m, gamma, mode="x,y")  
-    
+        n, m = self.n, self.m
+        return code_softdtw(dtype, out, (x, y), n, m, gamma, mode="x,y")
+
     def DiffT(self, v, gradin):
         KeOps_Error("autograd for SoftDTW_L2 operation not yet implemented.")
         pass
 
-import builtins
-builtins.SoftDTW_L2 = SoftDTW_L2
 
+import builtins
+
+builtins.SoftDTW_L2 = SoftDTW_L2
 
 
 ####################################################################
@@ -151,20 +167,28 @@ builtins.SoftDTW_L2 = SoftDTW_L2
 from keopscore.formulas.Operation import Operation
 from keopscore.formulas.variables.Zero import Zero
 from keopscore.utils.misc_utils import KeOps_Error
-from keopscore.utils.code_gen_utils import c_variable, pointer, c_array, c_for_loop, c_zero_float
+from keopscore.utils.code_gen_utils import (
+    c_variable,
+    pointer,
+    c_array,
+    c_for_loop,
+    c_zero_float,
+)
 from keopscore.utils.code_gen_utils import use_pragma_unroll
+
 
 class SumOverRows(Operation):
     string_id = "SumOverRows"
+
     def __init__(self, x, n, m, params=()):
         # x is vector of size n*m, interpreted as matrix of shape (n,m)
-        super().__init__(x, params=(m,n))
+        super().__init__(x, params=(m, n))
         self.n = n
         self.m = m
         self.dim = m
 
     def Op(self, out, table, x):
-        n,m = self.n, self.m
+        n, m = self.n, self.m
         code = f"""
             {use_pragma_unroll()}
             for (int j=0; j<{m}; j++)
@@ -180,17 +204,19 @@ class SumOverRows(Operation):
                 """
         return code
 
+
 class SumOverCols(Operation):
     string_id = "SumOverCols"
+
     def __init__(self, x, n, m, params=()):
         # x is vector of size n*m, interpreted as matrix of shape (n,m)
-        super().__init__(x, params=(m,n))
+        super().__init__(x, params=(m, n))
         self.n = n
         self.m = m
         self.dim = n
 
     def Op(self, out, table, x):
-        n,m = self.n, self.m
+        n, m = self.n, self.m
         code = f"""
             {use_pragma_unroll()}
             for (int i=0; i<{n}; i++)
@@ -211,6 +237,7 @@ class SumOverCols(Operation):
 
 class DifferenceMatrix(Operation):
     string_id = "DifferenceMatrix"
+
     def __init__(self, x, y, params=()):
         # x is vector of size n, y is vector of size m
         super().__init__(x, y, params=())
@@ -219,7 +246,7 @@ class DifferenceMatrix(Operation):
         self.dim = self.n * self.m
 
     def Op(self, out, table, x, y):
-        n,m = self.n, self.m
+        n, m = self.n, self.m
         code = f"""
             {use_pragma_unroll()}
             for (int j=0; j<{m}; j++)
@@ -231,33 +258,32 @@ class DifferenceMatrix(Operation):
                 }}
             }}
                 """
-        
+
         return code
-    
+
     def DiffT(self, v, gradin):
-        x,y = self.children
-        n,m = self.n, self.m
+        x, y = self.children
+        n, m = self.n, self.m
         gradx = SumOverCols(gradin, n, m)
         grady = -SumOverRows(gradin, n, m)
-        return x.DiffT(v,gradx) + y.DiffT(v,grady)
+        return x.DiffT(v, gradx) + y.DiffT(v, grady)
 
 
 import builtins
+
 builtins.DifferenceMatrix = DifferenceMatrix
-
-
-
 
 
 class SoftDTW(Operation):
     string_id = "SoftDTW"
+
     def __init__(self, Delta, gamma, input_shape, params=()):
         # Delta is vector of size n*m, interpreted as matrix (n,m), gamma is scalar,
         # output is scalar
         if gamma.dim != 1:
             KeOps_Error("input gamma should be scalar")
-        n,m = input_shape
-        if n*m != Delta.dim:
+        n, m = input_shape
+        if n * m != Delta.dim:
             KeOps_Error("inputs dimensions n,m should match size of Delta")
         super().__init__(Delta, gamma, params=(input_shape,))
         self.input_shape = input_shape
@@ -265,27 +291,31 @@ class SoftDTW(Operation):
 
     def Op(self, out, table, Delta, gamma):
         dtype = Delta.dtype
-        n,m = self.input_shape
-        return code_softdtw(dtype, out, Delta, n, m, gamma, mode="Delta")    
-    
+        n, m = self.input_shape
+        return code_softdtw(dtype, out, Delta, n, m, gamma, mode="Delta")
+
     def DiffT(self, v, gradin):
         Delta, gamma = self.children
         if v in gamma.Vars_:
             KeOps_Error("autograd wrt gamma in SoftDTW operation not implemented.")
         return Delta.DiffT(v, GradSoftDTW(Delta, gamma, self.input_shape))
 
+
 import builtins
+
 builtins.SoftDTW = SoftDTW
+
 
 class GradSoftDTW(Operation):
     string_id = "GradSoftDTW"
+
     def __init__(self, Delta, gamma, input_shape, params=()):
         # Delta is vector of size n*m, interpreted as matrix (n,m), gamma is scalar,
         # output is scalar
         if gamma.dim != 1:
             KeOps_Error("input gamma should be scalar")
-        n,m = input_shape
-        if n*m != Delta.dim:
+        n, m = input_shape
+        if n * m != Delta.dim:
             KeOps_Error("inputs dimensions n,m should match size of Delta")
         super().__init__(Delta, gamma, params=(input_shape,))
         self.n = n
@@ -294,7 +324,7 @@ class GradSoftDTW(Operation):
 
     def Op(self, out, table, Delta, gamma):
         dtype = Delta.dtype
-        n,m = self.n, self.m
+        n, m = self.n, self.m
         code = f"""
             #define MIN2(a,b) fminf(a,b) //(((a)<(b))?(a):(b))
             #define MIN3(a,b,c) MIN2(MIN2(a,b),c)
@@ -362,60 +392,67 @@ class GradSoftDTW(Operation):
                 }}
             }}
                 """
-        
+
         return code
-    
+
     def DiffT(self, v, gradin):
         KeOps_Error("autograd for GradSoftDTW operation not yet implemented.")
         pass
 
+
 import builtins
+
 builtins.GradSoftDTW = GradSoftDTW
 
 #########################################
 # reduction function with torch and keops
 #########################################
 
+
 def fun_torch(x, y, gamma):
-    Sxy = SoftDTW_torch(x,y,gamma)
+    Sxy = SoftDTW_torch(x, y, gamma)
     Kxy = (-Sxy).exp()
     return Kxy.sum(dim=1)
 
+
 def fun_keops(x, y, gamma):
-    n,m = x.shape[1], y.shape[1]
+    n, m = x.shape[1], y.shape[1]
     formula = "Exp(-SoftDTW_L2(x,y,gamma))"
     aliases = [f"x=Vi({n})", f"y=Vj({m})", "gamma=Pm(1)"]
     Kxy = Genred(formula, aliases, reduction_op="Sum", axis=1)
-    return Kxy(x,y,gamma.view((1,1)))
+    return Kxy(x, y, gamma.view((1, 1)))
+
 
 def fun_lazytensor(x, y, gamma):
-    x = LazyTensor(x[:,None,:])
-    y = LazyTensor(y[None,:,:])
-    sdtw = x.softdtw_l2(y,gamma)
+    x = LazyTensor(x[:, None, :])
+    y = LazyTensor(y[None, :, :])
+    sdtw = x.softdtw_l2(y, gamma)
     K = (-sdtw).exp()
     return K.sum(axis=1)
 
+
 def fun_lazytensor_diffmatrix(x, y, gamma):
-    x = LazyTensor(x[:,None,:])
-    y = LazyTensor(y[None,:,:])
-    dist_l2 = x.difference_matrix(y)**2
+    x = LazyTensor(x[:, None, :])
+    y = LazyTensor(y[None, :, :])
+    dist_l2 = x.difference_matrix(y) ** 2
     sdtw = dist_l2.softdtw(gamma, input_shape=(x.ndim, y.ndim))
     K = (-sdtw).exp()
     return K.sum(axis=1)
+
 
 ##################################
 # test
 ##################################
 
-#funs = (fun_torch, fun_keops, fun_lazytensor, fun_lazytensor_diffmatrix)
+# funs = (fun_torch, fun_keops, fun_lazytensor, fun_lazytensor_diffmatrix)
 funs = (fun_torch, fun_lazytensor_diffmatrix)
 out = []
 for fun in funs:
     print("**************************")
     print("Testing " + fun.__name__)
     if do_warmup:
-        fun(x[:100,:], y[:100,:], gamma)
-        fun(x[:100,:], y[:100,:], gamma)
+        fun(x[:100, :], y[:100, :], gamma)
+        fun(x[:100, :], y[:100, :], gamma)
     start = time.time()
     out.append(fun(x, y, gamma).squeeze())
     end = time.time()
@@ -424,8 +461,11 @@ for fun in funs:
 print("******")
 
 if len(out) > 1:
-    for k in range(1,len(out)):
-        print(f"relative error {funs[k].__name__} vs {funs[0].__name__}:", (torch.norm(out[0] - out[k]) / torch.norm(out[0])).item())
+    for k in range(1, len(out)):
+        print(
+            f"relative error {funs[k].__name__} vs {funs[0].__name__}:",
+            (torch.norm(out[0] - out[k]) / torch.norm(out[0])).item(),
+        )
 
 
 if test_grad:
@@ -444,6 +484,8 @@ if test_grad:
         print("time for " + fun.__name__ + " (grad):", end - start)
 
     if len(out_g) > 1:
-        for k in range(1,len(out)):
-            print(f"relative error grad {funs[k].__name__} vs {funs[0].__name__}:", (torch.norm(out_g[0] - out_g[k]) / torch.norm(out_g[0])).item())
-
+        for k in range(1, len(out)):
+            print(
+                f"relative error grad {funs[k].__name__} vs {funs[0].__name__}:",
+                (torch.norm(out_g[0] - out_g[k]) / torch.norm(out_g[0])).item(),
+            )

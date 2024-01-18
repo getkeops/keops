@@ -230,8 +230,8 @@ a report on our [GitHub issue tracker](https://github.com/getkeops/keops/issues)
 **Core library - KeOps, PyKeOps, KeOpsLab:**
 
 - [Benjamin Charlier](https://imag.umontpellier.fr/~charlier/), from the University of Montpellier.
-- [Jean Feydy](https://www.jeanfeydy.com), from the [HeKA team](https://team.inria.fr/heka/fr/) (Inria Paris, Inserm, Université Paris-Cité).
-- [Joan Alexis Glaunès](http://helios.mi.parisdescartes.fr/~glaunes/), from the University of Paris.
+- [Jean Feydy](https://www.jeanfeydy.com), from the [HeKA team](https://team.inria.fr/heka/fr/) (Inria Paris, Inserm, Université Paris Cité).
+- [Joan Alexis Glaunès](http://helios.mi.parisdescartes.fr/~glaunes/), from MAP5 laboratory, Université Paris Cité.
 
 **R bindings - RKeOps:**
 

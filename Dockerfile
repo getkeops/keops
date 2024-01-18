@@ -16,7 +16,7 @@
 # --no-cache .
 
 # KeOps version - the most important parameter:
-ARG KEOPS_VERSION=2.1
+ARG KEOPS_VERSION=2.2
 # We also include all the libraries hosted on www.kernel-operations.io,
 # such as GeomLoss. This is convenient, and has negligible impact
 # on the size of the final image. Cuda and PyTorch weigh ~5Gb anyway,
