@@ -70,7 +70,7 @@ usethis::use_description(
                    comment="Development-related consulting and support", 
                    role="ctb")
         ),
-        URL = "https://www.kernel-operations.io/, https://github.com/getkeops/keops/",
+        URL = "https://www.kernel-operations.io/rkeops/, https://github.com/getkeops/keops/",
         BugReports = "https://github.com/getkeops/keops/issues",
         Encoding = "UTF-8",
         LazyData = "true",

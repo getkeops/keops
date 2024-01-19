@@ -9,8 +9,8 @@ template:
 
 home:
   links:
-  - text: Official website
-    href: https://www.kernel-operations.io
+  - text: RKeOps website
+    href: https://www.kernel-operations.io/rkeops/
 
 navbar:
   type: default
@@ -31,3 +31,8 @@ navbar:
       href: articles/LazyTensor_rkeops.html
     - text: Kernel Interpolation with RKeOps
       href: articles/Kernel_Interpolation_rkeops.html
+  right:
+    - text: KeOps
+      href: https://www.kernel-operations.io
+    - icon: fa-github
+      href: https://github.com/getkeops/keops/
