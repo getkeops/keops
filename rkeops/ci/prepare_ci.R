@@ -1,5 +1,6 @@
 # dev package
-pkg_list <- c("devtools", "roxygen2", "remotes", "rprojroot")
+pkg_list <- c(
+    "devtools", "roxygen2", "remotes", "reticulate", "rprojroot", "withr")
 install_pkg(pkg_list) # function defined in local .Rprofile
 
 # setup
