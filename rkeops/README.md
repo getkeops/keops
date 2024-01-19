@@ -13,7 +13,8 @@ status](https://www.r-pkg.org/badges/version/rkeops)](https://cran.r-project.org
 downloads](http://cranlogs.r-pkg.org/badges/grand-total/rkeops?color=yellowgreen)](https://cran.r-project.org/web/packages/rkeops/index.html)
 <!-- badges: end -->
 
-- URL: <https://www.kernel-operations.io/>
+- Documentation URL: <https://www.kernel-operations.io/rkeops/>
+- KeOps project URL: <https://www.kernel-operations.io/>
 - Source: <https://github.com/getkeops/keops>
 - Licence and Copyright: see
   <https://github.com/getkeops/keops/blob/main/licence.txt>
@@ -187,7 +188,9 @@ RKeOps provides<br>
 
 # Installing and using RKeOps
 
-See the specific “Using RKeOps” vignette/article:
+See the specific **“Using RKeOps”
+[article](https://www.kernel-operations.io/rkeops/articles/using_rkeops.html)**
+or the corresponding vignette:
 
 ``` r
 vignette("using_rkeops", package = "rkeops")
@@ -263,7 +266,9 @@ a_j <- sum(K_ij, index = "i") # actual R matrix (in fact a row vector of
                               # "j" index)
 ```
 
-**More in the dedicated “RKeOps LazyTensor” vignette/article**:
+**More in the dedicated “RKeOps LazyTensor”
+[article](https://www.kernel-operations.io/rkeops/articles/LazyTensor_rkeops.html)**
+or in the corresponding vignette:
 
 ``` r
 vignette("LazyTensor_rkeops", package = "rkeops")
@@ -371,7 +376,9 @@ You can use two type of input matrices with RKeOps:<br>
   $\mathbf Y = [y_{ik'}]_{N \times D'}$<br><br>
 
 More details about input matrices (size, storage order) are given in the
-‘Using RKeOps’ vignette:
+**“Using RKeOps”
+[article](https://www.kernel-operations.io/rkeops/articles/using_rkeops.html)**
+or the corresponding vignette::
 
 ``` r
 vignette("using_rkeops", package = "rkeops")
@@ -384,11 +391,12 @@ $K: \mathbb R^D \times \mathbb R^D \to \mathbb R$ such as, for some
 vectors $\mathbf x_i$, $\mathbf y_j\in \mathbb{R}^D$<br>
 
 - the linear kernel (standard scalar product)
-  $K(\mathbf x_i, \mathbf y_j) = \big\langle \mathbf x_i \, , \, \mathbf y_j \big\rangle$<br>
+  $K(\mathbf x_i, \mathbf y_j) = \big\langle \mathbf x_i \, , \, \mathbf y_j \big\rangle$
+  <br>
 
 - the Gaussian kernel
-  $K(\mathbf x_i, \mathbf y_j) = \exp\left(-\frac{1}{2\sigma^2} || \mathbf x_i - \mathbf y_j ||_2^{\,2}\right)$
-  with $\sigma>0$<br>
+  $K(\mathbf x_i, \mathbf y_j) = \exp\left(-\frac{1}{2\sigma^2} \Vert \mathbf x_i - \mathbf y_j \Vert_2^{\,2}\right)$
+  with $\sigma>0$ <br>
 
 - and more…<br><br>
 
@@ -430,3 +438,41 @@ computations).
 
 To use GPU computing mode, you can call `use_gpu()` (with an optional
 argument `device` to choose a specific GPU id to run computations).
+
+# Examples/Tutorials/Benchmarks
+
+## Using RKeOps
+
+See this
+[article](https://www.kernel-operations.io/rkeops/articles/using_rkeops.html)
+or the corresponding vignette:
+
+``` r
+vignette("using_rkeops", package = "rkeops")
+```
+
+## LazyTensors
+
+See this
+[article](https://www.kernel-operations.io/rkeops/articles/LazyTensor_rkeops.html)
+or the corresponding vignette:
+
+``` r
+vignette("LazyTensor_rkeops", package = "rkeops")
+```
+
+## Kernel interpolation
+
+See this
+[article](https://www.kernel-operations.io/rkeops/articles/Kernel_Interpolation_rkeops.html)
+or the corresponding vignette:
+
+``` r
+vignette("kernel_interpolation_rkeops", package = "rkeops")
+```
+
+## Benchmarks
+
+See the corresponding directory
+[`rkeops/benchmarks`](https://github.com/getkeops/keops/tree/main/rkeops/benchmarks)
+in the project source repository.
