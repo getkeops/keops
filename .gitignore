@@ -63,3 +63,4 @@ keopslab/common/pathtocmake
 # benchmark extra file
 benchmarks/*halide*
 *benchmark_datasets*
+sg_execution_times.rst

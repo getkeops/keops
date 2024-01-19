@@ -19,5 +19,5 @@ pandas
 plyfile
 SimpleITK
 scikit-image
-pyvtk
+# pyvtk  # dropped for pyvista
 pyvista
