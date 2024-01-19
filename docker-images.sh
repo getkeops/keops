@@ -50,9 +50,20 @@ done
 # docker run -dit getkeops/keops:latest
 # or
 # docker run --gpus all -dit getkeops/keops-full:latest
-# and then
+#
+# Use
+# docker ps
+# to get the container id and then
 # docker exec -it <container_id> /bin/bash
 #
 # And push to Docker Hub:
 # docker login -u getkeops
 # docker push getkeops/keops:latest
+# docker push getkeops/keops-doc:latest
+# docker push getkeops/keops-full:latest
+#
+# and do the same thing with the version tag, e.g.
+# docker push getkeops/keops-full:2.2-geomloss0.2.6-cuda12.1-pytorch2.1.2-python3.11
+#
+# To test things with Singularity, you can now follow the instructions at
+# http://kernel-operations.io/keops/python/installation.html#using-docker-or-singularity
