@@ -154,7 +154,7 @@ a_j <- sum(K_ij, index = "i") # actual R matrix (in fact a row vector of
                               # "j" index)
 ```
 
-More details in the dedicated "RKeOps LazyTensor" vignette:
+**More in the dedicated "RKeOps LazyTensor" [article](https://www.kernel-operations.io/rkeops/articles/LazyTensor_rkeops.html)** or in the corresponding vignette:
 ```{r eval=FALSE}
 vignette("LazyTensor_rkeops", package = "rkeops")
 ```
