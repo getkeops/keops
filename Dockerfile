@@ -180,6 +180,9 @@ ENV PYTHONPATH=/opt/survivalGPU/:/opt/geomloss/:/opt/keops/pykeops/:/opt/keops/k
 
 
 # Dependencies for the KeOps and GeomLoss documentations:
+# N.B.: for interactive matplotlib plots, you may need to set
+# export MPLBACKEND=tkagg
+# before running your script (there is a bug with the default qtagg backend)
 FROM keops AS keops-doc
 COPY doc-requirements.txt doc-requirements.txt
 RUN /opt/conda/bin/pip install -r doc-requirements.txt
