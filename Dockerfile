@@ -73,7 +73,7 @@ RUN apt-get update && \
         libssl-dev \
         libcurl4-openssl-dev && \
     rm -rf /var/lib/apt/lists/*
-ENV PATH=/opt/conda/bin:$PATH
+ENV PATH=/home/.local/bin:/opt/conda/bin:$PATH
 
 
 # Install R and a collection of useful packages.
