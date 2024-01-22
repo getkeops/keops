@@ -92,7 +92,6 @@ RUN apt-get update && \
     r-base \
     r-base-dev \
     r-cran-survival \
-    r-cran-rmarkdown \
     r-cran-reticulate \
     r-cran-formatr \
     r-cran-tidyverse \
@@ -100,7 +99,7 @@ RUN apt-get update && \
     r-cran-matrix \
     r-cran-testthat \
     r-cran-devtools && \
-    Rscript -e 'install.packages(c("WCE", "languageserver", "profvis", "tictoc", "roxygen2", "qpdf"))'
+    Rscript -e 'install.packages(c("WCE", "languageserver", "profvis", "tictoc", "roxygen2", "qpdf", "pkgdown", "rmarkdown"))'
 # Encoding for R:
 ENV LC_ALL=C.UTF-8
 
