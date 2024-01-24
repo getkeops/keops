@@ -5,6 +5,7 @@ import keopscore
 
 keopscore.auto_factorize = False
 
+
 def fn_torch(x_i):
     K_ij = (x_i**2).sum(-1).exp()
     K_ij = K_ij[..., None]
@@ -40,6 +41,7 @@ for k in range(ntest):
 print("mean=", sum(err) / ntest)
 print("max=", max(err))
 print("err=", torch.log10(torch.tensor(err)))
+
 
 class TestCase:
     def test_torch_func_hessian(self):
