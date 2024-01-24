@@ -1,13 +1,13 @@
-import pytest
-
-import torch
 import math
+
+import pytest
+import torch
+
 from pykeops.torch import LazyTensor
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
-torch.set_default_dtype(torch.float64)
 
-x = torch.rand(5, 1) * 2 * math.pi
+x = torch.rand(5, 1, dtype=torch.float64) * 2 * math.pi
 y = x.data.clone()
 x = x.to(device)
 y = y.to(device)
@@ -20,11 +20,7 @@ s1.backward()
 
 if torch.__version__ >= "1.8":
     s2 = torch.sum(torch.sinc(y))
-
-    assert torch.abs(s1 - s2) < 1e-3
     s2.backward()
-    print("grad_s1 - grad_s2", torch.max(torch.abs(x.grad - y.grad)).item())
-    assert torch.max(torch.abs(x.grad - y.grad)) < 1e-3
 
 
 @pytest.mark.skipif(torch.__version__ < "1.8", reason="Requires torch>=1.8")
