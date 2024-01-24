@@ -150,7 +150,7 @@ class GenredAutograd_base:
 
         # for forward AD we cannot use save_for_backward, so we put also args and result in ctx...
         ctx.args = args
-        ctx.result = result
+        # ctx.result = result  # TODO: see https://pytorch.org/docs/stable/generated/torch.autograd.Function.forward.html
 
     @staticmethod
     def _backward(ctx, G, _):
@@ -332,7 +332,7 @@ else:
             ny = params.ny
             args = ctx.args
             nargs = len(args)
-            result = ctx.result
+            # result = ctx.result # TODO see save_for_forward()
 
             check_AD_supported(formula)
 
@@ -353,7 +353,7 @@ else:
                     eta = f"Var({nargs},{dim},{cat})"
                     formula_d = f"Diff_WithSavedForward({formula},{var},{eta},{resvar})"
                     aliases_d = aliases + [eta] + [resvar]
-                    args_d = (*args, grad_input, result)
+                    args_d = (*args, grad_input) # TODO: was previously, args_d = (*args, grad_input, result)
                     genconv = GenredAutograd_fun
 
                     params_d = copy.copy(params)
