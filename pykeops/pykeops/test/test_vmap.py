@@ -60,9 +60,9 @@ class TestCase:
         assert torch.allclose(res_keops_grad, res_torch_grad)
 
     def test_vmap_2(self):
-        x_i = torch.randn(10, 5, 1, 2, requires_grad=test_grad)
-        x_j = torch.randn(5, 1, 20, 2)
-        y_j = torch.randn(1, 5, 20, 1)
+        x_i = torch.randn(10, 5, 1, 2, requires_grad=test_grad, dtype=torch.float64)
+        x_j = torch.randn(5, 1, 20, 2, dtype=torch.float64)
+        y_j = torch.randn(1, 5, 20, 1, dtype=torch.float64)
         in_dims = (1, 0, 1)
         out_dims = 2
 
