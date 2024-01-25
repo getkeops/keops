@@ -96,7 +96,7 @@ def file_to_string(file_path):
     """
     reads text file and returns its content as a string
     """
-    f = open(file_path, "r")
+    f = open(file_path, "r", encoding="utf-8")
     out = f.read()
     f.close()
     return out
