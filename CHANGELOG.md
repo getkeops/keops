@@ -1,3 +1,7 @@
+* v2.2.1 - Jan 25, 2024
+   - Fix a memory leak introduced with support of forward AD (issue 353)
+
+
 * v2.2 - Jan 18, 2024
    - added option to disable fast_math Cuda compiler option
    - added comparison operators between LazyTensor
@@ -8,6 +12,7 @@
    - changed cache folder name, now include name of local host
    - added torch.compile comparison to the benchmarks
    - fixed issues 294, 305, 310, 325, 342, ...
+
 
 * v2.1.2 - Apr 4, 2023
    - Fixes a memory leaks introduced in version v2.x (issues 284 and 300).
