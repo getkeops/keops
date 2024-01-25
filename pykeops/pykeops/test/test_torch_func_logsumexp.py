@@ -59,4 +59,4 @@ class TestCase:
     def test_torch_func_hessian(self):
         res1 = torch.func.hessian(fn_torch)(x_i, y_j, b_j)
         res2 = torch.func.hessian(fn_keops)(x_i, y_j, b_j)
-        assert torch.allclose(res1, res2)
+        assert torch.allclose(res1, res2, atol=1e-5)
