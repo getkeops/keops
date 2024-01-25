@@ -2,7 +2,7 @@ import torch
 from pykeops.torch import LazyTensor
 
 test_grad = True
-
+torch.manual_seed(0)
 
 def fn(x_i, x_j, y_j, use_keops=True):
     if use_keops:
