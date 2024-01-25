@@ -148,10 +148,6 @@ class GenredAutograd_base:
         #  of the backward once again. It helps pytorch to keep track of 'who is who'.
         ctx.save_for_backward(*args, result)
 
-        # for forward AD we cannot use save_for_backward, so we put also args and result in ctx...
-        ctx.args = args
-        ctx.result = result
-
     @staticmethod
     def _backward(ctx, G, _):
         params = ctx.params
@@ -297,6 +293,9 @@ else:
         @staticmethod
         def setup_context(ctx, inputs, outputs):
             GenredAutograd_base._setup_context(ctx, inputs, outputs)
+            _, *args = inputs
+            result, _ = outputs
+            ctx.save_for_forward(*args, result)
 
         @staticmethod
         def backward(ctx, G, _):
@@ -330,9 +329,9 @@ else:
             tagIJ = ctx.tagIJ
             nx = params.nx
             ny = params.ny
-            args = ctx.args
+            args = ctx.saved_tensors[:-1]  # Unwrap the saved variables
             nargs = len(args)
-            result = ctx.result
+            result = ctx.saved_tensors[-1].detach()
 
             check_AD_supported(formula)
 

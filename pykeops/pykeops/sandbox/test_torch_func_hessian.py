@@ -41,3 +41,10 @@ for k in range(ntest):
 print("mean=", sum(err) / ntest)
 print("max=", max(err))
 print("err=", torch.log10(torch.tensor(err)))
+
+
+class TestCase:
+    def test_torch_func_hessian(self):
+        res1 = torch.func.hessian(fn_torch)(x_i)
+        res2 = torch.func.hessian(fn_keops)(x_i)
+        assert torch.allclose(res1, res2)
