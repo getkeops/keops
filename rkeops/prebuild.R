@@ -5,16 +5,6 @@
 proj_dir <- rprojroot::find_root(".git/index")
 pkg_dir <- file.path(proj_dir, "rkeops")
 
-# clean function (before building)
-clean <- function() {
-    ## clean inst/build
-    build_dir <- file.path(pkg_dir, "inst", "build")
-    if(dir.exists(build_dir)) {
-        cmd <- paste0("rm -rf ", build_dir, "/*")
-        tmp <- system(cmd)
-    }
-}
-
 # prebuild function
 prebuild <- function() {
     ## DESCRIPTION file
@@ -33,5 +23,4 @@ prebuild <- function() {
 }
 
 # run
-clean()
 prebuild()
