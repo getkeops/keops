@@ -158,9 +158,9 @@ keops_mod = math_function(
     gpu_half2_code="NA",
 )
 keops_round = math_function(
-    cpu_code=lambda x, d: f"round({x})"
-    if eval(d) == 0
-    else f"(round({x}*{10**eval(d)})/{10**eval(d)})",
+    cpu_code=lambda x, d: (
+        f"round({x})" if eval(d) == 0 else f"(round({x}*{10**eval(d)})/{10**eval(d)})"
+    ),
     gpu_half2_code="NA",
 )
 keops_diffclampint = math_function(
