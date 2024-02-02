@@ -106,7 +106,7 @@ def string_to_file(string, file_path):
     """
     writes string to file
     """
-    f = open(file_path, "w")
+    f = open(file_path, "w", encoding="utf-8")
     out = f.write(string)
     f.close()
 
