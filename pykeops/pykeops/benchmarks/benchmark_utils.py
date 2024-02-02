@@ -4,7 +4,6 @@ Utility functions for the benchmarks
 
 """
 
-
 import importlib
 import os
 import time
