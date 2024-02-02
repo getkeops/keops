@@ -38,7 +38,7 @@ sapply(
 
 ## Setup
 
-```{r library}
+```{r library, message=FALSE, warning=FALSE}
 library(ggplot2) # graph generation
 library(dplyr)   # data.frame manipulation
 library(pracma)  # to create the meshgrid
@@ -46,7 +46,7 @@ library(plotly)  # reactive graph generation
 library(reshape) # matrix to data.frame reformatting
 ```
 
-```{r init}
+```{r init, message=FALSE, warning=FALSE, results='hide'}
 # load rkeops
 library(rkeops)
 # create a dedicated Python environment with reticulate (to be done only once)
@@ -59,6 +59,10 @@ install_rkeops()
 rkeops_use_float64()
 ```
 
+```{r}
+check_rkeops()
+```
+
 ```{r check_rkeops, include=FALSE}
 if(!check_rkeops(warn = FALSE)) {
     knitr::opts_chunk$set(
@@ -69,7 +73,7 @@ if(!check_rkeops(warn = FALSE)) {
 
 ## Introduction
 
-This tutorial is highly inspired by the [pyKeOps tutorial on kernel interpolation](https://www.kernel-operations.io/keops/_auto_tutorials/interpolation/plot_RBF_interpolation_numpy.html#sphx-glr-auto-tutorials-interpolation-plot-rbf-interpolation-numpy-py).
+This tutorial is highly inspired by the [PyKeOps tutorial on kernel interpolation](https://www.kernel-operations.io/keops/_auto_tutorials/interpolation/plot_RBF_interpolation_numpy.html#sphx-glr-auto-tutorials-interpolation-plot-rbf-interpolation-numpy-py).
 
 The goal here is to solve a linear system of the form,
 
