@@ -3,5 +3,4 @@ test_that("install_rkeops", {
     set_rkeops_options()
     
     expect_error(install_rkeops(), NA)
-    
 })
