@@ -58,7 +58,6 @@ RdMacros:
 Config/testthat/edition: 3
 Date/Publication: 2024/02/02
 Encoding: UTF-8
-LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.3
 SystemRequirements: Python (>= 3.5.0), C++ compiler (gcc/clang), CUDA

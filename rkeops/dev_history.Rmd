@@ -73,7 +73,6 @@ usethis::use_description(
         URL = "https://www.kernel-operations.io/rkeops/, https://github.com/getkeops/keops/",
         BugReports = "https://github.com/getkeops/keops/issues",
         Encoding = "UTF-8",
-        LazyData = "true",
         Version = paste0(readLines(file.path(proj_dir, "keops_version")), ".0"),
         `Date/Publication` = format(Sys.time(), "%Y-%m-%d"),
         SystemRequirements = "Python (>= 3.5.0), C++ compiler (gcc/clang), CUDA (optional but recommended)",
