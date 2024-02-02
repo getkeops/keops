@@ -1,7 +1,7 @@
 Package: rkeops
 Title: Kernel Operations on GPU or CPU, with Autodiff, without Memory
     Overflows
-Version: 2.2.0
+Version: 2.2.1
 Authors@R: c(
     person("Ghislain", "Durif", , "gd.dev@libertymail.net", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0003-2567-1401", website = "<https://gdurif.perso.math.cnrs.fr/>")),
@@ -54,9 +54,8 @@ VignetteBuilder:
     knitr
 RdMacros: 
     Rdpack
-Config/reticulate: list(list(package = "pykeops"))
 Config/testthat/edition: 3
-Date/Publication: 2023/03/31
+Date/Publication: 2024/02/02
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
