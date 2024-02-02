@@ -188,7 +188,20 @@ RKeOps provides<br>
 
 # Installing and using RKeOps
 
-See the specific **“Using RKeOps”
+``` r
+# install rkeops
+install.packages("rkeops")
+# load rkeops
+library(rkeops)
+# create a dedicated Python environment with reticulate (to be done only once)
+reticulate::virtualenv_create("rkeops")
+# activate the dedicated Python environment
+reticulate::use_virtualenv(virtualenv = "rkeops", required = TRUE)
+# install rkeops requirements (to be done only once)
+install_rkeops()
+```
+
+For more details, see the specific **“Using RKeOps”
 [article](https://www.kernel-operations.io/rkeops/articles/using_rkeops.html)**
 or the corresponding vignette:
 
