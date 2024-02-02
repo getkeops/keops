@@ -156,7 +156,7 @@ check_rkeops <- function(warn = TRUE) {
     check3 <- FALSE
     
     # check Python availability
-    check0 <- reticulate::py_available()
+    check0 <- reticulate::py_available(initialize = TRUE)
     if(!check0) {
         msg <- stringr::str_c("'Python' is not available.")
         if(warn) warning(msg)
