@@ -46,6 +46,7 @@ Suggests:
     knitr,
     plotly,
     pracma,
+    remotes,
     reshape,
     rmarkdown,
     testthat (>= 3.0.0),
