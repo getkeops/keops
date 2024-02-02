@@ -33,6 +33,6 @@ navbar:
       href: articles/Kernel_Interpolation_rkeops.html
   right:
     - text: KeOps
-      href: https://www.kernel-operations.io
+      href: https://www.kernel-operations.io/
     - icon: fa-github
       href: https://github.com/getkeops/keops/

@@ -3,14 +3,14 @@
 
 # RKeOps
 
-<a href="https://www.kernel-operations.io/rkeops"><img src="man/figures/rkeops_logo.png" align="right" height="120" /></a>
+<a href="https://www.kernel-operations.io/rkeops/"><img src="man/figures/rkeops_logo.png" align="right" height="120" /></a>
 
 <!-- badges: start -->
 
 [![CRAN
 status](https://www.r-pkg.org/badges/version/rkeops)](https://cran.r-project.org/package=rkeops)
 [![CRAN
-downloads](http://cranlogs.r-pkg.org/badges/grand-total/rkeops?color=yellowgreen)](https://cran.r-project.org/web/packages/rkeops/index.html)
+downloads](http://cranlogs.r-pkg.org/badges/grand-total/rkeops?color=yellowgreen)](https://cran.r-project.org/package=rkeops)
 <!-- badges: end -->
 
 - Documentation URL: <https://www.kernel-operations.io/rkeops/>
@@ -89,7 +89,7 @@ publication](https://jmlr.org/papers/v22/20-275.html):
   volume  = {22},
   number  = {74},
   pages   = {1-6},
-  url     = {http://jmlr.org/papers/v22/20-275.html}
+  url     = {https://jmlr.org/papers/v22/20-275.html}
 }
 ```
 

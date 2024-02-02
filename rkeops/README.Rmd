@@ -15,11 +15,11 @@ knitr::opts_chunk$set(
 
 # RKeOps
 
-<a href="https://www.kernel-operations.io/rkeops"><img src="man/figures/rkeops_logo.png" align="right" height="120" /></a>
+<a href="https://www.kernel-operations.io/rkeops/"><img src="man/figures/rkeops_logo.png" align="right" height="120" /></a>
 
 <!-- badges: start -->
 [![CRAN status](https://www.r-pkg.org/badges/version/rkeops)](https://cran.r-project.org/package=rkeops)
-[![CRAN downloads](http://cranlogs.r-pkg.org/badges/grand-total/rkeops?color=yellowgreen)](https://cran.r-project.org/web/packages/rkeops/index.html)
+[![CRAN downloads](http://cranlogs.r-pkg.org/badges/grand-total/rkeops?color=yellowgreen)](https://cran.r-project.org/package=rkeops)
 <!-- badges: end -->
 
 
