@@ -4,9 +4,11 @@ pkg_dir <- file.path(proj_dir, "rkeops")
 
 # temp .libPaths
 withr::with_temp_libpaths({
+    # load package
+    devtools::install(pkg_dir, upgrade = TRUE)
     
     # load package
-    devtools::load_all(pkg_dir)
+    library(rkeops)
     
     # reticulate config
     envname <- "rkeops-ci"
@@ -16,12 +18,12 @@ withr::with_temp_libpaths({
     reticulate::use_virtualenv(virtualenv = envname, required = TRUE)
     reticulate::py_config()
     
-    # install requirements
-    install_rkeops()
-    
     # check
     check_rkeops()
     
-    # run check
-    devtools::check(pkg_dir, error_on = "error")
+    # install requirements
+    install_rkeops()
+
+    # check
+    check_rkeops()
 })

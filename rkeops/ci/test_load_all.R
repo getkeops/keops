@@ -16,12 +16,12 @@ withr::with_temp_libpaths({
     reticulate::use_virtualenv(virtualenv = envname, required = TRUE)
     reticulate::py_config()
     
+    # check
+    check_rkeops()
+    
     # install requirements
     install_rkeops()
     
     # check
     check_rkeops()
-    
-    # run check
-    devtools::check(pkg_dir, error_on = "error")
 })
