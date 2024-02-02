@@ -274,6 +274,18 @@ res <- op(list(X, Y, B, s))
 
 ---
 
+# CPU and GPU computing
+
+Based on your LazyTensor-based operations or formulae, RKeOps compiles on the fly operators that can be used to run the corresponding computations on CPU or GPU, it uses a tiling scheme to decompose the data and avoid (i) useless and costly memory transfers between host and GPU (performance gain) and (ii) memory overflow.
+
+> **Note:** You can use the same code (i.e. define the same operators) for CPU or GPU computing. The only difference will be the compiler used for the compilation of your operators (upon the availability of CUDA on your system).
+
+To use CPU computing mode, you can call `rkeops_use_cpu()` (with an optional argument `ncore` specifying the number of cores used to run parallel computations).
+
+To use GPU computing mode, you can call `rkeops_use_gpu()` (with an optional argument `device` to choose a specific GPU id to run computations).
+
+---
+
 # Matrix reduction and kernel operator
 
 The general framework of RKeOps (and KeOps) is to provide fast and scalable matrix operations on GPU, in particular kernel-based computations of the form $$\underset{i=1,...,M}{\text{reduction}}\ G(\boldsymbol{\sigma}, \mathbf x_i, \mathbf y_j) \ \ \ \ \text{or}\ \ \ \ \underset{j=1,...,N}{\text{reduction}}\ G(\boldsymbol{\sigma}, \mathbf x_i, \mathbf y_j)$$ where<br>
@@ -323,17 +335,7 @@ Then you can compute reductions based on such functions, especially when the $M 
 
 * Convolution-like operations: $$\sum_{i=1}^M K(\mathbf x_i, \mathbf y_j)\boldsymbol\beta_j\ \ \ \ \text{or}\ \ \ \ \sum_{j=1}^N K(\mathbf x_i, \mathbf y_j)\boldsymbol\beta_j$$ for some vectors $(\boldsymbol\beta_j)_{j=1,...,N} \in \mathbb R^{N\times D}$<br><br>
 
-* More complex operations: $$\sum_{i=1}^{M}\, K_1(\mathbf x_i, \mathbf y_j)\, K_2(\mathbf u_i, \mathbf v_j)\,\langle \boldsymbol\alpha_i\, ,\,\boldsymbol\beta_j\rangle \ \ \ \ \text{or}\ \ \ \ \sum_{j=1}^{N}\, K_1(\mathbf x_i, \mathbf y_j)\, K_2(\mathbf u_i, \mathbf v_j)\,\langle \boldsymbol\alpha_i\, ,\,\boldsymbol\beta_j\rangle$$ for some kernels $K_1$ and $K_2$, and some $D$-vectors $(\mathbf x_i)_{i=1,...,M}, (\mathbf u_i)_{i=1,...,M}, (\boldsymbol\alpha_i)_{i=1,...,M} \in \mathbb R^{M\times D}$ and $(\mathbf y_j)_{j=1,...,N}, (\mathbf v_j)_{j=1,...,N}, (\boldsymbol\beta_j)_{j=1,...,N} \in \mathbb R^{N\times D}$
-
-## CPU and GPU computing
-
-Based on your formulae, RKeOps compiles on the fly operators that can be used to run the corresponding computations on CPU or GPU, it uses a tiling scheme to decompose the data and avoid (i) useless and costly memory transfers between host and GPU (performance gain) and (ii) memory overflow.
-
-> **Note:** You can use the same code (i.e. define the same operators) for CPU or GPU computing. The only difference will be the compiler used for the compilation of your operators (upon the availability of CUDA on your system).
-
-To use CPU computing mode, you can call `use_cpu()` (with an optional argument `ncore` specifying the number of cores used to run parallel computations).
-
-To use GPU computing mode, you can call `use_gpu()` (with an optional argument `device` to choose a specific GPU id to run computations).
+* More complex operations: $$\sum_{i=1}^{M}\, K_1(\mathbf x_i, \mathbf y_j)\, K_2(\mathbf u_i, \mathbf v_j)\,\langle \boldsymbol\alpha_i\, ,\,\boldsymbol\beta_j\rangle \ \ \ \ \text{or}\ \ \ \ \sum_{j=1}^{N}\, K_1(\mathbf x_i, \mathbf y_j)\, K_2(\mathbf u_i, \mathbf v_j)\,\langle \boldsymbol\alpha_i\, ,\,\boldsymbol\beta_j\rangle$$ for some kernels $K_1$ and $K_2$, and some $D$-vectors $(\mathbf x_i)_{i=1,...,M}, (\mathbf u_i)_{i=1,...,M}, (\boldsymbol\alpha_i)_{i=1,...,M} \in \mathbb R^{M\times D}$ and $(\mathbf y_j)_{j=1,...,N}, (\mathbf v_j)_{j=1,...,N}, (\boldsymbol\beta_j)_{j=1,...,N} \in \mathbb R^{N\times D}$.
 
 # Examples/Tutorials/Benchmarks
 

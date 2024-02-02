@@ -344,6 +344,29 @@ res <- op(list(X, Y, B, s))
 
 ------------------------------------------------------------------------
 
+# CPU and GPU computing
+
+Based on your LazyTensor-based operations or formulae, RKeOps compiles
+on the fly operators that can be used to run the corresponding
+computations on CPU or GPU, it uses a tiling scheme to decompose the
+data and avoid (i) useless and costly memory transfers between host and
+GPU (performance gain) and (ii) memory overflow.
+
+> **Note:** You can use the same code (i.e. define the same operators)
+> for CPU or GPU computing. The only difference will be the compiler
+> used for the compilation of your operators (upon the availability of
+> CUDA on your system).
+
+To use CPU computing mode, you can call `rkeops_use_cpu()` (with an
+optional argument `ncore` specifying the number of cores used to run
+parallel computations).
+
+To use GPU computing mode, you can call `rkeops_use_gpu()` (with an
+optional argument `device` to choose a specific GPU id to run
+computations).
+
+------------------------------------------------------------------------
+
 # Matrix reduction and kernel operator
 
 The general framework of RKeOps (and KeOps) is to provide fast and
@@ -430,27 +453,7 @@ too large to fit into memory, such as<br>
   for some kernels $K_1$ and $K_2$, and some $D$-vectors
   $(\mathbf x_i)_{i=1,...,M}, (\mathbf u_i)_{i=1,...,M}, (\boldsymbol\alpha_i)_{i=1,...,M} \in \mathbb R^{M\times D}$
   and
-  $(\mathbf y_j)_{j=1,...,N}, (\mathbf v_j)_{j=1,...,N}, (\boldsymbol\beta_j)_{j=1,...,N} \in \mathbb R^{N\times D}$
-
-## CPU and GPU computing
-
-Based on your formulae, RKeOps compiles on the fly operators that can be
-used to run the corresponding computations on CPU or GPU, it uses a
-tiling scheme to decompose the data and avoid (i) useless and costly
-memory transfers between host and GPU (performance gain) and (ii) memory
-overflow.
-
-> **Note:** You can use the same code (i.e. define the same operators)
-> for CPU or GPU computing. The only difference will be the compiler
-> used for the compilation of your operators (upon the availability of
-> CUDA on your system).
-
-To use CPU computing mode, you can call `use_cpu()` (with an optional
-argument `ncore` specifying the number of cores used to run parallel
-computations).
-
-To use GPU computing mode, you can call `use_gpu()` (with an optional
-argument `device` to choose a specific GPU id to run computations).
+  $(\mathbf y_j)_{j=1,...,N}, (\mathbf v_j)_{j=1,...,N}, (\boldsymbol\beta_j)_{j=1,...,N} \in \mathbb R^{N\times D}$.
 
 # Examples/Tutorials/Benchmarks
 
