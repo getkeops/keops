@@ -18,7 +18,8 @@ vignette: >
 knitr::opts_chunk$set(
   collapse = TRUE,
   progress = TRUE,
-  warning = FALSE
+  warning = FALSE,
+  eval = FALSE
 )
 ```
 
@@ -142,8 +143,21 @@ RKeOps provides<br>
 
 # Installing and using RKeOps
 
-See the specific **"Using RKeOps" [article](https://www.kernel-operations.io/rkeops/articles/using_rkeops.html)** or the corresponding vignette:
-```{r eval=FALSE}
+```{r}
+# install rkeops
+install.packages("rkeops")
+# load rkeops
+library(rkeops)
+# create a dedicated Python environment with reticulate (to be done only once)
+reticulate::virtualenv_create("rkeops")
+# activate the dedicated Python environment
+reticulate::use_virtualenv(virtualenv = "rkeops", required = TRUE)
+# install rkeops requirements (to be done only once)
+install_rkeops()
+```
+
+For more details, see the specific **"Using RKeOps" [article](https://www.kernel-operations.io/rkeops/articles/using_rkeops.html)** or the corresponding vignette:
+```{r}
 vignette("using_rkeops", package = "rkeops")
 ```
 
@@ -173,7 +187,7 @@ with
 
 The associated code would be:
 
-```{r, eval=FALSE}
+```{r}
 # to run computation on CPU (default mode)
 rkeops_use_cpu()
 # OR
@@ -212,7 +226,7 @@ a_j <- sum(K_ij, index = "i") # actual R matrix (in fact a row vector of
 ```
 
 **More in the dedicated "RKeOps LazyTensor" [article](https://www.kernel-operations.io/rkeops/articles/LazyTensor_rkeops.html)** or in the corresponding vignette:
-```{r eval=FALSE}
+```{r}
 vignette("LazyTensor_rkeops", package = "rkeops")
 ```
 
@@ -228,7 +242,7 @@ with
 * $j$-indexed variables $\mathbf Y = [\mathbf y_j]_{j=1,...,N} \in\mathbb R^{N\times 3}$ and $\mathbf B = [\mathbf b_j]_{j=1,...,N} \in\mathbb R^{N\times 6}$<br><br>
 
 In R, we can define the corresponding KeOps formula as a **simple text string**:
-```{r formula, eval=FALSE}
+```{r formula}
 formula = "Sum_Reduction(Exp(-s * SqNorm2(x - y)) * b, 0)"
 ```
   - `SqNorm2` = squared $\ell_2$ norm
@@ -236,7 +250,7 @@ formula = "Sum_Reduction(Exp(-s * SqNorm2(x - y)) * b, 0)"
   - `Sum_reduction(..., 0)` = sum reduction over the dimension 0 i.e. sum on the $j$'s (1 to sum over the $i$'s)<br>
 
 and the corresponding arguments of the formula, i.e. parameters or variables indexed by $i$ or $j$ with their corresponding inner dimensions:
-```{r args, eval=FALSE}
+```{r args}
 args = c("x = Vi(3)",      # vector indexed by i (of dim 3)
          "y = Vj(3)",      # vector indexed by j (of dim 3)
          "b = Vj(6)",      # vector indexed by j (of dim 6)
@@ -244,7 +258,7 @@ args = c("x = Vi(3)",      # vector indexed by i (of dim 3)
 ```
 
 Then we just compile the corresponding operator and apply it to some data
-```{r compile, eval=FALSE}
+```{r compile}
 # compilation
 op <- keops_kernel(formula, args)
 # data and parameter values
@@ -289,7 +303,7 @@ You can use two type of input matrices with RKeOps:<br>
 * others whose rows (or columns) are indexed by $j=1,...,N$ such as $\mathbf Y = [y_{ik'}]_{N \times D'}$<br><br>
 
 More details about input matrices (size, storage order) are given in the **"Using RKeOps" [article](https://www.kernel-operations.io/rkeops/articles/using_rkeops.html)** or the corresponding vignette::
-```{r eval=FALSE}
+```{r}
 vignette("using_rkeops", package = "rkeops")
 ```
 
@@ -326,21 +340,21 @@ To use GPU computing mode, you can call `use_gpu()` (with an optional argument `
 ## Using RKeOps
 
 See this [article](https://www.kernel-operations.io/rkeops/articles/using_rkeops.html) or the corresponding vignette:
-```{r eval=FALSE}
+```{r}
 vignette("using_rkeops", package = "rkeops")
 ```
 
 ## LazyTensors
 
 See this [article](https://www.kernel-operations.io/rkeops/articles/LazyTensor_rkeops.html) or the corresponding vignette:
-```{r eval=FALSE}
+```{r}
 vignette("LazyTensor_rkeops", package = "rkeops")
 ```
 
 ## Kernel interpolation
 
 See this [article](https://www.kernel-operations.io/rkeops/articles/Kernel_Interpolation_rkeops.html) or the corresponding vignette:
-```{r eval=FALSE}
+```{r}
 vignette("kernel_interpolation_rkeops", package = "rkeops")
 ```
 

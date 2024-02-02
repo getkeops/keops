@@ -21,12 +21,22 @@ vignette: >
 knitr::opts_chunk$set(
   collapse = TRUE,
   progress = TRUE,
-  warning = FALSE
+  warning = FALSE,
+  eval = FALSE
 )
 ```
 
-```{r library}
+## Setup
+
+```{r}
+# load rkeops
 library(rkeops)
+# create a dedicated Python environment with reticulate (to be done only once)
+reticulate::virtualenv_create("rkeops")
+# activate the dedicated Python environment
+reticulate::use_virtualenv(virtualenv = "rkeops", required = TRUE)
+# install rkeops requirements (to be done only once)
+install_rkeops()
 ```
 
 
@@ -52,7 +62,7 @@ with
 
 The associated code would be:
 
-```{r, eval=FALSE}
+```{r}
 # to run computation on CPU (default mode)
 rkeops_use_cpu()
 # OR
@@ -102,7 +112,7 @@ To encode symbolically a matrix, a vector, or a single value as a `LazyTensor`, 
 
 The `LazyTensor` function also allows to encode mathematical objects formed of complex numbers. These new objects are called `ComplexLazyTensors` but note that these are also `LazyTensors`, however, they are not encoded quite the same way: the real and complex parts are dissociated and stored in two contiguous columns. Below is a simple example of what complex number objects become once encoded as `ComplexLazyTensors`:
 
-```{r cplx_example, eval=FALSE}
+```{r cplx_example}
 # Arbitrary complex R matrix
 z <- matrix(2 + 1i^(-6:-1), nrow = 2, ncol = 2)
 z
@@ -138,7 +148,7 @@ Pm_v_z$data
 Of course if you create a vector or a matrix of real values, and
 encode it as a `ComplexLazyTensor`, a zero imaginary part is added to it:
 
-```{r, eval=FALSE}
+```{r}
 # Real R vector
 v <- c(5, 4, 7, 9)
 
@@ -351,7 +361,7 @@ Here, `x` is a `LazyTensor` of inner dimension $D$ and outer dimension $M$, inde
 
 You can use `Vi`, `Vj` and `Pm` aliases to create `LazyTensors`:
 
-```{r aliases, eval=FALSE}
+```{r aliases}
 # Data
 N <- 100
 x <- matrix(runif(N * 3), nrow = N, ncol = 3) # arbitrary R matrix representing 

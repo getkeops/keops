@@ -36,6 +36,8 @@ sapply(
 )
 ```
 
+## Setup
+
 ```{r library}
 library(ggplot2) # graph generation
 library(dplyr)   # data.frame manipulation
@@ -43,6 +45,29 @@ library(pracma)  # to create the meshgrid
 library(plotly)  # reactive graph generation
 library(reshape) # matrix to data.frame reformatting
 ```
+
+```{r init}
+# load rkeops
+library(rkeops)
+# create a dedicated Python environment with reticulate (to be done only once)
+reticulate::virtualenv_create("rkeops")
+# activate the dedicated Python environment
+reticulate::use_virtualenv(virtualenv = "rkeops", required = TRUE)
+# install rkeops requirements (to be done only once)
+install_rkeops()
+# use 64bit floating operation precision
+rkeops_use_float64()
+```
+
+```{r check_rkeops, include=FALSE}
+if(!check_rkeops(warn = FALSE)) {
+    knitr::opts_chunk$set(
+      eval = FALSE
+    )
+}
+```
+
+## Introduction
 
 This tutorial is highly inspired by the [pyKeOps tutorial on kernel interpolation](https://www.kernel-operations.io/keops/_auto_tutorials/interpolation/plot_RBF_interpolation_numpy.html#sphx-glr-auto-tutorials-interpolation-plot-rbf-interpolation-numpy-py).
 
@@ -56,14 +81,6 @@ $$
 $$
 
 where $K_{xx}$ is a symmetric, positive definite matrix encoded as an `RKeOps LazyTensor`, and $\lambda$ is a nonnegative regularization parameter. In the following script, we use the conjugate gradient method to solve large-scale [Kriging](https://en.wikipedia.org/wiki/Kriging) (a.k.a. [Gaussian process regression](https://en.wikipedia.org/wiki/Gaussian_process) or [generelized spline interpolation](https://en.wikipedia.org/wiki/Spline_interpolation)) problems with a **linear memory footprint**.
-
-## Setup
-
-```{r init}
-library(rkeops)
-rkeops_use_float64()
-```
-
 
 ## Interpolation in 1D
 

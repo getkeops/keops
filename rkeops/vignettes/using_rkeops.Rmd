@@ -18,7 +18,8 @@ vignette: >
 knitr::opts_chunk$set(
   collapse = TRUE,
   progress = TRUE,
-  warning = FALSE
+  warning = FALSE,
+  eval = FALSE
 )
 ```
 
@@ -38,27 +39,11 @@ Thanks to RKeOps, you can use **GPU computing directly inside R** without the co
 
 **Disclaimer:** KeOps (including RKeOps) is not functional on Windows, it was only tested on Linux and MacOS.
 
-## Python requirement
-
-RKeOps now uses PyKeOps Python package under the hood thanks to the [`reticulate`](https://rstudio.github.io/reticulate/) R package that provides an “R Interface to Python”.
-
-We recommend to use a dedicated Python environment (through `reticulate`) to install and use RKeOps Python dependencies. **To do so, you can run the following code before installing RKeOps:**
-
-```{r python, eval=FALSE}
-install.packages("reticulate")
-library(reticulate)
-virtualenv_create("rkeops")
-use_virtualenv(virtualenv = "rkeops", required = TRUE)
-py_config()
-```
-
-> **Note:** To get more information about **managing** which **version of Python** you are using, you can refer to `reticulate` [documentation](https://rstudio.github.io/reticulate/articles/versions.html) about “Python Version Configuration”. In particular, if you are a Miniconda/Anaconda Python distribution user, you can either user a Python virtual environment (c.f. above) or a **Conda environment** with the same results. Please refer to the `reticulate` [documentation](https://rstudio.github.io/reticulate/articles/versions.html#providing-hints) in this case.
-
 ## Install from CRAN
 
 > **Note:** RKeOps is avaible on CRAN but only for UNIX environment (GNU/Linux and MacOS) and not for Windows.
 
-```{r install, eval=FALSE}
+```{r install}
 install.packages("rkeops")
 ```
 
@@ -66,29 +51,50 @@ install.packages("rkeops")
 
 ## Install development version
 
-```{r install_github, eval=FALSE}
+```{r install_github}
 install.packages("remotes")
 remotes::install_github("getkeops/keops", subdir = "rkeops")
 ```
+
+## Setup and requirement install
+
+**To be done once after installation:**
+
+```{r install_requirements}
+# load rkeops
+library(rkeops)
+# create a dedicated Python environment with reticulate (to be done only once)
+reticulate::virtualenv_create("rkeops")
+# activate the dedicated Python environment
+reticulate::use_virtualenv(virtualenv = "rkeops", required = TRUE)
+# install rkeops requirements (to be done only once)
+install_rkeops()
+```
+
+### Note on Python requirement
+
+RKeOps now uses PyKeOps Python package under the hood thanks to the [`reticulate`](https://rstudio.github.io/reticulate/) R package that provides an “R Interface to Python”.
+
+We recommend to use a dedicated Python environment (through `reticulate`) to install and use RKeOps Python dependencies (c.f. [previously](#setup-and-requirement-install)).
+
+> **Note:** To get more information about **managing** which **version of Python** you are using, you can refer to `reticulate` [documentation](https://rstudio.github.io/reticulate/articles/versions.html) about “Python Version Configuration”. In particular, if you are a Miniconda/Anaconda Python distribution user, you can either user a Python virtual environment (c.f. above) or a **Conda environment** with the same results. Please refer to the `reticulate` [documentation](https://rstudio.github.io/reticulate/articles/versions.html#providing-hints) in this case.
 
 ---
 
 # How to use RKeOps
 
-If you are using a Python environment (c.f. [previously](#python-requirement)), you should always run the following commands before loading RKeOps:
-
-```{r preload, eval=FALSE}
-use_virtualenv(virtualenv = "rkeops", required = TRUE)
-py_config()
-```
-
 Load RKeOps in R:
-```{r setup, eval=FALSE}
+```{r setup}
+# load rkeops
 library(rkeops)
+# activate the dedicated Python environment
+reticulate::use_virtualenv(virtualenv = "rkeops", required = TRUE)
 ```
+
+**Note**: If you are using a Python environment (c.f. [previously](#note-on-python-requirement)), you should always activate it after loading RKeOps.
 
 You can verify that every thing is ok:
-```{r check, eval=FALSE}
+```{r check}
 check_rkeops()
 ```
 
@@ -116,7 +122,7 @@ with
 
 The associated code would be:
 
-```{r, eval=FALSE}
+```{r}
 # to run computation on CPU (default mode)
 rkeops_use_cpu()
 # OR
@@ -163,7 +169,7 @@ vignette("LazyTensor_rkeops", package = "rkeops")
 
 With RKeOps, you can also directly define new operator with plain mathematical formula written as a character string:
 
-```{r, eval=FALSE}
+```{r}
 # implementation of a convolution with a Gaussian kernel
 formula = "Sum_Reduction(Exp(-s * SqNorm2(x - y)) * b, 0)"
 # input arguments
@@ -213,7 +219,7 @@ with
 * $j$-indexed variables $[\mathbf y_j]_{j=1,...,N} \in\mathbb R^{N\times 3}$ and $[\mathbf b_j]_{j=1,...,N} \in\mathbb R^{N\times 6}$<br><br>
 
 In R, we can define the corresponding KeOps formula as a simple **text string**:
-```{r formula, eval=FALSE}
+```{r formula}
 formula = "Sum_Reduction(Exp(-s * SqNorm2(x - y)) * b, 0)"
 ```
 * `SqNorm2` = squared $\ell_2$ norm
@@ -257,7 +263,7 @@ You should provide a vector of text string specifying the name and the type of a
 Each keyword takes as parameter the inner dimension of the corresponding object. For instance, to define an input variable indexed by $i$ corresponding to a $D$-dimensional vector, you can use `"Vi(D)"`, same for a $D$-dimensional variable indexed by $j$ being `"Vj(D)"` or a $D$-dimensional parameter `"Pm(D)"`.<br><br>
 
 The vector of arguments should be
-```{r template_args, eval=FALSE}
+```{r template_args}
 args = c("<name1>=<type1>(dim1)", "<name2>=<type2>(dim2)", "<nameX>=<typeX>(dimX)")
 ```
 where
@@ -271,7 +277,7 @@ of the `X`$^\text{th}$ variable in the formula.<br><br>
 > **Important:** The names should correspond to the ones used in the formula. The input parameter order will be the one used when calling the compiled operator.
 
 **Example:** We define the corresponding arguments of the previous [formula](#formula), i.e. parameters or variables indexed by $i$ or $j$ with their corresponding inner dimensions:
-```{r args, eval=FALSE}
+```{r args}
 args = c("x = Vi(3)",      # vector indexed by i (of dim 3)
          "y = Vj(3)",      # vector indexed by j (of dim 3)
          "b = Vj(6)",      # vector indexed by j (of dim 6)
@@ -283,7 +289,7 @@ args = c("x = Vi(3)",      # vector indexed by i (of dim 3)
 ### Creating a new operator
 
 By using the function `keops_kernel`, based on the formula and its arguments that we previously defined, we can compile and load into R the corresponding operator:
-```{r compile, eval=FALSE}
+```{r compile}
 # compilation
 op <- keops_kernel(formula, args)
 ```
@@ -298,7 +304,7 @@ The result of compilation (shared library file) is stored on the system and will
 
 We generate data with inner dimensions (number of columns) corresponding to each arguments expected by the operator `op`. The function `op` takes in input a list of input arguments. If the list if named, `op` checks the association between the supplied names and the names of the formula arguments. In this case only, it can also correct the order of the input list to match the expected order of arguments.
 
-```{r run, eval=FALSE}
+```{r run}
 # data and parameter values
 nx <- 100
 ny <- 150
@@ -320,7 +326,7 @@ res <- op(list(x, y, beta, s))
 ### Computing gradients
 
 You can define gradients directly in the formula, e.g.
-```{r grad, eval=FALSE}
+```{r grad}
 # defining a formula with a Gradient
 formula <- "Grad(Sum_Reduction(SqNorm2(x-y), 0), x, eta)"
 args <- c("x=Vi(0,3)", "y=Vj(1,3)", "eta=Vi(2,1)")
@@ -341,7 +347,7 @@ res <- op(input)
 where `eta` is the new variable at which the gradient is computed, its dimension should correspond to the output dimension of the operation inside the gradient (here `SqNorm2(x-y)` is of dimension 1).
 
 You can also use the function `keops_grad` to compute partial derivative for existing KeOps operators.
-```{r keops_grad, eval=FALSE}
+```{r keops_grad}
 # defining an operator (reduction on squared distance)
 formula <- "Sum_Reduction(SqNorm2(x-y), 0)"
 args <- c("x=Vi(0,3)", "y=Vj(1,3)")
@@ -369,12 +375,12 @@ res <- grad_op(input)
 RKeOps behavior is driven by specific options in `R` global options scope. Such options are set up when loading RKeOps (i.e. by calling `library(rkeops)`).
 
 You can get the current values of RKeOps options with
-```{r get_options, eval=FALSE}
+```{r get_options}
 get_rkeops_options()
 ```
 
 To (re)set RKeOps options to default values, run:
-```{r reset_options, eval=FALSE}
+```{r reset_options}
 set_rkeops_options()
 ```
 
@@ -383,7 +389,7 @@ You can either use `set_rkeops_options()` to modify a specific options (c.f. `?s
 ### Choosing CPU or GPU computing at runtime
 
 By default, RKeOps runs computations on CPU (even for GPU-compiled operators). To enable GPU computing, you can run (before calling your operator):
-```{r use_gpu, eval=FALSE}
+```{r use_gpu}
 rkeops_use_gpu()
 ```
 You can also specify the GPU id that you want to use, e.g. `rkeops_use_gpu(device=0)`
@@ -399,7 +405,7 @@ By default, RKeOps uses  32bits float precision for computations. Since R only c
 
 You use the following functions to choose between 32bits float and 64bits float precision (respectively):
 
-```{r precision, eval=FALSE}
+```{r precision}
 rkeops_use_float32()
 rkeops_use_float64()
 ```
@@ -408,7 +414,7 @@ rkeops_use_float64()
 
 You can use the following functions to respectively enable and disable compilation verbosity:
 
-```{r verbosity, eval=FALSE}
+```{r verbosity}
 rkeops_enable_verbosity()
 rkeops_disable_verbosity()
 ```
@@ -423,7 +429,7 @@ In R, matrices are stored using a column-major order, meaning that a $M \times D
 If you want to use data where the inner dimension corresponds to rows of your matrices, i.e. $\mathbf X^{t} = [x_{ki}]_{D \times M}$ or $\mathbf Y^{t} = [y_{k'i}]_{D' \times N}$, you just need to specify the input parameter `inner_dim="row"` when calling your operator.
 
 Example:
-```{r storage_order, eval=FALSE}
+```{r storage_order}
 # standard column reduction of a matrix product
 op <- keops_kernel(formula = "Sum_Reduction((x|y), 1)",
                    args = c("x=Vi(3)", "y=Vj(3)"))
