@@ -55,7 +55,7 @@ Install requirements (i.e. Python packages) for RKeOps to work.
 \details{
 RKeOps now uses PyKeOps Python package under the hood thanks to the
 \href{https://rstudio.github.io/reticulate/}{\code{reticulate}} R package that
-provides an “R Interface to Python”.
+provides an "R Interface to Python".
 
 We recommend to use a dedicated Python environment (through \code{reticulate})
 to install and use RKeOps Python dependencies.

@@ -29,6 +29,15 @@ For more information, please read the vignettes
 \references{
 \insertRef{JMLR:v22:20-275}{rkeops}
 }
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://www.kernel-operations.io/rkeops/}
+  \item \url{https://github.com/getkeops/keops/}
+  \item Report bugs at \url{https://github.com/getkeops/keops/issues}
+}
+
+}
 \author{
 \itemize{
 \item \href{http://imag.umontpellier.fr/~charlier/}{Benjamin Charlier}

@@ -9,10 +9,10 @@ LazyTensor(x, index = NA, is_complex = FALSE)
 \arguments{
 \item{x}{A matrix or a vector of numeric values, or a scalar value}
 
-\item{index}{A text string that should be either \strong{i} or \strong{j}, or an \strong{NA}
-value (the default), to specify whether the \strong{x} variable is indexed
-by \strong{i} (rows), by \strong{j} (columns), or is a fixed parameter across indices.
-If \strong{x} is a matrix, \strong{index} must be \strong{i} or \strong{j}.}
+\item{index}{A text string that should be either \code{"i"} or \code{"j"}, or an \code{NA}
+value (the default), to specify whether the \code{x} variable is indexed
+by \code{i} (rows), by \code{j} (columns), or is a fixed parameter across indices.
+If \code{x} is a matrix, \code{index} must be \code{"i"} or \code{"j"}.}
 
 \item{is_complex}{A boolean (default is FALSE). Whether we want to create
 a \code{ComplexLazyTensor} (\code{is_complex = TRUE}) or a \code{LazyTensor}
@@ -29,44 +29,42 @@ to create symbolic formulas for the \code{KeOps} reduction operations.
 The \code{LazyTensor()} function builds a \code{LazyTensor}, which is a
 list containing the following elements:
 \itemize{
-\item{\strong{formula}:}{ A string defining the mathematical operation to
+\item \code{formula}: a string defining the mathematical operation to
 be computed by the \code{KeOps} routine - each variable is encoded with the
 pointer address of its argument, suffixed by 'i', 'j', or 'NA', to
-give it a unique identifier;}
-\item{\strong{args}:}{ A vector of arguments containing a unique identifier
+give it a unique identifier;
+\item \code{args}: a vector of arguments containing a unique identifier
 associated to the type of the argument:
 \itemize{
-\item{\strong{Vi(n)}:}{ vector indexed by \strong{i} of dim \strong{n}}
-\item{\strong{Vj(n)}:}{ vector indexed by \strong{j} of dim \strong{n}}
-\item{\strong{Pm(n)}:}{ fixed parameter of dim \strong{n}}
-}}
-\item{\strong{data}:}{ A list of R matrices which will be the inputs of the
-\code{KeOps} routine;}
-\item{\strong{dimres}:}{ An integer corresponding to the inner dimension of
-the \code{LazyTensor}. \strong{dimres} is used when creating new
-\code{LazyTensor}s that result from operations,
-to keep track of the dimension.}
+\item \code{Vi(n)}: vector indexed by \code{i} of dim \code{n}
+\item \code{Vj(n)}: vector indexed by \code{j} of dim \code{n}
+\item \code{Pm(n)}: fixed parameter of dim \code{n}
+}
+\item \code{data}: A list of R matrices which will be the inputs of the \code{KeOps}
+routine;
+\item \code{dimres}: An integer corresponding to the inner dimension of
+the \code{LazyTensor}. \code{dimres} is used when creating new \code{LazyTensor}s
+that result from operations, to keep track of the dimension.
 }
 
-\strong{Note}
+\strong{Note 1}
 
 Setting the argument \code{is_complex} to \code{TRUE} will build a \code{ComplexLazyTensor},
 which is also a \code{LazyTensor}. Run \code{browseVignettes("rkeops")} and see
 "RKeOps LazyTensor" vignette for further details on how \code{ComplexLazyTensors}
 are built.
 
-\strong{Note}
+\strong{Note 2}
 
 If \code{x} is an integer, \code{LazyTensor(x)} builds a \code{LazyTensor} whose
 formula is simply \code{IntCst(x)} and contains all the necessary information;
 \code{args} and \code{data} remain empty to avoid useless storage.
 
 \strong{Alternatives}
-
 \itemize{
-\item LazyTensor(x, "i") is equivalent to Vi(x) (see \strong{Vi()} function)
-\item LazyTensor(x, "j") is equivalent to Vi(x) (see \strong{Vj()} function)
-\item LazyTensor(x) is equivalent to Pm(x) (see \strong{Pm()} function)
+\item \code{LazyTensor(x, "i")} is equivalent to \code{Vi(x)} (see \code{\link[=Vi]{Vi()}} function)
+\item \code{LazyTensor(x, "j")} is equivalent to \code{Vi(x)} (see \code{\link[=Vj]{Vj()}} function)
+\item \code{LazyTensor(x)} is equivalent to \code{Pm(x)} (see \code{\link[=Pm]{Pm()}}function)
 }
 
 Run \code{browseVignettes("rkeops")} to access the vignettes and see how to use
