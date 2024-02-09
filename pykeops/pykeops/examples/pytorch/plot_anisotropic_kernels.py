@@ -171,9 +171,7 @@ plot_kernel(gamma)
 #
 # Providing a single vector we get uniform kernels
 
-Sigma = torch.tensor([1 / 0.2**2, 1 / 0.25**2, 1 / 0.25**2, 1 / 0.1**2]).type(
-    dtype
-)
+Sigma = torch.tensor([1 / 0.2**2, 1 / 0.25**2, 1 / 0.25**2, 1 / 0.1**2]).type(dtype)
 gamma = Sigma
 plot_kernel(gamma)
 
