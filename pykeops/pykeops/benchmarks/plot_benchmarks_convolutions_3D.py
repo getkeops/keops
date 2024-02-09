@@ -26,7 +26,9 @@ from matplotlib import pyplot as plt
 from benchmark_utils import flatten, random_normal, full_benchmark
 
 use_cuda = torch.cuda.is_available()
-print(f"Running torch version {torch.__version__} with {'GPU' if use_cuda else 'CPU'}...")
+print(
+    f"Running torch version {torch.__version__} with {'GPU' if use_cuda else 'CPU'}..."
+)
 
 ##############################################
 # Benchmark specifications:
