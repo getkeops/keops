@@ -20,7 +20,7 @@ check_os <- function(onLoad = FALSE) {
         msg <- paste0(
             "Platform '", .Platform$OS.type, 
             "' is not supported at the moment.")
-        msg_warn_error(msg, ifelse(onLoad, "msg", "error"))
+        msg_warn_error(msg, ifelse(onLoad, "msg", "error"), startup = onLoad)
         return(FALSE)
     } else {
         return(TRUE)
