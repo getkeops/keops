@@ -5,6 +5,7 @@ recommonmark
 myst-parser
 sphinxcontrib-httpdomain
 sphinx_rtd_theme
+cloud-sptheme
 sphinx-prompt
 breathe
 imageio
@@ -14,6 +15,9 @@ si_prefix
 scikit-learn
 multiprocess
 pandas
+torch
+pybind11
+
 
 # Extra requirements for the GeomLoss doc:
 plyfile
