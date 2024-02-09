@@ -25,7 +25,7 @@ Description: The 'KeOps' library lets you compute generic reductions of
     associated gradients, even when the full kernel matrix does not fit
     into the GPU memory.
 License: MIT + file LICENSE
-URL: https://www.kernel-operations.io/, https://github.com/getkeops/keops/
+URL: https://www.kernel-operations.io/rkeops/, https://github.com/getkeops/keops/
 BugReports: https://github.com/getkeops/keops/issues
 Imports: 
     checkmate,
@@ -56,9 +56,10 @@ VignetteBuilder:
 RdMacros: 
     Rdpack
 Config/testthat/edition: 3
-Date/Publication: 2024/02/02
+Date/Publication: 2024/02/09
 Encoding: UTF-8
+OS_type: unix
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.1
 SystemRequirements: Python (>= 3.5.0), C++ compiler (gcc/clang), CUDA
     (optional but recommended)
