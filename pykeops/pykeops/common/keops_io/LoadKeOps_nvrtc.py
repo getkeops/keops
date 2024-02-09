@@ -1,4 +1,5 @@
 import os
+import sys
 
 import keopscore.config.config
 from keopscore.config.config import get_build_folder
@@ -16,6 +17,10 @@ class LoadKeOps_nvrtc_class(LoadKeOps):
 
     def init_phase2(self):
         import importlib
+        if pykeops.get_build_folder() not in sys.path:
+            # The build folder is supposed to be in the python path, if not,
+            # we add it
+            sys.path.append(pykeops.get_build_folder())
 
         pykeops_nvrtc = importlib.import_module("pykeops_nvrtc")
 
