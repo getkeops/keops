@@ -219,6 +219,11 @@ if use_cuda:
             {},
         ),
         (gaussianconv_lazytensor, "KeOps (GPU, LazyTensor)", {}),
+        (
+            gaussianconv_lazytensor,
+            "KeOps (GPU, LazyTensor, batchsize=100)",
+            {"batchsize": 100},
+        ),
         (gaussianconv_keops, "KeOps (GPU, Genred)", {}),
         (gaussianconv_keops_no_fast_math, "KeOps (GPU, use_fast_math=False)", {}),
     ]
