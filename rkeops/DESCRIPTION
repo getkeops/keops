@@ -1,7 +1,7 @@
 Package: rkeops
 Title: Kernel Operations on GPU or CPU, with Autodiff, without Memory
     Overflows
-Version: 2.2.1
+Version: 2.2.2
 Authors@R: c(
     person("Ghislain", "Durif", , "gd.dev@libertymail.net", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0003-2567-1401", website = "<https://gdurif.perso.math.cnrs.fr/>")),
