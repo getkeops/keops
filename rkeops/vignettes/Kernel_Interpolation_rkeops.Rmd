@@ -62,18 +62,22 @@ rkeops_use_float64()
 ```{r safe_init, message=FALSE, warning=FALSE, results='hide', include=FALSE}
 # load rkeops
 library(rkeops)
-# create a dedicated Python environment with reticulate (to be done only once)
-reticulate::virtualenv_create("rkeops")
-# activate the dedicated Python environment
-reticulate::use_virtualenv(virtualenv = "rkeops", required = TRUE)
 
-# check Python availability
-if(reticulate::py_available(initialize = TRUE)) {
-    # install rkeops requirements (to be done only once)
-    install_rkeops()
-} else {
-    knitr::opts_chunk$set(eval = FALSE)
-}
+tryCatch({
+    # create a dedicated Python environment with reticulate (to be done only once)
+    reticulate::virtualenv_create("rkeops")
+    # activate the dedicated Python environment
+    reticulate::use_virtualenv(virtualenv = "rkeops", required = TRUE)
+    
+    # check Python availability
+    if(reticulate::py_available(initialize = TRUE)) {
+        # install rkeops requirements (to be done only once)
+        install_rkeops()
+    } else {
+        knitr::opts_chunk$set(eval = FALSE)
+    }
+}, error = function(e) {knitr::opts_chunk$set(eval = FALSE)})
+
 ```
 
 ```{r}
