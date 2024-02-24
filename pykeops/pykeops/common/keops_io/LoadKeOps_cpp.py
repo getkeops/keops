@@ -37,9 +37,10 @@ class LoadKeOps_cpp_class(LoadKeOps):
 
     def init_phase2(self):
         import importlib
+
         if get_build_folder() not in sys.path:
-            # The build folder is supposed to be in the python path, if not,
-            # we add it
+            # The build folder is supposed to be in the python path, if not,
+            # we add it
             sys.path.append(get_build_folder())
 
         mylib = importlib.import_module(
