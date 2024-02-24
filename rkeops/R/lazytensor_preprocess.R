@@ -10,35 +10,30 @@
 #' @details
 #' The `LazyTensor()` function builds a `LazyTensor`, which is a 
 #' list containing the following elements:
-#' \itemize{
-#'     \item{**formula**:}{ A string defining the mathematical operation to 
+#' 
+#' - `formula`: a string defining the mathematical operation to 
 #'     be computed by the `KeOps` routine - each variable is encoded with the
 #'     pointer address of its argument, suffixed by 'i', 'j', or 'NA', to
-#'     give it a unique identifier;}
-#'     \item{**args**:}{ A vector of arguments containing a unique identifier 
+#'     give it a unique identifier;
+#' - `args`: a vector of arguments containing a unique identifier 
 #'     associated to the type of the argument:
-#'     \itemize{
-#'         \item{**Vi(n)**:}{ vector indexed by **i** of dim **n**}
-#'         \item{**Vj(n)**:}{ vector indexed by **j** of dim **n**}
-#'         \item{**Pm(n)**:}{ fixed parameter of dim **n**}
-#'     }}
-#'     \item{**data**:}{ A list of R matrices which will be the inputs of the 
-#'                       `KeOps` routine;}
-#'     \item{**dimres**:}{ An integer corresponding to the inner dimension of
-#'                        the `LazyTensor`. **dimres** is used when creating new
-#'                        `LazyTensor`s that result from operations,
-#'                        to keep track of the dimension.}
-#' }
+#'     + `Vi(n)`: vector indexed by `i` of dim `n`
+#'     + `Vj(n)`: vector indexed by `j` of dim `n`
+#'     + `Pm(n)`: fixed parameter of dim `n`
+#' - `data`: A list of R matrices which will be the inputs of the `KeOps` 
+#'   routine;
+#' - `dimres`: An integer corresponding to the inner dimension of 
+#'   the `LazyTensor`. `dimres` is used when creating new `LazyTensor`s 
+#'   that result from operations, to keep track of the dimension.
 #' 
-#' 
-#' **Note**
+#' **Note 1**
 #' 
 #' Setting the argument `is_complex` to `TRUE` will build a `ComplexLazyTensor`,
 #' which is also a `LazyTensor`. Run `browseVignettes("rkeops")` and see 
 #' "RKeOps LazyTensor" vignette for further details on how `ComplexLazyTensors`
 #' are built.
 #' 
-#' **Note**
+#' **Note 2**
 #' 
 #' If `x` is an integer, `LazyTensor(x)` builds a `LazyTensor` whose
 #' formula is simply `IntCst(x)` and contains all the necessary information;
@@ -46,20 +41,18 @@
 #' 
 #' **Alternatives**
 #' 
-#' \itemize{
-#'    \item LazyTensor(x, "i") is equivalent to Vi(x) (see **Vi()** function)
-#'    \item LazyTensor(x, "j") is equivalent to Vi(x) (see **Vj()** function)
-#'    \item LazyTensor(x) is equivalent to Pm(x) (see **Pm()** function)
-#' }
+#' - `LazyTensor(x, "i")` is equivalent to `Vi(x)` (see [rkeops::Vi()] function)
+#' - `LazyTensor(x, "j")` is equivalent to `Vi(x)` (see [rkeops::Vj()] function)
+#' - `LazyTensor(x)` is equivalent to `Pm(x)` (see [rkeops::Pm()]function)
 #'
 #' Run `browseVignettes("rkeops")` to access the vignettes and see how to use
 #' `LazyTensors`.
 #' @author Joan Glaunes, Chloe Serre-Combe, Amelie Vernay
 #' @param x A matrix or a vector of numeric values, or a scalar value
-#' @param index A text string that should be either **i** or **j**, or an **NA** 
-#' value (the default), to specify whether the **x** variable is indexed 
-#' by **i** (rows), by **j** (columns), or is a fixed parameter across indices.
-#' If **x** is a matrix, **index** must be **i** or **j**.
+#' @param index A text string that should be either `"i"` or `"j"`, or an `NA` 
+#' value (the default), to specify whether the `x` variable is indexed 
+#' by `i` (rows), by `j` (columns), or is a fixed parameter across indices.
+#' If `x` is a matrix, `index` must be `"i"` or `"j"`.
 #' @param is_complex A boolean (default is FALSE). Whether we want to create 
 #' a `ComplexLazyTensor` (`is_complex = TRUE`) or a `LazyTensor` 
 #' (`is_complex = FALSE`).
@@ -318,7 +311,7 @@ Pm <- function(x, is_complex = FALSE){
 
 #' Build a unary operation
 #' @description
-#' Symbolically applies **opstr** operation to **x**.
+#' Symbolically applies `opstr` operation to `x`.
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, 
 #' or a scalar value.
@@ -329,8 +322,8 @@ Pm <- function(x, is_complex = FALSE){
 #' "ComplexLazyTensor", to specify if a change of class is required for the 
 #' result. (Useful especially when dealing with complex-to-real or
 #' real-to-complex functions).
-#' @param dim_res NA (default) or an integer corresponding to the inner
-#' dimension of the output `LazyTensor`. If NA, **dim_res** is set to the
+#' @param dim_res `NA` (default) or an integer corresponding to the inner
+#' dimension of the output `LazyTensor`. If `NA`, `dim_res` is set to the
 #' inner dimension of the input `LazyTensor`.
 #' @return An object of class "LazyTensor" or "ComplexLazyTensor".
 #' @examples
@@ -415,29 +408,27 @@ unaryop.LazyTensor <- function(x, opstr, opt_arg = NA, opt_arg2 = NA,
 
 #' Build a binary operation
 #' @description
-#' Symbolically applies **opstr** operation to **x** and **y**.
+#' Symbolically applies `opstr` operation to `x` and `y`.
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, 
 #' or a scalar value.
 #' @param y A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, 
 #' or a scalar value.
 #' @param opstr A text string corresponding to an operation.
-#' @param is_operator A boolean used to specify if **opstr** is an operator like 
+#' @param is_operator A boolean used to specify if `opstr` is an operator like 
 #' ``+``, ``-`` or a "genuine" function.
 #' @param dim_check_type A string to specify if, and how, we should check input 
 #' dimensions. Supported values are:
-#' \itemize{
-#'    \item {**"same"**:}{ **x** and **y** should have the same inner dimension;}
-#'    \item {**"sameor1"** (default):}{ **x** and **y** should have the same 
-#'    inner dimension or at least one of them should be of dimension 1;}
-#'    \item {**NA**:}{ no dimension restriction.}
-#' }
+#' - `"same"`: `x` and `y` should have the same inner dimension;
+#' - `"sameor1"` (default): `x` and `y` should have the same 
+#'    inner dimension or at least one of them should be of dimension 1;
+#' - `NA`: no dimension restriction.
 #' @param res_type NA (default) or a character string among "LazyTensor" and 
 #' "ComplexLazyTensor", to specify if a change of class is required for the 
 #' result. (Useful especially when dealing with complex-to-real or
 #' real-to-complex functions).
 #' @param dim_res NA (default) or an integer corresponding to the inner
-#' dimension of the output `LazyTensor`. If NA, **dim_res** is set to the
+#' dimension of the output `LazyTensor`. If NA, `dim_res` is set to the
 #' maximum between the inner dimensions of the two input `LazyTensor`s.
 #' @param opt_arg NA (default) or list of optional arguments for the formula
 #' encoding the binary operation on input LazyTensors.
@@ -589,7 +580,7 @@ binaryop.LazyTensor <- function(x, y, opstr, is_operator = FALSE,
 
 #' Build a ternary operation
 #' @description
-#' Symbolically applies **opstr** operation to **x**, **y** and **z**.
+#' Symbolically applies `opstr` operation to `x`, `y` and `z`.
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, 
 #' or a scalar value.
@@ -601,12 +592,10 @@ binaryop.LazyTensor <- function(x, y, opstr, is_operator = FALSE,
 #' @param dim_check_type A string to specify if, and how, we should check input 
 #' dimensions.
 #' Supported values are:
-#' \itemize{
-#'    \item {**"same"**:}{ **x** and **y** should have the same inner dimension;}
-#'    \item {**"sameor1"** (default):}{ **x** and **y** should have the same 
-#'    inner dimension or at least one of them should be of dimension 1;}
-#'    \item {**NA**:}{ no dimension restriction.}
-#' }
+#' - `"same"`: `x` and `y` should have the same inner dimension;
+#' -`"sameor1"` (default): `x` and `y` should have the same 
+#'    inner dimension or at least one of them should be of dimension 1;
+#' - `NA`: no dimension restriction.
 #' @param dim_res NA (default) or an integer corresponding to the inner
 #' dimension of the output `LazyTensor`. If NA, **dim_res** is set to the
 #' maximum between the inner dimensions of the three input `LazyTensor`s.
@@ -1116,13 +1105,11 @@ check_inner_dim <- function(x, y, z = NA, check_type = "sameor1") {
 #' @keywords internal
 #' @description
 #' Checks index for operation.
-#' @details `check_index(index)` will return a boolean to check if **index** is 
-#' a character and corresponding to **"i"** or **"j"**.
-#' \itemize{
-#'   \item if **index = "i"**, return **TRUE**.
-#'   \item if **index = "j"**, return **TRUE**.
-#'   \item else return **FALSE**.
-#' }
+#' @details `check_index(index)` will return a boolean to check if `index` is 
+#' a character and corresponding to `"i"` or `"j"`.
+#' - if `index = "i"`, return `TRUE`.
+#' - if `index = "j"`, return `TRUE`.
+#' - else return `FALSE`.
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param  index to check.
 #' @return A boolean TRUE or FALSE.
@@ -1135,10 +1122,10 @@ check_index <- function(index){
 #' @keywords internal
 #' @description
 #' Transforms `string` index input into integer.
-#' @details `index_to_int(index)` returns an `integer`: **1** if 
-#' **index == "i"** and **0** if **index == "j"**.
+#' @details `index_to_int(index)` returns an `integer`: `1` if 
+#' `index == "i"` and `0` if `index == "j"`.
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param index A `character` that should be either **i** or **j**.
+#' @param index A `character` that should be either `i` or `j`.
 #' @return An `integer`.
 index_to_int <- function(index) {
     if(!check_index(index)) {

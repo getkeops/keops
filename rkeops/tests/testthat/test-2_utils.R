@@ -5,6 +5,7 @@ test_that("get_os", {
 test_that("msg_warn_error", {
     msg <- "test message"
     expect_message(msg_warn_error(msg, type = "msg"), msg)
+    expect_message(msg_warn_error(msg, type = "msg", startup = TRUE), msg)
     expect_warning(msg_warn_error(msg, type = "warn"), msg)
     expect_error(msg_warn_error(msg, type = "error"), msg)
     # bad input

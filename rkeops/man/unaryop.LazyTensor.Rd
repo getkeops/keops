@@ -28,15 +28,15 @@ or a scalar value.}
 result. (Useful especially when dealing with complex-to-real or
 real-to-complex functions).}
 
-\item{dim_res}{NA (default) or an integer corresponding to the inner
-dimension of the output \code{LazyTensor}. If NA, \strong{dim_res} is set to the
+\item{dim_res}{\code{NA} (default) or an integer corresponding to the inner
+dimension of the output \code{LazyTensor}. If \code{NA}, \code{dim_res} is set to the
 inner dimension of the input \code{LazyTensor}.}
 }
 \value{
 An object of class "LazyTensor" or "ComplexLazyTensor".
 }
 \description{
-Symbolically applies \strong{opstr} operation to \strong{x}.
+Symbolically applies \code{opstr} operation to \code{x}.
 }
 \examples{
 \dontrun{

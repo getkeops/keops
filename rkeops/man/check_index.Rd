@@ -16,12 +16,12 @@ A boolean TRUE or FALSE.
 Checks index for operation.
 }
 \details{
-\code{check_index(index)} will return a boolean to check if \strong{index} is
-a character and corresponding to \strong{"i"} or \strong{"j"}.
+\code{check_index(index)} will return a boolean to check if \code{index} is
+a character and corresponding to \code{"i"} or \code{"j"}.
 \itemize{
-\item if \strong{index = "i"}, return \strong{TRUE}.
-\item if \strong{index = "j"}, return \strong{TRUE}.
-\item else return \strong{FALSE}.
+\item if \code{index = "i"}, return \code{TRUE}.
+\item if \code{index = "j"}, return \code{TRUE}.
+\item else return \code{FALSE}.
 }
 }
 \author{

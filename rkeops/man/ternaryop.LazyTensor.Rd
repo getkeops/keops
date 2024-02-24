@@ -22,10 +22,10 @@ or a scalar value.}
 dimensions.
 Supported values are:
 \itemize{
-\item {\strong{"same"}:}{ \strong{x} and \strong{y} should have the same inner dimension;}
-\item {\strong{"sameor1"} (default):}{ \strong{x} and \strong{y} should have the same
-inner dimension or at least one of them should be of dimension 1;}
-\item {\strong{NA}:}{ no dimension restriction.}
+\item \code{"same"}: \code{x} and \code{y} should have the same inner dimension;
+-\code{"sameor1"} (default): \code{x} and \code{y} should have the same
+inner dimension or at least one of them should be of dimension 1;
+\item \code{NA}: no dimension restriction.
 }}
 
 \item{dim_res}{NA (default) or an integer corresponding to the inner
@@ -36,7 +36,7 @@ maximum between the inner dimensions of the three input \code{LazyTensor}s.}
 An object of class "LazyTensor".
 }
 \description{
-Symbolically applies \strong{opstr} operation to \strong{x}, \strong{y} and \strong{z}.
+Symbolically applies \code{opstr} operation to \code{x}, \code{y} and \code{z}.
 }
 \examples{
 \dontrun{

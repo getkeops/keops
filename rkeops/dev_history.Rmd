@@ -76,6 +76,7 @@ usethis::use_description(
         Version = paste0(readLines(file.path(proj_dir, "keops_version")), ".0"),
         `Date/Publication` = format(Sys.time(), "%Y-%m-%d"),
         SystemRequirements = "Python (>= 3.5.0), C++ compiler (gcc/clang), CUDA (optional but recommended)",
+        OS_type = "unix",
         VignetteBuilder = "knitr",
         RdMacros = "Rdpack"
         

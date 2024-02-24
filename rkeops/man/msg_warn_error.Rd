@@ -4,22 +4,28 @@
 \alias{msg_warn_error}
 \title{Print message or raise warning or error}
 \usage{
-msg_warn_error(msg, type)
+msg_warn_error(msg, type, startup = FALSE)
 }
 \arguments{
 \item{msg}{character string, text message.}
 
 \item{type}{character string, among \code{"msg"} to print a message, \code{"warn"} for
 to raise a warning, and \code{"error"} to raise an error.}
+
+\item{startup}{boolean indicating if the function is called at startup or
+not.}
 }
 \description{
 Different behavior to provide information to the user (either a message,
-a werning or an error).
+a warning or an error).
 }
 \details{
 If \code{type = "msg"}, then a message with content \code{msg} is printed. If
 \code{type = "warning"}, then a warning with message \code{msg} is raised. And if
 \code{type = "error"}, then an error with message \code{msg} is raised.
+
+If \code{type = "msg"} and \code{startup = TRUE}, then \code{packageStartupMessage()}
+function is used instead of \code{message()}.
 }
 \author{
 Ghislain Durif

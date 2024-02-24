@@ -1,6 +1,5 @@
 #' @name rkeops-package
 #' @aliases rkeops
-#' @docType package
 #' @title rkeops
 #' 
 #' @description
@@ -41,4 +40,4 @@
 #' @importFrom lifecycle deprecated
 #' @import Rdpack
 #' 
-NULL
+"_PACKAGE"

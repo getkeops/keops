@@ -26,6 +26,9 @@ from matplotlib import pyplot as plt
 from benchmark_utils import flatten, random_normal, full_benchmark
 
 use_cuda = torch.cuda.is_available()
+print(
+    f"Running torch version {torch.__version__} with {'GPU' if use_cuda else 'CPU'}..."
+)
 
 ##############################################
 # Benchmark specifications:
@@ -216,6 +219,11 @@ if use_cuda:
             {},
         ),
         (gaussianconv_lazytensor, "KeOps (GPU, LazyTensor)", {}),
+        (
+            gaussianconv_lazytensor,
+            "KeOps (GPU, LazyTensor, batchsize=100)",
+            {"batchsize": 100},
+        ),
         (gaussianconv_keops, "KeOps (GPU, Genred)", {}),
         (gaussianconv_keops_no_fast_math, "KeOps (GPU, use_fast_math=False)", {}),
     ]

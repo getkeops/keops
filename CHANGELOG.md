@@ -1,3 +1,7 @@
+* v2.2.2 - Feb 9, 2024
+   - Fix a utf8 encoding problem with "cuda_fp16.h" file
+
+
 * v2.2.1 - Jan 25, 2024
    - Fix a memory leak introduced with support of forward AD (issue 353)
 

@@ -7,7 +7,7 @@
 index_to_int(index)
 }
 \arguments{
-\item{index}{A \code{character} that should be either \strong{i} or \strong{j}.}
+\item{index}{A \code{character} that should be either \code{i} or \code{j}.}
 }
 \value{
 An \code{integer}.
@@ -16,8 +16,8 @@ An \code{integer}.
 Transforms \code{string} index input into integer.
 }
 \details{
-\code{index_to_int(index)} returns an \code{integer}: \strong{1} if
-\strong{index == "i"} and \strong{0} if \strong{index == "j"}.
+\code{index_to_int(index)} returns an \code{integer}: \code{1} if
+\code{index == "i"} and \code{0} if \code{index == "j"}.
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay

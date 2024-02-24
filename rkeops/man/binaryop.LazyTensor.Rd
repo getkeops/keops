@@ -24,16 +24,16 @@ or a scalar value.}
 
 \item{opstr}{A text string corresponding to an operation.}
 
-\item{is_operator}{A boolean used to specify if \strong{opstr} is an operator like
+\item{is_operator}{A boolean used to specify if \code{opstr} is an operator like
 \code{+}, \code{-} or a "genuine" function.}
 
 \item{dim_check_type}{A string to specify if, and how, we should check input
 dimensions. Supported values are:
 \itemize{
-\item {\strong{"same"}:}{ \strong{x} and \strong{y} should have the same inner dimension;}
-\item {\strong{"sameor1"} (default):}{ \strong{x} and \strong{y} should have the same
-inner dimension or at least one of them should be of dimension 1;}
-\item {\strong{NA}:}{ no dimension restriction.}
+\item \code{"same"}: \code{x} and \code{y} should have the same inner dimension;
+\item \code{"sameor1"} (default): \code{x} and \code{y} should have the same
+inner dimension or at least one of them should be of dimension 1;
+\item \code{NA}: no dimension restriction.
 }}
 
 \item{res_type}{NA (default) or a character string among "LazyTensor" and
@@ -42,7 +42,7 @@ result. (Useful especially when dealing with complex-to-real or
 real-to-complex functions).}
 
 \item{dim_res}{NA (default) or an integer corresponding to the inner
-dimension of the output \code{LazyTensor}. If NA, \strong{dim_res} is set to the
+dimension of the output \code{LazyTensor}. If NA, \code{dim_res} is set to the
 maximum between the inner dimensions of the two input \code{LazyTensor}s.}
 
 \item{opt_arg}{NA (default) or list of optional arguments for the formula
@@ -52,7 +52,7 @@ encoding the binary operation on input LazyTensors.}
 An object of class "LazyTensor".
 }
 \description{
-Symbolically applies \strong{opstr} operation to \strong{x} and \strong{y}.
+Symbolically applies \code{opstr} operation to \code{x} and \code{y}.
 }
 \examples{
 \dontrun{

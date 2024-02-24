@@ -32,25 +32,35 @@ get_os <- function() {
 #' 
 #' @description
 #' Different behavior to provide information to the user (either a message, 
-#' a werning or an error).
+#' a warning or an error).
 #' 
 #' @details 
 #' If `type = "msg"`, then a message with content `msg` is printed. If 
 #' `type = "warning"`, then a warning with message `msg` is raised. And if 
 #' `type = "error"`, then an error with message `msg` is raised.
 #' 
+#' If `type = "msg"` and `startup = TRUE`, then `packageStartupMessage()` 
+#' function is used instead of `message()`.
+#' 
 #' @param msg character string, text message.
 #' @param type character string, among `"msg"` to print a message, `"warn"` for 
 #' to raise a warning, and `"error"` to raise an error.
+#' @param startup boolean indicating if the function is called at startup or 
+#' not.  
 #' 
 #' @author Ghislain Durif
 #' 
-#' @importFrom checkmate assert_choice assert_string
-msg_warn_error <- function(msg, type) {
+#' @importFrom checkmate assert_choice assert_string assert_logical
+msg_warn_error <- function(msg, type, startup = FALSE) {
     assert_string(msg)
     assert_choice(type, c("msg", "warn", "error"))
+    assert_logical(startup, len = 1)
     if(type == "msg") {
-        message(msg)
+        if(startup) {
+            packageStartupMessage(msg)
+        } else {
+            message(msg)
+        }
     } else if(type == "warn") {
         warning(msg)
     } else {
