@@ -30,7 +30,7 @@ setup(
     },
     author="B. Charlier, J. Feydy, J. Glaunes",
     author_email="benjamin.charlier@umontpellier.fr, jean.feydy@gmail.com, alexis.glaunes@parisdescartes.fr",
-    python_requires=">=3",
+    python_requires=">=3.8",
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",

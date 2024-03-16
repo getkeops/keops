@@ -7,7 +7,7 @@ It provides functions that can be used in any **NumPy** or **PyTorch** script.
 Requirements
 ============
 
-- **Python 3** with the **numpy** package.
+- **Python** (>= 3.8) with the **numpy** package.
 - A C++ compiler compatible with ``std=c++11``: **g++** version >=7 or **clang++** version >=8.
 - The **Cuda** toolkit: version >=10.0 is recommended.
 - **PyTorch** (optional): version >= 1.5.
