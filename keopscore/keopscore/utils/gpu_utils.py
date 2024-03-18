@@ -41,6 +41,9 @@ def get_cuda_include_path():
         join(os.path.sep, "usr", "local", "cuda"),
         join(os.path.sep, "usr", "local", f"cuda-{cuda_version}"),
     ]
+    path_conda = os.getenv("CONDA_PREFIX")
+    if path_conda is not None:
+        cuda_paths_to_try_start.append(path_conda)
     cuda_paths_to_try_end = [
         "include",
         join("targets", "x86_64-linux", "include"),
