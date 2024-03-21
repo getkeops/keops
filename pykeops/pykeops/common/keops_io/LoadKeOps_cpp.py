@@ -1,4 +1,5 @@
 import os
+import sys
 import sysconfig
 
 import keopscore.config.config
@@ -36,6 +37,11 @@ class LoadKeOps_cpp_class(LoadKeOps):
 
     def init_phase2(self):
         import importlib
+
+        if get_build_folder() not in sys.path:
+            # The build folder is supposed to be in the python path, if not,
+            # we add it
+            sys.path.append(get_build_folder())
 
         mylib = importlib.import_module(
             os.path.basename(pykeops_cpp_name(tag=self.params.tag))
@@ -115,8 +121,8 @@ int launch_pykeops_{self.params.tag}_cpu(signed long int dimY, signed long int n
     std::vector< signed long int > dimsy_v(py_dimsy.size());
     for (auto i = 0; i < py_dimsy.size(); i++)
         dimsy_v[i] = py::cast< signed long int >(py_dimsy[i]);
-        
-    
+
+
     std::vector< signed long int > dimsp_v(py_dimsp.size());
     for (auto i = 0; i < py_dimsp.size(); i++)
         dimsp_v[i] = py::cast< signed long int >(py_dimsp[i]);
@@ -127,19 +133,19 @@ int launch_pykeops_{self.params.tag}_cpu(signed long int dimY, signed long int n
     for (signed long int i = 0; i < py_ranges.size(); i++)
         ranges_v[i] = (signed long int*) py::cast< signed long int >(py_ranges[i]);
     signed long int **ranges = (signed long int**) ranges_v.data();
-    
+
     std::vector< signed long int > shapeout_v(py_shapeout.size());
     for (auto i = 0; i < py_shapeout.size(); i++)
         shapeout_v[i] = py::cast< signed long int >(py_shapeout[i]);
-    
+
     TYPE *out = (TYPE*) out_void;
     // std::cout << "out_ptr : " << (long) out << std::endl;
-    
+
     std::vector< TYPE* > arg_v(py_arg.size());
     for (int i = 0; i < py_arg.size(); i++)
         arg_v[i] = (TYPE*) py::cast< long >(py_arg[i]);
     TYPE **arg = (TYPE**) arg_v.data();
-    
+
     std::vector< std::vector< signed long int > > argshape_v(py_argshape.size());
     for (auto i = 0; i < py_argshape.size(); i++){{
         py::tuple tmp = py_argshape[i];
@@ -176,7 +182,7 @@ int launch_pykeops_{self.params.tag}_cpu(signed long int dimY, signed long int n
 PYBIND11_MODULE(pykeops_cpp_{self.params.tag}, m) {{
     m.doc() = "pyKeOps: KeOps for pytorch through pybind11 (pytorch flavour).";
     m.def("launch_pykeops_cpu", &launch_pykeops_{self.params.tag}_cpu < {cpp_dtype[self.params.dtype]} >, "Entry point to keops.");
-}}                     
+}}
             """
 
 
