@@ -2,9 +2,9 @@ from keopscore.formulas.Operation import Operation
 from keopscore.utils.code_gen_utils import value, c_zero_float, c_for_loop
 from keopscore.utils.misc_utils import KeOps_Error
 
-############################
-######    ELEMENT "INJECTION" : ElemT(f,n,m)
-############################
+#####################################################
+######    ELEMENT "INJECTION" : ElemT(f,n,m)   ######
+#####################################################
 
 
 class ElemT(Operation):

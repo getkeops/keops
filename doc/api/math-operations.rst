@@ -168,6 +168,8 @@ Constants and padding/concatenation operations:
 ``ArgMin(f)``             argmin of elements of vector ``f``
 ``Elem(f, M)``            extract M-th element of vector ``f``
 ``ElemT(f, N, M)``        insert scalar value ``f`` at position M in a vector of zeros of length N
+``Index(f, g)``           extract ``g``-th element of vector ``f`` (same as Elem except that ``g`` is another formula)
+``IndexT(f, g, N)``       insert scalar value ``f`` at position ``g`` in a vector of zeros of length N
 ``Extract(f, M, D)``      extract sub-vector from vector ``f`` (M is starting index, D is dimension of sub-vector)
 ``ExtractT(f, M, D)``     insert vector ``f`` in a larger vector of zeros (M is starting index, D is dimension of output)
 ``Concat(f, g)``          concatenation of vectors ``f`` and ``g``

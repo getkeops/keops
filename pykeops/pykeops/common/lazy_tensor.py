@@ -1613,18 +1613,31 @@ class GenericLazyTensor:
 
     def elem(self, i):
         r"""
-        Indexing of a vector - a unary operation.
+        Indexing of a vector with an integer constant - a unary operation.
 
         ``x.elem(i)`` returns a :class:`LazyTensor` that encodes, symbolically,
         the i-th element ``x[i]`` of the vector ``x``.
         """
-        if type(i) is not int:
-            raise ValueError("Elem indexing is only supported for integer indices.")
-        if i < 0 or i >= self.ndim:
-            raise ValueError(
-                "Index i={} is out of bounds [0,D) = [0,{}).".format(i, self.ndim)
-            )
-        return self.unary("Elem", dimres=1, opt_arg=i)
+        if isinstance(i, int):
+            if i < 0 or i >= self.ndim:
+                raise ValueError(
+                    "Index i={} is out of bounds [0,D) = [0,{}).".format(i, self.ndim)
+                )
+            return self.unary("Elem", dimres=1, opt_arg=i)
+        else:
+            raise ValueError("Elem is only supported for integer indices.")
+
+    def index(self, other):
+        r"""
+        Indexing of a vector with another vector - a binary operation.
+
+        ``x.index(y)`` returns a :class:`LazyTensor` that encodes, symbolically,
+        the y-th element ``x[y]`` of the vector ``x``.
+        """
+        if isinstance(other, GenericLazyTensor):
+            return self.binary(other, "Index", dimres=1)
+        else:
+            raise ValueError("Index is only supported for LazyTensor indices.")
 
     def extract(self, i, d):
         r"""
@@ -1645,11 +1658,13 @@ class GenericLazyTensor:
         r"""
         Element or range indexing - a unary operation.
 
-        ``x[key]`` redirects to the :meth:`elem` or :meth:`extract` methods, depending on the ``key`` argument.
+        ``x[key]`` redirects to the :meth:`elem`, :meth:`index`, or :meth:`extract` methods, depending on the ``key`` argument.
         Supported values are:
 
             - an integer ``k``, in which case ``x[key]``
               redirects to ``elem(x,k)``,
+            - a LaszyTensor ``y``, in which case ``x[key]``
+              redirects to ``index(x,y)``,
             - a tuple ``..,:,:,k`` with ``k`` an integer,
               which is equivalent to the case above,
             - a slice of the form ``k:l``, ``k:`` or ``:l``, with ``k``
@@ -1682,9 +1697,11 @@ class GenericLazyTensor:
             return self.extract(key.start, key.stop - key.start)
         elif isinstance(key, int):
             return self.elem(key)
+        elif isinstance(key, GenericLazyTensor):
+            return self.index(key)
         else:
             raise ValueError(
-                "LazyTensors only support indexing with integers and vanilla python slices."
+                "LazyTensors only support indexing with integers, LazyTensor, and vanilla python slices."
             )
 
     def one_hot(self, D):

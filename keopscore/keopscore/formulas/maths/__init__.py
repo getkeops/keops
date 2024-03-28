@@ -22,6 +22,8 @@ from .ExtractT import ExtractT
 from .Floor import Floor
 from .GradMatrix import GradMatrix
 from .IfElse import IfElse
+from .Index import Index
+from .IndexT import IndexT
 from .IntInv import IntInv
 from .Inv import Inv
 from .Kron import Kron
@@ -91,6 +93,8 @@ __all__ = [
     "GradMatrix",
     "Floor",
     "IfElse",
+    "Index",
+    "IndexT",
     "IntInv",
     "Inv",
     "Kron",

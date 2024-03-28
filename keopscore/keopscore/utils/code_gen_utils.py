@@ -361,11 +361,16 @@ class c_array:
             c_type_other = "signed long int" if other > 2e9 else "int"
             return self[c_variable(c_type_other, str(other))]
         elif type(other) == c_variable:
-            if other.dtype not in ("int", "signed long int"):
+            if other.dtype in ("int", "signed long int"):
+                return c_variable(self.dtype, f"{self.id}[{other.id}]")
+            elif other.dtype == "float":
+                return c_variable(self.dtype, f"{self.id}[(int){other.id}]")
+            elif other.dtype == "double":
+                return c_variable(self.dtype, f"{self.id}[(signed long int){other.id}]")
+            else:
                 KeOps_Error(
-                    "v[i] with i and v c_array requires i.dtype='int' or i.dtype='signed long int' "
+                    "v[i] with i and v c_array requires i.dtype='int', i.dtype='signed long int', i.dtype='float' or i.dtype='double' "
                 )
-            return c_variable(self.dtype, f"{self.id}[{other.id}]")
         else:
             KeOps_Error("not implemented")
 
