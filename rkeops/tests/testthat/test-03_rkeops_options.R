@@ -2,36 +2,41 @@ test_that("def_rkeops_options", {
     res <- def_rkeops_options()
     
     expect_equal(class(res), "rkeops_options")
-    checkmate::expect_list(res, len = 5)
+    checkmate::expect_list(res, len = 6)
     checkmate::expect_set_equal(
         names(res), 
-        c("backend", "device_id", "precision", "verbosity", "debug"))
+        c("backend", "device_id", "precision", "verbosity", "debug", 
+          "cache_dir"))
     checkmate::expect_choice(res$backend, c("CPU", "GPU"))
     checkmate::expect_integerish(res$device_id)
     checkmate::expect_choice(res$precision, c("float32", "float64"))
     checkmate::expect_choice(res$verbosity, c(0, 1))
     checkmate::expect_choice(res$debug, c(0, 1))
+    checkmate::expect_directory(res$cache_dir)
     
     res <- def_rkeops_options(
         backend = "CPU", device_id = -1, precision = "float32",
-        verbosity = FALSE, debug = FALSE)
+        verbosity = FALSE, debug = FALSE, cache_dir = getwd())
     
     expect_equal(class(res), "rkeops_options")
-    checkmate::expect_list(res, len = 5)
+    checkmate::expect_list(res, len = 6)
     checkmate::expect_set_equal(
         names(res), 
-        c("backend", "device_id", "precision", "verbosity", "debug"))
+        c("backend", "device_id", "precision", "verbosity", "debug", 
+          "cache_dir"))
     checkmate::expect_choice(res$backend, c("CPU", "GPU"))
     checkmate::expect_integerish(res$device_id)
     checkmate::expect_choice(res$precision, c("float32", "float64"))
     checkmate::expect_choice(res$verbosity, c(0, 1))
     checkmate::expect_choice(res$debug, c(0, 1))
+    expect_equal(res$cache_dir, getwd())
     
     expect_error(def_rkeops_options(backend = "TPU"))
     expect_error(def_rkeops_options(device_id = 2.5))
     expect_error(def_rkeops_options(precision = "integer"))
     expect_error(def_rkeops_options(verbosity = "FALSE"))
     expect_error(def_rkeops_options(debug = "FALSE"))
+    expect_error(def_rkeops_options(cache_dir = "/not/existing/dir"))
 })
 
 test_that("get_rkeops_options", {
@@ -43,6 +48,9 @@ test_that("get_rkeops_options", {
     
     # work with clean options
     withr::with_options(list(rkeops = NULL), {
+        # check empty options
+        expect_equal(getOption("rkeops"), NULL)
+        
         # set default options
         set_rkeops_options()
         
@@ -68,20 +76,23 @@ test_that("set_rkeops_options", {
     withr::with_options(list(rkeops = NULL), {
         # default options
         expect_error(set_rkeops_options(), NA)
-        res <- get_rkeops_options()
-        expect_equal(res, def_rkeops_options())
+        
+        # check setup
+        expect_equal(getOption("rkeops"), def_rkeops_options())
+        
+        # current cache dir
+        checkmate::expect_directory(getOption("rkeops")$cache_dir)
     })
     
     withr::with_options(list(rkeops = NULL), {
         # set specific options
         expect_error(set_rkeops_options(list(backend = "GPU")), NA)
-        res <- get_rkeops_options()
+        res <- getOption("rkeops")
         # verify specific options
         expect_equal(res$backend, "GPU")
         # verify other options
         default_options <- def_rkeops_options()
-        res["backend"] <- NULL
-        default_options["backend"] <- NULL
+        default_options["backend"] <- "GPU"
         expect_equal(res, default_options)
     })
         
@@ -144,17 +155,10 @@ test_that("rkeops_use_float64", {
     })
 })
 
-skip_if_no_python()
-skip_if_no_keopscore()
-skip_if_no_pykeops()
-
 test_that("rkeops_enable_verbosity", {
-    skip_if_no_python()
-    skip_if_no_keopscore()
-    skip_if_no_pykeops()
     
     withr::with_options(list(rkeops = NULL), {
-        # use float64
+        # enable verbosity
         rkeops_enable_verbosity()
         # check
         res <- get_rkeops_options()
@@ -163,15 +167,53 @@ test_that("rkeops_enable_verbosity", {
 })
 
 test_that("rkeops_disable_verbosity", {
-    skip_if_no_python()
-    skip_if_no_keopscore()
-    skip_if_no_pykeops()
     
     withr::with_options(list(rkeops = NULL), {
-        # use float64
+        # disable verbosity
         rkeops_disable_verbosity()
         # check
         res <- get_rkeops_options()
         expect_equal(res$verbosity, 0)
     })
+})
+
+test_that("get_rkeops_cache_dir", {
+    res <- get_rkeops_cache_dir()
+    checkmate::expect_string(res)
+    checkmate::expect_directory(res)
+})
+
+test_that("set_rkeops_cache_dir", {
+    
+    withr::with_options(list(rkeops = NULL), {
+        # default dir
+        set_rkeops_cache_dir()
+        
+        # check cache dir
+        checkmate::expect_directory(getOption("rkeops")$cache_dir)
+    })
+    
+    withr::with_options(list(rkeops = NULL), {
+        # specific dir
+        set_rkeops_cache_dir(getwd())
+        
+        # check cache dir
+        checkmate::expect_directory(getOption("rkeops")$cache_dir)
+        expect_equal(getOption("rkeops")$cache_dir, getwd())
+    })
+})
+
+test_that("default_rkeops_cache_dir", {
+    
+    res <- default_rkeops_cache_dir()
+    checkmate::expect_directory(res)
+    
+    if(getRversion() >= "4.0") {
+        expect_equal(
+            res, tools::R_user_dir(package = "rkeops", which = "cache"))
+    } else {
+        expect_equal(
+            res, file.path(tempdir(), "rkeops")
+        )
+    }
 })
