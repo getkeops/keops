@@ -8,16 +8,19 @@ def fun_torch(A, I, J):
 
 def fun_keops(A, I, J):
     ncol = A.shape[1]
-    A = LazyTensor(A.flatten()[None, None, :])
-    I = LazyTensor((I + 0.0).flatten()[:, None, None])
-    J = LazyTensor((J + 0.0).flatten()[None, :, None])
+    A = LazyTensor(A.flatten())
+    I = LazyTensor((I + 0.0)[..., None])
+    J = LazyTensor((J + 0.0)[..., None])
     K = A[I * ncol + J]
     return K.sum(axis=1).flatten()
 
 
-A = torch.tensor([[3.0, 4, 5], [9, 6, 7]], requires_grad=True)
-I = torch.tensor([[0, 1, 0, 1, 1]]).t()
-J = torch.tensor([[2, 1, 0, 0]])
+P, Q = 12, 5
+M, N = 3000, 2000
+device = "cuda" if torch.cuda.is_available() else "cpu"
+A = torch.randn((P, Q), requires_grad=True, device=device)
+I = torch.randint(P, (M, 1), device=device)
+J = torch.randint(Q, (1, N), device=device)
 
 res_torch = fun_torch(A, I, J)
 print(res_torch)
