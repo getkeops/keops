@@ -6,6 +6,7 @@ from pykeops.torch import Genred, LazyTensor, i, j
 
 dtype = torch.float32
 device_id = "cuda:0" if torch.cuda.is_available() else "cpu"
+backend = "GPU_2D" if torch.cuda.is_available() else "CPU"
 
 M, N, D, DV = 1000, 1501, 1, 1
 
@@ -27,8 +28,8 @@ fun2 = Genred(
     [f"x=Vi({D})", f"y=Vj({D})", f"b=Vj({DV})", "i=Vi(1)", "j=Vj(1)"],
     axis=axis,
 )
-res1 = fun1(x, y, b, backend="GPU_2D")
-res2 = fun2(x, y, b, I, J, backend="GPU_2D")
+res1 = fun1(x, y, b, backend=backend)
+res2 = fun2(x, y, b, I, J, backend=backend)
 
 print(torch.norm(res1 - res2) / torch.norm(res2))
 
