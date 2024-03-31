@@ -180,6 +180,7 @@ class Genred:
             + ")"
         )
         self.aliases = complete_aliases(self.formula, aliases)
+        self.nargs = len(self.aliases)
 
         self.axis = axis
         self.opt_arg = opt_arg
@@ -287,6 +288,11 @@ class Genred:
             or **axis** = 0, respectively) and a number of columns
             that is inferred from the **formula**.
         """
+
+        if len(args) != self.nargs:
+            raise ValueError(
+                f"Invalid number of arguments in call to Genred (should be {self.nargs} and got {len(args)})."
+            )
 
         # Get tags
         tagCPUGPU, tag1D2D, tagHostDevice = get_tag_backend(backend, args)
