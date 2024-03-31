@@ -88,6 +88,13 @@ res = (abs(x_i | y_j) ** 1.5).sumsoftmaxweight(x_i, index="j")
 res = (x_i[:2] * y_j[2:] - x_i[2:] * y_j[:2]).sqnorm2().sum(index="j")
 
 ########################################################################
+# If your formula involves the indices i or j themselves,
+# you can import ``i`` and ``j`` special LazyTensor objects:
+from pykeops.torch import i, j
+
+res = (-((i - j) ** 2) - (x_i - y_j) ** 2).exp().sum(index="j")
+
+########################################################################
 # Kernel inversion : let's do a gaussian kernel inversion. Note that
 # we have to use both :func:`Vi <pykeops.torch.Vi>` and :func:`Vj <pykeops.torch.Vj>` helpers on the same tensor ``x`` here.
 #
