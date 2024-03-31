@@ -21,7 +21,9 @@ axis = 0
 # Testing with Genred syntax
 
 fun1 = Genred(
-    f"Exp(-(i/{M})-(j/{N})*SqDist(x,y))*b", [f"x=Vi({D})", f"y=Vj({D})", f"b=Vj({DV})"], axis=axis,
+    f"Exp(-(i/{M})-(j/{N})*SqDist(x,y))*b",
+    [f"x=Vi({D})", f"y=Vj({D})", f"b=Vj({DV})"],
+    axis=axis,
 )
 fun2 = Genred(
     f"Exp(-(i/{M})-(j/{N})*SqDist(x,y))*b",
@@ -40,7 +42,7 @@ yj = LazyTensor(y[None, :, :])
 bj = LazyTensor(b[None, :, :])
 
 dij2 = (xi - yj).sum() ** 2
-Kij = (-(i/M) - (j/N) * dij2).exp()
+Kij = (-(i / M) - (j / N) * dij2).exp()
 res3 = (Kij * bj).sum_reduction(axis=axis)
 
 print(torch.norm(res3 - res2) / torch.norm(res2))
@@ -53,7 +55,7 @@ from pykeops.torch import Vi, Vj, i, j
 xi, yj, bj = Vi(x), Vj(y), Vj(b)
 
 dij2 = (xi - yj).sum() ** 2
-Kij = (-(i/M) - (j/N) * dij2).exp()
+Kij = (-(i / M) - (j / N) * dij2).exp()
 res4 = (Kij * bj).sum_reduction(axis=axis)
 
 print(torch.norm(res4 - res2) / torch.norm(res2))
@@ -72,7 +74,7 @@ J = torch.arange(N, device=device_id, dtype=dtype).view(1, 1, 1, 1, N, 1)
 axis = 4
 
 dij2 = (x - y).sum(axis=-1) ** 2
-dij2 = dij2[...,None]
+dij2 = dij2[..., None]
 Kij = (-(I / M) - (J / N) * dij2).exp()
 res0 = (Kij * b).sum(axis=axis)
 
