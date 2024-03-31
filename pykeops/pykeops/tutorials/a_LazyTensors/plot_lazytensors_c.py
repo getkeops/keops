@@ -47,7 +47,7 @@ y_j = Vj(y)  # (1, N, D) LazyTensor, equivalent to LazyTensor( y[None,:,:] )
 ############################################################################
 # Here you can think about ``x_i`` and ``y_j`` as being simply vectors in R^D.
 # Now we perform our operations:
-D2xy = ((x_i - y_j) ** 2).sum()        # squared norm of the vector x_i - y_j
+D2xy = ((x_i - y_j) ** 2).sum()  # squared norm of the vector x_i - y_j
 gamma = D2xy.sum_reduction(index="j")  # sum over the "j" indices
 
 #########################################################################

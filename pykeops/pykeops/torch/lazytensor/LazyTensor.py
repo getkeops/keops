@@ -35,6 +35,8 @@ def Pm(x_or_ind, dim=None):
     Simple wrapper that returns an instantiation of :class:`LazyTensor` of type 2.
     """
     return Var(x_or_ind, dim, 2)
+
+
 class LazyTensor(GenericLazyTensor):
     r"""Symbolic wrapper for PyTorch tensors.
 

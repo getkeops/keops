@@ -85,9 +85,9 @@ class Operation(Tree):
         # Evaluation of the child operations
         for child in self.children:
             if isinstance(child, I):
-                arg = i if tagI==0 else j
+                arg = i if tagI == 0 else j
             elif isinstance(child, J):
-                arg = j if tagI==0 else i
+                arg = j if tagI == 0 else i
             elif isinstance(child, Var):
                 # if the child of the operation is a Var, we do not need to evaluate it,
                 # we simply record the corresponding c_variable

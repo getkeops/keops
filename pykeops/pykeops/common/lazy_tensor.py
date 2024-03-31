@@ -83,7 +83,7 @@ class GenericLazyTensor:
                   that should be instantiated at call-time.
                 - An *integer*, in which case the :class:`LazyTensor` represents an **integer constant** handled
                   efficiently at compilation time.
-                - One of the two *strings* "i" or "j", in which case the :class:`LazyTensor` represents 
+                - One of the two *strings* "i" or "j", in which case the :class:`LazyTensor` represents
                   the **integer index** of the "i" or "j" variables in the formula.
                 - **None**, for internal use.
 
@@ -136,15 +136,15 @@ class GenericLazyTensor:
                 self.axis = x[2]
                 self.formula = "VarSymb({},{},{})".format(x[0], self.ndim, self.axis)
                 return  # That's it!
-            
+
             # special cases of i, j placeholders
-            elif typex == str and x=="i":
+            elif typex == str and x == "i":
                 self.formula = "i"
                 self.ndim = 1
                 self.axis = 0
                 return  # That's it!
-            
-            elif typex == str and x=="j":
+
+            elif typex == str and x == "j":
                 self.formula = "j"
                 self.ndim = 1
                 self.axis = 1
@@ -681,7 +681,7 @@ class GenericLazyTensor:
           axis (integer): The axis with respect to which the reduction should be performed.
             Supported integer values are **nbatchdims** and **nbatchdims + 1**, where **nbatchdims** is the number of "batch" dimensions before the last three
             (:math:`i` indices, :math:`j` indices, variables' dimensions).
-          
+
           call (True or False): Should we actually perform the reduction on the current variables?
             If **True**, the returned object will be a NumPy array or a PyTorch tensor.
             Otherwise, we simply return a callable :class:`LazyTensor` that may be used
@@ -908,12 +908,12 @@ class GenericLazyTensor:
             return res()
         else:
             return res
-    
+
     def get_axis(self, axis=None, dim=None, index=None):
         if index is not None:
-            if index=="i":
+            if index == "i":
                 axis = self.nbatchdims
-            elif index=="j":
+            elif index == "j":
                 axis = self.nbatchdims + 1
             else:
                 raise ValueError("invalid index parameter")
@@ -979,7 +979,7 @@ class GenericLazyTensor:
             args = (self.other.variables[0],)
 
         return self.callfun(*args, *self.variables, **self.kwargs)
-    
+
     def __str__(self):
         r"""
         Returns a verbose string identifier.
@@ -2107,7 +2107,6 @@ class GenericLazyTensor:
             dimres=1,
             dimcheck=None,
         )
-    
 
     # List of supported reductions  ============================================
 
@@ -2131,7 +2130,7 @@ class GenericLazyTensor:
           **kwargs: optional parameters that are passed to the :meth:`reduction` method.
 
         """
-        
+
         axis = self.get_axis(axis=axis, dim=dim, index=index)
 
         if axis in [-1, len(self._shape) - 1]:
@@ -2184,9 +2183,7 @@ class GenericLazyTensor:
         if weight is None:
             return self.reduction("LogSumExp", axis=axis, **kwargs)
         else:
-            return self.reduction(
-                "LogSumExp", other=weight, axis=axis, **kwargs
-            )
+            return self.reduction("LogSumExp", other=weight, axis=axis, **kwargs)
 
     def logsumexp_reduction(self, **kwargs):
         r"""
@@ -2217,9 +2214,7 @@ class GenericLazyTensor:
 
         """
         axis = self.get_axis(axis=axis, dim=dim, index=index)
-        return self.reduction(
-            "SumSoftMaxWeight", other=weight, axis=axis, **kwargs
-        )
+        return self.reduction("SumSoftMaxWeight", other=weight, axis=axis, **kwargs)
 
     def sumsoftmaxweight_reduction(self, **kwargs):
         r"""

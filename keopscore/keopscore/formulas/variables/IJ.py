@@ -22,8 +22,8 @@ class I(Operation):
 
     def DiffT(self, v, gradin):
         return Zero(v.dim)
-    
-    
+
+
 class J(Operation):
     """J operation class. J() is a symbolic
     object that encodes the "j" index"""
@@ -39,5 +39,3 @@ class J(Operation):
 
     def DiffT(self, v, gradin):
         return Zero(v.dim)
-    
-    
