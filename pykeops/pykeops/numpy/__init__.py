@@ -12,7 +12,7 @@ from .generic.generic_ops import (
     generic_argmin,
     generic_argkmin,
 )
-from .lazytensor.LazyTensor import LazyTensor, ComplexLazyTensor, Vi, Vj, Pm
+from .lazytensor.LazyTensor import LazyTensor, ComplexLazyTensor, Vi, Vj, Pm, i, j
 
 __all__ = sorted(
     [
@@ -27,5 +27,7 @@ __all__ = sorted(
         "Vi",
         "Vj",
         "Pm",
+        "i",
+        "j",
     ]
 )

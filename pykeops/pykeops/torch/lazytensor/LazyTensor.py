@@ -35,8 +35,6 @@ def Pm(x_or_ind, dim=None):
     Simple wrapper that returns an instantiation of :class:`LazyTensor` of type 2.
     """
     return Var(x_or_ind, dim, 2)
-
-
 class LazyTensor(GenericLazyTensor):
     r"""Symbolic wrapper for PyTorch tensors.
 
@@ -70,6 +68,11 @@ class LazyTensor(GenericLazyTensor):
 
     def lt_constructor(self, x=None, axis=None, is_complex=False):
         return LazyTensor(x=x, axis=axis, is_complex=is_complex)
+
+
+# "i" and "j" index placeholders
+i = LazyTensor("i")
+j = LazyTensor("j")
 
 
 class ComplexLazyTensor(ComplexGenericLazyTensor):

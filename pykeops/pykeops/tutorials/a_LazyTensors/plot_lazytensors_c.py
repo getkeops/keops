@@ -45,18 +45,19 @@ x_i = Vi(x)  # (M, 1, D) LazyTensor, equivalent to LazyTensor( x[:,None,:] )
 y_j = Vj(y)  # (1, N, D) LazyTensor, equivalent to LazyTensor( y[None,:,:] )
 
 ############################################################################
-# and perform our operations:
-D2xy = ((x_i - y_j) ** 2).sum()
-gamma = D2xy.sum_reduction(dim=1)
+# Here you can think about ``x_i`` and ``y_j`` as being simply vectors in R^D.
+# Now we perform our operations:
+D2xy = ((x_i - y_j) ** 2).sum()        # squared norm of the vector x_i - y_j
+gamma = D2xy.sum_reduction(index="j")  # sum over the "j" indices
 
 #########################################################################
-# Note that in the first line we used ``sum`` without any axis or dim parameter.
-# This is equivalent to ``sum(-1)`` or ``sum(dim=2)``, because
-# the axis parameter is set to ``2`` by default. But speaking about ``dim=2``
+# Note that in the first line we used ``sum`` without any parameter.
+# This is equivalent to ``sum(axis=-1)`` or ``sum(dim=-1)``, because
+# the axis parameter is set to ``-1`` (last axis) by default. But speaking about axis numbering
 # here with the :func:`Vi <pykeops.torch.Vi>`, :func:`Vj <pykeops.torch.Vj>` helpers could be misleading.
 # Similarly we used ``sum_reduction`` instead of ``sum`` to make it clear
-# that we perform a reduction, but sum and sum_reduction with ``dim=0`` or ``1``
-# are equivalent (however ``sum_reduction`` with ``dim=2`` is forbidden)
+# that we perform a reduction, and used ``index`` keyword to avoid ``axis`` or ``dim``, although
+# writing ``axis=1`` would be stricly equivalent.
 
 
 ############################################################################
@@ -75,16 +76,16 @@ gamma = D2xy.sum_reduction(dim=1)
 # examples
 #
 # Getting indices of closest point between x and y:
-indmin = ((x_i - y_j) ** 2).sum().argmin(axis=0)
+indmin = ((x_i - y_j) ** 2).sum().argmin(index="i")
 
 ###############################################################################
 # Scalar product, absolute value, power operator, and a SoftMax type reduction:
-res = (abs(x_i | y_j) ** 1.5).sumsoftmaxweight(x_i, axis=1)
+res = (abs(x_i | y_j) ** 1.5).sumsoftmaxweight(x_i, index="j")
 
 ########################################################################
 # The ``[]`` operator can be used to do element selection or slicing
 # (Elem or Extract operation in KeOps).
-res = (x_i[:2] * y_j[2:] - x_i[2:] * y_j[:2]).sqnorm2().sum(axis=1)
+res = (x_i[:2] * y_j[2:] - x_i[2:] * y_j[:2]).sqnorm2().sum(index="j")
 
 ########################################################################
 # Kernel inversion : let's do a gaussian kernel inversion. Note that
@@ -110,7 +111,7 @@ b_j = Vj(torch.rand(N, D).type(tensor))
 Kxy = 0
 for sigma in sigmas:
     Kxy += LazyTensor.exp(-D2xy / sigma**2)
-gamma = (Kxy * b_j).sum_reduction(axis=1)
+gamma = (Kxy * b_j).sum_reduction(index="j")
 
 ###############################################################################
 # Note again that after the for loop, no actual computation has been performed.
@@ -120,11 +121,11 @@ gamma = (Kxy * b_j).sum_reduction(axis=1)
 # Ok, this was just to showcase the use of a for loop,
 # however in this case there is no need for a for loop, we can do simply:
 Kxy = LazyTensor.exp(-D2xy / sigmas**2).sum()
-gamma = (Kxy * b_j).sum_reduction(axis=1)
+gamma = (Kxy * b_j).sum_reduction(index="j")
 
 ###############################################################################
 # This is because all operations are broadcasted, so the ``/`` operation above
-# works and corresponds to a ``./`` (scalar-vector element-wise division)
+# works as expected.
 
 
 ###################################################################################
@@ -147,11 +148,11 @@ x_i = Vi(x)  # (M, 1, D) LazyTensor, equivalent to LazyTensor( x[:,None,:] )
 y_j = Vj(y)  # (1, N, D) LazyTensor, equivalent to LazyTensor( y[None,:,:] )
 b_j = Vj(b)  # (1, N, D) LazyTensor, equivalent to LazyTensor( b[None,:,:] )
 
-D2xy = ((x_i - y_j) ** 2).sum(-1)
+D2xy = ((x_i - y_j) ** 2).sum()
 
 Kxy = LazyTensor.exp(-D2xy / sigmas**2).sum()
 
-gammafun = (Kxy * b_j).sum_reduction(axis=1, call=False)
+gammafun = (Kxy * b_j).sum_reduction(index="j", call=False)
 
 ###########################################################################
 # Here gammafun is a function and can be evaluated later
@@ -177,7 +178,7 @@ Niter = 1000
 start = time.time()
 for k in range(Niter):
     Kxyb = LazyTensor.exp(-dxy2 / sigmas**2).sum() * bj
-    gamma = Kxyb.sum_reduction(axis=1)
+    gamma = Kxyb.sum_reduction(index="j")
 end = time.time()
 print(
     "Timing for {} iterations: {:.5f}s = {} x {:.5f}s".format(
@@ -187,7 +188,7 @@ print(
 
 start = time.time()
 Kxyb = LazyTensor.exp(-dxy2 / sigmas**2).sum() * bj
-gammafun = Kxyb.sum_reduction(axis=1, call=False)
+gammafun = Kxyb.sum_reduction(index="j", call=False)
 for k in range(Niter):
     gamma = gammafun()
 end = time.time()
@@ -218,7 +219,7 @@ Sigmas = Pm(3, 4)
 # Now we build the formula as before
 dxy2 = LazyTensor.sum((xi - yj) ** 2)
 Kxyb = LazyTensor.exp(-dxy2 / Sigmas**2).sum() * bj
-gammafun = Kxyb.sum_reduction(axis=1)
+gammafun = Kxyb.sum_reduction(index="j")
 
 ###############################################################################
 # Note that we did not have to specify ``call=False`` because since the
@@ -237,7 +238,7 @@ bj = Vj(beta)
 
 dxy2 = LazyTensor.sum((xi - yj) ** 2)
 Kxyb = LazyTensor.exp(-dxy2 / sigmas**2).sum() * bj
-gammafun = Kxyb.sum_reduction(axis=1)
+gammafun = Kxyb.sum_reduction(index="j")
 print(gammafun)
 
 gamma = gammafun(y)

@@ -28,6 +28,7 @@ class CpuReduc_ranges(MapReduce, Cpu_link_compile):
         j = self.j
         dtype = self.dtype
         red_formula = self.red_formula
+        tagI = red_formula.tagI
         fout = self.fout
         outi = self.outi
         acc = self.acc
@@ -60,8 +61,8 @@ class CpuReduc_ranges(MapReduce, Cpu_link_compile):
         indices_i = c_array("int", nvarsi, "indices_i")
         indices_j = c_array("int", nvarsj, "indices_j")
         indices_p = c_array("int", nvarsp, "indices_p")
-        imstartx = c_variable("int", "i-start_x")
-        jmstarty = c_variable("int", "j-start_y")
+        imstartx = c_variable("int", "(i-start_x)")
+        jmstarty = c_variable("int", "(j-start_y)")
 
         headers = ["cmath", "stdlib.h"]
         if keopscore.config.config.use_OpenMP:
@@ -210,13 +211,13 @@ int CpuConv_ranges_{self.gencode_filename}(signed long int nx, signed long int n
                 if (nbatchdims == 0) {{
                     for (signed long int j = start_y; j < end_y; j++) {{
                         {varloader.load_vars("j", yj, args, row_index=j)}
-                        {red_formula.formula(fout,table)}
+                        {red_formula.formula(fout,table,i,j,tagI)}
                         {sum_scheme.accumulate_result(acc, fout, j)}
                     }}
                 }} else {{
                     for (signed long int j = start_y; j < end_y; j++) {{
                         {varloader.load_vars("j", yj, args, row_index=jmstarty, offsets=indices_j)}
-                        {red_formula.formula(fout,table)}
+                        {red_formula.formula(fout,table,imstartx,jmstarty,tagI)}
                         {sum_scheme.accumulate_result(acc, fout, jmstarty)}
                     }}
                 }}
