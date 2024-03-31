@@ -31,6 +31,7 @@ class GpuReduc2D(MapReduce, Gpu_link_compile):
         i = self.i
         j = self.j
         red_formula = self.red_formula
+        tagI = red_formula.tagI
         dtype = self.dtype
         dimin = red_formula.dimred
         dimout = red_formula.dim
@@ -177,7 +178,7 @@ class GpuReduc2D(MapReduce, Gpu_link_compile):
                             if(i<nx) {{ // we compute x1i only if needed
                                 {dtype}* yjrel = yj; // Loop on the columns of the current block.
                                 for(signed long int jrel = 0; (jrel<blockDim.x) && ((blockDim.x*blockIdx.y+jrel)< ny); jrel++, yjrel+={dimy}) {{
-                                    {red_formula.formula(fout,table)} // Call the function, which outputs results in fout
+                                    {red_formula.formula(fout,table, i, jrelloc, tagI)} // Call the function, which outputs results in fout
                                     {sum_scheme.accumulate_result(acc, fout, jrelloc, hack=True)}
                                 }}
                             }}
