@@ -1,5 +1,3 @@
-# Test for operation involving i and j placeholders
-
 import math
 import torch
 
