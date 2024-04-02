@@ -18,6 +18,7 @@ from keopscore import show_cuda_status
 
 
 def set_verbose(val):
+    global verbose
     verbose = val
     keopscore.verbose = val
 
