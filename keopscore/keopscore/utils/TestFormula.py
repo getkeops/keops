@@ -5,6 +5,7 @@ from torch.autograd import grad
 from pykeops.torch import Genred
 from keopscore.formulas import *
 import types
+from keopscore.utils.misc_utils import KeOps_Print
 
 
 def TestFormula(formula, tol=1e-4, dtype="float32", test_grad=False, randseed=None):
@@ -19,7 +20,7 @@ def TestFormula(formula, tol=1e-4, dtype="float32", test_grad=False, randseed=No
     if randseed is not None:
         torch.manual_seed(randseed)
 
-    print("")
+    KeOps_Print("")
 
     formula = eval(formula_str)
     vars = formula.Vars_
@@ -52,13 +53,13 @@ def TestFormula(formula, tol=1e-4, dtype="float32", test_grad=False, randseed=No
             MorN, var.dim, dtype=torchtype, device=device, requires_grad=True
         )
 
-    print("Testing formula " + formula_str)
+    KeOps_Print("Testing formula " + formula_str)
 
     my_routine = Genred(formula_str, [], reduction_op="Sum", axis=1)
     c = my_routine(*args)
 
-    print("ok, no error")
-    print("5 first values :", *c.flatten()[:5].tolist())
+    KeOps_Print("ok, no error")
+    KeOps_Print("5 first values :", *c.flatten()[:5].tolist())
 
     ####################################################################
     # Compute the gradient
@@ -67,14 +68,14 @@ def TestFormula(formula, tol=1e-4, dtype="float32", test_grad=False, randseed=No
     if test_grad:
         e = torch.rand_like(c)
 
-        print("Testing gradient of formula " + formula_str)
+        KeOps_Print("Testing gradient of formula " + formula_str)
 
         g = grad(c, args, e)
 
-        print("ok, no error")
+        KeOps_Print("ok, no error")
         for k in range(nargs):
             app_str = f"number {k}" if len(args) > 1 else ""
-            print(
+            KeOps_Print(
                 f"5 first values for gradient {app_str}:", *g[k].flatten()[:5].tolist()
             )
         return c, g

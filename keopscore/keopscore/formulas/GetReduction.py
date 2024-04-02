@@ -2,6 +2,7 @@ import ast, inspect
 
 import keopscore
 import keopscore.formulas
+from keopscore.utils.misc_utils import KeOps_Print
 from keopscore.utils.code_gen_utils import get_hash_name
 from keopscore.formulas.reductions import *
 from keopscore.formulas.maths import *
@@ -45,5 +46,5 @@ class GetReduction:
             if isinstance(node, ast.Call) and (
                 node.func.id not in formula_class.keys()
             ):
-                print(node.func.id)
+                KeOps_Print(node.func.id)
                 # raise NotImplementedError

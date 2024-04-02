@@ -1,5 +1,12 @@
 import os
 
+##############################################################
+# Verbosity level (we must do this before importing keopscore)
+verbose = True
+if os.getenv("PYKEOPS_VERBOSE") == "0":
+    verbose = False
+    os.environ["KEOPS_VERBOSE"] = "0"
+
 import keopscore
 import keopscore.config
 import keopscore.config.config
@@ -7,12 +14,7 @@ from keopscore.config.config import get_build_folder as keops_get_build_folder
 
 from . import config as pykeopsconfig
 
-###########################################################
-# Verbosity level
-verbose = True
-if os.getenv("PYKEOPS_VERBOSE") == "0":
-    verbose = False
-    os.environ["KEOPS_VERBOSE"] = "0"
+from keopscore import show_cuda_status
 
 
 def set_verbose(val):

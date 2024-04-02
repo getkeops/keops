@@ -7,6 +7,11 @@ from os.path import join
 import re
 
 
+def KeOps_Print(message, force_print=False, **kwargs):
+    if keopscore.verbose or force_print:
+        print(message, **kwargs)
+
+
 def KeOps_Message(message, use_tag=True, **kwargs):
     if keopscore.verbose:
         tag = "[KeOps] " if use_tag else ""
@@ -40,7 +45,7 @@ def KeOps_OS_Run(command):
         out = subprocess.run(command, shell=True, capture_output=True)
         if out.stderr != b"":
             KeOps_Warning("There were warnings or errors :", newline=True)
-            print(out.stderr.decode("utf-8"))
+            KeOps_Print(out.stderr.decode("utf-8"))
     elif python_version >= (3, 5):
         import subprocess
 

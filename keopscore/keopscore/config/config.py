@@ -4,7 +4,7 @@ import shutil
 from ctypes import CDLL, RTLD_GLOBAL
 import keopscore
 from ctypes.util import find_library
-from keopscore.utils.misc_utils import KeOps_Warning, KeOps_Error
+from keopscore.utils.misc_utils import KeOps_Warning, KeOps_Error, KeOps_Print
 import platform, sys
 
 # global parameters can be set here :
@@ -230,27 +230,32 @@ def find_and_try_library(libtag):
             return False
 
 
-cuda_dependencies = ["cuda", "nvrtc"]
-if all([find_and_try_library(lib) for lib in cuda_dependencies]):
-    # N.B. calling get_gpu_props issues a warning if cuda is not available, so we do not add another warning here
-    from keopscore.utils.gpu_utils import (
-        get_gpu_props,
-    )  # N.B. this import should be kept inside the if statement
+if use_cuda:
+    cuda_dependencies = ["cuda", "nvrtc"]
+    if all([find_and_try_library(lib) for lib in cuda_dependencies]):
+        # N.B. calling get_gpu_props issues a warning if cuda is not available, so we do not add another warning here
+        from keopscore.utils.gpu_utils import (
+            get_gpu_props,
+        )  # N.B. this import should be kept inside the if statement
 
-    cuda_available = get_gpu_props()[0] > 0
+        cuda_available = get_gpu_props()[0] > 0
+        if not cuda_available:
+            cuda_message = "Cuda libraries were detected on the system, but something is wrong with the GPU configuration ; using cpu only mode"
+            use_cuda = False
+        else:
+            cuda_message = "Cuda configuration is OK"
+    else:
+        cuda_available = False
+        cuda_message = "Cuda libraries were not detected on the system or could not be loaded ; using cpu only mode"
+        KeOps_Warning(cuda_message)
+        use_cuda = False
 else:
-    cuda_available = False
-    KeOps_Warning(
-        "Cuda libraries were not detected on the system or could not be loaded ; using cpu only mode"
-    )
+    cuda_message = "Cuda is disabled (use_cuda is set to False in the file config.py)"
 
-if not use_cuda and cuda_available:
-    KeOps_Warning(
-        "Cuda appears to be available on your system, but use_cuda is set to False in config.py. Using cpu only mode"
-    )
 
-if use_cuda and not cuda_available:
-    use_cuda = False
+def show_cuda_status(force_print=False):
+    KeOps_Print(cuda_message, force_print=force_print)
+
 
 if use_cuda:
     from keopscore.utils.gpu_utils import (
@@ -308,6 +313,6 @@ def show_gpu_config():
             "jit_source_header",
             "jit_binary",
         ):
-            print(elem + " : ", eval(elem))
+            KeOps_Print(elem + " : ", eval(elem))
     else:
-        print("gpu disabled")
+        KeOps_Print("gpu disabled")

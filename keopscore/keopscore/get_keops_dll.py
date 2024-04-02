@@ -69,7 +69,7 @@ from keopscore.formulas import Zero_Reduction, Sum_Reduction
 from keopscore.formulas.GetReduction import GetReduction
 from keopscore.formulas.variables.Zero import Zero
 from keopscore.utils.Cache import Cache
-from keopscore.utils.code_gen_utils import KeOps_Error
+from keopscore.utils.misc_utils import KeOps_Error, KeOps_Print
 
 # Get every classes in mapreduce
 map_reduce = dict(inspect.getmembers(keopscore.mapreduce, inspect.isclass))
@@ -116,8 +116,8 @@ def get_keops_dll_impl(
     rf = map_reduce_obj.red_formula
 
     if keopscore.debug_ops:
-        print("In get_keops_dll, formula is :", rf)
-        print("formula.__repr__() is : ", rf.__repr__())
+        KeOps_Print("In get_keops_dll, formula is :", rf)
+        KeOps_Print("formula.__repr__() is : ", rf.__repr__())
         rf.make_dot()
 
     # detecting the case of formula being equal to zero, to bypass reduction.
@@ -204,4 +204,4 @@ if __name__ == "__main__":
 
     res = get_keops_dll(argdict["map_reduce_id"], *list(argdict.values())[1:])
     for item in res:
-        print(item)
+        KeOps_Print(item)
