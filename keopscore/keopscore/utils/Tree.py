@@ -1,3 +1,6 @@
+from keopscore.utils.misc_utils import KeOps_Print
+
+
 class Tree:
     """a custom class for handling a tree structure.
     Currently we use it only to recursively print a formula or reduction"""
@@ -108,7 +111,7 @@ class Tree:
         text_file = open(filename, "w")
         text_file.write(string)
         text_file.close()
-        print(f"Saved formula graph to file {filename}.")
+        KeOps_Print(f"Saved formula graph to file {filename}.")
 
     def __str__(self):
         return self.nice_print()  # self.recursive_str()

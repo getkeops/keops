@@ -95,6 +95,11 @@ def check_broadcasting(dims_1, dims_2):
     return max_tuple(padded_dims_1, padded_dims_2)
 
 
+def pyKeOps_Print(message, **kwargs):
+    if pykeops.verbose:
+        print(message, **kwargs)
+
+
 def pyKeOps_Message(message, use_tag=True, **kwargs):
     if pykeops.verbose:
         tag = "[pyKeOps] " if use_tag else ""

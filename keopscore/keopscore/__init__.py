@@ -36,4 +36,4 @@ if keopscoreconfig.config.use_cuda:
     if not os.path.exists(jit_compile_dll()):
         Gpu_link_compile.compile_jit_compile_dll()
 
-from keopscore.config.config import show_gpu_config
+from keopscore.config.config import show_gpu_config, show_cuda_status

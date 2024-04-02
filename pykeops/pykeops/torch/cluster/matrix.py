@@ -1,3 +1,4 @@
+from pykeops.common.utils import pyKeOps_Print
 import torch
 
 
@@ -135,6 +136,6 @@ if __name__ == "__main__":
     x, y = torch.Tensor([0.0, 1.0]), torch.Tensor([0.0, 0.7, 2.0])
     dist = (x[:, None] - y[None, :]) ** 2
     keep = dist <= 0.8
-    print(keep)
+    pyKeOps_Print(keep)
     for item in from_matrix(r_i, r_j, keep):
-        print(item)
+        pyKeOps_Print(item)
