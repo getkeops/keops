@@ -24,7 +24,7 @@ Using pip (recommended)
 
     pip install pykeops
 
-  Note that compiled shared objects (``.so`` files on Unix, ``.dylib`` on macOS) will be stored in the folder  ``~/.cache/keops/``, where ``~`` is the path to your home folder.
+  Note that compiled shared objects (``.so`` files on Unix, ``.dylib`` on macOS) will be stored in the folder  ``~/.cache/keops/``, where ``~`` is the path to your home folder. If you want to change this default location, define the environment variable ``KEOPS_CACHE_FOLDER`` to another folder prior to importing pykeops.
 
 3. Test your installation, as described in the :ref:`next section <part.checkPython>`.
 
