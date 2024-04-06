@@ -53,8 +53,11 @@ class GpuReduc1D(MapReduce, Gpu_link_compile):
                           extern __shared__ {dtype} yj[];
 
                           // load parameters variables from global memory to local thread memory
-                          {param_loc.declare()}
-                          {varloader.load_vars("p", param_loc, args)}
+/*
+                            {param_loc.declare()}
+                            {varloader.load_vars("p", param_loc, args)}
+*/                            
+float* param_loc = arg_0[0];
 
                           {fout.declare()}
                           {xi.declare()}
