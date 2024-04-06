@@ -57,7 +57,7 @@ class GpuReduc1D(MapReduce, Gpu_link_compile):
                             {param_loc.declare()}
                             {varloader.load_vars("p", param_loc, args)}
 */                            
-float* param_loc = arg_0[0];
+double* param_loc = arg_0[0];
 
                           {fout.declare()}
                           {xi.declare()}

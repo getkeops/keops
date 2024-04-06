@@ -17,30 +17,30 @@ def fun_keops(A, I, J):
 
 
 P, Q = 10000, 10000
-M, N = 100000, 100000
+M, N = 1000, 1000
 device = "cuda" if torch.cuda.is_available() else "cpu"
-dtype = torch.float
+dtype = torch.double
 A = torch.randn((P, Q), requires_grad=True, device=device, dtype=dtype)
 I = torch.randint(P, (M, 1), device=device)
 J = torch.randint(Q, (1, N), device=device)
 
-test_torch = False
+test_torch = True
 
 if test_torch:
     start = time()
     res_torch = fun_torch(A, I, J)
     end = time()
-    print("time for torch:", end-start)
-    #print(res_torch)
+    print("time for torch:", end - start)
+    # print(res_torch)
 
 start = time()
 res_keops = fun_keops(A, I, J)
 end = time()
-print("time for keops:", end-start)
-#print(res_keops)
+print("time for keops:", end - start)
+# print(res_keops)
 
 if test_torch:
-    print(torch.norm(res_keops-res_torch)/torch.norm(res_torch))
+    print(torch.norm(res_keops - res_torch) / torch.norm(res_torch))
 
 """
 # testing gradients
