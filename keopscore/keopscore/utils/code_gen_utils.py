@@ -664,6 +664,22 @@ def table(
     return res
 
 
+def table_all_local(
+    nminargs, dimsx, dimsy, dimsp, indsi, indsj, indsp, xi, yj, pp
+):
+    res = [None] * nminargs
+    for dims, inds, loc in (
+        (dimsx, indsi, xi),
+        (dimsy, indsj, yj),
+        (dimsp, indsp, pp),
+    ):
+        k = 0
+        for u in range(len(dims)):
+            res[inds[u]] = c_array(loc.dtype, dims[u], f"({loc.id}+{k})")
+            k += dims[u]
+    return res
+
+
 def direct_table(nminargs, dimsx, dimsy, dimsp, indsi, indsj, indsp, args, i, j):
     res = [None] * nminargs
     for dims, inds, row_index in (

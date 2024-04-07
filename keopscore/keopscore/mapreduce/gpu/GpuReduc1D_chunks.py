@@ -9,7 +9,7 @@ from keopscore.utils.code_gen_utils import (
     load_vars_chunks,
     sizeof,
     pointer,
-    table,
+    table_all_local,
     table4,
     use_pragma_unroll,
 )
@@ -44,7 +44,6 @@ def do_chunk_sub(
     yj,
     yjrel,
     param_loc,
-    is_local,
 ):
     chk = Chunk_Mode_Constants(red_formula)
     fout_tmp_chunk = c_array(dtype, chk.fun_chunked.dim)
@@ -81,7 +80,7 @@ def do_chunk_sub(
         arg,
         chunk,
     )
-    chktable = table(
+    chktable = table_all_local(
         chk.nminargs,
         dimsx,
         dimsy,
@@ -92,10 +91,6 @@ def do_chunk_sub(
         xi,
         yjrel,
         param_loc,
-        is_local,
-        arg,
-        i,
-        j,
     )
     foutj = c_variable(pointer(dtype), "foutj")
 
@@ -205,7 +200,6 @@ class GpuReduc1D_chunks(MapReduce, Gpu_link_compile):
             yj,
             yjrel,
             param_loc,
-            varloader.is_local_var,
         )
 
         last_chunk = c_variable("signed long int", f"{chk.nchunks - 1}")
@@ -237,7 +231,6 @@ class GpuReduc1D_chunks(MapReduce, Gpu_link_compile):
             yj,
             yjrel,
             param_loc,
-            varloader.is_local_var,
         )
 
         foutj = c_array(dtype, chk.dimout_chunk, "foutj")
@@ -273,7 +266,7 @@ class GpuReduc1D_chunks(MapReduce, Gpu_link_compile):
 
                           // load parameters variables from global memory to local thread memory
                           {param_loc.declare()}
-                          {load_vars(chk.dimsp_notchunked, chk.indsp_notchunked, param_loc, args)}
+                          {load_vars(chk.dimsp_notchunked, chk.indsp_notchunked, param_loc, args, is_local=varloader.is_local_var)}
                           
                           {acc.declare()}
                           
@@ -289,7 +282,7 @@ class GpuReduc1D_chunks(MapReduce, Gpu_link_compile):
                           {fout_chunk.declare()}
                           
                           if (i < nx) {{
-                            {load_vars(chk.dimsx_notchunked, chk.indsi_notchunked, xi, args, row_index=i)} // load xi variables from global memory to local thread memory
+                            {load_vars(chk.dimsx_notchunked, chk.indsi_notchunked, xi, args, row_index=i, is_local=varloader.is_local_var)} // load xi variables from global memory to local thread memory
                           }}
 
                           for (signed long int jstart = 0, tile = 0; jstart < ny; jstart += blockDim.x, tile++) {{
@@ -298,7 +291,7 @@ class GpuReduc1D_chunks(MapReduce, Gpu_link_compile):
                             signed long int j = tile * blockDim.x + threadIdx.x;
 
                             if (j < ny) {{ // we load yj from device global memory only if j<ny
-                              {load_vars(chk.dimsy_notchunked, chk.indsj_notchunked, yjloc, args, row_index=j)} 
+                              {load_vars(chk.dimsy_notchunked, chk.indsj_notchunked, yjloc, args, row_index=j, is_local=varloader.is_local_var)} 
                             }}
                             __syncthreads();
 
