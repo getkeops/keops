@@ -639,7 +639,7 @@ class Var_loader:
             dims, inds = self.dimsy, self.indsj
         elif cat == "p":
             dims, inds = self.dimsp, self.indsp
-        return load_vars(dims, inds, *args, **kwargs)
+        return load_vars(dims, inds, *args, **kwargs, is_local=self.is_local_var)
 
 
 def table(
@@ -771,6 +771,7 @@ def load_vars(
     #   xi[5] = arg8[(5+offsets[4])*3+1];
     #   xi[6] = arg8[(5+offsets[4])*3+2];
     if is_local is None:
+        KeOps_Error("internal error : is_local should be specified here.")
         is_local = [True] * len(args)
     string = ""
     if len(dims) > 0:
