@@ -45,7 +45,7 @@ class GpuReduc1D_ranges(MapReduce, Gpu_link_compile):
         xi = self.xi
         yjloc = c_array(dtype, varloader.dimy, f"(yj + threadIdx.x * {varloader.dimy})")
         yjrel = c_array(dtype, varloader.dimy, "yjrel")
-        table = varloader.table(self.xi, yjrel, self.param_loc)
+        table = varloader.table(self.xi, yjrel, self.param_loc, args, i, j)
         jreltile = c_variable("signed long int", "(jrel + tile * blockDim.x)")
 
         indices_i = c_array("signed long int", nvarsi, "indices_i")

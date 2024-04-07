@@ -1,7 +1,7 @@
 import os
 from hashlib import sha256
 
-from keopscore.config.config import disable_pragma_unrolls
+from keopscore.config.config import disable_pragma_unrolls, lim_dim_local_var
 from keopscore.utils.misc_utils import KeOps_Error, KeOps_Message
 
 
@@ -530,6 +530,11 @@ def GetInds(Vars):
     return tuple(v.ind for v in Vars)
 
 
+def GetCats(Vars):
+    # returns the list of cat fields (categories) of a list of Var instances
+    return tuple(v.cat for v in Vars)
+
+
 class Var_loader:
     def __init__(self, red_formula):
         formula = red_formula.formula
@@ -545,6 +550,10 @@ class Var_loader:
         self.pos_first_argI = mymin(self.indsi)  # first index of "i"-indexed variables
         self.dimsx = GetDims(self.Varsi)  # list dimensions of "i"-indexed variables
         self.dimx = sum(self.dimsx)  # total dimension of "i"-indexed variables
+        self.is_local_x = [dim > lim_dim_local_var for dim in self.dimsx]
+        self.dimx_local = sum(
+            dim if cond else 0 for dim, cond in zip(self.dimsx, self.is_local_x)
+        )
 
         self.Varsj = formula.Vars(
             cat=tagJ
@@ -554,6 +563,10 @@ class Var_loader:
         self.pos_first_argJ = mymin(self.indsj)  # first index of "j"-indexed variables
         self.dimsy = GetDims(self.Varsj)  # list dimensions of "j"-indexed variables
         self.dimy = sum(self.dimsy)  # total dimension of "j"-indexed variables
+        self.is_local_y = [dim > lim_dim_local_var for dim in self.dimsy]
+        self.dimy_local = sum(
+            dim if cond else 0 for dim, cond in zip(self.dimsy, self.is_local_y)
+        )
 
         self.Varsp = formula.Vars(cat=2)  # list all parameter variables in the formula
         self.nvarsp = len(self.Varsp)  # number of parameter variables
@@ -561,11 +574,33 @@ class Var_loader:
         self.pos_first_argP = mymin(self.indsp)  # first index of parameter variables
         self.dimsp = GetDims(self.Varsp)  # list indices of parameter variables
         self.dimp = sum(self.dimsp)  # total dimension of parameter variables
+        self.is_local_p = [dim > lim_dim_local_var for dim in self.dimsp]
+        self.dimp_local = sum(
+            dim if cond else 0 for dim, cond in zip(self.dimsp, self.is_local_p)
+        )
 
         self.inds = GetInds(formula.Vars_)
         self.nminargs = max(self.inds) + 1 if len(self.inds) > 0 else 0
 
-    def table(self, xi, yj, pp):
+        self.dims = GetDims(formula.Vars_)
+        self.cats = GetCats(formula.Vars_)
+
+        self.is_local_var = [False] * len(self.dims)
+        dims_sorted, inds_sorted, cats_sorted = zip(
+            *sorted(zip(self.dims, self.inds, self.cats))
+        )
+        dimcur = 0
+        cnt = [0, 0, 0]
+        for k in range(len(dims_sorted)):
+            dimcur += dims_sorted[k]
+            if dimcur < lim_dim_local_var:
+                self.is_local_var[inds_sorted[k]] = True
+                cnt[cats_sorted[k]] += dims_sorted[k]
+            else:
+                break
+        self.dimx_local, self.dimy_local, self.dimp_local = cnt
+
+    def table(self, xi, yj, pp, args, i, j):
         return table(
             self.nminargs,
             self.dimsx,
@@ -577,6 +612,10 @@ class Var_loader:
             xi,
             yj,
             pp,
+            self.is_local_var,
+            args,
+            i,
+            j,
         )
 
     def direct_table(self, args, i, j):
@@ -603,17 +642,25 @@ class Var_loader:
         return load_vars(dims, inds, *args, **kwargs)
 
 
-def table(nminargs, dimsx, dimsy, dimsp, indsi, indsj, indsp, xi, yj, pp):
+def table(
+    nminargs, dimsx, dimsy, dimsp, indsi, indsj, indsp, xi, yj, pp, is_local, args, i, j
+):
     res = [None] * nminargs
-    for dims, inds, xloc in (
-        (dimsx, indsi, xi),
-        (dimsy, indsj, yj),
-        (dimsp, indsp, pp),
+    for dims, inds, loc, row_index in (
+        (dimsx, indsi, xi, i),
+        (dimsy, indsj, yj, j),
+        (dimsp, indsp, pp, c_zero_int),
     ):
         k = 0
         for u in range(len(dims)):
-            res[inds[u]] = c_array(xloc.dtype, dims[u], f"({xloc.id}+{k})")
-            k += dims[u]
+            if is_local[inds[u]]:
+                res[inds[u]] = c_array(loc.dtype, dims[u], f"({loc.id}+{k})")
+                k += dims[u]
+            else:
+                arg = args[inds[u]]
+                res[inds[u]] = c_array(
+                    value(arg.dtype), dims[u], f"({arg.id}+{row_index.id}*{dims[u]})"
+                )
     return res
 
 
@@ -662,7 +709,16 @@ def table4(
     return res
 
 
-def load_vars(dims, inds, xloc, args, row_index=c_zero_int, offsets=None, indsref=None):
+def load_vars(
+    dims,
+    inds,
+    xloc,
+    args,
+    row_index=c_zero_int,
+    offsets=None,
+    indsref=None,
+    is_local=None,
+):
     # returns a c++ code used to create a local copy of slices of the input tensors, for evaluating a formula
     # - dims is a list of integers giving dimensions of variables
     # - dims is a list of integers giving indices of variables
@@ -671,6 +727,7 @@ def load_vars(dims, inds, xloc, args, row_index=c_zero_int, offsets=None, indsre
     # - row_index is a c_variable (of dtype="int"), specifying which row of the matrix should be loaded
     # - offsets is an optional c_array (of dtype="int"), specifying variable-dependent offsets (used when broadcasting batch dimensions)
     # - indsref is an optional list of integers, giving index mapping for offsets
+    # - is_local is an optional list of booleans, used in case not all variables must be loaded
     #
     # Example: assuming i=c_variable("int", "5"), xloc=c_variable("float", "xi") and px=c_variable("float**", "px"), then
     # if dims = [2,2,3] and inds = [7,9,8], the call to
@@ -713,6 +770,8 @@ def load_vars(dims, inds, xloc, args, row_index=c_zero_int, offsets=None, indsre
     #   xi[4] = arg8[(5+offsets[4])*3+0];
     #   xi[5] = arg8[(5+offsets[4])*3+1];
     #   xi[6] = arg8[(5+offsets[4])*3+2];
+    if is_local is None:
+        is_local = [True] * len(args)
     string = ""
     if len(dims) > 0:
         string += "{\n"
@@ -722,13 +781,12 @@ def load_vars(dims, inds, xloc, args, row_index=c_zero_int, offsets=None, indsre
             row_index_str = (
                 f"({row_index.id}+{offsets.id}[{l}])" if offsets else row_index.id
             )
-            string += use_pragma_unroll()
-            string += f"for(signed long int v=0; v<{dims[u]}; v++) {{\n"
-            string += (
-                f"    {xloc.id}[a] = {args[inds[u]].id}[{row_index_str}*{dims[u]}+v];\n"
-            )
-            string += "     a++;\n"
-            string += "}\n"
+            if is_local[inds[u]]:
+                string += use_pragma_unroll()
+                string += f"for(signed long int v=0; v<{dims[u]}; v++) {{\n"
+                string += f"    {xloc.id}[a] = {args[inds[u]].id}[{row_index_str}*{dims[u]}+v];\n"
+                string += "     a++;\n"
+                string += "}\n"
         string += "}\n"
     return string
 

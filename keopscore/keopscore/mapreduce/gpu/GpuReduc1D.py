@@ -35,9 +35,11 @@ class GpuReduc1D(MapReduce, Gpu_link_compile):
 
         param_loc = self.param_loc
         xi = self.xi
-        yjloc = c_array(dtype, varloader.dimy, f"(yj + threadIdx.x * {varloader.dimy})")
-        yjrel = c_array(dtype, varloader.dimy, "yjrel")
-        table = varloader.table(self.xi, yjrel, self.param_loc)
+        yjloc = c_array(
+            dtype, varloader.dimy_local, f"(yj + threadIdx.x * {varloader.dimy_local})"
+        )
+        yjrel = c_array(dtype, varloader.dimy_local, "yjrel")
+        table = varloader.table(self.xi, yjrel, self.param_loc, args, i, j)
         jreltile = c_variable("signed long int", "(jrel + tile * blockDim.x)")
 
         self.code = f"""
@@ -53,11 +55,8 @@ class GpuReduc1D(MapReduce, Gpu_link_compile):
                           extern __shared__ {dtype} yj[];
 
                           // load parameters variables from global memory to local thread memory
-/*
-                            {param_loc.declare()}
-                            {varloader.load_vars("p", param_loc, args)}
-*/                            
-double* param_loc = arg_0[0];
+                          {param_loc.declare()}
+                          {varloader.load_vars("p", param_loc, args)}
 
                           {fout.declare()}
                           {xi.declare()}

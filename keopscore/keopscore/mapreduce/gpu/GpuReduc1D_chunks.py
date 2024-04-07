@@ -44,6 +44,7 @@ def do_chunk_sub(
     yj,
     yjrel,
     param_loc,
+    is_local,
 ):
     chk = Chunk_Mode_Constants(red_formula)
     fout_tmp_chunk = c_array(dtype, chk.fun_chunked.dim)
@@ -91,6 +92,10 @@ def do_chunk_sub(
         xi,
         yjrel,
         param_loc,
+        is_local,
+        arg,
+        i,
+        j,
     )
     foutj = c_variable(pointer(dtype), "foutj")
 
@@ -200,6 +205,7 @@ class GpuReduc1D_chunks(MapReduce, Gpu_link_compile):
             yj,
             yjrel,
             param_loc,
+            varloader.is_local_var,
         )
 
         last_chunk = c_variable("signed long int", f"{chk.nchunks - 1}")
@@ -231,6 +237,7 @@ class GpuReduc1D_chunks(MapReduce, Gpu_link_compile):
             yj,
             yjrel,
             param_loc,
+            varloader.is_local_var,
         )
 
         foutj = c_array(dtype, chk.dimout_chunk, "foutj")

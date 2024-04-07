@@ -16,10 +16,10 @@ def fun_keops(A, I, J):
     return K.sum(axis=1).flatten()
 
 
-P, Q = 10000, 10000
+P, Q = 1000, 1000
 M, N = 1000, 1000
 device = "cuda" if torch.cuda.is_available() else "cpu"
-dtype = torch.double
+dtype = torch.float32
 A = torch.randn((P, Q), requires_grad=True, device=device, dtype=dtype)
 I = torch.randint(P, (M, 1), device=device)
 J = torch.randint(Q, (1, N), device=device)
