@@ -664,9 +664,7 @@ def table(
     return res
 
 
-def table_all_local(
-    nminargs, dimsx, dimsy, dimsp, indsi, indsj, indsp, xi, yj, pp
-):
+def table_all_local(nminargs, dimsx, dimsy, dimsp, indsi, indsj, indsp, xi, yj, pp):
     res = [None] * nminargs
     for dims, inds, loc in (
         (dimsx, indsi, xi),
