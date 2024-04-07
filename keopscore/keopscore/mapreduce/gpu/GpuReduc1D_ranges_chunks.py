@@ -5,7 +5,7 @@ from keopscore.formulas.reductions.sum_schemes import *
 from keopscore.mapreduce.gpu.GpuAssignZero import GpuAssignZero
 from keopscore.mapreduce.MapReduce import MapReduce
 from keopscore.utils.code_gen_utils import (
-    load_vars,
+    load_vars_all_local,
     load_vars_chunks,
     load_vars_chunks_offsets,
     sizeof,
@@ -70,7 +70,7 @@ def do_chunk_sub_ranges(
         row_index=i,
     )
 
-    varloader_global = Var_loader(red_formula)
+    varloader_global = Var_loader(red_formula, True)
     indsi_global = varloader_global.indsi
     indsj_global = varloader_global.indsj
     indsp_global = varloader_global.indsp
@@ -187,6 +187,7 @@ class GpuReduc1D_ranges_chunks(MapReduce, Gpu_link_compile):
     # class for generating the final C++ code, Gpu version
 
     AssignZero = GpuAssignZero
+    all_local_vars = True
 
     def __init__(self, *args):
         MapReduce.__init__(self, *args)
@@ -204,7 +205,7 @@ class GpuReduc1D_ranges_chunks(MapReduce, Gpu_link_compile):
         dtype = self.dtype
         dtypeacc = self.dtypeacc
 
-        varloader_global = Var_loader(red_formula)
+        varloader_global = Var_loader(red_formula, self.all_local_vars)
         indsi_global = varloader_global.indsi
         indsj_global = varloader_global.indsj
         indsp_global = varloader_global.indsp
@@ -401,9 +402,9 @@ class GpuReduc1D_ranges_chunks(MapReduce, Gpu_link_compile):
                           // load parameters variables from global memory to local thread memory
                           {param_loc.declare()}
                           if (nbatchdims == 0) {{
-                              {load_vars(chk.dimsp_notchunked, chk.indsp_notchunked, param_loc, args, is_local=varloader_global.is_local_var)}
+                              {load_vars_all_local(chk.dimsp_notchunked, chk.indsp_notchunked, param_loc, args)}
                           }} else {{
-                              {load_vars(chk.dimsp_notchunked, chk.indsp_notchunked, param_loc, args, offsets=indices_p, is_local=varloader_global.is_local_var)}
+                              {load_vars_all_local(chk.dimsp_notchunked, chk.indsp_notchunked, param_loc, args, offsets=indices_p)}
                           }}
                           
                           {acc.declare()}
@@ -422,10 +423,10 @@ class GpuReduc1D_ranges_chunks(MapReduce, Gpu_link_compile):
                           if (i < end_x) {{
                               // load xi variables from global memory to local thread memory
                               if (nbatchdims == 0) {{
-                                  {load_vars(chk.dimsx_notchunked, chk.indsi_notchunked, xi, args, row_index=i, is_local=varloader_global.is_local_var)} 
+                                  {load_vars_all_local(chk.dimsx_notchunked, chk.indsi_notchunked, xi, args, row_index=i)} 
                               }} else {{
-                                  {load_vars(chk.dimsx_notchunked, chk.indsi_notchunked, xi, args, 
-                                              row_index=threadIdx_x, offsets=indices_i, indsref=indsi_global, is_local=varloader_global.is_local_var)}
+                                  {load_vars_all_local(chk.dimsx_notchunked, chk.indsi_notchunked, xi, args, 
+                                              row_index=threadIdx_x, offsets=indices_i, indsref=indsi_global)}
                               }} 
                           }}
                           
@@ -442,11 +443,11 @@ class GpuReduc1D_ranges_chunks(MapReduce, Gpu_link_compile):
                                       if(j<end_y) // we load yj from device global memory only if j<end_y
                                           if (nbatchdims == 0) {{
                                               // load yj variables from global memory to shared memory
-                                              {load_vars(chk.dimsy_notchunked, chk.indsj_notchunked, yjloc, args, row_index=j, is_local=varloader_global.is_local_var)} 
+                                              {load_vars_all_local(chk.dimsy_notchunked, chk.indsj_notchunked, yjloc, args, row_index=j)} 
                                           }} else {{
                                               // Possibly, with offsets as we support broadcasting over batch dimensions
-                                              {load_vars(chk.dimsy_notchunked, chk.indsj_notchunked, yjloc, args, 
-                                                          row_index=j-starty, offsets=indices_j, indsref=indsj_global, is_local=varloader_global.is_local_var)}
+                                              {load_vars_all_local(chk.dimsy_notchunked, chk.indsj_notchunked, yjloc, args, 
+                                                          row_index=j-starty, offsets=indices_j, indsref=indsj_global)}
                                           }}
                                       __syncthreads();
                                       

@@ -5,7 +5,7 @@ from keopscore.formulas.reductions.sum_schemes import *
 from keopscore.mapreduce.gpu.GpuAssignZero import GpuAssignZero
 from keopscore.mapreduce.MapReduce import MapReduce
 from keopscore.utils.code_gen_utils import (
-    load_vars,
+    load_vars_all_local,
     load_vars_chunks,
     sizeof,
     pointer,
@@ -122,6 +122,7 @@ class GpuReduc1D_chunks(MapReduce, Gpu_link_compile):
     # class for generating the final C++ code, Gpu version
 
     AssignZero = GpuAssignZero
+    all_local_vars = True
 
     def __init__(self, *args):
         MapReduce.__init__(self, *args)
@@ -266,7 +267,7 @@ class GpuReduc1D_chunks(MapReduce, Gpu_link_compile):
 
                           // load parameters variables from global memory to local thread memory
                           {param_loc.declare()}
-                          {load_vars(chk.dimsp_notchunked, chk.indsp_notchunked, param_loc, args, is_local=varloader.is_local_var)}
+                          {load_vars_all_local(chk.dimsp_notchunked, chk.indsp_notchunked, param_loc, args)}
                           
                           {acc.declare()}
                           
@@ -282,7 +283,7 @@ class GpuReduc1D_chunks(MapReduce, Gpu_link_compile):
                           {fout_chunk.declare()}
                           
                           if (i < nx) {{
-                            {load_vars(chk.dimsx_notchunked, chk.indsi_notchunked, xi, args, row_index=i, is_local=varloader.is_local_var)} // load xi variables from global memory to local thread memory
+                            {load_vars_all_local(chk.dimsx_notchunked, chk.indsi_notchunked, xi, args, row_index=i)} // load xi variables from global memory to local thread memory
                           }}
 
                           for (signed long int jstart = 0, tile = 0; jstart < ny; jstart += blockDim.x, tile++) {{
@@ -291,7 +292,7 @@ class GpuReduc1D_chunks(MapReduce, Gpu_link_compile):
                             signed long int j = tile * blockDim.x + threadIdx.x;
 
                             if (j < ny) {{ // we load yj from device global memory only if j<ny
-                              {load_vars(chk.dimsy_notchunked, chk.indsj_notchunked, yjloc, args, row_index=j, is_local=varloader.is_local_var)} 
+                              {load_vars_all_local(chk.dimsy_notchunked, chk.indsj_notchunked, yjloc, args, row_index=j)} 
                             }}
                             __syncthreads();
 

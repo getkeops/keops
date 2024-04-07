@@ -6,7 +6,7 @@ import math
 import torch
 from pykeops.torch import LazyTensor
 
-M, N, D, DV = 100, 100, 200, 1
+M, N, D, DV = 100, 100, 2000, 1
 
 dtype = torch.float32
 

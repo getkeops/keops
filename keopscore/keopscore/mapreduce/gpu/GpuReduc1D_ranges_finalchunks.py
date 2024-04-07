@@ -6,7 +6,7 @@ from keopscore.formulas.reductions.sum_schemes import *
 from keopscore.mapreduce.gpu.GpuAssignZero import GpuAssignZero
 from keopscore.mapreduce.MapReduce import MapReduce
 from keopscore.utils.code_gen_utils import (
-    load_vars,
+    load_vars_all_local,
     load_vars_chunks,
     load_vars_chunks_offsets,
     sizeof,

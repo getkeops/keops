@@ -12,6 +12,7 @@ class GpuReduc1D_ranges(MapReduce, Gpu_link_compile):
     # class for generating the final C++ code, Gpu version
 
     AssignZero = GpuAssignZero
+    all_local_vars = False
 
     def __init__(self, *args):
         MapReduce.__init__(self, *args)
@@ -45,7 +46,7 @@ class GpuReduc1D_ranges(MapReduce, Gpu_link_compile):
         xi = self.xi
         yjloc = c_array(dtype, varloader.dimy, f"(yj + threadIdx.x * {varloader.dimy})")
         yjrel = c_array(dtype, varloader.dimy, "yjrel")
-        table = varloader.table(self.xi, yjrel, self.param_loc, args, i, j)
+        table = varloader.table_partial_local(self.xi, yjrel, self.param_loc, args, i, j)
         jreltile = c_variable("signed long int", "(jrel + tile * blockDim.x)")
 
         indices_i = c_array("signed long int", nvarsi, "indices_i")
@@ -107,9 +108,9 @@ class GpuReduc1D_ranges(MapReduce, Gpu_link_compile):
                           {param_loc.declare()}
 
                           if (nbatchdims == 0) {{
-                              {varloader.load_vars("p", param_loc, args)}
+                              {varloader.load_vars_partial_local("p", param_loc, args)}
                           }} else {{
-                              {varloader.load_vars("p", param_loc, args, offsets=indices_p)}
+                              {varloader.load_vars_partial_local("p", param_loc, args, offsets=indices_p)}
                           }}
                           {fout.declare()}
                           {xi.declare()}
@@ -120,9 +121,9 @@ class GpuReduc1D_ranges(MapReduce, Gpu_link_compile):
                               {red_formula.InitializeReduction(acc)} // acc = 0
                               {sum_scheme.initialize_temporary_accumulator_first_init()}
                               if (nbatchdims == 0) {{
-                                  {varloader.load_vars('i', xi, args, row_index=i)} // load xi variables from global memory to local thread memory
+                                  {varloader.load_vars_partial_local('i', xi, args, row_index=i)} // load xi variables from global memory to local thread memory
                               }} else {{
-                                  {varloader.load_vars('i', xi, args, row_index=threadIdx_x, offsets=indices_i)}  // Possibly, with offsets as we support broadcasting over batch dimensions
+                                  {varloader.load_vars_partial_local('i', xi, args, row_index=threadIdx_x, offsets=indices_i)}  // Possibly, with offsets as we support broadcasting over batch dimensions
                               }}
                           }}
                           
@@ -138,9 +139,9 @@ class GpuReduc1D_ranges(MapReduce, Gpu_link_compile):
 
                                       if(j<end_y) // we load yj from device global memory only if j<end_y
                                           if (nbatchdims == 0) {{
-                                              {varloader.load_vars('j', yjloc, args, row_index=j)} // load yj variables from global memory to shared memory
+                                              {varloader.load_vars_partial_local('j', yjloc, args, row_index=j)} // load yj variables from global memory to shared memory
                                           }} else {{
-                                              {varloader.load_vars('j', yjloc, args, row_index=j-starty, offsets=indices_j)}  // Possibly, with offsets as we support broadcasting over batch dimensions
+                                              {varloader.load_vars_partial_local('j', yjloc, args, row_index=j-starty, offsets=indices_j)}  // Possibly, with offsets as we support broadcasting over batch dimensions
                                           }}
                                       __syncthreads();
                                       

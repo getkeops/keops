@@ -11,6 +11,7 @@ class GpuReduc1D(MapReduce, Gpu_link_compile):
     # class for generating the final C++ code, Gpu version
 
     AssignZero = GpuAssignZero
+    all_local_vars = False
 
     def __init__(self, *args):
         MapReduce.__init__(self, *args)
@@ -39,7 +40,7 @@ class GpuReduc1D(MapReduce, Gpu_link_compile):
             dtype, varloader.dimy_local, f"(yj + threadIdx.x * {varloader.dimy_local})"
         )
         yjrel = c_array(dtype, varloader.dimy_local, "yjrel")
-        table = varloader.table(self.xi, yjrel, self.param_loc, args, i, j)
+        table = varloader.table_partial_local(self.xi, yjrel, self.param_loc, args, i, j)
         jreltile = c_variable("signed long int", "(jrel + tile * blockDim.x)")
 
         self.code = f"""
@@ -56,7 +57,7 @@ class GpuReduc1D(MapReduce, Gpu_link_compile):
 
                           // load parameters variables from global memory to local thread memory
                           {param_loc.declare()}
-                          {varloader.load_vars("p", param_loc, args)}
+                          {varloader.load_vars_partial_local("p", param_loc, args)}
 
                           {fout.declare()}
                           {xi.declare()}
@@ -66,7 +67,7 @@ class GpuReduc1D(MapReduce, Gpu_link_compile):
                           if (i < nx) {{
                             {red_formula.InitializeReduction(acc)} // acc = 0
                             {sum_scheme.initialize_temporary_accumulator_first_init()}
-                            {varloader.load_vars('i', xi, args, row_index=i)} // load xi variables from global memory to local thread memory
+                            {varloader.load_vars_partial_local('i', xi, args, row_index=i)} // load xi variables from global memory to local thread memory
                           }}
 
                           for (signed long int jstart = 0, tile = 0; jstart < ny; jstart += blockDim.x, tile++) {{
@@ -75,7 +76,7 @@ class GpuReduc1D(MapReduce, Gpu_link_compile):
                             signed long int j = tile * blockDim.x + threadIdx.x;
 
                             if (j < ny) {{ // we load yj from device global memory only if j<ny
-                              {varloader.load_vars("j", yjloc, args, row_index=j)} 
+                              {varloader.load_vars_partial_local("j", yjloc, args, row_index=j)} 
                             }}
                             __syncthreads();
 
