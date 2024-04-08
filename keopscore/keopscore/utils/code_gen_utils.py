@@ -530,6 +530,11 @@ def GetInds(Vars):
     return tuple(v.ind for v in Vars)
 
 
+def GetCats(Vars):
+    # returns the list of cat fields (categories) of a list of Var instances
+    return tuple(v.cat for v in Vars)
+
+
 class Var_loader:
     def __init__(self, red_formula):
         formula = red_formula.formula
@@ -564,6 +569,29 @@ class Var_loader:
 
         self.inds = GetInds(formula.Vars_)
         self.nminargs = max(self.inds) + 1 if len(self.inds) > 0 else 0
+
+        self.dims = GetDims(formula.Vars_)
+        self.cats = GetCats(formula.Vars_)
+
+        all_local = True
+        if all_local:
+            self.dimx_local, self.dimy_local, self.dimp_local = self.dimx, self.dimy, self.dimp
+        else:
+            self.is_local_var = [False] * len(self.dims)
+            dims_sorted, inds_sorted, cats_sorted = zip(
+                *sorted(zip(self.dims, self.inds, self.cats))
+            )
+            dimcur = 0
+            cnt = [0, 0, 0]
+            for k in range(len(dims_sorted)):
+                dimcur += dims_sorted[k]
+                if dimcur < lim_dim_local_var:
+                    print(k, inds_sorted, dims_sorted, self.inds, self.dims, formula.Vars_)
+                    self.is_local_var[inds_sorted[k]] = True
+                    cnt[cats_sorted[k]] += dims_sorted[k]
+                else:
+                    break
+            self.dimx_local, self.dimy_local, self.dimp_local = cnt
 
     def table(self, xi, yj, pp):
         return table(
