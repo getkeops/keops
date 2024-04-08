@@ -43,8 +43,8 @@ class GpuReduc1D_ranges(MapReduce, Gpu_link_compile):
 
         param_loc = self.param_loc
         xi = self.xi
-        yjloc = c_array(dtype, varloader.dimy, f"(yj + threadIdx.x * {varloader.dimy})")
-        yjrel = c_array(dtype, varloader.dimy, "yjrel")
+        yjloc = c_array(dtype, varloader.dimy_local, f"(yj + threadIdx.x * {varloader.dimy_local})")
+        yjrel = c_array(dtype, varloader.dimy_local, "yjrel")
         table = varloader.table(self.xi, yjrel, self.param_loc)
         jreltile = c_variable("signed long int", "(jrel + tile * blockDim.x)")
 
@@ -148,12 +148,12 @@ class GpuReduc1D_ranges(MapReduce, Gpu_link_compile):
                                           {dtype} * yjrel = yj; // Loop on the columns of the current block.
                                           {sum_scheme.initialize_temporary_accumulator_block_init()}
                                           if (nbatchdims == 0) {{
-                                              for(signed long int jrel = 0; (jrel < blockDim.x) && (jrel<end_y-jstart); jrel++, yjrel+={varloader.dimy}) {{
+                                              for(signed long int jrel = 0; (jrel < blockDim.x) && (jrel<end_y-jstart); jrel++, yjrel+={varloader.dimy_local}) {{
                                                   {red_formula.formula(fout,table)} // Call the function, which outputs results in xi[0:DIMX1]
                                                   {sum_scheme.accumulate_result(acc, fout, jreltile+starty)}
                                               }} 
                                           }} else {{
-                                              for(signed long int jrel = 0; (jrel < blockDim.x) && (jrel<end_y-jstart); jrel++, yjrel+={varloader.dimy}) {{
+                                              for(signed long int jrel = 0; (jrel < blockDim.x) && (jrel<end_y-jstart); jrel++, yjrel+={varloader.dimy_local}) {{
                                                   {red_formula.formula(fout,table)} // Call the function, which outputs results in fout
                                                   {sum_scheme.accumulate_result(acc, fout, jreltile)}
                                               }}

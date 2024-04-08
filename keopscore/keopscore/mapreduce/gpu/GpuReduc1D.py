@@ -35,8 +35,8 @@ class GpuReduc1D(MapReduce, Gpu_link_compile):
 
         param_loc = self.param_loc
         xi = self.xi
-        yjloc = c_array(dtype, varloader.dimy, f"(yj + threadIdx.x * {varloader.dimy})")
-        yjrel = c_array(dtype, varloader.dimy, "yjrel")
+        yjloc = c_array(dtype, varloader.dimy_local, f"(yj + threadIdx.x * {varloader.dimy_local})")
+        yjrel = c_array(dtype, varloader.dimy_local, "yjrel")
         table = varloader.table(self.xi, yjrel, self.param_loc)
         jreltile = c_variable("signed long int", "(jrel + tile * blockDim.x)")
 
@@ -80,7 +80,7 @@ class GpuReduc1D(MapReduce, Gpu_link_compile):
                             if (i < nx) {{ // we compute x1i only if needed
                               {dtype} * yjrel = yj;
                               {sum_scheme.initialize_temporary_accumulator_block_init()}
-                              for (signed long int jrel = 0; (jrel < blockDim.x) && (jrel < ny - jstart); jrel++, yjrel += {varloader.dimy}) {{
+                              for (signed long int jrel = 0; (jrel < blockDim.x) && (jrel < ny - jstart); jrel++, yjrel += {varloader.dimy_local}) {{
                                 {red_formula.formula(fout, table)} // Call the function, which outputs results in fout
                                 {sum_scheme.accumulate_result(acc, fout, jreltile)}
                               }}

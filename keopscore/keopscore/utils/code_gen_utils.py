@@ -1,7 +1,7 @@
 import os
 from hashlib import sha256
 
-from keopscore.config.config import disable_pragma_unrolls
+from keopscore.config.config import disable_pragma_unrolls, lim_dim_local_var
 from keopscore.utils.misc_utils import KeOps_Error, KeOps_Message
 
 
@@ -573,8 +573,9 @@ class Var_loader:
         self.dims = GetDims(formula.Vars_)
         self.cats = GetCats(formula.Vars_)
 
-        all_local = True
-        if all_local:
+        force_all_local = True
+        if force_all_local:
+            self.is_local_var = [True] * len(self.dims)
             self.dimx_local, self.dimy_local, self.dimp_local = self.dimx, self.dimy, self.dimp
         else:
             self.is_local_var = [False] * len(self.dims)
