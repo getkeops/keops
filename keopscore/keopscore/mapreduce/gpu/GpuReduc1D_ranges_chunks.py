@@ -146,6 +146,10 @@ def do_chunk_sub_ranges(
         xi,
         yjrel,
         param_loc,
+        [True]*chk.nminargs,
+        None,
+        None,
+        None,
     )
     foutj = c_variable(pointer(dtype), "foutj")
 

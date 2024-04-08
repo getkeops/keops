@@ -574,10 +574,10 @@ class Var_loader:
         self.cats = GetCats(formula.Vars_)
 
         if force_all_local:
-            self.is_local_var = [True] * len(self.dims)
+            self.is_local_var = [True] * self.nminargs
             self.dimx_local, self.dimy_local, self.dimp_local = self.dimx, self.dimy, self.dimp
         else:
-            self.is_local_var = [False] * len(self.dims)
+            self.is_local_var = [False] * self.nminargs
             dims_sorted, inds_sorted, cats_sorted = zip(
                 *sorted(zip(self.dims, self.inds, self.cats))
             )
@@ -586,14 +586,13 @@ class Var_loader:
             for k in range(len(dims_sorted)):
                 dimcur += dims_sorted[k]
                 if dimcur < lim_dim_local_var:
-                    print(k, inds_sorted, dims_sorted, self.inds, self.dims, formula.Vars_)
                     self.is_local_var[inds_sorted[k]] = True
                     cnt[cats_sorted[k]] += dims_sorted[k]
                 else:
                     break
             self.dimx_local, self.dimy_local, self.dimp_local = cnt
 
-    def table(self, xi, yj, pp):
+    def table(self, xi, yj, pp, args, i, j):
         return table(
             self.nminargs,
             self.dimsx,
@@ -605,6 +604,10 @@ class Var_loader:
             xi,
             yj,
             pp,
+            self.is_local_var,
+            args,
+            i,
+            j,
         )
 
     def direct_table(self, args, i, j):
@@ -631,17 +634,23 @@ class Var_loader:
         return load_vars(dims, inds, *args, **kwargs)
 
 
-def table(nminargs, dimsx, dimsy, dimsp, indsi, indsj, indsp, xi, yj, pp):
+def table(nminargs, dimsx, dimsy, dimsp, indsi, indsj, indsp, xi, yj, pp, is_local, args, i, j):
     res = [None] * nminargs
-    for dims, inds, xloc in (
-        (dimsx, indsi, xi),
-        (dimsy, indsj, yj),
-        (dimsp, indsp, pp),
+    for dims, inds, loc, row_index in (
+        (dimsx, indsi, xi, i),
+        (dimsy, indsj, yj, j),
+        (dimsp, indsp, pp, c_zero_int),
     ):
         k = 0
         for u in range(len(dims)):
-            res[inds[u]] = c_array(xloc.dtype, dims[u], f"({xloc.id}+{k})")
-            k += dims[u]
+            if is_local[inds[u]]:
+                res[inds[u]] = c_array(loc.dtype, dims[u], f"({loc.id}+{k})")
+                k += dims[u]
+            else:
+                arg = args[inds[u]]
+                res[inds[u]] = c_array(
+                    value(arg.dtype), dims[u], f"({arg.id}+{row_index.id}*{dims[u]})"
+                )
     return res
 
 
