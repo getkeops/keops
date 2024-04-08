@@ -536,7 +536,7 @@ def GetCats(Vars):
 
 
 class Var_loader:
-    def __init__(self, red_formula):
+    def __init__(self, red_formula, force_all_local):
         formula = red_formula.formula
         tagI, tagJ = red_formula.tagI, red_formula.tagJ
 
@@ -573,7 +573,6 @@ class Var_loader:
         self.dims = GetDims(formula.Vars_)
         self.cats = GetCats(formula.Vars_)
 
-        force_all_local = True
         if force_all_local:
             self.is_local_var = [True] * len(self.dims)
             self.dimx_local, self.dimy_local, self.dimp_local = self.dimx, self.dimy, self.dimp

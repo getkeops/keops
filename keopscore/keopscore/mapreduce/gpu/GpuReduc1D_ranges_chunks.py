@@ -70,7 +70,7 @@ def do_chunk_sub_ranges(
         row_index=i,
     )
 
-    varloader_global = Var_loader(red_formula)
+    varloader_global = Var_loader(red_formula, force_all_local=True)
     indsi_global = varloader_global.indsi
     indsj_global = varloader_global.indsj
     indsp_global = varloader_global.indsp
@@ -187,6 +187,7 @@ class GpuReduc1D_ranges_chunks(MapReduce, Gpu_link_compile):
     # class for generating the final C++ code, Gpu version
 
     AssignZero = GpuAssignZero
+    force_all_local = True
 
     def __init__(self, *args):
         MapReduce.__init__(self, *args)
@@ -204,7 +205,7 @@ class GpuReduc1D_ranges_chunks(MapReduce, Gpu_link_compile):
         dtype = self.dtype
         dtypeacc = self.dtypeacc
 
-        varloader_global = Var_loader(red_formula)
+        varloader_global = Var_loader(red_formula, force_all_local=self.force_all_local)
         indsi_global = varloader_global.indsi
         indsj_global = varloader_global.indsj
         indsp_global = varloader_global.indsp

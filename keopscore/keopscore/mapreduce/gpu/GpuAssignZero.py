@@ -8,6 +8,8 @@ from keopscore.utils.code_gen_utils import (
 
 class GpuAssignZero(MapReduce, Gpu_link_compile):
     # class for generating the final C++ code, Gpu version
+    
+    force_all_local = True
 
     def __init__(self, *args):
         MapReduce.__init__(self, *args)

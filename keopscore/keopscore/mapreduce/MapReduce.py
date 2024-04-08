@@ -40,7 +40,7 @@ class MapReduce:
         self.use_half = use_half
         self.use_fast_math = use_fast_math
         self.device_id = device_id
-        self.varloader = Var_loader(self.red_formula)
+        self.varloader = Var_loader(self.red_formula, force_all_local=self.force_all_local)
 
     def get_code(self):
         self.headers = "#define C_CONTIGUOUS 1\n"
