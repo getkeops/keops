@@ -42,11 +42,15 @@ print("time for keops:", end - start)
 if test_torch:
     print(torch.norm(res_keops - res_torch) / torch.norm(res_torch))
 
-"""
+
 # testing gradients
-loss_torch = (res_torch**2).sum()
-print(torch.autograd.grad(loss_torch, [A]))
+if test_torch:
+    loss_torch = (res_torch**2).sum()
+    res_torch = torch.autograd.grad(loss_torch, [A])
 
 loss_keops = (res_keops**2).sum()
-print(torch.autograd.grad(loss_keops, [A]))
-"""
+res_keops = torch.autograd.grad(loss_keops, [A])
+
+if test_torch:
+    print(torch.norm(res_keops - res_torch) / torch.norm(res_torch))
+

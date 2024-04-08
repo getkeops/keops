@@ -585,6 +585,7 @@ class Var_loader:
             for k in range(len(dims_sorted)):
                 dimcur += dims_sorted[k]
                 if dimcur < lim_dim_local_var:
+                    print(k, inds_sorted, dims_sorted, self.inds, self.dims, formula.Vars_)
                     self.is_local_var[inds_sorted[k]] = True
                     cnt[cats_sorted[k]] += dims_sorted[k]
                 else:
