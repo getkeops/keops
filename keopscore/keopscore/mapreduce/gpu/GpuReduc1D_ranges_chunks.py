@@ -406,9 +406,9 @@ class GpuReduc1D_ranges_chunks(MapReduce, Gpu_link_compile):
                           // load parameters variables from global memory to local thread memory
                           {param_loc.declare()}
                           if (nbatchdims == 0) {{
-                              {load_vars(chk.dimsp_notchunked, chk.indsp_notchunked, param_loc, args)}
+                              {load_vars(chk.dimsp_notchunked, chk.indsp_notchunked, param_loc, args, is_local=varloader_global.is_local_var)}
                           }} else {{
-                              {load_vars(chk.dimsp_notchunked, chk.indsp_notchunked, param_loc, args, offsets=indices_p)}
+                              {load_vars(chk.dimsp_notchunked, chk.indsp_notchunked, param_loc, args, offsets=indices_p, is_local=varloader_global.is_local_var)}
                           }}
                           
                           {acc.declare()}
@@ -427,10 +427,10 @@ class GpuReduc1D_ranges_chunks(MapReduce, Gpu_link_compile):
                           if (i < end_x) {{
                               // load xi variables from global memory to local thread memory
                               if (nbatchdims == 0) {{
-                                  {load_vars(chk.dimsx_notchunked, chk.indsi_notchunked, xi, args, row_index=i)} 
+                                  {load_vars(chk.dimsx_notchunked, chk.indsi_notchunked, xi, args, row_index=i, is_local=varloader_global.is_local_var)} 
                               }} else {{
                                   {load_vars(chk.dimsx_notchunked, chk.indsi_notchunked, xi, args, 
-                                              row_index=threadIdx_x, offsets=indices_i, indsref=indsi_global)}
+                                              row_index=threadIdx_x, offsets=indices_i, indsref=indsi_global, is_local=varloader_global.is_local_var)}
                               }} 
                           }}
                           
@@ -447,11 +447,11 @@ class GpuReduc1D_ranges_chunks(MapReduce, Gpu_link_compile):
                                       if(j<end_y) // we load yj from device global memory only if j<end_y
                                           if (nbatchdims == 0) {{
                                               // load yj variables from global memory to shared memory
-                                              {load_vars(chk.dimsy_notchunked, chk.indsj_notchunked, yjloc, args, row_index=j)} 
+                                              {load_vars(chk.dimsy_notchunked, chk.indsj_notchunked, yjloc, args, row_index=j, is_local=varloader_global.is_local_var)} 
                                           }} else {{
                                               // Possibly, with offsets as we support broadcasting over batch dimensions
                                               {load_vars(chk.dimsy_notchunked, chk.indsj_notchunked, yjloc, args, 
-                                                          row_index=j-starty, offsets=indices_j, indsref=indsj_global)}
+                                                          row_index=j-starty, offsets=indices_j, indsref=indsj_global, is_local=varloader_global.is_local_var)}
                                           }}
                                       __syncthreads();
                                       

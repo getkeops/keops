@@ -591,6 +591,11 @@ class Var_loader:
                 else:
                     break
             self.dimx_local, self.dimy_local, self.dimp_local = cnt
+        
+        #print(self.is_local_var)
+        #print(self.dimx, self.dimy, self.dimp)
+        #print(self.dimx_local, self.dimy_local, self.dimp_local)
+        #input()
 
     def table(self, xi, yj, pp, args, i, j):
         return table(
@@ -631,7 +636,7 @@ class Var_loader:
             dims, inds = self.dimsy, self.indsj
         elif cat == "p":
             dims, inds = self.dimsp, self.indsp
-        return load_vars(dims, inds, *args, **kwargs)
+        return load_vars(dims, inds, *args, **kwargs, is_local=self.is_local_var)
 
 
 def table(nminargs, dimsx, dimsy, dimsp, indsi, indsj, indsp, xi, yj, pp, is_local, args, i, j):
@@ -699,7 +704,16 @@ def table4(
     return res
 
 
-def load_vars(dims, inds, xloc, args, row_index=c_zero_int, offsets=None, indsref=None):
+def load_vars(
+    dims,
+    inds,
+    xloc,
+    args,
+    row_index=c_zero_int,
+    offsets=None,
+    indsref=None,
+    is_local=None,
+):
     # returns a c++ code used to create a local copy of slices of the input tensors, for evaluating a formula
     # - dims is a list of integers giving dimensions of variables
     # - dims is a list of integers giving indices of variables
@@ -708,6 +722,7 @@ def load_vars(dims, inds, xloc, args, row_index=c_zero_int, offsets=None, indsre
     # - row_index is a c_variable (of dtype="int"), specifying which row of the matrix should be loaded
     # - offsets is an optional c_array (of dtype="int"), specifying variable-dependent offsets (used when broadcasting batch dimensions)
     # - indsref is an optional list of integers, giving index mapping for offsets
+    # - is_local is an optional list of booleans, used in case not all variables must be loaded
     #
     # Example: assuming i=c_variable("int", "5"), xloc=c_variable("float", "xi") and px=c_variable("float**", "px"), then
     # if dims = [2,2,3] and inds = [7,9,8], the call to
@@ -759,13 +774,12 @@ def load_vars(dims, inds, xloc, args, row_index=c_zero_int, offsets=None, indsre
             row_index_str = (
                 f"({row_index.id}+{offsets.id}[{l}])" if offsets else row_index.id
             )
-            string += use_pragma_unroll()
-            string += f"for(signed long int v=0; v<{dims[u]}; v++) {{\n"
-            string += (
-                f"    {xloc.id}[a] = {args[inds[u]].id}[{row_index_str}*{dims[u]}+v];\n"
-            )
-            string += "     a++;\n"
-            string += "}\n"
+            if is_local[inds[u]]:
+                string += use_pragma_unroll()
+                string += f"for(signed long int v=0; v<{dims[u]}; v++) {{\n"
+                string += f"    {xloc.id}[a] = {args[inds[u]].id}[{row_index_str}*{dims[u]}+v];\n"
+                string += "     a++;\n"
+                string += "}\n"
         string += "}\n"
     return string
 
