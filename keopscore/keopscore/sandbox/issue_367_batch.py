@@ -24,8 +24,8 @@ A = torch.rand((B, P, Q), requires_grad=True, device=device, dtype=dtype)
 print(A)
 #I = torch.randint(P, (B, M, 1), device=device)
 #J = torch.randint(Q, (B, 1, N), device=device)
-I = (torch.ones((B, M, 1), device=device)).to(torch.long)
-J = (2*torch.ones((B, 1, N), device=device)).to(torch.long)
+I = (0*torch.ones((B, M, 1), device=device)).to(torch.long)
+J = (0*torch.ones((B, 1, N), device=device)).to(torch.long)
 
 test_torch = True
 test_grad = False
