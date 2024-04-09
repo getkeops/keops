@@ -19,7 +19,7 @@ def fun_keops(A, I, J):
 P, Q = 12, 5
 M, N = 1000, 1000
 device = "cuda" if torch.cuda.is_available() else "cpu"
-dtype = torch.float32
+dtype = torch.float64
 A = torch.randn((P, Q), requires_grad=True, device=device, dtype=dtype)
 I = torch.randint(P, (M, 1), device=device)
 J = torch.randint(Q, (1, N), device=device)
