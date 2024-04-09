@@ -12,6 +12,7 @@ class CpuReduc(MapReduce, Cpu_link_compile):
     """
 
     AssignZero = CpuAssignZero
+    force_all_local = True
 
     def __init__(self, *args):
         MapReduce.__init__(self, *args)
