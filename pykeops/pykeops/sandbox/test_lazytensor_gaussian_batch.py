@@ -16,7 +16,7 @@ do_warmup = False
 x = torch.rand(1, 1, M, 1, D, device=device_id) / math.sqrt(D)
 y = torch.rand(B1, 1, 1, N, D, device=device_id) / math.sqrt(D)
 b = torch.randn(1, B2, N, DV, requires_grad=test_grad, device=device_id)
-p = torch.rand(B1, B2, 1, 1, 1, requires_grad=test_grad, device=device_id)
+p = torch.rand(B1, B2, 1, 1, 1, device=device_id)
 
 
 def fun(x, y, b, p, backend):
