@@ -592,7 +592,12 @@ class Var_loader:
             cnt = [0, 0, 0]
             for k in range(len(dims_sorted)):
                 if self.is_local_var[inds_sorted[k]] == True:
-                    cnt[cats_sorted[k]] += dims_sorted[k]
+                    if cats_sorted[k]==tagI:
+                        cnt[0] += dims_sorted[k]
+                    elif cats_sorted[k]==tagJ:
+                        cnt[1] += dims_sorted[k]
+                    else:
+                        cnt[2] += dims_sorted[k]
             self.dimx_local, self.dimy_local, self.dimp_local = cnt
 
     def table(self, xi, yj, pp, args, i, j, offsetsi=None, offsetsj=None, offsetsp=None):
