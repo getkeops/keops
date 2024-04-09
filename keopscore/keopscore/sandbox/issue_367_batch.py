@@ -8,19 +8,19 @@ def fun_torch(A, I, J):
 
 
 def fun_keops(A, I, J):
-    b, ncol, nrow = A.shape
+    b, nrow, ncol = A.shape
     A = LazyTensor(A.reshape(b,1,1,ncol*nrow))
     I = LazyTensor(I.to(dtype)[:,:,:, None])
     J = LazyTensor(J.to(dtype)[:,:,:, None])
     K = A[I * ncol + J]
-    return K.sum(axis=2).reshape(b,I.shape[1])
+    return K.sum(axis=2).reshape(I.shape[:2])
 
 
 P, Q = 12, 5
 B, M, N = 3, 10, 10
 device = "cuda" if torch.cuda.is_available() else "cpu"
 dtype = torch.float64
-A = torch.ones((B, P, Q), requires_grad=True, device=device, dtype=dtype)
+A = torch.randn((B, P, Q), requires_grad=True, device=device, dtype=dtype)
 I = torch.randint(P, (B, M, 1), device=device)
 J = torch.randint(Q, (B, 1, N), device=device)
 
@@ -32,13 +32,11 @@ if test_torch:
     res_torch = fun_torch(A, I, J)
     end = time()
     print("time for torch:", end - start)
-    print(res_torch)
 
 start = time()
 res_keops = fun_keops(A, I, J)
 end = time()
 print("time for keops:", end - start)
-print(res_keops)
 
 if test_torch:
     print(torch.norm(res_keops - res_torch) / torch.norm(res_torch))
