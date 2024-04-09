@@ -582,20 +582,21 @@ class Var_loader:
                 *sorted(zip(self.dims, self.inds, self.cats))
             )
             dimcur = 0
-            cnt = [0, 0, 0]
             for k in range(len(dims_sorted)):
                 dimcur += dims_sorted[k]
                 if dimcur < lim_dim_local_var:
                     self.is_local_var[inds_sorted[k]] = True
-                    cnt[cats_sorted[k]] += dims_sorted[k]
                 else:
                     break
+
+            cnt = [0, 0, 0]
+            for k in range(len(dims_sorted)):
+                if self.is_local_var[inds_sorted[k]] == True:
+                    cnt[cats_sorted[k]] += dims_sorted[k]
             self.dimx_local, self.dimy_local, self.dimp_local = cnt
         
-        #print(self.is_local_var)
-        #print(self.dimx, self.dimy, self.dimp)
-        #print(self.dimx_local, self.dimy_local, self.dimp_local)
-        #input()
+        print(self.is_local_var)
+        input()
 
     def table(self, xi, yj, pp, args, i, j, offsetsi=None, offsetsj=None, offsetsp=None):
         return table(

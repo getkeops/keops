@@ -38,7 +38,8 @@ class GpuReduc1D(MapReduce, Gpu_link_compile):
         xi = self.xi
         yjloc = c_array(dtype, varloader.dimy_local, f"(yj + threadIdx.x * {varloader.dimy_local})")
         yjrel = c_array(dtype, varloader.dimy_local, "yjrel")
-        table = varloader.table(self.xi, yjrel, self.param_loc, args, i, j)
+        j_call = c_variable("signed long int", "(jstart+jrel)")
+        table = varloader.table(self.xi, yjrel, self.param_loc, args, i, j_call)
         jreltile = c_variable("signed long int", "(jrel + tile * blockDim.x)")
 
         self.code = f"""
