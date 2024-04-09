@@ -597,7 +597,7 @@ class Var_loader:
         #print(self.dimx_local, self.dimy_local, self.dimp_local)
         #input()
 
-    def table(self, xi, yj, pp, args, i, j):
+    def table(self, xi, yj, pp, args, i, j, offsetsi=None, offsetsj=None, offsetsp=None):
         return table(
             self.nminargs,
             self.dimsx,
@@ -613,6 +613,9 @@ class Var_loader:
             args,
             i,
             j,
+            offsetsi,
+            offsetsj,
+            offsetsp,
         )
 
     def direct_table(self, args, i, j):
@@ -639,12 +642,12 @@ class Var_loader:
         return load_vars(dims, inds, *args, **kwargs, is_local=self.is_local_var)
 
 
-def table(nminargs, dimsx, dimsy, dimsp, indsi, indsj, indsp, xi, yj, pp, is_local, args, i, j):
+def table(nminargs, dimsx, dimsy, dimsp, indsi, indsj, indsp, xi, yj, pp, is_local, args, i, j, offsetsi=None, offsetsj=None, offsetsp=None):
     res = [None] * nminargs
-    for dims, inds, loc, row_index in (
-        (dimsx, indsi, xi, i),
-        (dimsy, indsj, yj, j),
-        (dimsp, indsp, pp, c_zero_int),
+    for dims, inds, loc, row_index, offsets in (
+        (dimsx, indsi, xi, i, offsetsi),
+        (dimsy, indsj, yj, j, offsetsj),
+        (dimsp, indsp, pp, c_zero_int, offsetsp),
     ):
         k = 0
         for u in range(len(dims)):
@@ -652,9 +655,12 @@ def table(nminargs, dimsx, dimsy, dimsp, indsi, indsj, indsp, xi, yj, pp, is_loc
                 res[inds[u]] = c_array(loc.dtype, dims[u], f"({loc.id}+{k})")
                 k += dims[u]
             else:
+                row_index_str = (
+                    f"({row_index.id}+{offsets.id}[{u}])" if offsets else row_index.id
+                )
                 arg = args[inds[u]]
                 res[inds[u]] = c_array(
-                    value(arg.dtype), dims[u], f"({arg.id}+{row_index.id}*{dims[u]})"
+                    value(arg.dtype), dims[u], f"({arg.id}+{row_index_str}*{dims[u]})"
                 )
     return res
 
