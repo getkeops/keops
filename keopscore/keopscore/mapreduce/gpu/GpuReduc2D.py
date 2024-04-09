@@ -42,15 +42,12 @@ class GpuReduc2D(MapReduce, Gpu_link_compile):
         inloc = c_array(dtype, dimin, f"(in + (tid+y*nx)*{dimin})")
         outloc = c_array(dtype, dimout, f"(out+tid*{dimout})")
 
-        dimsx_local = varloader.dimsx_local
-        dimsy_local = varloader.dimsy_local
-        dimsp_local = varloader.dimsp_local
         indsi = varloader.indsi
         indsj = varloader.indsj
         indsp = varloader.indsp
-        dimx_local = sum(dimsx_local)
-        dimy_local = sum(dimsy_local)
-        dimp_local = sum(dimsp_local)
+        dimx_local = varloader.dimx_local
+        dimy_local = varloader.dimy_local
+        dimp_local = varloader.dimp_local
         dimred = red_formula.dimred
         dimfout = red_formula.formula.dim
 
@@ -73,9 +70,10 @@ class GpuReduc2D(MapReduce, Gpu_link_compile):
         arg = self.arg
         args = self.args
         yjrel = c_array(dtype, dimy_local, "yjrel")
-        table = varloader.table(self.xi, yjrel, self.param_loc)
 
         jrelloc = c_variable("signed long int", "(blockDim.x*blockIdx.y+jrel)")
+
+        table = varloader.table(self.xi, yjrel, self.param_loc, arg, i, jrelloc)
 
         tid = c_variable("signed long int", "tid")
 
