@@ -220,7 +220,6 @@ int CpuConv_ranges_{self.gencode_filename}(signed long int nx, signed long int n
                     for (signed long int j = start_y; j < end_y; j++) {{
                         {varloader.load_vars("j", yj, args, row_index=jmstarty, offsets=indices_j)}
                         {red_formula.formula(fout,table_batchmode)}
-printf("fout=%f\\n",fout[0]);
                         {sum_scheme.accumulate_result(acc, fout, jmstarty)}
                     }}
                 }}
