@@ -26,3 +26,14 @@ test_that("random_varname", {
         pattern = stringr::str_c("^", prefix, "[A-Za-z0-9]{10}")
     )
 })
+
+test_that("stat_dir", {
+    # empty dir
+    withr::with_tempdir({
+        checkmate::expect_string(
+            stat_dir(getwd()), pattern = "[0-9]+(.[0-9])*[KMG]?")
+    })
+    # current dir
+    checkmate::expect_string(
+        stat_dir(getwd()), pattern = "[0-9]+(.[0-9])*[KMG]?")
+})
