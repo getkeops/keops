@@ -16,16 +16,14 @@ def fun_keops(A, I, J):
     return K.sum(axis=2).reshape(I.shape[:2])
 
 
-P, Q = 2, 3
-B, M, N = 3, 10, 10
+P, Q = 3, 4
+B, M, N = 3, 2, 2
 device = "cuda" if torch.cuda.is_available() else "cpu"
 dtype = torch.float64
 A = torch.rand((B, P, Q), requires_grad=True, device=device, dtype=dtype)
 print(A)
-#I = torch.randint(P, (B, M, 1), device=device)
-#J = torch.randint(Q, (B, 1, N), device=device)
-I = (0*torch.ones((B, M, 1), device=device)).to(torch.long)
-J = (0*torch.ones((B, 1, N), device=device)).to(torch.long)
+I = torch.randint(P, (B, M, 1), device=device)
+J = torch.randint(Q, (B, 1, N), device=device)
 
 test_torch = True
 test_grad = False
