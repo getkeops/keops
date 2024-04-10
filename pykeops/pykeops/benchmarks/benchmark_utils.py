@@ -488,3 +488,6 @@ def full_benchmark(
         comments="",
         delimiter=",",
     )
+
+    # Save also plot:
+    plt.savefig(f"output/{to_plot}.pdf", bbox_inches='tight')
