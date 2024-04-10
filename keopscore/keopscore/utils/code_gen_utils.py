@@ -589,8 +589,6 @@ class Var_loader:
                 else:
                     break
 
-            self.is_local_var = [True, False, True]
-
             cnt = [0, 0, 0]
             for k in range(len(dims_sorted)):
                 if self.is_local_var[inds_sorted[k]] == True:

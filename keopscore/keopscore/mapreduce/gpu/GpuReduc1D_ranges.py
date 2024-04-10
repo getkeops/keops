@@ -57,7 +57,7 @@ class GpuReduc1D_ranges(MapReduce, Gpu_link_compile):
         starty = c_variable("signed long int", "start_y")
         j_call = c_variable("signed long int", "(jstart+jrel-start_y)")
 
-        table_batchmode = varloader.table(self.xi, yjrel, self.param_loc, args, i, j_call, indices_i, indices_j, indices_p)
+        table_batchmode = varloader.table(self.xi, yjrel, self.param_loc, args, threadIdx_x, j_call, indices_i, indices_j, indices_p)
         table_nobatchmode = varloader.table(self.xi, yjrel, self.param_loc, args, i, j_call)
 
         declare_assign_indices_i = (
