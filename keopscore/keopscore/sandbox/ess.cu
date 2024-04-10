@@ -34,14 +34,27 @@ GpuConv1DOnDevice_ranges(signed long int nx, signed long int ny, int nbatchdims,
   extern __shared__ double yj[];
 
   // load parameter(s)
+  double param_loc[12];
 
   if (nbatchdims == 0) {
     {
       signed long int a = 0;
+
+      for (signed long int v = 0; v < 12; v++) {
+        param_loc[a] = arg_0[0][0 * 12 + v];
+        a++;
+      }
     }
 
   } else {
-    { signed long int a = 0; }
+    {
+      signed long int a = 0;
+
+      for (signed long int v = 0; v < 12; v++) {
+        param_loc[a] = arg_0[0][(0 + indices_p[0]) * 12 + v];
+        a++;
+      }
+    }
   }
   double fout[1];
 
@@ -81,10 +94,23 @@ GpuConv1DOnDevice_ranges(signed long int nx, signed long int ny, int nbatchdims,
           if (nbatchdims == 0) {
             {
               signed long int a = 0;
+
+              for (signed long int v = 0; v < 1; v++) {
+                (yj + threadIdx.x * 1)[a] = arg_0[2][j * 1 + v];
+                a++;
+              }
             }
             // load yj variables from global memory to shared memory
           } else {
-            { signed long int a = 0; }
+            {
+              signed long int a = 0;
+
+              for (signed long int v = 0; v < 1; v++) {
+                (yj + threadIdx.x * 1)[a] =
+                    arg_0[2][((j - start_y) + indices_j[0]) * 1 + v];
+                a++;
+              }
+            }
             // Possibly, with offsets as we support broadcasting over batch
             // dimensions
           }
@@ -99,7 +125,7 @@ GpuConv1DOnDevice_ranges(signed long int nx, signed long int ny, int nbatchdims,
           if (nbatchdims == 0) {
             for (signed long int jrel = 0;
                  (jrel < blockDim.x) && (jrel < end_y - jstart);
-                 jrel++, yjrel += 0) {
+                 jrel++, yjrel += 1) {
 
               {
                 // Starting code block for
@@ -142,14 +168,13 @@ GpuConv1DOnDevice_ranges(signed long int nx, signed long int ny, int nbatchdims,
 
                   for (int k_3 = 0; k_3 < 1; k_3 += (1)) {
                     out_add_0[(k_3 * 1)] =
-                        out_mult_0[(k_3 * 1)] +
-                        (arg_0[2] + (jstart + jrel - start_y) * 1)[(k_3 * 1)];
+                        out_mult_0[(k_3 * 1)] + (yjrel + 0)[(k_3 * 1)];
                   }
 
                   // Finished code block for 4*Var(1,1,0)+Var(2,1,1).
                 }
 
-                (*fout) = ((arg_0[0] + 0 * 12)[(signed long int)(*out_add_0)]);
+                (*fout) = ((param_loc + 0)[(signed long int)(*out_add_0)]);
 
                 // Finished code block for
                 // Var(0,12,2)[(4*Var(1,1,0)+Var(2,1,1))].
@@ -164,7 +189,7 @@ GpuConv1DOnDevice_ranges(signed long int nx, signed long int ny, int nbatchdims,
           } else {
             for (signed long int jrel = 0;
                  (jrel < blockDim.x) && (jrel < end_y - jstart);
-                 jrel++, yjrel += 0) {
+                 jrel++, yjrel += 1) {
 
               {
                 // Starting code block for
@@ -207,16 +232,13 @@ GpuConv1DOnDevice_ranges(signed long int nx, signed long int ny, int nbatchdims,
 
                   for (int k_6 = 0; k_6 < 1; k_6 += (1)) {
                     out_add_1[(k_6 * 1)] =
-                        out_mult_1[(k_6 * 1)] +
-                        (arg_0[2] + ((jstart + jrel - start_y) + indices_j[0]) *
-                                        1)[(k_6 * 1)];
+                        out_mult_1[(k_6 * 1)] + (yjrel + 0)[(k_6 * 1)];
                   }
 
                   // Finished code block for 4*Var(1,1,0)+Var(2,1,1).
                 }
 
-                (*fout) = ((arg_0[0] + (0 + indices_p[0]) *
-                                           12)[(signed long int)(*out_add_1)]);
+                (*fout) = ((param_loc + 0)[(signed long int)(*out_add_1)]);
 
                 // Finished code block for
                 // Var(0,12,2)[(4*Var(1,1,0)+Var(2,1,1))].
