@@ -26,7 +26,7 @@ def fun(x, y, b, p, backend):
         p = LazyTensor(p)
     elif backend != "torch":
         raise ValueError("wrong backend")
-    Dxy = (p*(x - y) ** 2).sum(dim=4)
+    Dxy = (p * (x - y) ** 2).sum(dim=4)
     Kxy = (-Dxy).exp()
     out = Kxy @ b
     if device_id != "cpu":

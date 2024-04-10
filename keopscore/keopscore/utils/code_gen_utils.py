@@ -575,7 +575,11 @@ class Var_loader:
 
         if force_all_local:
             self.is_local_var = [True] * self.nminargs
-            self.dimx_local, self.dimy_local, self.dimp_local = self.dimx, self.dimy, self.dimp
+            self.dimx_local, self.dimy_local, self.dimp_local = (
+                self.dimx,
+                self.dimy,
+                self.dimp,
+            )
         else:
             self.is_local_var = [False] * self.nminargs
             dims_sorted, inds_sorted, cats_sorted = zip(
@@ -592,15 +596,17 @@ class Var_loader:
             cnt = [0, 0, 0]
             for k in range(len(dims_sorted)):
                 if self.is_local_var[inds_sorted[k]] == True:
-                    if cats_sorted[k]==tagI:
+                    if cats_sorted[k] == tagI:
                         cnt[0] += dims_sorted[k]
-                    elif cats_sorted[k]==tagJ:
+                    elif cats_sorted[k] == tagJ:
                         cnt[1] += dims_sorted[k]
                     else:
                         cnt[2] += dims_sorted[k]
             self.dimx_local, self.dimy_local, self.dimp_local = cnt
 
-    def table(self, xi, yj, pp, args, i, j, offsetsi=None, offsetsj=None, offsetsp=None):
+    def table(
+        self, xi, yj, pp, args, i, j, offsetsi=None, offsetsj=None, offsetsp=None
+    ):
         return table(
             self.nminargs,
             self.dimsx,
@@ -645,7 +651,25 @@ class Var_loader:
         return load_vars(dims, inds, *args, **kwargs, is_local=self.is_local_var)
 
 
-def table(nminargs, dimsx, dimsy, dimsp, indsi, indsj, indsp, xi, yj, pp, is_local, args, i, j, offsetsi=None, offsetsj=None, offsetsp=None):
+def table(
+    nminargs,
+    dimsx,
+    dimsy,
+    dimsp,
+    indsi,
+    indsj,
+    indsp,
+    xi,
+    yj,
+    pp,
+    is_local,
+    args,
+    i,
+    j,
+    offsetsi=None,
+    offsetsj=None,
+    offsetsp=None,
+):
     res = [None] * nminargs
     for dims, inds, loc, row_index, offsets in (
         (dimsx, indsi, xi, i, offsetsi),

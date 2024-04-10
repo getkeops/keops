@@ -21,10 +21,10 @@ M, N = 1000, 1000
 device = "cuda" if torch.cuda.is_available() else "cpu"
 dtype = torch.float64
 A = torch.randn((P, Q), requires_grad=True, device=device, dtype=dtype)
-#I = torch.randint(P, (M, 1), device=device)
-#J = torch.randint(Q, (1, N), device=device)
-I = (5*torch.ones((M, 1), device=device)).to(torch.long)
-J = (2*torch.ones((1, N), device=device)).to(torch.long)
+# I = torch.randint(P, (M, 1), device=device)
+# J = torch.randint(Q, (1, N), device=device)
+I = (5 * torch.ones((M, 1), device=device)).to(torch.long)
+J = (2 * torch.ones((1, N), device=device)).to(torch.long)
 
 test_torch = True
 
@@ -55,4 +55,3 @@ res_keops = torch.autograd.grad(loss_keops, [A])[0]
 
 if test_torch:
     print(torch.norm(res_keops - res_torch) / torch.norm(res_torch))
-

@@ -66,7 +66,9 @@ class GpuReduc2D(MapReduce, Gpu_link_compile):
         else:
             KeOps_Error("incorrect reduction scheme")
 
-        yjloc = c_array(dtype, varloader.dimy_local, f"(yj + threadIdx.x * {varloader.dimy_local})")
+        yjloc = c_array(
+            dtype, varloader.dimy_local, f"(yj + threadIdx.x * {varloader.dimy_local})"
+        )
         arg = self.arg
         args = self.args
         yjrel = c_array(dtype, dimy_local, "yjrel")

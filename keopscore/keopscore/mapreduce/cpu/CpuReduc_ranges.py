@@ -64,7 +64,9 @@ class CpuReduc_ranges(MapReduce, Cpu_link_compile):
         jmstarty = c_variable("int", "(j-start_y)")
 
         table_nobatchmode = varloader.table(xi, yj, param_loc, args, i, j)
-        table_batchmode = varloader.table(xi, yj, param_loc, args, imstartx, jmstarty, indices_i, indices_j, indices_p)
+        table_batchmode = varloader.table(
+            xi, yj, param_loc, args, imstartx, jmstarty, indices_i, indices_j, indices_p
+        )
 
         headers = ["cmath", "stdlib.h"]
         if keopscore.config.config.use_OpenMP:

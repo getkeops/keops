@@ -4,14 +4,14 @@ from time import time
 
 
 def fun_torch(A, I, J):
-    return A[:, I, J].diagonal().permute(2,0,1).sum(axis=2)
+    return A[:, I, J].diagonal().permute(2, 0, 1).sum(axis=2)
 
 
 def fun_keops(A, I, J):
     b, nrow, ncol = A.shape
-    A = LazyTensor(A.reshape(b,1,1,ncol*nrow))
-    I = LazyTensor(I.to(dtype)[:,:,:, None])
-    J = LazyTensor(J.to(dtype)[:,:,:, None])
+    A = LazyTensor(A.reshape(b, 1, 1, ncol * nrow))
+    I = LazyTensor(I.to(dtype)[:, :, :, None])
+    J = LazyTensor(J.to(dtype)[:, :, :, None])
     K = A[I * ncol + J]
     return K.sum(axis=2).reshape(I.shape[:2])
 
@@ -52,4 +52,3 @@ if test_grad:
 
     if test_torch:
         print(torch.norm(res_keops - res_torch) / torch.norm(res_torch))
-

@@ -146,7 +146,7 @@ def do_chunk_sub_ranges(
         xi,
         yjrel,
         param_loc,
-        [True]*chk.nminargs,
+        [True] * chk.nminargs,
         None,
         None,
         None,
