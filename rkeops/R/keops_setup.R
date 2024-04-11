@@ -91,7 +91,7 @@ set_pykeops_verbosity <- function() {
     }
     
     # set verbosity
-    assert_true(check_pykeops(warn = FALSE))
+    assert_true(check_pykeops(verbose = FALSE))
     pykeops$set_verbose(as.logical(verbosity))
 }
 
@@ -128,7 +128,7 @@ set_pykeops_build_dir <- function() {
     }
     # set build dir
     build_dir <- def_pykeops_build_dir()
-    assert_true(check_pykeops(warn = FALSE))
+    assert_true(check_pykeops(verbose = FALSE))
     pykeops$set_build_folder(build_dir)
 }
 
