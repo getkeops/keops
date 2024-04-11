@@ -1,120 +1,3 @@
-#' Get RKeOps build directory
-#' 
-#' @description
-#' Get the path to the folder where all dynamic library files generated 
-#' from compilations of user-defined operators are defined.
-#' 
-#' @details
-#' When compiling a user-defined operators, a shared object (`.so`) library 
-#' (or dynamic link library, `.dll`) file is created in RKeOps build 
-#' directory (located in the `.cache` folder in your home). For every 
-#' new operators, such a file is created.
-#' 
-#' Calling `get_rkeops_build_dir()` gives the location of this specific 
-#' directory on your system.
-#' 
-#' You can use [rkeops::ls_rkeops_build_dir()] to list RKeOps build 
-#' directory content, and you can use [rkeops::clean_rkeops()] to delete its
-#' content.
-#'
-#' @return character string, path to RKeOps build directory.
-#' 
-#' @author Ghislain Durif
-#' 
-#' @importFrom reticulate import
-#' @importFrom checkmate assert_true
-#' 
-#' @seealso [rkeops::ls_rkeops_build_dir()], [rkeops::clean_rkeops()]
-#' 
-#' @examples
-#' \dontrun{
-#' get_rkeops_build_dir()
-#' }
-#' @export
-get_rkeops_build_dir <- function() {
-    assert_true(check_keopscore(warn = FALSE))
-    keopscore <- reticulate::import("keopscore")
-    return(keopscore$get_build_folder())
-}
-
-#' List RKeOps build directory content
-#' 
-#' @description
-#' List all files in the folder where all dynamic library files generated 
-#' from compilations of user-defined operators are defined.
-#' 
-#' @details
-#' When compiling a user-defined operators, a shared object (`.so`) library 
-#' (or dynamic link library, `.dll`) file is created in RKeOps build 
-#' directory (located in the `.cache` folder in your home). For every 
-#' new operators, such a file is created.
-#' 
-#' Calling `ls_rkeops_build_dir()` lists all files in RKeOps build 
-#' directory.
-#' 
-#' You can use [rkeops::get_rkeops_build_dir()] get the path to RKeOps build 
-#' directory, and you can use [rkeops::clean_rkeops()] to delete its content.
-#'
-#' @return output of [file.info()] function.
-#' 
-#' @author Ghislain Durif
-#' 
-#' @seealso [rkeops::get_rkeops_build_dir()], [rkeops::clean_rkeops()]
-#' 
-#' @examples
-#' \dontrun{
-#' ls_rkeops_build_dir()
-#' }
-#' @export
-ls_rkeops_build_dir <- function() {
-    return(file.info(list.files(get_rkeops_build_dir()), extra_cols = FALSE))
-}
-
-#' Clean RKeOps build directory
-#' 
-#' @description
-#' Remove all dynamic library files generated from compilations of user-defined 
-#' operators.
-#' 
-#' @details
-#' When compiling a user-defined operators, a shared object (`.so`) library 
-#' (or dynamic link library, `.dll`) file is created in RKeOps build 
-#' directory (located in the `.cache` folder in your home). For every 
-#' new operators, such a file is created.
-#' 
-#' Calling `clean_rkeops()` allows you to empty RKeOps build directory.
-#' 
-#' You can [rkeops::get_rkeops_build_dir()] to get the path to RKeOps 
-#' build directory, and you can use [rkeops::ls_rkeops_build_dir()] to 
-#' list its content.
-#' 
-#' @author Ghislain Durif
-#' 
-#' @param warn boolean, if TRUE (default), warn user about cleaning.
-#' 
-#' @seealso [rkeops::get_rkeops_build_dir()], [rkeops::ls_rkeops_build_dir()]
-#' 
-#' @return None
-#' 
-#' @examples
-#' \dontrun{
-#' clean_rkeops()
-#' }
-#' @export
-clean_rkeops <- function(warn = TRUE) {
-    # get build directory
-    build_dir <- get_rkeops_build_dir()
-    # directories
-    dir_list <- list.dirs(build_dir, recursive = FALSE, full.names = TRUE)
-    if(length(dir_list) > 0) unlink(dir_list, recursive = TRUE)
-    # files
-    file_list <- list.files(build_dir, full.names = TRUE)
-    if(length(file_list) > 0) file.remove(file_list)
-    # warning
-    msg <- "You should restard your R session and reload rkeops after cleaning."
-    if(warn) warning(msg)
-}
-
 #' Format RKeOps formula for PyKeOps
 #' 
 #' @keywords internal
@@ -152,7 +35,7 @@ clean_rkeops <- function(warn = TRUE) {
 #' details).
 #' - `opt_arg`: integer, optional additional argument for the reduction.
 #' 
-#' @importFrom checkmate assert_logical assert_string
+#' @importFrom checkmate assert_flag assert_string
 #' @importFrom stringr str_c str_detect str_match str_replace_all str_split
 #' 
 #' @author Ghislain Durif
@@ -161,7 +44,7 @@ get_pykeops_formula <- function(
     
     # check input
     assert_string(formula)
-    assert_logical(grad, len = 1)
+    assert_flag(grad)
     assert_string(var_to_diff, null.ok = TRUE)
     assert_string(input_grad, null.ok = TRUE)
     
