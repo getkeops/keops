@@ -9,18 +9,21 @@
 #' @details
 #' Return 0 if run on Windows and 1 otherwise, with a possible warning.
 #' 
-#' @param onLoad boolean indicating if the function is used when loading 
+#' @param startup boolean indicating if the function is used when loading 
 #' the package (to avoid the error in this case).
 #' 
 #' @return a boolean value indicating if check is ok or not.
 #' 
 #' @author Ghislain Durif
-check_os <- function(onLoad = FALSE) {
+#' 
+#' @importFrom checkmate expect_flag
+check_os <- function(startup = FALSE) {
+    expect_flag(startup)
     if(.Platform$OS.type != "unix") {
         msg <- paste0(
             "Platform '", .Platform$OS.type, 
             "' is not supported at the moment.")
-        msg_warn_error(msg, ifelse(onLoad, "msg", "error"), startup = onLoad)
+        msg_warn_error(msg, ifelse(startup, "msg", "error"), startup = startup)
         return(FALSE)
     } else {
         return(TRUE)
@@ -40,18 +43,18 @@ check_os <- function(onLoad = FALSE) {
 #' 
 #' @param package character string, name of package to be checked among
 #' `"keopscore"` and `"pykeops"`.
-#' @param warn boolean, if TRUE (default), warn user about check result.
+#' @param verbose boolean, if TRUE (default), inform user about check result.
 #'
 #' @return boolean value indicating if the `pykeops` package is available.
 #' 
 #' @importFrom stringr str_c
-#' @importFrom checkmate assert_choice assert_logical test_null
+#' @importFrom checkmate assert_choice assert_flag test_null
 #' 
 #' @author Ghislain Durif
-check_pypkg <- function(package, warn = TRUE) {
+check_pypkg <- function(package, verbose = TRUE) {
     # check input
     assert_choice(package, c("keopscore", "pykeops"))
-    assert_logical(warn, len = 1)
+    assert_flag(verbose)
     # init
     have_pypkg <- FALSE
     import_pypkg <- FALSE
@@ -66,14 +69,13 @@ check_pypkg <- function(package, warn = TRUE) {
     }
     if(!have_pypkg || !import_pypkg) {
         msg <- stringr::str_c(
-            "'", package, "' is not available. ", 
-            "Please reinstall 'rkeops'."
+            "'", package, "' is not available."
         )
-        if(warn) warning(msg)
+        if(verbose) warning(msg)
         return(FALSE)
     } else {
         msg <- stringr::str_c("'", package, "' is available.")
-        if(warn) message(msg)
+        if(verbose) message(msg)
         return(TRUE)
     }
 }
@@ -86,7 +88,7 @@ check_pypkg <- function(package, warn = TRUE) {
 #' In practice, check if `pykeops` Python package is installed (which is done 
 #' at `rkeops` package install).
 #' 
-#' @inherit check_pypkg
+#' @inheritParams check_pypkg
 #'
 #' @return boolean value indicating if the `pykeops` package is available.
 #' 
@@ -96,9 +98,8 @@ check_pypkg <- function(package, warn = TRUE) {
 #' \dontrun{
 #' check_pykeops()
 #' }
-#' @export
-check_pykeops <- function(warn = TRUE) {
-    return(check_pypkg("pykeops", warn))
+check_pykeops <- function(verbose = TRUE) {
+    return(check_pypkg("pykeops", verbose))
 }
 
 #' Check if `keopscore` Python package is available
@@ -109,7 +110,7 @@ check_pykeops <- function(warn = TRUE) {
 #' In practice, check if `keopscore` Python package is installed (which is done 
 #' at `rkeops` package install).
 #' 
-#' @inherit check_pypkg
+#' @inheritParams check_pypkg
 #'
 #' @return boolean value indicating if the `keopscore` package is available.
 #' 
@@ -119,9 +120,8 @@ check_pykeops <- function(warn = TRUE) {
 #' \dontrun{
 #' check_keopscore()
 #' }
-#' @export
-check_keopscore <- function(warn = TRUE) {
-    return(check_pypkg("keopscore", warn))
+check_keopscore <- function(verbose = TRUE) {
+    return(check_pypkg("keopscore", verbose))
 }
 
 #' Check if `rkeops` is ready and working
@@ -136,11 +136,15 @@ check_keopscore <- function(warn = TRUE) {
 #' `keopscore` and `pykeops`, that should be installed along with `rkeops`)
 #' - assess if `rkeops` internal machinery is working
 #' 
-#' @inheritParams check_pypkg
+#' @param verbose boolean, indicates whether a message should be printed to 
+#' details the result of the check. Default is `TRUE`.
 #' 
 #' @return boolean value indicating if the `rkeops` package is ready.
 #' 
 #' @author Ghislain Durif
+#' 
+#' @importFrom reticulate py_capture_output
+#' @importFrom stringr str_length
 #' 
 #' @export
 #'
@@ -148,7 +152,7 @@ check_keopscore <- function(warn = TRUE) {
 #' \dontrun{
 #' check_rkeops()
 #' }
-check_rkeops <- function(warn = TRUE) {
+check_rkeops <- function(verbose = TRUE) {
     # init
     check0 <- FALSE
     check1 <- FALSE
@@ -157,32 +161,55 @@ check_rkeops <- function(warn = TRUE) {
     
     # check Python availability
     check0 <- reticulate::py_available(initialize = TRUE)
-    if(!check0) {
-        msg <- stringr::str_c("'Python' is not available.")
-        if(warn) warning(msg)
-    } else {
-        
+    if(check0) {
+    
         # check Python package availability
-        check1 <- check_keopscore(warn)
-        check2 <- check_pykeops(warn)
+        check1 <- check_keopscore(verbose = FALSE)
+        check2 <- check_pykeops(verbose = FALSE)
         
         # check PyKeOps working
         if(check2) {
+            
+            setup_pykeops()
             out <- tryCatch({
-                pykeops$test_numpy_bindings()
+                msg <- py_capture_output({
+                    pykeops$show_cuda_status()
+                })
+                py_capture_output({
+                    pykeops$test_numpy_bindings()
+                })
             }, error = function(e) e)
+            
+            if(verbose && (str_length(msg) > 0)) warning(msg)
             
             check3 <- !any(class(out) == "error")
         }
     }
     # final message
+    msg <- NULL
     if(!all(c(check0,check1,check2,check3))) {
-        msg <- stringr::str_c("'rkeops' is not ready.")
-        if(warn) warning(msg)
+        msg <- stringr::str_c(
+            "\nATTENTION: 'rkeops' is not ready.\n\n",
+            "You should:\n",
+            "1. verify that Python is available on your system, ", 
+            "see 'reticulate::py_discover_config()' and ", 
+            "'reticulate::py_available()' functions from the 'reticulate' ",
+            "package,\n",
+            "2. restart your R session,\n",
+            "3. run the function 'install_rkeops()' after ", 
+            "loading 'rkeops'.\n\n",
+            "Note that we recommend that you use ",
+            "a dedicated Python environment, see the vignette 'Using RKeOps' ",
+            "available at ", 
+            "https://www.kernel-operations.io/rkeops/articles/using_rkeops.html",
+            " or with the command ", 
+            "'vignette(\"using_rkeops\", package = \"rkeops\")'.\n\n",
+            "You can also check the 'reticulate' package documentation at ",
+            "https://rstudio.github.io/reticulate/ for more details.\n")
     } else {
         msg <- stringr::str_c("'rkeops' is ready and working.")
-        if(warn) message(msg)
     }
+    if(verbose) message(msg)
     # output
     return(all(c(check0,check1,check2,check3)))
 }
