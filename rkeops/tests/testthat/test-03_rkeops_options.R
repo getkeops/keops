@@ -186,16 +186,19 @@ test_that("get_rkeops_cache_dir", {
 test_that("set_rkeops_cache_dir", {
     
     withr::with_options(list(rkeops = NULL), {
+        # set options
+        set_rkeops_options()
         # default dir
-        set_rkeops_cache_dir()
-        
+        set_rkeops_cache_dir(verbose = FALSE)
         # check cache dir
         checkmate::expect_directory(getOption("rkeops")$cache_dir)
     })
     
     withr::with_options(list(rkeops = NULL), {
+        # set options
+        set_rkeops_options()
         # specific dir
-        set_rkeops_cache_dir(getwd())
+        set_rkeops_cache_dir(getwd(), verbose = FALSE)
         
         # check cache dir
         checkmate::expect_directory(getOption("rkeops")$cache_dir)
