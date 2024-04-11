@@ -43,7 +43,7 @@
 #' computations (`"float32"` for 32bits float or `"float64"` for 
 #' 64bits float/double precision). Default value is `"float32"`.
 #' @param verbosity `TRUE`-`FALSE` or `1`-`0` indicator (boolean) for 
-#' verbosity level. Default value is `0`.
+#' verbosity level. Default value is `1`.
 #' @param debug `TRUE`-`FALSE` or `1`-`0` indicator (boolean) regarding 
 #' compilation debugging flag. `1` means that user-defined operators will 
 #' be compiled with a debug flag, and `0` means no debug flag. 
@@ -67,7 +67,7 @@
 #' qassert
 def_rkeops_options <- function(
         backend = "CPU", device_id = -1, precision = "float32",
-        verbosity = FALSE, debug = FALSE,
+        verbosity = TRUE, debug = FALSE,
         cache_dir = NULL) {
     # check input
     assert_choice(backend, c("CPU", "GPU"))
@@ -482,7 +482,7 @@ rkeops_disable_verbosity <- function() {
 #' Get RKeOps cache directory
 #' 
 #' @description
-#' Get the path to the cache folder for RKeOps rkeops operator 
+#' Get the path to the cache folder where rkeops operator 
 #' compilation byproducts will be stored to be re-used for further use 
 #' (and avoid unnecessary recompilation).
 #' 
@@ -498,9 +498,9 @@ rkeops_disable_verbosity <- function() {
 #' Calling `get_rkeops_cache_dir()` gives the location of this specific 
 #' directory on your system.
 #' 
-#' You can use [rkeops::ls_rkeops_cache_dir()] to list RKeOps cache 
-#' directory content, and you can use [rkeops::clean_rkeops()] to delete its
-#' content.
+#' You can use [rkeops::stat_rkeops_cache_dir()] to verify rkeops cache 
+#' directory disk usage, and you can use [rkeops::clean_rkeops()] 
+#' to (fully or partially) delete its content.
 #' 
 #' **Note:** see [rkeops::default_rkeops_cache_dir()] for more details about
 #' the default rkeops cache directory.
@@ -511,7 +511,7 @@ rkeops_disable_verbosity <- function() {
 #' 
 #' @importFrom checkmate assert_true
 #' 
-#' @seealso [rkeops::set_rkeops_cache_dir()], [rkeops::ls_rkeops_cache_dir()],
+#' @seealso [rkeops::set_rkeops_cache_dir()], [rkeops::stat_rkeops_cache_dir()],
 #' [rkeops::clean_rkeops()]
 #' 
 #' @examples
@@ -526,7 +526,7 @@ get_rkeops_cache_dir <- function() {
 #' Set RKeOps cache directory
 #' 
 #' @description
-#' Set the path to the cache folder for RKeOps rkeops operator 
+#' Set the path to the cache folder where rkeops operator 
 #' compilation byproducts will be stored to be re-used for further use 
 #' (and avoid unnecessary recompilation).
 #' 
@@ -542,21 +542,25 @@ get_rkeops_cache_dir <- function() {
 #' Calling `get_rkeops_cache_dir()` gives the location of this specific 
 #' directory on your system.
 #' 
-#' You can use [rkeops::ls_rkeops_cache_dir()] to list RKeOps cache 
-#' directory content, and you can use [rkeops::clean_rkeops()] to delete its
-#' content.
+#' You can use [rkeops::stat_rkeops_cache_dir()] to verify rkeops cache 
+#' directory disk usage, and you can use [rkeops::clean_rkeops()] 
+#' to (fully or partially) delete its content.
 #' 
 #' **Note:** see [rkeops::default_rkeops_cache_dir()] for more details about
 #' the default rkeops cache directory.
 #' 
 #' @inheritParams def_rkeops_options
+#' @param ask boolean, ask user confirmation to change cache directory or not.
+#' Default is `TRUE`.
 #' @return None
 #' 
 #' @author Ghislain Durif
 #' 
 #' @importFrom tibble lst
+#' @importFrom checkmate expect_directory expect_flag
+#' @importFrom stringr str_c
 #' 
-#' @seealso [rkeops::get_rkeops_cache_dir()], [rkeops::ls_rkeops_cache_dir()],
+#' @seealso [rkeops::get_rkeops_cache_dir()], [rkeops::stat_rkeops_cache_dir()],
 #' [rkeops::clean_rkeops()]
 #' 
 #' @examples
@@ -564,15 +568,48 @@ get_rkeops_cache_dir <- function() {
 #' set_rkeops_build_dir()
 #' }
 #' @export
-set_rkeops_cache_dir <- function(cache_dir = NULL) {
+set_rkeops_cache_dir <- function(cache_dir = NULL, verbose = TRUE) {
+    # check input
+    checkmate::expect_string(cache_dir, null.ok = TRUE)
+    if(!is.null(cache_dir)) checkmate::expect_directory(cache_dir)
+    checkmate::expect_flag(verbose)
+    # inform the user about the previous cache dir
+    if(verbose) {
+        cache_dir_du <- stat_rkeops_cache_dir(verbose = FALSE)
+        
+        msg <- str_c(
+            str_c(
+                "Current rkeops cache directory: ", 
+                get_rkeops_cache_dir(), 
+                " (disk usage: ", cache_dir_du, ")\n\n"
+            ),
+            str_c(
+                "⚠ If you want to clean it, ", 
+                "you will need to remove it by hand. ",
+                "The 'clean_rkeops()' function will only be able to clean ",
+                "the new cache directory.\n"
+            )   
+        )
+        msg_warn_error(msg, type = "msg", startup = FALSE)
+    }
+    
+    # set
     set_rkeops_options(lst(cache_dir))
+    
+    # verbose
+    if(verbose) {
+        msg <- str_c(
+            "New rkeops cache directory: ", get_rkeops_cache_dir()
+        )
+        msg_warn_error(msg, type = "msg", startup = FALSE)
+    }
 }
 
 #' Default cache directory for RKeOps
 #' @keywords internal
 #' 
 #' @description
-#' Default value for the path to the cache folder for RKeOps rkeops operator 
+#' Default value for the path to the cache folder where rkeops operator 
 #' compilation byproducts will be stored to be re-used for further use 
 #' (and avoid unnecessary recompilation).
 #' 
@@ -594,9 +631,9 @@ set_rkeops_cache_dir <- function(cache_dir = NULL) {
 #'   all compilation byproducts that will not be available anymore) 
 #'   **for R<4.0**.
 #' 
-#' You can use [rkeops::ls_rkeops_cache_dir()] to list RKeOps cache 
-#' directory content, and you can use [rkeops::clean_rkeops()] to delete its
-#' content.
+#' You can use [rkeops::stat_rkeops_cache_dir()] to verify rkeops cache 
+#' directory disk usage, and you can use [rkeops::clean_rkeops()] 
+#' to (fully or partially) delete its content.
 #' 
 #' @importFrom fs dir_create
 #'
