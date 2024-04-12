@@ -583,7 +583,7 @@ set_rkeops_cache_dir <- function(cache_dir = NULL, verbose = TRUE) {
                 " (disk usage: ", cache_dir_du, ")\n\n"
             ),
             str_c(
-                "⚠ If you want to clean it, ", 
+                "\u26a0 If you want to clean it, ", 
                 "you will need to remove it by hand. ",
                 "The 'clean_rkeops()' function will only be able to clean ",
                 "the new cache directory.\n"
