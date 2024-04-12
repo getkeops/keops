@@ -1,7 +1,8 @@
 import os
 from hashlib import sha256
 
-from keopscore.config.config import disable_pragma_unrolls, lim_dim_local_var
+import keopscore
+from keopscore.config.config import disable_pragma_unrolls
 from keopscore.utils.misc_utils import KeOps_Error, KeOps_Message
 
 
@@ -588,7 +589,7 @@ class Var_loader:
             dimcur = 0
             for k in range(len(dims_sorted)):
                 dimcur += dims_sorted[k]
-                if dimcur < lim_dim_local_var:
+                if dimcur < keopscore.config.config.lim_dim_local_var:
                     self.is_local_var[inds_sorted[k]] = True
                 else:
                     break

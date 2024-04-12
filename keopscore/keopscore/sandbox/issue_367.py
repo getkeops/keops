@@ -16,7 +16,7 @@ def fun_keops(A, I, J):
     return K.sum(axis=1).flatten()
 
 
-P, Q = 12, 5
+P, Q = 100, 100
 M, N = 1000, 1000
 device = "cuda" if torch.cuda.is_available() else "cpu"
 dtype = torch.float64
