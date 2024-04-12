@@ -556,7 +556,7 @@ get_rkeops_cache_dir <- function() {
 #' @author Ghislain Durif
 #' 
 #' @importFrom tibble lst
-#' @importFrom checkmate expect_directory expect_flag
+#' @importFrom checkmate assert_directory assert_flag
 #' @importFrom stringr str_c
 #' 
 #' @seealso [rkeops::get_rkeops_cache_dir()], [rkeops::stat_rkeops_cache_dir()],
@@ -569,9 +569,9 @@ get_rkeops_cache_dir <- function() {
 #' @export
 set_rkeops_cache_dir <- function(cache_dir = NULL, verbose = TRUE) {
     # check input
-    checkmate::expect_string(cache_dir, null.ok = TRUE)
-    if(!is.null(cache_dir)) checkmate::expect_directory(cache_dir)
-    checkmate::expect_flag(verbose)
+    checkmate::assert_string(cache_dir, null.ok = TRUE)
+    if(!is.null(cache_dir)) checkmate::assert_directory(cache_dir)
+    checkmate::assert_flag(verbose)
     # inform the user about the previous cache dir
     if(verbose) {
         cache_dir_du <- stat_rkeops_cache_dir(verbose = FALSE)

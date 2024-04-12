@@ -33,7 +33,7 @@
 #' @seealso [rkeops::get_rkeops_cache_dir()], [rkeops::clean_rkeops()]
 #' 
 #' @importFrom stringr str_c
-#' @importFrom checkmate expect_flag
+#' @importFrom checkmate assert_flag
 #' 
 #' @examples
 #' \dontrun{
@@ -41,8 +41,8 @@
 #' }
 #' @export
 stat_rkeops_cache_dir <- function(verbose = TRUE, startup = FALSE) {
-    expect_flag(verbose)
-    expect_flag(startup)
+    assert_flag(verbose)
+    assert_flag(startup)
     cache_dir <- get_rkeops_cache_dir()
     dir_du <- stat_dir(cache_dir)
     if(verbose) {
@@ -90,7 +90,7 @@ stat_rkeops_cache_dir <- function(verbose = TRUE, startup = FALSE) {
 #' @return None
 #' 
 #' @importFrom stringr str_c
-#' @importFrom checkmate expect_flag
+#' @importFrom checkmate assert_flag
 #' @importFrom fs dir_ls file_delete
 #' 
 #' @examples
@@ -100,8 +100,8 @@ stat_rkeops_cache_dir <- function(verbose = TRUE, startup = FALSE) {
 #' @export
 clean_rkeops <- function(verbose = TRUE, all = TRUE) {
     # check input
-    expect_flag(verbose)
-    expect_flag(all)
+    assert_flag(verbose)
+    assert_flag(all)
     # get cache directory
     cache_dir <- get_rkeops_cache_dir()
     # list cache dir content

@@ -16,9 +16,9 @@
 #' 
 #' @author Ghislain Durif
 #' 
-#' @importFrom checkmate expect_flag
+#' @importFrom checkmate assert_flag
 check_os <- function(startup = FALSE) {
-    expect_flag(startup)
+    assert_flag(startup)
     if(.Platform$OS.type != "unix") {
         msg <- paste0(
             "Platform '", .Platform$OS.type, 
