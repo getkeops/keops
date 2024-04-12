@@ -1,4 +1,4 @@
-from keopscore.utils.code_gen_utils import VectApply
+from keopscore.utils.code_gen_utils import VectApply, c_variable
 from keopscore.formulas.Operation import Operation
 from keopscore.utils.misc_utils import KeOps_Error
 
@@ -7,6 +7,15 @@ class VectorizedScalarOp(Operation):
     # class for operations that are vectorized or broadcasted
     # scalar operations,
     # such as Exp(f), Cos(f), Mult(f,g), Subtract(f,g), etc.
+
+    def __new__(cls, *args, params=(), allow_fuse=True):
+        obj = super(VectorizedScalarOp, cls).__new__(cls) 
+        obj.__init__(*args, params=params)
+        if allow_fuse:
+            for ind, arg in enumerate(args):
+                if isinstance(arg, VectorizedScalarOp):
+                    return FusedVectorizedScalarOp.__new__(FusedVectorizedScalarOp, params=(obj, ind), allow_fuse=False)
+        return obj
 
     def __init__(self, *args, params=()):
         dims = set(arg.dim for arg in args)
@@ -28,7 +37,8 @@ class VectorizedScalarOp(Operation):
     def ScalarOp(self, out, *args):
         # returns the atomic piece of c++ code to evaluate the function on arg and return
         # the result in out
-        return out.assign(type(self).ScalarOpFun(*args, *self.params))
+        res = out.assign(type(self).ScalarOpFun(*args, *self.params))
+        return res
 
     def DiffT(self, v, gradin):
         derivatives = self.Derivative(*self.children, *self.params)
@@ -39,8 +49,8 @@ class VectorizedScalarOp(Operation):
             for f, df in zip(self.children, derivatives)
         )
 
-    def Derivative(self):
-        pass
+    #def Derivative(self):
+    #    pass
 
     @property
     def is_chunkable(self):
@@ -72,3 +82,34 @@ class VectorizedScalarOp(Operation):
         return list(res)
 
     enable_test = True
+
+
+
+class FusedVectorizedScalarOp(VectorizedScalarOp):
+
+    string_id = "fused"
+
+    def recursive_str(self):
+        return self.parent_op.recursive_str()
+
+    def __init__(self, parent_op=None, ind_child_op=None, params=None):
+        if params is None:
+            params = parent_op, ind_child_op
+        else:
+            parent_op, ind_child_op = params
+        child_op = parent_op.children[ind_child_op]
+        args = parent_op.children[:ind_child_op] + child_op.children + parent_op.children[ind_child_op+1:]
+        super().__init__(*args, params=params)
+        self.parent_op, self.ind_child_op, self.child_op = parent_op, ind_child_op, child_op
+    
+    def ScalarOp(self, out, *args):
+        i, m = self.ind_child_op, len(self.child_op.children)
+        args_child = args[i:i+m]
+        out_child = c_variable(out.dtype)
+        str_child = self.child_op.ScalarOp(out_child, *args_child)
+        args_parent = args[:i] + (out_child,) + args[i+m:]
+        str_parent = self.parent_op.ScalarOp(out, *args_parent)
+        return "{" + out_child.declare() + str_child + str_parent + "}"
+
+    def DiffT(self, v, gradin):
+        return self.parent_op.DiffT(v, gradin)

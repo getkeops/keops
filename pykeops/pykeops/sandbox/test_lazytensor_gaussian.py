@@ -6,7 +6,7 @@ import math
 import torch
 from pykeops.torch import LazyTensor
 
-M, N, D, DV = 10000, 10000, 3, 1
+M, N, D, DV = 1000, 1000, 500, 1
 
 dtype = torch.float32
 
@@ -29,7 +29,7 @@ def fun(x, y, b, backend):
     Dxy = ((x - y) ** 2).sum(dim=2)
     Kxy = (-Dxy).exp()
     if backend == "keops":
-        out = LazyTensor.__matmul__(Kxy, b)
+        out = LazyTensor.__matmul__(Kxy, b, enable_chunks=False)
     else:
         out = Kxy @ b
     if device_id != "cpu":
