@@ -67,8 +67,7 @@
 #' 
 #' @importFrom stringr str_length str_count
 #' @importFrom reticulate np_array source_python
-#' @importFrom checkmate assert_choice assert_character assert_logical 
-#' assert_string
+#' @importFrom checkmate assert_choice assert_character assert_string
 #' 
 #' @seealso [rkeops::keops_grad()]
 #' 
@@ -169,6 +168,9 @@ keops_kernel <- function(formula, args, sum_scheme = "auto") {
         #   of reference than the actual input data, especially for big 
         #   matrices. If NULL or missing, op_env (context) is returned
         # inner_dim: "col" for columns, "row" for rows
+        
+        # setup pykeops
+        setup_pykeops()
         
         ## Use pykeops.numpy.Genred
         # load GenredR
