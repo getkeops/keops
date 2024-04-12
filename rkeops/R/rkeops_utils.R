@@ -78,6 +78,9 @@ stat_rkeops_cache_dir <- function(verbose = TRUE, startup = FALSE) {
 #' build directory, and you can use [rkeops::stat_rkeops_cache_dir()] to 
 #' verify its disk usage.
 #' 
+#' **Attention**: `clean_rkeops(all = TRUE)` will work without a functioning
+#' Python setup, but `clean_rkeops(all = FALSE)` will not.
+#' 
 #' @author Ghislain Durif
 #' 
 #' @param verbose logical, if `TRUE` (default), give user information about 
@@ -108,7 +111,7 @@ clean_rkeops <- function(verbose = TRUE, all = TRUE) {
     dir_list <- fs::dir_ls(cache_dir)
     # remove all or not?
     if(!all) {
-        # remove all but latest build dir
+        # remove all but current build dir
         latest_build_dir <- def_pykeops_build_dir()
         dir_list <- setdiff(dir_list, latest_build_dir)
     }
