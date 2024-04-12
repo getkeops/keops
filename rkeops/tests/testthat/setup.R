@@ -11,14 +11,14 @@ skip_if_no_python <- function() {
 # helper function to skip tests if `keopscore` is not available
 skip_if_no_keopscore <- function() {
     skip_if_no_python()
-    have_keopscore <- rkeops:::check_keopscore(warn=FALSE)
+    have_keopscore <- rkeops:::check_keopscore(verbose = FALSE)
     if(!have_keopscore) skip("'keopscore' not available for testing")
 }
 
 # helper function to skip tests if `pykeops` is not available
 skip_if_no_pykeops <- function() {
     skip_if_no_python()
-    have_pykeops <- rkeops:::check_pykeops(warn=FALSE)
+    have_pykeops <- rkeops:::check_pykeops(verbose = FALSE)
     if(!have_pykeops) skip("'pykeops' not available for testing")
 }
 

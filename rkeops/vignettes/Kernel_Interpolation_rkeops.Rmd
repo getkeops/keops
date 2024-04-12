@@ -89,7 +89,7 @@ rkeops_use_float64()
 ```
 
 ```{r check_rkeops, include=FALSE}
-if(!check_rkeops(warn = FALSE)) {
+if(!check_rkeops(verbose = FALSE)) {
     knitr::opts_chunk$set(eval = FALSE)
 }
 ```
