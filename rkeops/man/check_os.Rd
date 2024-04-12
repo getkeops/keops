@@ -4,10 +4,10 @@
 \alias{check_os}
 \title{Check OS}
 \usage{
-check_os(onLoad = FALSE)
+check_os(startup = FALSE)
 }
 \arguments{
-\item{onLoad}{boolean indicating if the function is used when loading
+\item{startup}{boolean indicating if the function is used when loading
 the package (to avoid the error in this case).}
 }
 \value{

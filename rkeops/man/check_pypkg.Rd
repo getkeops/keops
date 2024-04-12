@@ -4,13 +4,13 @@
 \alias{check_pypkg}
 \title{Check if a given Python package is installed and available.}
 \usage{
-check_pypkg(package, warn = TRUE)
+check_pypkg(package, verbose = TRUE)
 }
 \arguments{
 \item{package}{character string, name of package to be checked among
 \code{"keopscore"} and \code{"pykeops"}.}
 
-\item{warn}{boolean, if TRUE (default), warn user about check result.}
+\item{verbose}{boolean, if TRUE (default), inform user about check result.}
 }
 \value{
 boolean value indicating if the \code{pykeops} package is available.

@@ -2,7 +2,7 @@
 % Please edit documentation in R/rkeops_options.R
 \name{set_rkeops_options}
 \alias{set_rkeops_options}
-\title{Initialize or update \code{rkeops} options in \code{R} global options scope}
+\title{Get or set the current \code{rkeops} options in \code{R} global options scope}
 \usage{
 set_rkeops_options(input = NULL)
 }
@@ -14,36 +14,55 @@ to be updated.}
 None
 }
 \description{
-\code{rkeops} user-defined operators requires specific options to control
-their behavior at runtime (precision, verbosity, use of GPU, debug flag).
-Their current values can be printed with \code{\link[=get_rkeops_options]{get_rkeops_options()}}.
+\code{rkeops} operators requires specific options to manage their compilation
+(cache/build directory) and to control their behavior at runtime
+(precision, verbosity, use of GPU, debug flag).
+
+Their current values can be modified with \code{set_rkeops_options()}.
 }
 \details{
-See \code{\link[=def_rkeops_options]{def_rkeops_options()}} for more detailed about these options.
-
 If no input is provided, the functions \code{set_rkeops_options()}
 initializes all \code{rkeops} options in the \code{R} global options scope
 (i.e. options available by calling \code{options()} or
 \verb{getOptions(<option_name>)}) with default values.
 
-If some input is provided, i.e. objects defining compile options and/or
-runtime options (see Details), \code{rkeops} global options are updated
+If some input is provided, \code{rkeops} global options are updated
 accordingly.
+
+See \code{\link[=def_rkeops_options]{def_rkeops_options()}} for more details about rkeops option
+possible values.
+
+\strong{Note:} Default options are set up when loading \code{rkeops}. To reset
+\code{rkeops} options to default or configure a particular option,
+you should use the function \code{\link[=set_rkeops_options]{set_rkeops_options()}}.
 
 Some helper functions are available to enable some options,
 see \code{\link[=rkeops_use_float32]{rkeops_use_float32()}}, \code{\link[=rkeops_use_float64]{rkeops_use_float64()}},
 \code{\link[=rkeops_use_cpu]{rkeops_use_cpu()}}, \code{\link[=rkeops_use_gpu]{rkeops_use_gpu()}},
-\code{\link[=rkeops_enable_verbosity]{rkeops_enable_verbosity()}}, \code{\link[=rkeops_disable_verbosity]{rkeops_disable_verbosity()}}.
+\code{\link[=rkeops_enable_verbosity]{rkeops_enable_verbosity()}}, \code{\link[=rkeops_disable_verbosity]{rkeops_disable_verbosity()}},
+\code{\link[=set_rkeops_cache_dir]{set_rkeops_cache_dir()}}.
+
+\strong{Important:} GPU computing requires a Nvidia GPU and CUDA drivers.
+It is recommended to use default GPU (i.e. \code{device_id = -1} or \code{0}) and
+manage GPU assignment outside R by setting the environment variable
+\code{CUDA_VISIBLE_DEVICES}.
+
+\strong{Note:} check \code{\link[=set_rkeops_cache_dir]{set_rkeops_cache_dir()}} for more details about
+the cache directory where rkeops operator compilation byproducts will
+be stored to be re-used for further use (and avoid unnecessary
+recompilation).
 }
 \examples{
 set_rkeops_options()
+set_rkeops_options(list(verbosity = 0))
 
 }
 \seealso{
 \code{\link[=def_rkeops_options]{def_rkeops_options()}}, \code{\link[=get_rkeops_options]{get_rkeops_options()}},
 \code{\link[=rkeops_use_float32]{rkeops_use_float32()}}, \code{\link[=rkeops_use_float64]{rkeops_use_float64()}},
 \code{\link[=rkeops_use_cpu]{rkeops_use_cpu()}}, \code{\link[=rkeops_use_gpu]{rkeops_use_gpu()}},
-\code{\link[=rkeops_enable_verbosity]{rkeops_enable_verbosity()}}, \code{\link[=rkeops_disable_verbosity]{rkeops_disable_verbosity()}}
+\code{\link[=rkeops_enable_verbosity]{rkeops_enable_verbosity()}}, \code{\link[=rkeops_disable_verbosity]{rkeops_disable_verbosity()}},
+\code{\link[=get_rkeops_cache_dir]{get_rkeops_cache_dir()}}, \code{\link[=set_rkeops_cache_dir]{set_rkeops_cache_dir()}}.
 }
 \author{
 Ghislain Durif

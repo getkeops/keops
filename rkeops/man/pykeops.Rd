@@ -3,7 +3,7 @@
 \docType{data}
 \name{pykeops}
 \alias{pykeops}
-\title{Glbal reference to main PyKeOps module}
+\title{Global reference to main PyKeOps module}
 \format{
 An object of class \code{python.builtin.module}
 }
