@@ -1,4 +1,7 @@
 test_that("def_pykeops_build_dir", {
+    skip_if_no_python()
+    skip_if_no_pykeops()
+    
     res <- def_pykeops_build_dir()
     checkmate::expect_directory(res)
 })

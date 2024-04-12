@@ -57,6 +57,9 @@ test_that("clean_rkeops", {
     withr::with_options(list(rkeops = NULL), {
         set_rkeops_options()
         
+        skip_if_no_python()
+        skip_if_no_pykeops()
+        
         withr::with_tempdir({
             # temp cache dir
             tmp_cache_dir <- getwd()
