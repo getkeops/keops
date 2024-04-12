@@ -35,7 +35,7 @@ Default value is \code{0}. DEPRECATED.}
 \item{cache_dir}{string, path to cache directory where rkeops operator
 compilation byproducts will be stored to be re-used for further use (and
 avoid unnecessary recompilation). Default is \code{NULL} and default build
-directory (see \code{\link[=def_rkeops_cache_dir]{def_rkeops_cache_dir()}} is used. Otherwise
+directory (see \code{\link[=default_rkeops_cache_dir]{default_rkeops_cache_dir()}} is used. Otherwise
 \code{cache_dir} should be an existing writable directory on the system.}
 }
 \value{

@@ -10,11 +10,10 @@ set_rkeops_cache_dir(cache_dir = NULL, verbose = TRUE)
 \item{cache_dir}{string, path to cache directory where rkeops operator
 compilation byproducts will be stored to be re-used for further use (and
 avoid unnecessary recompilation). Default is \code{NULL} and default build
-directory (see \code{\link[=def_rkeops_cache_dir]{def_rkeops_cache_dir()}} is used. Otherwise
+directory (see \code{\link[=default_rkeops_cache_dir]{default_rkeops_cache_dir()}} is used. Otherwise
 \code{cache_dir} should be an existing writable directory on the system.}
 
-\item{ask}{boolean, ask user confirmation to change cache directory or not.
-Default is \code{TRUE}.}
+\item{verbose}{logical, enables verbosity or not. Default is \code{TRUE}.}
 }
 \value{
 None

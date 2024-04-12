@@ -28,7 +28,7 @@ new operators, such a file is created.
 
 Calling \code{clean_rkeops()} allows you to empty RKeOps build directory.
 
-You can \code{\link[=get_rkeops_build_dir]{get_rkeops_build_dir()}} to get the path to RKeOps
+You can \code{\link[=get_rkeops_cache_dir]{get_rkeops_cache_dir()}} to get the path to RKeOps
 build directory, and you can use \code{\link[=stat_rkeops_cache_dir]{stat_rkeops_cache_dir()}} to
 verify its disk usage.
 }
@@ -38,7 +38,7 @@ clean_rkeops()
 }
 }
 \seealso{
-\code{\link[=get_rkeops_build_dir]{get_rkeops_build_dir()}}, \code{\link[=stat_rkeops_build_dir]{stat_rkeops_build_dir()}}
+\code{\link[=get_rkeops_cache_dir]{get_rkeops_cache_dir()}}, \code{\link[=stat_rkeops_cache_dir]{stat_rkeops_cache_dir()}}
 }
 \author{
 Ghislain Durif

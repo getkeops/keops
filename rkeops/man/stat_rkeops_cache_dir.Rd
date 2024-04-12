@@ -43,7 +43,7 @@ stat_rkeops_cache_dir()
 }
 }
 \seealso{
-\code{\link[=get_rkeops_build_dir]{get_rkeops_build_dir()}}, \code{\link[=clean_rkeops]{clean_rkeops()}}
+\code{\link[=get_rkeops_cache_dir]{get_rkeops_cache_dir()}}, \code{\link[=clean_rkeops]{clean_rkeops()}}
 }
 \author{
 Ghislain Durif
