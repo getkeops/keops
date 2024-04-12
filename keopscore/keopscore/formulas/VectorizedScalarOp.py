@@ -14,7 +14,8 @@ class VectorizedScalarOp(Operation):
         if allow_fuse:
             for ind, arg in enumerate(args):
                 if isinstance(arg, VectorizedScalarOp):
-                    return FusedVectorizedScalarOp.__new__(FusedVectorizedScalarOp, params=(obj, ind), allow_fuse=False)
+                    fused_args = args[:ind] + arg.children + args[ind+1:]
+                    return FusedVectorizedScalarOp.__new__(FusedVectorizedScalarOp, *fused_args, params=(obj, ind), allow_fuse=False)
         return obj
 
     def __init__(self, *args, params=()):
@@ -62,7 +63,7 @@ class VectorizedScalarOp(Operation):
                 (child if child.dim == 1 else child.chunked_version(dimchk))
                 for child in self.children
             ),
-            *self.params
+            params=self.params
         )
 
     def chunked_vars(self, cat):
@@ -92,13 +93,9 @@ class FusedVectorizedScalarOp(VectorizedScalarOp):
     def recursive_str(self):
         return self.parent_op.recursive_str()
 
-    def __init__(self, parent_op=None, ind_child_op=None, params=None):
-        if params is None:
-            params = parent_op, ind_child_op
-        else:
-            parent_op, ind_child_op = params
+    def __init__(self, *args, params):
+        parent_op, ind_child_op = params
         child_op = parent_op.children[ind_child_op]
-        args = parent_op.children[:ind_child_op] + child_op.children + parent_op.children[ind_child_op+1:]
         super().__init__(*args, params=params)
         self.parent_op, self.ind_child_op, self.child_op = parent_op, ind_child_op, child_op
     

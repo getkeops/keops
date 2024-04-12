@@ -240,7 +240,7 @@ class Operation(Tree):
         for child in self.children:
             args.append(child.post_chunk_formula(ind))
             ind += child.num_chunked_formulas
-        return type(self)(*args, *self.params)
+        return type(self)(*args, params=self.params)
 
     enable_test = False
     disable_testgrad = False
