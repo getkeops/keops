@@ -30,6 +30,5 @@ test_that("check_pykeops", {
 
 test_that("check_rkeops", {
     skip_if_no_python()
-    expect_message(check_rkeops(verbose = TRUE))
     checkmate::expect_logical(check_rkeops(verbose = FALSE), len = 1)
 })

@@ -11,7 +11,7 @@ test_that("skip_if_no_python", {
 
 test_that("skip_if_no_keopscore", {
     skip_if_no_python()
-    if(check_keopscore(warn=FALSE)) {
+    if(check_keopscore(verbose = FALSE)) {
         # no skip
         expect_condition(skip_if_no_keopscore(), NA, class = "skip")
     } else {
@@ -22,7 +22,7 @@ test_that("skip_if_no_keopscore", {
 
 test_that("skip_if_no_pykeops", {
     skip_if_no_python()
-    if(check_pykeops(warn=FALSE)) {
+    if(check_pykeops(verbose = FALSE)) {
         # no skip
         expect_condition(skip_if_no_pykeops(), NA, class = "skip")
     } else {
