@@ -49,11 +49,11 @@ library(reshape) # matrix to data.frame reformatting
 ```{r init, message=FALSE, warning=FALSE, results='hide', eval=FALSE}
 # load rkeops
 library(rkeops)
-# create a dedicated Python environment with reticulate (to be done only once)
+# create a dedicated Python environment with reticulate (!!to be done only once)
 reticulate::virtualenv_create("rkeops")
 # activate the dedicated Python environment
 reticulate::use_virtualenv(virtualenv = "rkeops", required = TRUE)
-# install rkeops requirements (to be done only once)
+# install rkeops requirements (!!to be done only once)
 install_rkeops()
 # use 64bit floating operation precision
 rkeops_use_float64()

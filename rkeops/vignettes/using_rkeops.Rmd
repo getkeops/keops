@@ -63,11 +63,11 @@ remotes::install_github("getkeops/keops", subdir = "rkeops")
 ```{r install_requirements}
 # load rkeops
 library(rkeops)
-# create a dedicated Python environment with reticulate (to be done only once)
+# create a dedicated Python environment with reticulate (!!to be done only once)
 reticulate::virtualenv_create("rkeops")
 # activate the dedicated Python environment
 reticulate::use_virtualenv(virtualenv = "rkeops", required = TRUE)
-# install rkeops requirements (to be done only once)
+# install rkeops requirements (!!to be done only once)
 install_rkeops()
 ```
 
@@ -263,7 +263,7 @@ You should provide a vector of text string specifying the name and the type of a
 Each keyword takes as parameter the inner dimension of the corresponding object. For instance, to define an input variable indexed by $i$ corresponding to a $D$-dimensional vector, you can use `"Vi(D)"`, same for a $D$-dimensional variable indexed by $j$ being `"Vj(D)"` or a $D$-dimensional parameter `"Pm(D)"`.<br><br>
 
 The vector of arguments should be
-```{r template_args}
+```{r template_args, eval=FALSE}
 args = c("<name1>=<type1>(dim1)", "<name2>=<type2>(dim2)", "<nameX>=<typeX>(dimX)")
 ```
 where
@@ -459,6 +459,8 @@ res <- op(list(X,Y), inner_dim="row")
 
 ### Compilation files and cleaning
 
-The compilation of new operators produces shared library (or share object `.so`) files stored in a `build` sub-directory of the package installation directory, to be reused and avoid recompilation of already defined operators.
+The compilation of new operators produces shared library (shared object `.so`) files stored in a dedicated cache directory, to be reused and avoid recompilation of already defined operators.
 
-You can check where your compiled operators are stored by running `get_rkeops_build_dir()`. To clean RKeOps install and remove all shared library files, you can run `clean_rkeops()`.
+You can check where your compiled operators are stored by running `get_rkeops_cache_dir()`. To clean RKeOps install and remove all shared library files, you can run `clean_rkeops()`.
+
+You can modify this cache dir by using `get_rkeops_cache_dir(path)` where `path` indicates the path to the directory that you want to use.
