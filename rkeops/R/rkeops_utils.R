@@ -30,7 +30,7 @@
 #' 
 #' @author Ghislain Durif
 #' 
-#' @seealso [rkeops::get_rkeops_build_dir()], [rkeops::clean_rkeops()]
+#' @seealso [rkeops::get_rkeops_cache_dir()], [rkeops::clean_rkeops()]
 #' 
 #' @importFrom stringr str_c
 #' @importFrom checkmate expect_flag
@@ -74,7 +74,7 @@ stat_rkeops_cache_dir <- function(verbose = TRUE, startup = FALSE) {
 #' 
 #' Calling `clean_rkeops()` allows you to empty RKeOps build directory.
 #' 
-#' You can [rkeops::get_rkeops_build_dir()] to get the path to RKeOps 
+#' You can [rkeops::get_rkeops_cache_dir()] to get the path to RKeOps 
 #' build directory, and you can use [rkeops::stat_rkeops_cache_dir()] to 
 #' verify its disk usage.
 #' 
@@ -85,7 +85,7 @@ stat_rkeops_cache_dir <- function(verbose = TRUE, startup = FALSE) {
 #' @param all logical, if `TRUE` (default), all cached files are removed, 
 #' otherwise only out-dated files are removed.
 #' 
-#' @seealso [rkeops::get_rkeops_build_dir()], [rkeops::stat_rkeops_build_dir()]
+#' @seealso [rkeops::get_rkeops_cache_dir()], [rkeops::stat_rkeops_cache_dir()]
 #' 
 #' @return None
 #' 

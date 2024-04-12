@@ -51,7 +51,7 @@
 #' @param cache_dir string, path to cache directory where rkeops operator
 #' compilation byproducts will be stored to be re-used for further use (and 
 #' avoid unnecessary recompilation). Default is `NULL` and default build
-#' directory (see [rkeops::def_rkeops_cache_dir()] is used. Otherwise
+#' directory (see [rkeops::default_rkeops_cache_dir()] is used. Otherwise
 #' `cache_dir` should be an existing writable directory on the system.
 #' 
 #' @return a list (of class `rkeops_options`) with the following containing 
@@ -550,8 +550,7 @@ get_rkeops_cache_dir <- function() {
 #' the default rkeops cache directory.
 #' 
 #' @inheritParams def_rkeops_options
-#' @param ask boolean, ask user confirmation to change cache directory or not.
-#' Default is `TRUE`.
+#' @param verbose logical, enables verbosity or not. Default is `TRUE`.
 #' @return None
 #' 
 #' @author Ghislain Durif
