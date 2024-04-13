@@ -50,17 +50,20 @@ class new_c_varname:
 
 class c_variable:
     # class to represent a C++ variable, storing its c++ name and its C++ type.
-    def __new__(self, dtype, list_string_id=None):
+    def __new__(self, dtype, list_string_id=None, **kwargs):
         if isinstance(list_string_id, list):
-            return list(c_variable(dtype, string_id) for string_id in list_string_id)
+            return list(c_variable(dtype, string_id, **kwargs) for string_id in list_string_id)
         else:
             return super(c_variable, self).__new__(self)
 
-    def __init__(self, dtype, string_id=None):
+    def __init__(self, dtype, string_id=None, assign_mode="assign"):
         if string_id is None:
             string_id = new_c_varname("var")
         self.dtype = dtype  # dtype is C++ type of variable
         self.id = string_id  # string_id is C++ name of variable
+        self.assign_mode = assign_mode
+        if assign_mode=="add_assign":
+            self.assign = self.add_assign
 
     def __repr__(self):
         # method for printing the c_variable inside Python code
@@ -321,13 +324,19 @@ def pointer(x):
 
 
 class c_array:
-    def __init__(self, dtype, dim, string_id=new_c_varname("array")):
+    def __init__(self, dtype, dim, string_id=new_c_varname("array"), assign_mode="assign"):
         if dim < 0:
             KeOps_Error("negative dimension for array")
         self.c_var = c_variable(pointer(dtype), string_id)
         self.dtype = dtype
         self.dim = dim
         self.id = string_id
+        self.set_assign_mode(assign_mode)
+    
+    def set_assign_mode(self, assign_mode):
+        self.assign_mode = assign_mode
+        if assign_mode=="add_assign":
+            self.assign = self.add_assign
 
     def __repr__(self):
         # method for printing the c_variable inside Python code
@@ -357,17 +366,23 @@ class c_array:
         loop, k = c_for_loop(0, self.dim, 1)
         return loop(self[k].assign(val))
 
+    def add_assign(self, val):
+        # returns C++ code string to add all elements of a fixed size array with a single value
+        # val is a c_variable representing the value.
+        loop, k = c_for_loop(0, self.dim, 1)
+        return loop(self[k].add_assign(val))
+
     def __getitem__(self, other):
         if type(other) == int:
             c_type_other = "signed long int" if other > 2e9 else "int"
             return self[c_variable(c_type_other, str(other))]
         elif type(other) == c_variable:
             if other.dtype in ("int", "signed long int"):
-                return c_variable(self.dtype, f"{self.id}[{other.id}]")
+                return c_variable(self.dtype, f"{self.id}[{other.id}]", assign_mode = self.assign_mode)
             elif other.dtype == "float":
-                return c_variable(self.dtype, f"{self.id}[(int){other.id}]")
+                return c_variable(self.dtype, f"{self.id}[(int){other.id}]", assign_mode = self.assign_mode)
             elif other.dtype == "double":
-                return c_variable(self.dtype, f"{self.id}[(signed long int){other.id}]")
+                return c_variable(self.dtype, f"{self.id}[(signed long int){other.id}]", assign_mode = self.assign_mode)
             else:
                 KeOps_Error(
                     "v[i] with i and v c_array requires i.dtype='int', i.dtype='signed long int', i.dtype='float' or i.dtype='double' "

@@ -27,12 +27,12 @@ class GpuReduc1D(MapReduce, Gpu_link_compile):
 
         i = self.i
         j = self.j
-        fout = self.fout
-        outi = self.outi
-        acc = self.acc
         arg = self.arg
         args = self.args
         sum_scheme = self.sum_scheme
+        fout = self.fout
+        acc = self.acc
+        outi = self.outi
 
         param_loc = self.param_loc
         xi = self.xi
@@ -60,9 +60,9 @@ class GpuReduc1D(MapReduce, Gpu_link_compile):
                           {param_loc.declare()}
                           {varloader.load_vars("p", param_loc, args)}
 
-                          {fout.declare()}
+                          {sum_scheme.declare_formula_out()}
                           {xi.declare()}
-                          {acc.declare()}
+                          {sum_scheme.declare_accumulator()}
                           {sum_scheme.declare_temporary_accumulator()}
 
                           if (i < nx) {{
@@ -93,7 +93,7 @@ class GpuReduc1D(MapReduce, Gpu_link_compile):
                             __syncthreads();
                           }}
                           if (i < nx) {{
-                            {red_formula.FinalizeOutput(acc, outi, i)} 
+                            {sum_scheme.FinalizeOutput(acc, outi, i)} 
                           }}
 
                         }}

@@ -7,13 +7,25 @@ from keopscore.utils.code_gen_utils import (
 
 
 class Sum_Scheme:
-    def __init__(self, red_formula, dtype, dimred=None):
+
+    def __init__(self, red_formula, dtype, dtypeacc, i, dimred=None):
         self.red_formula = red_formula
         if dimred is None:
             self.dimred = red_formula.dimred
         else:
             self.dimred = dimred
 
+        self.acc = c_array(dtypeacc, red_formula.dimred, "acc")
+        self.acctmp = c_array(dtypeacc, red_formula.dimred, "acctmp")
+        self.fout = c_array(dtype, red_formula.formula.dim, "fout")
+        self.outi = c_array(dtype, red_formula.dim, f"(out + {i} * {red_formula.dim})")
+
+    def declare_formula_out(self):
+        return self.fout.declare()
+    
+    def declare_accumulator(self):
+        return self.acc.declare()
+    
     def declare_temporary_accumulator(self):
         return self.tmp_acc.declare()
 
@@ -29,6 +41,9 @@ class Sum_Scheme:
     def final_operation(self, acc):
         return ""
 
+    def FinalizeOutput(self, acc, outi, i):
+        return self.red_formula.FinalizeOutput(acc, outi, i)
+
 
 class direct_sum(Sum_Scheme):
     def declare_temporary_accumulator(self):
@@ -41,9 +56,35 @@ class direct_sum(Sum_Scheme):
         return self.red_formula.ReducePairShort(acc, fout, j)
 
 
+class direct_acc(Sum_Scheme):
+
+    def __init__(self, red_formula, dtype, dtypeacc, i, dimred=None):
+        super().__init__(red_formula, dtype, dtypeacc, i, dimred)
+        self.fout = self.acc = self.outi
+        self.fout.set_assign_mode("add_assign")
+
+    def declare_formula_out(self):
+        return ""
+    
+    def declare_accumulator(self):
+        return ""
+    
+    def declare_temporary_accumulator(self):
+        return ""
+
+    def initialize_temporary_accumulator(self):
+        return ""
+
+    def accumulate_result(self, acc, fout, j, hack=False):
+        return ""
+    
+    def FinalizeOutput(self, acc, outi, i):
+        return ""
+
+
 class block_sum(Sum_Scheme):
-    def __init__(self, red_formula, dtype, dimred=None):
-        super().__init__(red_formula, dtype, dimred)
+    def __init__(self, red_formula, dtype, dtypeacc, i, dimred=None):
+        super().__init__(red_formula, dtype, dtypeacc, i, dimred)
         self.tmp_acc = c_array(dtype, self.dimred, "tmp")
 
     def initialize_temporary_accumulator(self):
@@ -72,8 +113,8 @@ class block_sum(Sum_Scheme):
 
 
 class kahan_scheme(Sum_Scheme):
-    def __init__(self, red_formula, dtype, dimred=None):
-        super().__init__(red_formula, dtype, dimred)
+    def __init__(self, red_formula, dtype, dtypeacc, i, dimred=None):
+        super().__init__(red_formula, dtype, dtypeacc, i, dimred)
         self.tmp_acc = c_array(dtype, red_formula.dim_kahan, "tmp")
 
     def initialize_temporary_accumulator(self):

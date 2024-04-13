@@ -58,10 +58,15 @@ class MapReduce:
         dtype = self.dtype
         dtypeacc = self.dtypeacc
         nargs = self.nargs
-        self.sum_scheme = eval(self.sum_scheme_string)(red_formula, dtype)
 
         self.i = i = c_variable("signed long int", "i")
         self.j = j = c_variable("signed long int", "j")
+
+        self.sum_scheme = eval(self.sum_scheme_string)(red_formula, dtype, dtypeacc, i)
+
+        self.fout = self.sum_scheme.fout
+        self.acc = self.sum_scheme.acc
+        self.outi = self.sum_scheme.outi
 
         nx = c_variable("signed long int", "nx")
         ny = c_variable("signed long int", "ny")
@@ -72,8 +77,3 @@ class MapReduce:
         argname = new_c_varname("arg")
         self.arg = c_variable(pointer(pointer(dtype)), argname)
         self.args = [self.arg[k] for k in range(nargs)]
-
-        self.acc = c_array(dtypeacc, red_formula.dimred, "acc")
-        self.acctmp = c_array(dtypeacc, red_formula.dimred, "acctmp")
-        self.fout = c_array(dtype, formula.dim, "fout")
-        self.outi = c_array(dtype, red_formula.dim, f"(out + i * {red_formula.dim})")
