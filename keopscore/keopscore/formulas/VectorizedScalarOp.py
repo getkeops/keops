@@ -84,11 +84,9 @@ class VectorizedScalarOp(Operation):
 
     enable_test = True
 
-
-
 class FusedVectorizedScalarOp(VectorizedScalarOp):
 
-    string_id = "fused"
+    string_id = "fused_vectorized"
 
     def recursive_str(self):
         return self.parent_op.recursive_str()
