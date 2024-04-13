@@ -60,9 +60,9 @@ class GpuReduc1D(MapReduce, Gpu_link_compile):
                           {param_loc.declare()}
                           {varloader.load_vars("p", param_loc, args)}
 
-                          {fout.declare()}
+                          {sum_scheme.declare_formula_out(fout)}
                           {xi.declare()}
-                          {acc.declare()}
+                          {sum_scheme.declare_accumulator(acc)}
                           {sum_scheme.declare_temporary_accumulator()}
 
                           if (i < nx) {{
