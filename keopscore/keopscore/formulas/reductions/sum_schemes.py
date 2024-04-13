@@ -14,9 +14,6 @@ class Sum_Scheme:
         else:
             self.dimred = dimred
 
-    def declare_temporary_accumulator(self, acc):
-        return acc.declare()
-    
     def declare_temporary_accumulator(self):
         return self.tmp_acc.declare()
 
