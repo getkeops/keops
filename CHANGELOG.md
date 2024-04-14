@@ -1,5 +1,12 @@
+* v2.2.3 - April 14, 2024
+   - Add `KEOPS_CACHE_FOLDER` environment variable
+   - Now require explicitely `python>=3.8` in doc
+   - Improve cuda detection with conda 
+   - RKeOps release
+
+
 * v2.2.2 - Feb 9, 2024
-   - Fix a utf8 encoding problem with "cuda_fp16.h" file
+   - Fix a utf8 encoding problem with `cuda_fp16.h` file
 
 
 * v2.2.1 - Jan 25, 2024
@@ -7,12 +14,12 @@
 
 
 * v2.2 - Jan 18, 2024
-   - added option to disable fast_math Cuda compiler option
+   - added option to disable `fast_math` Cuda compiler option
    - added comparison operators between LazyTensor
 	 - added support for symbolic differentiation of symbolic operations : Grad, Diff, Laplacian, Divergence
 	 - added support for forward autodiff, compatible with PyTorch forward autodiff tools (torch.jvp, etc.)
 	 - added support for torch.vmap
-	 - added support for intermediate variables in formulas (factorize and auto_factorize methods of LazyTensor class)
+	 - added support for intermediate variables in formulas (factorize and `auto_factorize` methods of `LazyTensor` class)
    - changed cache folder name, now include name of local host
    - added torch.compile comparison to the benchmarks
    - fixed issues 294, 305, 310, 325, 342, ...
