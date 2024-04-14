@@ -298,9 +298,9 @@ def value(x):
     # either convert c_array or c_variable representing a pointer to its value c_variable (dereference)
     # or converts string "dtype*" to "dtype"
     if isinstance(x, c_array):
-        return c_variable(x.dtype, f"(*{x.id})")
+        return c_variable(x.dtype, f"(*{x.id})", assign_mode=x.assign_mode)
     if isinstance(x, c_variable):
-        return c_variable(value(x.dtype), f"(*{x.id})")
+        return c_variable(value(x.dtype), f"(*{x.id})", assign_mode=x.assign_mode)
     elif isinstance(x, str):
         if x[-1] == "*":
             return x[:-1]

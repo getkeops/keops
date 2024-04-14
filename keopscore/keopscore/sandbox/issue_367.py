@@ -13,10 +13,10 @@ def fun_keops(A, I, J):
     I = LazyTensor(I.to(dtype)[..., None])
     J = LazyTensor(J.to(dtype)[..., None])
     K = A[I * ncol + J]
-    return K.sum(axis=1).flatten()
+    return K.sum(axis=1, sum_scheme="direct_acc").flatten()
 
 
-P, Q = 100, 100
+P, Q = 1000, 1000
 M, N = 1000, 1000
 device = "cuda" if torch.cuda.is_available() else "cpu"
 dtype = torch.float64
@@ -26,7 +26,7 @@ A = torch.randn((P, Q), requires_grad=True, device=device, dtype=dtype)
 I = (5 * torch.ones((M, 1), device=device)).to(torch.long)
 J = (2 * torch.ones((1, N), device=device)).to(torch.long)
 
-test_torch = True
+test_torch = False
 
 if test_torch:
     start = time()
@@ -45,13 +45,21 @@ if test_torch:
     print(torch.norm(res_keops - res_torch) / torch.norm(res_torch))
 
 
-# testing gradients
+print("testing gradients")
+
+
 if test_torch:
     loss_torch = (res_torch**2).sum()
+    start = time()
     res_torch = torch.autograd.grad(loss_torch, [A])[0]
+    end = time()
+    print("time for torch:", end - start)
 
 loss_keops = (res_keops**2).sum()
+start = time()
 res_keops = torch.autograd.grad(loss_keops, [A])[0]
+end = time()
+print("time for keops:", end - start)
 
 if test_torch:
     print(torch.norm(res_keops - res_torch) / torch.norm(res_torch))

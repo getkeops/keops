@@ -28,9 +28,7 @@ class IndexT(Operation):
 
     def Op(self, out, table, arga, argb):
         n = self.n
-        loop1, k = c_for_loop(0, n, 1, pragma_unroll=True)
-        string = loop1(out[k].assign(c_zero_float))
-        string += out[value(argb)].assign(value(arga))
+        string = out[value(argb)].assign(value(arga))
         return string
 
     def DiffT(self, v, gradin):
