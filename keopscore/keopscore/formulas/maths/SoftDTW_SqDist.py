@@ -19,7 +19,7 @@ from keopscore.formulas.maths.Extract import Extract
 class SoftDTW_SqDist(Operation):
     string_id = "SoftDTW_SqDist"
 
-    def __init__(self, x, y, gamma, params=()):
+    def __init__(self, x, y, gamma):
         # x is vector of size n, y is vector of size m, gamma is scalar,
         # output is scalar
         if gamma.dim != 1:

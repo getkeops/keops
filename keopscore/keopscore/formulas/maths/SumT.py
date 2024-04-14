@@ -14,11 +14,7 @@ class SumT_Impl(Operation):
     string_id = "SumT"
     linearity_type = "all"
 
-    def __init__(self, arg, dim=None, params=None):
-        # N.B. init via params keyword is used for compatibility with base class.
-        if dim is None:
-            # here params should be a tuple containing one single integer
-            (dim,) = params
+    def __init__(self, arg, dim=None):
         super().__init__(arg, params=(dim,))
         self.dim = dim
 

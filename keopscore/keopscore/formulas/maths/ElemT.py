@@ -11,11 +11,7 @@ class ElemT(Operation):
     string_id = "ElemT"
     linearity_type = "all"
 
-    def __init__(self, f, n=None, m=None, params=None):
-        # N.B. init via params keyword is used for compatibility with base class.
-        if n is None:
-            # here we assume m is also None and params is be a tuple containing n and m
-            n, m = params
+    def __init__(self, f, n=None, m=None):
         super().__init__(f, params=(n, m))
         if f.dim != 1:
             KeOps_Error("Input of ElemT should be a scalar")

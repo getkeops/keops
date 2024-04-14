@@ -15,12 +15,8 @@ class IndexT(Operation):
     string_id = "IndexT"
     linearity_type = "first"
 
-    def __init__(self, f, g, n=None, params=None):
-        # N.B. init via params keyword is used for compatibility with base class.
-        if n is None:
-            # here we assume params is a tuple containing n
-            (n,) = params
-        super().__init__(f, g, params=(n,))
+    def __init__(self, f, g, n=None):
+        super().__init__(f,g, params=(n,))
         if f.dim != 1 or g.dim != 1:
             KeOps_Error("Inputs of IndexT should be scalar")
         self.dim = n

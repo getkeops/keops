@@ -8,9 +8,10 @@ class VectorizedScalarOp(Operation):
     # scalar operations,
     # such as Exp(f), Cos(f), Mult(f,g), Subtract(f,g), etc.
 
-    def __new__(cls, *args, params=(), allow_fuse=True):
+    def __new__(cls, *args, allow_fuse=True, **kwargs):
         obj = super(VectorizedScalarOp, cls).__new__(cls)
-        obj.__init__(*args, params=params)
+        obj.__init__(*args, **kwargs)
+        args = obj.children
         if allow_fuse:
             for ind, arg in enumerate(args):
                 if isinstance(arg, VectorizedScalarOp):
@@ -97,7 +98,7 @@ class FusedVectorizedScalarOp(VectorizedScalarOp):
     def recursive_str(self):
         return self.parent_op.recursive_str()
 
-    def __init__(self, *args, params):
+    def __init__(self, *args, params=()):
         parent_op, ind_child_op = params
         child_op = parent_op.children[ind_child_op]
         super().__init__(*args, params=params)

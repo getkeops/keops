@@ -10,10 +10,7 @@ from keopscore.utils.misc_utils import KeOps_Error
 class ComplexSum(Operation):
     string_id = "ComplexSum"
 
-    def __init__(self, f, params=()):
-        # N.B. params keyword is used for compatibility with base class, but should always equal ()
-        if params != ():
-            KeOps_Error("There should be no parameter.")
+    def __init__(self, f):
         if f.dim % 2 != 0:
             KeOps_Error("Dimension of F must be even")
         self.dim = 2

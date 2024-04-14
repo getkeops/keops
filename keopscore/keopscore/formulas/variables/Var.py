@@ -22,12 +22,7 @@ class Var(Operation):
     def is_linear(self, v):
         return self == v
 
-    def __init__(self, ind=None, dim=None, cat=None, params=None, label=None):
-        # N.B. init via params keyword is used for compatibility with base class.
-        if ind is None:
-            # here we assume dim and cat are also None, and
-            # that params is a tuple containing ind, dim, cat
-            ind, dim, cat = params
+    def __init__(self, ind=None, dim=None, cat=None, label=None):
         super().__init__(params=(ind, dim, cat))
         if label is None:
             # N.B. label is just a string used as an alias when printing the formulas ; it plays no role in computations.

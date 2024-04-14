@@ -5,9 +5,10 @@ from keopscore.utils.code_gen_utils import VectApply, c_variable
 
 class InnerReductionOp(Chunkable_Op):
 
-    def __new__(cls, *args, params=(), allow_fuse=True):
+    def __new__(cls, *args, allow_fuse=True, **kwargs):
         obj = super(InnerReductionOp, cls).__new__(cls)
-        obj.__init__(*args, params=params)
+        obj.__init__(*args, **kwargs)
+        args = obj.children
         if allow_fuse:
             for ind, arg in enumerate(args):
                 if isinstance(arg, VectorizedScalarOp):
@@ -33,7 +34,7 @@ class FusedInnerReductionOp(InnerReductionOp):
     def recursive_str(self):
         return self.parent_op.recursive_str()
 
-    def __init__(self, *args, params):
+    def __init__(self, *args, params=()):
         parent_op, ind_child_op = params
         child_op = parent_op.children[ind_child_op]
         super().__init__(*args, params=params)

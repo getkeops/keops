@@ -12,11 +12,7 @@ class ClampInt(VectorizedScalarOp):
 
     string_id = "ClampInt"
 
-    def __init__(self, x, a=None, b=None, params=None):
-        # N.B. init via params keyword is used for compatibility with base class.
-        if a is None:
-            # here we assume b is also None and params is tuple containing a and b
-            a, b = params
+    def __init__(self, x, a=None, b=None):
 
         super().__init__(x, params=(a, b))
 

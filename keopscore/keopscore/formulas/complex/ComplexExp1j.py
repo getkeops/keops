@@ -15,10 +15,7 @@ from keopscore.utils.misc_utils import KeOps_Error
 class ComplexExp1j(Operation):
     string_id = "ComplexExp1j"
 
-    def __init__(self, f, params=()):
-        # N.B. params keyword is used for compatibility with base class, but should always equal ()
-        if params != ():
-            KeOps_Error("There should be no parameter.")
+    def __init__(self, f):
         self.dim = 2 * f.dim
         super().__init__(f)
 

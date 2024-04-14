@@ -7,11 +7,7 @@ class Pow_Impl(VectorizedScalarOp):
     Pow(f,m) where m is integer, computes f^m
     """
 
-    def __init__(self, f, m=None, params=None):
-        # N.B. init via params keyword is used for compatibility with base class.
-        if m is None:
-            # here params should be a tuple containing one single integer
-            (m,) = params
+    def __init__(self, f, m=None):
         super().__init__(f, params=(m,))
 
     string_id = "Pow"

@@ -15,17 +15,14 @@ class MatVecMult(Operation):
     string_id = "MatVecMult"
     linearity_type = "one"
 
-    def __init__(self, A, B, params=()):
-        # N.B. params keyword is used for compatibility with base class, but should always equal ()
-        if params != ():
-            KeOps_Error("There should be no parameter.")
+    def __init__(self, A, B):
         # A is vector of size n*p, interpreted as matrix, B is vector of size p, interpreted as column vector
         # output is vector of size n
         if A.dim % B.dim != 0:
             KeOps_Error(
                 "Dimensions of A and B are not compatible for matrix-vector product"
             )
-        super().__init__(A, B)
+        super().__init__(A,B)
         self.dim = A.dim // B.dim
 
     def Op(self, out, table, inA, inB):

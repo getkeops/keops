@@ -8,11 +8,7 @@ class Round(VectorizedScalarOp):
     Round(f,d) where d is integer, rounds f to d decimals
     """
 
-    def __init__(self, f, d=None, params=None):
-        # N.B. init via params keyword is used for compatibility with base class.
-        if d is None:
-            # here params should be a tuple containing one single integer
-            (d,) = params
+    def __init__(self, f, d=None):
         super().__init__(f, params=(d,))
 
     string_id = "Round"

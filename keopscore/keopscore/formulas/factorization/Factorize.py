@@ -15,7 +15,7 @@ class Factorize_Impl(Operation):
         return f"{f.__repr__()} with {aliasvar.__repr__()}={g.__repr__()}"
 
     def __init__(self, f, g, aliasvar):
-        super().__init__(f, g, params=(aliasvar,))
+        super().__init__(f,g, params=(aliasvar,))
         self.dim = f.dim
         self.aliasvar = aliasvar
         if isinstance(f, Factorize_Impl):

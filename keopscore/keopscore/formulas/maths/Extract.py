@@ -11,11 +11,7 @@ class Extract(Operation):
     string_id = "Extract"
     linearity_type = "all"
 
-    def __init__(self, arg0, start=None, dim=None, params=None):
-        # N.B. init via params keyword is used for compatibility with base class.
-        if start is None:
-            # here we assume dim is also None and params is be a tuple containing start and dim
-            start, dim = params
+    def __init__(self, arg0, start=None, dim=None):
         if arg0.dim < start + dim or start < 0:
             KeOps_Error("Index out of bound in Extract")
         super().__init__(arg0, params=(start, dim))

@@ -10,11 +10,7 @@ from keopscore.utils.misc_utils import KeOps_Error
 class ComplexSumT(Operation):
     string_id = "ComplexSumT"
 
-    def __init__(self, f, dim=None, params=None):
-        # N.B. init via params keyword is used for compatibility with base class.
-        if dim is None:
-            # here params should be a tuple containing one single integer
-            (dim,) = params
+    def __init__(self, f, dim=None):
         if f.dim != 2:
             KeOps_Error("Dimension of F must be 2")
         self.dim = dim

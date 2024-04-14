@@ -12,11 +12,7 @@ class Elem(Operation):
     print_spec = ("[", "]"), "item", 1
     linearity_type = "all"
 
-    def __init__(self, f, m=None, params=None):
-        # N.B. init via params keyword is used for compatibility with base class.
-        if m is None:
-            # here params should be a tuple containing one single integer
-            (m,) = params
+    def __init__(self, f, m=None):
         super().__init__(f, params=(m,))
         if f.dim <= m:
             KeOps_Error("Index out of bound in Elem")

@@ -18,11 +18,7 @@ from keopscore.utils.misc_utils import KeOps_Error
 class BSpline_Impl(Operation):
     string_id = "BSpline_Impl"
 
-    def __init__(self, knots, x, order=None, params=None):
-        # N.B. init via params keyword is used for compatibility with base class.
-        if order is None:
-            # here we assume params is a tuple containing a single value
-            (order,) = params
+    def __init__(self, knots, x, order=None):
 
         if order < 0:
             KeOps_Error(f"The order of a BSpline must be >= 0, but received {order}.")

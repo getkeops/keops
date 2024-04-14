@@ -18,15 +18,12 @@ class Scalprod_Impl(InnerReductionOp):
 
     dim = 1
 
-    def __init__(self, fa, fb, params=()):
-        # N.B. params keyword is used for compatibility with base class, but should always equal ()
-        if params != ():
-            KeOps_Error("There should be no parameter.")
+    def __init__(self, fa, fb):
         # Output dimension = 1, provided that FA::DIM = FB::DIM
         self.dimin = fa.dim
         if self.dimin != fb.dim:
             KeOps_Error("Dimensions must be the same for Scalprod")
-        super().__init__(fa, fb)
+        super().__init__(fa,fb)
 
     def ScalarOp(self, out, arga, argb):
         return out.assign(keops_fma(arga, argb, out))

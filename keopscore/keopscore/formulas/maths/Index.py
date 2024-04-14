@@ -12,13 +12,10 @@ class Index(Operation):
     print_spec = ("[", "]"), "item", 1
     linearity_type = "first"
 
-    def __init__(self, f, g, m=None, params=()):
-        # N.B. params keyword is used for compatibility with base class, but should always equal ()
-        if params != ():
-            KeOps_Error("There should be no parameter.")
+    def __init__(self, f, g, m=None):
         if g.dim != 1:
             KeOps_Error("dimension of index variable should be 1.")
-        super().__init__(f, g)
+        super().__init__(f,g, params=(m,))
         self.dim = 1
 
     def Op(self, out, table, arga, argb):
