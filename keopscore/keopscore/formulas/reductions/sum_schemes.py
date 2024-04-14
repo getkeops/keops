@@ -22,10 +22,10 @@ class Sum_Scheme:
 
     def declare_formula_out(self):
         return self.fout.declare()
-    
+
     def declare_accumulator(self):
         return self.acc.declare()
-    
+
     def declare_temporary_accumulator(self):
         return self.tmp_acc.declare()
 
@@ -65,10 +65,10 @@ class direct_acc(Sum_Scheme):
 
     def declare_formula_out(self):
         return ""
-    
+
     def declare_accumulator(self):
         return ""
-    
+
     def declare_temporary_accumulator(self):
         return ""
 
@@ -77,7 +77,7 @@ class direct_acc(Sum_Scheme):
 
     def accumulate_result(self, acc, fout, j, hack=False):
         return ""
-    
+
     def FinalizeOutput(self, acc, outi, i):
         return ""
 

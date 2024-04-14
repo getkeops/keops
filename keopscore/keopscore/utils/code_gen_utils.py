@@ -52,7 +52,9 @@ class c_variable:
     # class to represent a C++ variable, storing its c++ name and its C++ type.
     def __new__(self, dtype, list_string_id=None, **kwargs):
         if isinstance(list_string_id, list):
-            return list(c_variable(dtype, string_id, **kwargs) for string_id in list_string_id)
+            return list(
+                c_variable(dtype, string_id, **kwargs) for string_id in list_string_id
+            )
         else:
             return super(c_variable, self).__new__(self)
 
@@ -62,7 +64,7 @@ class c_variable:
         self.dtype = dtype  # dtype is C++ type of variable
         self.id = string_id  # string_id is C++ name of variable
         self.assign_mode = assign_mode
-        if assign_mode=="add_assign":
+        if assign_mode == "add_assign":
             self.assign = self.add_assign
 
     def __repr__(self):
@@ -324,7 +326,9 @@ def pointer(x):
 
 
 class c_array:
-    def __init__(self, dtype, dim, string_id=new_c_varname("array"), assign_mode="assign"):
+    def __init__(
+        self, dtype, dim, string_id=new_c_varname("array"), assign_mode="assign"
+    ):
         if dim < 0:
             KeOps_Error("negative dimension for array")
         self.c_var = c_variable(pointer(dtype), string_id)
@@ -332,10 +336,10 @@ class c_array:
         self.dim = dim
         self.id = string_id
         self.set_assign_mode(assign_mode)
-    
+
     def set_assign_mode(self, assign_mode):
         self.assign_mode = assign_mode
-        if assign_mode=="add_assign":
+        if assign_mode == "add_assign":
             self.assign = self.add_assign
 
     def __repr__(self):
@@ -378,11 +382,21 @@ class c_array:
             return self[c_variable(c_type_other, str(other))]
         elif type(other) == c_variable:
             if other.dtype in ("int", "signed long int"):
-                return c_variable(self.dtype, f"{self.id}[{other.id}]", assign_mode = self.assign_mode)
+                return c_variable(
+                    self.dtype, f"{self.id}[{other.id}]", assign_mode=self.assign_mode
+                )
             elif other.dtype == "float":
-                return c_variable(self.dtype, f"{self.id}[(int){other.id}]", assign_mode = self.assign_mode)
+                return c_variable(
+                    self.dtype,
+                    f"{self.id}[(int){other.id}]",
+                    assign_mode=self.assign_mode,
+                )
             elif other.dtype == "double":
-                return c_variable(self.dtype, f"{self.id}[(signed long int){other.id}]", assign_mode = self.assign_mode)
+                return c_variable(
+                    self.dtype,
+                    f"{self.id}[(signed long int){other.id}]",
+                    assign_mode=self.assign_mode,
+                )
             else:
                 KeOps_Error(
                     "v[i] with i and v c_array requires i.dtype='int', i.dtype='signed long int', i.dtype='float' or i.dtype='double' "
