@@ -13,7 +13,7 @@ from keopscore.formulas.variables.IntCst import IntCst_Impl
 from keopscore.formulas.variables.Var import Var
 from keopscore.formulas.variables.Zero import Zero
 from keopscore.formulas.maths.Scalprod import Scalprod_Impl
-from keopscore.formulas.Operation import Broadcast
+from keopscore.formulas.Operation import Broadcast, FusedOp
 
 
 # /////////////////////////////////////////////////////////////
@@ -30,6 +30,9 @@ class LinearOperator_class:
     def __call__(self, formula, v, *args, **kwargs):
         m, n = formula.dim, v.dim
         if not formula.is_linear(v):
+            print("********************************")
+            print("********************************")
+            formula.is_linear(v)
             KeOps_Error("Formula is not linear with respect to variable.")
 
         if type(formula) in [Add_Impl, Minus_Impl, Subtract_Impl]:
@@ -40,6 +43,8 @@ class LinearOperator_class:
         elif isinstance(formula, Scalprod_Impl):
             fa, fb = formula.children
             return self(Sum_Impl(fa * fb), v, *args, **kwargs)
+        elif isinstance(formula, FusedOp):
+            return self(formula.parent_op, v, *args, **kwargs)
 
         res = self.call(formula, v, *args, **kwargs)
         if res is not None:

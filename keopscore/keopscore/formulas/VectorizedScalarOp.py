@@ -1,5 +1,5 @@
 from keopscore.utils.code_gen_utils import VectApply, c_variable
-from keopscore.formulas.Operation import Operation
+from keopscore.formulas.Operation import FusedOp, Operation
 from keopscore.utils.misc_utils import KeOps_Error
 
 
@@ -89,33 +89,7 @@ class VectorizedScalarOp(Operation):
         return list(res)
 
     enable_test = True
-
-
-class FusedVectorizedScalarOp(VectorizedScalarOp):
+    
+class FusedVectorizedScalarOp(FusedOp, VectorizedScalarOp):
 
     string_id = "fused_vectorized"
-
-    def recursive_str(self):
-        return self.parent_op.recursive_str()
-
-    def __init__(self, *args, params=()):
-        parent_op, ind_child_op = params
-        child_op = parent_op.children[ind_child_op]
-        super().__init__(*args, params=params)
-        self.parent_op, self.ind_child_op, self.child_op = (
-            parent_op,
-            ind_child_op,
-            child_op,
-        )
-
-    def ScalarOp(self, out, *args):
-        i, m = self.ind_child_op, len(self.child_op.children)
-        args_child = args[i : i + m]
-        out_child = c_variable(out.dtype)
-        str_child = self.child_op.ScalarOp(out_child, *args_child)
-        args_parent = args[:i] + (out_child,) + args[i + m :]
-        str_parent = self.parent_op.ScalarOp(out, *args_parent)
-        return "{" + out_child.declare() + str_child + str_parent + "}"
-
-    def DiffT(self, v, gradin):
-        return self.parent_op.DiffT(v, gradin)
