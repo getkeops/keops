@@ -36,6 +36,13 @@ class Operation(Tree):
             set.union(*(set(arg.Vars_) for arg in args)) if len(args) > 0 else set()
         )
         self.Vars_ = sorted(list(set_vars), key=lambda v: v.ind)
+    
+    def renew(self, args=None, params=None):
+        if args is None:
+            args = self.children
+        if params is None:
+            params = self.params
+        return type(self)(*args, *params)
 
     def Vars(self, cat="all"):
         # if cat=="all", returns the list of all variables in a formula, stored in self.Vars_
@@ -240,7 +247,7 @@ class Operation(Tree):
         for child in self.children:
             args.append(child.post_chunk_formula(ind))
             ind += child.num_chunked_formulas
-        return type(self)(*args, params=self.params)
+        return self.renew(args=args)
 
     enable_test = False
     disable_testgrad = False
@@ -293,6 +300,13 @@ class FusedOp(Operation):
         )
         self.linearity_type = parent_op.linearity_type
         self.is_linear = parent_op.is_linear
+    
+    def renew(self, args=None, params=None):
+        i, m = self.ind_child_op, len(self.child_op.children)
+        args_child = args[i : i + m]
+        new_child = self.child_op.renew(args=args_child)
+        args_parent = args[:i] + [new_child] + args[i + m :]
+        return self.parent_op.renew(args=args_parent, params=params)
 
     def ScalarOp(self, out, *args):
         i, m = self.ind_child_op, len(self.child_op.children)

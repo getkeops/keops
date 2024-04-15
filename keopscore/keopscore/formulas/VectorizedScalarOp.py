@@ -25,10 +25,10 @@ class VectorizedScalarOp(Operation):
         return obj
 
     def __init__(self, *args, params=()):
-        dims = set(arg.dim for arg in args)
+        super().__init__(*args, params=params)
+        dims = set(arg.dim for arg in self.children)
         if len(dims) > 2 or (len(dims) == 2 and min(dims) != 1):
             KeOps_Error("dimensions are not compatible for VectorizedScalarOp")
-        super().__init__(*args, params=params)
 
     @property
     def dim(self):
