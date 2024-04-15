@@ -101,7 +101,7 @@ class GpuReduc1D_finalchunks(MapReduce, Gpu_link_compile):
         varfinal = self.red_formula.formula.children[1 - ind_fun_internal]
         nchunks = 1 + (varfinal.dim - 1) // dimfinalchunk
         dimlastfinalchunk = varfinal.dim - (nchunks - 1) * dimfinalchunk
-        varloader = Var_loader(fun_internal)
+        varloader = Var_loader(fun_internal, force_all_local=self.force_all_local)
         dimsx = varloader.dimsx
         dimsy = varloader.dimsy
         dimsp = varloader.dimsp
@@ -131,7 +131,7 @@ class GpuReduc1D_finalchunks(MapReduce, Gpu_link_compile):
         yjloc = c_array(dtype, dimy, f"(yj + threadIdx.x * {dimy})")
         foutjrel = c_array(dtype, dimfout, f"({fout.id}+jrel*{dimfout})")
         yjrel = c_array(dtype, dimy, "yjrel")
-        table = self.varloader.table(xi, yjrel, param_loc)
+        table = self.varloader.table(xi, yjrel, param_loc, None, None, None)
 
         last_chunk = c_variable("signed long int", f"{nchunks-1}")
 
@@ -190,7 +190,7 @@ class GpuReduc1D_finalchunks(MapReduce, Gpu_link_compile):
                           // get the value of variable (index with i)
                           {xi.declare()}
                           if (i < nx) {{
-                              {load_vars(dimsx, indsi, xi, args, row_index=i)} // load xi variables from global memory to local thread memory
+                              {load_vars(dimsx, indsi, xi, args, row_index=i, is_local=varloader.is_local_var)} // load xi variables from global memory to local thread memory
                               {use_pragma_unroll()}
                               for (signed long int k=0; k<{dimout}; k++) {{
                                   out[i*{dimout}+k] = 0.0f;
@@ -204,7 +204,7 @@ class GpuReduc1D_finalchunks(MapReduce, Gpu_link_compile):
                               // get the current column
                               signed long int j = tile * blockDim.x + threadIdx.x;
                               if (j < ny) {{ // we load yj from device global memory only if j<ny
-                                  {load_vars(dimsy, indsj, yjloc, args, row_index=j)} // load yj variables from global memory to shared memory
+                                  {load_vars(dimsy, indsj, yjloc, args, row_index=j, is_local=varloader.is_local_var)} // load yj variables from global memory to shared memory
                               }}
                               __syncthreads();
 
