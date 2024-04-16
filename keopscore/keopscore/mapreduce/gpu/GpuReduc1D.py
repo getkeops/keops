@@ -11,6 +11,7 @@ class GpuReduc1D(MapReduce, Gpu_link_compile):
     # class for generating the final C++ code, Gpu version
 
     AssignZero = GpuAssignZero
+    force_all_local = False
 
     def __init__(self, *args):
         MapReduce.__init__(self, *args)
@@ -36,9 +37,12 @@ class GpuReduc1D(MapReduce, Gpu_link_compile):
 
         param_loc = self.param_loc
         xi = self.xi
-        yjloc = c_array(dtype, varloader.dimy, f"(yj + threadIdx.x * {varloader.dimy})")
-        yjrel = c_array(dtype, varloader.dimy, "yjrel")
-        table = varloader.table(self.xi, yjrel, self.param_loc)
+        yjloc = c_array(
+            dtype, varloader.dimy_local, f"(yj + threadIdx.x * {varloader.dimy_local})"
+        )
+        yjrel = c_array(dtype, varloader.dimy_local, "yjrel")
+        j_call = c_variable("signed long int", "(jstart+jrel)")
+        table = varloader.table(self.xi, yjrel, self.param_loc, args, i, j_call)
         jreltile = c_variable("signed long int", "(jrel + tile * blockDim.x)")
 
         self.code = f"""
@@ -81,8 +85,8 @@ class GpuReduc1D(MapReduce, Gpu_link_compile):
                             if (i < nx) {{ // we compute x1i only if needed
                               {dtype} * yjrel = yj;
                               {sum_scheme.initialize_temporary_accumulator_block_init()}
-                              for (signed long int jrel = 0; (jrel < blockDim.x) && (jrel < ny - jstart); jrel++, yjrel += {varloader.dimy}) {{
-                                {red_formula.formula(fout, table, i, jreltile, tagI)} // Call the function, which outputs results in fout
+                              for (signed long int jrel = 0; (jrel < blockDim.x) && (jrel < ny - jstart); jrel++, yjrel += {varloader.dimy_local}) {{
+                                {red_formula.formula(fout, table)} // Call the function, which outputs results in fout
                                 {sum_scheme.accumulate_result(acc, fout, jreltile)}
                               }}
                               {sum_scheme.final_operation(acc)}

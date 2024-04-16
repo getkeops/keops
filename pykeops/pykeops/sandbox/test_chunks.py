@@ -6,7 +6,7 @@ import math
 import torch
 from pykeops.torch import LazyTensor
 
-M, N, D, DV = 1000, 1000, 2000, 1
+M, N, D, DV = 100, 100, 2000, 1
 
 dtype = torch.float32
 
@@ -51,7 +51,7 @@ def fun(x, y, b, backend):
     return out
 
 
-backends = ["keops", "keops_alt"]  # ["torch", "keops", "keops_alt"]
+backends = ["torch", "keops", "keops_alt"]
 
 out = []
 ntry = 10
@@ -74,7 +74,7 @@ if len(out) > 1:
     for k in range(1, len(out)):
         print(
             f"relative error:({backends[k]})",
-            (torch.norm(out[0] - out[1]) / torch.norm(out[0])).item(),
+            (torch.norm(out[0] - out[k]) / torch.norm(out[0])).item(),
         )
 
 
@@ -95,7 +95,7 @@ if test_grad:
     for k in range(1, len(out_g)):
         print(
             f"relative error grad:({backends[k]})",
-            (torch.norm(out_g[0] - out_g[1]) / torch.norm(out_g[0])).item(),
+            (torch.norm(out_g[0] - out_g[k]) / torch.norm(out_g[0])).item(),
         )
 
 if test_grad2:
@@ -111,5 +111,5 @@ if test_grad2:
     for k in range(1, len(out_g2)):
         print(
             f"relative error grad2:({backends[k]})",
-            (torch.norm(out_g2[0] - out_g2[1]) / torch.norm(out_g2[0])).item(),
+            (torch.norm(out_g2[0] - out_g2[k]) / torch.norm(out_g2[0])).item(),
         )

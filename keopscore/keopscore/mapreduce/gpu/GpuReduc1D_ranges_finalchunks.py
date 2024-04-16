@@ -39,7 +39,7 @@ def do_finalchunk_sub_ranges(
 ):
     dimout = varfinal.dim
     yjloc = c_variable(pointer(dtype), f"({yj.id} + threadIdx.x * {dimfinalchunk})")
-    indsj_global = Var_loader(fun_global).indsj
+    indsj_global = Var_loader(fun_global, force_all_local=True).indsj
     load_chunks_routine_j = load_vars_chunks(
         [varfinal.ind],
         dimfinalchunk,
@@ -95,6 +95,7 @@ class GpuReduc1D_ranges_finalchunks(MapReduce, Gpu_link_compile):
     # class for generating the final C++ code, Gpu version
 
     AssignZero = GpuAssignZero
+    force_all_local = True
 
     def __init__(self, *args):
         MapReduce.__init__(self, *args)
@@ -123,7 +124,7 @@ class GpuReduc1D_ranges_finalchunks(MapReduce, Gpu_link_compile):
         varfinal = self.red_formula.formula.children[1 - ind_fun_internal]
         nchunks = 1 + (varfinal.dim - 1) // dimfinalchunk
         dimlastfinalchunk = varfinal.dim - (nchunks - 1) * dimfinalchunk
-        varloader = Var_loader(fun_internal)
+        varloader = Var_loader(fun_internal, force_all_local=self.force_all_local)
         dimsx = varloader.dimsx
         dimsy = varloader.dimsy
         dimsp = varloader.dimsp
@@ -153,7 +154,7 @@ class GpuReduc1D_ranges_finalchunks(MapReduce, Gpu_link_compile):
         yjloc = c_array(dtype, dimy, f"(yj + threadIdx.x * {dimy})")
         foutjrel = c_array(dtype, dimfout, f"({fout.id}+jrel*{dimfout})")
         yjrel = c_array(dtype, dimy, "yjrel")
-        table = varloader.table(xi, yjrel, param_loc)
+        table = varloader.table(xi, yjrel, param_loc, None, None, None)
 
         lastchunk = c_variable("signed long int", f"{nchunks-1}")
 
@@ -166,7 +167,7 @@ class GpuReduc1D_ranges_finalchunks(MapReduce, Gpu_link_compile):
         nbatchdims = c_variable("int", "nbatchdims")
 
         fun_global = self.red_formula
-        varloader_global = Var_loader(fun_global)
+        varloader_global = Var_loader(fun_global, force_all_local=self.force_all_local)
         indsi_global = varloader_global.indsi
         indsj_global = varloader_global.indsj
         nvarsi_global, nvarsj_global, nvarsp_global = (

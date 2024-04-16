@@ -15,6 +15,7 @@ class CpuReduc_ranges(MapReduce, Cpu_link_compile):
     # class for generating the final C++ code, Cpu version
 
     AssignZero = CpuAssignZero
+    force_all_local = True
 
     def __init__(self, *args):
         MapReduce.__init__(self, *args)
@@ -42,7 +43,6 @@ class CpuReduc_ranges(MapReduce, Cpu_link_compile):
         param_loc = self.param_loc
 
         varloader = self.varloader
-        table = varloader.table(xi, yj, param_loc)
 
         nvarsi, nvarsj, nvarsp = (
             len(self.varloader.Varsi),
@@ -63,6 +63,11 @@ class CpuReduc_ranges(MapReduce, Cpu_link_compile):
         indices_p = c_array("int", nvarsp, "indices_p")
         imstartx = c_variable("int", "(i-start_x)")
         jmstarty = c_variable("int", "(j-start_y)")
+
+        table_nobatchmode = varloader.table(xi, yj, param_loc, args, i, j)
+        table_batchmode = varloader.table(
+            xi, yj, param_loc, args, imstartx, jmstarty, indices_i, indices_j, indices_p
+        )
 
         headers = ["cmath", "stdlib.h"]
         if keopscore.config.config.use_OpenMP:
@@ -211,13 +216,13 @@ int CpuConv_ranges_{self.gencode_filename}(signed long int nx, signed long int n
                 if (nbatchdims == 0) {{
                     for (signed long int j = start_y; j < end_y; j++) {{
                         {varloader.load_vars("j", yj, args, row_index=j)}
-                        {red_formula.formula(fout,table,i,j,tagI)}
+                        {red_formula.formula(fout,table_nobatchmode)}
                         {sum_scheme.accumulate_result(acc, fout, j)}
                     }}
                 }} else {{
                     for (signed long int j = start_y; j < end_y; j++) {{
                         {varloader.load_vars("j", yj, args, row_index=jmstarty, offsets=indices_j)}
-                        {red_formula.formula(fout,table,imstartx,jmstarty,tagI)}
+                        {red_formula.formula(fout,table_batchmode)}
                         {sum_scheme.accumulate_result(acc, fout, jmstarty)}
                     }}
                 }}

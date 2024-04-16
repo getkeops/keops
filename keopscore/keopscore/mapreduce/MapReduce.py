@@ -40,7 +40,9 @@ class MapReduce:
         self.use_half = use_half
         self.use_fast_math = use_fast_math
         self.device_id = device_id
-        self.varloader = Var_loader(self.red_formula)
+        self.varloader = Var_loader(
+            self.red_formula, force_all_local=self.force_all_local
+        )
 
     def get_code(self):
         self.headers = "#define C_CONTIGUOUS 1\n"
@@ -64,8 +66,8 @@ class MapReduce:
         nx = c_variable("signed long int", "nx")
         ny = c_variable("signed long int", "ny")
 
-        self.xi = c_array(dtype, self.varloader.dimx, "xi")
-        self.param_loc = c_array(dtype, self.varloader.dimp, "param_loc")
+        self.xi = c_array(dtype, self.varloader.dimx_local, "xi")
+        self.param_loc = c_array(dtype, self.varloader.dimp_local, "param_loc")
 
         argname = new_c_varname("arg")
         self.arg = c_variable(pointer(pointer(dtype)), argname)

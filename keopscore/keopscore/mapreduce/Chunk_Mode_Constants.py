@@ -5,7 +5,7 @@ from keopscore.formulas.variables.Var import Var
 
 class Chunk_Mode_Constants:
     def __init__(self, red_formula):
-        varloader = Var_loader(red_formula)
+        varloader = Var_loader(red_formula, force_all_local=True)
 
         self.red_formula = red_formula
         self.dimred = red_formula.dimred  # dimension of reduction operation

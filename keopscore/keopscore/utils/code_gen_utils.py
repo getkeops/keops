@@ -1,6 +1,7 @@
 import os
 from hashlib import sha256
 
+import keopscore
 from keopscore.config.config import disable_pragma_unrolls
 from keopscore.utils.misc_utils import KeOps_Error, KeOps_Message
 
@@ -530,8 +531,13 @@ def GetInds(Vars):
     return tuple(v.ind for v in Vars)
 
 
+def GetCats(Vars):
+    # returns the list of cat fields (categories) of a list of Var instances
+    return tuple(v.cat for v in Vars)
+
+
 class Var_loader:
-    def __init__(self, red_formula):
+    def __init__(self, red_formula, force_all_local):
         formula = red_formula.formula
         tagI, tagJ = red_formula.tagI, red_formula.tagJ
 
@@ -565,7 +571,43 @@ class Var_loader:
         self.inds = GetInds(formula.Vars_)
         self.nminargs = max(self.inds) + 1 if len(self.inds) > 0 else 0
 
-    def table(self, xi, yj, pp):
+        self.dims = GetDims(formula.Vars_)
+        self.cats = GetCats(formula.Vars_)
+
+        if force_all_local or len(formula.Vars_)==0:
+            self.is_local_var = [True] * self.nminargs
+            self.dimx_local, self.dimy_local, self.dimp_local = (
+                self.dimx,
+                self.dimy,
+                self.dimp,
+            )
+        else:
+            self.is_local_var = [False] * self.nminargs
+            dims_sorted, inds_sorted, cats_sorted = zip(
+                *sorted(zip(self.dims, self.inds, self.cats))
+            )
+            dimcur = 0
+            for k in range(len(dims_sorted)):
+                dimcur += dims_sorted[k]
+                if dimcur < keopscore.config.config.lim_dim_local_var:
+                    self.is_local_var[inds_sorted[k]] = True
+                else:
+                    break
+
+            cnt = [0, 0, 0]
+            for k in range(len(dims_sorted)):
+                if self.is_local_var[inds_sorted[k]] == True:
+                    if cats_sorted[k] == tagI:
+                        cnt[0] += dims_sorted[k]
+                    elif cats_sorted[k] == tagJ:
+                        cnt[1] += dims_sorted[k]
+                    else:
+                        cnt[2] += dims_sorted[k]
+            self.dimx_local, self.dimy_local, self.dimp_local = cnt
+
+    def table(
+        self, xi, yj, pp, args, i, j, offsetsi=None, offsetsj=None, offsetsp=None
+    ):
         return table(
             self.nminargs,
             self.dimsx,
@@ -577,6 +619,13 @@ class Var_loader:
             xi,
             yj,
             pp,
+            self.is_local_var,
+            args,
+            i,
+            j,
+            offsetsi,
+            offsetsj,
+            offsetsp,
         )
 
     def direct_table(self, args, i, j):
@@ -600,20 +649,47 @@ class Var_loader:
             dims, inds = self.dimsy, self.indsj
         elif cat == "p":
             dims, inds = self.dimsp, self.indsp
-        return load_vars(dims, inds, *args, **kwargs)
+        return load_vars(dims, inds, *args, **kwargs, is_local=self.is_local_var)
 
 
-def table(nminargs, dimsx, dimsy, dimsp, indsi, indsj, indsp, xi, yj, pp):
+def table(
+    nminargs,
+    dimsx,
+    dimsy,
+    dimsp,
+    indsi,
+    indsj,
+    indsp,
+    xi,
+    yj,
+    pp,
+    is_local,
+    args,
+    i,
+    j,
+    offsetsi=None,
+    offsetsj=None,
+    offsetsp=None,
+):
     res = [None] * nminargs
-    for dims, inds, xloc in (
-        (dimsx, indsi, xi),
-        (dimsy, indsj, yj),
-        (dimsp, indsp, pp),
+    for dims, inds, loc, row_index, offsets in (
+        (dimsx, indsi, xi, i, offsetsi),
+        (dimsy, indsj, yj, j, offsetsj),
+        (dimsp, indsp, pp, c_zero_int, offsetsp),
     ):
         k = 0
         for u in range(len(dims)):
-            res[inds[u]] = c_array(xloc.dtype, dims[u], f"({xloc.id}+{k})")
-            k += dims[u]
+            if is_local[inds[u]]:
+                res[inds[u]] = c_array(loc.dtype, dims[u], f"({loc.id}+{k})")
+                k += dims[u]
+            else:
+                row_index_str = (
+                    f"({row_index.id}+{offsets.id}[{u}])" if offsets else row_index.id
+                )
+                arg = args[inds[u]]
+                res[inds[u]] = c_array(
+                    value(arg.dtype), dims[u], f"({arg.id}+{row_index_str}*{dims[u]})"
+                )
     return res
 
 
@@ -662,7 +738,16 @@ def table4(
     return res
 
 
-def load_vars(dims, inds, xloc, args, row_index=c_zero_int, offsets=None, indsref=None):
+def load_vars(
+    dims,
+    inds,
+    xloc,
+    args,
+    row_index=c_zero_int,
+    offsets=None,
+    indsref=None,
+    is_local=None,
+):
     # returns a c++ code used to create a local copy of slices of the input tensors, for evaluating a formula
     # - dims is a list of integers giving dimensions of variables
     # - dims is a list of integers giving indices of variables
@@ -671,6 +756,7 @@ def load_vars(dims, inds, xloc, args, row_index=c_zero_int, offsets=None, indsre
     # - row_index is a c_variable (of dtype="int"), specifying which row of the matrix should be loaded
     # - offsets is an optional c_array (of dtype="int"), specifying variable-dependent offsets (used when broadcasting batch dimensions)
     # - indsref is an optional list of integers, giving index mapping for offsets
+    # - is_local is an optional list of booleans, used in case not all variables must be loaded
     #
     # Example: assuming i=c_variable("int", "5"), xloc=c_variable("float", "xi") and px=c_variable("float**", "px"), then
     # if dims = [2,2,3] and inds = [7,9,8], the call to
@@ -722,13 +808,12 @@ def load_vars(dims, inds, xloc, args, row_index=c_zero_int, offsets=None, indsre
             row_index_str = (
                 f"({row_index.id}+{offsets.id}[{l}])" if offsets else row_index.id
             )
-            string += use_pragma_unroll()
-            string += f"for(signed long int v=0; v<{dims[u]}; v++) {{\n"
-            string += (
-                f"    {xloc.id}[a] = {args[inds[u]].id}[{row_index_str}*{dims[u]}+v];\n"
-            )
-            string += "     a++;\n"
-            string += "}\n"
+            if is_local[inds[u]]:
+                string += use_pragma_unroll()
+                string += f"for(signed long int v=0; v<{dims[u]}; v++) {{\n"
+                string += f"    {xloc.id}[a] = {args[inds[u]].id}[{row_index_str}*{dims[u]}+v];\n"
+                string += "     a++;\n"
+                string += "}\n"
         string += "}\n"
     return string
 

@@ -11,6 +11,8 @@ import keopscore
 class CpuAssignZero(MapReduce, Cpu_link_compile):
     # class for generating the final C++ code, Cpu version
 
+    force_all_local = True
+
     def __init__(self, *args):
         MapReduce.__init__(self, *args)
         Cpu_link_compile.__init__(self)

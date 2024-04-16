@@ -91,6 +91,10 @@ def do_chunk_sub(
         xi,
         yjrel,
         param_loc,
+        [True] * chk.nminargs,
+        None,
+        None,
+        None,
     )
     foutj = c_variable(pointer(dtype), "foutj")
 
@@ -122,6 +126,7 @@ class GpuReduc1D_chunks(MapReduce, Gpu_link_compile):
     # class for generating the final C++ code, Gpu version
 
     AssignZero = GpuAssignZero
+    force_all_local = True
 
     def __init__(self, *args):
         MapReduce.__init__(self, *args)
@@ -266,7 +271,7 @@ class GpuReduc1D_chunks(MapReduce, Gpu_link_compile):
 
                           // load parameters variables from global memory to local thread memory
                           {param_loc.declare()}
-                          {load_vars(chk.dimsp_notchunked, chk.indsp_notchunked, param_loc, args)}
+                          {load_vars(chk.dimsp_notchunked, chk.indsp_notchunked, param_loc, args, is_local=varloader.is_local_var)}
                           
                           {acc.declare()}
                           
@@ -282,7 +287,7 @@ class GpuReduc1D_chunks(MapReduce, Gpu_link_compile):
                           {fout_chunk.declare()}
                           
                           if (i < nx) {{
-                            {load_vars(chk.dimsx_notchunked, chk.indsi_notchunked, xi, args, row_index=i)} // load xi variables from global memory to local thread memory
+                            {load_vars(chk.dimsx_notchunked, chk.indsi_notchunked, xi, args, row_index=i, is_local=varloader.is_local_var)} // load xi variables from global memory to local thread memory
                           }}
 
                           for (signed long int jstart = 0, tile = 0; jstart < ny; jstart += blockDim.x, tile++) {{
@@ -291,7 +296,7 @@ class GpuReduc1D_chunks(MapReduce, Gpu_link_compile):
                             signed long int j = tile * blockDim.x + threadIdx.x;
 
                             if (j < ny) {{ // we load yj from device global memory only if j<ny
-                              {load_vars(chk.dimsy_notchunked, chk.indsj_notchunked, yjloc, args, row_index=j)} 
+                              {load_vars(chk.dimsy_notchunked, chk.indsj_notchunked, yjloc, args, row_index=j, is_local=varloader.is_local_var)} 
                             }}
                             __syncthreads();
 
