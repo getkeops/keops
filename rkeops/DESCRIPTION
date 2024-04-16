@@ -59,7 +59,7 @@ VignetteBuilder:
 RdMacros: 
     Rdpack
 Config/testthat/edition: 3
-Date/Publication: 2024/04/12
+Date/Publication: 2024/04/16
 Encoding: UTF-8
 OS_type: unix
 Roxygen: list(markdown = TRUE)
