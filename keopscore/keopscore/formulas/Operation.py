@@ -37,12 +37,12 @@ class Operation(Tree):
         )
         self.Vars_ = sorted(list(set_vars), key=lambda v: v.ind)
     
-    def renew(self, args=None, params=None):
+    def renew(self, args=None, params=None, allow_fuse=True):
         if args is None:
             args = self.children
         if params is None:
             params = self.params
-        return type(self)(*args, *params)
+        return type(self)(*args, *params, allow_fuse=allow_fuse)
 
     def Vars(self, cat="all"):
         # if cat=="all", returns the list of all variables in a formula, stored in self.Vars_
@@ -301,12 +301,12 @@ class FusedOp(Operation):
         self.linearity_type = parent_op.linearity_type
         self.is_linear = parent_op.is_linear
     
-    def renew(self, args=None, params=None):
+    def renew(self, args=None, params=None, allow_fuse=True):
         i, m = self.ind_child_op, len(self.child_op.children)
         args_child = args[i : i + m]
-        new_child = self.child_op.renew(args=args_child)
+        new_child = self.child_op.renew(args=args_child, allow_fuse=allow_fuse)
         args_parent = args[:i] + [new_child] + args[i + m :]
-        return self.parent_op.renew(args=args_parent, params=params)
+        return self.parent_op.renew(args=args_parent, params=params, allow_fuse=allow_fuse)
 
     def ScalarOp(self, out, *args):
         i, m = self.ind_child_op, len(self.child_op.children)
