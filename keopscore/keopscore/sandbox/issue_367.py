@@ -16,17 +16,16 @@ def fun_keops(A, I, J):
     return K.sum(axis=1).flatten()
 
 
-P, Q = 100, 100
-M, N = 1000, 1000
+P, Q = 10000, 10000
+M, N = 100000, 100000
 device = "cuda" if torch.cuda.is_available() else "cpu"
 dtype = torch.float64
 A = torch.randn((P, Q), requires_grad=True, device=device, dtype=dtype)
-# I = torch.randint(P, (M, 1), device=device)
-# J = torch.randint(Q, (1, N), device=device)
-I = (5 * torch.ones((M, 1), device=device)).to(torch.long)
-J = (2 * torch.ones((1, N), device=device)).to(torch.long)
+I = torch.randint(P, (M, 1), device=device)
+J = torch.randint(Q, (1, N), device=device)
 
-test_torch = True
+test_torch = False
+test_grad = False
 
 if test_torch:
     start = time()
@@ -46,12 +45,13 @@ if test_torch:
 
 
 # testing gradients
-if test_torch:
-    loss_torch = (res_torch**2).sum()
-    res_torch = torch.autograd.grad(loss_torch, [A])[0]
+if test_grad:
+    if test_torch:
+        loss_torch = (res_torch**2).sum()
+        res_torch = torch.autograd.grad(loss_torch, [A])[0]
 
-loss_keops = (res_keops**2).sum()
-res_keops = torch.autograd.grad(loss_keops, [A])[0]
+    loss_keops = (res_keops**2).sum()
+    res_keops = torch.autograd.grad(loss_keops, [A])[0]
 
-if test_torch:
-    print(torch.norm(res_keops - res_torch) / torch.norm(res_torch))
+    if test_torch:
+        print(torch.norm(res_keops - res_torch) / torch.norm(res_torch))
