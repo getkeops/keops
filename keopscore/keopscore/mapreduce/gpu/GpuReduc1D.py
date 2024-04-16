@@ -22,6 +22,7 @@ class GpuReduc1D(MapReduce, Gpu_link_compile):
         super().get_code()
 
         red_formula = self.red_formula
+        tagI = red_formula.tagI
         dtype = self.dtype
         varloader = self.varloader
 
@@ -85,7 +86,7 @@ class GpuReduc1D(MapReduce, Gpu_link_compile):
                               {dtype} * yjrel = yj;
                               {sum_scheme.initialize_temporary_accumulator_block_init()}
                               for (signed long int jrel = 0; (jrel < blockDim.x) && (jrel < ny - jstart); jrel++, yjrel += {varloader.dimy_local}) {{
-                                {red_formula.formula(fout, table)} // Call the function, which outputs results in fout
+                                {red_formula.formula(fout, table, i, jreltile, tagI)} // Call the function, which outputs results in fout
                                 {sum_scheme.accumulate_result(acc, fout, jreltile)}
                               }}
                               {sum_scheme.final_operation(acc)}

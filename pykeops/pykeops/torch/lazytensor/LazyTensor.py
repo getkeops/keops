@@ -72,6 +72,11 @@ class LazyTensor(GenericLazyTensor):
         return LazyTensor(x=x, axis=axis, is_complex=is_complex)
 
 
+# "i" and "j" index placeholders
+i = LazyTensor("i")
+j = LazyTensor("j")
+
+
 class ComplexLazyTensor(ComplexGenericLazyTensor):
     r"""Extension of the LazyTensor class for complex operations."""
 

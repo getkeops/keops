@@ -406,6 +406,8 @@ public:
       SS.switch_to_half2_indexing();
 
     Ranges<TYPE> RR(SS, ranges);
+    signed long int nx_org = nx;
+    signed long int ny_org = ny;
     nx = SS.nx;
     ny = SS.ny;
 
@@ -463,6 +465,9 @@ public:
       signed long int tmp = ny;
       ny = nx;
       nx = tmp;
+      tmp = ny_org;
+      ny_org = nx_org;
+      nx_org = tmp;
     }
 
     signed long int *lookup_d = NULL, *slices_x_d = NULL, *ranges_y_d = NULL;
@@ -578,7 +583,7 @@ public:
 
       CUDA_SAFE_CALL(
           cuModuleGetFunction(&kernel, module, "GpuConv1DOnDevice_ranges"));
-      void *kernel_params[9];
+      void *kernel_params[11];
       kernel_params[0] = &nx;
       kernel_params[1] = &ny;
       kernel_params[2] = &SS.nbatchdims;
@@ -588,6 +593,8 @@ public:
       kernel_params[6] = &ranges_y_d;
       kernel_params[7] = &out_d;
       kernel_params[8] = &arg_d;
+      kernel_params[9] = &nx_org;
+      kernel_params[10] = &ny_org;
 
       CUDA_SAFE_CALL(cuLaunchKernel(
           kernel, gridSize_x, gridSize_y, gridSize_z, // grid dim

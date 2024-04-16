@@ -574,7 +574,7 @@ class Var_loader:
         self.dims = GetDims(formula.Vars_)
         self.cats = GetCats(formula.Vars_)
 
-        if force_all_local or len(formula.Vars_)==0:
+        if force_all_local or len(formula.Vars_) == 0:
             self.is_local_var = [True] * self.nminargs
             self.dimx_local, self.dimy_local, self.dimp_local = (
                 self.dimx,

@@ -25,6 +25,7 @@ class CpuReduc(MapReduce, Cpu_link_compile):
         i = self.i
         j = self.j
         red_formula = self.red_formula
+        tagI = red_formula.tagI
         fout = self.fout
         outi = self.outi
         acc = self.acc
@@ -52,7 +53,7 @@ int CpuConv_{self.gencode_filename}(signed long int nx, signed long int ny, TYPE
         {red_formula.InitializeReduction(acc)}
         {sum_scheme.initialize_temporary_accumulator()}
         for (signed long int j = 0; j < ny; j++) {{
-            {red_formula.formula(fout,table)}
+            {red_formula.formula(fout,table,i,j,tagI)}
             {sum_scheme.accumulate_result(acc, fout, j)}
             {sum_scheme.periodic_accumulate_temporary(acc, j)}
         }}

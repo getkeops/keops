@@ -23,6 +23,7 @@ class GpuReduc1D_ranges(MapReduce, Gpu_link_compile):
         super().get_code()
 
         red_formula = self.red_formula
+        tagI = red_formula.tagI
         dtype = self.dtype
         varloader = self.varloader
 
@@ -49,6 +50,8 @@ class GpuReduc1D_ranges(MapReduce, Gpu_link_compile):
         )
         yjrel = c_array(dtype, varloader.dimy_local, "yjrel")
         jreltile = c_variable("signed long int", "(jrel + tile * blockDim.x)")
+
+        imod = c_variable("signed long int", "(i%nx_org)")
 
         indices_i = c_array("signed long int", nvarsi, "indices_i")
         indices_j = c_array("signed long int", nvarsj, "indices_j")
@@ -94,7 +97,8 @@ class GpuReduc1D_ranges(MapReduce, Gpu_link_compile):
 
                         extern "C" __global__ void GpuConv1DOnDevice_ranges(signed long int nx, signed long int ny, int nbatchdims,
                                                     signed long int *offsets_d, signed long int *lookup_d, signed long int *slices_x,
-                                                    signed long int *ranges_y, {dtype} *out, {dtype} **{arg.id}) {{
+                                                    signed long int *ranges_y, {dtype} *out, {dtype} **{arg.id}, signed long int nx_org, 
+                                                    signed long int ny_org) {{
                                                         
                           signed long int offsets[{nvars}];
                           {declare_assign_indices_i}
@@ -167,12 +171,12 @@ class GpuReduc1D_ranges(MapReduce, Gpu_link_compile):
                                           {sum_scheme.initialize_temporary_accumulator_block_init()}
                                           if (nbatchdims == 0) {{
                                               for(signed long int jrel = 0; (jrel < blockDim.x) && (jrel<end_y-jstart); jrel++, yjrel+={varloader.dimy_local}) {{
-                                                  {red_formula.formula(fout,table_nobatchmode)} // Call the function, which outputs results in xi[0:DIMX1]
+                                                  {red_formula.formula(fout,table_nobatchmode,i,jreltile+starty,tagI)} // Call the function, which outputs results in xi[0:DIMX1]
                                                   {sum_scheme.accumulate_result(acc, fout, jreltile+starty)}
                                               }} 
                                           }} else {{
                                               for(signed long int jrel = 0; (jrel < blockDim.x) && (jrel<end_y-jstart); jrel++, yjrel+={varloader.dimy_local}) {{
-                                                  {red_formula.formula(fout,table_batchmode)} // Call the function, which outputs results in fout
+                                                  {red_formula.formula(fout,table_batchmode,imod,jreltile,tagI)} // Call the function, which outputs results in fout
                                                   {sum_scheme.accumulate_result(acc, fout, jreltile)}
                                               }}
                                           }}

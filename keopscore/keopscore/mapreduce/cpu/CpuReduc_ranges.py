@@ -29,6 +29,7 @@ class CpuReduc_ranges(MapReduce, Cpu_link_compile):
         j = self.j
         dtype = self.dtype
         red_formula = self.red_formula
+        tagI = red_formula.tagI
         fout = self.fout
         outi = self.outi
         acc = self.acc
@@ -215,13 +216,13 @@ int CpuConv_ranges_{self.gencode_filename}(signed long int nx, signed long int n
                 if (nbatchdims == 0) {{
                     for (signed long int j = start_y; j < end_y; j++) {{
                         {varloader.load_vars("j", yj, args, row_index=j)}
-                        {red_formula.formula(fout,table_nobatchmode)}
+                        {red_formula.formula(fout,table_nobatchmode,i,j,tagI)}
                         {sum_scheme.accumulate_result(acc, fout, j)}
                     }}
                 }} else {{
                     for (signed long int j = start_y; j < end_y; j++) {{
                         {varloader.load_vars("j", yj, args, row_index=jmstarty, offsets=indices_j)}
-                        {red_formula.formula(fout,table_batchmode)}
+                        {red_formula.formula(fout,table_batchmode,imstartx,jmstarty,tagI)}
                         {sum_scheme.accumulate_result(acc, fout, jmstarty)}
                     }}
                 }}

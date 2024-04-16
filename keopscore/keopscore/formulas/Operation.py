@@ -1,4 +1,4 @@
-from keopscore.utils.code_gen_utils import new_c_varname, c_array
+from keopscore.utils.code_gen_utils import new_c_varname, c_array, cast_to, c_variable
 from keopscore.utils.Tree import Tree
 import keopscore
 from keopscore.utils.misc_utils import KeOps_Error
@@ -63,12 +63,13 @@ class Operation(Tree):
         formula = self.replace(old, new, cnt)
         return formula, cnt[0]
 
-    def __call__(self, out, table):
+    def __call__(self, out, table, i, j, tagI):
         """returns the C++ code string corresponding to the evaluation of the formula
          - out is a c_variable in which the result of the evaluation is stored
          - table is the list of c_variables corresponding to actual local variables
         required for evaluation : each Var(ind,*,*) corresponds to table[ind]"""
         from keopscore.formulas.variables.Var import Var
+        from keopscore.formulas.variables.IJ import I, J
 
         string = f"\n{{\n// Starting code block for {self.__repr__()}.\n\n"
         if keopscore.debug_ops:
@@ -83,7 +84,11 @@ class Operation(Tree):
         args = []
         # Evaluation of the child operations
         for child in self.children:
-            if isinstance(child, Var):
+            if isinstance(child, I):
+                arg = i if tagI == 0 else j
+            elif isinstance(child, J):
+                arg = j if tagI == 0 else i
+            elif isinstance(child, Var):
                 # if the child of the operation is a Var, we do not need to evaluate it,
                 # we simply record the corresponding c_variable
                 arg = table[child.ind]
@@ -98,7 +103,7 @@ class Operation(Tree):
                 # Now we append into string the C++ code to declare the array
                 string += f"{arg.declare()}\n"
                 # Now we evaluate the child operation and append the result into string
-                string += child(arg, table)
+                string += child(arg, table, i, j, tagI)
             args.append(arg)
         # Finally, evaluation of the operation itself
         string += self.Op(out, table, *args)
