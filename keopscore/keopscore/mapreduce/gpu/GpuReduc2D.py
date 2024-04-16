@@ -19,6 +19,7 @@ class GpuReduc2D(MapReduce, Gpu_link_compile):
     # class for generating the final C++ code, Gpu version
 
     AssignZero = GpuAssignZero
+    force_all_local = False
 
     def __init__(self, *args):
         MapReduce.__init__(self, *args)
@@ -41,21 +42,18 @@ class GpuReduc2D(MapReduce, Gpu_link_compile):
         inloc = c_array(dtype, dimin, f"(in + (tid+y*nx)*{dimin})")
         outloc = c_array(dtype, dimout, f"(out+tid*{dimout})")
 
-        dimsx = varloader.dimsx
-        dimsy = varloader.dimsy
-        dimsp = varloader.dimsp
         indsi = varloader.indsi
         indsj = varloader.indsj
         indsp = varloader.indsp
-        dimx = sum(dimsx)
-        dimy = sum(dimsy)
-        dimp = sum(dimsp)
+        dimx_local = varloader.dimx_local
+        dimy_local = varloader.dimy_local
+        dimp_local = varloader.dimp_local
         dimred = red_formula.dimred
         dimfout = red_formula.formula.dim
 
         fout = c_array(dtype, dimfout, "fout")
-        param_loc = c_array(dtype, dimp, "param_loc")
-        xi = c_array(dtype, dimx, "xi")
+        param_loc = c_array(dtype, dimp_local, "param_loc")
+        xi = c_array(dtype, dimx_local, "xi")
 
         sum_scheme = self.sum_scheme
 
@@ -68,13 +66,16 @@ class GpuReduc2D(MapReduce, Gpu_link_compile):
         else:
             KeOps_Error("incorrect reduction scheme")
 
-        yjloc = c_array(dtype, varloader.dimy, f"(yj + threadIdx.x * {varloader.dimy})")
+        yjloc = c_array(
+            dtype, varloader.dimy_local, f"(yj + threadIdx.x * {varloader.dimy_local})"
+        )
         arg = self.arg
         args = self.args
-        yjrel = c_array(dtype, dimy, "yjrel")
-        table = varloader.table(self.xi, yjrel, self.param_loc)
+        yjrel = c_array(dtype, dimy_local, "yjrel")
 
         jrelloc = c_variable("signed long int", "(blockDim.x*blockIdx.y+jrel)")
+
+        table = varloader.table(self.xi, yjrel, self.param_loc, arg, i, jrelloc)
 
         tid = c_variable("signed long int", "tid")
 
@@ -176,7 +177,7 @@ class GpuReduc2D(MapReduce, Gpu_link_compile):
                             //       In the future, we could provide other reductions: max, min, ... whatever's needed.
                             if(i<nx) {{ // we compute x1i only if needed
                                 {dtype}* yjrel = yj; // Loop on the columns of the current block.
-                                for(signed long int jrel = 0; (jrel<blockDim.x) && ((blockDim.x*blockIdx.y+jrel)< ny); jrel++, yjrel+={dimy}) {{
+                                for(signed long int jrel = 0; (jrel<blockDim.x) && ((blockDim.x*blockIdx.y+jrel)< ny); jrel++, yjrel+={dimy_local}) {{
                                     {red_formula.formula(fout,table)} // Call the function, which outputs results in fout
                                     {sum_scheme.accumulate_result(acc, fout, jrelloc, hack=True)}
                                 }}

@@ -36,10 +36,8 @@ def test_index():
 
 # testing gradients
 def test_index_grad():
-    loss_torch = (res_torch ** 2).sum()
-    loss_keops = (res_keops ** 2).sum()
-    assert torch.allclose(torch.autograd.grad(loss_torch, [A])[0],
-                          torch.autograd.grad(loss_keops, [A])[0]
-                          )
-
-
+    loss_torch = (res_torch**2).sum()
+    loss_keops = (res_keops**2).sum()
+    assert torch.allclose(
+        torch.autograd.grad(loss_torch, [A])[0], torch.autograd.grad(loss_keops, [A])[0]
+    )
