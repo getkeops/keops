@@ -536,6 +536,7 @@ class Genred:
         self.aliases = complete_aliases(
             self.formula, list(aliases)
         )  # just in case the user provided a tuple
+        self.nargs = len(self.aliases)
         self.axis = axis
         self.opt_arg = opt_arg
 
@@ -652,6 +653,11 @@ class Genred:
             that is inferred from the **formula**.
 
         """
+
+        if len(args) != self.nargs:
+            raise ValueError(
+                f"Invalid number of arguments in call to Genred (should be {self.nargs} and got {len(args)})."
+            )
 
         dtype = args[0].dtype.__str__().split(".")[1]
 
