@@ -31,6 +31,9 @@ Calling \code{clean_rkeops()} allows you to empty RKeOps build directory.
 You can \code{\link[=get_rkeops_cache_dir]{get_rkeops_cache_dir()}} to get the path to RKeOps
 build directory, and you can use \code{\link[=stat_rkeops_cache_dir]{stat_rkeops_cache_dir()}} to
 verify its disk usage.
+
+\strong{Attention}: \code{clean_rkeops(all = TRUE)} will work without a functioning
+Python setup, but \code{clean_rkeops(all = FALSE)} will not.
 }
 \examples{
 \dontrun{

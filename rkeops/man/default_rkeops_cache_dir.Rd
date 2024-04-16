@@ -4,7 +4,11 @@
 \alias{default_rkeops_cache_dir}
 \title{Default cache directory for RKeOps}
 \usage{
-default_rkeops_cache_dir()
+default_rkeops_cache_dir(create = TRUE)
+}
+\arguments{
+\item{create}{logical, indicate if the cache directory should be created or
+not. Default is \code{TRUE}.}
 }
 \value{
 string, path to default rkeops cache directory.
