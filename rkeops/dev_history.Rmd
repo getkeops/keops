@@ -99,6 +99,10 @@ usethis::use_testthat()
 usethis::use_lifecycle()
 ```
 
+```{r dev-test}
+usethis::use_testthat(3)
+```
+
 ### Documentation
 
 ```{r dev-doc}

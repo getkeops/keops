@@ -1,33 +1,3 @@
-test_that("get_rkeops_build_dir", {
-    skip_if_no_python()
-    skip_if_no_keopscore()
-    
-    res <- get_rkeops_build_dir()
-    checkmate::expect_string(res)
-    checkmate::expect_directory(res)
-})
-
-test_that("ls_rkeops_build_dir", {
-    skip_if_no_python()
-    skip_if_no_keopscore()
-    
-    res <- ls_rkeops_build_dir()
-    file_list <- list.files(get_rkeops_build_dir())
-    checkmate::expect_data_frame(res, nrows = length(file_list), ncols = 6)
-    expect_equal(
-        colnames(res), c("size", "isdir", "mode", "mtime", "ctime", "atime"))
-    expect_equal(row.names(res), list.files(get_rkeops_build_dir()))
-})
-
-test_that("clean_rkeops", {
-    skip_if_no_python()
-    skip_if_no_keopscore()
-    
-    clean_rkeops(warn=FALSE)
-    file_list <- list.files(get_rkeops_build_dir())
-    expect_true(length(file_list) == 0)
-})
-
 test_that("get_pykeops_formula", {
     
     formula <- "Sum_Reduction(Exp(-s * SqNorm2(x - y)) * b, 1)"

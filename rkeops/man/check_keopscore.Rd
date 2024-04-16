@@ -4,10 +4,10 @@
 \alias{check_keopscore}
 \title{Check if \code{keopscore} Python package is available}
 \usage{
-check_keopscore(warn = TRUE)
+check_keopscore(verbose = TRUE)
 }
 \arguments{
-\item{warn}{boolean, if TRUE (default), warn user about check result.}
+\item{verbose}{boolean, if TRUE (default), inform user about check result.}
 }
 \value{
 boolean value indicating if the \code{keopscore} package is available.

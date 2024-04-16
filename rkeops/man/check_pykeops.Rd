@@ -4,10 +4,10 @@
 \alias{check_pykeops}
 \title{Check if \code{pykeops} Python package is available}
 \usage{
-check_pykeops(warn = TRUE)
+check_pykeops(verbose = TRUE)
 }
 \arguments{
-\item{warn}{boolean, if TRUE (default), warn user about check result.}
+\item{verbose}{boolean, if TRUE (default), inform user about check result.}
 }
 \value{
 boolean value indicating if the \code{pykeops} package is available.

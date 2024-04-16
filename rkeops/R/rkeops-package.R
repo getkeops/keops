@@ -39,5 +39,7 @@
 #' @importFrom utils head packageVersion
 #' @importFrom lifecycle deprecated
 #' @import Rdpack
+#' @importFrom reticulate import py_available
+#' @importFrom stringr str_length
 #' 
 "_PACKAGE"

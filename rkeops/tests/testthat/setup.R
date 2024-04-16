@@ -1,6 +1,11 @@
 # requirements
+skip_if_not_installed("checkmate")
+skip_if_not_installed("withr")
+skip_if_not_installed("fs")
+
 library(checkmate)
 library(withr)
+library(fs)
 
 # helper function to skip tests if Python is not available on the system
 skip_if_no_python <- function() {
@@ -11,14 +16,14 @@ skip_if_no_python <- function() {
 # helper function to skip tests if `keopscore` is not available
 skip_if_no_keopscore <- function() {
     skip_if_no_python()
-    have_keopscore <- rkeops:::check_keopscore(warn=FALSE)
+    have_keopscore <- rkeops:::check_keopscore(verbose = FALSE)
     if(!have_keopscore) skip("'keopscore' not available for testing")
 }
 
 # helper function to skip tests if `pykeops` is not available
 skip_if_no_pykeops <- function() {
     skip_if_no_python()
-    have_pykeops <- rkeops:::check_pykeops(warn=FALSE)
+    have_pykeops <- rkeops:::check_pykeops(verbose = FALSE)
     if(!have_pykeops) skip("'pykeops' not available for testing")
 }
 
@@ -40,3 +45,8 @@ check_parse_args <- function(formula, args, arg_order = NULL, decl = "dim") {
     expect_equal(out$var_pos, c(0, 1, 2, 3)[arg_order])
     checkmate::expect_choice(out$decl, decl)
 }
+
+
+# dedicated cache directory
+testing_cache_dir <- file.path(get_rkeops_cache_dir(), "testing_rkeops")
+fs::dir_create(testing_cache_dir, recurse = TRUE)
