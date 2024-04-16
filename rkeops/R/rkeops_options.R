@@ -634,10 +634,16 @@ set_rkeops_cache_dir <- function(cache_dir = NULL, verbose = TRUE) {
 #' directory disk usage, and you can use [rkeops::clean_rkeops()] 
 #' to (fully or partially) delete its content.
 #' 
+#' @param create logical, indicate if the cache directory should be created or
+#' not. Default is `TRUE`.
+#' 
 #' @importFrom fs dir_create
+#' @importFrom checkmate assert_flag
 #'
 #' @return string, path to default rkeops cache directory.
-default_rkeops_cache_dir <- function() {
+default_rkeops_cache_dir <- function(create = TRUE) {
+    
+    assert_flag(create)
     
     cache_dir <- NULL
     
@@ -650,7 +656,7 @@ default_rkeops_cache_dir <- function() {
     }
     
     # create cache dir
-    fs::dir_create(cache_dir, recurse = TRUE)
+    if(create) fs::dir_create(cache_dir, recurse = TRUE)
     
     # output
     return(cache_dir)
