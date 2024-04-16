@@ -2,6 +2,8 @@ skip_if_no_python()
 skip_if_no_keopscore()
 skip_if_no_pykeops()
 
+set_rkeops_options(list(cache_dir = testing_cache_dir))
+
 # TEST LAZYTENSOR CONFIGURATION ================================================
 
 # Tests for LazyTensor related functions

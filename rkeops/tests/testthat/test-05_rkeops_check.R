@@ -30,5 +30,9 @@ test_that("check_pykeops", {
 
 test_that("check_rkeops", {
     skip_if_no_python()
-    checkmate::expect_logical(check_rkeops(verbose = FALSE), len = 1)
+    
+    withr::with_options(list(rkeops = NULL), {
+        set_rkeops_options(list(cache_dir = testing_cache_dir))
+        checkmate::expect_logical(check_rkeops(verbose = FALSE), len = 1)
+    })
 })

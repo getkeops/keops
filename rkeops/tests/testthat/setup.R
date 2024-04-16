@@ -1,6 +1,11 @@
 # requirements
+skip_if_not_installed("checkmate")
+skip_if_not_installed("withr")
+skip_if_not_installed("fs")
+
 library(checkmate)
 library(withr)
+library(fs)
 
 # helper function to skip tests if Python is not available on the system
 skip_if_no_python <- function() {
@@ -40,3 +45,8 @@ check_parse_args <- function(formula, args, arg_order = NULL, decl = "dim") {
     expect_equal(out$var_pos, c(0, 1, 2, 3)[arg_order])
     checkmate::expect_choice(out$decl, decl)
 }
+
+
+# dedicated cache directory
+testing_cache_dir <- file.path(get_rkeops_cache_dir(), "testing_rkeops")
+fs::dir_create(testing_cache_dir, recurse = TRUE)
