@@ -1,34 +1,41 @@
 from keopscore.utils.code_gen_utils import VectApply, c_variable
-from keopscore.formulas.Operation import FusedOp, Operation
+from keopscore.formulas.Operation import Meta_NoInit, FusedOp, Operation
 from keopscore.utils.misc_utils import KeOps_Error
 
-
-class VectorizedScalarOp(Operation):
+class VectorizedScalarOp(Operation, metaclass = Meta_NoInit):
     # class for operations that are vectorized or broadcasted
     # scalar operations,
     # such as Exp(f), Cos(f), Mult(f,g), Subtract(f,g), etc.
 
     def __new__(cls, *args, allow_fuse=True, **kwargs):
+        print(f"entering __new__ of VectorizedScalarOp with args={args} and kwargs={kwargs}") 
         obj = super(VectorizedScalarOp, cls).__new__(cls)
+        print("in __new__ of VectorizedScalarOp, step 1")
         obj.__init__(*args, **kwargs)
+        print("in __new__ of VectorizedScalarOp, step 2")
         args = obj.children
         if allow_fuse:
             for ind, arg in enumerate(args):
                 if isinstance(arg, VectorizedScalarOp):
+                    print("in __new__ of VectorizedScalarOp, fusing")
                     fused_args = args[:ind] + arg.children + args[ind + 1 :]
                     return FusedVectorizedScalarOp.__new__(
                         FusedVectorizedScalarOp,
-                        *fused_args,
-                        params=(obj, ind),
+                        fused_args,
+                        obj,
+                        ind,
                         allow_fuse=False
                     )
+        print("finished __new__ of VectorizedScalarOp") 
         return obj
 
     def __init__(self, *args, params=()):
+        print(f"entering __init__ of VectorizedScalarOp with args={args} and params={params}") 
         super().__init__(*args, params=params)
         dims = set(arg.dim for arg in self.children)
         if len(dims) > 2 or (len(dims) == 2 and min(dims) != 1):
             KeOps_Error("dimensions are not compatible for VectorizedScalarOp")
+        print("finished __init__ of VectorizedScalarOp") 
 
     @property
     def dim(self):

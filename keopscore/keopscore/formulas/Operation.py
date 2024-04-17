@@ -3,13 +3,28 @@ from keopscore.utils.Tree import Tree
 import keopscore
 from keopscore.utils.misc_utils import KeOps_Error
 
+
+class Meta_NoInit(type):
+    def __call__(cls, *args, **kw):
+        print(f"entering __call__ of Meta_NoInit with arg={args} and kw={kw}")
+        res = cls.__new__(cls, *args, **kw)
+        print("finished __call__ of Meta_NoInit")
+        return res
+    
+
 ###################
 ## Base class
 ###################
 
-
-class Operation(Tree):
+class Operation(Tree, metaclass=Meta_NoInit):
     """Base class for all keops building block operations in a formula"""
+
+    def __new__(cls, *args, allow_fuse=True, **kwargs):
+        print(f"entering __new__ of Operation with args={args} and kwargs={kwargs}") 
+        obj = super(Operation, cls).__new__(cls)
+        obj.__init__(*args, **kwargs)
+        print("finished __new__ of Operation") 
+        return obj
 
     linearity_type = None
 
@@ -42,6 +57,7 @@ class Operation(Tree):
             args = self.children
         if params is None:
             params = self.params
+        print(f"in renew of Operation with type(self)={type(self)}")
         return type(self)(*args, *params, allow_fuse=allow_fuse)
 
     def Vars(self, cat="all"):
@@ -281,18 +297,15 @@ def Broadcast(arg, dim):
         KeOps_Error("dimensions are not compatible for Broadcast operation")
 
 
-
-
-
 class FusedOp(Operation):
 
     def recursive_str(self):
         return self.parent_op.recursive_str()
     
-    def __init__(self, *args, params=()):
-        parent_op, ind_child_op = params
+    def __init__(self, fused_args, parent_op, ind_child_op):
+        print(f"entering __init__ of FusedOp")
         child_op = parent_op.children[ind_child_op]
-        super().__init__(*args, params=params)
+        super().__init__(*fused_args, params=(parent_op, ind_child_op))
         self.parent_op, self.ind_child_op, self.child_op = (
             parent_op,
             ind_child_op,
@@ -300,6 +313,7 @@ class FusedOp(Operation):
         )
         self.linearity_type = parent_op.linearity_type
         self.is_linear = parent_op.is_linear
+        print(f"finisehd __init__ of FusedOp")
     
     def renew(self, args=None, params=None, allow_fuse=True):
         i, m = self.ind_child_op, len(self.child_op.children)

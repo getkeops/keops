@@ -1,10 +1,10 @@
 from keopscore.formulas.Chunkable_Op import Chunkable_Op
 from keopscore.formulas.VectorizedScalarOp import VectorizedScalarOp
-from keopscore.formulas.Operation import FusedOp
+from keopscore.formulas.Operation import FusedOp, Meta_NoInit
 from keopscore.utils.code_gen_utils import VectApply, c_variable
 
 
-class InnerReductionOp(Chunkable_Op):
+class InnerReductionOp(Chunkable_Op, metaclass = Meta_NoInit):
 
     def __new__(cls, *args, allow_fuse=True, **kwargs):
         obj = super(InnerReductionOp, cls).__new__(cls)
@@ -16,8 +16,9 @@ class InnerReductionOp(Chunkable_Op):
                     fused_args = args[:ind] + arg.children + args[ind + 1 :]
                     return FusedInnerReductionOp.__new__(
                         FusedInnerReductionOp,
-                        *fused_args,
-                        params=(obj, ind),
+                        fused_args,
+                        obj, 
+                        ind,
                         allow_fuse=False
                     )
         return obj
