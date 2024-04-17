@@ -255,7 +255,6 @@ def c_for_loop(start, end, incr, pragma_unroll=False):
 
     return printfun, k
 
-
 c_zero_int = c_variable("int", "0")
 c_zero_float = c_variable("float", "0.0f")
 
@@ -322,7 +321,7 @@ def pointer(x):
 
 class c_array:
     def __init__(self, dtype, dim, string_id=new_c_varname("array")):
-        if dim < 0:
+        if dim != "" and dim < 0:
             KeOps_Error("negative dimension for array")
         self.c_var = c_variable(pointer(dtype), string_id)
         self.dtype = dtype
@@ -336,7 +335,7 @@ class c_array:
     def declare(self):
         # returns C++ code to declare a fixed-size arry of size dim,
         # skipping declaration if dim=0
-        if self.dim > 0:
+        if self.dim == "" or self.dim > 0:
             return f"{self.dtype} {self.c_var.id}[{self.dim}];"
         else:
             return ""
@@ -482,14 +481,14 @@ def c_include(*headers):
     return "".join(f"#include <{header}>\n" for header in headers)
 
 
-def c_if(condition, command, else_command=None):
-    string = f""" if ({condition.id}) {{
-                      {command}
+def c_if(condition, *commands, else_commands=None, comment=""):
+    string = f""" if ({condition.id}) {{  // {comment}
+                      {"".join(command+"\n" for command in commands)}
                 }}
             """
-    if else_command:
+    if else_commands:
         string += f""" else {{
-                      {else_command}
+                      {"".join(command+"\n" for command in else_commands)}
                 }}
             """
     return string
@@ -503,17 +502,20 @@ def c_block(*commands):
             """
 
 
-def c_function(name, dtypeout, args, commands, qualifier=None):
-    # first write the signature of the function :
-    string = ""
-    if qualifier is not None:
-        string += f"{qualifier} "
-    string += f"{dtypeout} {name}({signature_list(args)}) "
-    # then the body
-    string += "\n{\n"
-    string += "\n".join(list(c for c in commands))
-    string += "\n}\n"
-    return string
+def c_function(name, dtypeout, dtypeargs, qualifier=None):
+    args = [c_variable(dtype) for dtype in dtypeargs]
+    def print_fun(commands):
+        # first write the signature of the function :
+        string = ""
+        if qualifier is not None:
+            string += f"{qualifier} "
+        string += f"{dtypeout} {name}({signature_list(args)}) "
+        # then the body
+        string += "\n{\n"
+        string += "\n".join(list(c for c in commands))
+        string += "\n}\n"
+        return string
+    return print_fun, *args
 
 
 #######################################################################
