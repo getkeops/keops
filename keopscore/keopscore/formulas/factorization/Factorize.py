@@ -1,6 +1,6 @@
 from keopscore.formulas.variables import Var, Zero
 from keopscore.formulas.variables.IntCst import IntCst_Impl
-from keopscore.utils.code_gen_utils import new_c_varname, c_array
+from keopscore.utils.code_gen_utils import new_c_name, c_array
 from keopscore.formulas.Operation import Operation
 import keopscore
 from keopscore.utils.code_gen_utils import GetInds
@@ -49,7 +49,7 @@ class Factorize_Impl(Operation):
         # This c_array must have a unique name in the code, to avoid conflicts
         # when we will recursively evaluate nested operations.
         template_string_id = "out_" + g.string_id.lower()
-        outg_name = new_c_varname(template_string_id)
+        outg_name = new_c_name(template_string_id)
         outg = c_array(out.dtype, g.dim, outg_name)
         # Now we append into string the C++ code to declare the array
         string += f"{outg.declare()}\n"

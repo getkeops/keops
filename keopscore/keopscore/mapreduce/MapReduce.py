@@ -1,6 +1,6 @@
 from keopscore.formulas.reductions import *
 from keopscore.formulas.GetReduction import GetReduction
-from keopscore.utils.code_gen_utils import Var_loader, new_c_varname, pointer, c_include
+from keopscore.utils.code_gen_utils import Var_loader, new_c_name, c_pointer, c_include
 
 
 class MapReduce:
@@ -69,8 +69,8 @@ class MapReduce:
         self.xi = c_array(dtype, self.varloader.dimx_local, "xi")
         self.param_loc = c_array(dtype, self.varloader.dimp_local, "param_loc")
 
-        argname = new_c_varname("arg")
-        self.arg = c_variable(pointer(pointer(dtype)), argname)
+        argname = new_c_name("arg")
+        self.arg = c_variable(c_pointer(c_pointer(dtype)), argname)
         self.args = [self.arg[k] for k in range(nargs)]
 
         self.acc = c_array(dtypeacc, red_formula.dimred, "acc")

@@ -5,7 +5,7 @@ from keopscore.utils.code_gen_utils import (
     c_zero_float,
     c_for_loop,
     c_variable,
-    new_c_varname,
+    new_c_name,
     c_if,
 )
 
@@ -25,7 +25,7 @@ class KMin_Reduction(KMin_ArgKMin_Reduction):
         fdim, K = self.formula.dim, self.K
         outer_loop, k = c_for_loop(0, fdim, 1)
         inner_loop, l = c_for_loop(k, k + (2 * fdim * K), 2 * fdim)
-        p = c_variable("signed long int", new_c_varname("p"))
+        p = c_variable("signed long int", new_c_name("p"))
         return outer_loop(
             p.declare_assign(k) + inner_loop(out[p].assign(acc[l]) + p.add_assign(fdim))
         )

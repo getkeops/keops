@@ -1,7 +1,7 @@
 from keopscore.formulas.VectorizedComplexScalarOp import VectorizedComplexScalarOp
 from keopscore.utils.code_gen_utils import (
     c_for_loop,
-    new_c_varname,
+    new_c_name,
     c_variable,
 )
 from keopscore.utils.math_functions import keops_exp, keops_cos, keops_sin
@@ -24,7 +24,7 @@ class ComplexExp(VectorizedComplexScalarOp):
     string_id = "ComplexExp"
 
     def ScalarOp(self, out, inF):
-        r = c_variable(out.dtype, new_c_varname("r"))
+        r = c_variable(out.dtype, new_c_name("r"))
         string = r.declare_assign(keops_exp(inF[0]))
         string += out[0].assign(r * keops_cos(inF[1]))
         string += out[1].assign(r * keops_sin(inF[1]))

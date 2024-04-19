@@ -4,7 +4,7 @@ from keopscore.utils.code_gen_utils import (
     c_zero_float,
     c_for_loop,
     c_if,
-    value,
+    c_value,
     c_variable,
 )
 from keopscore.utils.misc_utils import KeOps_Error
@@ -29,7 +29,7 @@ class ArgMin(Operation):
     def Op(self, out, table, arg):
         tmp = c_variable(out.dtype)
         loop, k = c_for_loop(1, arg.dim, 1, pragma_unroll=True)
-        string = value(out).assign(c_zero_float) + tmp.declare_assign(arg[0])
+        string = c_value(out).assign(c_zero_float) + tmp.declare_assign(arg[0])
         if out.dtype == "half2":
             loop_string = f"""
                 // we have to work element-wise...
@@ -41,7 +41,7 @@ class ArgMin(Operation):
             string += loop(loop_string)
         else:
             string += loop(
-                c_if(arg[k] < tmp, tmp.assign(arg[k]) + value(out).assign(k))
+                c_if(arg[k] < tmp, tmp.assign(arg[k]) + c_value(out).assign(k))
             )
         return string
 

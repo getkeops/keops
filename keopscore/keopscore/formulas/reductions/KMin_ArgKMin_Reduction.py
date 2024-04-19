@@ -4,7 +4,7 @@ from keopscore.utils.code_gen_utils import (
     c_zero_float,
     c_for_loop,
     c_variable,
-    new_c_varname,
+    new_c_name,
     c_if,
     c_array,
     use_pragma_unroll,
@@ -48,10 +48,10 @@ class KMin_ArgKMin_Reduction(Reduction):
         # Returns C++ code that implements the update phase of the reduction.
         dtype = xi.dtype
         fdim = self.formula.dim
-        out = c_array(dtype, self.dimred, new_c_varname("out"))
+        out = c_array(dtype, self.dimred, new_c_name("out"))
         outer_loop, k = c_for_loop(0, fdim, 1)
-        p = c_variable("signed long int", new_c_varname("p"))
-        q = c_variable("signed long int", new_c_varname("q"))
+        p = c_variable("signed long int", new_c_name("p"))
+        q = c_variable("signed long int", new_c_name("q"))
         inner_loop, l = c_for_loop(k, self.dimred, 2 * fdim)
         inner_body = c_if(
             xi[p] < acc[q],
@@ -72,11 +72,11 @@ class KMin_ArgKMin_Reduction(Reduction):
         fdim, K = self.formula.dim, self.K
         dtype = xi.dtype
 
-        xik = c_variable(dtype, new_c_varname("xik"))
-        l = c_variable("signed long int", new_c_varname("l"))
-        k = c_variable("signed long int", new_c_varname("k"))
-        tmpl = c_variable(dtype, new_c_varname("tmpl"))
-        indtmpl = c_variable("signed long int", new_c_varname("indtmpl"))
+        xik = c_variable(dtype, new_c_name("xik"))
+        l = c_variable("signed long int", new_c_name("l"))
+        k = c_variable("signed long int", new_c_name("k"))
+        tmpl = c_variable(dtype, new_c_name("tmpl"))
+        indtmpl = c_variable("signed long int", new_c_name("indtmpl"))
         return f"""
                     {{
                         {xik.declare()}

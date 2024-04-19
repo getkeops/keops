@@ -1,4 +1,4 @@
-from keopscore.utils.code_gen_utils import new_c_varname, c_array, cast_to, c_variable
+from keopscore.utils.code_gen_utils import new_c_name, c_array, cast_to, c_variable
 from keopscore.utils.Tree import Tree
 import keopscore
 from keopscore.utils.misc_utils import KeOps_Error
@@ -98,7 +98,7 @@ class Operation(Tree):
                 # This c_array must have a unique name in the code, to avoid conflicts
                 # when we will recursively evaluate nested operations.
                 template_string_id = "out_" + child.string_id.lower()
-                arg_name = new_c_varname(template_string_id)
+                arg_name = new_c_name(template_string_id)
                 arg = c_array(out.dtype, child.dim, arg_name)
                 # Now we append into string the C++ code to declare the array
                 string += f"{arg.declare()}\n"

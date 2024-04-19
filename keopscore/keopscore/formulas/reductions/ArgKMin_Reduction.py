@@ -2,7 +2,7 @@ from keopscore.formulas.reductions.KMin_ArgKMin_Reduction import KMin_ArgKMin_Re
 from keopscore.formulas.reductions.Zero_Reduction import Zero_Reduction
 from keopscore.utils.code_gen_utils import (
     c_for_loop,
-    new_c_varname,
+    new_c_name,
     c_variable,
 )
 
@@ -20,7 +20,7 @@ class ArgKMin_Reduction(KMin_ArgKMin_Reduction):
 
     def FinalizeOutput(self, acc, out, i):
         fdim = self.formula.dim
-        p = c_variable("signed long int", new_c_varname("p"))
+        p = c_variable("signed long int", new_c_name("p"))
         loop, k = c_for_loop(0, fdim, 1, pragma_unroll=True)
         body = p.declare_assign(k)
         inner_loop, l = c_for_loop(
