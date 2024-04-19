@@ -1,4 +1,4 @@
-from c_array import c_array
+from .c_array import c_array
 
 
 def ComplexVectApply(fun, out, *args):

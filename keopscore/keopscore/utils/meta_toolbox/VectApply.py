@@ -1,4 +1,8 @@
-from c_array import c_array
+from .c_instruction import c_instruction
+from .misc import Meta_Toolbox_Error
+from .c_for import c_for_loop
+from .c_variable import c_variable
+from .c_array import c_array
 
 
 def VectApply(fun, out, *args):
@@ -26,10 +30,10 @@ def VectApply(fun, out, *args):
         elif isinstance(arg, c_array):
             dims.append(arg.dim)
         else:
-            KeOps_Error("args must be c_variable or c_array instances")
+            Meta_Toolbox_Error("args must be c_variable or c_array instances")
     dimloop = max(dims)
     if not set(dims) in ({dimloop}, {1, dimloop}):
-        KeOps_Error("incompatible dimensions in VectApply")
+        Meta_Toolbox_Error("incompatible dimensions in VectApply")
     incr_out = 1 if out.dim == dimloop else 0
     incr_args = list((1 if dim == dimloop else 0) for dim in dims[1:])
 
@@ -42,4 +46,7 @@ def VectApply(fun, out, *args):
         elif isinstance(arg, c_array):
             argsk.append(arg[k * incr])
 
-    return forloop(fun(out[k * incr_out], *argsk))
+    body = fun(out[k * incr_out], *argsk)
+    if isinstance(body, str):
+        body = c_instruction(body)
+    return forloop(body)

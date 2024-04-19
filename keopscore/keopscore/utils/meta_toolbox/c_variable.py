@@ -1,9 +1,10 @@
-from c_instruction import c_instruction
-from c_expression import c_expression, py2c, cast_to
-from misc import Error, new_c_name
+from .c_lvalue import c_lvalue
+from .c_instruction import c_instruction
+from .c_expression import py2c, cast_to
+from .misc import Meta_Toolbox_Error, new_c_name
 
 
-class c_variable(c_expression):
+class c_variable(c_lvalue):
     # class to represent a C++ variable, storing its c++ name and its C++ type.
     def __new__(self, dtype, string_id=None):
         if isinstance(string_id, list):
@@ -15,9 +16,8 @@ class c_variable(c_expression):
         if string_id is None:
             string_id = new_c_name("var")
         super().__init__(
-            string_id, vars=set([self]), dtype=dtype, add_parenthesis=False
+            string_id=string_id, vars=set([self]), dtype=dtype, add_parenthesis=False
         )
-        self.id = string_id
 
     def declare(self):
         local_vars = self.vars
@@ -31,37 +31,6 @@ class c_variable(c_expression):
         return c_instruction(
             f"{self.dtype} {self.assign(value).code_string}", local_vars, global_vars
         )
-
-    def assign(self, value, assign_op="="):
-        value = py2c(value)
-        local_vars = set()
-        global_vars = self.vars.union(value.vars)
-        if value.dtype != self.dtype:
-            if self.dtype == "float2" and value.dtype == "float":
-                assign_x = c_instruction(
-                    f"{self}.x {assign_op} {value.code_string}", local_vars, global_vars
-                )
-                assign_y = c_instruction(
-                    f"{self}.y {assign_op} {value.code_string}", local_vars, global_vars
-                )
-                return assign_x + assign_y
-            else:
-                return c_instruction(
-                    f"{self} {assign_op} {cast_to(self.dtype, value)}",
-                    local_vars,
-                    global_vars,
-                )
-        else:
-            return c_instruction(
-                f"{self} {assign_op} {value.code_string}", local_vars, global_vars
-            )
-
-    def add_assign(self, value):
-        return self.assign(value, assign_op="+=")
-
-    @property
-    def plus_plus(self):
-        return c_instruction(f"{self}++", set(), self.vars)
 
 
 c_zero_int = c_variable("int", "0")
@@ -78,7 +47,7 @@ def infinity(dtype):
     elif dtype == "double":
         code = "( 1.0/0.0 )"
     else:
-        Error(
+        Meta_Toolbox_Error(
             "only float and double dtypes are implemented in new python engine for now"
         )
     return c_variable(dtype, code)

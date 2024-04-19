@@ -1,3 +1,6 @@
+from .c_for import c_for_loop
+
+
 def VectCopy(out, arg, dim=None):
     # returns a C++ code string representing a vector copy between fixed-size arrays
     # - dim is dimension of arrays

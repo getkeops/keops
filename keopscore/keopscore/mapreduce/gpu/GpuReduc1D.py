@@ -86,8 +86,8 @@ class GpuReduc1D(MapReduce, Gpu_link_compile):
                           {sum_scheme.declare_temporary_accumulator()}
 
                           {c_if(i<nx,
-                                red_formula.InitializeReduction(acc),
-                                sum_scheme.initialize_temporary_accumulator_first_init(),
+                                red_formula.InitializeReduction(acc)+
+                                sum_scheme.initialize_temporary_accumulator_first_init()+
                                 varloader.load_vars('i', xi, args, row_index=i))}
 
                           for (signed long int {jstart} = 0, {tile} = 0; {jstart<ny}; {jstart} += {blockDim_x}, {tile}++) {{

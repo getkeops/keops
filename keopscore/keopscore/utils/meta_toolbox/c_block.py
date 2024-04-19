@@ -1,21 +1,23 @@
-from c_code import c_code
-from c_expression import c_expression
-from c_instruction import c_instruction
-from c_variable import c_variable
-from misc import Error, add_indent
+from .c_code import c_code
+from .c_expression import c_expression
+from .c_instruction import c_instruction
+from .c_variable import c_variable
+from .misc import Meta_Toolbox_Error, add_indent
 
 
 class c_block(c_instruction):
 
-    def __init__(self, body=c_instruction(), headers=(), decorator=None):
+    def __init__(self, body=c_instruction(), headers=(), decorator=None, comment=None):
         super().__init__(end_str="")
         self.decorator = decorator
         self.headers = headers
         if not isinstance(body, c_instruction):
-            Error("invalid argument to set_body; should be a c_instruction")
+            Meta_Toolbox_Error("invalid argument to set_body; should be a c_instruction")
         self.body = body
 
         self.code_string = ""
+        if comment is not None:
+            self.code_string += "// " + comment + ";\n"
         if self.decorator is not None:
             self.code_string += str(self.decorator) + "\n"
         if self.pre_code_string is not None:

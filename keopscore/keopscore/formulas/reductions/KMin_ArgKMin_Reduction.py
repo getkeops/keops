@@ -1,3 +1,5 @@
+from keopscore.utils.meta_toolbox.c_block import c_block
+from keopscore.utils.meta_toolbox.c_instruction import c_instruction
 from keopscore.utils.code_gen_utils import (
     infinity,
     cast_to,
@@ -77,7 +79,7 @@ class KMin_ArgKMin_Reduction(Reduction):
         k = c_variable("signed long int", new_c_name("k"))
         tmpl = c_variable(dtype, new_c_name("tmpl"))
         indtmpl = c_variable("signed long int", new_c_name("indtmpl"))
-        return f"""
+        string = f"""
                     {{
                         {xik.declare()}
                         {l.declare()}
@@ -98,3 +100,4 @@ class KMin_ArgKMin_Reduction(Reduction):
                         }}
                     }}
                 """
+        res = c_instruction(string=string, local_vars=set(), global_vars=set(), end_str=";\n")

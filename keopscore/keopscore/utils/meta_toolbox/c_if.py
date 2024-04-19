@@ -1,15 +1,15 @@
-from c_block import c_block
-from c_expression import c_expression
-from c_instruction import c_instruction
-from misc import Error
+from .c_block import c_block
+from .c_expression import c_expression
+from .c_instruction import c_instruction
+from .misc import Meta_Toolbox_Error
 
 
 class c_if(c_block):
 
-    def __init__(self, condition=c_expression(), body=c_instruction(), decorator=None):
+    def __init__(self, condition=c_expression(), body=c_instruction(), **kwargs):
         if not isinstance(condition, c_expression):
-            Error("invalid condition")
-        super().__init__(body=body, decorator=decorator, headers=(condition,))
+            Meta_Toolbox_Error("invalid condition")
+        super().__init__(body=body, headers=(condition,), **kwargs)
 
     @property
     def pre_code_string(self):

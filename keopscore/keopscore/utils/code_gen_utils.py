@@ -3,6 +3,7 @@ from hashlib import sha256
 
 import keopscore
 from keopscore.config.config import disable_pragma_unrolls
+from keopscore.utils.meta_toolbox.c_instruction import c_instruction
 from keopscore.utils.misc_utils import KeOps_Error, KeOps_Message
 
 
@@ -16,8 +17,7 @@ def get_hash_name(*args):
 # .  Python to C++ meta programming toolbox
 #######################################################################
 
-
-from meta_toolbox.misc import (
+from keopscore.utils.meta_toolbox.misc import (
     sizeof,
     new_c_name,
     use_pragma_unroll,
@@ -25,7 +25,7 @@ from meta_toolbox.misc import (
     signature_list,
     c_include,
 )
-from meta_toolbox.c_variable import (
+from keopscore.utils.meta_toolbox.c_variable import (
     c_variable,
     c_zero_float,
     c_zero_int,
@@ -33,15 +33,15 @@ from meta_toolbox.c_variable import (
     infinity,
     cast_to,
 )
-from meta_toolbox.c_for import c_for_loop
-from meta_toolbox.c_if import c_if
-from meta_toolbox.c_expression import c_value, c_pointer
-from meta_toolbox.c_array import c_array
-from meta_toolbox.VectApply import VectApply
-from meta_toolbox.ComplexVectApply import ComplexVectApply
-from meta_toolbox.VectCopy import VectCopy
-from meta_toolbox.c_block import c_block
-from meta_toolbox.c_function import c_function
+from keopscore.utils.meta_toolbox.c_for import c_for_loop
+from keopscore.utils.meta_toolbox.c_if import c_if
+from keopscore.utils.meta_toolbox.c_expression import c_value, c_pointer
+from keopscore.utils.meta_toolbox.c_array import c_array
+from keopscore.utils.meta_toolbox.VectApply import VectApply
+from keopscore.utils.meta_toolbox.ComplexVectApply import ComplexVectApply
+from keopscore.utils.meta_toolbox.VectCopy import VectCopy
+from keopscore.utils.meta_toolbox.c_block import c_block
+from keopscore.utils.meta_toolbox.c_function import c_function
 
 
 #######################################################################
@@ -339,11 +339,11 @@ def load_vars(
             if is_local[inds[u]]:
                 string += use_pragma_unroll()
                 string += f"for(signed long int v=0; v<{dims[u]}; v++) {{\n"
-                string += f"    {xloc.id}[a] = {args[inds[u]].id}[{row_index_str}*{dims[u]}+v];\n"
+                string += f"    {xloc}[a] = {args[inds[u]]}[{row_index_str}*{dims[u]}+v];\n"
                 string += "     a++;\n"
                 string += "}\n"
         string += "}\n"
-    return string
+    return c_instruction(string, end_str="")
 
 
 def load_vars_chunks(
@@ -383,7 +383,7 @@ def load_vars_chunks(
             string += "     a++;\n"
             string += "}"
         string += "}"
-    return string
+    return c_instruction(string, end_str="")
 
 
 def load_vars_chunks_offsets(
@@ -422,7 +422,7 @@ def load_vars_chunks_offsets(
             string += "     a++;\n"
             string += "}"
         string += "}"
-    return string
+    return c_instruction(string, end_str="")
 
 
 def varseq_to_array(vars, vars_ptr_name):
@@ -440,7 +440,7 @@ def varseq_to_array(vars, vars_ptr_name):
     for i in range(nvars):
         string += f"""  {vars_ptr_name}[{i}] = {vars[i].id};
                    """
-    return string
+    return c_instruction(string, end_str="")
 
 
 def clean_keops(recompile_jit_binary=True, verbose=True):

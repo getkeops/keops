@@ -1,9 +1,9 @@
-from c_block import c_block
-from c_code import c_code
-from c_expression import c_expression, py2c
-from c_instruction import c_instruction
-from c_variable import c_variable
-from misc import Error, new_c_name, to_tuple, use_pragma_unroll
+from .c_block import c_block
+from .c_code import c_code
+from .c_expression import c_expression, py2c
+from .c_instruction import c_instruction
+from .c_variable import c_variable
+from .misc import Meta_Toolbox_Error, new_c_name, to_tuple, use_pragma_unroll
 
 
 class c_for(c_block):
@@ -22,7 +22,7 @@ class c_for(c_block):
         if not all(
             isinstance(x, c_instruction) for x in init_instructions + loop_instructions
         ) or not isinstance(end_expression, c_expression):
-            Error("invalid arguments")
+            Meta_Toolbox_Error("invalid arguments")
         headers = (
             self.set_header_instr(init_instructions),
             end_expression,
@@ -62,7 +62,7 @@ def c_for_loop(start, end, incr, pragma_unroll=False, name_incr=None):
 
     def printfun(body):
         if isinstance(body, str):
-            Error("should not be str")
+            Meta_Toolbox_Error("should not be str")
         for_loop = c_for(
             init=k.declare_assign(start),
             end=k < end,

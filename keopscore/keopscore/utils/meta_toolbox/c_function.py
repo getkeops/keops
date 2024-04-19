@@ -1,7 +1,7 @@
-from c_block import c_block
-from c_code import c_code
-from c_expression import c_expression
-from misc import Error, new_c_name
+from .c_block import c_block
+from .c_code import c_code
+from .c_expression import c_expression
+from .misc import Meta_Toolbox_Error, new_c_name
 
 
 class c_function(c_block):
@@ -24,7 +24,7 @@ class c_function(c_block):
         vars_dtype = [var.dtype for var in vars]
         input_vars_dtype = [var.dtype for var in self.input_vars]
         if vars_dtype != input_vars_dtype:
-            Error(
+            Meta_Toolbox_Error(
                 f"invalid inputs for call to c_function {self.name}. Signature should be {input_vars_dtype} but received {vars_dtype}"
             )
         str_args = ", ".join(str(x) for x in vars)

@@ -1,12 +1,12 @@
-from c_code import c_code
-from misc import registered_dtypes, Error
+from .c_code import c_code
+from .misc import registered_dtypes, Meta_Toolbox_Error
 
 
 class c_expression(c_code):
 
     def __init__(self, expression="", vars=(), dtype=None, add_parenthesis=True):
         if not isinstance(expression, str):
-            Error("invalid expression")
+            Meta_Toolbox_Error("invalid expression")
         if expression == "":
             dtype = "void"
         elif dtype is None:
@@ -17,6 +17,7 @@ class c_expression(c_code):
         super().__init__(
             f"({expression})" if add_parenthesis else str(expression), vars
         )
+        self.id = self.code_string
 
     def binary_op(self, other, python_op, c_op, name, dtype=None):
         other = py2c(other)
@@ -31,7 +32,7 @@ class c_expression(c_code):
                     if dtype is None:
                         dtype = "signed long int"
                 else:
-                    Error(
+                    Meta_Toolbox_Error(
                         f"{name} of two c_expression is only possible with same dtype"
                     )
             if dtype is None:
@@ -42,7 +43,7 @@ class c_expression(c_code):
                 dtype,
             )
         else:
-            Error("not implemented")
+            Meta_Toolbox_Error("not implemented")
 
     def __add__(self, other):
         python_op = lambda x, y: x + y
@@ -88,12 +89,12 @@ class c_expression(c_code):
 
     def ternary(self, out_true, out_false):
         if self.dtype != "bool":
-            Error(
+            Meta_Toolbox_Error(
                 f"The input of a ternary operator should have bool dtype, "
                 f"found {self.dtype}."
             )
         if out_true.dtype != out_false.dtype:
-            Error(
+            Meta_Toolbox_Error(
                 f"The two possible output of a ternary operator should have the same dtype, "
                 f"found {out_true.dtype} and {out_false.dtype}."
             )
@@ -111,7 +112,7 @@ class c_expression(c_code):
         other = py2c(other)
         if isinstance(other, c_expression):
             if other.dtype not in ("int", "signed long int"):
-                Error(
+                Meta_Toolbox_Error(
                     "v[i] with i and v c_expression requires i.dtype='int' or i.dtype='signed long int' "
                 )
             return c_expression(
@@ -120,7 +121,7 @@ class c_expression(c_code):
                 c_value(self.dtype),
             )
         else:
-            Error("not implemented")
+            Meta_Toolbox_Error("not implemented")
 
 
 def py2c(expression):
@@ -131,7 +132,7 @@ def py2c(expression):
     elif isinstance(expression, float):
         dtype = "double"
     else:
-        Error("invalid expression")
+        Meta_Toolbox_Error("invalid expression")
     return c_expression(str(expression), set(), dtype, add_parenthesis=False)
 
 
@@ -148,14 +149,14 @@ class cast_to(c_expression):
         elif dtype == "half2" and expr.dtype == "float2":
             string = f"__float22half2_rn({expr})"
         else:
-            Error(f"not implemented: casting from {expr.dtype} to {dtype}")
+            Meta_Toolbox_Error(f"not implemented: casting from {expr.dtype} to {dtype}")
         super().__init__(expression=string, vars=expr.vars, dtype=dtype)
 
 
 def c_value(x):
     # either convert c_array or c_variable representing a pointer to its value c_variable (dereference)
     # or converts string "dtype*" to "dtype"
-    from c_array import c_array
+    from .c_array import c_array
 
     if isinstance(x, c_array):
         return c_expression(f"(*{x})", vars=x.vars, dtype=x.dtype)
@@ -163,10 +164,10 @@ def c_value(x):
         return c_expression(c_value(f"(*{x})", vars=x.vars, dtype=x.dtype))
     elif isinstance(x, str):
         if x[-1] != "*":
-            Error("dtype is not a pointer type")
+            Meta_Toolbox_Error("dtype is not a pointer type")
         return x[:-1]
     else:
-        Error("input should be c_expression instance or string.")
+        Meta_Toolbox_Error("input should be c_expression instance or string.")
 
 
 def c_pointer(x):
@@ -177,4 +178,4 @@ def c_pointer(x):
     elif isinstance(x, str):
         return x + "*"
     else:
-        Error("input should be either c_variable instance or string.")
+        Meta_Toolbox_Error("input should be either c_variable instance or string.")

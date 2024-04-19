@@ -106,7 +106,7 @@ class Operation(Tree):
                 string += child(arg, table, i, j, tagI)
             args.append(arg)
         # Finally, evaluation of the operation itself
-        string += self.Op(out, table, *args)
+        string += str(self.Op(out, table, *args))
 
         # some debugging helper :
         if keopscore.debug_ops_at_exec:

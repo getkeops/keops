@@ -1,5 +1,5 @@
-from c_code import c_code
-from misc import Error
+from .c_code import c_code
+from .misc import Meta_Toolbox_Error
 
 
 class c_instruction(c_code):
@@ -19,11 +19,11 @@ class c_instruction(c_code):
 
     def __add__(self, other):
         if not isinstance(other, c_instruction):
-            Error(f"cannot add c_instruction and {type(other)}")
+            Meta_Toolbox_Error(f"cannot add c_instruction and {type(other)}")
         string = str(self) + other.code_string
         locvars1, locvars2 = self.outer_local_vars, other.outer_local_vars
         if not locvars1.isdisjoint(locvars2):
-            Error(
+            Meta_Toolbox_Error(
                 f"cannot combine instructions: the following variables are defined in both parts: {locvars1.intersection(locvars2)}"
             )
         local_vars = locvars1.union(locvars2)

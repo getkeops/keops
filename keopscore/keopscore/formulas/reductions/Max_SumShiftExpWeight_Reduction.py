@@ -2,6 +2,7 @@ from keopscore.formulas.maths import Concat, Exp, Extract
 from keopscore.formulas.reductions.Reduction import Reduction
 from keopscore.formulas.reductions.Sum_Reduction import Sum_Reduction
 from keopscore.formulas.variables.IntCst import IntCst
+from keopscore.utils.meta_toolbox.c_instruction import c_instruction
 from keopscore.utils.code_gen_utils import (
     neg_infinity,
     c_zero_float,
@@ -48,7 +49,7 @@ class Max_SumShiftExpWeight_Reduction(Reduction):
 
         tmpexp = c_variable(acc.dtype, new_c_name("tmpexp"))
         loop, k = c_for_loop(1, self.dimred, 1, pragma_unroll=True)
-        return f"""       
+        string = f"""       
                       {tmpexp.declare()}
                       if ({acc.id}[0] > {xi.id}[0]) {{ // =  exp(m)  * (s + s'*exp(m'-m))   if m > m'
                         {tmpexp.assign(keops_exp(xi[0]-acc[0]))}
@@ -59,6 +60,7 @@ class Max_SumShiftExpWeight_Reduction(Reduction):
                         {acc[0].assign(xi[0])}
                       }}
               """
+        return c_instruction(string=string, end_str="")
 
     def ReducePairShort(self, acc, xi, ind):
         return self.ReducePair(acc, xi)
@@ -71,7 +73,7 @@ class Max_SumShiftExpWeight_Reduction(Reduction):
         a = c_variable(acc.dtype, new_c_name("a"))
         b = c_variable(acc.dtype, new_c_name("b"))
         u = c_variable(acc.dtype, new_c_name("u"))
-        return f"""
+        string = f"""
                         {tmpexp.declare()}
                         if ({acc.id}[0] > {xi.id}[0])    // =  exp(m)  * (s + s'*exp(m'-m))   if m > m'
                         {{      
@@ -85,6 +87,7 @@ class Max_SumShiftExpWeight_Reduction(Reduction):
                             {acc[0].assign(xi[0])}
                         }}
                 """
+        return c_instruction(string=string, end_str="")
 
     def DiffT(self, v, gradin, MS):
         """

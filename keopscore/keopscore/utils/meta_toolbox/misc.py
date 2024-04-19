@@ -1,4 +1,4 @@
-def Error(message):
+def Meta_Toolbox_Error(message):
     raise ValueError(message)
 
 
@@ -13,8 +13,10 @@ registered_dtypes = (
     "signed long int",
     "float2",
     "bool",
+    "extern __shared__ float",
+    "extern __shared__ double",
 )
-registered_dtypes = registered_dtypes + tuple(x + "*" for x in registered_dtypes)
+registered_dtypes = registered_dtypes + tuple(x + "*" for x in registered_dtypes) + tuple(x + "**" for x in registered_dtypes)
 
 disable_pragma_unrolls = False
 
@@ -37,7 +39,7 @@ def sizeof(dtype):
     elif dtype == "half":
         return 2
     else:
-        Error("not implemented")
+        Meta_Toolbox_Error("not implemented")
 
 
 def to_tuple(x):
