@@ -1,6 +1,6 @@
 from keopscore.formulas.Operation import Operation
 from keopscore.formulas.variables.Zero import Zero
-from keopscore.utils.code_gen_utils import value
+from keopscore.utils.code_gen_utils import c_value
 from keopscore.utils.misc_utils import KeOps_Error
 
 ##########################
@@ -23,7 +23,7 @@ class SumT_Impl(Operation):
         self.dim = dim
 
     def Op(self, out, table, arg):
-        return out.assign(value(arg))
+        return out.assign(c_value(arg))
 
     def DiffT(self, v, gradin):
         from keopscore.formulas.maths.Sum import Sum

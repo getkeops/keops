@@ -5,7 +5,7 @@ from keopscore.formulas.variables.IntCst import IntCst
 from keopscore.utils.code_gen_utils import (
     neg_infinity,
     c_zero_float,
-    new_c_varname,
+    new_c_name,
     c_variable,
     c_for_loop,
 )
@@ -46,7 +46,7 @@ class Max_SumShiftExpWeight_Reduction(Reduction):
         if xi.dtype == "half2":
             KeOps_Error("Not implemented.")
 
-        tmpexp = c_variable(acc.dtype, new_c_varname("tmpexp"))
+        tmpexp = c_variable(acc.dtype, new_c_name("tmpexp"))
         loop, k = c_for_loop(1, self.dimred, 1, pragma_unroll=True)
         return f"""       
                       {tmpexp.declare()}
@@ -66,11 +66,11 @@ class Max_SumShiftExpWeight_Reduction(Reduction):
     def KahanScheme(self, acc, xi, tmp):
         if xi.dtype == "half2":
             KeOps_Error("Not implemented.")
-        tmpexp = c_variable(acc.dtype, new_c_varname("tmpexp"))
+        tmpexp = c_variable(acc.dtype, new_c_name("tmpexp"))
         loop, k = c_for_loop(1, self.dimred, 1, pragma_unroll=True)
-        a = c_variable(acc.dtype, new_c_varname("a"))
-        b = c_variable(acc.dtype, new_c_varname("b"))
-        u = c_variable(acc.dtype, new_c_varname("u"))
+        a = c_variable(acc.dtype, new_c_name("a"))
+        b = c_variable(acc.dtype, new_c_name("b"))
+        u = c_variable(acc.dtype, new_c_name("u"))
         return f"""
                         {tmpexp.declare()}
                         if ({acc.id}[0] > {xi.id}[0])    // =  exp(m)  * (s + s'*exp(m'-m))   if m > m'

@@ -2,7 +2,7 @@ from keopscore.utils.code_gen_utils import (
     c_zero_float,
     c_for_loop,
     c_variable,
-    new_c_varname,
+    new_c_name,
 )
 from keopscore.formulas.reductions.Reduction import Reduction
 
@@ -30,8 +30,8 @@ class Sum_Reduction(Reduction):
 
     def KahanScheme(self, acc, xi, tmp):
         loop, k = c_for_loop(0, self.dim, 1, pragma_unroll=True)
-        a = c_variable(acc.dtype, new_c_varname("a"))
-        b = c_variable(acc.dtype, new_c_varname("b"))
+        a = c_variable(acc.dtype, new_c_name("a"))
+        b = c_variable(acc.dtype, new_c_name("b"))
         return loop(
             a.declare_assign(xi[k] - tmp[k])
             + b.declare_assign(acc[k] + a)

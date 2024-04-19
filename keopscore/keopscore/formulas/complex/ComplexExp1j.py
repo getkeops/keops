@@ -1,5 +1,5 @@
 from keopscore.formulas.Operation import Operation
-from keopscore.utils.code_gen_utils import c_for_loop, pointer
+from keopscore.utils.code_gen_utils import c_for_loop, c_pointer
 from keopscore.utils.math_functions import keops_sincos
 from keopscore.formulas.complex.Real2Complex import Real2Complex
 from keopscore.formulas.complex.Imag2Complex import Imag2Complex
@@ -24,7 +24,7 @@ class ComplexExp1j(Operation):
 
     def Op(self, out, table, inF):
         forloop, i = c_for_loop(0, self.dim, 2, pragma_unroll=True)
-        body = keops_sincos(inF[i / 2], pointer(out[i + 1]), pointer(out[i]))
+        body = keops_sincos(inF[i / 2], c_pointer(out[i + 1]), c_pointer(out[i]))
         return forloop(body)
 
     def DiffT(self, v, gradin):

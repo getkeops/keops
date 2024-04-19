@@ -10,7 +10,7 @@ from keopscore.utils.code_gen_utils import (
     load_vars_chunks,
     load_vars_chunks_offsets,
     sizeof,
-    pointer,
+    c_pointer,
     Var_loader,
     use_pragma_unroll,
 )
@@ -38,7 +38,7 @@ def do_finalchunk_sub_ranges(
     out,
 ):
     dimout = varfinal.dim
-    yjloc = c_variable(pointer(dtype), f"({yj.id} + threadIdx.x * {dimfinalchunk})")
+    yjloc = c_variable(c_pointer(dtype), f"({yj.id} + threadIdx.x * {dimfinalchunk})")
     indsj_global = Var_loader(fun_global, force_all_local=True).indsj
     load_chunks_routine_j = load_vars_chunks(
         [varfinal.ind],
@@ -114,8 +114,8 @@ class GpuReduc1D_ranges_finalchunks(MapReduce, Gpu_link_compile):
         chunk = c_variable("signed long int", "chunk")
         arg = self.arg
         args = self.args
-        yj = c_variable(pointer(dtype), "yj")
-        out = c_variable(pointer(dtype), "out")
+        yj = c_variable(c_pointer(dtype), "yj")
+        out = c_variable(c_pointer(dtype), "out")
         ind_fun_internal = 0 if self.red_formula.formula.children[0].dim == 1 else 1
         fun_internal = Sum_Reduction(
             self.red_formula.formula.children[ind_fun_internal], self.red_formula.tagI

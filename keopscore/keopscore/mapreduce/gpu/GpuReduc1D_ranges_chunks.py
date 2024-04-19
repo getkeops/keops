@@ -9,7 +9,7 @@ from keopscore.utils.code_gen_utils import (
     load_vars_chunks,
     load_vars_chunks_offsets,
     sizeof,
-    pointer,
+    c_pointer,
     table,
     table4,
     Var_loader,
@@ -54,9 +54,10 @@ def do_chunk_sub_ranges(
 ):
     chk = Chunk_Mode_Constants(red_formula)
     fout_tmp_chunk = c_array(dtype, chk.fun_chunked.dim)
-    xiloc = c_variable(pointer(dtype), f"({xi.id} + {chk.dimx_notchunked})")
+    xiloc = c_variable(c_pointer(dtype), f"({xi.id} + {chk.dimx_notchunked})")
     yjloc = c_variable(
-        pointer(dtype), f"({yj.id} + threadIdx.x * {chk.dimy} + {chk.dimy_notchunked})"
+        c_pointer(dtype),
+        f"({yj.id} + threadIdx.x * {chk.dimy} + {chk.dimy_notchunked})",
     )
 
     load_chunks_routine_i = load_vars_chunks(
@@ -151,7 +152,7 @@ def do_chunk_sub_ranges(
         None,
         None,
     )
-    foutj = c_variable(pointer(dtype), "foutj")
+    foutj = c_variable(c_pointer(dtype), "foutj")
 
     return f"""
                 {fout_tmp_chunk.declare()}
@@ -255,11 +256,11 @@ class GpuReduc1D_ranges_chunks(MapReduce, Gpu_link_compile):
         fout_chunk = c_array(
             dtype, self.blocksize_chunks * chk.dimout_chunk, "fout_chunk"
         )
-        yj = c_variable(pointer(dtype), "yj")
+        yj = c_variable(c_pointer(dtype), "yj")
         yjloc = c_array(dtype, chk.dimy, f"(yj + threadIdx.x * {chk.dimy})")
 
         fout_chunk_loc = c_variable(
-            pointer(dtype), f"({fout_chunk.id}+jrel*{chk.dimout_chunk})"
+            c_pointer(dtype), f"({fout_chunk.id}+jrel*{chk.dimout_chunk})"
         )
 
         tile = c_variable("signed long int", "tile")

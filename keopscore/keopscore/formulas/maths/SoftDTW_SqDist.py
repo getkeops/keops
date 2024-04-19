@@ -6,7 +6,7 @@ from keopscore.formulas.Operation import Operation
 from keopscore.utils.misc_utils import KeOps_Error
 from keopscore.utils.code_gen_utils import (
     c_variable,
-    pointer,
+    c_pointer,
     c_array,
     c_for_loop,
     c_zero_float,

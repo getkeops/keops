@@ -1,5 +1,5 @@
 from keopscore.formulas.Operation import Operation
-from keopscore.utils.code_gen_utils import value, c_zero_float, c_for_loop
+from keopscore.utils.code_gen_utils import c_value, c_zero_float, c_for_loop
 from keopscore.utils.misc_utils import KeOps_Error
 
 #####################################################
@@ -27,7 +27,7 @@ class ElemT(Operation):
         n, m = self.n, self.m
         loop1, k = c_for_loop(0, m, 1, pragma_unroll=True)
         string = loop1(out[k].assign(c_zero_float))
-        string += out[m].assign(value(arg))
+        string += out[m].assign(c_value(arg))
         loop2, k = c_for_loop(m + 1, n, 1, pragma_unroll=True)
         string += loop2(out[k].assign(c_zero_float))
         return string

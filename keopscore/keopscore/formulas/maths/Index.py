@@ -1,5 +1,5 @@
 from keopscore.formulas.Operation import Operation
-from keopscore.utils.code_gen_utils import value
+from keopscore.utils.code_gen_utils import c_value
 from keopscore.utils.misc_utils import KeOps_Error
 
 ##########################################################
@@ -22,7 +22,7 @@ class Index(Operation):
         self.dim = 1
 
     def Op(self, out, table, arga, argb):
-        return value(out).assign(arga[value(argb)])
+        return c_value(out).assign(arga[c_value(argb)])
 
     def DiffT(self, v, gradin):
         from keopscore.formulas.maths.IndexT import IndexT
