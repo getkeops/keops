@@ -1,4 +1,9 @@
 from keopscore.binders.nvrtc.Gpu_link_compile import Gpu_link_compile
+from keopscore.utils.meta_toolbox.c_expression import c_pointer
+from keopscore.utils.meta_toolbox.c_function import c_function
+from keopscore.utils.meta_toolbox.c_code import c_code
+from keopscore.utils.meta_toolbox.c_instruction import c_instruction
+from keopscore.utils.meta_toolbox.c_for import c_for
 from keopscore.mapreduce.gpu.GpuAssignZero import GpuAssignZero
 from keopscore.mapreduce.MapReduce import MapReduce
 from keopscore.utils.code_gen_utils import (
@@ -64,56 +69,77 @@ class GpuReduc1D(MapReduce, Gpu_link_compile):
         jrel = c_variable("signed long int", "jrel")
         jreltile = jrel + tile * blockDim_x
 
-        self.code = f"""
-                          
-                        {self.headers}
-                        
-                        extern "C" __global__ void GpuConv1DOnDevice(signed long int {nx}, signed long int {ny}, {dtype} *out, {dtype} **{arg.id}) {{
-    
-                          // get the index of the current thread
-                          {i.declare_assign(blockIdx_x * blockDim_x + threadIdx_x)}
+        sync_threads = c_instruction("__syncthreads()", set(), set())
 
-                          // declare shared mem
-                          {yj.declare()}
+        out = c_variable(c_pointer(dtype),"out")
 
-                          // load parameters variables from global memory to local thread memory
-                          {param_loc.declare()}
-                          {varloader.load_vars("p", param_loc, args)}
+        code = self.headers + c_function(
+            'extern "C" __global__ void',
+            "GpuConv1DOnDevice",
+            (nx,ny,out,arg),
+            (
+                i.declare_assign(blockIdx_x * blockDim_x + threadIdx_x, comment = "get the index of the current thread"),
+                yj.declare(comment="declare shared mem"),
+                param_loc.declare(comment="load parameters variables from global memory to local thread memory"),
+                varloader.load_vars("p", param_loc, args),
+                fout.declare(),
+                xi.declare(),
+                acc.declare(),
+                sum_scheme.declare_temporary_accumulator(),
+                c_if(
+                    i<nx,
+                    (
+                        red_formula.InitializeReduction(acc),
+                        sum_scheme.initialize_temporary_accumulator_first_init(),
+                        varloader.load_vars('i', xi, args, row_index=i),
+                    )
+                ),
+                c_for(
+                    (jstart.declare_assign(0),tile.assign(0)),
+                    jstart<ny,
+                    (jstart.add_assign(blockDim_x),tile.plus_plus),
+                    (
+                        j.declare_assign(tile * blockDim_x + threadIdx_x, comment="get the current column"),
+                        c_if(
+                            j<ny, 
+                            varloader.load_vars("j",yjloc, args, row_index=j), 
+                            comment="we load yj from device global memory only if j<ny"
+                        ),
+                        sync_threads,
+                        c_if(
+                            i<nx,
+                            (
+                                yjrel.c_var.declare_assign(yj.c_var),
+                                sum_scheme.initialize_temporary_accumulator_block_init(),
+                                c_for(
+                                    jrel.declare_assign(0),
+                                    (jrel<blockDim_x).logical_and(jrel<ny-jstart),
+                                    (jrel.plus_plus, yjrel.c_var.add_assign(varloader.dimy_local)),
+                                    (
+                                        c_instruction(
+                                            red_formula.formula(fout, table, i, jreltile, tagI), 
+                                            set(),
+                                            set(),
+                                            comment="Call the function, which outputs results in fout"
+                                        ),
+                                        sum_scheme.accumulate_result(acc, fout, jreltile)
+                                    )
+                                ),
+                               sum_scheme.final_operation(acc)
+                            ),
+                            comment = "we compute x1i only if needed"
+                        ),
+                        sync_threads
+                    )
+                ),
+                c_if(i<nx, red_formula.FinalizeOutput(acc, outi, i))
+            )
+        )
 
-                          {fout.declare()}
-                          {xi.declare()}
-                          {acc.declare()}
-                          {sum_scheme.declare_temporary_accumulator()}
+        self.code = str(code)
 
-                          {c_if(i<nx,
-                                red_formula.InitializeReduction(acc)+
-                                sum_scheme.initialize_temporary_accumulator_first_init()+
-                                varloader.load_vars('i', xi, args, row_index=i))}
+        f = open("ess.cu","w")
+        f.write(self.code)
+        f.close()
 
-                          for (signed long int {jstart} = 0, {tile} = 0; {jstart<ny}; {jstart} += {blockDim_x}, {tile}++) {{
 
-                            // get the current column
-                            {j.declare_assign(tile * blockDim_x + threadIdx_x)}
-
-                            {c_if(j<ny, 
-                                  varloader.load_vars("j",yjloc, args, row_index=j), 
-                                  comment="we load yj from device global memory only if j<ny")}
-                                  
-                            __syncthreads();
-
-                            if ({i<nx}) {{ // we compute x1i only if needed
-                              {dtype} * {yjrel} = {yj};
-                              {sum_scheme.initialize_temporary_accumulator_block_init()}
-                              for (signed long int {jrel} = 0; ({jrel<blockDim_x}) && ({jrel<ny-jstart}); {jrel}++, {yjrel} += {varloader.dimy_local}) {{
-                                {red_formula.formula(fout, table, i, jreltile, tagI)} // Call the function, which outputs results in fout
-                                {sum_scheme.accumulate_result(acc, fout, jreltile)}
-                              }}
-                              {sum_scheme.final_operation(acc)}
-                            }}
-                            __syncthreads();
-                          }}
-                          
-                          {c_if(i<nx, red_formula.FinalizeOutput(acc, outi, i))}
-
-                        }}
-                    """

@@ -18,18 +18,20 @@ registered_dtypes = (
 )
 registered_dtypes = registered_dtypes + tuple(x + "*" for x in registered_dtypes) + tuple(x + "**" for x in registered_dtypes)
 
+def is_pointer(dtype):
+    return dtype[-1]=="*"
+
 disable_pragma_unrolls = False
 
 
 def use_pragma_unroll(n=64):
     if disable_pragma_unrolls:
-        return "\n"
+        return ""
     else:
         if n is None:
-            return f"\n#pragma unroll\n"
+            return "#pragma unroll"
         else:
-            return f"\n#pragma unroll({n})\n"
-
+            return f"#pragma unroll({n})"
 
 def sizeof(dtype):
     if dtype in ("float", "int"):
@@ -54,7 +56,7 @@ def add_indent(block_str):
     lines = block_str.split("\n")
     for line in lines:
         if line == "":
-            pass
+            string += "\n"
         else:
             string += global_indent + line + "\n"
     return string
@@ -88,5 +90,3 @@ def signature_list(args):
     return ", ".join(list(f"{arg.dtype} {arg.id}" for arg in args))
 
 
-def c_include(*headers):
-    return "".join(f"#include <{header}>\n" for header in headers)

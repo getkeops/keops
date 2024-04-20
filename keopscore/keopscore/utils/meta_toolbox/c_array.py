@@ -1,3 +1,4 @@
+from .c_instruction import c_instruction, c_empty_instruction
 from .c_lvalue import c_lvalue
 from .c_expression import c_expression, c_pointer, py2c
 from .c_for import c_for_loop
@@ -18,13 +19,15 @@ class c_array:
         # method for printing the c_variable inside Python code
         return self.c_var.__repr__()
 
-    def declare(self):
+    def declare(self, **kwargs):
         # returns C++ code to declare a fixed-size arry of size dim,
         # skipping declaration if dim=0
         if self.dim == "" or self.dim > 0:
-            return f"{self.dtype} {self.c_var}[{self.dim}];"
+            local_vars = self.c_var.vars
+            global_vars = set()
+            return c_instruction(f"{self.dtype} {self.c_var}[{self.dim}]", local_vars, global_vars, **kwargs)
         else:
-            return ""
+            return c_empty_instruction
 
     def split(self, *dims):
         # split c_array in n sub arrays with dimensions dims[0], dims[1], ..., dims[n-1]

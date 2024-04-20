@@ -1,7 +1,7 @@
 from .c_block import c_block
 from .c_code import c_code
 from .c_expression import c_expression, py2c
-from .c_instruction import c_instruction
+from .c_instruction import c_instruction, c_empty_instruction
 from .c_variable import c_variable
 from .misc import Meta_Toolbox_Error, new_c_name, to_tuple, use_pragma_unroll
 
@@ -11,9 +11,9 @@ class c_for(c_block):
     def __init__(
         self,
         init=(),
-        end=c_instruction(),
+        end=c_empty_instruction,
         loop=(),
-        body=c_instruction(),
+        body=c_empty_instruction,
         decorator=None,
     ):
         init_instructions = to_tuple(init)
@@ -23,26 +23,26 @@ class c_for(c_block):
             isinstance(x, c_instruction) for x in init_instructions + loop_instructions
         ) or not isinstance(end_expression, c_expression):
             Meta_Toolbox_Error("invalid arguments")
+        self.init_instructions = init_instructions
+        self.end_expression = end_expression
+        self.loop_instructions = loop_instructions
         headers = (
-            self.set_header_instr(init_instructions),
+            *init_instructions,
             end_expression,
-            self.set_header_instr(loop_instructions),
+            *loop_instructions,
         )
         super().__init__(body=body, decorator=decorator, headers=headers)
 
     @property
     def pre_code_string(self):
-        header = "; ".join(str(header) for header in self.headers)
+        strings = []
+        strings = (
+            ",".join(x.code_string for x in self.init_instructions),
+            self.end_expression.code_string,
+            ",".join(x.code_string for x in self.loop_instructions),
+        )
+        header = "; ".join(string for string in strings)
         return f"for({header})"
-
-    def set_header_instr(self, instructions):
-        res = c_instruction(end_str="")
-        for instr in instructions:
-            res += instr
-            res.end_str = ","
-        res.end_str = ""
-        return res
-
 
 def c_for_loop(start, end, incr, pragma_unroll=False, name_incr=None):
 

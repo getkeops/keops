@@ -3,7 +3,8 @@ from hashlib import sha256
 
 import keopscore
 from keopscore.config.config import disable_pragma_unrolls
-from keopscore.utils.meta_toolbox.c_instruction import c_instruction
+from keopscore.utils.meta_toolbox.c_for import c_for
+from keopscore.utils.meta_toolbox.c_instruction import c_instruction, c_empty_instruction
 from keopscore.utils.misc_utils import KeOps_Error, KeOps_Message
 
 
@@ -23,7 +24,6 @@ from keopscore.utils.meta_toolbox.misc import (
     use_pragma_unroll,
     call_list,
     signature_list,
-    c_include,
 )
 from keopscore.utils.meta_toolbox.c_variable import (
     c_variable,
@@ -33,6 +33,7 @@ from keopscore.utils.meta_toolbox.c_variable import (
     infinity,
     cast_to,
 )
+from keopscore.utils.meta_toolbox.c_code import c_code, c_include, c_define
 from keopscore.utils.meta_toolbox.c_for import c_for_loop
 from keopscore.utils.meta_toolbox.c_if import c_if
 from keopscore.utils.meta_toolbox.c_expression import c_value, c_pointer
@@ -327,23 +328,23 @@ def load_vars(
     #   xi[4] = arg8[(5+offsets[4])*3+0];
     #   xi[5] = arg8[(5+offsets[4])*3+1];
     #   xi[6] = arg8[(5+offsets[4])*3+2];
-    string = ""
     if len(dims) > 0:
-        string += "{\n"
-        string += "signed long int a=0;\n"
+        a = c_variable("signed long int","a")
+        res = a.declare_assign(0)
         for u in range(len(dims)):
             l = indsref.index(inds[u]) if indsref else u
-            row_index_str = (
-                f"({row_index.id}+{offsets.id}[{l}])" if offsets else row_index.id
-            )
+            row_index_l = row_index + offsets[l] if offsets else row_index
             if is_local[inds[u]]:
-                string += use_pragma_unroll()
-                string += f"for(signed long int v=0; v<{dims[u]}; v++) {{\n"
-                string += f"    {xloc}[a] = {args[inds[u]]}[{row_index_str}*{dims[u]}+v];\n"
-                string += "     a++;\n"
-                string += "}\n"
-        string += "}\n"
-    return c_instruction(string, end_str="")
+                v = c_variable("signed long int", "v")
+                res += c_for(
+                    v.declare_assign(0),
+                    v<dims[u],
+                    v.plus_plus,
+                    xloc[a].assign(args[inds[u]][row_index_l*dims[u]+v]) + a.plus_plus
+                )
+        return c_block(res)
+    else:
+        return c_empty_instruction
 
 
 def load_vars_chunks(

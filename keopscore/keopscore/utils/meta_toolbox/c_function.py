@@ -1,3 +1,4 @@
+from .c_instruction import c_empty_instruction
 from .c_block import c_block
 from .c_code import c_code
 from .c_expression import c_expression
@@ -6,19 +7,18 @@ from .misc import Meta_Toolbox_Error, new_c_name
 
 class c_function(c_block):
 
-    def __init__(self, name=None, dtype_out="void", input_vars=()):
-
+    def __init__(self, dtype_out="void", name=None, input_vars=(), body=c_empty_instruction, **kwargs):
         if name is None:
             name = new_c_name("fun")
         self.name = name
         self.dtype_out = dtype_out
         self.input_vars = input_vars
-        super().__init__()
+        headers = tuple(var.declare() for var in input_vars)
+        super().__init__(body=body, headers=headers, **kwargs)
 
     @property
     def pre_code_string(self):
-        signature = ", ".join(x.declare().code_string for x in self.input_vars)
-        return f"{self.dtype_out} {self.name}({signature})"
+        return f"{self.dtype_out} {self.name}({', '.join(x.code_string for x in self.headers)})"
 
     def __call__(self, *vars):
         vars_dtype = [var.dtype for var in vars]

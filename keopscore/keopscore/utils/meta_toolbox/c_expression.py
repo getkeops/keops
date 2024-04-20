@@ -1,21 +1,17 @@
 from .c_code import c_code
-from .misc import registered_dtypes, Meta_Toolbox_Error
+from .misc import is_pointer, registered_dtypes, Meta_Toolbox_Error
 
 
 class c_expression(c_code):
 
-    def __init__(self, expression="", vars=(), dtype=None, add_parenthesis=True):
-        if not isinstance(expression, str):
+    def __init__(self, string, vars, dtype, add_parenthesis=True):
+        if not isinstance(string, str):
             Meta_Toolbox_Error("invalid expression")
-        if expression == "":
-            dtype = "void"
-        elif dtype is None:
-            raise ValueError("should provide dtype")
         if dtype not in registered_dtypes:
             raise ValueError(f"data type {dtype} not registered")
         self.dtype = dtype  # dtype is C++ type of variable
         super().__init__(
-            f"({expression})" if add_parenthesis else str(expression), vars
+            f"({string})" if add_parenthesis else str(string), vars
         )
         self.id = self.code_string
 
@@ -123,6 +119,7 @@ class c_expression(c_code):
         else:
             Meta_Toolbox_Error("not implemented")
 
+c_empty_expression = c_expression("", set(), "void", add_parenthesis=False)
 
 def py2c(expression):
     if isinstance(expression, c_expression):
@@ -141,16 +138,18 @@ class cast_to(c_expression):
     def __init__(self, dtype, expr):
         simple_dtypes = ["float", "double", "int", "signed long int", "bool"]
         if (dtype in simple_dtypes) and (expr.dtype in simple_dtypes):
-            string = f"({dtype})({expr})"
+            string = f"({dtype}){expr}"
         elif dtype == "half2" and expr.dtype == "float":
             string = f"__float2half2_rn({expr})"
         elif dtype == "float2" and expr.dtype == "half2":
             string = f"__half22float2({expr})"
         elif dtype == "half2" and expr.dtype == "float2":
             string = f"__float22half2_rn({expr})"
+        elif expr.dtype in ("int", "signed long int") and is_pointer(dtype):
+            string = f"{expr}"
         else:
             Meta_Toolbox_Error(f"not implemented: casting from {expr.dtype} to {dtype}")
-        super().__init__(expression=string, vars=expr.vars, dtype=dtype)
+        super().__init__(string=string, vars=expr.vars, dtype=dtype, add_parenthesis=False)
 
 
 def c_value(x):

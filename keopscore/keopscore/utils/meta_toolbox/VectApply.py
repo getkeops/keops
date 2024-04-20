@@ -48,5 +48,5 @@ def VectApply(fun, out, *args):
 
     body = fun(out[k * incr_out], *argsk)
     if isinstance(body, str):
-        body = c_instruction(body)
+        body = c_instruction(body, set(), set())
     return forloop(body)

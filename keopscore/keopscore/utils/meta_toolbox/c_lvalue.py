@@ -7,7 +7,7 @@ class c_lvalue(c_expression):
 
     def __init__(self, dtype, vars, string_id, add_parenthesis):
         super().__init__(
-            string_id, vars=vars, dtype=dtype
+            string_id, vars=vars, dtype=dtype, add_parenthesis=add_parenthesis
         )
         self.id = string_id
 
@@ -26,7 +26,7 @@ class c_lvalue(c_expression):
                 return assign_x + assign_y
             else:
                 return c_instruction(
-                    f"{self} {assign_op} {cast_to(self.dtype, value)}",
+                    f"{self} {assign_op} {value}",
                     local_vars,
                     global_vars,
                 )

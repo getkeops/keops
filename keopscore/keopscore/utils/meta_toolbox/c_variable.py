@@ -24,12 +24,12 @@ class c_variable(c_lvalue):
         global_vars = set()
         return c_instruction(f"{self.dtype} {self}", local_vars, global_vars)
 
-    def declare_assign(self, value):
+    def declare_assign(self, value, **kwargs):
         value = py2c(value)
         local_vars = self.vars
         global_vars = value.vars
         return c_instruction(
-            f"{self.dtype} {self.assign(value).code_string}", local_vars, global_vars
+            f"{self.dtype} {self.assign(value).code_string}", local_vars, global_vars, **kwargs
         )
 
 

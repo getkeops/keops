@@ -1,4 +1,4 @@
-from keopscore.utils.meta_toolbox.c_instruction import c_instruction
+from keopscore.utils.meta_toolbox.c_instruction import c_instruction, c_empty_instruction
 from keopscore.utils.code_gen_utils import (
     c_array,
     c_zero_float,
@@ -19,24 +19,24 @@ class Sum_Scheme:
         return self.tmp_acc.declare()
 
     def initialize_temporary_accumulator_first_init(self):
-        return c_instruction()
+        return c_empty_instruction
 
     def initialize_temporary_accumulator_block_init(self):
-        return c_instruction()
+        return c_empty_instruction
 
     def periodic_accumulate_temporary(self, acc, j):
-        return c_instruction()
+        return c_empty_instruction
 
     def final_operation(self, acc):
-        return c_instruction()
+        return c_empty_instruction
 
 
 class direct_sum(Sum_Scheme):
     def declare_temporary_accumulator(self):
-        return c_instruction()
+        return c_empty_instruction
 
     def initialize_temporary_accumulator(self):
-        return c_instruction()
+        return c_empty_instruction
 
     def accumulate_result(self, acc, fout, j, hack=False):
         return self.red_formula.ReducePairShort(acc, fout, j)
