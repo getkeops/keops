@@ -42,3 +42,6 @@ class c_composed_instruction(c_instruction):
 
 
 c_empty_instruction = c_instruction("", set(), set())
+
+def c_comment(string):
+    return c_instruction("// "+string, set(), set())
