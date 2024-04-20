@@ -1,3 +1,4 @@
+from keopscore.utils.meta_toolbox.c_variable import c_variable
 from .c_instruction import c_empty_instruction
 from .c_block import c_block
 from .c_code import c_code
@@ -30,3 +31,14 @@ class c_function(c_block):
         str_args = ", ".join(str(x) for x in vars)
         expression = f"{self.name}({str_args})"
         return c_expression(expression, vars, self.dtype_out, add_parenthesis=False)
+
+
+
+class cuda_global_kernel(c_function):
+
+    blockIdx_x = c_variable("int", "blockIdx.x")
+    blockDim_x = c_variable("int", "blockDim.x")
+    threadIdx_x = c_variable("int", "threadIdx.x")
+
+    def __init__(self, name, input_vars=(), body=c_empty_instruction, **kwargs):
+        super().__init__('extern "C" __global__ void', name, input_vars, body, **kwargs)

@@ -1,6 +1,6 @@
 from keopscore.binders.nvrtc.Gpu_link_compile import Gpu_link_compile
 from keopscore.utils.meta_toolbox.c_expression import c_pointer
-from keopscore.utils.meta_toolbox.c_function import c_function
+from keopscore.utils.meta_toolbox.c_function import cuda_global_kernel
 from keopscore.utils.meta_toolbox.c_code import c_code
 from keopscore.utils.meta_toolbox.c_instruction import c_instruction
 from keopscore.utils.meta_toolbox.c_for import c_for
@@ -59,9 +59,9 @@ class GpuReduc1D(MapReduce, Gpu_link_compile):
         nx = c_variable("signed long int", "nx")
         ny = c_variable("signed long int", "ny")
 
-        blockIdx_x = c_variable("int", "blockIdx.x")
-        blockDim_x = c_variable("int", "blockDim.x")
-        threadIdx_x = c_variable("int", "threadIdx.x")
+        blockIdx_x = cuda_global_kernel.blockIdx_x
+        blockDim_x = cuda_global_kernel.blockDim_x
+        threadIdx_x = cuda_global_kernel.threadIdx_x
 
         tile = c_variable("signed long int", "tile")
         jstart = c_variable("signed long int", "jstart")
@@ -73,8 +73,7 @@ class GpuReduc1D(MapReduce, Gpu_link_compile):
 
         out = c_variable(c_pointer(dtype),"out")
 
-        code = self.headers + c_function(
-            'extern "C" __global__ void',
+        code = self.headers + cuda_global_kernel(
             "GpuConv1DOnDevice",
             (nx,ny,out,arg),
             (
@@ -116,12 +115,7 @@ class GpuReduc1D(MapReduce, Gpu_link_compile):
                                     (jrel<blockDim_x).logical_and(jrel<ny-jstart),
                                     (jrel.plus_plus, yjrel.c_var.add_assign(varloader.dimy_local)),
                                     (
-                                        c_instruction(
-                                            red_formula.formula(fout, table, i, jreltile, tagI), 
-                                            set(),
-                                            set(),
-                                            comment="Call the function, which outputs results in fout"
-                                        ),
+                                        red_formula.formula(fout, table, i, jreltile, tagI),
                                         sum_scheme.accumulate_result(acc, fout, jreltile)
                                     )
                                 ),

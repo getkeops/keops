@@ -14,6 +14,7 @@ class c_array:
         self.dtype = dtype
         self.dim = dim
         self.id = string_id
+        self.vars = self.c_var.vars
 
     def __repr__(self):
         # method for printing the c_variable inside Python code

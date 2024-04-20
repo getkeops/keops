@@ -1,3 +1,5 @@
+from keopscore.utils.meta_toolbox.c_instruction import c_instruction, c_empty_instruction
+from keopscore.utils.meta_toolbox.c_block import c_block
 from keopscore.utils.code_gen_utils import new_c_name, c_array, cast_to, c_variable
 from keopscore.utils.Tree import Tree
 import keopscore
@@ -71,7 +73,7 @@ class Operation(Tree):
         from keopscore.formulas.variables.Var import Var
         from keopscore.formulas.variables.IJ import I, J
 
-        string = f"\n{{\n// Starting code block for {self.__repr__()}.\n\n"
+        res = c_instruction(f"// Starting code block for {self.__repr__()}",set(),set())
         if keopscore.debug_ops:
             print(f"Building code block for {self.__repr__()}")
             print("out=", out)
@@ -80,7 +82,7 @@ class Operation(Tree):
             for v in table:
                 print(f"dim of {v} : ", v.dim)
         if keopscore.debug_ops_at_exec:
-            string += f'printf("\\n\\nComputing {self.__repr__()} :\\n");\n'
+            res += c_instruction(f'printf("\\n\\nComputing {self.__repr__()} :\\n")',set(),set())
         args = []
         # Evaluation of the child operations
         for child in self.children:
@@ -100,25 +102,25 @@ class Operation(Tree):
                 template_string_id = "out_" + child.string_id.lower()
                 arg_name = new_c_name(template_string_id)
                 arg = c_array(out.dtype, child.dim, arg_name)
-                # Now we append into string the C++ code to declare the array
-                string += f"{arg.declare()}\n"
+                # Now we append into res the C++ code to declare the array
+                res += arg.declare()
                 # Now we evaluate the child operation and append the result into string
-                string += child(arg, table, i, j, tagI)
+                res += child(arg, table, i, j, tagI)
             args.append(arg)
         # Finally, evaluation of the operation itself
-        string += str(self.Op(out, table, *args))
+        res += self.Op(out, table, *args)
 
         # some debugging helper :
         if keopscore.debug_ops_at_exec:
             for arg in args:
-                string += arg.c_print
-            string += out.c_print
-            string += f'printf("\\n\\n");\n'
+                res += c_instruction(arg.c_print,set(),set())
+            res += c_instruction(out.c_print,set(),set())
+            res += c_instruction(f'printf("\\n\\n");\n',set(),set())
         if keopscore.debug_ops:
             print(f"Finished building code block for {self.__repr__()}")
 
-        string += f"\n\n// Finished code block for {self.__repr__()}.\n}}\n\n"
-        return string
+        res += c_instruction(f"// Finished code block for {self.__repr__()}",set(),set())
+        return c_block(res)
 
     def __mul__(self, other):
         """f*g redirects to Mult(f,g)"""

@@ -1,7 +1,6 @@
 from .c_code import c_code
 from .misc import is_pointer, registered_dtypes, Meta_Toolbox_Error
 
-
 class c_expression(c_code):
 
     def __init__(self, string, vars, dtype, add_parenthesis=True):
@@ -105,6 +104,7 @@ class c_expression(c_code):
         return c_expression(f"(-{self.code})", self.vars, self.dtype)
 
     def __getitem__(self, other):
+        from .c_lvalue import c_value
         other = py2c(other)
         if isinstance(other, c_expression):
             if other.dtype not in ("int", "signed long int"):
@@ -150,23 +150,6 @@ class cast_to(c_expression):
         else:
             Meta_Toolbox_Error(f"not implemented: casting from {expr.dtype} to {dtype}")
         super().__init__(string=string, vars=expr.vars, dtype=dtype, add_parenthesis=False)
-
-
-def c_value(x):
-    # either convert c_array or c_variable representing a pointer to its value c_variable (dereference)
-    # or converts string "dtype*" to "dtype"
-    from .c_array import c_array
-
-    if isinstance(x, c_array):
-        return c_expression(f"(*{x})", vars=x.vars, dtype=x.dtype)
-    if isinstance(x, c_expression):
-        return c_expression(c_value(f"(*{x})", vars=x.vars, dtype=x.dtype))
-    elif isinstance(x, str):
-        if x[-1] != "*":
-            Meta_Toolbox_Error("dtype is not a pointer type")
-        return x[:-1]
-    else:
-        Meta_Toolbox_Error("input should be c_expression instance or string.")
 
 
 def c_pointer(x):

@@ -1,7 +1,8 @@
 from keopscore.formulas.Operation import Operation
 from keopscore.formulas.maths.ArgMax import ArgMax
 from keopscore.formulas.maths.OneHot import OneHot
-from keopscore.utils.code_gen_utils import c_for_loop, c_if, c_value
+from keopscore.utils.meta_toolbox.c_lvalue import c_value
+from keopscore.utils.code_gen_utils import c_for_loop, c_if
 from keopscore.utils.misc_utils import KeOps_Error
 
 ############################

@@ -3,6 +3,7 @@ from hashlib import sha256
 
 import keopscore
 from keopscore.config.config import disable_pragma_unrolls
+from keopscore.utils.meta_toolbox.c_lvalue import c_value
 from keopscore.utils.meta_toolbox.c_for import c_for
 from keopscore.utils.meta_toolbox.c_instruction import c_instruction, c_empty_instruction
 from keopscore.utils.misc_utils import KeOps_Error, KeOps_Message
@@ -36,7 +37,7 @@ from keopscore.utils.meta_toolbox.c_variable import (
 from keopscore.utils.meta_toolbox.c_code import c_code, c_include, c_define
 from keopscore.utils.meta_toolbox.c_for import c_for_loop
 from keopscore.utils.meta_toolbox.c_if import c_if
-from keopscore.utils.meta_toolbox.c_expression import c_value, c_pointer
+from keopscore.utils.meta_toolbox.c_expression import c_pointer
 from keopscore.utils.meta_toolbox.c_array import c_array
 from keopscore.utils.meta_toolbox.VectApply import VectApply
 from keopscore.utils.meta_toolbox.ComplexVectApply import ComplexVectApply
