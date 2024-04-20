@@ -26,7 +26,12 @@ class c_array:
         if self.dim == "" or self.dim > 0:
             local_vars = self.c_var.vars
             global_vars = set()
-            return c_instruction(f"{self.dtype} {self.c_var}[{self.dim}]", local_vars, global_vars, **kwargs)
+            return c_instruction(
+                f"{self.dtype} {self.c_var}[{self.dim}]",
+                local_vars,
+                global_vars,
+                **kwargs,
+            )
         else:
             return c_empty_instruction
 
@@ -62,7 +67,9 @@ class c_array:
         else:
             Meta_Toolbox_Error("not implemented")
         vars = self.c_var.vars.union(other.vars)
-        return c_lvalue(string_id=expression, vars=vars, dtype=self.dtype, add_parenthesis=False)
+        return c_lvalue(
+            string_id=expression, vars=vars, dtype=self.dtype, add_parenthesis=False
+        )
 
     @property
     def c_print(self):

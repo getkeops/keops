@@ -100,4 +100,6 @@ class KMin_ArgKMin_Reduction(Reduction):
                         }}
                     }}
                 """
-        res = c_instruction(string=string, local_vars=set(), global_vars=set(), end_str=";\n")
+        res = c_instruction(
+            string=string, local_vars=set(), global_vars=set(), end_str=";\n"
+        )

@@ -5,7 +5,10 @@ import keopscore
 from keopscore.config.config import disable_pragma_unrolls
 from keopscore.utils.meta_toolbox.c_lvalue import c_value
 from keopscore.utils.meta_toolbox.c_for import c_for
-from keopscore.utils.meta_toolbox.c_instruction import c_instruction, c_empty_instruction
+from keopscore.utils.meta_toolbox.c_instruction import (
+    c_instruction,
+    c_empty_instruction,
+)
 from keopscore.utils.misc_utils import KeOps_Error, KeOps_Message
 
 
@@ -330,7 +333,7 @@ def load_vars(
     #   xi[5] = arg8[(5+offsets[4])*3+1];
     #   xi[6] = arg8[(5+offsets[4])*3+2];
     if len(dims) > 0:
-        a = c_variable("signed long int","a")
+        a = c_variable("signed long int", "a")
         res = a.declare_assign(0)
         for u in range(len(dims)):
             l = indsref.index(inds[u]) if indsref else u
@@ -339,9 +342,10 @@ def load_vars(
                 v = c_variable("signed long int", "v")
                 res += c_for(
                     v.declare_assign(0),
-                    v<dims[u],
+                    v < dims[u],
                     v.plus_plus,
-                    xloc[a].assign(args[inds[u]][row_index_l*dims[u]+v]) + a.plus_plus
+                    xloc[a].assign(args[inds[u]][row_index_l * dims[u] + v])
+                    + a.plus_plus,
                 )
         return c_block(res)
     else:

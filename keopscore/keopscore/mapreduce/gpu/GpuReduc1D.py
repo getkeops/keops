@@ -45,16 +45,16 @@ class GpuReduc1D(MapReduce, Gpu_link_compile):
         xi = self.xi
         yj = c_array(f"extern __shared__ {dtype}", "", "yj")
         yjloc = c_array(
-            dtype, varloader.dimy_local, f"({yj} + threadIdx.x * {varloader.dimy_local})"
+            dtype,
+            varloader.dimy_local,
+            f"({yj} + threadIdx.x * {varloader.dimy_local})",
         )
         yjrel = c_array(dtype, varloader.dimy_local, "yjrel")
 
         j_start = c_variable("signed long int", "jstart")
         j_rel = c_variable("signed long int", "jrel")
-        j_call = j_start+j_rel
+        j_call = j_start + j_rel
         table = varloader.table(self.xi, yjrel, self.param_loc, args, i, j_call)
-        
-        
 
         nx = c_variable("signed long int", "nx")
         ny = c_variable("signed long int", "ny")
@@ -71,69 +71,82 @@ class GpuReduc1D(MapReduce, Gpu_link_compile):
 
         sync_threads = c_instruction("__syncthreads()", set(), set())
 
-        out = c_variable(c_pointer(dtype),"out")
+        out = c_variable(c_pointer(dtype), "out")
 
         code = self.headers + cuda_global_kernel(
             "GpuConv1DOnDevice",
-            (nx,ny,out,arg),
+            (nx, ny, out, arg),
             (
-                i.declare_assign(blockIdx_x * blockDim_x + threadIdx_x, comment = "get the index of the current thread"),
+                i.declare_assign(
+                    blockIdx_x * blockDim_x + threadIdx_x,
+                    comment="get the index of the current thread",
+                ),
                 yj.declare(comment="declare shared mem"),
-                param_loc.declare(comment="load parameters variables from global memory to local thread memory"),
+                param_loc.declare(
+                    comment="load parameters variables from global memory to local thread memory"
+                ),
                 varloader.load_vars("p", param_loc, args),
                 fout.declare(),
                 xi.declare(),
                 acc.declare(),
                 sum_scheme.declare_temporary_accumulator(),
                 c_if(
-                    i<nx,
+                    i < nx,
                     (
                         red_formula.InitializeReduction(acc),
                         sum_scheme.initialize_temporary_accumulator_first_init(),
-                        varloader.load_vars('i', xi, args, row_index=i),
-                    )
+                        varloader.load_vars("i", xi, args, row_index=i),
+                    ),
                 ),
                 c_for(
-                    (jstart.declare_assign(0),tile.assign(0)),
-                    jstart<ny,
-                    (jstart.add_assign(blockDim_x),tile.plus_plus),
+                    (jstart.declare_assign(0), tile.assign(0)),
+                    jstart < ny,
+                    (jstart.add_assign(blockDim_x), tile.plus_plus),
                     (
-                        j.declare_assign(tile * blockDim_x + threadIdx_x, comment="get the current column"),
+                        j.declare_assign(
+                            tile * blockDim_x + threadIdx_x,
+                            comment="get the current column",
+                        ),
                         c_if(
-                            j<ny, 
-                            varloader.load_vars("j",yjloc, args, row_index=j), 
-                            comment="we load yj from device global memory only if j<ny"
+                            j < ny,
+                            varloader.load_vars("j", yjloc, args, row_index=j),
+                            comment="we load yj from device global memory only if j<ny",
                         ),
                         sync_threads,
                         c_if(
-                            i<nx,
+                            i < nx,
                             (
                                 yjrel.c_var.declare_assign(yj.c_var),
                                 sum_scheme.initialize_temporary_accumulator_block_init(),
                                 c_for(
                                     jrel.declare_assign(0),
-                                    (jrel<blockDim_x).logical_and(jrel<ny-jstart),
-                                    (jrel.plus_plus, yjrel.c_var.add_assign(varloader.dimy_local)),
+                                    (jrel < blockDim_x).logical_and(jrel < ny - jstart),
                                     (
-                                        red_formula.formula(fout, table, i, jreltile, tagI),
-                                        sum_scheme.accumulate_result(acc, fout, jreltile)
-                                    )
+                                        jrel.plus_plus,
+                                        yjrel.c_var.add_assign(varloader.dimy_local),
+                                    ),
+                                    (
+                                        red_formula.formula(
+                                            fout, table, i, jreltile, tagI
+                                        ),
+                                        sum_scheme.accumulate_result(
+                                            acc, fout, jreltile
+                                        ),
+                                    ),
                                 ),
-                               sum_scheme.final_operation(acc)
+                                sum_scheme.final_operation(acc),
                             ),
-                            comment = "we compute x1i only if needed"
+                            comment="we compute x1i only if needed",
                         ),
-                        sync_threads
-                    )
+                        sync_threads,
+                    ),
                 ),
-                c_if(i<nx, red_formula.FinalizeOutput(acc, outi, i))
-            )
+                c_if(i < nx, red_formula.FinalizeOutput(acc, outi, i)),
+            ),
         )
 
         self.code = str(code)
 
-        f = open("ess.cu","w")
+        f = open("ess.cu", "w")
         f.write(self.code)
         f.close()
-
-

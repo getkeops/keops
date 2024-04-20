@@ -1,4 +1,7 @@
-from keopscore.utils.meta_toolbox.c_instruction import c_instruction, c_empty_instruction
+from keopscore.utils.meta_toolbox.c_instruction import (
+    c_instruction,
+    c_empty_instruction,
+)
 from keopscore.utils.code_gen_utils import (
     c_array,
     c_zero_float,
@@ -48,10 +51,9 @@ class block_sum(Sum_Scheme):
         self.tmp_acc = c_array(dtype, self.dimred, "tmp")
 
     def initialize_temporary_accumulator(self):
-        return (
-            c_instruction("signed long int period_accumulate = ny<10 ? 100 : sqrt(ny)")
-            + self.red_formula.InitializeReduction(self.tmp_acc)
-        )
+        return c_instruction(
+            "signed long int period_accumulate = ny<10 ? 100 : sqrt(ny)"
+        ) + self.red_formula.InitializeReduction(self.tmp_acc)
 
     def initialize_temporary_accumulator_block_init(self):
         return self.red_formula.InitializeReduction(self.tmp_acc)

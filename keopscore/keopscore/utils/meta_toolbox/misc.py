@@ -16,10 +16,16 @@ registered_dtypes = (
     "extern __shared__ float",
     "extern __shared__ double",
 )
-registered_dtypes = registered_dtypes + tuple(x + "*" for x in registered_dtypes) + tuple(x + "**" for x in registered_dtypes)
+registered_dtypes = (
+    registered_dtypes
+    + tuple(x + "*" for x in registered_dtypes)
+    + tuple(x + "**" for x in registered_dtypes)
+)
+
 
 def is_pointer(dtype):
-    return dtype[-1]=="*"
+    return dtype[-1] == "*"
+
 
 disable_pragma_unrolls = False
 
@@ -32,6 +38,7 @@ def use_pragma_unroll(n=64):
             return "#pragma unroll"
         else:
             return f"#pragma unroll({n})"
+
 
 def sizeof(dtype):
     if dtype in ("float", "int"):
@@ -88,5 +95,3 @@ def call_list(args):
 
 def signature_list(args):
     return ", ".join(list(f"{arg.dtype} {arg.id}" for arg in args))
-
-

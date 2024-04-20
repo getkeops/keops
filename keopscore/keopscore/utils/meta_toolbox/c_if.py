@@ -6,7 +6,9 @@ from .misc import Meta_Toolbox_Error
 
 class c_if(c_block):
 
-    def __init__(self, condition=c_empty_expression, body=c_empty_instruction, **kwargs):
+    def __init__(
+        self, condition=c_empty_expression, body=c_empty_instruction, **kwargs
+    ):
         if not isinstance(condition, c_expression):
             Meta_Toolbox_Error("invalid condition")
         super().__init__(body=body, headers=(condition,), **kwargs)

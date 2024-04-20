@@ -1,6 +1,12 @@
 from keopscore.formulas.reductions import *
 from keopscore.formulas.GetReduction import GetReduction
-from keopscore.utils.code_gen_utils import Var_loader, new_c_name, c_pointer, c_include, c_define
+from keopscore.utils.code_gen_utils import (
+    Var_loader,
+    new_c_name,
+    c_pointer,
+    c_include,
+    c_define,
+)
 
 
 class MapReduce:
@@ -45,13 +51,13 @@ class MapReduce:
         )
 
     def get_code(self):
-        self.headers = c_define("C_CONTIGUOUS","1")
+        self.headers = c_define("C_CONTIGUOUS", "1")
 
         if self.use_half == 1:
-            self.headers += c_define("USE_HALF","1")
+            self.headers += c_define("USE_HALF", "1")
             self.headers += c_include("cuda_fp16.h")
         else:
-            self.headers += c_define("USE_HALF","0")
+            self.headers += c_define("USE_HALF", "0")
 
         red_formula = self.red_formula
         formula = red_formula.formula

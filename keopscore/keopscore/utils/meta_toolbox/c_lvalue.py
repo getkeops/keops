@@ -51,11 +51,17 @@ def c_value(x):
     from .c_array import c_array
 
     if isinstance(x, c_array):
-        return c_lvalue(string_id=f"*{x}", vars=x.vars, dtype=x.dtype, add_parenthesis=True)
+        return c_lvalue(
+            string_id=f"*{x}", vars=x.vars, dtype=x.dtype, add_parenthesis=True
+        )
     if isinstance(x, c_lvalue):
-        return c_lvalue(string_id=f"*{x}", vars=x.vars, dtype=x.dtype, add_parenthesis=True)
+        return c_lvalue(
+            string_id=f"*{x}", vars=x.vars, dtype=x.dtype, add_parenthesis=True
+        )
     if isinstance(x, c_expression):
-        return c_expression(string_id=f"*{x}", vars=x.vars, dtype=x.dtype, add_parenthesis=True)
+        return c_expression(
+            string_id=f"*{x}", vars=x.vars, dtype=x.dtype, add_parenthesis=True
+        )
     elif isinstance(x, str):
         if x[-1] != "*":
             Meta_Toolbox_Error("dtype is not a pointer type")

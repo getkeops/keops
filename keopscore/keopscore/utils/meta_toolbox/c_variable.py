@@ -29,7 +29,10 @@ class c_variable(c_lvalue):
         local_vars = self.vars
         global_vars = value.vars
         return c_instruction(
-            f"{self.dtype} {self.assign(value).code_string}", local_vars, global_vars, **kwargs
+            f"{self.dtype} {self.assign(value).code_string}",
+            local_vars,
+            global_vars,
+            **kwargs,
         )
 
 

@@ -8,7 +8,14 @@ from .misc import Meta_Toolbox_Error, new_c_name
 
 class c_function(c_block):
 
-    def __init__(self, dtype_out="void", name=None, input_vars=(), body=c_empty_instruction, **kwargs):
+    def __init__(
+        self,
+        dtype_out="void",
+        name=None,
+        input_vars=(),
+        body=c_empty_instruction,
+        **kwargs,
+    ):
         if name is None:
             name = new_c_name("fun")
         self.name = name
@@ -31,7 +38,6 @@ class c_function(c_block):
         str_args = ", ".join(str(x) for x in vars)
         expression = f"{self.name}({str_args})"
         return c_expression(expression, vars, self.dtype_out, add_parenthesis=False)
-
 
 
 class cuda_global_kernel(c_function):

@@ -7,7 +7,9 @@ from .misc import Meta_Toolbox_Error, add_indent
 
 class c_block(c_composed_instruction):
 
-    def __init__(self, body=c_empty_instruction, headers=(), decorator=None, comment=None):
+    def __init__(
+        self, body=c_empty_instruction, headers=(), decorator=None, comment=None
+    ):
         super().__init__("", set(), set())
         self.decorator = decorator
         self.headers = headers
@@ -17,7 +19,9 @@ class c_block(c_composed_instruction):
                 res += elem
             body = res
         if not isinstance(body, c_instruction):
-            Meta_Toolbox_Error("invalid argument to set_body; should be a c_instruction")
+            Meta_Toolbox_Error(
+                "invalid argument to set_body; should be a c_instruction"
+            )
         self.body = body
 
         self.code_string = ""

@@ -1,4 +1,7 @@
-from keopscore.utils.meta_toolbox.c_instruction import c_instruction, c_empty_instruction
+from keopscore.utils.meta_toolbox.c_instruction import (
+    c_instruction,
+    c_empty_instruction,
+)
 from keopscore.utils.meta_toolbox.c_block import c_block
 from keopscore.utils.code_gen_utils import new_c_name, c_array, cast_to, c_variable
 from keopscore.utils.Tree import Tree
@@ -73,7 +76,9 @@ class Operation(Tree):
         from keopscore.formulas.variables.Var import Var
         from keopscore.formulas.variables.IJ import I, J
 
-        res = c_instruction(f"// Starting code block for {self.__repr__()}",set(),set())
+        res = c_instruction(
+            f"// Starting code block for {self.__repr__()}", set(), set()
+        )
         if keopscore.debug_ops:
             print(f"Building code block for {self.__repr__()}")
             print("out=", out)
@@ -82,7 +87,9 @@ class Operation(Tree):
             for v in table:
                 print(f"dim of {v} : ", v.dim)
         if keopscore.debug_ops_at_exec:
-            res += c_instruction(f'printf("\\n\\nComputing {self.__repr__()} :\\n")',set(),set())
+            res += c_instruction(
+                f'printf("\\n\\nComputing {self.__repr__()} :\\n")', set(), set()
+            )
         args = []
         # Evaluation of the child operations
         for child in self.children:
@@ -113,13 +120,15 @@ class Operation(Tree):
         # some debugging helper :
         if keopscore.debug_ops_at_exec:
             for arg in args:
-                res += c_instruction(arg.c_print,set(),set())
-            res += c_instruction(out.c_print,set(),set())
-            res += c_instruction(f'printf("\\n\\n");\n',set(),set())
+                res += c_instruction(arg.c_print, set(), set())
+            res += c_instruction(out.c_print, set(), set())
+            res += c_instruction(f'printf("\\n\\n");\n', set(), set())
         if keopscore.debug_ops:
             print(f"Finished building code block for {self.__repr__()}")
 
-        res += c_instruction(f"// Finished code block for {self.__repr__()}",set(),set())
+        res += c_instruction(
+            f"// Finished code block for {self.__repr__()}", set(), set()
+        )
         return c_block(res)
 
     def __mul__(self, other):
