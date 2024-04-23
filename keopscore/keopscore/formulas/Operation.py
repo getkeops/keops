@@ -70,6 +70,19 @@ class Operation(Tree):
         formula = self.replace(old, new, cnt)
         return formula, cnt[0]
 
+    def get_out_var(self, dtype):
+        template_string_id = "out_" + self.string_id.lower()
+        name = new_c_name(template_string_id)
+        if self.dim == 1:
+            return c_variable(dtype, name)
+        else:
+            return c_array(dtype, self.dim, name)
+
+    def get_code_and_expr(self, dtype, table, i, j, tagI):
+        out = self.get_out_var(dtype)
+        code = out.declare() + self(out, table, i, j, tagI)
+        return code, out
+
     def __call__(self, out, table, i, j, tagI):
         """returns the C++ code string corresponding to the evaluation of the formula
          - out is a c_variable in which the result of the evaluation is stored
@@ -78,7 +91,7 @@ class Operation(Tree):
         from keopscore.formulas.variables.Var import Var
         from keopscore.formulas.variables.IJ import I, J
 
-        res = c_comment(f"Starting code block for {self.__repr__()}")
+        code = c_comment(f"Starting code block for {self.__repr__()}")
         if keopscore.debug_ops:
             print(f"Building code block for {self.__repr__()}")
             print("out=", out)
@@ -87,47 +100,35 @@ class Operation(Tree):
             for v in table:
                 print(f"dim of {v} : ", v.dim)
         if keopscore.debug_ops_at_exec:
-            res += c_instruction(
+            code += c_instruction(
                 f'printf("\\n\\nComputing {self.__repr__()} :\\n")', set(), set()
             )
-        args = []
         # Evaluation of the child operations
-        for child in self.children:
-            if isinstance(child, I):
-                arg = i if tagI == 0 else j
-            elif isinstance(child, J):
-                arg = j if tagI == 0 else i
-            elif isinstance(child, Var):
-                # if the child of the operation is a Var, we do not need to evaluate it,
-                # we simply record the corresponding c_variable
-                arg = table[child.ind]
-            else:
-                # otherwise, we need to evaluate the child operation.
-                # We first create a new c_array to store the result of the child operation.
-                # This c_array must have a unique name in the code, to avoid conflicts
-                # when we will recursively evaluate nested operations.
-                template_string_id = "out_" + child.string_id.lower()
-                arg_name = new_c_name(template_string_id)
-                arg = c_array(out.dtype, child.dim, arg_name)
-                # Now we append into res the C++ code to declare the array
-                res += arg.declare()
-                # Now we evaluate the child operation and append the result into string
-                res += child(arg, table, i, j, tagI)
-            args.append(arg)
+        if len(self.children) > 0:
+            code_args, args = zip(
+                *(
+                    child.get_code_and_expr(out.dtype, table, i, j, tagI)
+                    for child in self.children
+                )
+            )
+            code += sum(code_args, c_empty_instruction)
+        else:
+            args = ()
         # Finally, evaluation of the operation itself
-        res += self.Op(out, table, *args)
+        code += self.Op(out, table, *args)
 
         # some debugging helper :
         if keopscore.debug_ops_at_exec:
             for arg in args:
-                res += c_instruction_from_string(arg.c_print)
-            res += c_instruction_from_string(out.c_print)
-            res += c_instruction_from_string(f'printf("\\n\\n");\n')
+                code += c_instruction_from_string(arg.c_print)
+            code += c_instruction_from_string(out.c_print)
+            code += c_instruction_from_string(f'printf("\\n\\n");\n')
         if keopscore.debug_ops:
             print(f"Finished building code block for {self.__repr__()}")
 
-        res += c_comment(f"Finished code block for {self.__repr__()}")
-        return c_block(res)
+        code += c_comment(f"Finished code block for {self.__repr__()}")
+        code = c_block(code)
+        return code
 
     def __mul__(self, other):
         """f*g redirects to Mult(f,g)"""

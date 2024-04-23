@@ -135,7 +135,7 @@ def py2c(expression):
     if isinstance(expression, c_expression):
         return expression
     if isinstance(expression, int):
-        dtype = "signed long int" if expression > 2e9 else "int"
+        dtype = "signed long int" if abs(expression) > 2e9 else "int"
     elif isinstance(expression, float):
         dtype = "double"
     else:

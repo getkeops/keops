@@ -44,13 +44,16 @@ def math_function(
         string_gpu = code_fun_gpu(*(arg.id for arg in args))
         code_fun_cpu = convert_to_fun(cpu_code)
         string_cpu = code_fun_cpu(*(arg.id for arg in args))
-        string = f"""
-                    #ifdef __CUDACC__
-                        {string_gpu}
-                    #else
-                        {string_cpu}
-                    #endif
-                """
+        if string_cpu == string_gpu:
+            string = string_cpu
+        else:
+            string = f"""
+                        #ifdef __CUDACC__
+                            {string_gpu}
+                        #else
+                            {string_cpu}
+                        #endif
+                    """
         if void:
             return string
         else:

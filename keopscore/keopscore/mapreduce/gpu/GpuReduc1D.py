@@ -83,6 +83,9 @@ class GpuReduc1D(MapReduce, Gpu_link_compile):
         def cond_j(*instructions):
             return c_if(j < ny, instructions)
 
+        # print(red_formula.formula(fout, table, i, jreltile, tagI))
+        # exit()
+
         code = self.headers + cuda_global_kernel(
             "GpuConv1DOnDevice",
             (nx, ny, out, arg),

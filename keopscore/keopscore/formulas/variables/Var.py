@@ -1,4 +1,4 @@
-from keopscore.utils.code_gen_utils import VectCopy
+from keopscore.utils.code_gen_utils import VectCopy, c_empty_instruction
 from keopscore.formulas.Operation import Operation
 
 
@@ -49,6 +49,9 @@ class Var(Operation):
 
     def __hash__(self):
         return hash((self.ind, self.dim, self.cat))
+
+    def get_code_and_expr(self, dtype, table, i, j, tagI):
+        return c_empty_instruction, table[self.ind]
 
     def Op(self, out, table):
         return VectCopy(out, table[self.ind])
