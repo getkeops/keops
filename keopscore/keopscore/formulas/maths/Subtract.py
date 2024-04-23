@@ -5,6 +5,7 @@ from keopscore.formulas.maths.Mult import Mult_Impl
 from keopscore.formulas.maths.Sum import Sum
 from keopscore.formulas.variables.IntCst import IntCst, IntCst_Impl
 from keopscore.formulas.variables.RatCst import RatCst, RatCst_Impl
+from keopscore.utils.math_functions import keops_sub
 
 ##########################
 ######    Subtract   #####
@@ -18,10 +19,7 @@ class Subtract_Impl(VectorizedScalarOp):
     print_spec = "-", "mid", 4
     linearity_type = "all"
 
-    def ScalarOp(self, out, arg0, arg1):
-        # returns the atomic piece of c++ code to evaluate the function on arg and return
-        # the result in out
-        return f"{out.id} = {arg0.id}-{arg1.id};\n"
+    ScalarOpFun = keops_sub
 
     def DiffT(self, v, gradin):
         fa, fb = self.children

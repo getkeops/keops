@@ -7,6 +7,7 @@ from keopscore.formulas.variables.Zero import Zero
 from keopscore.formulas.variables.IntCst import IntCst, IntCst_Impl
 from keopscore.formulas.variables.RatCst import RatCst, RatCst_Impl
 from keopscore.utils.misc_utils import KeOps_Error
+from keopscore.utils.math_functions import keops_div
 
 ##########################
 ######    Divide     #####
@@ -20,9 +21,7 @@ class Divide_Impl(VectorizedScalarOp):
     print_spec = "/", "mid", 3
     linearity_type = "first"
 
-    def ScalarOp(self, out, arg0, arg1):
-        """returns the atomic piece of c++ code to evaluate the function on arg and return the result in out"""
-        return f"{out.id} = {arg0.id} / {arg1.id};\n"
+    ScalarOpFun = keops_div
 
     #  \diff_V (A/B) = ((\diff_V A) * B - A * (\diff_V B)) / B^2
     def DiffT(self, v, gradin):

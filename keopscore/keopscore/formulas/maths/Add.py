@@ -6,7 +6,7 @@ from keopscore.formulas.maths.Sum import Sum
 from keopscore.formulas.variables.IntCst import IntCst, IntCst_Impl
 from keopscore.formulas.variables.RatCst import RatCst, RatCst_Impl
 from keopscore.formulas.variables.Zero import Zero
-
+from keopscore.utils.math_functions import keops_add
 
 ##########################
 ######    Add        #####
@@ -19,6 +19,8 @@ class Add_Impl(VectorizedScalarOp):
     string_id = "Add"
     print_spec = "+", "mid", 4
     linearity_type = "all"
+
+    ScalarOpFun = keops_add
 
     def ScalarOp(self, out, arg0, arg1):
         # returns the atomic piece of c++ code to evaluate the function on arg and return

@@ -68,8 +68,10 @@ h2eq0 = lambda x: f"__heq2({x},{h2zero})"
 h2ifelse = lambda x, a, b: f"(({b})+(({a})-({b}))*{h2ge0(x)})"
 int2h2 = lambda x: f"__float2half2_rn((float){x})"
 
-
+keops_add = math_function(cpu_code=lambda x, y: f"({x}+{y})", gpu_half2_code="__hadd2")
+keops_sub = math_function(cpu_code=lambda x, y: f"({x}-{y})", gpu_half2_code="__hsub2")
 keops_mul = math_function(cpu_code=lambda x, y: f"({x}*{y})", gpu_half2_code="__hmul2")
+keops_div = math_function(cpu_code=lambda x, y: f"({x}/{y})", gpu_half2_code="__hdiv2")
 
 keops_abs = math_function(cpu_code="abs", gpu_half2_code="__habs2")
 keops_cos = math_function(cpu_code="cos", gpu_half2_code="h2cos")
