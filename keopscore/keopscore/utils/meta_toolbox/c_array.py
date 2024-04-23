@@ -7,9 +7,11 @@ from .misc import Meta_Toolbox_Error, new_c_name
 
 
 class c_array:
-    def __init__(self, dtype, dim, string_id=new_c_name("array")):
+    def __init__(self, dtype, dim, string_id=None):
         if dim != "" and dim < 0:
             Meta_Toolbox_Error("negative dimension for array")
+        if string_id is None:
+            string_id = new_c_name("array")
         self.c_var = c_variable(c_pointer(dtype), string_id)
         self.dtype = dtype
         self.dim = dim

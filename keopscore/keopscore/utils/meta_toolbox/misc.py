@@ -59,14 +59,9 @@ def to_tuple(x):
 
 
 def add_indent(block_str):
-    string = ""
     lines = block_str.split("\n")
-    for line in lines:
-        if line == "":
-            string += "\n"
-        else:
-            string += global_indent + line + "\n"
-    return string
+    indented_lines = [global_indent+line for line in lines]
+    return "\n".join(indented_lines)
 
 
 class new_c_name:
@@ -77,15 +72,17 @@ class new_c_name:
         # - template_string_id is a string, the base name for c_variable
         # - if num>1 returns a list of num new names with same base names
         # For example the first call to new_c_variable("x")
-        # will return "x_1", the second call will return "x_2", etc.
+        # will return "x", the second call will return "x2", etc.
         if num > 1 or as_list:
             return list(new_c_name(template_string_id) for k in range(num))
         if template_string_id in new_c_name.dict_instances:
             cnt = new_c_name.dict_instances[template_string_id] + 1
         else:
-            cnt = 0
+            cnt = 1
         new_c_name.dict_instances[template_string_id] = cnt
-        string_id = template_string_id + "_" + str(cnt)
+        string_id = template_string_id
+        if cnt>1:
+            string_id += str(cnt)
         return string_id
 
 

@@ -3,9 +3,11 @@ from .misc import Meta_Toolbox_Error
 from .c_for import c_for_loop
 from .c_variable import c_variable
 from .c_array import c_array
+from .c_lvalue import c_lvalue
+from .c_expression import c_expression
 
 
-def VectApply(fun, out, *args):
+def VectApply(fun, *args):
     # returns C++ code string to apply a scalar operation to fixed-size arrays, following broadcasting rules.
     # - fun is the scalar unary function to be applied, it must accept two c_variable or c_array inputs and output a string
     # - out must be a c_array instance
@@ -22,31 +24,29 @@ def VectApply(fun, out, *args):
     #   #pragma unroll
     #   for(signed long int k=0; k<out.dim; k++)
     #       fun(out[k], arg0, arg1[k]);
-
-    dims = [out.dim]
+    
+    dims = []
     for arg in args:
-        if isinstance(arg, c_variable):
+        if isinstance(arg, c_expression):
             dims.append(1)
         elif isinstance(arg, c_array):
             dims.append(arg.dim)
         else:
-            Meta_Toolbox_Error("args must be c_variable or c_array instances")
+            Meta_Toolbox_Error("args must be c_expression, or c_array instances")
     dimloop = max(dims)
     if not set(dims) in ({dimloop}, {1, dimloop}):
         Meta_Toolbox_Error("incompatible dimensions in VectApply")
-    incr_out = 1 if out.dim == dimloop else 0
-    incr_args = list((1 if dim == dimloop else 0) for dim in dims[1:])
+    incr_args = list((1 if dim == dimloop else 0) for dim in dims)
 
     forloop, k = c_for_loop(0, dimloop, 1, pragma_unroll=True)
 
     argsk = []
     for arg, incr in zip(args, incr_args):
-        if isinstance(arg, c_variable):
+        if isinstance(arg, c_expression):
             argsk.append(arg)
         elif isinstance(arg, c_array):
             argsk.append(arg[k * incr])
-
-    body = fun(out[k * incr_out], *argsk)
+    body = fun(*argsk)
     if isinstance(body, str):
         body = c_instruction(body, set(), set())
     return forloop(body)

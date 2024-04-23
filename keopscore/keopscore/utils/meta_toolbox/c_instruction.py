@@ -40,8 +40,8 @@ class c_instruction(c_code):
 class c_composed_instruction(c_instruction):
     end_str = ""
 
-
 c_empty_instruction = c_instruction("", set(), set())
+c_empty_instruction.end_str = ""
 
 def c_comment(string):
     return c_instruction("// "+string, set(), set())

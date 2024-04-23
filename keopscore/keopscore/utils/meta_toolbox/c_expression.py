@@ -11,6 +11,7 @@ class c_expression(c_code):
             raise ValueError(f"data type {dtype} not registered")
         self.dtype = dtype  # dtype is C++ type of variable
         super().__init__(f"({string})" if add_parenthesis else str(string), vars)
+        self.code_string_no_parenthesis = str(string)
         self.id = self.code_string
 
     def binary_op(self, other, python_op, c_op, name, dtype=None):
@@ -27,7 +28,7 @@ class c_expression(c_code):
                         dtype = "signed long int"
                 else:
                     Meta_Toolbox_Error(
-                        f"{name} of two c_expression is only possible with same dtype"
+                        f"{name} of two c_expression is only possible with same dtype, received {self.dtype} and {other.dtype}"
                     )
             if dtype is None:
                 dtype = self.dtype
@@ -45,6 +46,10 @@ class c_expression(c_code):
 
     def __mul__(self, other):
         python_op = lambda x, y: x * y
+        if other==1:
+            return self
+        elif other==0:
+            return 0
         return self.binary_op(other, python_op, "*", "product")
 
     def __sub__(self, other):
@@ -94,13 +99,16 @@ class c_expression(c_code):
             )
         vars = self.vars.union(out_true.vars.union(out_false.vars))
         return c_expression(
-            f"({self.code_string} ? {out_true.code_string} : {out_false.code_string})",
+            f"{self.code_string} ? {out_true.code_string} : {out_false.code_string}",
             vars,
             out_true.dtype,
         )
 
     def __neg__(self):
-        return c_expression(f"(-{self.code})", self.vars, self.dtype)
+        return c_expression(f"-{self.code_string}", self.vars, self.dtype)
+
+    def __pow__(self, other):
+        return c_expression(f"{self.code_string}**{other}", self.vars, self.dtype)
 
     def __getitem__(self, other):
         from .c_lvalue import c_value
