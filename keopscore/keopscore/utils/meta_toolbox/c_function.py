@@ -1,9 +1,9 @@
-from c_variable import c_variable
-from c_instruction import c_empty_instruction
-from c_block import c_block
-from c_code import c_code
-from c_expression import c_expression
-from misc import Meta_Toolbox_Error, new_c_name
+from .c_variable import c_variable
+from .c_instruction import c_empty_instruction
+from .c_block import c_block
+from .c_code import c_code
+from .c_expression import c_expression
+from .misc import Meta_Toolbox_Error, new_c_name
 
 
 class c_function(c_block):

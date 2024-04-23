@@ -1,7 +1,7 @@
-from c_block import c_block
-from c_expression import c_expression, c_empty_expression
-from c_instruction import c_empty_instruction
-from misc import Meta_Toolbox_Error
+from .c_block import c_block
+from .c_expression import c_expression, c_empty_expression
+from .c_instruction import c_empty_instruction
+from .misc import Meta_Toolbox_Error
 
 
 class c_if(c_block):
