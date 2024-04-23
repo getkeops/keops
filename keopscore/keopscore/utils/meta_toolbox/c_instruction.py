@@ -42,13 +42,16 @@ class c_instruction(c_code):
 class c_composed_instruction(c_instruction):
     end_str = ""
 
+
 c_empty_instruction = c_instruction("", set(), set())
 c_empty_instruction.end_str = ""
+
 
 def c_instruction_from_string(string):
     # N.B. ideally we would like to suppress this function
     # to force the user to declare variables used in the code
     return c_instruction(string, set(), set())
 
+
 def c_comment(string):
-    return c_instruction("// "+string, set(), set())
+    return c_instruction("// " + string, set(), set())

@@ -8,7 +8,12 @@ from .misc import Meta_Toolbox_Error, add_indent
 class c_block(c_composed_instruction):
 
     def __init__(
-        self, body=c_empty_instruction, headers=(), decorator=None, comment=None, use_braces=True
+        self,
+        body=c_empty_instruction,
+        headers=(),
+        decorator=None,
+        comment=None,
+        use_braces=True,
     ):
         super().__init__("", set(), set())
         self.decorator = decorator
@@ -22,9 +27,9 @@ class c_block(c_composed_instruction):
             Meta_Toolbox_Error(
                 "invalid argument to set_body; should be a c_instruction"
             )
-        if body.code_string=="" and headers==():
+        if body.code_string == "" and headers == ():
             return
-            
+
         self.body = body
 
         self.code_string = ""

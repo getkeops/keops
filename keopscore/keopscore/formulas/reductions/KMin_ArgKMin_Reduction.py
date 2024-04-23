@@ -65,7 +65,7 @@ class KMin_ArgKMin_Reduction(Reduction):
                 out[l].assign(acc[q]),
                 out[l + fdim].assign(acc[q + fdim]),
                 q.add_assign(2 * fdim),
-            )
+            ),
         )
         outer_body = p.declare_assign(k) + q.declare_assign(k) + inner_loop(inner_body)
         final_loop, k = c_for_loop(0, self.dimred, 1)
@@ -88,32 +88,32 @@ class KMin_ArgKMin_Reduction(Reduction):
                 l.declare(),
                 c_for(
                     k.assign(0),
-                    k<fdim,
+                    k < fdim,
                     k.plus_plus,
                     (
                         xik.assign(xi[k]),
                         c_for(
-                            l.assign(k+(K-1)*2*fdim),
-                            (l>=k).logical_and(xik<acc[l]),
-                            l.add_assign(-2*fdim),
+                            l.assign(k + (K - 1) * 2 * fdim),
+                            (l >= k).logical_and(xik < acc[l]),
+                            l.add_assign(-2 * fdim),
                             (
                                 tmpl.declare_assign(acc[l]),
-                                indtmpl.declare_assign(acc[l+fdim]),
+                                indtmpl.declare_assign(acc[l + fdim]),
                                 acc[l].assign(xik),
-                                acc[l+fdim].assign(ind),
+                                acc[l + fdim].assign(ind),
                                 c_if(
-                                    l<=(k+(2*fdim*(K-1))),
+                                    l <= (k + (2 * fdim * (K - 1))),
                                     (
-                                        acc[l+2*fdim].assign(tmpl),
-                                        acc[l+2*fdim+fdim].assign(indtmpl)
-                                    )
-                                )
+                                        acc[l + 2 * fdim].assign(tmpl),
+                                        acc[l + 2 * fdim + fdim].assign(indtmpl),
+                                    ),
+                                ),
                             ),
-                            decorator=use_pragma_unroll()
-                        )
+                            decorator=use_pragma_unroll(),
+                        ),
                     ),
-                    decorator=use_pragma_unroll()
-                )
+                    decorator=use_pragma_unroll(),
+                ),
             )
         )
         string = f"""
@@ -137,7 +137,5 @@ class KMin_ArgKMin_Reduction(Reduction):
                         }}
                     }}
                 """
-        res = c_instruction(
-            string=string, local_vars=set(), global_vars=set()
-        )
+        res = c_instruction(string=string, local_vars=set(), global_vars=set())
         return res

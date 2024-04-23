@@ -2,7 +2,10 @@ from keopscore.formulas.maths import Concat, Exp, Extract
 from keopscore.formulas.reductions.Reduction import Reduction
 from keopscore.formulas.reductions.Sum_Reduction import Sum_Reduction
 from keopscore.formulas.variables.IntCst import IntCst
-from keopscore.utils.meta_toolbox.c_instruction import c_instruction, c_instruction_from_string
+from keopscore.utils.meta_toolbox.c_instruction import (
+    c_instruction,
+    c_instruction_from_string,
+)
 from keopscore.utils.code_gen_utils import (
     neg_infinity,
     c_zero_float,

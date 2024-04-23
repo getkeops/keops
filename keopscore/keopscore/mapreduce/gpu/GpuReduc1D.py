@@ -2,7 +2,11 @@ from keopscore.binders.nvrtc.Gpu_link_compile import Gpu_link_compile
 from keopscore.utils.meta_toolbox.c_expression import c_pointer
 from keopscore.utils.meta_toolbox.c_function import cuda_global_kernel
 from keopscore.utils.meta_toolbox.c_code import c_code
-from keopscore.utils.meta_toolbox.c_instruction import c_instruction, c_comment, c_instruction_from_string
+from keopscore.utils.meta_toolbox.c_instruction import (
+    c_instruction,
+    c_comment,
+    c_instruction_from_string,
+)
 from keopscore.utils.meta_toolbox.c_for import c_for
 from keopscore.mapreduce.gpu.GpuAssignZero import GpuAssignZero
 from keopscore.mapreduce.MapReduce import MapReduce
@@ -74,9 +78,10 @@ class GpuReduc1D(MapReduce, Gpu_link_compile):
         out = c_variable(c_pointer(dtype), "out")
 
         def cond_i(*instructions):
-            return c_if(i<nx, instructions)
+            return c_if(i < nx, instructions)
+
         def cond_j(*instructions):
-            return c_if(j<ny, instructions)
+            return c_if(j < ny, instructions)
 
         code = self.headers + cuda_global_kernel(
             "GpuConv1DOnDevice",
@@ -107,19 +112,15 @@ class GpuReduc1D(MapReduce, Gpu_link_compile):
                             yjrel.c_var.declare_assign(yj.c_var),
                             sum_scheme.initialize_temporary_accumulator_block_init(),
                             c_for(
-                                init = jrel.declare_assign(0),
-                                end = (jrel < blockDim_x).logical_and(jrel < ny - jstart),
-                                loop = (
+                                init=jrel.declare_assign(0),
+                                end=(jrel < blockDim_x).logical_and(jrel < ny - jstart),
+                                loop=(
                                     jrel.plus_plus,
                                     yjrel.c_var.add_assign(varloader.dimy_local),
                                 ),
-                                body = (
-                                    red_formula.formula(
-                                        fout, table, i, jreltile, tagI
-                                    ),
-                                    sum_scheme.accumulate_result(
-                                        acc, fout, jreltile
-                                    ),
+                                body=(
+                                    red_formula.formula(fout, table, i, jreltile, tagI),
+                                    sum_scheme.accumulate_result(acc, fout, jreltile),
                                 ),
                             ),
                             sum_scheme.final_operation(acc),
@@ -132,4 +133,3 @@ class GpuReduc1D(MapReduce, Gpu_link_compile):
         )
 
         self.code = str(code)
-

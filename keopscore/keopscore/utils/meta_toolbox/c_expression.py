@@ -46,9 +46,9 @@ class c_expression(c_code):
 
     def __mul__(self, other):
         python_op = lambda x, y: x * y
-        if other==1:
+        if other == 1:
             return self
-        elif other==0:
+        elif other == 0:
             return 0
         return self.binary_op(other, python_op, "*", "product")
 

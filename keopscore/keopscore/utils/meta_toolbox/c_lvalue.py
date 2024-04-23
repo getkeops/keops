@@ -20,10 +20,14 @@ class c_lvalue(c_expression):
         if value.dtype != self.dtype:
             if self.dtype == "float2" and value.dtype == "float":
                 assign_x = c_instruction(
-                    f"{self}.x {assign_op} {value.code_string_no_parenthesis}", local_vars, global_vars
+                    f"{self}.x {assign_op} {value.code_string_no_parenthesis}",
+                    local_vars,
+                    global_vars,
                 )
                 assign_y = c_instruction(
-                    f"{self}.y {assign_op} {value.code_string_no_parenthesis}", local_vars, global_vars
+                    f"{self}.y {assign_op} {value.code_string_no_parenthesis}",
+                    local_vars,
+                    global_vars,
                 )
                 return assign_x + assign_y
             else:
@@ -34,7 +38,9 @@ class c_lvalue(c_expression):
                 )
         else:
             return c_instruction(
-                f"{self} {assign_op} {value.code_string_no_parenthesis}", local_vars, global_vars
+                f"{self} {assign_op} {value.code_string_no_parenthesis}",
+                local_vars,
+                global_vars,
             )
 
     def add_assign(self, value):

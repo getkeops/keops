@@ -60,7 +60,7 @@ def to_tuple(x):
 
 def add_indent(block_str):
     lines = block_str.split("\n")
-    indented_lines = [global_indent+line for line in lines]
+    indented_lines = [global_indent + line for line in lines]
     return "\n".join(indented_lines)
 
 
@@ -81,7 +81,7 @@ class new_c_name:
             cnt = 1
         new_c_name.dict_instances[template_string_id] = cnt
         string_id = template_string_id
-        if cnt>1:
+        if cnt > 1:
             string_id += str(cnt)
         return string_id
 

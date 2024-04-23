@@ -24,7 +24,7 @@ def VectApply(fun, *args):
     #   #pragma unroll
     #   for(signed long int k=0; k<out.dim; k++)
     #       fun(out[k], arg0, arg1[k]);
-    
+
     dims = []
     for arg in args:
         if isinstance(arg, c_expression):
