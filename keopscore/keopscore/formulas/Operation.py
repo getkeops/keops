@@ -70,10 +70,10 @@ class Operation(Tree):
         formula = self.replace(old, new, cnt)
         return formula, cnt[0]
 
-    def get_out_var(self, dtype):
+    def get_out_var(self, dtype, dim=None):
         template_string_id = "out_" + self.string_id.lower()
         name = new_c_name(template_string_id)
-        if self.dim == 1:
+        if self.dim == 1 or dim==1:
             return c_variable(dtype, name)
         else:
             return c_array(dtype, self.dim, name)
@@ -83,13 +83,21 @@ class Operation(Tree):
         code = out.declare() + self(out, table, i, j, tagI)
         return code, out
 
+    def get_code_and_expr_elem(self, dtype, table, i, j, tagI, elem):
+        code, out = self.get_code_and_expr(dtype, table, i, j, tagI)
+        if isinstance(out, c_array) and out.dim == 1:
+            out = out[0] # this is for broadcasting
+        elif isinstance(out, c_variable):
+            pass # same, here out is a single variable and we output it
+        else:
+            out = out[elem]
+        return code, c_empty_instruction, out
+
     def __call__(self, out, table, i, j, tagI):
         """returns the C++ code string corresponding to the evaluation of the formula
          - out is a c_variable in which the result of the evaluation is stored
          - table is the list of c_variables corresponding to actual local variables
         required for evaluation : each Var(ind,*,*) corresponds to table[ind]"""
-        from keopscore.formulas.variables.Var import Var
-        from keopscore.formulas.variables.IJ import I, J
 
         code = c_comment(f"Starting code block for {self.__repr__()}")
         if keopscore.debug_ops:
