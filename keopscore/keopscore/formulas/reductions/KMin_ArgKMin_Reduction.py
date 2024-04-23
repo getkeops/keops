@@ -1,6 +1,9 @@
 from keopscore.utils.meta_toolbox.c_for import c_for
 from keopscore.utils.meta_toolbox.c_block import c_block
-from keopscore.utils.meta_toolbox.c_instruction import c_instruction
+from keopscore.utils.meta_toolbox.c_instruction import (
+    c_instruction,
+    c_instruction_from_string,
+)
 from keopscore.utils.code_gen_utils import (
     infinity,
     cast_to,
@@ -137,5 +140,5 @@ class KMin_ArgKMin_Reduction(Reduction):
                         }}
                     }}
                 """
-        res = c_instruction(string=string, local_vars=set(), global_vars=set())
+        res = c_instruction_from_string(string)
         return res

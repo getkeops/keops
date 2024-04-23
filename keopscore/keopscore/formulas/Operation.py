@@ -1,4 +1,5 @@
 from keopscore.utils.meta_toolbox.c_instruction import (
+    c_comment,
     c_instruction,
     c_empty_instruction,
     c_instruction_from_string,
@@ -77,9 +78,7 @@ class Operation(Tree):
         from keopscore.formulas.variables.Var import Var
         from keopscore.formulas.variables.IJ import I, J
 
-        res = c_instruction(
-            f"// Starting code block for {self.__repr__()}", set(), set()
-        )
+        res = c_comment(f"Starting code block for {self.__repr__()}")
         if keopscore.debug_ops:
             print(f"Building code block for {self.__repr__()}")
             print("out=", out)
@@ -127,9 +126,7 @@ class Operation(Tree):
         if keopscore.debug_ops:
             print(f"Finished building code block for {self.__repr__()}")
 
-        res += c_instruction(
-            f"// Finished code block for {self.__repr__()}", set(), set()
-        )
+        res += c_comment(f"Finished code block for {self.__repr__()}")
         return c_block(res)
 
     def __mul__(self, other):
