@@ -2,7 +2,7 @@ from keopscore.binders.nvrtc.Gpu_link_compile import Gpu_link_compile
 from keopscore.utils.meta_toolbox.c_expression import c_pointer
 from keopscore.utils.meta_toolbox.c_function import cuda_global_kernel
 from keopscore.utils.meta_toolbox.c_code import c_code
-from keopscore.utils.meta_toolbox.c_instruction import c_instruction, c_comment
+from keopscore.utils.meta_toolbox.c_instruction import c_instruction, c_comment, c_instruction_from_string
 from keopscore.utils.meta_toolbox.c_for import c_for
 from keopscore.mapreduce.gpu.GpuAssignZero import GpuAssignZero
 from keopscore.mapreduce.MapReduce import MapReduce
@@ -69,7 +69,7 @@ class GpuReduc1D(MapReduce, Gpu_link_compile):
         jrel = c_variable("signed long int", "jrel")
         jreltile = jrel + tile * blockDim_x
 
-        sync_threads = c_instruction("__syncthreads()", set(), set())
+        sync_threads = c_instruction_from_string("__syncthreads()")
 
         out = c_variable(c_pointer(dtype), "out")
 

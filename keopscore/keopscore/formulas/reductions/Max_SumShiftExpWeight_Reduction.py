@@ -2,7 +2,7 @@ from keopscore.formulas.maths import Concat, Exp, Extract
 from keopscore.formulas.reductions.Reduction import Reduction
 from keopscore.formulas.reductions.Sum_Reduction import Sum_Reduction
 from keopscore.formulas.variables.IntCst import IntCst
-from keopscore.utils.meta_toolbox.c_instruction import c_instruction
+from keopscore.utils.meta_toolbox.c_instruction import c_instruction, c_instruction_from_string
 from keopscore.utils.code_gen_utils import (
     neg_infinity,
     c_zero_float,
@@ -60,7 +60,7 @@ class Max_SumShiftExpWeight_Reduction(Reduction):
                         {acc[0].assign(xi[0])}
                       }}
               """
-        return c_instruction(string=string, end_str="")
+        return c_instruction_from_string(string=string)
 
     def ReducePairShort(self, acc, xi, ind):
         return self.ReducePair(acc, xi)

@@ -1,4 +1,4 @@
-from .c_instruction import c_instruction
+from .c_instruction import c_instruction, c_instruction_from_string
 from .misc import Meta_Toolbox_Error
 from .c_for import c_for_loop
 from .c_variable import c_variable
@@ -48,5 +48,5 @@ def VectApply(fun, *args):
             argsk.append(arg[k * incr])
     body = fun(*argsk)
     if isinstance(body, str):
-        body = c_instruction(body, set(), set())
+        body = c_instruction_from_string(body)
     return forloop(body)

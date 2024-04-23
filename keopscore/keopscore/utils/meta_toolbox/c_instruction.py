@@ -19,6 +19,8 @@ class c_instruction(c_code):
         return super().__repr__() + self.end_str
 
     def __add__(self, other):
+        if isinstance(other, str):
+            other = c_instruction_from_string(other)
         if not isinstance(other, c_instruction):
             Meta_Toolbox_Error(f"cannot add c_instruction and {type(other)}")
         if self.code_string == "":
@@ -42,6 +44,11 @@ class c_composed_instruction(c_instruction):
 
 c_empty_instruction = c_instruction("", set(), set())
 c_empty_instruction.end_str = ""
+
+def c_instruction_from_string(string):
+    # N.B. ideally we would like to suppress this function
+    # to force the user to declare variables used in the code
+    return c_instruction(string, set(), set())
 
 def c_comment(string):
     return c_instruction("// "+string, set(), set())

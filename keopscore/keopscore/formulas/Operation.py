@@ -1,6 +1,7 @@
 from keopscore.utils.meta_toolbox.c_instruction import (
     c_instruction,
     c_empty_instruction,
+    c_instruction_from_string,
 )
 from keopscore.utils.meta_toolbox.c_block import c_block
 from keopscore.utils.code_gen_utils import new_c_name, c_array, cast_to, c_variable
@@ -120,9 +121,9 @@ class Operation(Tree):
         # some debugging helper :
         if keopscore.debug_ops_at_exec:
             for arg in args:
-                res += c_instruction(arg.c_print, set(), set())
-            res += c_instruction(out.c_print, set(), set())
-            res += c_instruction(f'printf("\\n\\n");\n', set(), set())
+                res += c_instruction_from_string(arg.c_print)
+            res += c_instruction_from_string(out.c_print)
+            res += c_instruction_from_string(f'printf("\\n\\n");\n')
         if keopscore.debug_ops:
             print(f"Finished building code block for {self.__repr__()}")
 
