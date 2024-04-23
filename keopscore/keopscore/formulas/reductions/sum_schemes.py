@@ -42,6 +42,7 @@ class direct_sum(Sum_Scheme):
         return c_empty_instruction
 
     def accumulate_result(self, acc, fout, j, hack=False):
+        tmp = self.red_formula.ReducePairShort(acc, fout, j)
         return self.red_formula.ReducePairShort(acc, fout, j)
 
 

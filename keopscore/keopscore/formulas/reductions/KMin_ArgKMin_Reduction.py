@@ -1,3 +1,4 @@
+from keopscore.utils.meta_toolbox.c_for import c_for
 from keopscore.utils.meta_toolbox.c_block import c_block
 from keopscore.utils.meta_toolbox.c_instruction import c_instruction
 from keopscore.utils.code_gen_utils import (
@@ -57,12 +58,14 @@ class KMin_ArgKMin_Reduction(Reduction):
         inner_loop, l = c_for_loop(k, self.dimred, 2 * fdim)
         inner_body = c_if(
             xi[p] < acc[q],
-            out[l].assign(xi[p])
-            + out[l + fdim].assign(xi[p + fdim])
-            + p.add_assign(2 * fdim),
-            out[l].assign(acc[q])
-            + out[l + fdim].assign(acc[q + fdim])
-            + q.add_assign(2 * fdim),
+            (
+                out[l].assign(xi[p]),
+                out[l + fdim].assign(xi[p + fdim]),
+                p.add_assign(2 * fdim),
+                out[l].assign(acc[q]),
+                out[l + fdim].assign(acc[q + fdim]),
+                q.add_assign(2 * fdim),
+            )
         )
         outer_body = p.declare_assign(k) + q.declare_assign(k) + inner_loop(inner_body)
         final_loop, k = c_for_loop(0, self.dimred, 1)
@@ -79,6 +82,40 @@ class KMin_ArgKMin_Reduction(Reduction):
         k = c_variable("signed long int", new_c_name("k"))
         tmpl = c_variable(dtype, new_c_name("tmpl"))
         indtmpl = c_variable("signed long int", new_c_name("indtmpl"))
+        res = c_block(
+            body=(
+                xik.declare(),
+                l.declare(),
+                c_for(
+                    k.assign(0),
+                    k<fdim,
+                    k.plus_plus,
+                    (
+                        xik.assign(xi[k]),
+                        c_for(
+                            l.assign(k+(K-1)*2*fdim),
+                            (l>=k).logical_and(xik<acc[l]),
+                            l.add_assign(-2*fdim),
+                            (
+                                tmpl.declare_assign(acc[l]),
+                                indtmpl.declare_assign(acc[l+fdim]),
+                                acc[l].assign(xik),
+                                acc[l+fdim].assign(ind),
+                                c_if(
+                                    l<=(k+(2*fdim*(K-1))),
+                                    (
+                                        acc[l+2*fdim].assign(tmpl),
+                                        acc[l+2*fdim+fdim].assign(indtmpl)
+                                    )
+                                )
+                            ),
+                            decorator=use_pragma_unroll()
+                        )
+                    ),
+                    decorator=use_pragma_unroll()
+                )
+            )
+        )
         string = f"""
                     {{
                         {xik.declare()}
@@ -101,5 +138,6 @@ class KMin_ArgKMin_Reduction(Reduction):
                     }}
                 """
         res = c_instruction(
-            string=string, local_vars=set(), global_vars=set(), end_str=";\n"
+            string=string, local_vars=set(), global_vars=set()
         )
+        return res
