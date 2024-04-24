@@ -27,15 +27,19 @@ class c_array:
         # method for printing the c_variable inside Python code
         return self.c_var.__repr__()
 
-    def declare(self, **kwargs):
+    def declare(self, force_declare=False, **kwargs):
         # returns C++ code to declare a fixed-size arry of size dim,
         # skipping declaration if dim=0
+        dim = self.dim
         if self.dim <= 0:
-            return c_empty_instruction
+            if force_declare:
+                dim = 1
+            else:
+                return c_empty_instruction
         if self.qualifier == "extern __shared__":
             dim_string = ""
         else:
-            dim_string = str(self.dim)
+            dim_string = str(dim)
         local_vars = self.c_var.vars
         global_vars = set()
         return c_instruction(

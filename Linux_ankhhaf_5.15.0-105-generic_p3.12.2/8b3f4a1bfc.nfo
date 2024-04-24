@@ -1,4 +1,0 @@
-red_formula=Sum_Reduction(IfElse(Var(0,1,0), Sqrt(Var(0,1,0)), ((Var(0,1,0) * Var(0,1,0)) * Var(0,1,0))),1)
-dim=1
-tagI=1
-dimy=1

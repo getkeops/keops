@@ -88,7 +88,7 @@ class GpuReduc1D(MapReduce, Gpu_link_compile):
             (nx, ny, out, arg),
             (
                 i.declare_assign(blockIdx_x * blockDim_x + threadIdx_x),
-                yj.declare(),
+                yj.declare(force_declare=True),
                 param_loc.declare(),
                 varloader.load_vars("p", param_loc, args),
                 fout.declare(),
@@ -139,5 +139,5 @@ class GpuReduc1D(MapReduce, Gpu_link_compile):
             f = open("ess.cu", "w")
             f.write(self.code)
             f.close()
-            print()
+            print("debugging mode, code saved to ess.cu, exiting")
             exit()

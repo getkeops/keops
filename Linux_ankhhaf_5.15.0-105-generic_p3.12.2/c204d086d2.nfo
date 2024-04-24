@@ -1,4 +1,0 @@
-red_formula=Grad_WithSavedForward(Sum_Reduction(IfElse(Var(0,1,0), Sqrt(Var(1,1,0)), ((Var(2,1,0) * Var(2,1,0)) * Var(2,1,0))),1),Var(1,1,0),Var(3,1,1),Var(4,1,1))
-dim=1
-tagI=0
-dimy=1
