@@ -21,11 +21,9 @@ class InnerReductionOp(Chunkable_Op):
     def Op(self, out, table, *args):
         return out.assign(c_zero_float) + VectApply(self.ScalarOp, out, *args)
 
-    def __call__(self, out, table, i, j, tagI):
+    def __call__(self, out, table, i=None, j=None, tagI=None):
         code = c_comment(f"Starting code block for {self.__repr__()}")
-        (child,) = self.children
-        forloop, k = c_for_loop(0, child.dim, 1, pragma_unroll=True)
-
+        forloop, k = c_for_loop(0, self.children[0].dim, 1, pragma_unroll=True)
         if len(self.children) > 0:
             code_args, code_args_elem, args = zip(
                 *(

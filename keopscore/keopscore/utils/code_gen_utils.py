@@ -41,6 +41,8 @@ from keopscore.utils.meta_toolbox.c_code import c_code, c_include, c_define
 from keopscore.utils.meta_toolbox.c_for import c_for_loop
 from keopscore.utils.meta_toolbox.c_if import c_if
 from keopscore.utils.meta_toolbox.c_expression import (
+    py2c,
+    c_expression,
     c_pointer,
     c_expression_from_string,
 )
@@ -390,7 +392,7 @@ def load_vars_chunks(
         string += "{"
         string += "signed long int a=0;\n"
         for u in range(len(inds)):
-            string += use_pragma_unroll()
+            string += use_pragma_unroll() + "\n"
             string += f"for(signed long int v=0; v<{dim_chunk_load}; v++) {{\n"
             string += f"    {xloc.id}[a] = {args[inds[u]].id}[{row_index.id}*{dim_org}+{k.id}*{dim_chunk}+v];\n"
             string += "     a++;\n"
@@ -429,13 +431,13 @@ def load_vars_chunks_offsets(
         string += "signed long int a=0;\n"
         for u in range(len(inds)):
             l = indsref.index(inds[u])
-            string += use_pragma_unroll()
+            string += use_pragma_unroll() + "\n"
             string += f"for(signed long int v=0; v<{dim_chunk_load}; v++) {{\n"
             string += f"    {xloc.id}[a] = {args[inds[u]].id}[({row_index.id}+{offsets.id}[{l}])*{dim_org}+{k.id}*{dim_chunk}+v];\n"
             string += "     a++;\n"
             string += "}"
         string += "}"
-    return c_instruction(string, end_str="")
+    return c_instruction_from_string(string)
 
 
 def varseq_to_array(vars, vars_ptr_name):

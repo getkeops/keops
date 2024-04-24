@@ -4,6 +4,7 @@ from keopscore.utils.code_gen_utils import (
     c_for_loop,
     c_comment,
     c_empty_instruction,
+    c_array
 )
 from keopscore.formulas.Operation import Operation
 from keopscore.utils.misc_utils import KeOps_Error
@@ -47,13 +48,14 @@ class VectorizedScalarOp(Operation):
             code_elem += out.declare() + self.ScalarOp(out, *args)
         return code, code_elem, out
 
-    def __call__(self, out, table, i, j, tagI):
+    def __call__(self, out, table, i=None, j=None, tagI=None):
         code = c_comment(f"Starting code block for {self.__repr__()}")
         forloop, k = c_for_loop(0, self.dim, 1, pragma_unroll=True)
         code_k, code_elem_k, out_k = self.get_code_and_expr_elem(
             out.dtype, table, i, j, tagI, k
         )
-        code += code_k + forloop(code_elem_k + out[k].assign(out_k))
+        out = out[k] if isinstance(out, c_array) else out
+        code += code_k + forloop(code_elem_k + out.assign(out_k))
         code += c_comment(f"Finished code block for {self.__repr__()}")
         return code
 

@@ -13,6 +13,7 @@ class c_expression(c_code):
         super().__init__(f"({string})" if add_parenthesis else str(string), vars)
         self.code_string_no_parenthesis = str(string)
         self.id = self.code_string
+        self.dim = 1
 
     def binary_op(self, other, python_op, c_op, name, dtype=None):
         other = py2c(other)

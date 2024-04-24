@@ -43,6 +43,7 @@ def do_chunk_sub(
     xi,
     yj,
     yjrel,
+    jrel,
     param_loc,
 ):
     chk = Chunk_Mode_Constants(red_formula)
@@ -114,7 +115,7 @@ def do_chunk_sub(
                     {dtype} *yjrel = {yj.id}; // Loop on the columns of the current block.
                     for (signed long int jrel = 0; (jrel < blockDim.x) && (jrel < {ny.id} - jstart); jrel++, yjrel += {chk.dimy}) {{
                         {dtype} *foutj = {fout.id} + jrel*{chk.fun_chunked.dim};
-                        {fun_chunked_curr(fout_tmp_chunk, chktable)}
+                        {fun_chunked_curr(fout_tmp_chunk, chktable, i, jrel+jstart, red_formula.tagI)}
                         {chk.fun_chunked.acc_chunk(foutj, fout_tmp_chunk)}
                     }}
                 }} 
@@ -153,6 +154,7 @@ class GpuReduc1D_chunks(MapReduce, Gpu_link_compile):
         args = self.args
 
         yjrel = c_array(dtype, varloader.dimy, "yjrel")
+        jrel = c_variable("signed long int", "jrel")
 
         jreltile = c_variable("signed long int", "(jrel + tile * blockDim.x)")
 
@@ -205,6 +207,7 @@ class GpuReduc1D_chunks(MapReduce, Gpu_link_compile):
             xi,
             yj,
             yjrel,
+            jrel,
             param_loc,
         )
 
@@ -236,6 +239,7 @@ class GpuReduc1D_chunks(MapReduce, Gpu_link_compile):
             xi,
             yj,
             yjrel,
+            jrel,
             param_loc,
         )
 
@@ -321,7 +325,7 @@ class GpuReduc1D_chunks(MapReduce, Gpu_link_compile):
                                 for (signed long int jrel = 0; (jrel < blockDim.x) && (jrel < ny - jstart); jrel++, yjrel += {chk.dimy}) {{
                                     {dtype} *foutj = fout_chunk + jrel*{chk.dimout_chunk};
                                     {fout_tmp.declare()}
-                                    {chk.fun_postchunk(fout_tmp, chktable_out)}
+                                    {chk.fun_postchunk(fout_tmp, chktable_out, i, jrel+jstart, red_formula.tagI)}
                                     {sum_scheme.accumulate_result(acc, fout_tmp, jreltile)}
                                 }}
                                 {sum_scheme.final_operation(acc)}
@@ -334,3 +338,10 @@ class GpuReduc1D_chunks(MapReduce, Gpu_link_compile):
                           }}
                         }}
                     """
+        
+        # for debugging:
+        if False:
+            f = open("ess.cu", "w")
+            f.write(self.code)
+            f.close()
+            exit()

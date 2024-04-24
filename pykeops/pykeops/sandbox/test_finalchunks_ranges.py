@@ -36,6 +36,7 @@ out = []
 for backend in ["keops", "torch"]:
     out.append(fun(x, y, b, backend).squeeze())
 
+print(torch.norm(out[0]-out[1])/torch.norm(out[1]))
 
 def test_finalchunks_ranges():
     assert torch.allclose(out[0], out[1], atol=0.0001)

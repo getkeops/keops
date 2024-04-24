@@ -133,3 +133,11 @@ class GpuReduc1D(MapReduce, Gpu_link_compile):
         )
 
         self.code = str(code)
+
+        # for debugging:
+        if False:
+            f = open("ess.cu", "w")
+            f.write(self.code)
+            f.close()
+            print()
+            exit()

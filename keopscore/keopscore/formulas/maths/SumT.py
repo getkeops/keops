@@ -23,7 +23,7 @@ class SumT_Impl(Operation):
         self.dim = dim
 
     def Op(self, out, table, arg):
-        return out.assign(c_value(arg))
+        return out.assign(arg)
 
     def DiffT(self, v, gradin):
         from keopscore.formulas.maths.Sum import Sum

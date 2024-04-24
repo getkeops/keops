@@ -503,3 +503,11 @@ class GpuReduc1D_ranges_chunks(MapReduce, Gpu_link_compile):
                       }}
                   }}
                     """
+        
+        # for debugging:
+        if False:
+            f = open("ess.cu", "w")
+            f.write(self.code)
+            f.close()
+            print()
+            exit()
