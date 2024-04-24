@@ -62,28 +62,3 @@ class c_lvalue(c_expression):
     @property
     def plus_plus(self):
         return c_instruction(f"{self}++", set(), self.vars)
-
-
-def c_value(x):
-    # either convert c_array or c_variable representing a pointer to its value c_variable (dereference)
-    # or converts string "dtype*" to "dtype"
-    from .c_array import c_array
-
-    if isinstance(x, c_array):
-        return c_lvalue(
-            string_id=f"*{x}", vars=x.vars, dtype=x.dtype, add_parenthesis=True
-        )
-    if isinstance(x, c_lvalue):
-        return c_lvalue(
-            string_id=f"*{x}", vars=x.vars, dtype=x.dtype, add_parenthesis=True
-        )
-    if isinstance(x, c_expression):
-        return c_expression(
-            string_id=f"*{x}", vars=x.vars, dtype=x.dtype, add_parenthesis=True
-        )
-    elif isinstance(x, str):
-        if x[-1] != "*":
-            Meta_Toolbox_Error("dtype is not a pointer type")
-        return x[:-1]
-    else:
-        Meta_Toolbox_Error("input should be c_expression instance or string.")

@@ -1,4 +1,4 @@
-from keopscore.utils.code_gen_utils import VectApply, VectCopy
+from keopscore.utils.meta_toolbox import VectApply, VectCopy
 from keopscore.utils.Tree import Tree
 
 

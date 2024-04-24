@@ -1,8 +1,7 @@
 from keopscore.formulas.Operation import Operation
 from keopscore.formulas.maths.ArgMin import ArgMin
 from keopscore.formulas.maths.OneHot import OneHot
-from keopscore.utils.meta_toolbox.c_lvalue import c_value
-from keopscore.utils.code_gen_utils import c_for_loop, c_if
+from keopscore.utils.meta_toolbox import c_for_loop, c_if
 from keopscore.utils.misc_utils import KeOps_Error
 
 ############################
@@ -25,7 +24,7 @@ class Min(Operation):
     def Op(self, out, table, arg):
         f = self.children[0]
         loop, k = c_for_loop(1, f.dim, 1, pragma_unroll=True)
-        string = c_value(out).assign(arg[0])
+        string = out.value.assign(arg[0])
         if out.dtype == "half2":
             loop_string = f"""
                 // we have to work element-wise...
@@ -35,7 +34,7 @@ class Min(Operation):
                             """
             string += loop(loop_string)
         else:
-            string += loop(c_if(arg[k] < c_value(out), c_value(out).assign(arg[k])))
+            string += loop(c_if(arg[k] < out.value, out.value.assign(arg[k])))
         return string
 
     def DiffT(self, v, gradin):

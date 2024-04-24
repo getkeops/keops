@@ -1,11 +1,11 @@
 from keopscore.formulas.VectorizedComplexScalarOp import VectorizedComplexScalarOp
-from keopscore.utils.code_gen_utils import (
+from keopscore.utils.meta_toolbox import (
     c_for_loop,
     new_c_name,
     c_variable,
 )
 from keopscore.utils.math_functions import keops_exp, keops_cos, keops_sin
-from keopscore.utils.code_gen_utils import c_variable
+from keopscore.utils.meta_toolbox import c_variable
 from keopscore.formulas.complex.ComplexReal import ComplexReal
 from keopscore.formulas.complex.ComplexImag import ComplexImag
 from keopscore.formulas.complex.Real2Complex import Real2Complex

@@ -3,7 +3,7 @@ from keopscore.utils.meta_toolbox.c_instruction import (
     c_empty_instruction,
     c_instruction_from_string,
 )
-from keopscore.utils.code_gen_utils import (
+from keopscore.utils.meta_toolbox import (
     c_array,
     c_zero_float,
     c_if,

@@ -1,7 +1,6 @@
 from keopscore.formulas.Operation import Operation
 from keopscore.formulas.variables.Zero import Zero
-from keopscore.utils.meta_toolbox.c_lvalue import c_value
-from keopscore.utils.code_gen_utils import (
+from keopscore.utils.meta_toolbox import (
     c_zero_float,
     c_for_loop,
     c_if,
@@ -29,7 +28,7 @@ class ArgMax(Operation):
     def Op(self, out, table, arg):
         tmp = c_variable(out.dtype)
         loop, k = c_for_loop(1, arg.dim, 1, pragma_unroll=True)
-        string = c_value(out).assign(c_zero_float) + tmp.declare_assign(arg[0])
+        string = out.value.assign(c_zero_float) + tmp.declare_assign(arg[0])
         if out.dtype == "half2":
             loop_string = f"""
                 // we have to work element-wise...

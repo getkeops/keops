@@ -1,4 +1,4 @@
-from keopscore.utils.code_gen_utils import VectCopy
+from keopscore.utils.meta_toolbox import VectCopy
 from keopscore.formulas.reductions.Max_ArgMax_Reduction_Base import (
     Max_ArgMax_Reduction_Base,
 )

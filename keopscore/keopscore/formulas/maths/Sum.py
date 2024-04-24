@@ -1,6 +1,6 @@
 from keopscore.formulas.InnerReductionOp import InnerReductionOp
 from keopscore.formulas.variables.Zero import Zero
-from keopscore.utils.code_gen_utils import c_zero_float, VectApply
+from keopscore.utils.meta_toolbox import c_zero_float, VectApply
 from keopscore.formulas.maths.Square import Square_Impl
 
 

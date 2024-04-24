@@ -42,23 +42,3 @@ class c_variable(c_lvalue):
             global_vars,
             **kwargs,
         )
-
-
-c_zero_int = c_variable("int", "0")
-c_zero_float = c_variable("float", "0.0f")
-
-
-def neg_infinity(dtype):
-    return c_variable(dtype, f"-({infinity(dtype).id})")
-
-
-def infinity(dtype):
-    if dtype == "float":
-        code = "( 1.0f/0.0f )"
-    elif dtype == "double":
-        code = "( 1.0/0.0 )"
-    else:
-        Meta_Toolbox_Error(
-            "only float and double dtypes are implemented in new python engine for now"
-        )
-    return c_variable(dtype, code)

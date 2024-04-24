@@ -4,9 +4,7 @@ from pykeops.torch import LazyTensor
 
 torch.set_default_dtype(torch.float32)
 
-devices = (
-    ("cuda",) if torch.cuda.is_available() else ("cpu",)
-)
+devices = ("cuda",) if torch.cuda.is_available() else ("cpu",)
 
 # Test when LazyTensors share underlying data
 for device in devices:

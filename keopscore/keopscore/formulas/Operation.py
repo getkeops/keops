@@ -5,8 +5,13 @@ from keopscore.utils.meta_toolbox.c_instruction import (
     c_empty_instruction,
     c_instruction_from_string,
 )
-from keopscore.utils.meta_toolbox.c_block import c_block
-from keopscore.utils.code_gen_utils import new_c_name, c_array, cast_to, c_variable
+from keopscore.utils.meta_toolbox import (
+    c_block,
+    new_c_name,
+    c_array,
+    cast_to,
+    c_variable,
+)
 from keopscore.utils.Tree import Tree
 import keopscore
 from keopscore.utils.misc_utils import KeOps_Error
@@ -88,9 +93,9 @@ class Operation(Tree):
         code, out = self.get_code_and_expr(dtype, table, i, j, tagI)
         if self.dim == 1:
             if isinstance(out, c_array):
-                out = out[0]   # this is for broadcasting
+                out = out[0]  # this is for broadcasting
             else:
-                pass # same, we just output the scalar value
+                pass  # same, we just output the scalar value
         else:
             out = out[elem]
         return code, c_empty_instruction, out

@@ -1,6 +1,9 @@
-from keopscore.utils.meta_toolbox.c_expression import c_expression, py2c
-from keopscore.utils.code_gen_utils import c_empty_instruction
-from keopscore.utils.code_gen_utils import cast_to
+from keopscore.utils.meta_toolbox import (
+    c_empty_instruction,
+    cast_to,
+    c_expression,
+    py2c,
+)
 from keopscore.formulas.Operation import Operation
 from keopscore.formulas.variables.Zero import Zero
 

@@ -1,10 +1,10 @@
 import keopscore
-from keopscore.utils.code_gen_utils import (
+from keopscore.utils.meta_toolbox import (
     VectApply,
     c_for_loop,
     c_comment,
     c_empty_instruction,
-    c_array
+    c_array,
 )
 from keopscore.formulas.Operation import Operation
 from keopscore.utils.misc_utils import KeOps_Error

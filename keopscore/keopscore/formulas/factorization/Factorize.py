@@ -1,6 +1,6 @@
 from keopscore.formulas.variables import Var, Zero
 from keopscore.formulas.variables.IntCst import IntCst_Impl
-from keopscore.utils.code_gen_utils import new_c_name, c_array
+from keopscore.utils.meta_toolbox import new_c_name, c_array
 from keopscore.formulas.Operation import Operation
 import keopscore
 from keopscore.utils.code_gen_utils import GetInds

@@ -1,11 +1,11 @@
 from keopscore.utils.meta_toolbox.c_expression import cast_to
-from keopscore.utils.code_gen_utils import (
+from keopscore.utils.meta_toolbox import (
     c_for_loop,
     new_c_name,
     c_variable,
 )
 from keopscore.utils.misc_utils import KeOps_Error
-from keopscore.utils.code_gen_utils import c_expression_from_string
+from keopscore.utils.meta_toolbox import c_expression_from_string
 
 import keopscore.config.config
 
@@ -34,12 +34,14 @@ def math_function(
                 c_dtype = "signed long int" if arg > 2e9 else "int"
                 args[k] = c_variable(c_dtype, str(arg))
         # detect main dtype. We assume it should be one of "float", "double" or "half2"
-        if any(arg.dtype == "half2" for arg in args):
-            dtype = "half2"
-        elif any(arg.dtype == "double" for arg in args):
-            dtype = "double"
-        else:
-            dtype = "float"
+        dtype = "float"
+        for arg in args:
+            if isinstance(arg, int):
+                pass
+            elif arg.dtype == "half2":
+                dtype = "half2"
+            elif arg.dtype == "double":
+                dtype = "double"
         for k, arg in enumerate(args):
             if "int" in arg.dtype:
                 args[k] = cast_to(dtype, arg)

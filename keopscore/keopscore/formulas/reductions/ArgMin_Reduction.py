@@ -1,4 +1,4 @@
-from keopscore.utils.code_gen_utils import VectCopy
+from keopscore.utils.meta_toolbox import VectCopy
 from keopscore.formulas.reductions.Min_ArgMin_Reduction_Base import (
     Min_ArgMin_Reduction_Base,
 )

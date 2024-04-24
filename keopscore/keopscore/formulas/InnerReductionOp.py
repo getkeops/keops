@@ -1,6 +1,6 @@
 import keopscore
 from keopscore.utils.meta_toolbox.c_array import c_array
-from keopscore.utils.code_gen_utils import (
+from keopscore.utils.meta_toolbox import (
     VectApply,
     c_for_loop,
     c_comment,
@@ -9,7 +9,7 @@ from keopscore.utils.code_gen_utils import (
 from keopscore.formulas.Operation import Operation
 from keopscore.formulas.Chunkable_Op import Chunkable_Op
 from keopscore.utils.misc_utils import KeOps_Error
-from keopscore.utils.code_gen_utils import c_zero_float, VectApply
+from keopscore.utils.meta_toolbox import c_zero_float, VectApply
 
 
 class InnerReductionOp(Chunkable_Op):

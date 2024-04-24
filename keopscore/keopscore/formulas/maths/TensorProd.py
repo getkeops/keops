@@ -1,5 +1,5 @@
 from keopscore.formulas.Operation import Operation
-from keopscore.utils.code_gen_utils import (
+from keopscore.utils.meta_toolbox import (
     c_variable,
     c_for_loop,
 )

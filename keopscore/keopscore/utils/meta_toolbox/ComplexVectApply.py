@@ -1,5 +1,5 @@
 from keopscore.utils.misc_utils import KeOps_Error
-from keopscore.utils.code_gen_utils import c_for_loop
+from .c_for import c_for_loop
 from .c_array import c_array
 
 

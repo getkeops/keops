@@ -1,6 +1,5 @@
 from keopscore.formulas.Operation import Operation
 from keopscore.utils.meta_toolbox.c_instruction import c_empty_instruction
-from keopscore.utils.meta_toolbox.c_lvalue import c_value
 from keopscore.utils.misc_utils import KeOps_Error
 
 ###################################################################

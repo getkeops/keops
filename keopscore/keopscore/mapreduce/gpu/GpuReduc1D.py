@@ -1,5 +1,5 @@
 from keopscore.binders.nvrtc.Gpu_link_compile import Gpu_link_compile
-from keopscore.utils.meta_toolbox.c_expression import c_pointer
+from keopscore.utils.meta_toolbox.c_expression import c_pointer_dtype
 from keopscore.utils.meta_toolbox.c_function import cuda_global_kernel
 from keopscore.utils.meta_toolbox.c_code import c_code
 from keopscore.utils.meta_toolbox.c_instruction import (
@@ -10,7 +10,7 @@ from keopscore.utils.meta_toolbox.c_instruction import (
 from keopscore.utils.meta_toolbox.c_for import c_for
 from keopscore.mapreduce.gpu.GpuAssignZero import GpuAssignZero
 from keopscore.mapreduce.MapReduce import MapReduce
-from keopscore.utils.code_gen_utils import (
+from keopscore.utils.meta_toolbox import (
     c_if,
     c_variable,
     c_array,
@@ -75,7 +75,7 @@ class GpuReduc1D(MapReduce, Gpu_link_compile):
 
         sync_threads = c_instruction_from_string("__syncthreads()")
 
-        out = c_variable(c_pointer(dtype), "out")
+        out = c_variable(c_pointer_dtype(dtype), "out")
 
         def cond_i(*instructions):
             return c_if(i < nx, instructions)

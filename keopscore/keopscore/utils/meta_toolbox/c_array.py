@@ -1,9 +1,15 @@
 from .c_instruction import c_instruction, c_empty_instruction
 from .c_lvalue import c_lvalue
-from .c_expression import c_expression, c_pointer, py2c
+from .c_expression import c_expression, py2c
 from .c_for import c_for_loop
 from .c_variable import c_variable
-from .misc import Meta_Toolbox_Error, new_c_name
+from .misc import (
+    Meta_Toolbox_Error,
+    c_pointer_dtype,
+    c_value_dtype,
+    is_pointer_dtype,
+    new_c_name,
+)
 
 
 class c_array:
@@ -12,7 +18,7 @@ class c_array:
             Meta_Toolbox_Error("negative dimension for array")
         if string_id is None:
             string_id = new_c_name("array")
-        self.c_var = c_variable(c_pointer(dtype), string_id)
+        self.c_var = c_variable(c_pointer_dtype(dtype), string_id)
         self.dtype = dtype
         self.dim = dim
         self.id = string_id
@@ -84,6 +90,10 @@ class c_array:
         return c_lvalue(
             string_id=expression, vars=vars, dtype=self.dtype, add_parenthesis=False
         )
+
+    @property
+    def value(self):
+        return self[0]
 
     @property
     def c_print(self):
