@@ -47,7 +47,7 @@ class GpuReduc1D(MapReduce, Gpu_link_compile):
 
         param_loc = self.param_loc
         xi = self.xi
-        yj = c_array(f"extern __shared__ {dtype}", "", "yj")
+        yj = c_array(dtype, varloader.dimy_local, "yj", qualifier="extern __shared__")
         yjloc = c_array(
             dtype,
             varloader.dimy_local,

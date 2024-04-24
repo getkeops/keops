@@ -1,9 +1,11 @@
+from keopscore.utils.meta_toolbox.c_expression import cast_to
 from keopscore.utils.code_gen_utils import (
     c_for_loop,
     new_c_name,
     c_variable,
 )
 from keopscore.utils.misc_utils import KeOps_Error
+from keopscore.utils.code_gen_utils import c_expression_from_string
 
 import keopscore.config.config
 
@@ -31,8 +33,16 @@ def math_function(
             if isinstance(arg, int):
                 c_dtype = "signed long int" if arg > 2e9 else "int"
                 args[k] = c_variable(c_dtype, str(arg))
-        # N.B. first argument gives main dtype
-        dtype = args[0].dtype
+        # detect main dtype. We assume it should be one of "float", "double" or "half2"
+        if any(arg.dtype == "half2" for arg in args):
+            dtype = "half2"
+        elif any(arg.dtype == "double" for arg in args):
+            dtype = "double"
+        else:
+            dtype = "float"
+        for k, arg in enumerate(args):
+            if "int" in arg.dtype:
+                args[k] = cast_to(dtype, arg)
         if dtype == "half2":
             if gpu_half2_code == "NA":
                 KeOps_Error("Operation is not implemented for half precision")
@@ -57,7 +67,7 @@ def math_function(
         if void:
             return string
         else:
-            return c_variable(dtype, string)
+            return c_expression_from_string(string, dtype)
 
     return call
 
@@ -71,10 +81,11 @@ h2eq0 = lambda x: f"__heq2({x},{h2zero})"
 h2ifelse = lambda x, a, b: f"(({b})+(({a})-({b}))*{h2ge0(x)})"
 int2h2 = lambda x: f"__float2half2_rn((float){x})"
 
-keops_add = math_function(cpu_code=lambda x, y: f"({x}+{y})", gpu_half2_code="__hadd2")
-keops_sub = math_function(cpu_code=lambda x, y: f"({x}-{y})", gpu_half2_code="__hsub2")
-keops_mul = math_function(cpu_code=lambda x, y: f"({x}*{y})", gpu_half2_code="__hmul2")
-keops_div = math_function(cpu_code=lambda x, y: f"({x}/{y})", gpu_half2_code="__hdiv2")
+keops_add = math_function(cpu_code=lambda x, y: f"{x}+{y}", gpu_half2_code="__hadd2")
+keops_sub = math_function(cpu_code=lambda x, y: f"{x}-{y}", gpu_half2_code="__hsub2")
+keops_mul = math_function(cpu_code=lambda x, y: f"{x}*{y}", gpu_half2_code="__hmul2")
+keops_div = math_function(cpu_code=lambda x, y: f"{x}/{y}", gpu_half2_code="__hdiv2")
+keops_minus = math_function(cpu_code=lambda x: f"-{x}", gpu_half2_code="__hneg2")
 
 keops_abs = math_function(cpu_code="abs", gpu_half2_code="__habs2")
 keops_cos = math_function(cpu_code="cos", gpu_half2_code="h2cos")

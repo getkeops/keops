@@ -40,8 +40,14 @@ from keopscore.utils.meta_toolbox.c_variable import (
 from keopscore.utils.meta_toolbox.c_code import c_code, c_include, c_define
 from keopscore.utils.meta_toolbox.c_for import c_for_loop
 from keopscore.utils.meta_toolbox.c_if import c_if
-from keopscore.utils.meta_toolbox.c_expression import c_pointer
-from keopscore.utils.meta_toolbox.c_instruction import c_comment, c_instruction_from_string
+from keopscore.utils.meta_toolbox.c_expression import (
+    c_pointer,
+    c_expression_from_string,
+)
+from keopscore.utils.meta_toolbox.c_instruction import (
+    c_comment,
+    c_instruction_from_string,
+)
 from keopscore.utils.meta_toolbox.c_array import c_array
 from keopscore.utils.meta_toolbox.VectApply import VectApply
 from keopscore.utils.meta_toolbox.ComplexVectApply import ComplexVectApply

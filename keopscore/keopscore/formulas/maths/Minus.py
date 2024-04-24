@@ -3,7 +3,8 @@ from keopscore.formulas.variables.Zero import Zero
 from keopscore.formulas.maths.Mult import Mult_Impl
 from keopscore.formulas.variables.IntCst import IntCst_Impl, IntCst
 from keopscore.formulas.variables.RatCst import RatCst_Impl, RatCst
-
+from keopscore.utils.meta_toolbox.c_instruction import c_instruction_from_string
+from keopscore.utils.math_functions import keops_minus
 
 ##########################
 ######    Minus      #####
@@ -17,10 +18,7 @@ class Minus_Impl(VectorizedScalarOp):
     print_spec = "-", "pre", 2
     linearity_type = "all"
 
-    def ScalarOp(self, out, arg):
-        # returns the atomic piece of c++ code to evaluate the function on arg and return
-        # the result in out
-        return f"{out.id} = -{arg.id};\n"
+    ScalarOpFun = keops_minus
 
     def DiffT(self, v, gradin):
         f = self.children[0]

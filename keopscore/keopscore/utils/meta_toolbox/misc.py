@@ -9,12 +9,11 @@ registered_dtypes = (
     "float",
     "double",
     "half",
+    "half2",
     "int",
     "signed long int",
     "float2",
     "bool",
-    "extern __shared__ float",
-    "extern __shared__ double",
 )
 registered_dtypes = (
     registered_dtypes

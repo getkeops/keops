@@ -41,18 +41,22 @@ class c_expression(c_code):
             Meta_Toolbox_Error("not implemented")
 
     def __add__(self, other):
+        if other == 0:
+            return self
         python_op = lambda x, y: x + y
         return self.binary_op(other, python_op, "+", "addition")
 
     def __mul__(self, other):
-        python_op = lambda x, y: x * y
         if other == 1:
             return self
         elif other == 0:
             return 0
+        python_op = lambda x, y: x * y
         return self.binary_op(other, python_op, "*", "product")
 
     def __sub__(self, other):
+        if other == 0:
+            return self
         python_op = lambda x, y: x - y
         return self.binary_op(other, python_op, "-", "subtraction")
 
@@ -131,6 +135,12 @@ class c_expression(c_code):
 c_empty_expression = c_expression("", set(), "void", add_parenthesis=False)
 
 
+def c_expression_from_string(string, dtype):
+    # N.B. ideally we would like to suppress this function
+    # to force the user to declare variables used in the code
+    return c_expression(string, set(), dtype)
+
+
 def py2c(expression):
     if isinstance(expression, c_expression):
         return expression
@@ -149,7 +159,12 @@ class cast_to(c_expression):
         simple_dtypes = ["float", "double", "int", "signed long int", "bool"]
         if (dtype in simple_dtypes) and (expr.dtype in simple_dtypes):
             string = f"({dtype}){expr}"
-        elif dtype == "half2" and expr.dtype == "float":
+        elif dtype == "half2" and expr.dtype in (
+            "float",
+            "double",
+            "int",
+            "signed long int",
+        ):
             string = f"__float2half2_rn({expr})"
         elif dtype == "float2" and expr.dtype == "half2":
             string = f"__half22float2({expr})"

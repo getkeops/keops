@@ -55,6 +55,7 @@ class MapReduce:
 
         if self.use_half == 1:
             self.headers += c_define("USE_HALF", "1")
+            self.headers += c_define("half2", "__half2")
             self.headers += c_include("cuda_fp16.h")
         else:
             self.headers += c_define("USE_HALF", "0")

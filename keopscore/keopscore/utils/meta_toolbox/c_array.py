@@ -7,7 +7,7 @@ from .misc import Meta_Toolbox_Error, new_c_name
 
 
 class c_array:
-    def __init__(self, dtype, dim, string_id=None):
+    def __init__(self, dtype, dim, string_id=None, qualifier=None):
         if dim != "" and dim < 0:
             Meta_Toolbox_Error("negative dimension for array")
         if string_id is None:
@@ -17,6 +17,11 @@ class c_array:
         self.dim = dim
         self.id = string_id
         self.vars = self.c_var.vars
+        if qualifier != None:
+            self.declaration_string = qualifier + " " + dtype
+        else:
+            self.declaration_string = dtype
+        self.qualifier = qualifier
 
     def __repr__(self):
         # method for printing the c_variable inside Python code
@@ -25,17 +30,20 @@ class c_array:
     def declare(self, **kwargs):
         # returns C++ code to declare a fixed-size arry of size dim,
         # skipping declaration if dim=0
-        if self.dim == "" or self.dim > 0:
-            local_vars = self.c_var.vars
-            global_vars = set()
-            return c_instruction(
-                f"{self.dtype} {self.c_var}[{self.dim}]",
-                local_vars,
-                global_vars,
-                **kwargs,
-            )
-        else:
+        if self.dim <= 0:
             return c_empty_instruction
+        if self.qualifier == "extern __shared__":
+            dim_string = ""
+        else:
+            dim_string = str(self.dim)
+        local_vars = self.c_var.vars
+        global_vars = set()
+        return c_instruction(
+            f"{self.declaration_string} {self.c_var}[{dim_string}]",
+            local_vars,
+            global_vars,
+            **kwargs,
+        )
 
     def split(self, *dims):
         # split c_array in n sub arrays with dimensions dims[0], dims[1], ..., dims[n-1]

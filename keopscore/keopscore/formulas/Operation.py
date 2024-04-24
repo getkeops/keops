@@ -1,3 +1,4 @@
+from keopscore.utils.meta_toolbox.c_expression import c_expression
 from keopscore.utils.meta_toolbox.c_instruction import (
     c_comment,
     c_instruction,
@@ -73,7 +74,7 @@ class Operation(Tree):
     def get_out_var(self, dtype, dim=None):
         template_string_id = "out_" + self.string_id.lower()
         name = new_c_name(template_string_id)
-        if self.dim == 1 or dim==1:
+        if self.dim == 1 or dim == 1:
             return c_variable(dtype, name)
         else:
             return c_array(dtype, self.dim, name)
@@ -86,9 +87,9 @@ class Operation(Tree):
     def get_code_and_expr_elem(self, dtype, table, i, j, tagI, elem):
         code, out = self.get_code_and_expr(dtype, table, i, j, tagI)
         if isinstance(out, c_array) and out.dim == 1:
-            out = out[0] # this is for broadcasting
-        elif isinstance(out, c_variable):
-            pass # same, here out is a single variable and we output it
+            out = out[0]  # this is for broadcasting
+        elif isinstance(out, c_expression):
+            pass  # same, here out is a single expression and we output it
         else:
             out = out[elem]
         return code, c_empty_instruction, out

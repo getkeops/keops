@@ -1,6 +1,6 @@
 from .c_expression import c_expression
 from .misc import Meta_Toolbox_Error
-from .c_instruction import c_instruction
+from .c_instruction import c_instruction, c_empty_instruction
 from .c_expression import c_expression, py2c, cast_to
 
 
@@ -32,7 +32,7 @@ class c_lvalue(c_expression):
                 return assign_x + assign_y
             else:
                 return c_instruction(
-                    f"{self} {assign_op} {value.code_string_no_parenthesis}",
+                    f"{self} {assign_op} {cast_to(self.dtype, value)}",
                     local_vars,
                     global_vars,
                 )
@@ -49,6 +49,15 @@ class c_lvalue(c_expression):
             return self.plus_plus
         else:
             return self.assign(value, assign_op="+=")
+
+    def mul_assign(self, value):
+        value = py2c(value)
+        if value.code_string == "1":
+            return c_empty_instruction
+        elif value.code_string == "0":
+            return self.assign(0)
+        else:
+            return self.assign(value, assign_op="*=")
 
     @property
     def plus_plus(self):
