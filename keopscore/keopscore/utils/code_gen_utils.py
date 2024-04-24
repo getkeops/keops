@@ -396,7 +396,7 @@ def load_vars_chunks(
             string += "     a++;\n"
             string += "}"
         string += "}"
-    return c_instruction(string, end_str="")
+    return c_instruction_from_string(string)
 
 
 def load_vars_chunks_offsets(
