@@ -42,7 +42,7 @@ class VectorizedScalarOp(Operation):
             args, code, code_elem = (), c_empty_instruction, c_empty_instruction
         # Finally, evaluation of the operation itself
         if hasattr(self, "ScalarOpFun"):
-            out = type(self).ScalarOpFun(*args)
+            out = type(self).ScalarOpFun(*args, *self.params)
         else:
             out = self.get_out_var(dtype, dim=1)
             code_elem += out.declare() + self.ScalarOp(out, *args)

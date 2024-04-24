@@ -19,7 +19,7 @@ class RatCst_Impl(Operation):
         self.dim = 1
 
     def get_code_and_expr(self, dtype, table, i, j, tagI):
-        return c_empty_instruction, c_expression(f"{self.p}/{self.q}", set(), "float")
+        return c_empty_instruction, c_expression(f"{self.p/self.q}", set(), "float")
 
     def DiffT(self, v, gradin):
         return Zero(v.dim)
