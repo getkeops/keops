@@ -1,5 +1,5 @@
 from keopscore.formulas.Operation import Operation
-from keopscore.utils.code_gen_utils import c_for_loop
+from keopscore.utils.meta_toolbox import c_for_loop
 from keopscore.formulas.complex.ComplexReal import ComplexReal
 from keopscore.formulas.complex.ComplexMult import ComplexMult
 from keopscore.formulas.complex.Conj import Conj

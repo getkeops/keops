@@ -1,9 +1,9 @@
 from keopscore.formulas.reductions import *
 from keopscore.formulas.GetReduction import GetReduction
-from keopscore.utils.code_gen_utils import (
-    Var_loader,
+from keopscore.utils.code_gen_utils import Var_loader
+from keopscore.utils.meta_toolbox import (
+    c_pointer_dtype,
     new_c_name,
-    c_pointer,
     c_include,
     c_define,
 )
@@ -55,6 +55,7 @@ class MapReduce:
 
         if self.use_half == 1:
             self.headers += c_define("USE_HALF", "1")
+            self.headers += c_define("half2", "__half2")
             self.headers += c_include("cuda_fp16.h")
         else:
             self.headers += c_define("USE_HALF", "0")
@@ -76,7 +77,7 @@ class MapReduce:
         self.param_loc = c_array(dtype, self.varloader.dimp_local, "param_loc")
 
         argname = new_c_name("arg")
-        self.arg = c_variable(c_pointer(c_pointer(dtype)), argname)
+        self.arg = c_variable(c_pointer_dtype(c_pointer_dtype(dtype)), argname)
         self.args = [self.arg[k] for k in range(nargs)]
 
         self.acc = c_array(dtypeacc, red_formula.dimred, "acc")

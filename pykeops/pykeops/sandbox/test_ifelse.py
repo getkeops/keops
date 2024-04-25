@@ -2,14 +2,13 @@ import torch
 import pykeops
 from pykeops.torch import LazyTensor
 
+torch.set_default_dtype(torch.float32)
 
-ttypes = (
-    (torch.cuda.FloatTensor,) if torch.cuda.is_available() else (torch.FloatTensor,)
-)
+devices = ("cuda",) if torch.cuda.is_available() else ("cpu",)
 
 # Test when LazyTensors share underlying data
-for ttype in ttypes:
-    torch.set_default_tensor_type(ttype)
+for device in devices:
+    torch.set_default_device(device)
 
     # Input
     f = torch.randn([1000, 1])
@@ -43,8 +42,8 @@ for ttype in ttypes:
 
 
 # Test when other LazyTensors don't share underlying data (maybe unnecessary)
-for ttype in ttypes:
-    torch.set_default_tensor_type(ttype)
+for device in devices:
+    torch.set_default_device(device)
 
     # Input
     f = torch.randn([1000, 1])

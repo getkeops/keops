@@ -9,12 +9,11 @@ registered_dtypes = (
     "float",
     "double",
     "half",
+    "half2",
     "int",
     "signed long int",
     "float2",
     "bool",
-    "extern __shared__ float",
-    "extern __shared__ double",
 )
 registered_dtypes = (
     registered_dtypes
@@ -23,7 +22,7 @@ registered_dtypes = (
 )
 
 
-def is_pointer(dtype):
+def is_pointer_dtype(dtype):
     return dtype[-1] == "*"
 
 
@@ -43,7 +42,7 @@ def use_pragma_unroll(n=64):
 def sizeof(dtype):
     if dtype in ("float", "int"):
         return 4
-    elif dtype == ("double", "signed long int", "float2"):
+    elif dtype in ("double", "signed long int", "float2"):
         return 8
     elif dtype == "half":
         return 2
@@ -92,3 +91,13 @@ def call_list(args):
 
 def signature_list(args):
     return ", ".join(list(f"{arg.dtype} {arg.id}" for arg in args))
+
+
+def c_pointer_dtype(dtype):
+    return dtype + "*"
+
+
+def c_value_dtype(dtype):
+    if dtype[-1] != "*":
+        Meta_Toolbox_Error("invalid dtype")
+    return dtype[:-1]

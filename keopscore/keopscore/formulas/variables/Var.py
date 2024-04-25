@@ -1,4 +1,4 @@
-from keopscore.utils.code_gen_utils import VectCopy, c_empty_instruction
+from keopscore.utils.meta_toolbox import VectCopy, c_empty_instruction
 from keopscore.formulas.Operation import Operation
 
 

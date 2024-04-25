@@ -6,7 +6,7 @@ from keopscore.formulas.reductions.sum_schemes import (
 )
 from keopscore.mapreduce.gpu.GpuAssignZero import GpuAssignZero
 from keopscore.mapreduce.MapReduce import MapReduce
-from keopscore.utils.code_gen_utils import (
+from keopscore.utils.meta_toolbox import (
     c_variable,
     c_array,
     use_pragma_unroll,

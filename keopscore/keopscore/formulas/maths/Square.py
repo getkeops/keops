@@ -1,5 +1,4 @@
 from keopscore.formulas.VectorizedScalarOp import VectorizedScalarOp
-
 from keopscore.formulas.variables.Zero import Zero
 
 
@@ -15,7 +14,7 @@ class Square_Impl(VectorizedScalarOp):
     print_spec = "**2", "post", 1
 
     def ScalarOp(self, out, arg):
-        return out.assign(arg * arg)
+        return out.assign(arg) + out.mul_assign(out)
 
     @staticmethod
     def Derivative(f):

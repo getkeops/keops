@@ -52,7 +52,7 @@ def c_for_loop(start, end, incr, pragma_unroll=False, name_incr=None):
 
     if all(isinstance(x, int) for x in (start, end, incr)) and incr == 1:
         if start == end:
-            return c_empty_instruction
+            return lambda x: c_empty_instruction, start
         elif end == start + 1:
             return lambda x: x, start
 

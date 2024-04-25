@@ -1,5 +1,5 @@
 from keopscore.binders.nvrtc.Gpu_link_compile import Gpu_link_compile
-from keopscore.utils.meta_toolbox.c_expression import c_pointer
+from keopscore.utils.meta_toolbox.c_expression import c_pointer_dtype
 from keopscore.utils.meta_toolbox.c_function import cuda_global_kernel
 from keopscore.utils.meta_toolbox.c_code import c_code
 from keopscore.utils.meta_toolbox.c_instruction import (
@@ -10,7 +10,7 @@ from keopscore.utils.meta_toolbox.c_instruction import (
 from keopscore.utils.meta_toolbox.c_for import c_for
 from keopscore.mapreduce.gpu.GpuAssignZero import GpuAssignZero
 from keopscore.mapreduce.MapReduce import MapReduce
-from keopscore.utils.code_gen_utils import (
+from keopscore.utils.meta_toolbox import (
     c_if,
     c_variable,
     c_array,
@@ -47,7 +47,7 @@ class GpuReduc1D(MapReduce, Gpu_link_compile):
 
         param_loc = self.param_loc
         xi = self.xi
-        yj = c_array(f"extern __shared__ {dtype}", "", "yj")
+        yj = c_array(dtype, varloader.dimy_local, "yj", qualifier="extern __shared__")
         yjloc = c_array(
             dtype,
             varloader.dimy_local,
@@ -75,7 +75,7 @@ class GpuReduc1D(MapReduce, Gpu_link_compile):
 
         sync_threads = c_instruction_from_string("__syncthreads()")
 
-        out = c_variable(c_pointer(dtype), "out")
+        out = c_variable(c_pointer_dtype(dtype), "out")
 
         def cond_i(*instructions):
             return c_if(i < nx, instructions)
@@ -83,15 +83,12 @@ class GpuReduc1D(MapReduce, Gpu_link_compile):
         def cond_j(*instructions):
             return c_if(j < ny, instructions)
 
-        # print(red_formula.formula(fout, table, i, jreltile, tagI))
-        # exit()
-
         code = self.headers + cuda_global_kernel(
             "GpuConv1DOnDevice",
             (nx, ny, out, arg),
             (
                 i.declare_assign(blockIdx_x * blockDim_x + threadIdx_x),
-                yj.declare(),
+                yj.declare(force_declare=True),
                 param_loc.declare(),
                 varloader.load_vars("p", param_loc, args),
                 fout.declare(),
@@ -136,3 +133,11 @@ class GpuReduc1D(MapReduce, Gpu_link_compile):
         )
 
         self.code = str(code)
+
+        # for debugging:
+        if False:
+            f = open("ess.cu", "w")
+            f.write(self.code)
+            f.close()
+            print("debugging mode, code saved to ess.cu, exiting")
+            exit()

@@ -1,5 +1,5 @@
 from keopscore.formulas.Operation import Operation
-from keopscore.utils.code_gen_utils import c_zero_float, VectCopy
+from keopscore.utils.meta_toolbox import c_zero_float, VectCopy
 from keopscore.utils.misc_utils import KeOps_Error
 
 # //////////////////////////////////////////////////////////////
@@ -29,12 +29,10 @@ class ExtractT(Operation):
         out_prev, out_mid, out_end = out.split(
             self.start, self.dimarg, self.dim - self.start - self.dimarg
         )
-        return "\n".join(
-            (
-                out_prev.assign(c_zero_float),
-                VectCopy(out_mid, arg),
-                out_end.assign(c_zero_float),
-            )
+        return (
+            out_prev.assign(c_zero_float)
+            + VectCopy(out_mid, arg)
+            + out_end.assign(c_zero_float)
         )
 
     def DiffT(self, v, gradin):

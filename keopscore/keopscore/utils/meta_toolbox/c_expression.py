@@ -1,5 +1,11 @@
 from .c_code import c_code
-from .misc import is_pointer, registered_dtypes, Meta_Toolbox_Error
+from .misc import (
+    c_pointer_dtype,
+    c_value_dtype,
+    is_pointer_dtype,
+    registered_dtypes,
+    Meta_Toolbox_Error,
+)
 
 
 class c_expression(c_code):
@@ -13,6 +19,7 @@ class c_expression(c_code):
         super().__init__(f"({string})" if add_parenthesis else str(string), vars)
         self.code_string_no_parenthesis = str(string)
         self.id = self.code_string
+        self.dim = 1
 
     def binary_op(self, other, python_op, c_op, name, dtype=None):
         other = py2c(other)
@@ -41,18 +48,22 @@ class c_expression(c_code):
             Meta_Toolbox_Error("not implemented")
 
     def __add__(self, other):
+        if other == 0:
+            return self
         python_op = lambda x, y: x + y
         return self.binary_op(other, python_op, "+", "addition")
 
     def __mul__(self, other):
-        python_op = lambda x, y: x * y
         if other == 1:
             return self
         elif other == 0:
             return 0
+        python_op = lambda x, y: x * y
         return self.binary_op(other, python_op, "*", "product")
 
     def __sub__(self, other):
+        if other == 0:
+            return self
         python_op = lambda x, y: x - y
         return self.binary_op(other, python_op, "-", "subtraction")
 
@@ -111,8 +122,6 @@ class c_expression(c_code):
         return c_expression(f"{self.code_string}**{other}", self.vars, self.dtype)
 
     def __getitem__(self, other):
-        from .c_lvalue import c_value
-
         other = py2c(other)
         if isinstance(other, c_expression):
             if other.dtype not in ("int", "signed long int"):
@@ -122,17 +131,63 @@ class c_expression(c_code):
             return c_expression(
                 f"{self.code_string}[{other.code_string}]",
                 self.vars.union(other.vars),
-                c_value(self.dtype),
+                c_value_dtype(self.dtype),
             )
         else:
             Meta_Toolbox_Error("not implemented")
+
+    @property
+    def reference(self):
+        return c_expression(f"(&{self})", self.vars, c_pointer_dtype(self.dtype))
+
+    @property
+    def value(self):
+        if is_pointer_dtype(self.dtype):
+            return c_expression(f"(*{self})", self.vars, c_value_dtype(self.dtype))
+        else:
+            return self
+
+    def cast_to(self, dtype):
+        simple_dtypes = ["float", "double", "int", "signed long int", "bool"]
+        if (dtype in simple_dtypes) and (self.dtype in simple_dtypes):
+            return self
+        elif dtype == "half2" and self.dtype in (
+            "float",
+            "double",
+            "int",
+            "signed long int",
+        ):
+            string = f"__float2half2_rn({self})"
+        elif dtype == "float2" and self.dtype == "half2":
+            string = f"__half22float2({self})"
+        elif dtype == "half2" and self.dtype == "float2":
+            string = f"__float22half2_rn({self})"
+        elif self.dtype in ("int", "signed long int") and is_pointer_dtype(dtype):
+            string = f"{self}"
+        else:
+            Meta_Toolbox_Error(f"not implemented: casting from {self.dtype} to {dtype}")
+        return c_expression(
+            string=string, vars=self.vars, dtype=dtype, add_parenthesis=False
+        )
+
+
+def cast_to(dtype, expression):
+    return expression.cast_to(dtype)
 
 
 c_empty_expression = c_expression("", set(), "void", add_parenthesis=False)
 
 
+def c_expression_from_string(string, dtype):
+    # N.B. ideally we would like to suppress this function
+    # to force the user to declare variables used in the code
+    return c_expression(string, set(), dtype)
+
+
 def py2c(expression):
-    if isinstance(expression, c_expression):
+    from .c_array import c_array
+
+    if isinstance(expression, c_expression) or isinstance(expression, c_array):
         return expression
     if isinstance(expression, int):
         dtype = "signed long int" if abs(expression) > 2e9 else "int"
@@ -143,33 +198,20 @@ def py2c(expression):
     return c_expression(str(expression), set(), dtype, add_parenthesis=False)
 
 
-class cast_to(c_expression):
+c_zero_int = c_expression("0", set(), "int", add_parenthesis=False)
 
-    def __init__(self, dtype, expr):
-        simple_dtypes = ["float", "double", "int", "signed long int", "bool"]
-        if (dtype in simple_dtypes) and (expr.dtype in simple_dtypes):
-            string = f"({dtype}){expr}"
-        elif dtype == "half2" and expr.dtype == "float":
-            string = f"__float2half2_rn({expr})"
-        elif dtype == "float2" and expr.dtype == "half2":
-            string = f"__half22float2({expr})"
-        elif dtype == "half2" and expr.dtype == "float2":
-            string = f"__float22half2_rn({expr})"
-        elif expr.dtype in ("int", "signed long int") and is_pointer(dtype):
-            string = f"{expr}"
-        else:
-            Meta_Toolbox_Error(f"not implemented: casting from {expr.dtype} to {dtype}")
-        super().__init__(
-            string=string, vars=expr.vars, dtype=dtype, add_parenthesis=False
-        )
+c_zero_float = c_expression("0.0f", set(), "float", add_parenthesis=False)
 
 
-def c_pointer(x):
-    # either convert c_expression to its address c_expression (reference)
-    # or converts string "dtype" to "dtype*"
-    if isinstance(x, c_expression):
-        return c_expression(f"(&{x})", x.vars, c_pointer(x.dtype))
-    elif isinstance(x, str):
-        return x + "*"
+def infinity(dtype):
+    if dtype == "float":
+        code = "1.0f/0.0f"
+    elif dtype == "double":
+        code = "1.0/0.0"
     else:
-        Meta_Toolbox_Error("input should be either c_variable instance or string.")
+        Meta_Toolbox_Error("only float and double dtypes are implemented")
+    return c_expression(code, set(), dtype)
+
+
+def neg_infinity(dtype):
+    return c_expression(f"-({infinity(dtype).id})", set(), dtype)

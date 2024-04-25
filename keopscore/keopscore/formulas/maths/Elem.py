@@ -1,10 +1,10 @@
 from keopscore.formulas.Operation import Operation
-from keopscore.utils.meta_toolbox.c_lvalue import c_value
+from keopscore.utils.meta_toolbox.c_instruction import c_empty_instruction
 from keopscore.utils.misc_utils import KeOps_Error
 
-############################
+###################################################################
 ######    ELEMENT EXTRACTION : Elem(f,m) (aka get_item)       #####
-############################
+###################################################################
 
 
 class Elem(Operation):
@@ -23,8 +23,26 @@ class Elem(Operation):
         self.dim = 1
         self.m = m
 
-    def Op(self, out, table, arg):
-        return c_value(out).assign(arg[self.m])
+    def get_code_and_expr(self, dtype, table, i, j, tagI):
+        (child,) = self.children
+        code, code_elem, expr = child.get_code_and_expr_elem(
+            dtype, table, i, j, tagI, self.m
+        )
+        return code + code_elem, expr
+
+    def get_code_and_expr_elem(self, dtype, table, i, j, tagI, elem):
+        (child,) = self.children
+        code, code_elem, expr = child.get_code_and_expr_elem(
+            dtype, table, i, j, tagI, self.m
+        )
+        return code, code_elem, expr
+
+    def __call__(self, out, table, i, j, tagI):
+        (child,) = self.children
+        code, code_elem, expr = child.get_code_and_expr_elem(
+            out.dtype, table, i, j, tagI, self.m
+        )
+        return code + code_elem + out.assign(expr)
 
     def DiffT(self, v, gradin):
         from keopscore.formulas.maths.ElemT import ElemT

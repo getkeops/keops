@@ -1,5 +1,5 @@
 from keopscore.formulas.Operation import Operation
-from keopscore.utils.code_gen_utils import use_pragma_unroll
+from keopscore.utils.meta_toolbox import use_pragma_unroll
 
 ####################################
 ######  Tensor Dot Product     #####

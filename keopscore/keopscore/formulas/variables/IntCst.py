@@ -1,5 +1,9 @@
-from keopscore.utils.meta_toolbox.c_expression import c_expression
-from keopscore.utils.code_gen_utils import cast_to
+from keopscore.utils.meta_toolbox import (
+    c_empty_instruction,
+    cast_to,
+    c_expression,
+    py2c,
+)
 from keopscore.formulas.Operation import Operation
 from keopscore.formulas.variables.Zero import Zero
 
@@ -18,10 +22,8 @@ class IntCst_Impl(Operation):
         self.val = val
         self.dim = 1
 
-    def Op(self, out, table):
-        dtype = "int" if abs(self.val) < 2e9 else "signed long int"
-        c_val = c_expression(str(self.val), set(), dtype)
-        return out.assign(c_val)
+    def get_code_and_expr(self, dtype, table, i, j, tagI):
+        return c_empty_instruction, py2c(self.val)
 
     def DiffT(self, v, gradin):
         return Zero(v.dim)

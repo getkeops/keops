@@ -1,6 +1,5 @@
 from keopscore.formulas.Operation import Operation
-from keopscore.utils.meta_toolbox.c_lvalue import c_value
-from keopscore.utils.code_gen_utils import c_zero_float, c_for_loop
+from keopscore.utils.meta_toolbox import c_zero_float, c_for_loop
 from keopscore.utils.misc_utils import KeOps_Error
 
 ######################################################
@@ -31,7 +30,7 @@ class IndexT(Operation):
         n = self.n
         loop1, k = c_for_loop(0, n, 1, pragma_unroll=True)
         string = loop1(out[k].assign(c_zero_float))
-        string += out[c_value(argb)].assign(c_value(arga))
+        string += out[argb.value].assign(arga.value)
         return string
 
     def DiffT(self, v, gradin):

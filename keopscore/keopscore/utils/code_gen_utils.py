@@ -3,12 +3,7 @@ from hashlib import sha256
 
 import keopscore
 from keopscore.config.config import disable_pragma_unrolls
-from keopscore.utils.meta_toolbox.c_lvalue import c_value
-from keopscore.utils.meta_toolbox.c_for import c_for
-from keopscore.utils.meta_toolbox.c_instruction import (
-    c_instruction,
-    c_empty_instruction,
-)
+
 from keopscore.utils.misc_utils import KeOps_Error, KeOps_Message
 
 
@@ -18,35 +13,18 @@ def get_hash_name(*args):
     ]
 
 
-#######################################################################
-# .  Python to C++ meta programming toolbox
-#######################################################################
-
-from keopscore.utils.meta_toolbox.misc import (
-    sizeof,
-    new_c_name,
-    use_pragma_unroll,
-    call_list,
-    signature_list,
-)
-from keopscore.utils.meta_toolbox.c_variable import (
-    c_variable,
-    c_zero_float,
+from keopscore.utils.meta_toolbox import (
     c_zero_int,
-    neg_infinity,
-    infinity,
-    cast_to,
+    c_array,
+    c_empty_instruction,
+    c_variable,
+    c_value_dtype,
+    c_for,
+    c_block,
+    c_instruction_from_string,
+    disable_pragma_unrolls,
+    use_pragma_unroll,
 )
-from keopscore.utils.meta_toolbox.c_code import c_code, c_include, c_define
-from keopscore.utils.meta_toolbox.c_for import c_for_loop
-from keopscore.utils.meta_toolbox.c_if import c_if
-from keopscore.utils.meta_toolbox.c_expression import c_pointer
-from keopscore.utils.meta_toolbox.c_array import c_array
-from keopscore.utils.meta_toolbox.VectApply import VectApply
-from keopscore.utils.meta_toolbox.ComplexVectApply import ComplexVectApply
-from keopscore.utils.meta_toolbox.VectCopy import VectCopy
-from keopscore.utils.meta_toolbox.c_block import c_block
-from keopscore.utils.meta_toolbox.c_function import c_function
 
 
 #######################################################################
@@ -236,7 +214,9 @@ def direct_table(nminargs, dimsx, dimsy, dimsp, indsi, indsj, indsp, args, i, j)
         for u in range(len(dims)):
             arg = args[inds[u]]
             res[inds[u]] = c_array(
-                c_value(arg.dtype), dims[u], f"({arg.id}+{row_index.id}*{dims[u]})"
+                c_value_dtype(arg.dtype),
+                dims[u],
+                f"({arg.id}+{row_index.id}*{dims[u]})",
             )
     return res
 
@@ -383,13 +363,13 @@ def load_vars_chunks(
         string += "{"
         string += "signed long int a=0;\n"
         for u in range(len(inds)):
-            string += use_pragma_unroll()
+            string += use_pragma_unroll() + "\n"
             string += f"for(signed long int v=0; v<{dim_chunk_load}; v++) {{\n"
             string += f"    {xloc.id}[a] = {args[inds[u]].id}[{row_index.id}*{dim_org}+{k.id}*{dim_chunk}+v];\n"
             string += "     a++;\n"
             string += "}"
         string += "}"
-    return c_instruction(string, end_str="")
+    return c_instruction_from_string(string)
 
 
 def load_vars_chunks_offsets(
@@ -422,13 +402,13 @@ def load_vars_chunks_offsets(
         string += "signed long int a=0;\n"
         for u in range(len(inds)):
             l = indsref.index(inds[u])
-            string += use_pragma_unroll()
+            string += use_pragma_unroll() + "\n"
             string += f"for(signed long int v=0; v<{dim_chunk_load}; v++) {{\n"
             string += f"    {xloc.id}[a] = {args[inds[u]].id}[({row_index.id}+{offsets.id}[{l}])*{dim_org}+{k.id}*{dim_chunk}+v];\n"
             string += "     a++;\n"
             string += "}"
         string += "}"
-    return c_instruction(string, end_str="")
+    return c_instruction_from_string(string)
 
 
 def varseq_to_array(vars, vars_ptr_name):

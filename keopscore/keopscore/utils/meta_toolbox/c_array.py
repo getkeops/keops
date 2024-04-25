@@ -1,41 +1,59 @@
 from .c_instruction import c_instruction, c_empty_instruction
 from .c_lvalue import c_lvalue
-from .c_expression import c_expression, c_pointer, py2c
+from .c_expression import c_expression, py2c
 from .c_for import c_for_loop
 from .c_variable import c_variable
-from .misc import Meta_Toolbox_Error, new_c_name
+from .misc import (
+    Meta_Toolbox_Error,
+    c_pointer_dtype,
+    c_value_dtype,
+    is_pointer_dtype,
+    new_c_name,
+)
 
 
 class c_array:
-    def __init__(self, dtype, dim, string_id=None):
+    def __init__(self, dtype, dim, string_id=None, qualifier=None):
         if dim != "" and dim < 0:
             Meta_Toolbox_Error("negative dimension for array")
         if string_id is None:
             string_id = new_c_name("array")
-        self.c_var = c_variable(c_pointer(dtype), string_id)
+        self.c_var = c_variable(c_pointer_dtype(dtype), string_id)
         self.dtype = dtype
         self.dim = dim
         self.id = string_id
         self.vars = self.c_var.vars
+        if qualifier != None:
+            self.declaration_string = qualifier + " " + dtype
+        else:
+            self.declaration_string = dtype
+        self.qualifier = qualifier
 
     def __repr__(self):
         # method for printing the c_variable inside Python code
         return self.c_var.__repr__()
 
-    def declare(self, **kwargs):
+    def declare(self, force_declare=False, **kwargs):
         # returns C++ code to declare a fixed-size arry of size dim,
         # skipping declaration if dim=0
-        if self.dim == "" or self.dim > 0:
-            local_vars = self.c_var.vars
-            global_vars = set()
-            return c_instruction(
-                f"{self.dtype} {self.c_var}[{self.dim}]",
-                local_vars,
-                global_vars,
-                **kwargs,
-            )
+        dim = self.dim
+        if self.dim <= 0:
+            if force_declare:
+                dim = 1
+            else:
+                return c_empty_instruction
+        if self.qualifier == "extern __shared__":
+            dim_string = ""
         else:
-            return c_empty_instruction
+            dim_string = str(dim)
+        local_vars = self.c_var.vars
+        global_vars = set()
+        return c_instruction(
+            f"{self.declaration_string} {self.c_var}[{dim_string}]",
+            local_vars,
+            global_vars,
+            **kwargs,
+        )
 
     def split(self, *dims):
         # split c_array in n sub arrays with dimensions dims[0], dims[1], ..., dims[n-1]
@@ -72,6 +90,10 @@ class c_array:
         return c_lvalue(
             string_id=expression, vars=vars, dtype=self.dtype, add_parenthesis=False
         )
+
+    @property
+    def value(self):
+        return self[0]
 
     @property
     def c_print(self):

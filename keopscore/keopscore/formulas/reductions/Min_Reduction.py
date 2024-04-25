@@ -1,4 +1,4 @@
-from keopscore.utils.code_gen_utils import infinity, c_if
+from keopscore.utils.meta_toolbox import infinity, c_if
 from keopscore.formulas.reductions.Reduction import Reduction
 from keopscore.utils.misc_utils import KeOps_Error
 

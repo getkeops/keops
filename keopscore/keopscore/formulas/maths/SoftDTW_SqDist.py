@@ -4,14 +4,13 @@
 
 from keopscore.formulas.Operation import Operation
 from keopscore.utils.misc_utils import KeOps_Error
-from keopscore.utils.code_gen_utils import (
+from keopscore.utils.meta_toolbox import (
     c_variable,
-    c_pointer,
     c_array,
     c_for_loop,
     c_zero_float,
 )
-from keopscore.utils.code_gen_utils import use_pragma_unroll
+from keopscore.utils.meta_toolbox import use_pragma_unroll
 from keopscore.formulas.variables.Zero import Zero
 from keopscore.formulas.maths.Extract import Extract
 

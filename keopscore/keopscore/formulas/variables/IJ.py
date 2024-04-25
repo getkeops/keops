@@ -1,7 +1,7 @@
 from keopscore.formulas.Operation import Operation
 from keopscore.formulas.variables.Zero import Zero
 from keopscore.utils.misc_utils import KeOps_Error
-from keopscore.utils.code_gen_utils import c_empty_instruction
+from keopscore.utils.meta_toolbox import c_empty_instruction
 
 #########################
 ## I and J placeholders

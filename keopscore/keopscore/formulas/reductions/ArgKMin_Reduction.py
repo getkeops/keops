@@ -1,6 +1,6 @@
 from keopscore.formulas.reductions.KMin_ArgKMin_Reduction import KMin_ArgKMin_Reduction
 from keopscore.formulas.reductions.Zero_Reduction import Zero_Reduction
-from keopscore.utils.code_gen_utils import (
+from keopscore.utils.meta_toolbox import (
     c_for_loop,
     new_c_name,
     c_variable,

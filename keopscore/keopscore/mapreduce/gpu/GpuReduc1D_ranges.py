@@ -1,7 +1,7 @@
 from keopscore.binders.nvrtc.Gpu_link_compile import Gpu_link_compile
 from keopscore.mapreduce.gpu.GpuAssignZero import GpuAssignZero
 from keopscore.mapreduce.MapReduce import MapReduce
-from keopscore.utils.code_gen_utils import (
+from keopscore.utils.meta_toolbox import (
     c_variable,
     c_array,
     c_include,

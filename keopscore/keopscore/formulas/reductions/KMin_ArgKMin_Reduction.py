@@ -4,7 +4,7 @@ from keopscore.utils.meta_toolbox.c_instruction import (
     c_instruction,
     c_instruction_from_string,
 )
-from keopscore.utils.code_gen_utils import (
+from keopscore.utils.meta_toolbox import (
     infinity,
     cast_to,
     c_zero_float,
