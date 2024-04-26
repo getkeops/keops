@@ -1,12 +1,5 @@
 from keopscore.binders.nvrtc.Gpu_link_compile import Gpu_link_compile
-from keopscore.utils.meta_toolbox.c_expression import c_pointer_dtype
 from keopscore.utils.meta_toolbox.c_function import cuda_global_kernel
-from keopscore.utils.meta_toolbox.c_code import c_code
-from keopscore.utils.meta_toolbox.c_instruction import (
-    c_instruction,
-    c_comment,
-    c_instruction_from_string,
-)
 from keopscore.utils.meta_toolbox.c_for import c_for
 from keopscore.mapreduce.gpu.GpuAssignZero import GpuAssignZero
 from keopscore.mapreduce.MapReduce import MapReduce
@@ -15,6 +8,9 @@ from keopscore.utils.meta_toolbox import (
     c_variable,
     c_fixed_size_array,
     c_array_from_address,
+    cuda_global_kernel,
+    c_instruction_from_string,
+    c_fixed_size_array_proper
 )
 
 
@@ -57,7 +53,7 @@ class GpuReduc1D(MapReduce, Gpu_link_compile):
             varloader.dimy_local,
             yj.c_address + threadIdx_x * varloader.dimy_local,
         )
-        yjrel = c_fixed_size_array(dtype, varloader.dimy_local, "yjrel")
+        yjrel = c_fixed_size_array_proper(dtype, varloader.dimy_local, "yjrel")
 
         j_start = c_variable("signed long int", "jstart")
         j_rel = c_variable("signed long int", "jrel")

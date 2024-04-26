@@ -4,6 +4,9 @@ from keopscore.mapreduce.MapReduce import MapReduce
 from keopscore.utils.meta_toolbox import (
     c_variable,
     c_fixed_size_array,
+    c_array_from_address,
+    c_fixed_size_array_proper,
+    cuda_global_kernel,
     c_include,
 )
 
@@ -27,6 +30,10 @@ class GpuReduc1D_ranges(MapReduce, Gpu_link_compile):
         dtype = self.dtype
         varloader = self.varloader
 
+        blockIdx_x = cuda_global_kernel.blockIdx_x
+        blockDim_x = cuda_global_kernel.blockDim_x
+        threadIdx_x = cuda_global_kernel.threadIdx_x
+
         i = self.i
         j = self.j
         fout = self.fout
@@ -45,11 +52,13 @@ class GpuReduc1D_ranges(MapReduce, Gpu_link_compile):
 
         param_loc = self.param_loc
         xi = self.xi
-        yjloc = c_fixed_size_array(
-            dtype, varloader.dimy_local, f"(yj + threadIdx.x * {varloader.dimy_local})"
+        yj = c_fixed_size_array(dtype, None, "yj", qualifier="extern __shared__")
+        yjloc = c_array_from_address(varloader.dimy_local, yj.c_address + threadIdx_x * varloader.dimy_local
         )
-        yjrel = c_fixed_size_array(dtype, varloader.dimy_local, "yjrel")
-        jreltile = c_variable("signed long int", "(jrel + tile * blockDim.x)")
+        yjrel = c_fixed_size_array_proper(dtype, varloader.dimy_local, "yjrel")
+        j_rel = c_variable("signed long int", "jrel")
+        tile = c_variable("signed long int", "tile")
+        jreltile = j_rel + tile * blockDim_x
 
         imod = c_variable("signed long int", "(i%nx_org)")
 
@@ -57,10 +66,10 @@ class GpuReduc1D_ranges(MapReduce, Gpu_link_compile):
         indices_j = c_fixed_size_array("signed long int", nvarsj, "indices_j")
         indices_p = c_fixed_size_array("signed long int", nvarsp, "indices_p")
 
-        threadIdx_x = c_variable("signed long int", "threadIdx.x")
-
         starty = c_variable("signed long int", "start_y")
-        j_call = c_variable("signed long int", "(jstart+jrel-start_y)")
+        j_start = c_variable("signed long int", "jstart")
+        
+        j_call = j_start+j_rel-starty
 
         table_batchmode = varloader.table(
             self.xi,

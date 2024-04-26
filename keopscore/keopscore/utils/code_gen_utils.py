@@ -217,9 +217,8 @@ def direct_table(nminargs, dimsx, dimsy, dimsp, indsi, indsj, indsp, args, i, j)
         for u in range(len(dims)):
             arg = args[inds[u]]
             res[inds[u]] = c_array_from_address(
-                c_value_dtype(arg.dtype),
                 dims[u],
-                f"{arg.id}+{row_index.id}*{dims[u]}",
+                arg+row_index*dims[u]
             )
     return res
 
