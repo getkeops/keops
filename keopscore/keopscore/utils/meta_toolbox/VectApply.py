@@ -18,7 +18,14 @@ def VectApply(fun, *args):
     if not set(dims) in ({dimloop}, {1, dimloop}):
         Meta_Toolbox_Error("incompatible dimensions in VectApply")
     forloop, k = c_for_loop(0, dimloop, 1, pragma_unroll=True)
+    print()
+    print(args)
+    print(*(arg[0 if arg.dim == 1 else k] for arg in args))
+    print(*(arg.dim for arg in args))
     body = fun(*(arg[0 if arg.dim == 1 else k] for arg in args))
     if isinstance(body, str):
         body = c_instruction_from_string(body)
-    return forloop(body)
+    res = forloop(body)
+    print(res)
+    print()
+    return res

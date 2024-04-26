@@ -32,13 +32,11 @@ def math_function(
         for k, arg in enumerate(args):
             if isinstance(arg, int):
                 c_dtype = "signed long int" if arg > 2e9 else "int"
-                args[k] = c_variable(c_dtype, str(arg))
+                args[k] = c_expression_from_string(str(arg), c_dtype)
         # detect main dtype. We assume it should be one of "float", "double" or "half2"
         dtype = "float"
         for arg in args:
-            if isinstance(arg, int):
-                pass
-            elif arg.dtype == "half2":
+            if arg.dtype == "half2":
                 dtype = "half2"
             elif arg.dtype == "double":
                 dtype = "double"

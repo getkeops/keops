@@ -46,6 +46,12 @@ class VectorizedScalarOp(Operation):
         else:
             out = self.get_out_var(dtype)
             code_elem += out.declare() + self.ScalarOp(out, *args)
+        
+        print("*********")
+        print("in get_code_and_expr_elem of", type(self))
+        print(code, code_elem, out)
+        print("*********")
+
         return code, code_elem, out
 
     def __call__(self, out, table, i=None, j=None, tagI=None):
