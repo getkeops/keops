@@ -3,6 +3,8 @@ from keopscore.formulas.GetReduction import GetReduction
 from keopscore.utils.code_gen_utils import Var_loader
 from keopscore.utils.meta_toolbox import (
     c_pointer_dtype,
+    c_expression_from_string,
+    c_array_from_address,
     new_c_name,
     c_include,
     c_define,
@@ -85,6 +87,7 @@ class MapReduce:
         self.acc = c_fixed_size_array(dtypeacc, red_formula.dimred, "acc")
         self.acctmp = c_fixed_size_array(dtypeacc, red_formula.dimred, "acctmp")
         self.fout = c_fixed_size_array(dtype, formula.dim, "fout")
-        self.outi = c_fixed_size_array(
-            dtype, red_formula.dim, f"(out + i * {red_formula.dim})"
+        self.out = c_variable(c_pointer_dtype(dtype), "out")
+        self.outi = c_array_from_address(
+            red_formula.dim, self.out + i * red_formula.dim
         )

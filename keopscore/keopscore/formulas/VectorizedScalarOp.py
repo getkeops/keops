@@ -44,18 +44,17 @@ class VectorizedScalarOp(Operation):
         if hasattr(self, "ScalarOpFun"):
             out = type(self).ScalarOpFun(*args, *self.params)
         else:
-            out = self.get_out_var(dtype, dim=1)
+            out = self.get_out_var(dtype)
             code_elem += out.declare() + self.ScalarOp(out, *args)
         return code, code_elem, out
 
     def __call__(self, out, table, i=None, j=None, tagI=None):
         code = c_comment(f"Starting code block for {self.__repr__()}")
         forloop, k = c_for_loop(0, self.dim, 1, pragma_unroll=True)
-        code_k, code_elem_k, out_k = self.get_code_and_expr_elem(
+        code_k, code_elem_k, out_k_expr = self.get_code_and_expr_elem(
             out.dtype, table, i, j, tagI, k
         )
-        out = out[k] if isinstance(out, c_fixed_size_array) else out
-        code += code_k + forloop(code_elem_k + out.assign(out_k))
+        code += code_k + forloop(code_elem_k + out[k].assign(out_k_expr))
         code += c_comment(f"Finished code block for {self.__repr__()}")
         return code
 

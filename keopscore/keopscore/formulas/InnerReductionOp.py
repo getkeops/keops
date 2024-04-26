@@ -35,7 +35,7 @@ class InnerReductionOp(Chunkable_Op):
             code_elem = sum(code_args_elem, c_empty_instruction)
         else:
             args, code_elem = (), c_empty_instruction
-        out_value = out[0] if isinstance(out, c_fixed_size_array) else out
+        out_value = out[0]
         code += out.assign(c_zero_float) + forloop(
             code_elem + self.ScalarOp(out_value, *args)
         )

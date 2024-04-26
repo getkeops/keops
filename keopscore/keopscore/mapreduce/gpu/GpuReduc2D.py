@@ -9,6 +9,7 @@ from keopscore.mapreduce.MapReduce import MapReduce
 from keopscore.utils.meta_toolbox import (
     c_variable,
     c_fixed_size_array,
+    c_array_from_address,
     use_pragma_unroll,
     c_zero_float,
 )

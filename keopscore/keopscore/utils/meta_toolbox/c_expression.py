@@ -187,11 +187,9 @@ def c_expression_from_string(string, dtype):
 
 
 def py2c(expression):
-    from .c_array import c_fixed_size_array
+    from .c_array import c_array
 
-    if isinstance(expression, c_expression) or isinstance(
-        expression, c_fixed_size_array
-    ):
+    if isinstance(expression, c_expression) or isinstance(expression, c_array):
         return expression
     if isinstance(expression, int):
         dtype = "signed long int" if abs(expression) > 2e9 else "int"

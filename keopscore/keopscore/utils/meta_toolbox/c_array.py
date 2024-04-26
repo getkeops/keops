@@ -14,22 +14,6 @@ from .misc import (
 
 class c_array:
 
-    def split(self, *dims):
-        # split c_array in n sub arrays with dimensions dims[0], dims[1], ..., dims[n-1]
-        if sum(dims) != self.dim:
-            Meta_Toolbox_Error("incompatible dimensions for split")
-        listarr, cumdim = [], 0
-        for dim in dims:
-            listarr.append(c_expression_array(dim, self.c_address + cumdim))
-            cumdim += dim
-        return listarr
-
-    def assign(self, val):
-        # returns C++ code string to fill all elements of an array with a single value
-        # val is a c_variable representing the value.
-        loop, k = c_for_loop(0, self.dim, 1, pragma_unroll=True)
-        return loop(self[k].assign(val))
-
     def getitem_check_convert_arg(self, other):
         if type(other) in (int, float):
             other = int(other)
@@ -42,14 +26,6 @@ class c_array:
             )
         return other
 
-    def copy(self, other):
-        if not isinstance(other, c_array):
-            Meta_Toolbox_Error("other should be c_array instance")
-        if other.dim not in (1, self.dim):
-            Meta_Toolbox_Error("incompatible dimensions for copy")
-        forloop, k = c_for_loop(0, self.dim, 1, pragma_unroll=True)
-        return forloop(self[k].assign(other[k]))
-
     def apply(self, fun, *others):
         from .VectApply import VectApply
 
@@ -60,7 +36,7 @@ class c_array:
         return self[0]
 
 
-class c_expression_array(c_array):
+class c_array_from_address(c_array):
 
     def __init__(self, dim, expression):
         if dim != None and not isinstance(dim, int):
@@ -78,6 +54,30 @@ class c_expression_array(c_array):
     def __repr__(self):
         # method for printing the c_array inside Python code
         return self.c_address.__repr__()
+
+    def split(self, *dims):
+        # split c_array in n sub arrays with dimensions dims[0], dims[1], ..., dims[n-1]
+        if sum(dims) != self.dim:
+            Meta_Toolbox_Error("incompatible dimensions for split")
+        listarr, cumdim = [], 0
+        for dim in dims:
+            listarr.append(c_array_from_address(dim, self.c_address + cumdim))
+            cumdim += dim
+        return listarr
+
+    def assign(self, val):
+        # returns C++ code string to fill all elements of an array with a single value
+        # val is a c_variable representing the value.
+        loop, k = c_for_loop(0, self.dim, 1, pragma_unroll=True)
+        return loop(self[k].assign(val))
+
+    def copy(self, other):
+        if not isinstance(other, c_array):
+            Meta_Toolbox_Error("other should be c_array instance")
+        if other.dim not in (1, self.dim):
+            Meta_Toolbox_Error("incompatible dimensions for copy")
+        forloop, k = c_for_loop(0, self.dim, 1, pragma_unroll=True)
+        return forloop(self[k].assign(other[k]))
 
     def __getitem__(self, other):
         other = self.getitem_check_convert_arg(other)
@@ -107,7 +107,7 @@ class c_expression_array(c_array):
         return string
 
 
-class c_fixed_size_array(c_expression_array):
+class c_fixed_size_array_proper(c_array_from_address):
 
     def __init__(self, dtype, dim, string_id=None, qualifier=None):
         if string_id is None:
@@ -143,7 +143,7 @@ class c_fixed_size_array(c_expression_array):
         )
 
 
-class c_array_variable(c_expression_array):
+class c_array_variable(c_array_from_address):
 
     def __init__(self, dtype, string_id=None, qualifier=None):
         if string_id is None:
@@ -158,7 +158,7 @@ class c_array_variable(c_expression_array):
 
     def __repr__(self):
         # method for printing the c_array inside Python code
-        return self.c_address.__repr__()
+        return self.c_var.__repr__()
 
     def declare(self, **kwargs):
         # returns C++ code to declare the variable
@@ -168,3 +168,28 @@ class c_array_variable(c_expression_array):
         # N.B. we ignore other and output self.c_var
         # as if other=0. This allows broadcasting in apply and copy methods.
         return self.c_var
+
+
+class c_array_scalar(c_array):
+
+    def __init__(self, val):
+        c_val = py2c(val)
+        self.dtype = c_val.dtype
+        self.dim = 1
+        self.c_val = c_val
+
+    def __repr__(self):
+        # method for printing the c_array inside Python code
+        return self.c_val.__repr__()
+
+    def __getitem__(self, other):
+        # N.B. we ignore other and output self.c_val
+        # as if other=0. This allows broadcasting in apply and copy methods.
+        return self.c_val
+
+
+def c_fixed_size_array(dtype, dim, string_id=None, qualifier=None):
+    if dim == 1:
+        return c_array_variable(dtype, string_id, qualifier)
+    else:
+        return c_fixed_size_array_proper(dtype, dim, string_id, qualifier)

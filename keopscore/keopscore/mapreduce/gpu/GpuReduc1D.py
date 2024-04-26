@@ -14,7 +14,7 @@ from keopscore.utils.meta_toolbox import (
     c_if,
     c_variable,
     c_fixed_size_array,
-    c_expression_array,
+    c_array_from_address,
 )
 
 
@@ -53,7 +53,7 @@ class GpuReduc1D(MapReduce, Gpu_link_compile):
         param_loc = self.param_loc
         xi = self.xi
         yj = c_fixed_size_array(dtype, None, "yj", qualifier="extern __shared__")
-        yjloc = c_expression_array(
+        yjloc = c_array_from_address(
             varloader.dimy_local,
             yj.c_address + threadIdx_x * varloader.dimy_local,
         )
@@ -75,7 +75,7 @@ class GpuReduc1D(MapReduce, Gpu_link_compile):
 
         sync_threads = c_instruction_from_string("__syncthreads()")
 
-        out = c_variable(c_pointer_dtype(dtype), "out")
+        out = self.out
 
         def cond_i(*instructions):
             return c_if(i < nx, instructions)

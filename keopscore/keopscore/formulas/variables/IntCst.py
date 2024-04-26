@@ -1,9 +1,4 @@
-from keopscore.utils.meta_toolbox import (
-    c_empty_instruction,
-    cast_to,
-    c_expression,
-    py2c,
-)
+from keopscore.utils.meta_toolbox import c_empty_instruction, c_array_scalar
 from keopscore.formulas.Operation import Operation
 from keopscore.formulas.variables.Zero import Zero
 
@@ -23,7 +18,7 @@ class IntCst_Impl(Operation):
         self.dim = 1
 
     def get_code_and_expr(self, dtype, table, i, j, tagI):
-        return c_empty_instruction, py2c(self.val)
+        return c_empty_instruction, c_array_scalar(self.val)
 
     def DiffT(self, v, gradin):
         return Zero(v.dim)
