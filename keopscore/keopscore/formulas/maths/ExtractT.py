@@ -1,5 +1,5 @@
 from keopscore.formulas.Operation import Operation
-from keopscore.utils.meta_toolbox import c_zero_float, VectCopy
+from keopscore.utils.meta_toolbox import c_zero_float
 from keopscore.utils.misc_utils import KeOps_Error
 
 # //////////////////////////////////////////////////////////////
@@ -31,7 +31,7 @@ class ExtractT(Operation):
         )
         return (
             out_prev.assign(c_zero_float)
-            + VectCopy(out_mid, arg)
+            + out_mid.copy(arg)
             + out_end.assign(c_zero_float)
         )
 

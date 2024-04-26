@@ -44,7 +44,7 @@ def do_chunk_sub(
     param_loc,
 ):
     chk = Chunk_Mode_Constants(red_formula)
-    fout_tmp_chunk = c_array(dtype, chk.fun_chunked.dim)
+    fout_tmp_chunk = c_fixed_size_array(dtype, chk.fun_chunked.dim)
     xiloc = c_variable(c_pointer_dtype(dtype), f"({xi.id} + {chk.dimx_notchunked})")
     yjloc = c_variable(
         c_pointer_dtype(dtype),
@@ -150,21 +150,21 @@ class GpuReduc1D_chunks(MapReduce, Gpu_link_compile):
         arg = self.arg
         args = self.args
 
-        yjrel = c_array(dtype, varloader.dimy, "yjrel")
+        yjrel = c_fixed_size_array(dtype, varloader.dimy, "yjrel")
         jrel = c_variable("signed long int", "jrel")
 
         jreltile = c_variable("signed long int", "(jrel + tile * blockDim.x)")
 
         chk = self.chk
-        param_loc = c_array(dtype, chk.dimp, "param_loc")
-        acc = c_array(dtypeacc, chk.dimred, "acc")
+        param_loc = c_fixed_size_array(dtype, chk.dimp, "param_loc")
+        acc = c_fixed_size_array(dtypeacc, chk.dimred, "acc")
         sum_scheme = eval(self.sum_scheme_string)(red_formula, dtype, dimred=chk.dimred)
-        xi = c_array(dtype, chk.dimx, "xi")
-        fout_chunk = c_array(
+        xi = c_fixed_size_array(dtype, chk.dimx, "xi")
+        fout_chunk = c_fixed_size_array(
             dtype, self.blocksize_chunks * chk.dimout_chunk, "fout_chunk"
         )
         yj = c_variable(c_pointer_dtype(dtype), "yj")
-        yjloc = c_array(dtype, chk.dimy, f"(yj + threadIdx.x * {chk.dimy})")
+        yjloc = c_fixed_size_array(dtype, chk.dimy, f"(yj + threadIdx.x * {chk.dimy})")
 
         fout_chunk_loc = c_variable(
             c_pointer_dtype(dtype), f"({fout_chunk.id}+jrel*{chk.dimout_chunk})"
@@ -240,7 +240,7 @@ class GpuReduc1D_chunks(MapReduce, Gpu_link_compile):
             param_loc,
         )
 
-        foutj = c_array(dtype, chk.dimout_chunk, "foutj")
+        foutj = c_fixed_size_array(dtype, chk.dimout_chunk, "foutj")
         chktable_out = table4(
             chk.nminargs + 1,
             chk.dimsx,
@@ -256,8 +256,8 @@ class GpuReduc1D_chunks(MapReduce, Gpu_link_compile):
             param_loc,
             foutj,
         )
-        fout_tmp = c_array(dtype, chk.dimfout, "fout_tmp")
-        outi = c_array(dtype, chk.dimout, f"(out + i * {chk.dimout})")
+        fout_tmp = c_fixed_size_array(dtype, chk.dimfout, "fout_tmp")
+        outi = c_fixed_size_array(dtype, chk.dimout, f"(out + i * {chk.dimout})")
 
         self.code = f"""
                           

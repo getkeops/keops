@@ -5,6 +5,7 @@ from keopscore.utils.meta_toolbox import (
     c_for_loop,
     c_if,
     c_variable,
+    c_instruction_from_string,
 )
 from keopscore.utils.misc_utils import KeOps_Error
 
@@ -28,21 +29,20 @@ class ArgMin(Operation):
     def Op(self, out, table, arg):
         tmp = c_variable(out.dtype)
         loop, k = c_for_loop(1, arg.dim, 1, pragma_unroll=True)
-        string = out.value.assign(c_zero_float) + tmp.declare_assign(arg[0])
+        res = out.value.assign(c_zero_float) + tmp.declare_assign(arg[0])
         if out.dtype == "half2":
             loop_string = f"""
                 // we have to work element-wise...
-                __half2 cond = __hgt2({tmp.id},{arg[k].id});                          // cond = (tmp > outF[k]) (element-wise)
+                __half2 cond = __hgt2({tmp},{arg[k]});                          // cond = (tmp > outF[k]) (element-wise)
                 __half2 negcond = __float2half2_rn(1.0f)-cond;                        // negcond = 1-cond
-                *{out.id} = cond * __float2half2_rn({k.id}) + negcond * *{out.id};    // out  = cond * k + (1-cond) * out 
-                {tmp.id} = cond * {arg[k].id} + negcond * {tmp.id};                   // tmp  = cond * outF[k] + (1-cond) * tmp
+                {out[0]} = cond * __float2half2_rn({k.id}) + negcond * {out[0]};    // out  = cond * k + (1-cond) * out 
+                {tmp} = cond * {arg[k]} + negcond * {tmp};                   // tmp  = cond * outF[k] + (1-cond) * tmp
                             """
-            string += loop(loop_string)
+            body = c_instruction_from_string
+            res += loop(body)
         else:
-            string += loop(
-                c_if(arg[k] < tmp, tmp.assign(arg[k]) + c_value(out).assign(k))
-            )
-        return string
+            res += loop(c_if(arg[k] < tmp, tmp.assign(arg[k]) + out.assign(k)))
+        return res
 
     def DiffT(self, v, gradin):
         return Zero(v.dim)

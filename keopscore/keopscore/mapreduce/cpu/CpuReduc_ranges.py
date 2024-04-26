@@ -5,7 +5,7 @@ from keopscore.mapreduce.cpu.CpuAssignZero import CpuAssignZero
 from keopscore.mapreduce.MapReduce import MapReduce
 from keopscore.utils.meta_toolbox import (
     c_variable,
-    c_array,
+    c_fixed_size_array,
     c_include,
 )
 import keopscore
@@ -39,7 +39,7 @@ class CpuReduc_ranges(MapReduce, Cpu_link_compile):
         nargs = len(args)
 
         xi = self.xi
-        yj = c_array(dtype, self.varloader.dimy, "yj")
+        yj = c_fixed_size_array(dtype, self.varloader.dimy, "yj")
         param_loc = self.param_loc
 
         varloader = self.varloader
@@ -58,9 +58,9 @@ class CpuReduc_ranges(MapReduce, Cpu_link_compile):
 
         sum_scheme = self.sum_scheme
 
-        indices_i = c_array("int", nvarsi, "indices_i")
-        indices_j = c_array("int", nvarsj, "indices_j")
-        indices_p = c_array("int", nvarsp, "indices_p")
+        indices_i = c_fixed_size_array("int", nvarsi, "indices_i")
+        indices_j = c_fixed_size_array("int", nvarsj, "indices_j")
+        indices_p = c_fixed_size_array("int", nvarsp, "indices_p")
         imstartx = c_variable("int", "(i-start_x)")
         jmstarty = c_variable("int", "(j-start_y)")
 

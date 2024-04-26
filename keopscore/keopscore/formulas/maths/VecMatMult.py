@@ -3,6 +3,7 @@ from keopscore.utils.meta_toolbox import (
     c_variable,
     c_for_loop,
     c_zero_float,
+    c_instruction_from_string,
 )
 from keopscore.utils.misc_utils import KeOps_Error
 
@@ -32,7 +33,7 @@ class VecMatMult(Operation):
         q = c_variable("int")
         loop, i = c_for_loop(0, self.dim, 1, pragma_unroll=True)
         inner_loop, k = c_for_loop(0, inB.dim, 1, pragma_unroll=True)
-        return f"""
+        res = f"""
                     #if C_CONTIGUOUS     // row major
                         {q.declare_assign(0)}
                         {loop(out[i].assign(c_zero_float) + inner_loop(out[i].add_assign(inA[k * self.dim + i] * inB[k])))}
@@ -41,6 +42,7 @@ class VecMatMult(Operation):
                         {loop(out[i].assign(c_zero_float) + inner_loop(out[i].add_assign(inA[q] * inB[k]) + q.add_assign(1)))}
                     #endif
                 """
+        return c_instruction_from_string(res)
 
     def DiffT(self, v, gradin):
         from keopscore.formulas.maths.MatVecMult import MatVecMult

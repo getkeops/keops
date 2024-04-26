@@ -26,11 +26,11 @@ class ElemT(Operation):
     def Op(self, out, table, arg):
         n, m = self.n, self.m
         loop1, k = c_for_loop(0, m, 1, pragma_unroll=True)
-        string = loop1(out[k].assign(c_zero_float))
-        string += out[m].assign(arg.value)
+        res = loop1(out[k].assign(c_zero_float))
+        res += out[m].assign(arg.value)
         loop2, k = c_for_loop(m + 1, n, 1, pragma_unroll=True)
-        string += loop2(out[k].assign(c_zero_float))
-        return string
+        res += loop2(out[k].assign(c_zero_float))
+        return res
 
     def DiffT(self, v, gradin):
         from keopscore.formulas.maths.Elem import Elem

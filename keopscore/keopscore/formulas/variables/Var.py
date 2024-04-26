@@ -1,4 +1,4 @@
-from keopscore.utils.meta_toolbox import VectCopy, c_empty_instruction
+from keopscore.utils.meta_toolbox import c_empty_instruction
 from keopscore.formulas.Operation import Operation
 
 
@@ -54,7 +54,7 @@ class Var(Operation):
         return c_empty_instruction, table[self.ind]
 
     def Op(self, out, table):
-        return VectCopy(out, table[self.ind])
+        return out.copy(table[self.ind])
 
     # Assuming that the gradient wrt. Var is GRADIN, how does it affect V ?
     # Var::DiffT<V, grad_input> = grad_input   if V == Var (in the sense that it represents the same symb. var.)

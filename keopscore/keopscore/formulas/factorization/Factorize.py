@@ -1,6 +1,12 @@
 from keopscore.formulas.variables import Var, Zero
 from keopscore.formulas.variables.IntCst import IntCst_Impl
-from keopscore.utils.meta_toolbox import new_c_name, c_array
+from keopscore.utils.meta_toolbox import (
+    new_c_name,
+    c_fixed_size_array,
+    c_comment,
+    c_instruction_from_string,
+    c_block,
+)
 from keopscore.formulas.Operation import Operation
 import keopscore
 from keopscore.utils.code_gen_utils import GetInds
@@ -30,7 +36,7 @@ class Factorize_Impl(Operation):
         required for evaluation : each Var(ind,*,*) corresponds to table[ind]"""
         from keopscore.formulas.variables.Var import Var
 
-        string = f"\n{{\n// Starting code block for {self.__repr__()}.\n\n"
+        res = c_comment(f"Starting code block for {self.__repr__()}.")
         if keopscore.debug_ops:
             print(f"Building code block for {self.__repr__()}")
             print("out=", out)
@@ -39,7 +45,9 @@ class Factorize_Impl(Operation):
             for v in table:
                 print(f"dim of {v} : ", v.dim)
         if keopscore.debug_ops_at_exec:
-            string += f'printf("\\n\\nComputing {self.__repr__()} :\\n");\n'
+            res += c_instruction_from_string(
+                f'printf("\\n\\nComputing {self.__repr__()} :\\n");\n'
+            )
 
         f, g = self.children
         (aliasvar,) = self.params
@@ -50,11 +58,11 @@ class Factorize_Impl(Operation):
         # when we will recursively evaluate nested operations.
         template_string_id = "out_" + g.string_id.lower()
         outg_name = new_c_name(template_string_id)
-        outg = c_array(out.dtype, g.dim, outg_name)
+        outg = c_fixed_size_array(out.dtype, g.dim, outg_name)
         # Now we append into string the C++ code to declare the array
-        string += f"{outg.declare()}\n"
+        res += outg.declare()
         # Now we evaluate g and append the result into string
-        string += g(outg, table)
+        res += g(outg, table)
 
         # we put a new entry for the temporary variable in the table.
         table.append(outg)
@@ -65,13 +73,14 @@ class Factorize_Impl(Operation):
         newf = f.replace(aliasvar, newaliasvar)
 
         # Evaluation of f
-        string += newf(out, table)
+        res += newf(out, table)
 
         if keopscore.debug_ops:
             print(f"Finished building code block for {self.__repr__()}")
 
-        string += f"\n\n// Finished code block for {self.__repr__()}.\n}}\n\n"
-        return string
+        res += c_comment(f"// Finished code block for {self.__repr__()}.")
+        res = c_block(res)
+        return res
 
     def DiffT(self, v, gradin):
         f, g = self.children

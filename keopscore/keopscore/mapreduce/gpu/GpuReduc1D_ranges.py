@@ -3,7 +3,7 @@ from keopscore.mapreduce.gpu.GpuAssignZero import GpuAssignZero
 from keopscore.mapreduce.MapReduce import MapReduce
 from keopscore.utils.meta_toolbox import (
     c_variable,
-    c_array,
+    c_fixed_size_array,
     c_include,
 )
 
@@ -45,17 +45,17 @@ class GpuReduc1D_ranges(MapReduce, Gpu_link_compile):
 
         param_loc = self.param_loc
         xi = self.xi
-        yjloc = c_array(
+        yjloc = c_fixed_size_array(
             dtype, varloader.dimy_local, f"(yj + threadIdx.x * {varloader.dimy_local})"
         )
-        yjrel = c_array(dtype, varloader.dimy_local, "yjrel")
+        yjrel = c_fixed_size_array(dtype, varloader.dimy_local, "yjrel")
         jreltile = c_variable("signed long int", "(jrel + tile * blockDim.x)")
 
         imod = c_variable("signed long int", "(i%nx_org)")
 
-        indices_i = c_array("signed long int", nvarsi, "indices_i")
-        indices_j = c_array("signed long int", nvarsj, "indices_j")
-        indices_p = c_array("signed long int", nvarsp, "indices_p")
+        indices_i = c_fixed_size_array("signed long int", nvarsi, "indices_i")
+        indices_j = c_fixed_size_array("signed long int", nvarsj, "indices_j")
+        indices_p = c_fixed_size_array("signed long int", nvarsp, "indices_p")
 
         threadIdx_x = c_variable("signed long int", "threadIdx.x")
 

@@ -55,7 +55,7 @@ def do_chunk_sub_ranges(
     param_loc,
 ):
     chk = Chunk_Mode_Constants(red_formula)
-    fout_tmp_chunk = c_array(dtype, chk.fun_chunked.dim)
+    fout_tmp_chunk = c_fixed_size_array(dtype, chk.fun_chunked.dim)
     xiloc = c_variable(c_pointer_dtype(dtype), f"({xi.id} + {chk.dimx_notchunked})")
     yjloc = c_variable(
         c_pointer_dtype(dtype),
@@ -230,9 +230,9 @@ class GpuReduc1D_ranges_chunks(MapReduce, Gpu_link_compile):
         )
         nvars = nvarsi + nvarsj + nvarsp
 
-        indices_i = c_array("signed long int", nvarsi, "indices_i")
-        indices_j = c_array("signed long int", nvarsj, "indices_j")
-        indices_p = c_array("signed long int", nvarsp, "indices_p")
+        indices_i = c_fixed_size_array("signed long int", nvarsi, "indices_i")
+        indices_j = c_fixed_size_array("signed long int", nvarsj, "indices_j")
+        indices_p = c_fixed_size_array("signed long int", nvarsp, "indices_p")
 
         declare_assign_indices_i = (
             "signed long int *indices_i = offsets;" if nvarsi > 0 else ""
@@ -246,20 +246,20 @@ class GpuReduc1D_ranges_chunks(MapReduce, Gpu_link_compile):
             else ""
         )
 
-        yjrel = c_array(dtype, varloader_global.dimy, "yjrel")
+        yjrel = c_fixed_size_array(dtype, varloader_global.dimy, "yjrel")
 
         jreltile = c_variable("signed long int", "(jrel + tile * blockDim.x)")
 
         chk = self.chk
-        param_loc = c_array(dtype, chk.dimp, "param_loc")
-        acc = c_array(dtypeacc, chk.dimred, "acc")
+        param_loc = c_fixed_size_array(dtype, chk.dimp, "param_loc")
+        acc = c_fixed_size_array(dtypeacc, chk.dimred, "acc")
         sum_scheme = eval(self.sum_scheme_string)(red_formula, dtype, dimred=chk.dimred)
-        xi = c_array(dtype, chk.dimx, "xi")
-        fout_chunk = c_array(
+        xi = c_fixed_size_array(dtype, chk.dimx, "xi")
+        fout_chunk = c_fixed_size_array(
             dtype, self.blocksize_chunks * chk.dimout_chunk, "fout_chunk"
         )
         yj = c_variable(c_pointer_dtype(dtype), "yj")
-        yjloc = c_array(dtype, chk.dimy, f"(yj + threadIdx.x * {chk.dimy})")
+        yjloc = c_fixed_size_array(dtype, chk.dimy, f"(yj + threadIdx.x * {chk.dimy})")
 
         fout_chunk_loc = c_variable(
             c_pointer_dtype(dtype), f"({fout_chunk.id}+jrel*{chk.dimout_chunk})"
@@ -350,7 +350,7 @@ class GpuReduc1D_ranges_chunks(MapReduce, Gpu_link_compile):
             param_loc,
         )
 
-        foutj = c_array(dtype, chk.dimout_chunk, "foutj")
+        foutj = c_fixed_size_array(dtype, chk.dimout_chunk, "foutj")
 
         chktable_out = table4(
             chk.nminargs + 1,
@@ -367,8 +367,8 @@ class GpuReduc1D_ranges_chunks(MapReduce, Gpu_link_compile):
             param_loc,
             foutj,
         )
-        fout_tmp = c_array(dtype, chk.dimfout, "fout_tmp")
-        outi = c_array(dtype, chk.dimout, f"(out + i * {chk.dimout})")
+        fout_tmp = c_fixed_size_array(dtype, chk.dimfout, "fout_tmp")
+        outi = c_fixed_size_array(dtype, chk.dimout, f"(out + i * {chk.dimout})")
 
         threadIdx_x = c_variable("signed long int", "threadIdx.x")
 

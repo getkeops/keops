@@ -1,5 +1,5 @@
 from keopscore.formulas.Operation import Operation
-from keopscore.utils.meta_toolbox import use_pragma_unroll
+from keopscore.utils.meta_toolbox import use_pragma_unroll, c_instruction_from_string
 
 ####################################
 ######  Tensor Dot Product     #####
@@ -186,7 +186,7 @@ class TensorDot(Operation):
 
         str_code += len(self.loopdim) * "}\n"
 
-        return f"""
+        res = f"""
                     #if C_CONTIGUOUS     // row major
                         {use_pragma_unroll()}
                         for (signed long int i = 0; i < {out.dim}; i++)
@@ -198,6 +198,8 @@ class TensorDot(Operation):
                         
                     #endif
                 """
+
+        return c_instruction_from_string(res)
 
     def DiffT(self, v, gradin):
         f = self.children[0]

@@ -9,9 +9,7 @@ class Conj(VectorizedComplexScalarOp):
     string_id = "Conj"
 
     def ScalarOp(self, out, inF):
-        string = out[0].assign(inF[0])
-        string += out[1].assign(-inF[1])
-        return string
+        return out[0].assign(inF[0]) + out[1].assign(-inF[1])
 
     def DiffT(self, v, gradin):
         f = self.children[0]

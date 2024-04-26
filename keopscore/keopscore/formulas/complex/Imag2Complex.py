@@ -1,4 +1,5 @@
 from keopscore.formulas.Operation import Operation
+from keopscore.utils.misc_utils import KeOps_Error
 from keopscore.utils.meta_toolbox import c_zero_float, c_for_loop
 
 # /////////////////////////////////////////////////////////////////////////

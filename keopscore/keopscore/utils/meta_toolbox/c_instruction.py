@@ -50,7 +50,10 @@ c_empty_instruction.end_str = ""
 def c_instruction_from_string(string):
     # N.B. ideally we would like to suppress this function
     # to force the user to declare variables used in the code
-    return c_instruction(string, set(), set())
+    if "\n" in string:
+        return c_composed_instruction(string, set(), set())
+    else:
+        return c_instruction(string, set(), set())
 
 
 def c_comment(string):

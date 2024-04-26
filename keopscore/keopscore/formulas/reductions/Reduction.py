@@ -1,4 +1,4 @@
-from keopscore.utils.meta_toolbox import VectApply, VectCopy
+from keopscore.utils.meta_toolbox import VectApply
 from keopscore.utils.Tree import Tree
 
 
@@ -37,7 +37,7 @@ class Reduction(Tree):
         For most reducitons it is a simple copy of the temporary variable
         updated during the reduction, with possibly a cast if the accumulator was of
         different data type."""
-        return VectCopy(out, acc)
+        return out.copy(acc)
 
     def nice_print(self):
         return f"{self.string_id} reduction (with parameters {','.join(str(x) for x in self.params)}) of formula {self.children[0].nice_print()}"

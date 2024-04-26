@@ -8,7 +8,7 @@ from keopscore.utils.meta_toolbox.c_instruction import (
 from keopscore.utils.meta_toolbox import (
     c_block,
     new_c_name,
-    c_array,
+    c_fixed_size_array,
     cast_to,
     c_variable,
 )
@@ -82,7 +82,7 @@ class Operation(Tree):
         if self.dim == 1 or dim == 1:
             return c_variable(dtype, name)
         else:
-            return c_array(dtype, self.dim, name)
+            return c_fixed_size_array(dtype, self.dim, name)
 
     def get_code_and_expr(self, dtype, table, i, j, tagI):
         out = self.get_out_var(dtype)
@@ -92,7 +92,7 @@ class Operation(Tree):
     def get_code_and_expr_elem(self, dtype, table, i, j, tagI, elem):
         code, out = self.get_code_and_expr(dtype, table, i, j, tagI)
         if self.dim == 1:
-            if isinstance(out, c_array):
+            if isinstance(out, c_fixed_size_array):
                 out = out[0]  # this is for broadcasting
             else:
                 pass  # same, we just output the scalar value

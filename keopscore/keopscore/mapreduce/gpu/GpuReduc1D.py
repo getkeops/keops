@@ -13,7 +13,8 @@ from keopscore.mapreduce.MapReduce import MapReduce
 from keopscore.utils.meta_toolbox import (
     c_if,
     c_variable,
-    c_array,
+    c_fixed_size_array,
+    c_expression_array,
 )
 
 
@@ -36,6 +37,10 @@ class GpuReduc1D(MapReduce, Gpu_link_compile):
         dtype = self.dtype
         varloader = self.varloader
 
+        blockIdx_x = cuda_global_kernel.blockIdx_x
+        blockDim_x = cuda_global_kernel.blockDim_x
+        threadIdx_x = cuda_global_kernel.threadIdx_x
+
         i = self.i
         j = self.j
         fout = self.fout
@@ -47,13 +52,12 @@ class GpuReduc1D(MapReduce, Gpu_link_compile):
 
         param_loc = self.param_loc
         xi = self.xi
-        yj = c_array(dtype, varloader.dimy_local, "yj", qualifier="extern __shared__")
-        yjloc = c_array(
-            dtype,
+        yj = c_fixed_size_array(dtype, None, "yj", qualifier="extern __shared__")
+        yjloc = c_expression_array(
             varloader.dimy_local,
-            f"({yj} + threadIdx.x * {varloader.dimy_local})",
+            yj.c_address + threadIdx_x * varloader.dimy_local,
         )
-        yjrel = c_array(dtype, varloader.dimy_local, "yjrel")
+        yjrel = c_fixed_size_array(dtype, varloader.dimy_local, "yjrel")
 
         j_start = c_variable("signed long int", "jstart")
         j_rel = c_variable("signed long int", "jrel")
@@ -62,10 +66,6 @@ class GpuReduc1D(MapReduce, Gpu_link_compile):
 
         nx = c_variable("signed long int", "nx")
         ny = c_variable("signed long int", "ny")
-
-        blockIdx_x = cuda_global_kernel.blockIdx_x
-        blockDim_x = cuda_global_kernel.blockDim_x
-        threadIdx_x = cuda_global_kernel.threadIdx_x
 
         tile = c_variable("signed long int", "tile")
         jstart = c_variable("signed long int", "jstart")
@@ -109,14 +109,14 @@ class GpuReduc1D(MapReduce, Gpu_link_compile):
                         cond_j(varloader.load_vars("j", yjloc, args, row_index=j)),
                         sync_threads,
                         cond_i(
-                            yjrel.c_var.declare_assign(yj.c_var),
+                            yjrel.c_address.declare_assign(yj.c_address),
                             sum_scheme.initialize_temporary_accumulator_block_init(),
                             c_for(
                                 init=jrel.declare_assign(0),
                                 end=(jrel < blockDim_x).logical_and(jrel < ny - jstart),
                                 loop=(
                                     jrel.plus_plus,
-                                    yjrel.c_var.add_assign(varloader.dimy_local),
+                                    yjrel.c_address.add_assign(varloader.dimy_local),
                                 ),
                                 body=(
                                     red_formula.formula(fout, table, i, jreltile, tagI),
@@ -133,11 +133,3 @@ class GpuReduc1D(MapReduce, Gpu_link_compile):
         )
 
         self.code = str(code)
-
-        # for debugging:
-        if False:
-            f = open("ess.cu", "w")
-            f.write(self.code)
-            f.close()
-            print("debugging mode, code saved to ess.cu, exiting")
-            exit()

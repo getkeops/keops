@@ -22,11 +22,6 @@ class Add_Impl(VectorizedScalarOp):
 
     ScalarOpFun = keops_add
 
-    def ScalarOp(self, out, arg0, arg1):
-        # returns the atomic piece of c++ code to evaluate the function on arg and return
-        # the result in out
-        return f"{out.id} = {arg0.id}+{arg1.id};\n"
-
     def DiffT(self, v, gradin):
         fa, fb = self.children
         if fa.dim == 1 and fb.dim > 1:

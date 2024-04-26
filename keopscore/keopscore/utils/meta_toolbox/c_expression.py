@@ -16,36 +16,38 @@ class c_expression(c_code):
         if dtype not in registered_dtypes:
             raise ValueError(f"data type {dtype} not registered")
         self.dtype = dtype  # dtype is C++ type of variable
-        super().__init__(f"({string})" if add_parenthesis else str(string), vars)
+        super().__init__(f"({string})" if add_parenthesis else string, vars)
         self.code_string_no_parenthesis = str(string)
         self.id = self.code_string
         self.dim = 1
 
     def binary_op(self, other, python_op, c_op, name, dtype=None):
         other = py2c(other)
-        if isinstance(other, c_expression):
-            if self.dtype != other.dtype:
-                if (
-                    self.dtype == "int"
-                    and other.dtype == "signed long int"
-                    or self.dtype == "signed long int"
-                    and other.dtype == "int"
-                ):
-                    if dtype is None:
-                        dtype = "signed long int"
-                else:
-                    Meta_Toolbox_Error(
-                        f"{name} of two c_expression is only possible with same dtype, received {self.dtype} and {other.dtype}"
-                    )
-            if dtype is None:
+        if self.dtype != other.dtype:
+            if (
+                self.dtype == "int"
+                and other.dtype == "signed long int"
+                or self.dtype == "signed long int"
+                and other.dtype == "int"
+            ):
+                if dtype is None:
+                    dtype = "signed long int"
+            elif is_pointer_dtype(self.dtype) and other.dtype in (
+                "int",
+                "signed long int",
+            ):
                 dtype = self.dtype
-            return c_expression(
-                f"{self.code_string}{c_op}{other.code_string}",
-                self.vars.union(other.vars),
-                dtype,
-            )
-        else:
-            Meta_Toolbox_Error("not implemented")
+            else:
+                Meta_Toolbox_Error(
+                    f"{name} of two c_expression is only possible with same dtype, received {self.dtype} and {other.dtype}"
+                )
+        if dtype is None:
+            dtype = self.dtype
+        return c_expression(
+            f"{self.code_string}{c_op}{other.code_string}",
+            self.vars.union(other.vars),
+            dtype,
+        )
 
     def __add__(self, other):
         if other == 0:
@@ -185,9 +187,11 @@ def c_expression_from_string(string, dtype):
 
 
 def py2c(expression):
-    from .c_array import c_array
+    from .c_array import c_fixed_size_array
 
-    if isinstance(expression, c_expression) or isinstance(expression, c_array):
+    if isinstance(expression, c_expression) or isinstance(
+        expression, c_fixed_size_array
+    ):
         return expression
     if isinstance(expression, int):
         dtype = "signed long int" if abs(expression) > 2e9 else "int"

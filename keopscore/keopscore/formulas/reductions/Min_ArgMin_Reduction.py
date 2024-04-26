@@ -1,4 +1,3 @@
-from keopscore.utils.meta_toolbox import VectCopy
 from keopscore.formulas.reductions.Min_ArgMin_Reduction_Base import (
     Min_ArgMin_Reduction_Base,
 )
@@ -16,4 +15,4 @@ class Min_ArgMin_Reduction(Min_ArgMin_Reduction_Base):
         self.dim = 2 * formula.dim
 
     def FinalizeOutput(self, acc, out, i):
-        return VectCopy(out, acc)
+        return out.copy(acc)

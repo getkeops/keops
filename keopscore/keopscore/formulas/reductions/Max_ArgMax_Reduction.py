@@ -1,4 +1,3 @@
-from keopscore.utils.meta_toolbox import VectCopy
 from keopscore.formulas.reductions.Max_ArgMax_Reduction_Base import (
     Max_ArgMax_Reduction_Base,
 )
@@ -16,4 +15,4 @@ class Max_ArgMax_Reduction(Max_ArgMax_Reduction_Base):
         self.dim = 2 * formula.dim
 
     def FinalizeOutput(self, acc, out, i):
-        return VectCopy(out, acc)
+        return out.copy(acc)

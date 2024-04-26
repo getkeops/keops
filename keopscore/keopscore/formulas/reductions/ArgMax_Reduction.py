@@ -1,4 +1,3 @@
-from keopscore.utils.meta_toolbox import VectCopy
 from keopscore.formulas.reductions.Max_ArgMax_Reduction_Base import (
     Max_ArgMax_Reduction_Base,
 )
@@ -18,7 +17,7 @@ class ArgMax_Reduction(Max_ArgMax_Reduction_Base):
 
     def FinalizeOutput(self, acc, out, i):
         acc_val, acc_ind = acc.split(self.dim, self.dim)
-        return VectCopy(out, acc_ind)
+        return out.copy(acc_ind)
 
     def DiffT(self, v, gradin, f0=None):
         return Zero_Reduction(v.dim, v.cat % 2)

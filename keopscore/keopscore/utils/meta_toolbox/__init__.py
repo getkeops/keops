@@ -14,4 +14,3 @@ from .c_lvalue import *
 from .ComplexVectApply import *
 from .misc import *
 from .VectApply import *
-from .VectCopy import *

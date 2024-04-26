@@ -21,13 +21,13 @@ class ComplexSum(Operation):
 
     def Op(self, out, table, inF):
         f = self.children[0]
-        string = out[0].assign(c_zero_float)
-        string += out[1].assign(out[0])
+        res = out[0].assign(c_zero_float)
+        res += out[1].assign(out[0])
         forloop, i = c_for_loop(0, f.dim, 2, pragma_unroll=True)
         body = out[0].add_assign(inF[i])
         body += out[1].add_assign(inF[i + 1])
-        string += forloop(body)
-        return string
+        res += forloop(body)
+        return res
 
     def DiffT(self, v, gradin):
         from keopscore.formulas.complex.ComplexSumT import ComplexSumT

@@ -13,47 +13,6 @@ from .misc import (
 
 
 class c_array:
-    def __init__(self, dtype, dim, string_id=None, qualifier=None):
-        if dim != "" and dim < 0:
-            Meta_Toolbox_Error("negative dimension for array")
-        if string_id is None:
-            string_id = new_c_name("array")
-        self.c_var = c_variable(c_pointer_dtype(dtype), string_id)
-        self.dtype = dtype
-        self.dim = dim
-        self.id = string_id
-        self.vars = self.c_var.vars
-        if qualifier != None:
-            self.declaration_string = qualifier + " " + dtype
-        else:
-            self.declaration_string = dtype
-        self.qualifier = qualifier
-
-    def __repr__(self):
-        # method for printing the c_variable inside Python code
-        return self.c_var.__repr__()
-
-    def declare(self, force_declare=False, **kwargs):
-        # returns C++ code to declare a fixed-size arry of size dim,
-        # skipping declaration if dim=0
-        dim = self.dim
-        if self.dim <= 0:
-            if force_declare:
-                dim = 1
-            else:
-                return c_empty_instruction
-        if self.qualifier == "extern __shared__":
-            dim_string = ""
-        else:
-            dim_string = str(dim)
-        local_vars = self.c_var.vars
-        global_vars = set()
-        return c_instruction(
-            f"{self.declaration_string} {self.c_var}[{dim_string}]",
-            local_vars,
-            global_vars,
-            **kwargs,
-        )
 
     def split(self, *dims):
         # split c_array in n sub arrays with dimensions dims[0], dims[1], ..., dims[n-1]
@@ -61,39 +20,77 @@ class c_array:
             Meta_Toolbox_Error("incompatible dimensions for split")
         listarr, cumdim = [], 0
         for dim in dims:
-            listarr.append(c_array(self.dtype, dim, f"({self.id}+{cumdim})"))
+            listarr.append(c_expression_array(dim, self.c_address + cumdim))
             cumdim += dim
         return listarr
 
     def assign(self, val):
-        # returns C++ code string to fill all elements of a fixed size array with a single value
+        # returns C++ code string to fill all elements of an array with a single value
         # val is a c_variable representing the value.
         loop, k = c_for_loop(0, self.dim, 1, pragma_unroll=True)
         return loop(self[k].assign(val))
 
-    def __getitem__(self, other):
+    def getitem_check_convert_arg(self, other):
+        if type(other) in (int, float):
+            other = int(other)
+            if other < 0 or other >= self.dim:
+                Meta_Toolbox_Error("out of bound value for __getitem__")
         other = py2c(other)
-        if isinstance(other, c_expression):
-            if other.dtype in ("int", "signed long int"):
-                expression = f"{self.id}[{other.id}]"
-            elif other.dtype == "float":
-                expression = f"{self.id}[(int){other.id}]"
-            elif other.dtype == "double":
-                expression = f"{self.id}[(signed long int){other.id}]"
-            else:
-                Meta_Toolbox_Error(
-                    "v[i] with i and v c_array requires i.dtype='int', i.dtype='signed long int', i.dtype='float' or i.dtype='double' "
-                )
-        else:
-            Meta_Toolbox_Error("not implemented")
-        vars = self.c_var.vars.union(other.vars)
-        return c_lvalue(
-            string_id=expression, vars=vars, dtype=self.dtype, add_parenthesis=False
-        )
+        if other.dtype not in ("int", "signed long int", "float", "double"):
+            Meta_Toolbox_Error(
+                "v[i] with v c_array requires i.dtype='int', i.dtype='signed long int', i.dtype='float' or i.dtype='double' "
+            )
+        return other
+
+    def copy(self, other):
+        if not isinstance(other, c_array):
+            Meta_Toolbox_Error("other should be c_array instance")
+        if other.dim not in (1, self.dim):
+            Meta_Toolbox_Error("incompatible dimensions for copy")
+        forloop, k = c_for_loop(0, self.dim, 1, pragma_unroll=True)
+        return forloop(self[k].assign(other[k]))
+
+    def apply(self, fun, *others):
+        from .VectApply import VectApply
+
+        return VectApply(fun, self, *others)
 
     @property
     def value(self):
         return self[0]
+
+
+class c_expression_array(c_array):
+
+    def __init__(self, dim, expression):
+        if dim != None and not isinstance(dim, int):
+            Meta_Toolbox_Error("input dim should be None or integer")
+        if dim != None and dim < 0:
+            Meta_Toolbox_Error("negative dimension for array")
+        if not isinstance(expression, c_expression):
+            Meta_Toolbox_Error("input must be a c_expression instance")
+        self.c_address = expression
+        self.dim = dim
+        self.dtype = c_value_dtype(expression.dtype)
+        self.id = expression.code_string
+        self.vars = self.c_address.vars
+
+    def __repr__(self):
+        # method for printing the c_array inside Python code
+        return self.c_address.__repr__()
+
+    def __getitem__(self, other):
+        other = self.getitem_check_convert_arg(other)
+        if other.dtype in ("int", "signed long int"):
+            string = f"{self.id}[{other.id}]"
+        elif other.dtype == "float":
+            string = f"{self.id}[(int){other.id}]"
+        elif other.dtype == "double":
+            string = f"{self.id}[(signed long int){other.id}]"
+        vars = self.c_address.vars.union(other.vars)
+        return c_lvalue(
+            string_id=string, vars=vars, dtype=self.dtype, add_parenthesis=False
+        )
 
     @property
     def c_print(self):
@@ -108,3 +105,66 @@ class c_array:
             string += f", {self[i].id}"
         string += ");\n"
         return string
+
+
+class c_fixed_size_array(c_expression_array):
+
+    def __init__(self, dtype, dim, string_id=None, qualifier=None):
+        if string_id is None:
+            string_id = new_c_name("array")
+        expression = c_variable(c_pointer_dtype(dtype), string_id)
+        super().__init__(dim, expression)
+        if qualifier != None:
+            self.declaration_string = qualifier + " " + dtype
+        else:
+            self.declaration_string = dtype
+        self.qualifier = qualifier
+
+    def declare(self, force_declare=False, **kwargs):
+        # returns C++ code to declare a fixed-size arry of size dim,
+        # skipping declaration if dim=0
+        dim = self.dim
+        if dim != None and dim == 0:
+            if force_declare:
+                dim = 1
+            else:
+                return c_empty_instruction
+        if dim == None:
+            dim_string = ""
+        else:
+            dim_string = str(dim)
+        local_vars = self.vars
+        global_vars = set()
+        return c_instruction(
+            f"{self.declaration_string} {self.c_address}[{dim_string}]",
+            local_vars,
+            global_vars,
+            **kwargs,
+        )
+
+
+class c_array_variable(c_expression_array):
+
+    def __init__(self, dtype, string_id=None, qualifier=None):
+        if string_id is None:
+            string_id = new_c_name("var")
+        self.c_var = c_variable(dtype, string_id)
+        super().__init__(1, self.c_var.reference)
+        if qualifier != None:
+            self.declaration_string = qualifier + " " + dtype
+        else:
+            self.declaration_string = dtype
+        self.qualifier = qualifier
+
+    def __repr__(self):
+        # method for printing the c_array inside Python code
+        return self.c_address.__repr__()
+
+    def declare(self, **kwargs):
+        # returns C++ code to declare the variable
+        return self.c_var.declare(**kwargs)
+
+    def __getitem__(self, other):
+        # N.B. we ignore other and output self.c_var
+        # as if other=0. This allows broadcasting in apply and copy methods.
+        return self.c_var

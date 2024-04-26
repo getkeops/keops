@@ -151,13 +151,13 @@ class GpuReduc1D_ranges_finalchunks(MapReduce, Gpu_link_compile):
 
         if not isinstance(sum_scheme, block_sum):
             KeOps_Error("only block_sum available")
-        param_loc = c_array(dtype, dimp, "param_loc")
-        fout = c_array(dtype, dimfout * blocksize_chunks, "fout")
-        xi = c_array(dtype, dimx, "xi")
-        acc = c_array(dtypeacc, dimfinalchunk, "acc")
-        yjloc = c_array(dtype, dimy, f"(yj + threadIdx.x * {dimy})")
-        foutjrel = c_array(dtype, dimfout, f"({fout.id}+jrel*{dimfout})")
-        yjrel = c_array(dtype, dimy, "yjrel")
+        param_loc = c_fixed_size_array(dtype, dimp, "param_loc")
+        fout = c_fixed_size_array(dtype, dimfout * blocksize_chunks, "fout")
+        xi = c_fixed_size_array(dtype, dimx, "xi")
+        acc = c_fixed_size_array(dtypeacc, dimfinalchunk, "acc")
+        yjloc = c_fixed_size_array(dtype, dimy, f"(yj + threadIdx.x * {dimy})")
+        foutjrel = c_fixed_size_array(dtype, dimfout, f"({fout.id}+jrel*{dimfout})")
+        yjrel = c_fixed_size_array(dtype, dimy, "yjrel")
         table = varloader.table(xi, yjrel, param_loc, None, None, None)
 
         lastchunk = c_variable("signed long int", f"{nchunks-1}")
@@ -180,11 +180,11 @@ class GpuReduc1D_ranges_finalchunks(MapReduce, Gpu_link_compile):
             len(varloader_global.Varsp),
         )
         nvars_global = nvarsi_global + nvarsj_global + nvarsp_global
-        offsets = c_array("signed long int", nvars_global, "offsets")
+        offsets = c_fixed_size_array("signed long int", nvars_global, "offsets")
 
-        indices_i = c_array("signed long int", nvarsi_global, "indices_i")
-        indices_j = c_array("signed long int", nvarsj_global, "indices_j")
-        indices_p = c_array("signed long int", nvarsp_global, "indices_p")
+        indices_i = c_fixed_size_array("signed long int", nvarsi_global, "indices_i")
+        indices_j = c_fixed_size_array("signed long int", nvarsj_global, "indices_j")
+        indices_p = c_fixed_size_array("signed long int", nvarsp_global, "indices_p")
 
         declare_assign_indices_i = (
             "signed long int *indices_i = offsets;" if nvarsi_global > 0 else ""

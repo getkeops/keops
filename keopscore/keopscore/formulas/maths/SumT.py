@@ -1,7 +1,7 @@
 from keopscore.formulas.Operation import Operation
 from keopscore.formulas.variables.Zero import Zero
 from keopscore.utils.misc_utils import KeOps_Error
-from keopscore.utils.meta_toolbox import c_array
+from keopscore.utils.meta_toolbox import c_fixed_size_array
 
 ##########################
 ######    SumT       #####

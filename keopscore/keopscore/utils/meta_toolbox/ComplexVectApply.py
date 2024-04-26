@@ -1,6 +1,6 @@
 from keopscore.utils.misc_utils import KeOps_Error
 from .c_for import c_for_loop
-from .c_array import c_array
+from .c_array import c_fixed_size_array
 
 
 def ComplexVectApply(fun, out, *args):
@@ -8,7 +8,7 @@ def ComplexVectApply(fun, out, *args):
 
     dims = [out.dim]
     for arg in args:
-        if isinstance(arg, c_array):
+        if isinstance(arg, c_fixed_size_array):
             dims.append(arg.dim)
         else:
             KeOps_Error("args must be c_array instances")
@@ -22,7 +22,7 @@ def ComplexVectApply(fun, out, *args):
 
     argsk = []
     for arg, incr in zip(args, incr_args):
-        argk = c_array(arg.dtype, 2, f"({arg.id}+{k.id}*{incr})")
+        argk = c_fixed_size_array(arg.dtype, 2, f"({arg.id}+{k.id}*{incr})")
         argsk.append(argk)
-    outk = c_array(out.dtype, 2, f"({out.id}+{k.id}*{incr_out})")
+    outk = c_fixed_size_array(out.dtype, 2, f"({out.id}+{k.id}*{incr_out})")
     return forloop(fun(outk, *argsk))

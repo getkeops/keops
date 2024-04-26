@@ -1,6 +1,5 @@
 from keopscore.formulas.Operation import Operation
 from keopscore.formulas.maths.Extract import Extract
-from keopscore.utils.meta_toolbox import VectCopy
 from keopscore.utils.misc_utils import KeOps_Error
 
 
@@ -23,7 +22,7 @@ class Concat(Operation):
 
     def Op(self, out, table, arg0, arg1):
         out0, out1 = out.split(arg0.dim, arg1.dim)
-        return VectCopy(out0, arg0) + VectCopy(out1, arg1)
+        return out0.copy(arg0) + out1.copy(arg1)
 
     def DiffT(self, v, gradin):
         f = self.children[0]

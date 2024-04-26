@@ -12,7 +12,7 @@ from keopscore.utils.meta_toolbox import (
     c_variable,
     new_c_name,
     c_if,
-    c_array,
+    c_fixed_size_array,
     use_pragma_unroll,
 )
 from keopscore.formulas.reductions.Reduction import Reduction
@@ -54,7 +54,7 @@ class KMin_ArgKMin_Reduction(Reduction):
         # Returns C++ code that implements the update phase of the reduction.
         dtype = xi.dtype
         fdim = self.formula.dim
-        out = c_array(dtype, self.dimred, new_c_name("out"))
+        out = c_fixed_size_array(dtype, self.dimred, new_c_name("out"))
         outer_loop, k = c_for_loop(0, fdim, 1)
         p = c_variable("signed long int", new_c_name("p"))
         q = c_variable("signed long int", new_c_name("q"))
@@ -85,6 +85,8 @@ class KMin_ArgKMin_Reduction(Reduction):
         k = c_variable("signed long int", new_c_name("k"))
         tmpl = c_variable(dtype, new_c_name("tmpl"))
         indtmpl = c_variable("signed long int", new_c_name("indtmpl"))
+        """ 
+        N.B. the following equivalent construciton should be tested :
         res = c_block(
             body=(
                 xik.declare(),
@@ -119,6 +121,7 @@ class KMin_ArgKMin_Reduction(Reduction):
                 ),
             )
         )
+        """
         string = f"""
                     {{
                         {xik.declare()}

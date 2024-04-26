@@ -1,23 +1,8 @@
-from c_array import c_array
-from c_for import c_for, c_for_loop
-from c_function import c_function
-from c_if import c_if
-from c_toolbox import c_variable, c_block
+from keopscore.utils.meta_toolbox import *
 
-loop, k = c_for_loop(0, 10, 1, name_incr="k")
-code = loop(k.assign(4) + k.add_assign(k))
-print(code)
+x = c_fixed_size_array("int", 3, "x")
+y = c_fixed_size_array("int", 3, "y")
+z = c_array_variable("int", "z")
 
-k = c_variable("int", "k")
-v = c_array("float", 5, "v")
-loop = c_for(
-    init=k.declare_assign(0),
-    end=k < 10,
-    loop=k.plus_plus,
-    body=k.assign(4) + k.add_assign(k) + v.assign(0),
-)
-
-print(loop)
-
-print(loop.local_vars)
-print(loop.global_vars)
+f = lambda out, x, y: f"{out}={x}+{y}"
+print(x.apply(f, y, z))

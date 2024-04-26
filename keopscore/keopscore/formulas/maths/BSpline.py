@@ -1,7 +1,7 @@
 from keopscore.formulas.Operation import Operation
 from keopscore.formulas.maths.Extract import Extract
 from keopscore.utils.meta_toolbox import c_variable, c_for_loop, c_zero_float
-from keopscore.utils.meta_toolbox import c_array, VectCopy
+from keopscore.utils.meta_toolbox import c_fixed_size_array, c_comment
 from keopscore.utils.misc_utils import KeOps_Error
 
 # //////////////////////////////////////////////////////////////
@@ -55,43 +55,44 @@ class BSpline_Impl(Operation):
             0, c_variable("int", self.dim) - k, 1, pragma_unroll=True
         )
 
-        inner_loop_code = f"""
-        // Compute the second ratio "omega_i+1,k" = (x - t_i+1) / (t_i+k+1 - t_i+1):
-        {ratio_2.assign( 
-            (knots[i+1] < knots[i+1+k]).ternary(
-            (x - knots[i+1]) / (knots[i+1+k] - knots[i+1]),
-            c_zero_float,)
-        )}
-        // In place computation of B_i,k+1(x) as
-        // omega_i,k(x) * B_i,k(x) + (1 - omega_i+1,k(x)) * B_i+1,k(x)
-        {out[i].assign(
-            ratio_1 * out[i] + (c_variable("float", "1.0f") - ratio_2) * out[i+1])}
+        inner_loop_code = c_comment(
+            'Compute the second ratio "omega_i+1,k" = (x - t_i+1) / (t_i+k+1 - t_i+1):'
+        )
+        +ratio_2.assign(
+            (knots[i + 1] < knots[i + 1 + k]).ternary(
+                (x - knots[i + 1]) / (knots[i + 1 + k] - knots[i + 1]),
+                c_zero_float,
+            )
+        )
+        +c_comment("In place computation of B_i,k+1(x) as")
+        +c_comment("omega_i,k(x) * B_i,k(x) + (1 - omega_i+1,k(x)) * B_i+1,k(x)")
+        +out[i].assign(
+            ratio_1 * out[i] + (c_variable("float", "1.0f") - ratio_2) * out[i + 1]
+        )
+        +c_comment("Update the ratios as i -> i+1:")
+        +ratio_1.assign(ratio_2)
 
-        // Update the ratios as i -> i+1:
-        {ratio_1.assign(ratio_2)}
-        """
+        code = c_comment("The sampling 'time':")
+        +x.declare_assign(inX[0])
+        +c_comment("Order 1 Spline: one-hot encoding of whether t[j] <= x < t[j+1]")
+        +init_loop(out[j].assign((knots[j] <= x).logical_and(x < knots[j + 1])))
 
-        code = f"""
-            // The sampling 'time':
-            {x.declare_assign(inX[0])}
-            // Order 1 Spline: one-hot encoding of whether t[j] <= x < t[j+1]
-            {init_loop(out[j].assign((knots[j] <= x).logical_and(x < knots[j+1])))}
-
-            // Recursive De Boor's algorithm:
-            {ratio_1.declare()}
-            {ratio_2.declare()}
-            {outer_loop(
-                f'''// Compute the first ratio "omega_i,k" = (x - t_i) / (t_i+k - t_i) for i=0:
-                {ratio_1.assign( 
-                    (knots[0] < knots[k]).ternary( 
+        +c_comment("Recursive De Boor's algorithm:")
+        +ratio_1.declare()
+        +ratio_2.declare()
+        +outer_loop(
+            c_comment(
+                f'Compute the first ratio "omega_i,k" = (x - t_i) / (t_i+k - t_i) for i=0:'
+            )
+            + ratio_1.assign(
+                (knots[0] < knots[k]).ternary(
                     (x - knots[0]) / (knots[k] - knots[0]),
-                    c_zero_float, ) 
-                    )} 
-
-                // Loop over out[0:len(out)-k]
-                {inner_loop(inner_loop_code)}
-        ''')}
-        """
+                    c_zero_float,
+                )
+            )
+            + c_comment("Loop over out[0:len(out)-k]")
+            + inner_loop(inner_loop_code)
+        )
         return code
 
     def DiffT(self, v, gradin):

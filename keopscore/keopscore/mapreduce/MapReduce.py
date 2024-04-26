@@ -73,14 +73,18 @@ class MapReduce:
         nx = c_variable("signed long int", "nx")
         ny = c_variable("signed long int", "ny")
 
-        self.xi = c_array(dtype, self.varloader.dimx_local, "xi")
-        self.param_loc = c_array(dtype, self.varloader.dimp_local, "param_loc")
+        self.xi = c_fixed_size_array(dtype, self.varloader.dimx_local, "xi")
+        self.param_loc = c_fixed_size_array(
+            dtype, self.varloader.dimp_local, "param_loc"
+        )
 
         argname = new_c_name("arg")
         self.arg = c_variable(c_pointer_dtype(c_pointer_dtype(dtype)), argname)
         self.args = [self.arg[k] for k in range(nargs)]
 
-        self.acc = c_array(dtypeacc, red_formula.dimred, "acc")
-        self.acctmp = c_array(dtypeacc, red_formula.dimred, "acctmp")
-        self.fout = c_array(dtype, formula.dim, "fout")
-        self.outi = c_array(dtype, red_formula.dim, f"(out + i * {red_formula.dim})")
+        self.acc = c_fixed_size_array(dtypeacc, red_formula.dimred, "acc")
+        self.acctmp = c_fixed_size_array(dtypeacc, red_formula.dimred, "acctmp")
+        self.fout = c_fixed_size_array(dtype, formula.dim, "fout")
+        self.outi = c_fixed_size_array(
+            dtype, red_formula.dim, f"(out + i * {red_formula.dim})"
+        )

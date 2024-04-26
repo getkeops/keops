@@ -2,6 +2,7 @@ from keopscore.formulas.Operation import Operation
 from keopscore.utils.meta_toolbox import (
     c_variable,
     c_for_loop,
+    c_instruction_from_string,
 )
 from keopscore.utils.misc_utils import KeOps_Error
 
@@ -26,7 +27,7 @@ class TensorProd(Operation):
         q = c_variable("int")
         loop, k = c_for_loop(0, arg0.dim, 1, pragma_unroll=True)
         inner_loop, l = c_for_loop(0, arg1.dim, 1, pragma_unroll=True)
-        return f"""
+        res = f"""
                     #if C_CONTIGUOUS     // row major
                         {q.declare_assign(0)}
                         {loop(inner_loop(out[q].assign(arg0[k] * arg1[l]) + q.add_assign(1)))}
@@ -35,6 +36,7 @@ class TensorProd(Operation):
                         {loop(inner_loop(out[k + l * arg0.dim].assign(arg0[k] * arg1[l]) + q.add_assign(1)))}
                     #endif
                 """
+        return c_instruction_from_string(res)
 
     def DiffT(self, v, gradin):
         from keopscore.formulas import MatVecMult, VecMatMult

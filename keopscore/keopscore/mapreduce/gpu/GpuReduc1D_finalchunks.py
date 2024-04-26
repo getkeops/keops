@@ -128,13 +128,13 @@ class GpuReduc1D_finalchunks(MapReduce, Gpu_link_compile):
 
         if not isinstance(sum_scheme, block_sum):
             KeOps_Error("only block_sum available")
-        param_loc = c_array(dtype, dimp, "param_loc")
-        fout = c_array(dtype, dimfout * blocksize_chunks, "fout")
-        xi = c_array(dtype, dimx, "xi")
-        acc = c_array(dtypeacc, dimfinalchunk, "acc")
-        yjloc = c_array(dtype, dimy, f"(yj + threadIdx.x * {dimy})")
-        foutjrel = c_array(dtype, dimfout, f"({fout.id}+jrel*{dimfout})")
-        yjrel = c_array(dtype, dimy, "yjrel")
+        param_loc = c_fixed_size_array(dtype, dimp, "param_loc")
+        fout = c_fixed_size_array(dtype, dimfout * blocksize_chunks, "fout")
+        xi = c_fixed_size_array(dtype, dimx, "xi")
+        acc = c_fixed_size_array(dtypeacc, dimfinalchunk, "acc")
+        yjloc = c_fixed_size_array(dtype, dimy, f"(yj + threadIdx.x * {dimy})")
+        foutjrel = c_fixed_size_array(dtype, dimfout, f"({fout.id}+jrel*{dimfout})")
+        yjrel = c_fixed_size_array(dtype, dimy, "yjrel")
         table = self.varloader.table(xi, yjrel, param_loc, None, None, None)
 
         last_chunk = c_variable("signed long int", f"{nchunks-1}")

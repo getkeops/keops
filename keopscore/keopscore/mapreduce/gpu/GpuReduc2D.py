@@ -8,7 +8,7 @@ from keopscore.mapreduce.gpu.GpuAssignZero import GpuAssignZero
 from keopscore.mapreduce.MapReduce import MapReduce
 from keopscore.utils.meta_toolbox import (
     c_variable,
-    c_array,
+    c_fixed_size_array,
     use_pragma_unroll,
     c_zero_float,
 )
@@ -38,10 +38,10 @@ class GpuReduc2D(MapReduce, Gpu_link_compile):
         dimout = red_formula.dim
         varloader = self.varloader
         dtypeacc = self.dtypeacc
-        acc2 = c_array(dtypeacc, dimin, "acc2")
+        acc2 = c_fixed_size_array(dtypeacc, dimin, "acc2")
 
-        inloc = c_array(dtype, dimin, f"(in + (tid+y*nx)*{dimin})")
-        outloc = c_array(dtype, dimout, f"(out+tid*{dimout})")
+        inloc = c_fixed_size_array(dtype, dimin, f"(in + (tid+y*nx)*{dimin})")
+        outloc = c_fixed_size_array(dtype, dimout, f"(out+tid*{dimout})")
 
         indsi = varloader.indsi
         indsj = varloader.indsj
@@ -52,27 +52,27 @@ class GpuReduc2D(MapReduce, Gpu_link_compile):
         dimred = red_formula.dimred
         dimfout = red_formula.formula.dim
 
-        fout = c_array(dtype, dimfout, "fout")
-        param_loc = c_array(dtype, dimp_local, "param_loc")
-        xi = c_array(dtype, dimx_local, "xi")
+        fout = c_fixed_size_array(dtype, dimfout, "fout")
+        param_loc = c_fixed_size_array(dtype, dimp_local, "param_loc")
+        xi = c_fixed_size_array(dtype, dimx_local, "xi")
 
         sum_scheme = self.sum_scheme
 
         # N.B. To be consistent with the convention used in GpuConv1D, when SUM_SCHEME == BLOCK_SUM=1 we accumulate results in TYPE
         # instead of __TYPEACC__ in each block, __TYPEACC__ will be used only to sum up results from each block
         if isinstance(sum_scheme, block_sum):
-            acc = c_array(dtype, dimred, "acc")
+            acc = c_fixed_size_array(dtype, dimred, "acc")
         elif isinstance(sum_scheme, direct_sum):
-            acc = c_array(dtypeacc, dimred, "acc")
+            acc = c_fixed_size_array(dtypeacc, dimred, "acc")
         else:
             KeOps_Error("incorrect reduction scheme")
 
-        yjloc = c_array(
+        yjloc = c_fixed_size_array(
             dtype, varloader.dimy_local, f"(yj + threadIdx.x * {varloader.dimy_local})"
         )
         arg = self.arg
         args = self.args
-        yjrel = c_array(dtype, dimy_local, "yjrel")
+        yjrel = c_fixed_size_array(dtype, dimy_local, "yjrel")
 
         jrelloc = c_variable("signed long int", "(blockDim.x*blockIdx.y+jrel)")
 

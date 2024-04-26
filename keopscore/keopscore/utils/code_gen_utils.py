@@ -15,7 +15,7 @@ def get_hash_name(*args):
 
 from keopscore.utils.meta_toolbox import (
     c_zero_int,
-    c_array,
+    c_fixed_size_array,
     c_empty_instruction,
     c_variable,
     c_value_dtype,
@@ -191,14 +191,14 @@ def table(
         k = 0
         for u in range(len(dims)):
             if is_local[inds[u]]:
-                res[inds[u]] = c_array(loc.dtype, dims[u], f"({loc.id}+{k})")
+                res[inds[u]] = c_fixed_size_array(loc.dtype, dims[u], f"({loc.id}+{k})")
                 k += dims[u]
             else:
                 row_index_str = (
                     f"({row_index.id}+{offsets.id}[{u}])" if offsets else row_index.id
                 )
                 arg = args[inds[u]]
-                res[inds[u]] = c_array(
+                res[inds[u]] = c_fixed_size_array(
                     c_value(arg.dtype), dims[u], f"({arg.id}+{row_index_str}*{dims[u]})"
                 )
     return res
@@ -213,7 +213,7 @@ def direct_table(nminargs, dimsx, dimsy, dimsp, indsi, indsj, indsp, args, i, j)
     ):
         for u in range(len(dims)):
             arg = args[inds[u]]
-            res[inds[u]] = c_array(
+            res[inds[u]] = c_fixed_size_array(
                 c_value_dtype(arg.dtype),
                 dims[u],
                 f"({arg.id}+{row_index.id}*{dims[u]})",
@@ -245,7 +245,7 @@ def table4(
     ):
         k = 0
         for u in range(len(dims)):
-            res[inds[u]] = c_array(xloc.dtype, dims[u], f"({xloc.id}+{k})")
+            res[inds[u]] = c_fixed_size_array(xloc.dtype, dims[u], f"({xloc.id}+{k})")
             k += dims[u]
 
     return res

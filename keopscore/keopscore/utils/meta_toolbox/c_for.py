@@ -31,7 +31,7 @@ class c_for(c_block):
             end_expression,
             *loop_instructions,
         )
-        use_braces = True  # isinstance(body, c_composed_instruction)
+        use_braces = isinstance(body, c_composed_instruction) or isinstance(body, tuple)
         super().__init__(
             body=body, decorator=decorator, headers=headers, use_braces=use_braces
         )

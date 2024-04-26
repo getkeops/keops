@@ -1,10 +1,11 @@
-from keopscore.utils.meta_toolbox.c_instruction import (
+from keopscore.utils.meta_toolbox import (
     c_instruction,
     c_empty_instruction,
     c_instruction_from_string,
+    c_expression_from_string,
 )
 from keopscore.utils.meta_toolbox import (
-    c_array,
+    c_fixed_size_array,
     c_zero_float,
     c_if,
     c_variable,
@@ -50,7 +51,7 @@ class direct_sum(Sum_Scheme):
 class block_sum(Sum_Scheme):
     def __init__(self, red_formula, dtype, dimred=None):
         super().__init__(red_formula, dtype, dimred)
-        self.tmp_acc = c_array(dtype, self.dimred, "tmp")
+        self.tmp_acc = c_fixed_size_array(dtype, self.dimred, "tmp")
 
     def initialize_temporary_accumulator(self):
         return c_instruction_from_string(
@@ -65,7 +66,7 @@ class block_sum(Sum_Scheme):
         return self.red_formula.ReducePairShort(tmp_acc, fout, j)
 
     def periodic_accumulate_temporary(self, acc, j):
-        condition = c_variable("bool", f"!(({j.id}+1)%period_accumulate)")
+        condition = c_expression_from_string(f"!(({j.id}+1)%period_accumulate)", "bool")
         return c_if(
             condition,
             self.red_formula.ReducePair(acc, self.tmp_acc)
@@ -79,7 +80,7 @@ class block_sum(Sum_Scheme):
 class kahan_scheme(Sum_Scheme):
     def __init__(self, red_formula, dtype, dimred=None):
         super().__init__(red_formula, dtype, dimred)
-        self.tmp_acc = c_array(dtype, red_formula.dim_kahan, "tmp")
+        self.tmp_acc = c_fixed_size_array(dtype, red_formula.dim_kahan, "tmp")
 
     def initialize_temporary_accumulator(self):
         return self.tmp_acc.assign(c_zero_float)
