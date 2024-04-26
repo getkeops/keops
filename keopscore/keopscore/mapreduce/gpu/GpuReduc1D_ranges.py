@@ -62,9 +62,9 @@ class GpuReduc1D_ranges(MapReduce, Gpu_link_compile):
 
         imod = c_variable("signed long int", "(i%nx_org)")
 
-        indices_i = c_fixed_size_array("signed long int", nvarsi, "indices_i")
-        indices_j = c_fixed_size_array("signed long int", nvarsj, "indices_j")
-        indices_p = c_fixed_size_array("signed long int", nvarsp, "indices_p")
+        indices_i = c_variable("signed long int*", "indices_i")
+        indices_j = c_variable("signed long int*", "indices_j")
+        indices_p = c_variable("signed long int*", "indices_p")
 
         starty = c_variable("signed long int", "start_y")
         j_start = c_variable("signed long int", "jstart")

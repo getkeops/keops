@@ -1,7 +1,7 @@
 from keopscore.formulas.Operation import Operation
 from keopscore.formulas.variables.Zero import Zero
 from keopscore.utils.misc_utils import KeOps_Error
-from keopscore.utils.meta_toolbox import c_empty_instruction
+from keopscore.utils.meta_toolbox import c_empty_instruction, c_array_scalar
 
 #########################
 ## I and J placeholders
@@ -23,7 +23,7 @@ class I(Operation):
 
     def get_code_and_expr(self, dtype, table, i, j, tagI):
         out = i if tagI == 0 else j
-        return c_empty_instruction, out
+        return c_empty_instruction, c_array_scalar(out)
 
     def DiffT(self, v, gradin):
         return Zero(v.dim)
@@ -44,7 +44,7 @@ class J(Operation):
 
     def get_code_and_expr(self, dtype, table, i, j, tagI):
         out = j if tagI == 0 else i
-        return c_empty_instruction, out
+        return c_empty_instruction, c_array_scalar(out)
 
     def DiffT(self, v, gradin):
         return Zero(v.dim)
