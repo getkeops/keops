@@ -12,6 +12,8 @@ from keopscore.utils.meta_toolbox import (
     c_array_from_address,
     use_pragma_unroll,
     c_zero_float,
+    cuda_global_kernel,
+    c_fixed_size_array_proper
 )
 from keopscore.utils.misc_utils import KeOps_Error
 
@@ -41,8 +43,8 @@ class GpuReduc2D(MapReduce, Gpu_link_compile):
         dtypeacc = self.dtypeacc
         acc2 = c_fixed_size_array(dtypeacc, dimin, "acc2")
 
-        inloc = c_fixed_size_array(dtype, dimin, f"(in + (tid+y*nx)*{dimin})")
-        outloc = c_fixed_size_array(dtype, dimout, f"(out+tid*{dimout})")
+        inloc = c_fixed_size_array_proper(dtype, dimin, f"(in + (tid+y*nx)*{dimin})")
+        outloc = c_fixed_size_array_proper(dtype, dimout, f"(out+tid*{dimout})")
 
         indsi = varloader.indsi
         indsj = varloader.indsj
@@ -62,18 +64,25 @@ class GpuReduc2D(MapReduce, Gpu_link_compile):
         # N.B. To be consistent with the convention used in GpuConv1D, when SUM_SCHEME == BLOCK_SUM=1 we accumulate results in TYPE
         # instead of __TYPEACC__ in each block, __TYPEACC__ will be used only to sum up results from each block
         if isinstance(sum_scheme, block_sum):
-            acc = c_fixed_size_array(dtype, dimred, "acc")
+            acc = c_fixed_size_array_proper(dtype, dimred, "acc")
         elif isinstance(sum_scheme, direct_sum):
-            acc = c_fixed_size_array(dtypeacc, dimred, "acc")
+            acc = c_fixed_size_array_proper(dtypeacc, dimred, "acc")
         else:
             KeOps_Error("incorrect reduction scheme")
+        
+        blockIdx_x = cuda_global_kernel.blockIdx_x
+        blockDim_x = cuda_global_kernel.blockDim_x
+        threadIdx_x = cuda_global_kernel.threadIdx_x
 
-        yjloc = c_fixed_size_array(
-            dtype, varloader.dimy_local, f"(yj + threadIdx.x * {varloader.dimy_local})"
+        yj = c_fixed_size_array(dtype, None, "yj", qualifier="extern __shared__")
+        
+        yjloc = c_array_from_address(
+            varloader.dimy_local,
+            yj.c_address + threadIdx_x * varloader.dimy_local,
         )
         arg = self.arg
         args = self.args
-        yjrel = c_fixed_size_array(dtype, dimy_local, "yjrel")
+        yjrel = c_fixed_size_array_proper(dtype, dimy_local, "yjrel")
 
         jrelloc = c_variable("signed long int", "(blockDim.x*blockIdx.y+jrel)")
 

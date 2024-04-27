@@ -54,13 +54,6 @@ def SoftDTW_torch(x, y, gamma):
 
 from keopscore.formulas.Operation import Operation
 from keopscore.utils.misc_utils import KeOps_Error
-from keopscore.utils.code_gen_utils import (
-    c_variable,
-    pointer,
-    c_array,
-    c_for_loop,
-    c_zero_float,
-)
 
 
 class SoftDTW(Operation):
@@ -79,6 +72,8 @@ class SoftDTW(Operation):
     def Op(self, out, table, x, y, gamma):
         dtype = x.dtype
         n, m = self.n, self.m
+        i = c_variable("int","i")
+        j = c_variable("int","j")
         code = f"""
             #define MIN2(a,b) fminf(a,b) //(((a)<(b))?(a):(b))
             #define MIN3(a,b,c) MIN2(MIN2(a,b),c)
@@ -86,7 +81,7 @@ class SoftDTW(Operation):
             {dtype} rjm1[{n}], rim1j, rij, min;
 
             // j=0, i=0
-            rij = {x}[0] - {y}[0];
+            rij = {x[0]} - {y[0]};
             rij *= rij;
             rim1j = rij;
 
@@ -94,7 +89,7 @@ class SoftDTW(Operation):
             #pragma unroll
             for (int i=1; i<{n}; i++)
             {{
-                rij = {x}[i] - {y}[0];
+                rij = {x[i]} - {y[0]};
                 rij *= rij;
                 rij += rim1j;
                 rjm1[i-1] = rim1j;
@@ -118,13 +113,13 @@ class SoftDTW(Operation):
                     rij = {x}[i] - {y}[j];
                     rij *= rij;
                     min = MIN3(rjm1[i-1],rjm1[i],rim1j);
-                    rij += min - {gamma}[0] * log( exp((min-rjm1[i-1])/{gamma}[0]) + exp((min-rim1j)/{gamma}[0]) + exp((min-rjm1[i])/{gamma}[0]) );
+                    rij += min - {gamma[0]} * log( exp((min-rjm1[i-1])/{gamma[0]}) + exp((min-rim1j)/{gamma[0]}) + exp((min-rjm1[i])/{gamma[0]}) );
                     rjm1[i-1] = rim1j;
                     rim1j = rij;
                 }}
                 rjm1[{n}-1] = rij;
             }}
-            {out}[0] = rij;
+            {out[0]} = rij;
                 """
 
         return code

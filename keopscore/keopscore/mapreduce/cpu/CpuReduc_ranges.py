@@ -7,6 +7,7 @@ from keopscore.utils.meta_toolbox import (
     c_variable,
     c_fixed_size_array,
     c_include,
+    c_expression_from_string
 )
 import keopscore
 
@@ -58,11 +59,12 @@ class CpuReduc_ranges(MapReduce, Cpu_link_compile):
 
         sum_scheme = self.sum_scheme
 
-        indices_i = c_fixed_size_array("int", nvarsi, "indices_i")
-        indices_j = c_fixed_size_array("int", nvarsj, "indices_j")
-        indices_p = c_fixed_size_array("int", nvarsp, "indices_p")
-        imstartx = c_variable("int", "(i-start_x)")
-        jmstarty = c_variable("int", "(j-start_y)")
+        indices_i = c_variable("signed long int*", "indices_i")
+        indices_j = c_variable("signed long int*", "indices_j")
+        indices_p = c_variable("signed long int*", "indices_p")
+
+        imstartx = c_expression_from_string("i-start_x", "int")
+        jmstarty = c_expression_from_string("j-start_y", "int")
 
         table_nobatchmode = varloader.table(xi, yj, param_loc, args, i, j)
         table_batchmode = varloader.table(

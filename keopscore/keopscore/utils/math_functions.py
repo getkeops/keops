@@ -105,7 +105,7 @@ keops_xlogx = math_function(
     cpu_code=lambda x: f"({x} ? {x} * log({x}) : 0.0f)",
     gpu_half2_code=lambda x: f"(h2log({x}+{h2eq0(x)})*({x}))",
 )
-keops_fma = math_function(cpu_code="fma", gpu_half2_code="__hfma2")
+keops_fma = math_function(cpu_code="fma", gpu_code="fmaf", gpu_half2_code="__hfma2")
 keops_pow = math_function(
     cpu_code="pow",
     gpu_code="powf",

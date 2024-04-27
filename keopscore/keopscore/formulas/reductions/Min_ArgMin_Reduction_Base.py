@@ -3,6 +3,7 @@ from keopscore.utils.meta_toolbox import (
     c_zero_float,
     VectApply,
     c_if,
+    c_array_scalar
 )
 from keopscore.formulas.reductions.Reduction import Reduction
 from keopscore.utils.misc_utils import KeOps_Error
@@ -46,4 +47,5 @@ class Min_ArgMin_Reduction_Base(Reduction):
             )
         dim = self.formula.dim
         acc_val, acc_ind = acc.split(dim, dim)
+        ind = c_array_scalar(ind)
         return VectApply(self.ReducePairScalar, acc_val, acc_ind, xi, ind)

@@ -46,4 +46,5 @@ class Max_ArgMax_Reduction_Base(Reduction):
             )
         dim = self.formula.dim
         acc_val, acc_ind = acc.split(dim, dim)
+        ind = c_array_scalar(ind)
         return VectApply(self.ReducePairScalar, acc_val, acc_ind, xi, ind)

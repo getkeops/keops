@@ -40,7 +40,7 @@ for k in range(ntest):
 
 print("mean=", sum(err) / ntest)
 print("max=", max(err))
-print("err=", torch.log10(torch.tensor(err)))
+print("err=", torch.tensor(err))
 
 
 class TestCase:

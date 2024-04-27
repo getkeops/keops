@@ -17,7 +17,7 @@ class c_array:
     def getitem_check_convert_arg(self, other):
         if type(other) in (int, float):
             other = int(other)
-            if other < 0 or other >= self.dim:
+            if self.dim!=0 and (other < 0 or other >= self.dim):
                 Meta_Toolbox_Error("out of bound value for __getitem__")
         other = py2c(other)
         if other.dtype not in ("int", "signed long int", "float", "double"):
@@ -80,6 +80,10 @@ class c_array_from_address(c_array):
         return forloop(self[k].assign(other[k]))
 
     def __getitem__(self, other):
+        if isinstance(other, c_array_scalar):
+            return self[other.c_val]
+        elif isinstance(other, c_array):
+            return self[other.value]
         other = self.getitem_check_convert_arg(other)
         if other.dtype in ("int", "signed long int"):
             string = f"{self.id}[{other.id}]"

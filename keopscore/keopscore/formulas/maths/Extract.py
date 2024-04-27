@@ -25,7 +25,7 @@ class Extract(Operation):
     def Op(self, out, table, arg0):
         # returns the atomic piece of c++ code to evaluate the function on arg and return
         # the result in out
-        v = c_array_from_address(arg0.dtype, out.dim, arg0 + self.start)
+        v = c_array_from_address(out.dim, arg0.c_address + self.start)
         return out.copy(v)
 
     def DiffT(self, v, gradin):

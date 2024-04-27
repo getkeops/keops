@@ -123,13 +123,6 @@ def code_softdtw(dtype, out, inputs, n, m, gamma, mode="x,y"):
 
 from keopscore.formulas.Operation import Operation
 from keopscore.utils.misc_utils import KeOps_Error
-from keopscore.utils.code_gen_utils import (
-    c_variable,
-    pointer,
-    c_array,
-    c_for_loop,
-    c_zero_float,
-)
 
 
 class SoftDTW_L2(Operation):
@@ -167,14 +160,7 @@ builtins.SoftDTW_L2 = SoftDTW_L2
 from keopscore.formulas.Operation import Operation
 from keopscore.formulas.variables.Zero import Zero
 from keopscore.utils.misc_utils import KeOps_Error
-from keopscore.utils.code_gen_utils import (
-    c_variable,
-    pointer,
-    c_array,
-    c_for_loop,
-    c_zero_float,
-)
-from keopscore.utils.code_gen_utils import use_pragma_unroll
+from keopscore.utils.meta_toolbox import use_pragma_unroll
 
 
 class SumOverRows(Operation):
