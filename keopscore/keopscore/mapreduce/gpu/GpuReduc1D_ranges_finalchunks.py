@@ -15,6 +15,10 @@ from keopscore.utils.meta_toolbox import (
     sizeof,
     c_pointer_dtype,
     use_pragma_unroll,
+    c_fixed_size_array_proper,
+    c_fixed_size_array,
+    c_array_from_address,
+    cuda_global_kernel
 )
 from keopscore.utils.misc_utils import KeOps_Error
 
@@ -155,9 +159,11 @@ class GpuReduc1D_ranges_finalchunks(MapReduce, Gpu_link_compile):
         fout = c_fixed_size_array(dtype, dimfout * blocksize_chunks, "fout")
         xi = c_fixed_size_array(dtype, dimx, "xi")
         acc = c_fixed_size_array(dtypeacc, dimfinalchunk, "acc")
-        yjloc = c_fixed_size_array(dtype, dimy, f"(yj + threadIdx.x * {dimy})")
-        foutjrel = c_fixed_size_array(dtype, dimfout, f"({fout.id}+jrel*{dimfout})")
-        yjrel = c_fixed_size_array(dtype, dimy, "yjrel")
+        threadIdx_x = cuda_global_kernel.threadIdx_x
+        yjloc = c_array_from_address(dimy, yj + threadIdx_x * dimy)
+        jrel = c_variable("signed long int", "jrel")
+        foutjrel = c_array_from_address(dimfout, fout.c_address+jrel*dimfout)
+        yjrel = c_fixed_size_array_proper(dtype, dimy, "yjrel")
         table = varloader.table(xi, yjrel, param_loc, None, None, None)
 
         lastchunk = c_variable("signed long int", f"{nchunks-1}")
@@ -182,9 +188,9 @@ class GpuReduc1D_ranges_finalchunks(MapReduce, Gpu_link_compile):
         nvars_global = nvarsi_global + nvarsj_global + nvarsp_global
         offsets = c_fixed_size_array("signed long int", nvars_global, "offsets")
 
-        indices_i = c_fixed_size_array("signed long int", nvarsi_global, "indices_i")
-        indices_j = c_fixed_size_array("signed long int", nvarsj_global, "indices_j")
-        indices_p = c_fixed_size_array("signed long int", nvarsp_global, "indices_p")
+        indices_i = c_variable("signed long int*", "indices_i")
+        indices_j = c_variable("signed long int*", "indices_j")
+        indices_p = c_variable("signed long int*", "indices_p")
 
         declare_assign_indices_i = (
             "signed long int *indices_i = offsets;" if nvarsi_global > 0 else ""

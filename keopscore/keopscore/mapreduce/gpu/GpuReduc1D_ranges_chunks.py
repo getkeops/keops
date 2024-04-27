@@ -16,6 +16,9 @@ from keopscore.utils.meta_toolbox import (
     sizeof,
     c_pointer_dtype,
     use_pragma_unroll,
+    c_fixed_size_array,
+    c_fixed_size_array_proper,
+    c_array_from_address
 )
 from keopscore.mapreduce.Chunk_Mode_Constants import Chunk_Mode_Constants
 
@@ -53,6 +56,7 @@ def do_chunk_sub_ranges(
     yj,
     yjrel,
     param_loc,
+    foutj
 ):
     chk = Chunk_Mode_Constants(red_formula)
     fout_tmp_chunk = c_fixed_size_array(dtype, chk.fun_chunked.dim)
@@ -154,7 +158,6 @@ def do_chunk_sub_ranges(
         None,
         None,
     )
-    foutj = c_variable(c_pointer_dtype(dtype), "foutj")
 
     return f"""
                 {fout_tmp_chunk.declare()}
@@ -230,9 +233,9 @@ class GpuReduc1D_ranges_chunks(MapReduce, Gpu_link_compile):
         )
         nvars = nvarsi + nvarsj + nvarsp
 
-        indices_i = c_fixed_size_array("signed long int", nvarsi, "indices_i")
-        indices_j = c_fixed_size_array("signed long int", nvarsj, "indices_j")
-        indices_p = c_fixed_size_array("signed long int", nvarsp, "indices_p")
+        indices_i = c_variable("signed long int*", "indices_i")
+        indices_j = c_variable("signed long int*", "indices_j")
+        indices_p = c_variable("signed long int*", "indices_p")
 
         declare_assign_indices_i = (
             "signed long int *indices_i = offsets;" if nvarsi > 0 else ""
@@ -246,7 +249,7 @@ class GpuReduc1D_ranges_chunks(MapReduce, Gpu_link_compile):
             else ""
         )
 
-        yjrel = c_fixed_size_array(dtype, varloader_global.dimy, "yjrel")
+        yjrel = c_fixed_size_array_proper(dtype, varloader_global.dimy, "yjrel")
 
         jreltile = c_variable("signed long int", "(jrel + tile * blockDim.x)")
 
@@ -278,6 +281,8 @@ class GpuReduc1D_ranges_chunks(MapReduce, Gpu_link_compile):
         starty = c_variable("signed long int", "start_y")
 
         nbatchdims = c_variable("int", "nbatchdims")
+
+        foutj = c_variable(c_pointer_dtype(dtype), "foutj")
 
         chunk_sub_routine = do_chunk_sub_ranges(
             dtype,
@@ -312,6 +317,7 @@ class GpuReduc1D_ranges_chunks(MapReduce, Gpu_link_compile):
             yj,
             yjrel,
             param_loc,
+            foutj
         )
 
         last_chunk = c_variable("signed long int", f"{chk.nchunks-1}")
@@ -348,9 +354,10 @@ class GpuReduc1D_ranges_chunks(MapReduce, Gpu_link_compile):
             yj,
             yjrel,
             param_loc,
+            foutj
         )
 
-        foutj = c_fixed_size_array(dtype, chk.dimout_chunk, "foutj")
+        foutj_array = c_array_from_address(chk.dimout_chunk, foutj)
 
         chktable_out = table4(
             chk.nminargs + 1,
@@ -365,10 +372,11 @@ class GpuReduc1D_ranges_chunks(MapReduce, Gpu_link_compile):
             xi,
             yjrel,
             param_loc,
-            foutj,
+            foutj_array,
         )
         fout_tmp = c_fixed_size_array(dtype, chk.dimfout, "fout_tmp")
-        outi = c_fixed_size_array(dtype, chk.dimout, f"(out + i * {chk.dimout})")
+        out = self.out
+        outi = c_array_from_address(chk.dimout, out + i * chk.dimout)
 
         threadIdx_x = c_variable("signed long int", "threadIdx.x")
 
@@ -506,10 +514,3 @@ class GpuReduc1D_ranges_chunks(MapReduce, Gpu_link_compile):
                   }}
                     """
 
-        # for debugging:
-        if False:
-            f = open("ess.cu", "w")
-            f.write(self.code)
-            f.close()
-            print()
-            exit()

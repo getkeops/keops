@@ -55,18 +55,16 @@ class GpuReduc1D(MapReduce, Gpu_link_compile):
         )
         yjrel = c_fixed_size_array_proper(dtype, varloader.dimy_local, "yjrel")
 
-        j_start = c_variable("signed long int", "jstart")
-        j_rel = c_variable("signed long int", "jrel")
-        j_call = j_start + j_rel
-        table = varloader.table(self.xi, yjrel, self.param_loc, args, i, j_call)
+        jstart = c_variable("signed long int", "jstart")
+        jrel = c_variable("signed long int", "jrel")
+        jcall = jstart + jrel
+        table = varloader.table(self.xi, yjrel, self.param_loc, args, i, jcall)
 
         nx = c_variable("signed long int", "nx")
         ny = c_variable("signed long int", "ny")
 
         tile = c_variable("signed long int", "tile")
-        jstart = c_variable("signed long int", "jstart")
 
-        jrel = c_variable("signed long int", "jrel")
         jreltile = jrel + tile * blockDim_x
 
         sync_threads = c_instruction_from_string("__syncthreads()")

@@ -247,7 +247,7 @@ def table4(
     ):
         k = 0
         for u in range(len(dims)):
-            res[inds[u]] = c_array_from_address(xloc.dtype, dims[u], f"{xloc.id}+{k}")
+            res[inds[u]] = c_array_from_address(dims[u], xloc.c_address+k)
             k += dims[u]
 
     return res

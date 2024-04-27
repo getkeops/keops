@@ -14,6 +14,10 @@ from keopscore.utils.meta_toolbox import (
     sizeof,
     c_pointer_dtype,
     use_pragma_unroll,
+    c_array_from_address,
+    c_fixed_size_array,
+    c_fixed_size_array_proper,
+    cuda_global_kernel
 )
 from keopscore.utils.misc_utils import KeOps_Error
 
@@ -132,9 +136,11 @@ class GpuReduc1D_finalchunks(MapReduce, Gpu_link_compile):
         fout = c_fixed_size_array(dtype, dimfout * blocksize_chunks, "fout")
         xi = c_fixed_size_array(dtype, dimx, "xi")
         acc = c_fixed_size_array(dtypeacc, dimfinalchunk, "acc")
-        yjloc = c_fixed_size_array(dtype, dimy, f"(yj + threadIdx.x * {dimy})")
-        foutjrel = c_fixed_size_array(dtype, dimfout, f"({fout.id}+jrel*{dimfout})")
-        yjrel = c_fixed_size_array(dtype, dimy, "yjrel")
+        threadIdx_x = cuda_global_kernel.threadIdx_x
+        yjloc = c_array_from_address(dimy, yj + threadIdx_x * dimy)
+        jrel = c_variable("signed long int", "jrel")
+        foutjrel = c_array_from_address(dimfout, fout.c_address+jrel*dimfout)
+        yjrel = c_fixed_size_array_proper(dtype, dimy, "yjrel")
         table = self.varloader.table(xi, yjrel, param_loc, None, None, None)
 
         last_chunk = c_variable("signed long int", f"{nchunks-1}")

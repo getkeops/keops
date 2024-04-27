@@ -9,6 +9,10 @@ from keopscore.utils.meta_toolbox import (
     sizeof,
     c_pointer_dtype,
     use_pragma_unroll,
+    c_fixed_size_array,
+    c_fixed_size_array_proper,
+    c_array_from_address,
+    cuda_global_kernel
 )
 from keopscore.mapreduce.Chunk_Mode_Constants import Chunk_Mode_Constants
 
@@ -42,6 +46,7 @@ def do_chunk_sub(
     yjrel,
     jrel,
     param_loc,
+    foutj
 ):
     chk = Chunk_Mode_Constants(red_formula)
     fout_tmp_chunk = c_fixed_size_array(dtype, chk.fun_chunked.dim)
@@ -95,7 +100,6 @@ def do_chunk_sub(
         None,
         None,
     )
-    foutj = c_variable(c_pointer_dtype(dtype), "foutj")
 
     return f"""
                 // Starting chunk_sub routine
@@ -150,7 +154,7 @@ class GpuReduc1D_chunks(MapReduce, Gpu_link_compile):
         arg = self.arg
         args = self.args
 
-        yjrel = c_fixed_size_array(dtype, varloader.dimy, "yjrel")
+        yjrel = c_fixed_size_array_proper(dtype, varloader.dimy, "yjrel")
         jrel = c_variable("signed long int", "jrel")
 
         jreltile = c_variable("signed long int", "(jrel + tile * blockDim.x)")
@@ -164,7 +168,8 @@ class GpuReduc1D_chunks(MapReduce, Gpu_link_compile):
             dtype, self.blocksize_chunks * chk.dimout_chunk, "fout_chunk"
         )
         yj = c_variable(c_pointer_dtype(dtype), "yj")
-        yjloc = c_fixed_size_array(dtype, chk.dimy, f"(yj + threadIdx.x * {chk.dimy})")
+        threadIdx_x = cuda_global_kernel.threadIdx_x
+        yjloc = c_array_from_address(chk.dimy, yj + threadIdx_x * chk.dimy)
 
         fout_chunk_loc = c_variable(
             c_pointer_dtype(dtype), f"({fout_chunk.id}+jrel*{chk.dimout_chunk})"
@@ -176,6 +181,8 @@ class GpuReduc1D_chunks(MapReduce, Gpu_link_compile):
 
         jstart = c_variable("signed long int", "jstart")
         chunk = c_variable("signed long int", "chunk")
+
+        foutj = c_variable(c_pointer_dtype(dtype), "foutj")
 
         chunk_sub_routine = do_chunk_sub(
             dtype,
@@ -206,6 +213,7 @@ class GpuReduc1D_chunks(MapReduce, Gpu_link_compile):
             yjrel,
             jrel,
             param_loc,
+            foutj
         )
 
         last_chunk = c_variable("signed long int", f"{chk.nchunks - 1}")
@@ -238,9 +246,10 @@ class GpuReduc1D_chunks(MapReduce, Gpu_link_compile):
             yjrel,
             jrel,
             param_loc,
+            foutj
         )
 
-        foutj = c_fixed_size_array(dtype, chk.dimout_chunk, "foutj")
+        foutj_array = c_array_from_address(chk.dimout_chunk, foutj)
         chktable_out = table4(
             chk.nminargs + 1,
             chk.dimsx,
@@ -254,10 +263,11 @@ class GpuReduc1D_chunks(MapReduce, Gpu_link_compile):
             xi,
             yjrel,
             param_loc,
-            foutj,
+            foutj_array,
         )
+        out = self.out
         fout_tmp = c_fixed_size_array(dtype, chk.dimfout, "fout_tmp")
-        outi = c_fixed_size_array(dtype, chk.dimout, f"(out + i * {chk.dimout})")
+        outi = c_array_from_address(chk.dimout, out + i * chk.dimout)
 
         self.code = f"""
                           
@@ -336,9 +346,3 @@ class GpuReduc1D_chunks(MapReduce, Gpu_link_compile):
                         }}
                     """
 
-        # for debugging:
-        if False:
-            f = open("ess.cu", "w")
-            f.write(self.code)
-            f.close()
-            exit()
