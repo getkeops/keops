@@ -2456,7 +2456,7 @@ class GenericLazyTensor:
 
         """
         axis = self.get_axis(axis=axis, dim=dim, index=index)
-        return self.reduction("Max_ArgMax", axis=axis, dim=dim, **kwargs)
+        return self.reduction("Max_ArgMax", axis=axis, **kwargs)
 
     def max_argmax_reduction(self, **kwargs):
         r"""
