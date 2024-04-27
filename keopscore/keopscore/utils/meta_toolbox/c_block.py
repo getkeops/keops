@@ -19,10 +19,7 @@ class c_block(c_composed_instruction):
         self.decorator = decorator
         self.headers = headers
         if isinstance(body, tuple):
-            res = c_empty_instruction
-            for elem in body:
-                res += elem
-            body = res
+            body = sum(body, start=c_empty_instruction)
         if not isinstance(body, c_instruction):
             Meta_Toolbox_Error(
                 "invalid argument to set_body; should be a c_instruction"

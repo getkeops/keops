@@ -16,8 +16,9 @@ class c_expression(c_code):
         if dtype not in registered_dtypes:
             raise ValueError(f"data type {dtype} not registered")
         self.dtype = dtype  # dtype is C++ type of variable
-        super().__init__(f"({string})" if add_parenthesis else string, vars)
+        super().__init__(string, vars)
         self.code_string_no_parenthesis = str(string)
+        self.code_string = f"({string})" if add_parenthesis else str(string)
         self.id = self.code_string
         self.dim = 1
 
@@ -131,21 +132,22 @@ class c_expression(c_code):
                     "v[i] with i and v c_expression requires i.dtype='int' or i.dtype='signed long int' "
                 )
             return c_expression(
-                f"{self.code_string}[{other.code_string}]",
+                f"{self.code_string}[{other.code_string_no_parenthesis}]",
                 self.vars.union(other.vars),
                 c_value_dtype(self.dtype),
+                add_parenthesis=False,
             )
         else:
             Meta_Toolbox_Error("not implemented")
 
     @property
     def reference(self):
-        return c_expression(f"(&{self})", self.vars, c_pointer_dtype(self.dtype))
+        return c_expression(f"&{self}", self.vars, c_pointer_dtype(self.dtype))
 
     @property
     def value(self):
         if is_pointer_dtype(self.dtype):
-            return c_expression(f"(*{self})", self.vars, c_value_dtype(self.dtype))
+            return c_expression(f"*{self}", self.vars, c_value_dtype(self.dtype))
         else:
             return self
 

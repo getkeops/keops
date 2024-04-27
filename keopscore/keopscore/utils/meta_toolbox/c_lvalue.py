@@ -32,7 +32,7 @@ class c_lvalue(c_expression):
                 return assign_x + assign_y
             else:
                 return c_instruction(
-                    f"{self} {assign_op} {cast_to(self.dtype, value)}",
+                    f"{self} {assign_op} {cast_to(self.dtype, value).code_string_no_parenthesis}",
                     local_vars,
                     global_vars,
                 )

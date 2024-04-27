@@ -1,10 +1,7 @@
-from .c_instruction import c_instruction, c_instruction_from_string
+from .c_instruction import c_instruction_from_string
 from .misc import Meta_Toolbox_Error
 from .c_for import c_for_loop
-from .c_variable import c_variable
-from .c_array import c_array, c_fixed_size_array
-from .c_lvalue import c_lvalue
-from .c_expression import c_expression
+from .c_array import c_array
 
 
 def VectApply(fun, *args):

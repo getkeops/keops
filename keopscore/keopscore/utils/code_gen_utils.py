@@ -2,7 +2,6 @@ import os
 from hashlib import sha256
 
 import keopscore
-from keopscore.config.config import disable_pragma_unrolls
 
 from keopscore.utils.misc_utils import KeOps_Error, KeOps_Message
 
@@ -19,12 +18,10 @@ from keopscore.utils.meta_toolbox import (
     c_expression_from_string,
     c_empty_instruction,
     c_variable,
-    c_value_dtype,
     c_pointer_dtype,
     c_for,
     c_block,
     c_instruction_from_string,
-    disable_pragma_unrolls,
     use_pragma_unroll,
 )
 
@@ -196,14 +193,10 @@ def table(
                 res[inds[u]] = c_array_from_address(dims[u], loc.c_address + k)
                 k += dims[u]
             else:
-                row_index_str = (
-                    f"({row_index.id}+{offsets.id}[{u}])" if offsets else row_index.id
+                row_index_u = row_index + offsets[u] if offsets else row_index
+                res[inds[u]] = c_array_from_address(
+                    dims[u], args[inds[u]] + row_index_u * dims[u]
                 )
-                arg = args[inds[u]]
-                expr_u = c_expression_from_string(
-                    f"{arg.id}+{row_index_str}*{dims[u]}", c_pointer_dtype(arg.dtype)
-                )
-                res[inds[u]] = c_array_from_address(dims[u], expr_u)
     return res
 
 
@@ -215,8 +208,9 @@ def direct_table(nminargs, dimsx, dimsy, dimsp, indsi, indsj, indsp, args, i, j)
         (dimsp, indsp, c_zero_int),
     ):
         for u in range(len(dims)):
-            arg = args[inds[u]]
-            res[inds[u]] = c_array_from_address(dims[u], arg + row_index * dims[u])
+            res[inds[u]] = c_array_from_address(
+                dims[u], args[inds[u]] + row_index * dims[u]
+            )
     return res
 
 
@@ -311,24 +305,22 @@ def load_vars(
     #   xi[4] = arg8[(5+offsets[4])*3+0];
     #   xi[5] = arg8[(5+offsets[4])*3+1];
     #   xi[6] = arg8[(5+offsets[4])*3+2];
-    if len(dims) > 0:
-        a = c_variable("signed long int", "a")
-        res = a.declare_assign(0)
-        for u in range(len(dims)):
-            l = indsref.index(inds[u]) if indsref else u
-            row_index_l = row_index + offsets[l] if offsets else row_index
-            if is_local[inds[u]]:
-                v = c_variable("signed long int", "v")
-                res += c_for(
-                    v.declare_assign(0),
-                    v < dims[u],
-                    v.plus_plus,
-                    xloc[a].assign(args[inds[u]][row_index_l * dims[u] + v])
-                    + a.plus_plus,
-                )
-        return c_block(res)
-    else:
-        return c_empty_instruction
+    res = c_empty_instruction
+    a = c_variable("signed long int", "a")
+    for u in range(len(dims)):
+        l = indsref.index(inds[u]) if indsref else u
+        row_index_l = row_index + offsets[l] if offsets else row_index
+        if is_local[inds[u]]:
+            v = c_variable("signed long int", "v")
+            res += c_for(
+                v.declare_assign(0),
+                v < dims[u],
+                v.plus_plus,
+                xloc[a].assign(args[inds[u]][row_index_l * dims[u] + v]) + a.plus_plus,
+            )
+    if res != c_empty_instruction:
+        res = a.declare_assign(0) + c_block(res)
+    return res
 
 
 def load_vars_chunks(
