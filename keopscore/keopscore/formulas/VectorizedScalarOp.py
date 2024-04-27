@@ -32,7 +32,9 @@ class VectorizedScalarOp(Operation):
         if len(self.children) > 0:
             code_args, code_args_elem, args = zip(
                 *(
-                    child.get_code_and_expr_elem(dtype, table, i, j, tagI, 0 if child.dim==1 else elem)
+                    child.get_code_and_expr_elem(
+                        dtype, table, i, j, tagI, 0 if child.dim == 1 else elem
+                    )
                     for child in self.children
                 )
             )

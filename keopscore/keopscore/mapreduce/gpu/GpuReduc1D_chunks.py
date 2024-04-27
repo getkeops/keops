@@ -12,7 +12,7 @@ from keopscore.utils.meta_toolbox import (
     c_fixed_size_array,
     c_fixed_size_array_proper,
     c_array_from_address,
-    cuda_global_kernel
+    cuda_global_kernel,
 )
 from keopscore.mapreduce.Chunk_Mode_Constants import Chunk_Mode_Constants
 
@@ -46,7 +46,7 @@ def do_chunk_sub(
     yjrel,
     jrel,
     param_loc,
-    foutj
+    foutj,
 ):
     chk = Chunk_Mode_Constants(red_formula)
     fout_tmp_chunk = c_fixed_size_array(dtype, chk.fun_chunked.dim)
@@ -213,7 +213,7 @@ class GpuReduc1D_chunks(MapReduce, Gpu_link_compile):
             yjrel,
             jrel,
             param_loc,
-            foutj
+            foutj,
         )
 
         last_chunk = c_variable("signed long int", f"{chk.nchunks - 1}")
@@ -246,7 +246,7 @@ class GpuReduc1D_chunks(MapReduce, Gpu_link_compile):
             yjrel,
             jrel,
             param_loc,
-            foutj
+            foutj,
         )
 
         foutj_array = c_array_from_address(chk.dimout_chunk, foutj)
@@ -345,4 +345,3 @@ class GpuReduc1D_chunks(MapReduce, Gpu_link_compile):
                           }}
                         }}
                     """
-

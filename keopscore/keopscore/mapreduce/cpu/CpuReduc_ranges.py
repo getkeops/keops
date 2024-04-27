@@ -7,7 +7,7 @@ from keopscore.utils.meta_toolbox import (
     c_variable,
     c_fixed_size_array,
     c_include,
-    c_expression_from_string
+    c_expression_from_string,
 )
 import keopscore
 

@@ -216,10 +216,7 @@ def direct_table(nminargs, dimsx, dimsy, dimsp, indsi, indsj, indsp, args, i, j)
     ):
         for u in range(len(dims)):
             arg = args[inds[u]]
-            res[inds[u]] = c_array_from_address(
-                dims[u],
-                arg+row_index*dims[u]
-            )
+            res[inds[u]] = c_array_from_address(dims[u], arg + row_index * dims[u])
     return res
 
 
@@ -247,7 +244,7 @@ def table4(
     ):
         k = 0
         for u in range(len(dims)):
-            res[inds[u]] = c_array_from_address(dims[u], xloc.c_address+k)
+            res[inds[u]] = c_array_from_address(dims[u], xloc.c_address + k)
             k += dims[u]
 
     return res

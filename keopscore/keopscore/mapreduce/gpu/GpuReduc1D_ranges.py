@@ -53,7 +53,8 @@ class GpuReduc1D_ranges(MapReduce, Gpu_link_compile):
         param_loc = self.param_loc
         xi = self.xi
         yj = c_fixed_size_array(dtype, None, "yj", qualifier="extern __shared__")
-        yjloc = c_array_from_address(varloader.dimy_local, yj.c_address + threadIdx_x * varloader.dimy_local
+        yjloc = c_array_from_address(
+            varloader.dimy_local, yj.c_address + threadIdx_x * varloader.dimy_local
         )
         yjrel = c_fixed_size_array_proper(dtype, varloader.dimy_local, "yjrel")
         j_rel = c_variable("signed long int", "jrel")
@@ -68,8 +69,8 @@ class GpuReduc1D_ranges(MapReduce, Gpu_link_compile):
 
         starty = c_variable("signed long int", "start_y")
         j_start = c_variable("signed long int", "jstart")
-        
-        j_call = j_start+j_rel-starty
+
+        j_call = j_start + j_rel - starty
 
         table_batchmode = varloader.table(
             self.xi,

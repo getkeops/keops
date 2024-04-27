@@ -72,8 +72,8 @@ class SoftDTW(Operation):
     def Op(self, out, table, x, y, gamma):
         dtype = x.dtype
         n, m = self.n, self.m
-        i = c_variable("int","i")
-        j = c_variable("int","j")
+        i = c_variable("int", "i")
+        j = c_variable("int", "j")
         code = f"""
             #define MIN2(a,b) fminf(a,b) //(((a)<(b))?(a):(b))
             #define MIN3(a,b,c) MIN2(MIN2(a,b),c)

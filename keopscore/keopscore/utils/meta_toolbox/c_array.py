@@ -17,7 +17,7 @@ class c_array:
     def getitem_check_convert_arg(self, other):
         if type(other) in (int, float):
             other = int(other)
-            if self.dim!=0 and (other < 0 or other >= self.dim):
+            if self.dim != 0 and (other < 0 or other >= self.dim):
                 Meta_Toolbox_Error("out of bound value for __getitem__")
         other = py2c(other)
         if other.dtype not in ("int", "signed long int", "float", "double"):

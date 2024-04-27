@@ -13,7 +13,7 @@ from keopscore.utils.meta_toolbox import (
     use_pragma_unroll,
     c_zero_float,
     cuda_global_kernel,
-    c_fixed_size_array_proper
+    c_fixed_size_array_proper,
 )
 from keopscore.utils.misc_utils import KeOps_Error
 
@@ -69,13 +69,13 @@ class GpuReduc2D(MapReduce, Gpu_link_compile):
             acc = c_fixed_size_array_proper(dtypeacc, dimred, "acc")
         else:
             KeOps_Error("incorrect reduction scheme")
-        
+
         blockIdx_x = cuda_global_kernel.blockIdx_x
         blockDim_x = cuda_global_kernel.blockDim_x
         threadIdx_x = cuda_global_kernel.threadIdx_x
 
         yj = c_fixed_size_array(dtype, None, "yj", qualifier="extern __shared__")
-        
+
         yjloc = c_array_from_address(
             varloader.dimy_local,
             yj.c_address + threadIdx_x * varloader.dimy_local,

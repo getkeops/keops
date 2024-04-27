@@ -10,7 +10,7 @@ from keopscore.utils.meta_toolbox import (
     c_array_from_address,
     cuda_global_kernel,
     c_instruction_from_string,
-    c_fixed_size_array_proper
+    c_fixed_size_array_proper,
 )
 
 
