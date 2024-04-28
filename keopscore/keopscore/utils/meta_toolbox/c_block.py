@@ -14,6 +14,7 @@ class c_block(c_composed_instruction):
         decorator=None,
         comment=None,
         use_braces=True,
+        braces_style="Allman",
     ):
         super().__init__("", set(), set())
         self.decorator = decorator
@@ -26,22 +27,27 @@ class c_block(c_composed_instruction):
             )
         if body.code_string == "" and headers == ():
             return
-
         self.body = body
-
         self.code_string = ""
         if comment is not None:
             self.code_string += "\n// " + comment + "\n"
         if self.decorator is not None:
             self.code_string += str(self.decorator) + "\n"
         if self.pre_code_string is not None:
-            self.code_string += str(self.pre_code_string) + "\n"
+            self.code_string += str(self.pre_code_string)
         if use_braces:
-            self.code_string += "{\n"
+            if self.code_string == "":
+                self.code_string += "{\n"
+            else:
+                if braces_style == "Allman":
+                    self.code_string += "\n{\n"
+                elif braces_style == "K&R":
+                    self.code_string += " {\n"
+                else:
+                    Meta_Toolbox_Error("invalid braces style")
         self.code_string += add_indent(str(self.body))
         if use_braces:
             self.code_string += "\n}"
-
         tmp = c_empty_instruction
         for code in (*self.headers, self.body):
             if isinstance(code, c_instruction):
