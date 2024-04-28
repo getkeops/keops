@@ -29,12 +29,17 @@ extern "C" __global__ void GpuConv1DOnDevice(signed long int nx, signed long int
             {
                 for(signed long int v = 0; v<3; v++)
                 {
-                    (yj+(threadIdx.x*4))[a] = arg[1][(j*3)+v];
+                    (yj+(threadIdx.x*7))[a] = arg[1][(j*3)+v];
+                    a++;
+                }
+                for(signed long int v = 0; v<3; v++)
+                {
+                    (yj+(threadIdx.x*7))[a] = arg[2][(j*3)+v];
                     a++;
                 }
                 for(signed long int v = 0; v<1; v++)
                 {
-                    (yj+(threadIdx.x*4))[a] = arg[2][j+v];
+                    (yj+(threadIdx.x*7))[a] = arg[3][j+v];
                     a++;
                 }
             }
@@ -44,23 +49,29 @@ extern "C" __global__ void GpuConv1DOnDevice(signed long int nx, signed long int
         {
             float* yjrel = yj;
             tmp = 0.0f;
-            for(signed long int jrel = 0; (jrel<blockDim.x)&&(jrel<(ny-jstart)); jrel++,yjrel += 4)
+            for(signed long int jrel = 0; (jrel<blockDim.x)&&(jrel<(ny-jstart)); jrel++,yjrel += 7)
             {
-                // Starting code block for Var(2,1,1)*Exp(-Sum(Pow(Var(0,3,0)-Var(1,3,1))));
-                float out_sum;
-                // Starting code block for Sum(Pow(Var(0,3,0)-Var(1,3,1)));
-                out_sum = 0.0f;
+                // Starting code block for Var(3,1,1)*Exp(-(Atan2(Var(0,3,0),Var(1,3,1))|(Var(0,3,0)*(Var(1,3,1)*Var(2,3,1)))**2));
+                float out_scalprod;
+                // Starting code block for Atan2(Var(0,3,0),Var(1,3,1))|(Var(0,3,0)*(Var(1,3,1)*Var(2,3,1)))**2;
+                out_scalprod = 0.0f;
                 #pragma unroll(64)
-                for(int k = 0; k<3; k++)    out_sum += 
+                for(int k = 0; k<3; k++)
+                {
+                    float out_square;
+                    out_square = xi[k]*(yjrel[k]*(yjrel+3)[k]);
+                    out_square *= out_square;
+                    out_scalprod = 
                                             #ifdef __CUDACC__
-                                                powf((xi[k]-yjrel[k]),(3))
+                                                fmaf((atan2(xi[k],yjrel[k])),out_square,out_scalprod)
                                             #else
-                                                pow((xi[k]-yjrel[k]),(3))
+                                                fma((atan2(xi[k],yjrel[k])),out_square,out_scalprod)
                                             #endif
                                         ;
-                // Finished code block for Sum(Pow(Var(0,3,0)-Var(1,3,1)));
-                fout = (yjrel+3)[0]*(exp((-out_sum)));
-                // Finished code block for Var(2,1,1)*Exp(-Sum(Pow(Var(0,3,0)-Var(1,3,1))));
+                }
+                // Finished code block for Atan2(Var(0,3,0),Var(1,3,1))|(Var(0,3,0)*(Var(1,3,1)*Var(2,3,1)))**2;
+                fout = (yjrel+6)[0]*(exp((-out_scalprod)));
+                // Finished code block for Var(3,1,1)*Exp(-(Atan2(Var(0,3,0),Var(1,3,1))|(Var(0,3,0)*(Var(1,3,1)*Var(2,3,1)))**2));
                 tmp += fout;
             }
             acc += tmp;
