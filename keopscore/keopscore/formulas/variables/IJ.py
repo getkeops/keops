@@ -14,11 +14,8 @@ class I(Operation):
 
     string_id = "I"
 
-    def __init__(self, params=()):
-        # N.B. init via params keyword is used for compatibility with base class.
-        if params != ():
-            KeOps_Error("There should be no parameter for I operation.")
-        super().__init__(params=())
+    def __init__(self):
+        super().__init__()
         self.dim = 1
 
     def get_code_and_expr(self, dtype, table, i, j, tagI):
@@ -35,11 +32,8 @@ class J(Operation):
 
     string_id = "J"
 
-    def __init__(self, params=()):
-        # N.B. init via params keyword is used for compatibility with base class.
-        if params != ():
-            KeOps_Error("There should be no parameter for J operation.")
-        super().__init__(params=())
+    def __init__(self):
+        super().__init__()
         self.dim = 1
 
     def get_code_and_expr(self, dtype, table, i, j, tagI):

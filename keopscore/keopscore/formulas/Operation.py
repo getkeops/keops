@@ -66,7 +66,7 @@ class Operation(Tree):
             return new
         else:
             new_children = [child.replace(old, new, cnt) for child in self.children]
-            return type(self)(*new_children, *self.params)
+            return type(self)(*new_children)
 
     def replace_and_count(self, old, new):
         cnt = [0]
@@ -214,7 +214,6 @@ class Operation(Tree):
         return (
             type(self) == type(other)
             and self.children == other.children
-            and self.params == other.params
         )
 
     def __lt__(self, other):
@@ -236,9 +235,6 @@ class Operation(Tree):
     def __ge__(self, other):
         """f>=g redirects to LessOrEqual(g,f)"""
         return int2Op(other) <= self
-
-    def Op(self, out, table, param):
-        pass
 
     def chunked_version(self, dimchk):
         return None
@@ -262,7 +258,7 @@ class Operation(Tree):
         for child in self.children:
             args.append(child.post_chunk_formula(ind))
             ind += child.num_chunked_formulas
-        return type(self)(*args, *self.params)
+        return type(self)(*args)
 
     enable_test = False
     disable_testgrad = False

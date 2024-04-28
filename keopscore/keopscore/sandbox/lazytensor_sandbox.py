@@ -25,7 +25,7 @@ def fun(x, y, b, eta, backend):
         x = LazyTensor(x)
         y = LazyTensor(y)
         eta = LazyTensor(eta)
-    Dxy = (x.atan2(y) * (x * (y * eta)).square()).sum(dim=2)
+    Dxy = ((x-y)**3).sum(dim=2)
     Kxy = (-Dxy).exp()
     if "keops" in backend:
         out = Kxy.__matmul__(b, sum_scheme=sum_scheme)

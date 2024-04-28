@@ -71,7 +71,7 @@ class VectorizedScalarOp(Operation):
         return out.assign(type(self).ScalarOpFun(*args, *self.params), out.dtype)
 
     def DiffT(self, v, gradin):
-        derivatives = self.Derivative(*self.children, *self.params)
+        derivatives = self.Derivative(*self.children)
         if len(self.children) == 1:
             derivatives = (derivatives,)
         return sum(
@@ -91,8 +91,7 @@ class VectorizedScalarOp(Operation):
             *(
                 (child if child.dim == 1 else child.chunked_version(dimchk))
                 for child in self.children
-            ),
-            *self.params,
+            )
         )
 
     def chunked_vars(self, cat):
