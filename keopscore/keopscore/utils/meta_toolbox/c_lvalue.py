@@ -7,13 +7,16 @@ from .c_expression import c_expression, py2c, cast_to
 class c_lvalue(c_expression):
     # class to represent a C++ l-value
 
-    def __init__(self, dtype, vars, string_id, add_parenthesis):
+    def __init__(self, dtype, vars, string_id, add_parenthesis, assign_op="="):
         super().__init__(
             string_id, vars=vars, dtype=dtype, add_parenthesis=add_parenthesis
         )
         self.id = string_id
+        self.assign_op = assign_op
 
-    def assign(self, value, assign_op="="):
+    def assign(self, value, assign_op=None):
+        if assign_op == None:
+            assign_op = self.assign_op
         value = py2c(value)
         local_vars = set()
         global_vars = self.vars.union(value.vars)

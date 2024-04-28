@@ -185,6 +185,13 @@ def get_optional_flags(
                     'sum_scheme="kahan_scheme" is only valid for sum type reductions.'
                 )
             )
+    elif sum_scheme == "direct_acc":
+        if reduction_op_internal not in ("Sum",):
+            raise ValueError(
+                pyKeOps_Message(
+                    'sum_scheme="direct_acc" is only valid for Sum reduction.'
+                )
+            )
     elif sum_scheme != "direct_sum":
         raise ValueError(
             pyKeOps_Message(
