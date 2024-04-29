@@ -1,20 +1,14 @@
-from keopscore.utils.meta_toolbox.c_expression import cast_to
-from keopscore.utils.meta_toolbox import (
-    c_for_loop,
-    new_c_name,
-    c_variable,
-)
+from keopscore.utils.meta_toolbox import c_expression, c_expression_from_string
 from keopscore.utils.misc_utils import KeOps_Error
-from keopscore.utils.meta_toolbox import c_expression_from_string
-
-import keopscore.config.config
 
 
 def math_function(
-    cpu_code, gpu_code=None, gpu_half2_code=None, gpu_float_code=None, void=False
+    cpu_code, gpu_code=None, gpu_double_code=None, gpu_half2_code=None, gpu_float_code=None, void=False
 ):
     if gpu_code is None:
         gpu_code = cpu_code
+    if gpu_double_code is None:
+        gpu_double_code = gpu_code
     if gpu_half2_code is None:
         gpu_half2_code = gpu_code
     if gpu_float_code is None:
@@ -22,27 +16,28 @@ def math_function(
 
     def convert_to_fun(code):
         if isinstance(code, str):
-            code_fun = lambda *args: code + "(" + ",".join(arg for arg in args) + ")"
+            code_fun = lambda *args: code + "(" + ",".join(str(arg) for arg in args) + ")"
         else:
             code_fun = code
         return code_fun
 
     def call(*args):
         args = list(args)
-        for k, arg in enumerate(args):
-            if isinstance(arg, int):
-                c_dtype = "signed long int" if arg > 2e9 else "int"
-                args[k] = c_expression_from_string(str(arg), c_dtype)
+        #for k, arg in enumerate(args):
+        #    if isinstance(arg, int):
+        #        c_dtype = "signed long int" if arg > 2e9 else "int"
+        #        args[k] = c_expression_from_string(str(arg), c_dtype)
         # detect main dtype. We assume it should be one of "float", "double" or "half2"
         dtype = "float"
         for arg in args:
-            if arg.dtype == "half2":
-                dtype = "half2"
-            elif arg.dtype == "double":
-                dtype = "double"
-        for k, arg in enumerate(args):
-            if "int" in arg.dtype:
-                args[k] = cast_to(dtype, arg)
+            if isinstance(arg, c_expression):
+                if arg.dtype == "half2":
+                    dtype = "half2"
+                elif arg.dtype == "double":
+                    dtype = "double"
+        #for k, arg in enumerate(args):
+        #    if "int" in arg.dtype:
+        #        args[k] = cast_to(dtype, arg)
         if dtype == "half2":
             if gpu_half2_code == "NA":
                 KeOps_Error("Operation is not implemented for half precision")
@@ -51,9 +46,9 @@ def math_function(
             code_fun_gpu = convert_to_fun(gpu_float_code)
         else:
             code_fun_gpu = convert_to_fun(gpu_code)
-        string_gpu = code_fun_gpu(*(arg.id for arg in args))
+        string_gpu = code_fun_gpu(*args)
         code_fun_cpu = convert_to_fun(cpu_code)
-        string_cpu = code_fun_cpu(*(arg.id for arg in args))
+        string_cpu = code_fun_cpu(*args)
         if string_cpu == string_gpu:
             string = string_cpu
         else:
@@ -81,11 +76,11 @@ h2eq0 = lambda x: f"__heq2({x},{h2zero})"
 h2ifelse = lambda x, a, b: f"(({b})+(({a})-({b}))*{h2ge0(x)})"
 int2h2 = lambda x: f"__float2half2_rn((float){x})"
 
-keops_add = math_function(cpu_code=lambda x, y: f"{x}+{y}", gpu_half2_code="__hadd2")
-keops_sub = math_function(cpu_code=lambda x, y: f"{x}-{y}", gpu_half2_code="__hsub2")
-keops_mul = math_function(cpu_code=lambda x, y: f"{x}*{y}", gpu_half2_code="__hmul2")
-keops_div = math_function(cpu_code=lambda x, y: f"{x}/{y}", gpu_half2_code="__hdiv2")
-keops_minus = math_function(cpu_code=lambda x: f"-{x}", gpu_half2_code="__hneg2")
+keops_add = math_function(cpu_code=lambda x, y: f"{x}+{y}")
+keops_sub = math_function(cpu_code=lambda x, y: f"{x}-{y}")
+keops_mul = math_function(cpu_code=lambda x, y: f"{x}*{y}")
+keops_div = math_function(cpu_code=lambda x, y: f"{x}/{y}")
+keops_minus = math_function(cpu_code=lambda x: f"-{x}")
 
 keops_abs = math_function(cpu_code="abs", gpu_half2_code="__habs2")
 keops_cos = math_function(cpu_code="cos", gpu_half2_code="h2cos")
@@ -110,6 +105,11 @@ keops_pow = math_function(
     cpu_code="pow",
     gpu_code="powf",
     gpu_half2_code=lambda x, y: f"(h2exp({int2h2(y)}*h2log({x})))",
+)
+
+keops_pow = math_function(
+    cpu_code=lambda x, y : ("1.0/" if y<0 else "") + "(1.0"+f"*{x}"*abs(y)+")",
+    gpu_half2_code=lambda x, y : (h2one+"/" if y<0 else "") + "("+h2one+f"*{x}"*abs(y)+")",
 )
 keops_powf = math_function(
     cpu_code="powf", gpu_half2_code=lambda x, y: f"h2exp({y}*h2log({x}))"

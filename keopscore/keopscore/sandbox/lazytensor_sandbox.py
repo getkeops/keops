@@ -6,7 +6,7 @@ import math
 import torch
 from pykeops.torch import LazyTensor
 
-M, N, D, DV = 2000, 1000, 3, 1
+M, N, D, DV = 20, 10, 3, 1
 
 dtype = torch.float32
 sum_scheme = "block_sum"
@@ -25,7 +25,7 @@ def fun(x, y, b, eta, backend):
         x = LazyTensor(x)
         y = LazyTensor(y)
         eta = LazyTensor(eta)
-    Dxy = ((x-y)**3).sum(dim=2)
+    Dxy = ((x-y).abs()**(2.5)).sum(dim=2)
     Kxy = (-Dxy).exp()
     if "keops" in backend:
         out = Kxy.__matmul__(b, sum_scheme=sum_scheme)
@@ -62,4 +62,6 @@ for backend in backends:
     print("time for " + backend + ":", end - start)
 
 if len(out) > 1:
+    print(out[0])
+    print(out[1])
     print("relative error:", (torch.norm(out[0] - out[1]) / torch.norm(out[0])).item())
