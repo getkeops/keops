@@ -34,10 +34,9 @@ class Operation(Tree):
         else:
             return False
 
-    def __init__(self, *args, params=()):
+    def __init__(self, *args):
         # *args are other instances of Operation, they are the child operations of self
         self.children = args
-        self.params = params
 
         # The variables in the current formula is the union of the variables in the child operations.
         # Note that this requires implementing properly __eq__ and __hash__ methods in Var class.

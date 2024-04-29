@@ -15,11 +15,11 @@ class VectorizedScalarOp(Operation):
     # scalar operations,
     # such as Exp(f), Cos(f), Mult(f,g), Subtract(f,g), etc.
 
-    def __init__(self, *args, params=()):
+    def __init__(self, *args):
         dims = set(arg.dim for arg in args)
         if len(dims) > 2 or (len(dims) == 2 and min(dims) != 1):
             KeOps_Error("dimensions are not compatible for VectorizedScalarOp")
-        super().__init__(*args, params=params)
+        super().__init__(*args)
 
     @property
     def dim(self):
@@ -44,7 +44,7 @@ class VectorizedScalarOp(Operation):
             args, code, code_elem = (), c_empty_instruction, c_empty_instruction
         # Finally, evaluation of the operation itself
         if hasattr(self, "ScalarOpFun"):
-            out = type(self).ScalarOpFun(*args, *self.params)
+            out = type(self).ScalarOpFun(*args)
         else:
             out = self.get_out_var(dtype)
             code_elem += out.declare() + self.ScalarOp(out, *args)
@@ -68,7 +68,7 @@ class VectorizedScalarOp(Operation):
     def ScalarOp(self, out, *args):
         # returns the atomic piece of c++ code to evaluate the function on arg and return
         # the result in out
-        return out.assign(type(self).ScalarOpFun(*args, *self.params), out.dtype)
+        return out.assign(type(self).ScalarOpFun(*args), out.dtype)
 
     def DiffT(self, v, gradin):
         derivatives = self.Derivative(*self.children)

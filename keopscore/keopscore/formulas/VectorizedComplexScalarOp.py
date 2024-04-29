@@ -8,11 +8,11 @@ class VectorizedComplexScalarOp(Operation):
     # complex scalar operations,
     # such as ComplexExp(f), ComplexMult(f), ComplexAdd(f,g), etc.
 
-    def __init__(self, *args, params=()):
+    def __init__(self, *args):
         dims = set(arg.dim for arg in args)
         if max(dims) % 2 != 0 or len(dims) > 2 or (len(dims) == 2 and min(dims) != 2):
             KeOps_Error("dimensions are not compatible for VectorizedComplexScalarOp")
-        super().__init__(*args, params=params)
+        super().__init__(*args)
 
     @property
     def dim(self):

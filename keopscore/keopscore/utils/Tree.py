@@ -40,10 +40,10 @@ class Tree:
             string += child.recursive_str()
             string += ")" if test else ""
             string += middle_string if k < len(self.children) - 1 else ""
-        for k, param in enumerate(self.params):
-            if k > 0 or len(self.children) > 0:
-                string += middle_string
-            string += param.__repr__()
+        #for k, param in enumerate(self.params):
+        #    if k > 0 or len(self.children) > 0:
+        #        string += middle_string
+        #    string += param.__repr__()
         string += post_string
         return string
 

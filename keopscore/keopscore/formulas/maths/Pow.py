@@ -1,16 +1,21 @@
 from keopscore.formulas.VectorizedScalarOp import VectorizedScalarOp
 from keopscore.utils.math_functions import keops_pow
 
+
+class Pow_Impl(VectorizedScalarOp):
+    pass
+
 class Pow_Factory():
 
     def __init__(self, m):
 
-        class Class(VectorizedScalarOp):
+        class Class(Pow_Impl):
             """the integer power vectorized operation
             Pow(f,m) where m is integer, computes f^m
             """
 
             string_id = "Pow"
+            print_spec = f"**{m}", "post", 1
 
             ScalarOpFun = lambda x : keops_pow(x,m)
 
@@ -32,14 +37,10 @@ class Pow_Factory():
 
         return self.Class(f)
 
-
-def Pow_Impl(f, m):
-    return Pow_Factory(m)(f)
-
 # N.B. The following separate function could theoretically be implemented
 # as a __new__ method of the previous class, but this can generate infinite recursion problems
 def Pow(f, m):
     if m == 1:
         return f
     else:
-        return Pow_Impl(f, m)
+        return Pow_Factory(m)(f)
