@@ -8,13 +8,11 @@ from keopscore.utils.misc_utils import KeOps_Error
 
 class Index(Operation):
     string_id = "Index"
-    print_spec = ("[", "]"), "item", 1
+    print_fun = lambda x, y: f"{x}[{y}]"
+    print_level = 1
     linearity_type = "first"
 
-    def __init__(self, f, g, m=None, params=()):
-        # N.B. params keyword is used for compatibility with base class, but should always equal ()
-        if params != ():
-            KeOps_Error("There should be no parameter.")
+    def __init__(self, f, g):
         if g.dim != 1:
             KeOps_Error("dimension of index variable should be 1.")
         super().__init__(f, g)

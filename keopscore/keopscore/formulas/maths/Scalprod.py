@@ -14,15 +14,13 @@ from keopscore.utils.misc_utils import KeOps_Error
 
 class Scalprod_Impl(InnerReductionOp):
     string_id = "Scalprod"
-    print_spec = "|", "mid", 3
+    print_fun = lambda x, y: f"{x}|{y}"
+    print_level = 3
     linearity_type = "one"
 
     dim = 1
 
-    def __init__(self, fa, fb, params=()):
-        # N.B. params keyword is used for compatibility with base class, but should always equal ()
-        if params != ():
-            KeOps_Error("There should be no parameter.")
+    def __init__(self, fa, fb):
         # Output dimension = 1, provided that FA::DIM = FB::DIM
         self.dimin = fa.dim
         if self.dimin != fb.dim:

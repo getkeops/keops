@@ -7,10 +7,12 @@ from keopscore.formulas.Operation import Operation
 ## Var operation
 #######################
 
+
 class Var_Impl(Operation):
     pass
 
-class Var_Factory():
+
+class Var_Factory:
 
     def __init__(self, ind, dim, cat, label):
 
@@ -19,7 +21,6 @@ class Var_Factory():
             label = chr(ord("a") + ind) if ind >= 0 else chr(944 - ind)
 
         class Class(Var_Impl):
-            
             """Var operation class. Var(ind,dim,cat) is a symbolic
             object that encodes an input tensor in the call to the
             KeOps routine, where
@@ -30,14 +31,14 @@ class Var_Factory():
             a "j"-indexed variable (cat=1), or a parameter variable (cat=2)"""
 
             string_id = f"Var({ind},{dim},{cat})"
-            print_spec = string_id, "pre", 0
+            print_fun = lambda: Class.string_id
 
             def is_linear(self, v):
                 return self == v
 
             def __init__(self):
-                super().__init__()   
-                self.ind = ind             
+                super().__init__()
+                self.ind = ind
                 self.dim = dim
                 self.cat = cat
                 self.label = label
@@ -91,14 +92,12 @@ class Var_Factory():
 
             def notchunked_vars(self, cat):
                 return set()
-    
+
         self.Class = Class
-    
+
     def __call__(self):
         return self.Class()
-    
+
 
 def Var(ind, dim, cat, label=None):
     return Var_Factory(ind, dim, cat, label=None)()
-
-

@@ -1,6 +1,6 @@
 from keopscore.formulas.Operation import Broadcast
 from keopscore.formulas.VectorizedScalarOp import VectorizedScalarOp
-from keopscore.formulas.variables.Zero import Zero
+from keopscore.formulas.variables.Zero import Zero_Impl
 from keopscore.formulas.maths.Mult import Mult_Impl
 from keopscore.formulas.maths.Sum import Sum
 from keopscore.formulas.variables.IntCst import IntCst, IntCst_Impl
@@ -16,7 +16,9 @@ class Subtract_Impl(VectorizedScalarOp):
     """the binary subtract operation"""
 
     string_id = "Subtract"
-    print_spec = "-", "mid", 4
+
+    print_fun = lambda x, y: f"{x}-{y}"
+    print_level = 4
     linearity_type = "all"
 
     ScalarOpFun = keops_sub
@@ -43,9 +45,9 @@ def Subtract(arg0, arg1):
     # Simplification rules
 
     # 0-x=-x, x-0=x, x-x=0
-    if isinstance(arg0, Zero):
+    if isinstance(arg0, Zero_Impl):
         return -Broadcast(arg1, arg0.dim)
-    elif isinstance(arg1, Zero):
+    elif isinstance(arg1, Zero_Impl):
         return Broadcast(arg0, arg1.dim)
     elif arg0 == arg1:
         return Zero(arg0.dim)

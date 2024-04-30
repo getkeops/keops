@@ -12,7 +12,7 @@ from keopscore.formulas.maths.Extract import Extract
 class SoftDTW_SqDist(Operation):
     string_id = "SoftDTW_SqDist"
 
-    def __init__(self, x, y, gamma, params=()):
+    def __init__(self, x, y, gamma):
         # x is vector of size n, y is vector of size m, gamma is scalar,
         # output is scalar
         if gamma.dim != 1:
@@ -93,13 +93,13 @@ class SoftDTW_SqDist(Operation):
 class GradSoftDTW_SqDist(Operation):
     string_id = "GradSoftDTW_SqDist"
 
-    def __init__(self, x, y, gamma, params=()):
+    def __init__(self, x, y, gamma):
         # x is vector of size n, y is vector of size m, gamma is scalar,
         # output is of size n+m, corresponding to concatenation of grads wrt x and y
         if gamma.dim != 1:
             KeOps_Error("input gamma should be scalar")
         n, m = x.dim, y.dim
-        super().__init__(x, y, gamma, params=())
+        super().__init__(x, y, gamma)
         self.n = n
         self.m = m
         self.dim = n + m

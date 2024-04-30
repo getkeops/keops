@@ -67,7 +67,7 @@ from keopscore.config.chunks import (
 )
 from keopscore.formulas import Zero_Reduction, Sum_Reduction
 from keopscore.formulas.GetReduction import GetReduction
-from keopscore.formulas.variables.Zero import Zero
+from keopscore.formulas.variables.Zero import Zero_Impl
 from keopscore.utils.Cache import Cache
 from keopscore.utils.code_gen_utils import KeOps_Error
 
@@ -123,7 +123,7 @@ def get_keops_dll_impl(
     # detecting the case of formula being equal to zero, to bypass reduction.
     rf = map_reduce_obj.red_formula
     if isinstance(rf, Zero_Reduction) or (
-        isinstance(rf.formula, Zero) and isinstance(rf, Sum_Reduction)
+        isinstance(rf.formula, Zero_Impl) and isinstance(rf, Sum_Reduction)
     ):
         if "Gpu" in map_reduce_id:
             map_reduce_class = map_reduce["GpuReduc1D"]

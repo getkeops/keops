@@ -18,7 +18,8 @@ class Divide_Impl(VectorizedScalarOp):
     """the binary divide operation"""
 
     string_id = "Divide"
-    print_spec = "/", "mid", 3
+    print_fun = lambda x, y: f"{x}/{y}"
+    print_level = 3
     linearity_type = "first"
 
     ScalarOpFun = keops_div

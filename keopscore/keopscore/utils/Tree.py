@@ -3,49 +3,16 @@ class Tree:
     Currently we use it only to recursively print a formula or reduction"""
 
     def recursive_str(self):
-        if hasattr(self, "print_spec"):
-            idstr, mode, level = self.print_spec
-            if mode == "pre":
-                pre_string = idstr
-                middle_string = ","
-                post_string = ""
-            elif mode == "mid":
-                pre_string = ""
-                middle_string = idstr
-                post_string = ""
-            elif mode == "post":
-                pre_string = ""
-                middle_string = ","
-                post_string = idstr
-            elif mode == "brackets":
-                pre_string = idstr[0]
-                middle_string = ","
-                post_string = idstr[1]
-            elif mode == "item":
-                pre_string = ""
-                middle_string = idstr[0]
-                post_string = idstr[1]
+        arg_strings = []
+        for child in self.children:
+            if child.print_level >= self.print_level:
+                arg_strings.append("(" + child.recursive_str() + ")")
+            else:
+                arg_strings.append(child.recursive_str())
+        if hasattr(self, "print_fun"):
+            return type(self).print_fun(*arg_strings)
         else:
-            pre_string = self.string_id + "("
-            middle_string = ","
-            post_string = ")"
-        string = pre_string
-        for k, child in enumerate(self.children):
-            test = (
-                hasattr(child, "print_spec")
-                and hasattr(self, "print_spec")
-                and child.print_spec[2] >= level
-            )
-            string += "(" if test else ""
-            string += child.recursive_str()
-            string += ")" if test else ""
-            string += middle_string if k < len(self.children) - 1 else ""
-        #for k, param in enumerate(self.params):
-        #    if k > 0 or len(self.children) > 0:
-        #        string += middle_string
-        #    string += param.__repr__()
-        string += post_string
-        return string
+            return self.string_id + "(" + ",".join(arg_strings) + ")"
 
     def print_expand(self, depth=0):
         depth += 1

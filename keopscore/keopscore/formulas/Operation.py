@@ -23,6 +23,8 @@ class Operation(Tree):
 
     linearity_type = None
 
+    print_level = 0
+
     def is_linear(self, v):
         if self.linearity_type == "all":
             return all(f.is_linear(v) for f in self.children)
@@ -210,10 +212,7 @@ class Operation(Tree):
         return Scalprod(self, other)
 
     def __eq__(self, other):
-        return (
-            type(self) == type(other)
-            and self.children == other.children
-        )
+        return type(self) == type(other) and self.children == other.children
 
     def __lt__(self, other):
         """f<g redirects to LessThan(f,g)"""

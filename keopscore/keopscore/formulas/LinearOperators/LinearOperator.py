@@ -36,7 +36,7 @@ class LinearOperator_class:
             newargs = (
                 self(Broadcast(f, m), v, *args, **kwargs) for f in formula.children
             )
-            return type(formula)(*newargs, *formula.params)
+            return type(formula)(*newargs)
         elif isinstance(formula, Scalprod_Impl):
             fa, fb = formula.children
             return self(Sum_Impl(fa * fb), v, *args, **kwargs)

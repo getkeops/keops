@@ -3,7 +3,7 @@ from keopscore.formulas.VectorizedScalarOp import VectorizedScalarOp
 from keopscore.formulas.maths.Exp import Exp
 from keopscore.formulas.maths.Scalprod import Scalprod
 from keopscore.formulas.maths.Square import Square
-from keopscore.formulas.variables.Zero import Zero
+from keopscore.formulas.variables.Zero import Zero_Impl
 from keopscore.utils.math_functions import keops_mul
 from keopscore.formulas.variables.IntCst import IntCst_Impl, IntCst
 from keopscore.formulas.variables.RatCst import RatCst_Impl, RatCst
@@ -19,7 +19,8 @@ class Mult_Impl(VectorizedScalarOp):
     """the binary multiply operation"""
 
     string_id = "Mult"
-    print_spec = "*", "mid", 3
+    print_fun = lambda x, y: f"{x}*{y}"
+    print_level = 3
     linearity_type = "one"
 
     ScalarOpFun = keops_mul
@@ -47,9 +48,9 @@ class Mult_Impl(VectorizedScalarOp):
 def Mult(arg0, arg1):
     from keopscore.formulas.maths.Minus import Minus_Impl
 
-    if isinstance(arg0, Zero):
+    if isinstance(arg0, Zero_Impl):
         return Broadcast(arg0, arg1.dim)
-    elif isinstance(arg1, Zero):
+    elif isinstance(arg1, Zero_Impl):
         return Broadcast(arg1, arg0.dim)
     elif isinstance(arg0, IntCst_Impl):
         if arg0.val == 1:
@@ -73,9 +74,7 @@ def Mult(arg0, arg1):
     elif isinstance(arg1, Mult_Impl) and isinstance(arg1.children[0], IntCst_Impl):
         if isinstance(arg0, IntCst_Impl):
             # m*(n*g) -> (m*n)*g
-            return (
-                IntCst(arg0.params[0] * arg1.children[0].params[0]) * arg1.children[1]
-            )
+            return IntCst(arg0.val * arg1.children[0].val) * arg1.children[1]
         # f*(n*g) -> n*(f*g)
         return arg1.children[0] * (arg0 * arg1.children[1])
     elif isinstance(arg1, Mult_Impl) and isinstance(arg1.children[0], RatCst_Impl):

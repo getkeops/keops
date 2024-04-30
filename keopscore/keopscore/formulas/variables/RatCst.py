@@ -10,23 +10,37 @@ from fractions import Fraction
 
 
 class RatCst_Impl(Operation):
-    # constant rational number "operation"
-    string_id = "RatCst"
+    pass
 
-    def recursive_str(self):
-        return f"{self.p}/{self.q}"
+
+class RatCst_Impl_Factory:
 
     def __init__(self, p, q):
-        super().__init__(params=(p, q))
-        self.p = p
-        self.q = q
-        self.dim = 1
 
-    def get_code_and_expr(self, dtype, table, i, j, tagI):
-        return c_empty_instruction, c_array_scalar(self.p / self.q)
+        class Class(RatCst_Impl):
 
-    def DiffT(self, v, gradin):
-        return Zero(v.dim)
+            # constant rational number "operation"
+            string_id = "RatCst"
+
+            def recursive_str(self):
+                return f"{self.p}/{self.q}"
+
+            def __init__(self):
+                super().__init__()
+                self.p = p
+                self.q = q
+                self.dim = 1
+
+            def get_code_and_expr(self, dtype, table, i, j, tagI):
+                return c_empty_instruction, c_array_scalar(self.p / self.q)
+
+            def DiffT(self, v, gradin):
+                return Zero(v.dim)
+
+        self.Class = Class
+
+    def __call__(self):
+        return self.Class()
 
 
 # N.B. The following separate function should theoretically be implemented
@@ -39,4 +53,4 @@ def RatCst(a, b):
     elif q == 1:
         return IntCst(p)
     else:
-        return RatCst_Impl(p, q)
+        return RatCst_Impl_Factory(p, q)()

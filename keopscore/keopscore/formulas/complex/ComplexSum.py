@@ -10,7 +10,10 @@ from keopscore.utils.misc_utils import KeOps_Error
 class ComplexSum(Operation):
     string_id = "ComplexSum"
 
-    def __init__(self, f,):
+    def __init__(
+        self,
+        f,
+    ):
         if f.dim % 2 != 0:
             KeOps_Error("Dimension of F must be even")
         self.dim = 2

@@ -16,10 +16,8 @@ class VecMatMult(Operation):
     string_id = "VecMatMult"
     linearity_type = "one"
 
-    def __init__(self, B, A, params=()):
-        # N.B. params keyword is used for compatibility with base class, but should always equal ()
-        if params != ():
-            KeOps_Error("There should be no parameter.")
+    def __init__(self, B, A):
+
         # A is vector of size n*p, interpreted as matrix, B is vector of size n, interpreted as row vector
         # output is vector of size p
         if A.dim % B.dim != 0:

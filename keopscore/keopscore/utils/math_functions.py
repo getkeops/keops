@@ -3,7 +3,12 @@ from keopscore.utils.misc_utils import KeOps_Error
 
 
 def math_function(
-    cpu_code, gpu_code=None, gpu_double_code=None, gpu_half2_code=None, gpu_float_code=None, void=False
+    cpu_code,
+    gpu_code=None,
+    gpu_double_code=None,
+    gpu_half2_code=None,
+    gpu_float_code=None,
+    void=False,
 ):
     if gpu_code is None:
         gpu_code = cpu_code
@@ -16,17 +21,15 @@ def math_function(
 
     def convert_to_fun(code):
         if isinstance(code, str):
-            code_fun = lambda *args: code + "(" + ",".join(str(arg) for arg in args) + ")"
+            code_fun = (
+                lambda *args: code + "(" + ",".join(str(arg) for arg in args) + ")"
+            )
         else:
             code_fun = code
         return code_fun
 
     def call(*args):
         args = list(args)
-        #for k, arg in enumerate(args):
-        #    if isinstance(arg, int):
-        #        c_dtype = "signed long int" if arg > 2e9 else "int"
-        #        args[k] = c_expression_from_string(str(arg), c_dtype)
         # detect main dtype. We assume it should be one of "float", "double" or "half2"
         dtype = "float"
         for arg in args:
@@ -35,9 +38,6 @@ def math_function(
                     dtype = "half2"
                 elif arg.dtype == "double":
                     dtype = "double"
-        #for k, arg in enumerate(args):
-        #    if "int" in arg.dtype:
-        #        args[k] = cast_to(dtype, arg)
         if dtype == "half2":
             if gpu_half2_code == "NA":
                 KeOps_Error("Operation is not implemented for half precision")
@@ -108,8 +108,12 @@ keops_pow = math_function(
 )
 
 keops_pow = math_function(
-    cpu_code=lambda x, y : ("1.0/" if y<0 else "") + "(1.0"+f"*{x}"*abs(y)+")",
-    gpu_half2_code=lambda x, y : (h2one+"/" if y<0 else "") + "("+h2one+f"*{x}"*abs(y)+")",
+    cpu_code=lambda x, y: ("1.0/" if y < 0 else "") + "(1.0" + f"*{x}" * abs(y) + ")",
+    gpu_half2_code=lambda x, y: (h2one + "/" if y < 0 else "")
+    + "("
+    + h2one
+    + f"*{x}" * abs(y)
+    + ")",
 )
 keops_powf = math_function(
     cpu_code="powf", gpu_half2_code=lambda x, y: f"h2exp({y}*h2log({x}))"

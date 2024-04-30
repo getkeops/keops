@@ -9,7 +9,8 @@ class Equal(VectorizedScalarOp):
     """
 
     string_id = "Equal"
-    print_spec = "==", "mid", 3
+    print_fun = lambda x, y: f"{x}=={y}"
+    print_level = 3
 
     ScalarOpFun = keops_equal
 

@@ -5,7 +5,8 @@ from keopscore.utils.math_functions import keops_pow
 class Pow_Impl(VectorizedScalarOp):
     pass
 
-class Pow_Factory():
+
+class Pow_Factory:
 
     def __init__(self, m):
 
@@ -15,9 +16,10 @@ class Pow_Factory():
             """
 
             string_id = "Pow"
-            print_spec = f"**{m}", "post", 1
+            print_fun = lambda x: f"{x}**{m}"
+            print_level = 4
 
-            ScalarOpFun = lambda x : keops_pow(x,m)
+            ScalarOpFun = lambda x: keops_pow(x, m)
 
             @staticmethod
             def Derivative(f):
@@ -30,12 +32,13 @@ class Pow_Factory():
             test_ranges = [(0, 2)]  # ranges of arguments
             test_params = [2]  # values of parameters for testing
             torch_op = "lambda x,m : torch.pow(x, m)"
-        
+
         self.Class = Class
-    
+
     def __call__(self, f):
 
         return self.Class(f)
+
 
 # N.B. The following separate function could theoretically be implemented
 # as a __new__ method of the previous class, but this can generate infinite recursion problems

@@ -16,10 +16,7 @@ class TensorProd(Operation):
     string_id = "TensorProd"
     linearity_type = "one"
 
-    def __init__(self, arg0, arg1, params=()):
-        # N.B. params keyword is used for compatibility with base class, but should always equal ()
-        if params != ():
-            KeOps_Error("There should be no parameter.")
+    def __init__(self, arg0, arg1):
         super().__init__(arg0, arg1)
         self.dim = arg0.dim * arg1.dim
 

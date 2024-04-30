@@ -2,28 +2,42 @@ from keopscore.utils.meta_toolbox import c_zero_float
 from keopscore.formulas.Operation import Operation
 
 
-class Zero(Operation):
-    """zero operation : encodes a vector of zeros"""
+def Zero(dim):
+    return Zero_Impl_Factory(dim)()
 
-    string_id = "Zero"
 
-    def is_linear(self, v):
-        return True
+class Zero_Impl(Operation):
+    pass
 
-    def __init__(self, dim=None, params=None):
-        # N.B. init via params keyword is used for compatibility with base class.
-        if dim is None:
-            # here params should be a tuple containing one single integer
-            (dim,) = params
-        super().__init__(params=(dim,))
-        self.dim = dim
 
-    # custom __eq__ method
-    def __eq__(self, other):
-        return type(self) == type(other) and self.dim == other.dim
+class Zero_Impl_Factory:
 
-    def Op(self, out, table):
-        return out.assign(c_zero_float)
+    def __init__(self, dim):
 
-    def DiffT(self, v, gradin):
-        return Zero(v.dim)
+        class Class(Zero_Impl):
+            """zero operation : encodes a vector of zeros"""
+
+            string_id = "Zero"
+
+            def is_linear(self, v):
+                return True
+
+            def __init__(self):
+
+                super().__init__()
+                self.dim = dim
+
+            # custom __eq__ method
+            def __eq__(self, other):
+                return type(self) == type(other) and self.dim == other.dim
+
+            def Op(self, out, table):
+                return out.assign(c_zero_float)
+
+            def DiffT(self, v, gradin):
+                return Zero(v.dim)
+
+        self.Class = Class
+
+    def __call__(self):
+        return self.Class()

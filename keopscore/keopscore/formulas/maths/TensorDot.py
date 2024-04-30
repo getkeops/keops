@@ -50,180 +50,198 @@ def permutation(perm, arr):
         return select(arr, tmp)
 
 
-class TensorDot(Operation):
-    string_id = "TensorDot"
-    linearity_type = "one"
+def TensorDot(fa, fb, dimsfa, dimsfb, contfa, contfb, permute):
+    return TensorDot_Impl_Factory(dimsfa, dimsfb, contfa, contfb, permute)(fa, fb)
 
-    def __init__(
-        self,
-        fa,
-        fb,
-        dimsfa=None,
-        dimsfb=None,
-        contfa=None,
-        contfb=None,
-        permute=None,
-        params=None,
-    ):
-        # N.B. init via params keyword is used for compatibility with base class.
-        if dimsfa is None:
-            # here we assume dimsfb, contfa, contfb, permute are also None, and
-            # that params is a tuple containing all arguments
-            dimsfa, dimsfb, contfa, contfb, permute = params
 
-        dimsfa = list(dimsfa)
-        dimsfb = list(dimsfb)
-        contfa = list(contfa)
-        contfb = list(contfb)
+class TensorDot_Impl(Operation):
+    pass
 
-        assert select(dimsfb, contfb) == select(dimsfa, contfa)
 
-        assert fa.dim == prod(dimsfa)
-        assert fb.dim == prod(dimsfb)
+class TensorDot_Impl_Factory:
 
-        super().__init__(fa, fb, params=(dimsfa, dimsfb, contfa, contfb, permute))
+    def __init__(self, dimsfa, dimsfb, contfa, contfb, permute):
 
-        self.dimfa = dimsfa
-        self.dimfb = dimsfb
-        self.contdims = select(dimsfa, contfa)
+        class Class(TensorDot_Impl):
+            string_id = "TensorDot"
+            linearity_type = "one"
 
-        self.indices_keepdim_a = delete(list(range(len(dimsfa))), contfa)
-        self.keepdims_a = delete(dimsfa, contfa)
-        self.contdims_a = select(dimsfa, contfa)
-        self.list_strides_dimsfa = cumprod_array(dimsfa)
+            def __init__(self, fa, fb):
 
-        self.indices_keepdim_b = delete(list(range(len(dimsfb))), contfb)
-        self.keepdims_b = delete(dimsfb, contfb)
-        self.contdims_b = select(dimsfb, contfb)
-        self.list_strides_dimsfb = cumprod_array(dimsfb)
+                dimsfa = list(dimsfa)
+                dimsfb = list(dimsfb)
+                contfa = list(contfa)
+                contfb = list(contfb)
 
-        self.keepdims = self.keepdims_a + self.keepdims_b
-        self.list_strides_keepdim = cumprod_array(permutation(permute, self.keepdims))
+                assert select(dimsfb, contfb) == select(dimsfa, contfa)
 
-        self.dim = fa.dim * fb.dim
-        self.dim = int(self.dim / prod(self.contdims) ** 2) if len(contfa) else self.dim
+                assert fa.dim == prod(dimsfa)
+                assert fb.dim == prod(dimsfb)
 
-        if permute is None:
-            permute = list(range(len(self.keepdims)))
-        else:
-            assert permutation(permute, permute) == list(range(len(self.keepdims)))
+                super().__init__(fa, fb)
 
-        self.permute = permute
+                self.dimfa = dimsfa
+                self.dimfb = dimsfb
+                self.contdims = select(dimsfa, contfa)
 
-        # loop
-        self.loopdim = self.keepdims + self.contdims_a
-        self.dimloop = prod(self.loopdim)
-        self.number_of_dimloop = len(dimsfa) + len(dimsfb) - len(contfa)
+                self.indices_keepdim_a = delete(list(range(len(dimsfa))), contfa)
+                self.keepdims_a = delete(dimsfa, contfa)
+                self.contdims_a = select(dimsfa, contfa)
+                self.list_strides_dimsfa = cumprod_array(dimsfa)
 
-        self.ala = list(range(len(self.keepdims_a))) + list(
-            range(len(self.keepdims), self.number_of_dimloop)
-        )
+                self.indices_keepdim_b = delete(list(range(len(dimsfb))), contfb)
+                self.keepdims_b = delete(dimsfb, contfb)
+                self.contdims_b = select(dimsfb, contfb)
+                self.list_strides_dimsfb = cumprod_array(dimsfb)
 
-        self.ali = self.indices_keepdim_a + contfa
-        self.list_indices_a_intot = permutation(self.ali, self.ala)
+                self.keepdims = self.keepdims_a + self.keepdims_b
+                self.list_strides_keepdim = cumprod_array(
+                    permutation(permute, self.keepdims)
+                )
 
-        self.bla = list(range(len(self.keepdims_a), len(self.keepdims))) + list(
-            range(len(self.keepdims), self.number_of_dimloop)
-        )
+                self.dim = fa.dim * fb.dim
+                self.dim = (
+                    int(self.dim / prod(self.contdims) ** 2)
+                    if len(contfa)
+                    else self.dim
+                )
 
-        self.bli = self.indices_keepdim_b + contfb
-        self.list_indices_b_intot = permutation(self.bli, self.bla)
+                if permute is None:
+                    permute = list(range(len(self.keepdims)))
+                else:
+                    assert permutation(permute, permute) == list(
+                        range(len(self.keepdims))
+                    )
 
-        # Gradient
-        self.dimfa_grad = permutation(permute, self.keepdims)
+                self.permute = permute
 
-        self.list_indices_keepdim_a_inout = list(range(0, len(self.keepdims_a)))
-        self.reordered_contfa = permutation(contfb, contfa)
-        self.reordered_keepdim_a = permutation(
-            select(permute, self.list_indices_keepdim_a_inout), self.indices_keepdim_a
-        )
-        self.moveaxis_a = self.reordered_keepdim_a + self.reordered_contfa
+                # loop
+                self.loopdim = self.keepdims + self.contdims_a
+                self.dimloop = prod(self.loopdim)
+                self.number_of_dimloop = len(dimsfa) + len(dimsfb) - len(contfa)
 
-        self.list_indices_keepdim_b_inout = list(
-            range(len(self.keepdims_a), len(self.keepdims))
-        )
-        self.reordered_contfb = permutation(contfa, contfb)
-        self.reordered_keepdim_b = permutation(
-            select(permute, self.list_indices_keepdim_b_inout), self.indices_keepdim_b
-        )
-        self.moveaxis_b = self.reordered_keepdim_b + self.reordered_contfb
+                self.ala = list(range(len(self.keepdims_a))) + list(
+                    range(len(self.keepdims), self.number_of_dimloop)
+                )
 
-        self.contfa_grad = select(permute, self.list_indices_keepdim_b_inout)
-        self.contfb_grad = select(permute, self.list_indices_keepdim_a_inout)
+                self.ali = self.indices_keepdim_a + contfa
+                self.list_indices_a_intot = permutation(self.ali, self.ala)
 
-    def Op(self, out, table, arg0, arg1):
-        # returns the atomic piece of c++ code to evaluate the function on arg and return
-        # the result in out
+                self.bla = list(range(len(self.keepdims_a), len(self.keepdims))) + list(
+                    range(len(self.keepdims), self.number_of_dimloop)
+                )
 
-        str_code = ""
+                self.bli = self.indices_keepdim_b + contfb
+                self.list_indices_b_intot = permutation(self.bli, self.bla)
 
-        for i in range(len(self.loopdim)):
-            str_code += (
-                f"for(signed long int TD_var_{chr(70 + i)}=0; TD_var_{chr(70 + i)}<{self.loopdim[i]}; ++TD_var_{chr(70 + i)})"
-                + "{\n"
-                + i * "    "
-            )
+                # Gradient
+                self.dimfa_grad = permutation(permute, self.keepdims)
 
-        list_indices_keepdim = permutation(self.permute, range(len(self.keepdims)))
-        str_out_indices = "0 +"
-        for i, v in enumerate(list_indices_keepdim):
-            str_out_indices += (
-                f"TD_var_{chr(70 + v)} * {self.list_strides_keepdim[i]} + "
-            )
+                self.list_indices_keepdim_a_inout = list(range(0, len(self.keepdims_a)))
+                self.reordered_contfa = permutation(contfb, contfa)
+                self.reordered_keepdim_a = permutation(
+                    select(permute, self.list_indices_keepdim_a_inout),
+                    self.indices_keepdim_a,
+                )
+                self.moveaxis_a = self.reordered_keepdim_a + self.reordered_contfa
 
-        str_a_indices = "0 +"
-        for i, v in enumerate(self.list_indices_a_intot):
-            str_a_indices += f"TD_var_{chr(70 + v)} * {self.list_strides_dimsfa[i]} + "
+                self.list_indices_keepdim_b_inout = list(
+                    range(len(self.keepdims_a), len(self.keepdims))
+                )
+                self.reordered_contfb = permutation(contfa, contfb)
+                self.reordered_keepdim_b = permutation(
+                    select(permute, self.list_indices_keepdim_b_inout),
+                    self.indices_keepdim_b,
+                )
+                self.moveaxis_b = self.reordered_keepdim_b + self.reordered_contfb
 
-        str_b_indices = "0 +"
-        for i, v in enumerate(self.list_indices_b_intot):
-            str_b_indices += f"TD_var_{chr(70 + v)} * {self.list_strides_dimsfb[i]} + "
+                self.contfa_grad = select(permute, self.list_indices_keepdim_b_inout)
+                self.contfb_grad = select(permute, self.list_indices_keepdim_a_inout)
 
-        str_code += (
-            len(self.loopdim) * "    "
-            + f"{out.id}[{str_out_indices[:-2]}] += {arg0.id}[{str_a_indices[:-2]}] * {arg1.id}[{str_b_indices[:-2]}];\n"
-        )
+            def Op(self, out, table, arg0, arg1):
+                # returns the atomic piece of c++ code to evaluate the function on arg and return
+                # the result in out
 
-        str_code += len(self.loopdim) * "}\n"
+                str_code = ""
 
-        res = f"""
-                    #if C_CONTIGUOUS     // row major
-                        {use_pragma_unroll()}
-                        for (signed long int i = 0; i < {out.dim}; i++)
-                            {out.id}[i] = ({out.dtype})(0.0f);
-                        
-                        {use_pragma_unroll()}                       
-                        {str_code}
-                    #else               // column major
-                        
-                    #endif
-                """
+                for i in range(len(self.loopdim)):
+                    str_code += (
+                        f"for(signed long int TD_var_{chr(70 + i)}=0; TD_var_{chr(70 + i)}<{self.loopdim[i]}; ++TD_var_{chr(70 + i)})"
+                        + "{\n"
+                        + i * "    "
+                    )
 
-        return c_instruction_from_string(res)
+                list_indices_keepdim = permutation(
+                    self.permute, range(len(self.keepdims))
+                )
+                str_out_indices = "0 +"
+                for i, v in enumerate(list_indices_keepdim):
+                    str_out_indices += (
+                        f"TD_var_{chr(70 + v)} * {self.list_strides_keepdim[i]} + "
+                    )
 
-    def DiffT(self, v, gradin):
-        f = self.children[0]
-        g = self.children[1]
-        return f.DiffT(
-            v,
-            TensorDot(
-                gradin,
-                g,
-                self.dimfa_grad,
-                self.dimfb,
-                self.contfa_grad,
-                self.indices_keepdim_b,
-                self.moveaxis_a,
-            ),
-        ) + g.DiffT(
-            v,
-            TensorDot(
-                gradin,
-                f,
-                self.dimfa_grad,
-                self.dimfa,
-                self.contfb_grad,
-                self.indices_keepdim_a,
-                self.moveaxis_b,
-            ),
-        )
+                str_a_indices = "0 +"
+                for i, v in enumerate(self.list_indices_a_intot):
+                    str_a_indices += (
+                        f"TD_var_{chr(70 + v)} * {self.list_strides_dimsfa[i]} + "
+                    )
+
+                str_b_indices = "0 +"
+                for i, v in enumerate(self.list_indices_b_intot):
+                    str_b_indices += (
+                        f"TD_var_{chr(70 + v)} * {self.list_strides_dimsfb[i]} + "
+                    )
+
+                str_code += (
+                    len(self.loopdim) * "    "
+                    + f"{out.id}[{str_out_indices[:-2]}] += {arg0.id}[{str_a_indices[:-2]}] * {arg1.id}[{str_b_indices[:-2]}];\n"
+                )
+
+                str_code += len(self.loopdim) * "}\n"
+
+                res = f"""
+                            #if C_CONTIGUOUS     // row major
+                                {use_pragma_unroll()}
+                                for (signed long int i = 0; i < {out.dim}; i++)
+                                    {out.id}[i] = ({out.dtype})(0.0f);
+                                
+                                {use_pragma_unroll()}                       
+                                {str_code}
+                            #else               // column major
+                                
+                            #endif
+                        """
+
+                return c_instruction_from_string(res)
+
+            def DiffT(self, v, gradin):
+                f = self.children[0]
+                g = self.children[1]
+                return f.DiffT(
+                    v,
+                    TensorDot(
+                        gradin,
+                        g,
+                        self.dimfa_grad,
+                        self.dimfb,
+                        self.contfa_grad,
+                        self.indices_keepdim_b,
+                        self.moveaxis_a,
+                    ),
+                ) + g.DiffT(
+                    v,
+                    TensorDot(
+                        gradin,
+                        f,
+                        self.dimfa_grad,
+                        self.dimfa,
+                        self.contfb_grad,
+                        self.indices_keepdim_a,
+                        self.moveaxis_b,
+                    ),
+                )
+
+        self.Class = Class
+
+    def __call__(self, fa, fb):
+        return self.Class(fa, fb)

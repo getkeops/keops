@@ -1,5 +1,5 @@
 from keopscore.formulas.InnerReductionOp import InnerReductionOp
-from keopscore.formulas.variables.Zero import Zero
+from keopscore.formulas.variables.Zero import Zero, Zero_Impl
 from keopscore.utils.meta_toolbox import c_zero_float, VectApply
 from keopscore.formulas.maths.Square import Square_Impl
 
@@ -38,7 +38,7 @@ def Sum(arg):
 
     if arg.dim == 1:
         return arg
-    elif isinstance(arg, Zero):
+    elif isinstance(arg, Zero_Impl):
         return Zero(1)
     elif isinstance(arg, Mult_Impl) and arg.children[0].dim == 1:
         # Sum(f*g) -> f*Sum(g) if f.dim=1

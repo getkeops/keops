@@ -11,34 +11,49 @@ from keopscore.utils.misc_utils import KeOps_Error
 # (also ordering of arguments differs.)
 
 
-class IndexT(Operation):
-    string_id = "IndexT"
-    linearity_type = "first"
+def IndexT(f, g, n):
+    return IndexT_Factory(n)(f, g)
 
-    def __init__(self, f, g, n=None, params=None):
-        # N.B. init via params keyword is used for compatibility with base class.
-        if n is None:
-            # here we assume params is a tuple containing n
-            (n,) = params
-        super().__init__(f, g, params=(n,))
-        if f.dim != 1 or g.dim != 1:
-            KeOps_Error("Inputs of IndexT should be scalar")
-        self.dim = n
-        self.n = n
 
-    def Op(self, out, table, arga, argb):
-        n = self.n
-        loop1, k = c_for_loop(0, n, 1, pragma_unroll=True)
-        res = loop1(out[k].assign(c_zero_float))
-        res += out[argb.value].assign(arga.value)
-        return res
+class IndexT_Impl(Operation):
+    pass
 
-    def DiffT(self, v, gradin):
-        from keopscore.formulas.maths.Index import Index
 
-        f, g = self.children
-        return f.DiffT(v, Index(gradin, g))
+class IndexT_Factory:
 
-    # parameters for testing the operation (optional)
-    enable_test = False  # enable testing for this operation
-    # N.B. test here can probably be adapted from ElemT one.
+    def __init__(self, n):
+
+        class Class(IndexT_Impl):
+
+            string_id = "IndexT"
+            linearity_type = "first"
+            print_fun = lambda x, y: f"IndexT({x},{y},{n})"
+
+            def __init__(self, f, g):
+                super().__init__(f, g)
+                if f.dim != 1 or g.dim != 1:
+                    KeOps_Error("Inputs of IndexT should be scalar")
+                self.dim = n
+                self.n = n
+
+            def Op(self, out, table, arga, argb):
+                n = self.n
+                loop1, k = c_for_loop(0, n, 1, pragma_unroll=True)
+                res = loop1(out[k].assign(c_zero_float))
+                res += out[argb.value].assign(arga.value)
+                return res
+
+            def DiffT(self, v, gradin):
+                from keopscore.formulas.maths.Index import Index
+
+                f, g = self.children
+                return f.DiffT(v, Index(gradin, g))
+
+            # parameters for testing the operation (optional)
+            enable_test = False  # enable testing for this operation
+            # N.B. test here can probably be adapted from ElemT one.
+
+        self.Class = Class
+
+    def __call__(self, f, g):
+        return self.Class(f, g)

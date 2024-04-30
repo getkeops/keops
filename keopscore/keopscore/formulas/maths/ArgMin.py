@@ -17,10 +17,7 @@ from keopscore.utils.misc_utils import KeOps_Error
 class ArgMin(Operation):
     string_id = "ArgMin"
 
-    def __init__(self, f, params=()):
-        # N.B. params keyword is used for compatibility with base class, but should always equal ()
-        if params != ():
-            KeOps_Error("There should be no parameter.")
+    def __init__(self, f):
         super().__init__(f)
         if f.dim < 1:
             KeOps_Error("ArgMin operation is only possible when dimension is non zero.")
