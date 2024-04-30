@@ -1,6 +1,7 @@
 from keopscore.formulas.VectorizedScalarOp import VectorizedScalarOp
 from keopscore.formulas.variables.Zero import Zero
 from keopscore.utils.math_functions import keops_round
+from keopscore.utils.unique_object import unique_object
 
 
 def Round(f, d):
@@ -8,10 +9,14 @@ def Round(f, d):
 
 
 class Round_Impl(VectorizedScalarOp):
-    pass
+
+    # parameters for testing the operation (optional)
+    nargs = 1  # number of arguments
+    test_params = [3]  # parameters to try
+    torch_op = None  # equivalent PyTorch operation
 
 
-class Round_Impl_Factory:
+class Round_Impl_Factory(metaclass=unique_object):
 
     def __init__(self, d):
 
@@ -29,11 +34,6 @@ class Round_Impl_Factory:
 
             def DiffT(self, v, gradin):
                 return Zero(v.dim)
-
-            # parameters for testing the operation (optional)
-            nargs = 1  # number of arguments
-            test_params = [3]  # parameters to try
-            torch_op = None  # equivalent PyTorch operation
 
         self.Class = Class
 

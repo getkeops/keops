@@ -10,13 +10,14 @@ from keopscore.utils.meta_toolbox import (
 from keopscore.formulas.Operation import Operation
 import keopscore
 from keopscore.utils.code_gen_utils import GetInds
+from keopscore.utils.unique_object import unique_object
 
 
 class Factorize_Impl(Operation):
     pass
 
 
-class Factorize_Impl_Factory:
+class Factorize_Impl_Factory(metaclass=unique_object):
 
     def __init__(self, aliasvar):
 
@@ -94,9 +95,6 @@ class Factorize_Impl_Factory:
                 aliasvar = self.aliasvar
                 f = f.replace(aliasvar, g)
                 return Factorize(f.DiffT(v, gradin), g)
-
-            # parameters for testing the operation (optional)
-            enable_test = False  # enable testing for this operation
 
         self.Class = Class
 

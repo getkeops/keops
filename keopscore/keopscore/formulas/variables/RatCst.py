@@ -7,13 +7,14 @@ from keopscore.formulas.Operation import Operation
 from keopscore.formulas.variables.Zero import Zero
 from keopscore.formulas.variables.IntCst import IntCst
 from fractions import Fraction
+from keopscore.utils.unique_object import unique_object
 
 
 class RatCst_Impl(Operation):
     pass
 
 
-class RatCst_Impl_Factory:
+class RatCst_Impl_Factory(metaclass=unique_object):
 
     def __init__(self, p, q):
 

@@ -1,13 +1,14 @@
 from keopscore.utils.meta_toolbox import c_empty_instruction, c_array_scalar
 from keopscore.formulas.Operation import Operation
 from keopscore.formulas.variables.Zero import Zero
+from keopscore.utils.unique_object import unique_object
 
 
 class IntCst_Impl(Operation):
     pass
 
 
-class IntCst_Impl_Factory:
+class IntCst_Impl_Factory(metaclass=unique_object):
 
     def __init__(self, val):
 

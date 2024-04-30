@@ -1,6 +1,7 @@
 from keopscore.formulas.Operation import Operation
 from keopscore.formulas.variables.Zero import Zero, Zero_Impl
 from keopscore.utils.misc_utils import KeOps_Error
+from keopscore.utils.unique_object import unique_object
 
 ##########################
 ######    SumT       #####
@@ -11,7 +12,7 @@ class SumT_Impl(Operation):
     pass
 
 
-class SumT_Impl_Factory:
+class SumT_Impl_Factory(metaclass=unique_object):
 
     def __init__(self, dim):
 

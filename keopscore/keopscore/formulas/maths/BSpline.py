@@ -16,7 +16,14 @@ from keopscore.utils.misc_utils import KeOps_Error
 
 
 class BSpline_Impl(Operation):
-    pass
+
+    # parameters for testing the operation (optional)
+    enable_test = True  # enable testing for this operation
+    disable_testgrad = True  # disable testing of the gradient
+    nargs = 2  # number of arguments
+    test_argdims = [5, 1]  # dimensions of arguments for testing
+    test_params = [3]  # values of parameters for testing
+    torch_op = None  # equivalent PyTorch operation
 
 
 class BSpline_Impl_Factory:
@@ -113,14 +120,6 @@ class BSpline_Impl_Factory:
                     "with 'x.detach()' "
                     "or submit a feature request at https://github.com/getkeops/keops/issues."
                 )
-
-            # parameters for testing the operation (optional)
-            enable_test = True  # enable testing for this operation
-            disable_testgrad = True  # disable testing of the gradient
-            nargs = 2  # number of arguments
-            test_argdims = [5, 1]  # dimensions of arguments for testing
-            test_params = [3]  # values of parameters for testing
-            torch_op = None  # equivalent PyTorch operation
 
         self.Class = Class
 

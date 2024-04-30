@@ -16,7 +16,11 @@ def DiffClampInt(x, a, b):
 
 
 class DiffClampInt_Impl(VectorizedScalarOp):
-    pass
+
+    # parameters for testing the operation (optional)
+    enable_test = (
+        False  # (because it will be tested anyway if we test the gradient of ClampInt)
+    )
 
 
 class DiffClampInt_Impl_Factory:
@@ -32,9 +36,6 @@ class DiffClampInt_Impl_Factory:
                 from keopscore.formulas import Zero
 
                 return Zero(v.dim)
-
-            # parameters for testing the operation (optional)
-            enable_test = False  # (because it will be tested anyway if we test the gradient of ClampInt)
 
         self.Class = Class
 

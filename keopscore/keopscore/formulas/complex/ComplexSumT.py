@@ -1,6 +1,7 @@
 from keopscore.formulas.Operation import Operation
 from keopscore.utils.meta_toolbox import c_for_loop
 from keopscore.utils.misc_utils import KeOps_Error
+from keopscore.utils.unique_object import unique_object
 
 # /////////////////////////////////////////////////////////////////////////
 # ////      adjoint of ComplexSum                           ////
@@ -15,7 +16,7 @@ class ComplexSumT_Impl:
     pass
 
 
-class ComplexSumT_Impl_Factory:
+class ComplexSumT_Impl_Factory(metaclass=unique_object):
 
     def __init__(self, dim):
 

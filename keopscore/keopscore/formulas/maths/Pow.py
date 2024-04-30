@@ -3,7 +3,12 @@ from keopscore.utils.math_functions import keops_pow
 
 
 class Pow_Impl(VectorizedScalarOp):
-    pass
+
+    # parameters for testing the operation (optional)
+    nargs = 1  # number of arguments (excluding parameters)
+    test_ranges = [(0, 2)]  # ranges of arguments
+    test_params = [2]  # values of parameters for testing
+    torch_op = "lambda x,m : torch.pow(x, m)"
 
 
 class Pow_Factory:
@@ -26,12 +31,6 @@ class Pow_Factory:
                 from keopscore.formulas.variables.IntCst import IntCst
 
                 return IntCst(m) * Pow(f, m - 1)
-
-            # parameters for testing the operation (optional)
-            nargs = 1  # number of arguments (excluding parameters)
-            test_ranges = [(0, 2)]  # ranges of arguments
-            test_params = [2]  # values of parameters for testing
-            torch_op = "lambda x,m : torch.pow(x, m)"
 
         self.Class = Class
 

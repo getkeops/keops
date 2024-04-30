@@ -1,6 +1,7 @@
 from keopscore.formulas.Operation import Operation
 from keopscore.utils.meta_toolbox import c_zero_float
 from keopscore.utils.misc_utils import KeOps_Error
+from keopscore.utils.unique_object import unique_object
 
 # //////////////////////////////////////////////////////////////
 # ////     VECTOR "INJECTION" : ExtractT<F,START,DIM>       ////
@@ -12,10 +13,22 @@ def ExtractT(f, start, dim):
 
 
 class ExtracT_Impl(Operation):
-    pass
+
+    # parameters for testing the operation (optional)
+    enable_test = True  # enable testing for this operation
+    nargs = 1  # number of arguments
+    test_argdims = [5]  # dimensions of arguments for testing
+    test_params = [3, 10]  # dimensions of parameters for testing
+
+    def torch_op(x, s, d):  # equivalent PyTorch operation
+        import torch
+
+        out = torch.zeros((*x.shape[:-1], d), device=x.device, dtype=x.dtype)
+        out[..., s : (s + x.shape[-1])] = x
+        return out
 
 
-class ExtractT_Impl_Factory:
+class ExtractT_Impl_Factory(metaclass=unique_object):
 
     def __init__(self, start, dim):
 
@@ -49,16 +62,3 @@ class ExtractT_Impl_Factory:
 
                 f = self.children[0]
                 return f.DiffT(v, Extract(gradin, self.start, f.dim))
-
-            # parameters for testing the operation (optional)
-            enable_test = True  # enable testing for this operation
-            nargs = 1  # number of arguments
-            test_argdims = [5]  # dimensions of arguments for testing
-            test_params = [3, 10]  # dimensions of parameters for testing
-
-            def torch_op(x, s, d):  # equivalent PyTorch operation
-                import torch
-
-                out = torch.zeros((*x.shape[:-1], d), device=x.device, dtype=x.dtype)
-                out[..., s : (s + x.shape[-1])] = x
-                return out

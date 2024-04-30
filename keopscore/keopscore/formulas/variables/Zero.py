@@ -1,5 +1,6 @@
 from keopscore.utils.meta_toolbox import c_zero_float
 from keopscore.formulas.Operation import Operation
+from keopscore.utils.unique_object import unique_object
 
 
 def Zero(dim):
@@ -10,7 +11,7 @@ class Zero_Impl(Operation):
     pass
 
 
-class Zero_Impl_Factory:
+class Zero_Impl_Factory(metaclass=unique_object):
 
     def __init__(self, dim):
 
@@ -26,10 +27,6 @@ class Zero_Impl_Factory:
 
                 super().__init__()
                 self.dim = dim
-
-            # custom __eq__ method
-            def __eq__(self, other):
-                return type(self) == type(other) and self.dim == other.dim
 
             def Op(self, out, table):
                 return out.assign(c_zero_float)

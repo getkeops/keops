@@ -1,3 +1,4 @@
+from keopscore.utils.unique_object import unique_object
 from keopscore.utils.meta_toolbox import (
     c_comment,
     c_instruction,
@@ -18,7 +19,7 @@ from keopscore.utils.misc_utils import KeOps_Error
 ###################
 
 
-class Operation(Tree):
+class Operation(Tree, metaclass=unique_object):
     """Base class for all keops building block operations in a formula"""
 
     linearity_type = None
@@ -210,9 +211,6 @@ class Operation(Tree):
         from keopscore.formulas.maths.Scalprod import Scalprod
 
         return Scalprod(self, other)
-
-    def __eq__(self, other):
-        return type(self) == type(other) and self.children == other.children
 
     def __lt__(self, other):
         """f<g redirects to LessThan(f,g)"""

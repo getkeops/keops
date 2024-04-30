@@ -1,6 +1,7 @@
 from keopscore.formulas.VectorizedScalarOp import VectorizedScalarOp
 from keopscore.formulas.maths.DiffClampInt import DiffClampInt
 from keopscore.utils.math_functions import keops_clampint
+from keopscore.utils.unique_object import unique_object
 
 
 def ClampInt(x, a, b):
@@ -8,10 +9,13 @@ def ClampInt(x, a, b):
 
 
 class ClampInt_Impl(VectorizedScalarOp):
-    pass
+
+    # parameters for testing the operation (optional)
+    test_params = [0, 1]  # parameters to try
+    torch_op = "torch.clamp"  # equivalent PyTorch operation
 
 
-class ClampInt_Impl_Factory:
+class ClampInt_Impl_Factory(metaclass=unique_object):
 
     def __init__(self, a, b):
 
@@ -30,6 +34,7 @@ class ClampInt_Impl_Factory:
             def Derivative(x):
                 return DiffClampInt(x, a, b)
 
-            # parameters for testing the operation (optional)
-            test_params = [0, 1]  # parameters to try
-            torch_op = "torch.clamp"  # equivalent PyTorch operation
+        self.Class = Class
+
+    def __call__(self, f):
+        return self.Class(f)

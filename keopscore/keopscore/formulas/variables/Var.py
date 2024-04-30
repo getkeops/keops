@@ -1,7 +1,7 @@
 from typing import Any
 from keopscore.utils.meta_toolbox import c_empty_instruction
 from keopscore.formulas.Operation import Operation
-
+from keopscore.utils.unique_object import unique_object
 
 #######################
 ## Var operation
@@ -12,13 +12,12 @@ class Var_Impl(Operation):
     pass
 
 
-class Var_Factory:
+class Var_Factory(metaclass=unique_object):
 
-    def __init__(self, ind, dim, cat, label):
+    def __init__(self, ind, dim, cat):
 
-        if label is None:
-            # N.B. label is just a string used as an alias when printing the formulas ; it plays no role in computations.
-            label = chr(ord("a") + ind) if ind >= 0 else chr(944 - ind)
+        # N.B. label is just a string used as an alias when printing the formulas ; it plays no role in computations.
+        label = chr(ord("a") + ind) if ind >= 0 else chr(944 - ind)
 
         class Class(Var_Impl):
             """Var operation class. Var(ind,dim,cat) is a symbolic
@@ -41,17 +40,15 @@ class Var_Factory:
                 self.ind = ind
                 self.dim = dim
                 self.cat = cat
-                self.label = label
+                self.set_label(label)
                 self.Vars_ = {self}
 
-            # custom __eq__ and __hash__ methods, required to handle properly the union of two sets of Var objects
-            def __eq__(self, other):
-                return (
-                    type(self) == type(other)
-                    and self.ind == other.ind
-                    and self.dim == other.dim
-                    and self.cat == other.cat
-                )
+            def set_label(self, label):
+                if label is None:
+                    # N.B. label is just a string used as an alias when printing the formulas ; it plays no role in computations.
+                    self.label = chr(ord("a") + ind) if ind >= 0 else chr(944 - ind)
+                else:
+                    self.label = label
 
             def __hash__(self):
                 return hash((self.ind, self.dim, self.cat))
@@ -100,4 +97,6 @@ class Var_Factory:
 
 
 def Var(ind, dim, cat, label=None):
-    return Var_Factory(ind, dim, cat, label=None)()
+    res = Var_Factory(ind, dim, cat)()
+    res.set_label(label)
+    return res

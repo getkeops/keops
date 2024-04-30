@@ -16,7 +16,10 @@ def IndexT(f, g, n):
 
 
 class IndexT_Impl(Operation):
-    pass
+
+    # parameters for testing the operation (optional)
+    enable_test = False  # enable testing for this operation
+    # N.B. test here can probably be adapted from ElemT one.
 
 
 class IndexT_Factory:
@@ -48,10 +51,6 @@ class IndexT_Factory:
 
                 f, g = self.children
                 return f.DiffT(v, Index(gradin, g))
-
-            # parameters for testing the operation (optional)
-            enable_test = False  # enable testing for this operation
-            # N.B. test here can probably be adapted from ElemT one.
 
         self.Class = Class
 

@@ -1,5 +1,6 @@
 from keopscore.formulas.Operation import Operation
 from keopscore.utils.meta_toolbox import use_pragma_unroll, c_instruction_from_string
+from keopscore.utils.unique_object import unique_object
 
 ####################################
 ######  Tensor Dot Product     #####
@@ -58,7 +59,7 @@ class TensorDot_Impl(Operation):
     pass
 
 
-class TensorDot_Impl_Factory:
+class TensorDot_Impl_Factory(metaclass=unique_object):
 
     def __init__(self, dimsfa, dimsfb, contfa, contfb, permute):
 
