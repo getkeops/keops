@@ -1,6 +1,7 @@
 # Testing auto factorize for high order grads
 
 from keopscore.formulas import *
+from keopscore.formulas.factorization.Factorize import AutoFactorize_new
 
 D = 3
 x = Var(0, D, 0, "x")
@@ -14,7 +15,7 @@ print("f =", f)
 print()
 g = AutoFactorize(f)
 
-for i in range(1, 7):
+for i in range(1, 3):
     print("grad order", i)
     f = Grad(f, x)
     g = AutoFactorize(Grad(g, x))
@@ -39,7 +40,7 @@ g = AutoFactorize(f)
 
 for i in range(1, 9):
     print("grad order", i)
-    g = AutoFactorize(Grad(g, x))
+    g = AutoFactorize_new(Grad(g, x))
     print()
     print("with auto factorize iterated:")
     print()

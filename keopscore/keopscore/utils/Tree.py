@@ -1,17 +1,22 @@
 class Tree:
+
     """a custom class for handling a tree structure.
     Currently we use it only to recursively print a formula or reduction"""
 
+    def __init__(self, *children):
+        self.children = list(children)
+        
     def recursive_str(self):
-        arg_strings = []
-        for child in self.children:
-            if child.print_level >= self.print_level:
-                arg_strings.append("(" + child.recursive_str() + ")")
-            else:
-                arg_strings.append(child.recursive_str())
         if hasattr(self, "print_fun"):
+            arg_strings = []
+            for child in self.children:
+                if child.print_level >= self.print_level:
+                    arg_strings.append("(" + child.recursive_str() + ")")
+                else:
+                    arg_strings.append(child.recursive_str())
             return type(self).print_fun(*arg_strings)
         else:
+            arg_strings = [child.recursive_str() for child in self.children]
             return self.string_id + "(" + ",".join(arg_strings) + ")"
 
     def print_expand(self, depth=0):

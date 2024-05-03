@@ -1,6 +1,6 @@
 from keopscore.formulas.Operation import Broadcast
 from keopscore.formulas.VectorizedScalarOp import VectorizedScalarOp
-from keopscore.formulas.variables.Zero import Zero_Impl
+from keopscore.formulas.variables.Zero import Zero, Zero_Impl
 from keopscore.formulas.maths.Mult import Mult_Impl
 from keopscore.formulas.maths.Sum import Sum
 from keopscore.formulas.variables.IntCst import IntCst, IntCst_Impl
