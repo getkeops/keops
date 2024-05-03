@@ -16,7 +16,7 @@ f = SqNorm2(Exp(-SqDist(x, 2*y)) * b) + b + 2*y + SqDist(x, 2*y)
 for Auto_f_method in [AutoFactorize_new]:#[AutoFactorize,AutoFactorize_new]:
     start = time()
     g = f
-    for k in range(5):
+    for k in range(3):
         g = Auto_f_method(g)
         g = g.DiffT(x, u)
     g = Auto_f_method(g)
