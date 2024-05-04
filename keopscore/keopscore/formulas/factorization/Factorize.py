@@ -30,9 +30,12 @@ class Factorize_Impl_Factory(metaclass=unique_object):
                 f, g = self.children
                 return f"[{f.__repr__()} with {self.aliasvar.__repr__()}={g.__repr__()}]"
 
-            def __init__(self, f, g):
+            def __init__(self, f, g, org_f=None):
                 super().__init__(f, g)
                 self.dim = f.dim
+                if org_f is None:
+                    org_f = f.replace(aliasvar, g)
+                self.org_f = org_f
                 self.aliasvar = aliasvar
                 if isinstance(f, Factorize_Impl):
                     self.defined_temp_Vars = f.defined_temp_Vars + [aliasvar]
@@ -96,19 +99,31 @@ class Factorize_Impl_Factory(metaclass=unique_object):
                 return res
 
             def DiffT_old(self, v, gradin):
+                _, g = self.children
+                return Factorize(self.org_f.DiffT(v, gradin), g)
+            
+            def DiffT_old(self, v, gradin):
                 f, g = self.children
                 aliasvar = self.aliasvar
                 f = f.replace(aliasvar, g)
                 return Factorize(f.DiffT(v, gradin), g)
             
-            def DiffT(self, v, gradin):
+            def DiffT_new(self, v, gradin):
                 f = Defactorize(self)
                 return f.DiffT(v,gradin)
+            
+            def DiffT(self, v, gradin):
+                return self.org_f.DiffT(v,gradin)
+
+            def DiffT_new(self, v, gradin):
+                f, g = self.children
+                gradin_g = f.DiffT(self.aliasvar,gradin)
+                return Factorize_(g.DiffT(v,gradin_g), g, aliasvar)
 
         self.Class = Class
 
-    def __call__(self, f, g):
-        return self.Class(f, g)
+    def __call__(self, f, g, org_f=None):
+        return self.Class(f, g, org_f)
 
 
 def Factorize_(formula, g, v):
@@ -156,10 +171,7 @@ def AutoFactorize(formula):
 
 def Defactorize(f):
     if isinstance(f, Factorize_Impl):
-        aliasvar = f.aliasvar
-        f,g = f.children
-        f = f.replace(aliasvar,g)
-        return Defactorize(f)
+        return Defactorize(f.org_f)
     newchildren = [Defactorize(child) for child in f.children]
     return type(f)(*newchildren)
 
@@ -225,7 +237,7 @@ def AutoFactorize_new(f):
         f.new = type(f)(*newchildren)
         f.to_factorize.reverse()
         for g in f.to_factorize:
-            f.new = Factorize_Impl_Factory(g.alias)(f.new,g)
+            f.new = Factorize_Impl_Factory(g.alias)(f.new,g,f)
         if hasattr(f, "alias"):
             f.new.alias = f.alias
             common_ancestor = get_common_ancestor(f, root)
