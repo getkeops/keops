@@ -36,7 +36,7 @@ class ComplexSumT_Impl_Factory(metaclass=unique_object):
                 body += out[i + 1].assign(inF[1])
                 return forloop(body)
 
-            def GradFun(self, v, gradin):
+            def DiffT_fun(self, v, gradin):
                 from keopscore.formulas.complex.ComplexSum import ComplexSum
 
                 f = self.children[0]

@@ -26,7 +26,7 @@ class Mult_Impl(VectorizedScalarOp):
     ScalarOpFun = keops_mul
 
     #  \diff_V (A*B) = (\diff_V A) * B + A * (\diff_V B)
-    def GradFun(self, v, gradin):
+    def DiffT_fun(self, v, gradin):
         fa, fb = self.children
         if isinstance(fb, Exp) and fb.dim == 1:
             (u,) = fb.children

@@ -19,7 +19,7 @@ class ArgMax_Reduction(Max_ArgMax_Reduction_Base):
         acc_val, acc_ind = acc.split(self.dim, self.dim)
         return out.copy(acc_ind)
 
-    def GradFun(self, v, gradin, f0=None):
+    def DiffT(self, v, gradin, f0=None):
         return Zero_Reduction(v.dim, v.cat % 2)
 
     def Diff(self, v, diffin, f0=None):

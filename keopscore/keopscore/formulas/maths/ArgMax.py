@@ -42,7 +42,7 @@ class ArgMax(Operation):
 
         return res
 
-    def GradFun(self, v, gradin):
+    def DiffT_fun(self, v, gradin):
         return Zero(v.dim)
 
     # parameters for testing the operation (optional)

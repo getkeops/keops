@@ -24,7 +24,7 @@ class ComplexSquareAbs(Operation):
         forloop, i = c_for_loop(0, f.dim, 2, pragma_unroll=True)
         return forloop(out[i / 2].assign(inF[i] * inF[i] + inF[i + 1] * inF[i + 1]))
 
-    def GradFun(self, v, gradin):
+    def DiffT_fun(self, v, gradin):
         f = self.children[0]
         AltFormula = ComplexReal(ComplexMult(f, Conj(f)))
         return AltFormula.DiffT(v, gradin)

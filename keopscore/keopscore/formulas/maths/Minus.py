@@ -21,7 +21,7 @@ class Minus_Impl(VectorizedScalarOp):
 
     ScalarOpFun = keops_minus
 
-    def GradFun(self, v, gradin):
+    def DiffT_fun(self, v, gradin):
         f = self.children[0]
         return -f.DiffT(v, gradin)
 

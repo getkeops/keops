@@ -143,7 +143,7 @@ class SoftDTW_L2(Operation):
         n, m = self.n, self.m
         return code_softdtw(dtype, out, (x, y), n, m, gamma, mode="x,y")
 
-    def GradFun(self, v, gradin):
+    def DiffT_fun(self, v, gradin):
         KeOps_Error("autograd for SoftDTW_L2 operation not yet implemented.")
         pass
 
@@ -247,7 +247,7 @@ class DifferenceMatrix(Operation):
 
         return code
 
-    def GradFun(self, v, gradin):
+    def DiffT_fun(self, v, gradin):
         x, y = self.children
         n, m = self.n, self.m
         gradx = SumOverCols(gradin, n, m)
@@ -280,7 +280,7 @@ class SoftDTW(Operation):
         n, m = self.input_shape
         return code_softdtw(dtype, out, Delta, n, m, gamma, mode="Delta")
 
-    def GradFun(self, v, gradin):
+    def DiffT_fun(self, v, gradin):
         Delta, gamma = self.children
         if v in gamma.Vars_:
             KeOps_Error("autograd wrt gamma in SoftDTW operation not implemented.")
@@ -381,7 +381,7 @@ class GradSoftDTW(Operation):
 
         return code
 
-    def GradFun(self, v, gradin):
+    def DiffT_fun(self, v, gradin):
         KeOps_Error("autograd for GradSoftDTW operation not yet implemented.")
         pass
 

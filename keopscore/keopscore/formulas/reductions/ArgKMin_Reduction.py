@@ -29,7 +29,7 @@ class ArgKMin_Reduction(KMin_ArgKMin_Reduction):
         body += inner_loop(out[p].assign(acc[l + fdim]) + p.add_assign(fdim))
         return loop(body)
 
-    def GradFun(self, v, gradin, f0=None):
+    def DiffT(self, v, gradin, f0=None):
         return Zero_Reduction(v.dim, v.cat % 2)
 
     def Diff(self, v, diffin, f0=None):

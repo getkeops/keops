@@ -92,7 +92,7 @@ class Max_SumShiftExpWeight_Reduction(Reduction):
                 """
         return c_instruction(string=string, end_str="")
 
-    def GradFun(self, v, gradin, MS):
+    def DiffT(self, v, gradin, MS):
         """
         // Beware: the formula that we use for the gradient is *only* valid
         // if the output [M,S] = Max_SumShiftExp(F,G) has been flattened through a

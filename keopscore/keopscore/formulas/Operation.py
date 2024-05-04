@@ -147,7 +147,7 @@ class Operation(Tree, metaclass=unique_object):
         return code
 
     def DiffT(self, v, gradin):
-        return GradClass(self, v, gradin).value
+        return DiffT_class(self, v, gradin).value
 
     def __mul__(self, other):
         """f*g redirects to Mult(f,g)"""
@@ -270,9 +270,9 @@ class Operation(Tree, metaclass=unique_object):
     disable_testgrad = False
 
 
-class GradClass(metaclass=unique_object):
+class DiffT_class(metaclass=unique_object):
     def __init__(self, f, v, gradin):
-        self.value = f.GradFun(v, gradin)
+        self.value = f.DiffT_fun(v, gradin)
 
 def int2Op(x):
     if isinstance(x, int):

@@ -20,7 +20,7 @@ class Real2Complex(Operation):
         body += out[i + 1].assign(c_zero_float)
         return forloop(body)
 
-    def GradFun(self, v, gradin):
+    def DiffT_fun(self, v, gradin):
         from keopscore.formulas.complex.ComplexReal import ComplexReal
 
         f = self.children[0]

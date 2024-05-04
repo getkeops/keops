@@ -38,7 +38,7 @@ class MatVecMult(Operation):
                     #endif
                 """
 
-    def GradFun(self, v, gradin):
+    def DiffT_fun(self, v, gradin):
         from keopscore.formulas.maths import TensorProd, VecMatMult
 
         A, B = self.children

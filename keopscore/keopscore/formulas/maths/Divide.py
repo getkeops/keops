@@ -25,7 +25,7 @@ class Divide_Impl(VectorizedScalarOp):
     ScalarOpFun = keops_div
 
     #  \diff_V (A/B) = ((\diff_V A) * B - A * (\diff_V B)) / B^2
-    def GradFun(self, v, gradin):
+    def DiffT_fun(self, v, gradin):
         fa, fb = self.children
         if fa.dim == 1 and fb.dim > 1:
             return fa.DiffT(v, Sum(gradin / fb)) - fb.DiffT(v, fa * gradin / Square(fb))

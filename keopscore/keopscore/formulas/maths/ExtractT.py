@@ -57,7 +57,7 @@ class ExtractT_Impl_Factory(metaclass=unique_object):
                     + out_end.assign(c_zero_float)
                 )
 
-            def GradFun(self, v, gradin):
+            def DiffT_fun(self, v, gradin):
                 from keopscore.formulas.maths.Extract import Extract
 
                 f = self.children[0]

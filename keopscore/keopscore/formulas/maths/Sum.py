@@ -18,7 +18,7 @@ class Sum_Impl(InnerReductionOp):
     def ScalarOp(self, out, arg):
         return out.add_assign(arg)
 
-    def GradFun(self, v, gradin):
+    def DiffT_fun(self, v, gradin):
         from keopscore.formulas.maths.SumT import SumT
 
         f = self.children[0]

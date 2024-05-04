@@ -34,7 +34,7 @@ class Min(Operation):
             string += loop(c_if(arg[k] < out.value, out.value.assign(arg[k])))
         return string
 
-    def GradFun(self, v, gradin):
+    def DiffT_fun(self, v, gradin):
         f = self.children[0]
         return f.DiffT(v, OneHot(ArgMin(f), f.dim) * gradin)
 

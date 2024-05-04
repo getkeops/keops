@@ -124,7 +124,7 @@ class SoftDTW(Operation):
 
         return code
 
-    def GradFun(self, v, gradin):
+    def DiffT_fun(self, v, gradin):
         KeOps_Error("autograd for SoftDTW operation not yet implemented.")
         pass
 

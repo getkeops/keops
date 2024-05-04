@@ -22,7 +22,7 @@ class I(Operation):
         out = i if tagI == 0 else j
         return c_empty_instruction, c_array_scalar(out)
 
-    def GradFun(self, v, gradin):
+    def DiffT_fun(self, v, gradin):
         return Zero(v.dim)
 
 
@@ -40,5 +40,5 @@ class J(Operation):
         out = j if tagI == 0 else i
         return c_empty_instruction, c_array_scalar(out)
 
-    def GradFun(self, v, gradin):
+    def DiffT_fun(self, v, gradin):
         return Zero(v.dim)

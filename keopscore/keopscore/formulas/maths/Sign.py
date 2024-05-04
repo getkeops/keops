@@ -15,5 +15,5 @@ class Sign(VectorizedScalarOp):
 
     ScalarOpFun = keops_sign
 
-    def GradFun(self, v, gradin):
+    def DiffT_fun(self, v, gradin):
         return Zero(v.dim)

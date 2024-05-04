@@ -77,7 +77,7 @@ class SoftDTW_SqDist(Operation):
 
         return code
 
-    def GradFun(self, v, gradin):
+    def DiffT_fun(self, v, gradin):
         x, y, gamma = self.children
         n, m = self.n, self.m
         if v in gamma.Vars_:
@@ -206,6 +206,6 @@ class GradSoftDTW_SqDist(Operation):
 
         return code
 
-    def GradFun(self, v, gradin):
+    def DiffT_fun(self, v, gradin):
         KeOps_Error("autograd for GradSoftDTW_SqDist operation not implemented.")
         pass
