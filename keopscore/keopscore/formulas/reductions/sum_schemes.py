@@ -13,6 +13,7 @@ from keopscore.utils.meta_toolbox import (
 
 
 class Sum_Scheme:
+
     def __init__(self, red_formula, dtype, dimred=None):
         self.red_formula = red_formula
         if dimred is None:
@@ -20,8 +21,20 @@ class Sum_Scheme:
         else:
             self.dimred = dimred
 
+    def outputs(self, fout, acc, outi):
+        return fout, acc, outi
+
+    def declare_formula_out(self, fout):
+        return fout.declare()
+
+    def declare_accumulator(self, acc):
+        return acc.declare()
+
     def declare_temporary_accumulator(self):
         return self.tmp_acc.declare()
+
+    def InitializeReduction(self, acc):
+        return self.red_formula.InitializeReduction(acc)
 
     def initialize_temporary_accumulator_first_init(self):
         return c_empty_instruction
@@ -35,20 +48,56 @@ class Sum_Scheme:
     def final_operation(self, acc):
         return c_empty_instruction
 
+    def FinalizeOutput(self, acc, outi, i):
+        return self.red_formula.FinalizeOutput(acc, outi, i)
+
 
 class direct_sum(Sum_Scheme):
+
     def declare_temporary_accumulator(self):
         return c_empty_instruction
+
+    def initialize_temporary_accumulator(self, acc):
+        return c_empty_instruction
+
+    def accumulate_result(self, acc, fout, j, hack=False):
+        return self.red_formula.ReducePairShort(acc, fout, j)
+
+
+class direct_acc(Sum_Scheme):
+
+    def __init__(self, red_formula, dtype, dimred=None):
+        super().__init__(red_formula, dtype, dimred)
+
+    def outputs(self, fout, acc, outi):
+        return outi, outi, outi
+
+    def declare_formula_out(self, fout):
+        return c_empty_instruction
+
+    def declare_accumulator(self, acc):
+        return c_empty_instruction
+
+    def declare_temporary_accumulator(self):
+        return c_empty_instruction
+
+    def InitializeReduction(self, acc):
+        res = self.red_formula.InitializeReduction(acc)
+        acc.assign_op = "+="
+        return res
 
     def initialize_temporary_accumulator(self):
         return c_empty_instruction
 
     def accumulate_result(self, acc, fout, j, hack=False):
-        tmp = self.red_formula.ReducePairShort(acc, fout, j)
-        return self.red_formula.ReducePairShort(acc, fout, j)
+        return c_empty_instruction
+
+    def FinalizeOutput(self, acc, outi, i):
+        return c_empty_instruction
 
 
 class block_sum(Sum_Scheme):
+
     def __init__(self, red_formula, dtype, dimred=None):
         super().__init__(red_formula, dtype, dimred)
         self.tmp_acc = c_fixed_size_array(dtype, self.dimred, "tmp")

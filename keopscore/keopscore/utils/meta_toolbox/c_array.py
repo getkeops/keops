@@ -38,7 +38,7 @@ class c_array:
 
 class c_array_from_address(c_array):
 
-    def __init__(self, dim, expression):
+    def __init__(self, dim, expression, assign_op="="):
         if dim != None and not isinstance(dim, int):
             Meta_Toolbox_Error("input dim should be None or integer")
         if dim != None and dim < 0:
@@ -50,6 +50,7 @@ class c_array_from_address(c_array):
         self.dtype = c_value_dtype(expression.dtype)
         self.id = expression.code_string
         self.vars = self.c_address.vars
+        self.assign_op = assign_op
 
     def __repr__(self):
         # method for printing the c_array inside Python code
@@ -93,7 +94,11 @@ class c_array_from_address(c_array):
             string = f"{self.id}[(signed long int){other.id}]"
         vars = self.c_address.vars.union(other.vars)
         return c_lvalue(
-            string_id=string, vars=vars, dtype=self.dtype, add_parenthesis=False
+            string_id=string,
+            vars=vars,
+            dtype=self.dtype,
+            add_parenthesis=False,
+            assign_op=self.assign_op,
         )
 
     @property
@@ -113,11 +118,11 @@ class c_array_from_address(c_array):
 
 class c_fixed_size_array_proper(c_array_from_address):
 
-    def __init__(self, dtype, dim, string_id=None, qualifier=None):
+    def __init__(self, dtype, dim, string_id=None, qualifier=None, **kwargs):
         if string_id is None:
             string_id = new_c_name("array")
         expression = c_variable(c_pointer_dtype(dtype), string_id)
-        super().__init__(dim, expression)
+        super().__init__(dim, expression, **kwargs)
         if qualifier != None:
             self.declaration_string = qualifier + " " + dtype
         else:
@@ -149,11 +154,11 @@ class c_fixed_size_array_proper(c_array_from_address):
 
 class c_array_variable(c_array_from_address):
 
-    def __init__(self, dtype, string_id=None, qualifier=None):
+    def __init__(self, dtype, string_id=None, qualifier=None, **kwargs):
         if string_id is None:
             string_id = new_c_name("var")
         self.c_var = c_variable(dtype, string_id)
-        super().__init__(1, self.c_var.reference)
+        super().__init__(1, self.c_var.reference, **kwargs)
         if qualifier != None:
             self.declaration_string = qualifier + " " + dtype
         else:
@@ -192,8 +197,8 @@ class c_array_scalar(c_array):
         return self.c_val
 
 
-def c_fixed_size_array(dtype, dim, string_id=None, qualifier=None):
+def c_fixed_size_array(dtype, dim, string_id=None, qualifier=None, **kwargs):
     if dim == 1:
-        return c_array_variable(dtype, string_id, qualifier)
+        return c_array_variable(dtype, string_id, qualifier, **kwargs)
     else:
-        return c_fixed_size_array_proper(dtype, dim, string_id, qualifier)
+        return c_fixed_size_array_proper(dtype, dim, string_id, qualifier, **kwargs)
