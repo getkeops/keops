@@ -103,12 +103,23 @@ class Factorize_Impl_Factory(metaclass=unique_object):
             
             def DiffT(self, v, gradin):
                 f = Defactorize(self)
+                return DiffT(f,v,gradin).val
+                #return f.DiffT(v,gradin)
+            
+            def DiffT_new(self, v, gradin):
+                f, g = self.children
+                aliasvar = self.aliasvar
+                f = f.replace(aliasvar, g)
                 return f.DiffT(v,gradin)
 
         self.Class = Class
 
     def __call__(self, f, g):
         return self.Class(f, g)
+
+class DiffT(metaclass=unique_object):
+    def __init__(self, f, v, gradin):
+        self.val = f.DiffT(v,gradin)
 
 
 def Factorize_(formula, g, v):

@@ -18,7 +18,7 @@ res = []
 for Auto_f_method in [AutoFactorize,AutoFactorize_new]:
     start = time()
     g = f
-    for k in range(3):
+    for k in range(4):
         g = Auto_f_method(g)
         g = g.DiffT(x, u)
     h = Auto_f_method(g)
