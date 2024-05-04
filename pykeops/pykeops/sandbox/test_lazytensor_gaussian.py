@@ -11,7 +11,8 @@ M, N, D, DV = 10000, 10000, 3, 1
 dtype = torch.float32
 
 test_grad = True
-test_grad2 = False
+test_grad2 = True
+test_grad3 = True
 device_id = "cuda:0" if torch.cuda.is_available() else "cpu"
 do_warmup = True
 
@@ -77,12 +78,26 @@ if test_grad2:
     out_g2 = []
     for k, backend in enumerate(backends):
         start = time.time()
-        out_g2.append(torch.autograd.grad((out_g[k] ** 2).sum(), [x])[0])
+        out_g2.append(torch.autograd.grad((out_g[k] ** 2).sum(), [x], create_graph=True)[0])
         end = time.time()
-        print("time for " + backend + " (grad):", end - start)
+        print("time for " + backend + " (grad2):", end - start)
 
     if len(out_g2) > 1:
         print(
             "relative error grad2:",
             (torch.norm(out_g2[0] - out_g2[1]) / torch.norm(out_g2[0])).item(),
+        )
+
+if test_grad3:
+    out_g3 = []
+    for k, backend in enumerate(backends):
+        start = time.time()
+        out_g3.append(torch.autograd.grad((out_g2[k] ** 2).sum(), [x])[0])
+        end = time.time()
+        print("time for " + backend + " (grad3):", end - start)
+
+    if len(out_g3) > 1:
+        print(
+            "relative error grad3:",
+            (torch.norm(out_g3[0] - out_g3[1]) / torch.norm(out_g3[0])).item(),
         )
