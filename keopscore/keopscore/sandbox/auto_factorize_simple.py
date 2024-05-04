@@ -15,10 +15,10 @@ u = Var(3, D, 1, "u")
 f = Exp(-SqDist(x,y))*b
 
 res = []
-for Auto_f_method in [AutoFactorize_new]: #[AutoFactorize,AutoFactorize_new]:
+for Auto_f_method in [AutoFactorize,AutoFactorize_new]:
     start = time()
     g = f
-    for k in range(6):
+    for k in range(4):
         g = Auto_f_method(g)
         g = g.DiffT(x, u)
     h = Auto_f_method(g)
