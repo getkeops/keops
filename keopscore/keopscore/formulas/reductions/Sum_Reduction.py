@@ -5,7 +5,7 @@ from keopscore.utils.meta_toolbox import (
     new_c_name,
 )
 from keopscore.formulas.reductions.Reduction import Reduction
-
+from keopscore.utils.misc_utils import KeOps_Error
 
 class Sum_Reduction(Reduction):
     """Sum reduction class"""
@@ -41,7 +41,13 @@ class Sum_Reduction(Reduction):
 
     def DiffT(self, v, gradin, f0=None):
         from keopscore.formulas.autodiff import Grad
-        tagIJ = (v[0] if isinstance(v,list) else v).cat % 2
+        if isinstance(v, list):
+            tags = set(u.cat%2 for u in v)
+            if len(tags)!=1:
+                KeOps_Error("mixed variables categories")
+            tagIJ = tags.pop()
+        else:
+            tagIJ = v.cat % 2
         return Sum_Reduction(Grad(self.formula, v, gradin), tagIJ)
 
     def Diff(self, v, diffin, f0=None):

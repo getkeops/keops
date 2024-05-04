@@ -172,7 +172,9 @@ class GenredAutograd_base:
 
         grads = []  # list of gradients wrt. args;
 
-        vars = []
+        list_cats = [None]*len(args)
+        list_vars = [[],[]]
+        list_outputs = [None]*2
         grads = [None]*len(args)
         for var_ind, (sig, arg_ind) in enumerate(
             zip(params.aliases, args)
@@ -186,45 +188,54 @@ class GenredAutograd_base:
                 # but are useful to keep track of the actual variables used in the formula
                 _, cat, dim, pos = get_type(sig, position_in_list=var_ind)
                 var = f"Var({pos},{dim},{cat})"  # V
-                vars.append(var)
+                list_vars[cat%2].append(var)
+                list_cats[var_ind] = cat
 
-        vars = "[" + ",".join(vars) + "]"
-        formula_g = f"Grad_WithSavedForward({params.formula},{vars},{eta},{resvar})"  # Grad<F,V,G,R>
         aliases_g = params.aliases + [eta, resvar]
         args_g = (*args, G, result)  # Don't forget the gradient to backprop !
-
-        # N.B.: if I understand PyTorch's doc, we should redefine this function every time we use it?
-        genconv = GenredAutograd_fun
-
         """
-                # For a reduction of the type sum(F*b), with b a variable, and if we require the gradient
-                # with respect to b, the gradient will be of same type sum(F*eta). So we set again rec_multVar option
-                # in this case.
-                if (
-                    not isinstance(params.rec_multVar_highdim, bool)
-                    and pos == params.rec_multVar_highdim
-                ):
-                    params.rec_multVar_highdim = (
-                        nargs  # nargs is the position of variable eta.
-                    )
-                else:
-                    params.rec_multVar_highdim = None
+            # For a reduction of the type sum(F*b), with b a variable, and if we require the gradient
+            # with respect to b, the gradient will be of same type sum(F*eta). So we set again rec_multVar option
+            # in this case.
+            if (
+                not isinstance(params.rec_multVar_highdim, bool)
+                and pos == params.rec_multVar_highdim
+            ):
+                params.rec_multVar_highdim = (
+                    nargs  # nargs is the position of variable eta.
+                )
+            else:
+                params.rec_multVar_highdim = None
         """
 
         params_g = copy.copy(params)
-        params_g.formula = formula_g
         params_g.aliases = aliases_g
         params_g.out = None
+        
+        for k,vars in enumerate(list_vars):
+            if len(vars)>0:
+                vars = "[" + ",".join(vars) + "]"
+                formula_g = f"Grad_WithSavedForward({params.formula},{vars},{eta},{resvar})"  # Grad<F,V,G,R>
+                params_g.formula = formula_g
 
-        output = genconv(params_g, *args_g)
+                # N.B.: if I understand PyTorch's doc, we should redefine this function every time we use it?
+                genconv = GenredAutograd_fun
+                
+                list_outputs[k] = genconv(params_g, *args_g)
 
-        curr_dim = 0
+        curr_dims = [0,0]
         for var_ind, (sig, arg_ind) in enumerate(
             zip(params.aliases, args)
         ):
             if ctx.needs_input_grad[var_ind + 1]:
-                grad = output[...,curr_dim:curr_dim+arg_ind.shape[-1]]
-                curr_dim += arg_ind.shape[-1]
+                cat = list_cats[var_ind]
+                output = list_outputs[cat%2]
+                grad = output[...,curr_dims[cat%2]:curr_dims[cat%2]+arg_ind.shape[-1]]
+
+                print(grad)
+                input()
+
+                curr_dims[cat%2] += arg_ind.shape[-1]
                 if (
                     cat == 2
                 ):  # we're referring to a parameter, so we'll have to sum both wrt 'i' and 'j'
@@ -245,7 +256,6 @@ class GenredAutograd_base:
                         )
                         if x < y
                     )
-
                 else:
                     # N.B.: 'grad' is always a full [A, .., B, M, D] or [A, .., B, N, D] or [A, .., B, D] tensor,
                     #       whereas 'arg_ind' may have some broadcasted batched dimensions.
