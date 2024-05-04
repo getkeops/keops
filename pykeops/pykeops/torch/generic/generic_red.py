@@ -223,6 +223,8 @@ class GenredAutograd_base:
                 
                 list_outputs[k] = genconv(params_g, *args_g)
 
+        print(list_outputs)
+
         curr_dims = [0,0]
         for var_ind, (sig, arg_ind) in enumerate(
             zip(params.aliases, args)
