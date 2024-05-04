@@ -223,8 +223,6 @@ class GenredAutograd_base:
                 
                 list_outputs[k] = genconv(params_g, *args_g)
 
-        print(list_outputs)
-
         curr_dims = [0,0]
         for var_ind, (sig, arg_ind) in enumerate(
             zip(params.aliases, args)
@@ -274,9 +272,6 @@ class GenredAutograd_base:
                     arg_ind.shape
                 )  # The gradient should have the same shape as the input!
                 grads[var_ind] = grad
-
-        print(grads)
-        input()
         
         # Grads wrt. params, *args
         return None, *grads
