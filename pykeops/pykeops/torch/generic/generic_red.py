@@ -231,10 +231,6 @@ class GenredAutograd_base:
                 cat = list_cats[var_ind]
                 output = list_outputs[cat%2]
                 grad = output[...,curr_dims[cat%2]:curr_dims[cat%2]+arg_ind.shape[-1]]
-
-                print(grad)
-                input()
-
                 curr_dims[cat%2] += arg_ind.shape[-1]
                 if (
                     cat == 2
@@ -277,6 +273,9 @@ class GenredAutograd_base:
                 )  # The gradient should have the same shape as the input!
                 grads[var_ind] = grad
 
+        print(grads)
+        input()
+        
         # Grads wrt. params, *args
         return None, *grads
 
