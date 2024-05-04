@@ -172,27 +172,33 @@ class GenredAutograd_base:
 
         grads = []  # list of gradients wrt. args;
 
+        print("ctx.needs_input_grad=", ctx.needs_input_grad)
+
+        vars = []
+        grads = [None]*len(args)
         for var_ind, (sig, arg_ind) in enumerate(
             zip(params.aliases, args)
         ):  # Run through the arguments
             # If the current gradient is to be discarded immediatly...
-            if not ctx.needs_input_grad[var_ind + 1]:  # NB "+1" because of params
-                grads.append(None)  # Don't waste time computing it.
-            else:
-                # Otherwise, the current gradient is really needed by the user. Adding new aliases is way too dangerous if we want to compute
+            if ctx.needs_input_grad[var_ind + 1]:  # NB "+1" because of params
+                # The current gradient is really needed by the user. Adding new aliases is way too dangerous if we want to compute
                 # second derivatives, etc. So we make explicit references to Var<ind,dim,cat> instead.
                 # New here (Joan) : we still add the new variables to the list of "aliases" (without
                 # giving new aliases for them) these will not be used in the C++ code,
                 # but are useful to keep track of the actual variables used in the formula
                 _, cat, dim, pos = get_type(sig, position_in_list=var_ind)
                 var = f"Var({pos},{dim},{cat})"  # V
-                formula_g = f"Grad_WithSavedForward({params.formula},{var},{eta},{resvar})"  # Grad<F,V,G,R>
-                aliases_g = params.aliases + [eta, resvar]
-                args_g = (*args, G, result)  # Don't forget the gradient to backprop !
+                vars.append(var)
 
-                # N.B.: if I understand PyTorch's doc, we should redefine this function every time we use it?
-                genconv = GenredAutograd_fun
+        vars = "[" + ",".join(vars) + "]"
+        formula_g = f"Grad_WithSavedForward({params.formula},{vars},{eta},{resvar})"  # Grad<F,V,G,R>
+        aliases_g = params.aliases + [eta, resvar]
+        args_g = (*args, G, result)  # Don't forget the gradient to backprop !
 
+        # N.B.: if I understand PyTorch's doc, we should redefine this function every time we use it?
+        genconv = GenredAutograd_fun
+
+        """
                 # For a reduction of the type sum(F*b), with b a variable, and if we require the gradient
                 # with respect to b, the gradient will be of same type sum(F*eta). So we set again rec_multVar option
                 # in this case.
@@ -205,14 +211,22 @@ class GenredAutograd_base:
                     )
                 else:
                     params.rec_multVar_highdim = None
+        """
 
-                params_g = copy.copy(params)
-                params_g.formula = formula_g
-                params_g.aliases = aliases_g
-                params_g.out = None
+        params_g = copy.copy(params)
+        params_g.formula = formula_g
+        params_g.aliases = aliases_g
+        params_g.out = None
 
-                grad = genconv(params_g, *args_g)
+        output = genconv(params_g, *args_g)
 
+        curr_dim = 0
+        for var_ind, (sig, arg_ind) in enumerate(
+            zip(params.aliases, args)
+        ):
+            if ctx.needs_input_grad[var_ind + 1]:
+                grad = output[...,curr_dim:curr_dim+arg_ind.shape[-1]]
+                curr_dim += arg_ind.shape[-1]
                 if (
                     cat == 2
                 ):  # we're referring to a parameter, so we'll have to sum both wrt 'i' and 'j'
@@ -253,7 +267,7 @@ class GenredAutograd_base:
                 grad = grad.reshape(
                     arg_ind.shape
                 )  # The gradient should have the same shape as the input!
-                grads.append(grad)
+                grads[var_ind] = grad
 
         # Grads wrt. params, *args
         return None, *grads

@@ -41,8 +41,8 @@ class Sum_Reduction(Reduction):
 
     def DiffT(self, v, gradin, f0=None):
         from keopscore.formulas.autodiff import Grad
-
-        return Sum_Reduction(Grad(self.formula, v, gradin), v.cat % 2)
+        tagIJ = (v[0] if isinstance(v,list) else v).cat % 2
+        return Sum_Reduction(Grad(self.formula, v, gradin), tagIJ)
 
     def Diff(self, v, diffin, f0=None):
         from keopscore.formulas.autodiff import Diff

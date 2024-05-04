@@ -1,6 +1,6 @@
 from keopscore.formulas.Operation import Operation
 from keopscore.formulas.maths.Extract import Extract
-from keopscore.utils.misc_utils import KeOps_Error
+from keopscore.utils.meta_toolbox import c_empty_instruction
 
 
 ############################
@@ -10,24 +10,26 @@ from keopscore.utils.misc_utils import KeOps_Error
 
 class Concat(Operation):
     string_id = "Concat"
-    print_fun = lambda x, y: f"[{x},{y}]"
+    print_fun = lambda *args: "[" + ",".join(str(arg) for arg in args) + "]"
     print_level = 9
     linearity_type = "all"
 
-    def __init__(self, arg0, arg1):
-        super().__init__(arg0, arg1)
-        self.dim = arg0.dim + arg1.dim
+    def __init__(self, *args):
+        super().__init__(*args)
+        self.dim = sum(arg.dim for arg in args)
 
-    def Op(self, out, table, arg0, arg1):
-        out0, out1 = out.split(arg0.dim, arg1.dim)
-        return out0.copy(arg0) + out1.copy(arg1)
+    def Op(self, out, table, *args):
+        outs = out.split(*(arg.dim for arg in args))
+        return sum((out.copy(arg) for out,arg in zip(outs,args)), start=c_empty_instruction)
 
     def DiffT_fun(self, v, gradin):
-        f = self.children[0]
-        g = self.children[1]
-        return f.DiffT(v, Extract(gradin, 0, f.dim)) + g.DiffT(
-            v, Extract(gradin, f.dim, g.dim)
-        )
+        from keopscore.formulas import Zero
+        curr_dim = 0
+        res = Zero(v.dim)
+        for f in self.children:
+            res += f.DiffT(v, Extract(gradin, curr_dim, f.dim))
+            curr_dim += f.dim
+        return res
 
     # parameters for testing the operation (optional)
     enable_test = True  # enable testing for this operation

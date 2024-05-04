@@ -1,4 +1,4 @@
-from keopscore.formulas import Var
+from keopscore.formulas import Var, Concat
 from keopscore.utils.code_gen_utils import GetInds
 from keopscore.utils.misc_utils import KeOps_Error
 
@@ -24,4 +24,7 @@ def Grad(formula, v, gradin=None):
         dim = formula.dim
         cat = 1 - v.cat
         gradin = Var(ind, dim, cat)
-    return formula.DiffT(v, gradin)
+    if isinstance(v, list):
+        return Concat(*(formula.DiffT(u, gradin) for u in v))
+    else:
+        return formula.DiffT(v, gradin)
