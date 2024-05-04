@@ -21,7 +21,8 @@ class RatCst_Impl_Factory(metaclass=unique_object):
         class Class(RatCst_Impl):
 
             # constant rational number "operation"
-            string_id = "RatCst"
+            string_id = f"({p}/{q})"
+            print_fun = lambda: Class.string_id
 
             def recursive_str(self):
                 return f"{self.p}/{self.q}"

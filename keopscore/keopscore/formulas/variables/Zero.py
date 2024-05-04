@@ -18,7 +18,8 @@ class Zero_Impl_Factory(metaclass=unique_object):
         class Class(Zero_Impl):
             """zero operation : encodes a vector of zeros"""
 
-            string_id = "Zero"
+            string_id = f"Zero({dim})"
+            print_fun = lambda: Class.string_id
 
             def is_linear(self, v):
                 return True
