@@ -78,7 +78,9 @@ if test_grad2:
     out_g2 = []
     for k, backend in enumerate(backends):
         start = time.time()
-        out_g2.append(torch.autograd.grad((out_g[k] ** 2).sum(), [x], create_graph=True)[0])
+        out_g2.append(
+            torch.autograd.grad((out_g[k] ** 2).sum(), [x], create_graph=True)[0]
+        )
         end = time.time()
         print("time for " + backend + " (grad2):", end - start)
 

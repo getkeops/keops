@@ -49,7 +49,7 @@ class Var_Factory(metaclass=unique_object):
                     self.label = chr(ord("a") + ind) if ind >= 0 else chr(944 - ind)
                 else:
                     self.label = label
-            
+
             def set_vars(self):
                 pass
 

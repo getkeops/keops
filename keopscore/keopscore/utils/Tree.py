@@ -1,11 +1,10 @@
 class Tree:
-
     """a custom class for handling a tree structure.
     Currently we use it only to recursively print a formula or reduction"""
 
     def __init__(self, *children):
         self.children = list(children)
-        
+
     def recursive_str(self):
         if hasattr(self, "print_fun"):
             arg_strings = []

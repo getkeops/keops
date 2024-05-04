@@ -11,8 +11,8 @@ y = Var(1, D, 1, "y")
 b = Var(2, Dv, 1, "b")
 u = Var(3, D, 1, "u")
 
-#f = SqNorm2(Exp(-SqDist(x, 2*y)) * b) + b + 2*y + SqDist(x, 2*y)
-f = Exp(-SqDist(x,y))*b
+# f = SqNorm2(Exp(-SqDist(x, 2*y)) * b) + b + 2*y + SqDist(x, 2*y)
+f = Exp(-SqDist(x, y)) * b
 
 start = time()
 g = f
@@ -21,10 +21,8 @@ for k in range(4):
     g = g.DiffT(x, u)
 h = AutoFactorize(g)
 end = time()
-print("elapsed:", end-start)
+print("elapsed:", end - start)
 print("h =", h)
 h = UnFactorize(h)
-assert h==g, "not good..."
+assert h == g, "not good..."
 print("h =", h)
-
-

@@ -28,7 +28,9 @@ class Factorized_Impl_Factory(metaclass=unique_object):
 
             def recursive_str(self):
                 f, g = self.children
-                return f"[{f.__repr__()} with {self.aliasvar.__repr__()}={g.__repr__()}]"
+                return (
+                    f"[{f.__repr__()} with {self.aliasvar.__repr__()}={g.__repr__()}]"
+                )
 
             def __init__(self, f, g):
                 super().__init__(f, g)
@@ -80,7 +82,7 @@ class Factorized_Impl_Factory(metaclass=unique_object):
                 # change the index of this temp variable to match its position in table.
                 newind = len(table) - 1
                 newaliasvar = Var(newind, aliasvar.dim, aliasvar.cat)
-                if newaliasvar!=aliasvar:
+                if newaliasvar != aliasvar:
                     newf = f.replace(aliasvar, newaliasvar)
                 else:
                     newf = f
@@ -94,16 +96,15 @@ class Factorized_Impl_Factory(metaclass=unique_object):
                 res += c_comment(f"// Finished code block for {self.__repr__()}.")
                 res = c_block(res)
                 return res
-            
+
             def DiffT_fun(self, v, gradin):
                 f = UnFactorize(self)
-                return f.DiffT(v,gradin)
+                return f.DiffT(v, gradin)
 
         self.Class = Class
 
     def __call__(self, f, g):
         return self.Class(f, g)
-
 
 
 def Factorized(formula, g, v):
@@ -117,7 +118,11 @@ def Factorized(formula, g, v):
 
 
 def Factorize(formula, g):
-    if (isinstance(g, Var_Impl) and g.ind<0) or isinstance(g, Zero_Impl) or isinstance(g, IntCst_Impl):
+    if (
+        (isinstance(g, Var_Impl) and g.ind < 0)
+        or isinstance(g, Zero_Impl)
+        or isinstance(g, IntCst_Impl)
+    ):
         return formula
     # we get a new negative index (negative because it must not refer to an actual input tensor index)
     inds = GetInds(formula.Vars_)
@@ -134,22 +139,23 @@ def Factorize(formula, g):
 def UnFactorize(f):
     if isinstance(f, Factorized_Impl):
         aliasvar = f.aliasvar
-        f,g = f.children
-        f = f.replace(aliasvar,g)
+        f, g = f.children
+        f = f.replace(aliasvar, g)
         return UnFactorize(f)
     newchildren = [UnFactorize(child) for child in f.children]
     return type(f)(*newchildren)
+
 
 def AutoFactorize(f):
 
     def can_factorize(f):
         for cls in [Zero_Impl, IntCst_Impl, RatCst_Impl]:
-            if isinstance(f,cls):
+            if isinstance(f, cls):
                 return False
-        if isinstance(f, Var_Impl) and f.ind<0:
+        if isinstance(f, Var_Impl) and f.ind < 0:
             return False
         return True
-    
+
     def detect(f, parent, newind):
         if hasattr(f, "visited"):
             f.parents += parent
@@ -160,9 +166,9 @@ def AutoFactorize(f):
             f.parents = parent
             for child in f.children:
                 detect(child, [f], newind)
-            f.visited = True  
-            f.to_factorize = [] 
-    
+            f.visited = True
+            f.to_factorize = []
+
     def ping_parents(f):
         if hasattr(f, "counter_parents"):
             f.counter_parents += 1
@@ -170,39 +176,39 @@ def AutoFactorize(f):
             f.counter_parents = 1
             for parent in f.parents:
                 ping_parents(parent)
-    
+
     def ping_parents_clean(f):
         if hasattr(f, "counter_parents"):
             delattr(f, "counter_parents")
             for parent in f.parents:
                 ping_parents_clean(parent)
-    
+
     def get_first_divergent(f):
         g = f
-        if f.counter_parents>1:
+        if f.counter_parents > 1:
             return f
-        elif f.counter_parents==1:
+        elif f.counter_parents == 1:
             for child in f.children:
                 if hasattr(child, "counter_parents"):
                     return get_first_divergent(child)
             print("Error....")
         else:
             print("Error....")
-    
+
     def get_common_ancestor(f, root):
         ping_parents(f)
         res = get_first_divergent(root)
         ping_parents_clean(f)
         return res
 
-    def reconstruct(f, root):  
-        if hasattr(f,"new"):
+    def reconstruct(f, root):
+        if hasattr(f, "new"):
             return f.new
         newchildren = [reconstruct(child, root) for child in f.children]
         f.new = type(f)(*newchildren)
         f.to_factorize.reverse()
         for g in f.to_factorize:
-            f.new = Factorized_Impl_Factory(g.alias)(f.new,g)
+            f.new = Factorized_Impl_Factory(g.alias)(f.new, g)
         if hasattr(f, "alias"):
             f.new.alias = f.alias
             common_ancestor = get_common_ancestor(f, root)
@@ -210,29 +216,23 @@ def AutoFactorize(f):
             f.new = f.new.alias
         return f.new
 
-    def delattrs(f,*names):
+    def delattrs(f, *names):
         for name in names:
-            if hasattr(f,name):
-                delattr(f,name)
-                
+            if hasattr(f, name):
+                delattr(f, name)
+
     def clean(f):
         for child in f.children:
             clean(child)
-        delattrs(f,"new",
-                    "parents",
-                    "new",
-                    "to_factorize",
-                    "visited",
-                    "alias")
-        
+        delattrs(f, "new", "parents", "new", "to_factorize", "visited", "alias")
+
     # we get a new negative index to start with (negative because it must not refer to an actual input tensor index)
-    minind = f.Vars_[0].ind if len(f.Vars_)>0 else 0
-    newind = [-1] if minind>=0 else [minind-1]
+    minind = f.Vars_[0].ind if len(f.Vars_) > 0 else 0
+    newind = [-1] if minind >= 0 else [minind - 1]
 
     f = UnFactorize(f)
-    detect(f,[],newind)
-    g = reconstruct(f,f)
+    detect(f, [], newind)
+    g = reconstruct(f, f)
     clean(f)
     clean(g)
     return g
-

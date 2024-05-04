@@ -41,16 +41,14 @@ class Operation(Tree, metaclass=unique_object):
         # *args are other instances of Operation, they are the child operations of self
         super().__init__(*args)
         self.set_vars()
-    
+
     def set_vars(self):
         args = self.children
         # The variables in the current formula is the union of the variables in the child operations.
         # N.B. We need to sort according to ind.
-        vars = (
-            set.union(*(set(arg.Vars_) for arg in args)) if len(args) > 0 else set()
-        )
+        vars = set.union(*(set(arg.Vars_) for arg in args)) if len(args) > 0 else set()
         self.Vars_ = sorted(list(vars), key=lambda v: v.ind)
-    
+
     def recomp_vars(self):
         for child in self.children:
             child.recomp_vars()
@@ -273,6 +271,7 @@ class Operation(Tree, metaclass=unique_object):
 class DiffT_class(metaclass=unique_object):
     def __init__(self, f, v, gradin):
         self.value = f.DiffT_fun(v, gradin)
+
 
 def int2Op(x):
     if isinstance(x, int):
