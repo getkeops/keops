@@ -15,16 +15,16 @@ from keopscore.utils.code_gen_utils import GetInds
 from keopscore.utils.unique_object import unique_object
 
 
-class Factorize_Impl(Operation):
+class Factorized_Impl(Operation):
     pass
 
 
-class Factorize_Impl_Factory(metaclass=unique_object):
+class Factorized_Impl_Factory(metaclass=unique_object):
 
     def __init__(self, aliasvar):
 
-        class Class(Factorize_Impl):
-            string_id = "Factorize"
+        class Class(Factorized_Impl):
+            string_id = "Factorized"
 
             def recursive_str(self):
                 f, g = self.children
@@ -34,7 +34,7 @@ class Factorize_Impl_Factory(metaclass=unique_object):
                 super().__init__(f, g)
                 self.dim = f.dim
                 self.aliasvar = aliasvar
-                if isinstance(f, Factorize_Impl):
+                if isinstance(f, Factorized_Impl):
                     self.defined_temp_Vars = f.defined_temp_Vars + [aliasvar]
                 else:
                     self.defined_temp_Vars = [aliasvar]
@@ -94,22 +94,9 @@ class Factorize_Impl_Factory(metaclass=unique_object):
                 res += c_comment(f"// Finished code block for {self.__repr__()}.")
                 res = c_block(res)
                 return res
-
-            def DiffT_fun_old(self, v, gradin):
-                f, g = self.children
-                aliasvar = self.aliasvar
-                f = f.replace(aliasvar, g)
-                return Factorize(f.DiffT(v, gradin), g)
             
             def DiffT_fun(self, v, gradin):
-                f = Defactorize(self)
-                return DiffT(f,v,gradin).val
-                #return f.DiffT(v,gradin)
-            
-            def DiffT_fun_new(self, v, gradin):
-                f, g = self.children
-                aliasvar = self.aliasvar
-                f = f.replace(aliasvar, g)
+                f = UnFactorize(self)
                 return f.DiffT(v,gradin)
 
         self.Class = Class
@@ -117,18 +104,15 @@ class Factorize_Impl_Factory(metaclass=unique_object):
     def __call__(self, f, g):
         return self.Class(f, g)
 
-class DiffT(metaclass=unique_object):
-    def __init__(self, f, v, gradin):
-        self.val = f.DiffT(v,gradin)
 
 
-def Factorize_(formula, g, v):
-    if isinstance(formula, Factorize_Impl):
+def Factorized(formula, g, v):
+    if isinstance(formula, Factorized_Impl):
         if set.intersection(set(formula.defined_temp_Vars), set(g.Vars_)):
             f_inner, g_inner = formula.children
             v_inner = formula.aliasvar
-            return Factorize_Impl_Factory(v_inner)(Factorize_(f_inner, g, v), g_inner)
-    res = Factorize_Impl_Factory(v)(formula, g)
+            return Factorized_Impl_Factory(v_inner)(Factorized(f_inner, g, v), g_inner)
+    res = Factorized_Impl_Factory(v)(formula, g)
     return res
 
 
@@ -142,39 +126,21 @@ def Factorize(formula, g):
     v = Var(newind, g.dim, 3)
     newformula, cnt = formula.replace_and_count(g, v)
     if cnt > 1:
-        return Factorize_(newformula, g, v)
+        return Factorized(newformula, g, v)
     else:
         return formula
 
 
-def AutoFactorize(formula):
-
-    def RecSearch(formula, g):
-        newformula = Factorize(formula, g)
-        if newformula != formula:
-            return newformula
-        for child in g.children:
-            newformula = RecSearch(formula, child)
-            if newformula != formula:
-                return newformula
-        return formula
-
-    newformula = RecSearch(formula, formula)
-    if newformula != formula:
-        return AutoFactorize(newformula)
-    return formula
-
-
-def Defactorize(f):
-    if isinstance(f, Factorize_Impl):
+def UnFactorize(f):
+    if isinstance(f, Factorized_Impl):
         aliasvar = f.aliasvar
         f,g = f.children
         f = f.replace(aliasvar,g)
-        return Defactorize(f)
-    newchildren = [Defactorize(child) for child in f.children]
+        return UnFactorize(f)
+    newchildren = [UnFactorize(child) for child in f.children]
     return type(f)(*newchildren)
 
-def AutoFactorize_new(f):
+def AutoFactorize(f):
 
     def can_factorize(f):
         for cls in [Zero_Impl, IntCst_Impl, RatCst_Impl]:
@@ -236,7 +202,7 @@ def AutoFactorize_new(f):
         f.new = type(f)(*newchildren)
         f.to_factorize.reverse()
         for g in f.to_factorize:
-            f.new = Factorize_Impl_Factory(g.alias)(f.new,g)
+            f.new = Factorized_Impl_Factory(g.alias)(f.new,g)
         if hasattr(f, "alias"):
             f.new.alias = f.alias
             common_ancestor = get_common_ancestor(f, root)
@@ -263,7 +229,7 @@ def AutoFactorize_new(f):
     minind = f.Vars_[0].ind if len(f.Vars_)>0 else 0
     newind = [-1] if minind>=0 else [minind-1]
 
-    f = Defactorize(f)
+    f = UnFactorize(f)
     detect(f,[],newind)
     g = reconstruct(f,f)
     clean(f)
