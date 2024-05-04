@@ -11,18 +11,25 @@ y = Var(1, D, 1, "y")
 b = Var(2, Dv, 1, "b")
 u = Var(3, D, 1, "u")
 
-f = SqNorm2(Exp(-SqDist(x, 2*y)) * b) + b + 2*y + SqDist(x, 2*y)
+#f = SqNorm2(Exp(-SqDist(x, 2*y)) * b) + b + 2*y + SqDist(x, 2*y)
+f = Exp(-SqDist(x,y))*b
 
-for Auto_f_method in [AutoFactorize_new]:#[AutoFactorize,AutoFactorize_new]:
+res = []
+for Auto_f_method in [AutoFactorize,AutoFactorize_new]:
     start = time()
     g = f
     for k in range(3):
         g = Auto_f_method(g)
         g = g.DiffT(x, u)
-    g = Auto_f_method(g)
+    h = Auto_f_method(g)
     end = time()
     print("elapsed:", end-start)
+    print("h =", h)
+    h = Defactorize(h)
+    assert h==g, "not good..."
+    print("h =", h)
+    res.append(h)
 
-    print("g =", g)
-    print()
+if len(res)>1:
+    assert res[0]==res[1], "not good.."
 

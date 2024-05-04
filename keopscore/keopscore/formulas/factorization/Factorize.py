@@ -95,18 +95,15 @@ class Factorize_Impl_Factory(metaclass=unique_object):
                 res = c_block(res)
                 return res
 
-            def DiffT(self, v, gradin):
+            def DiffT_old(self, v, gradin):
                 f, g = self.children
                 aliasvar = self.aliasvar
                 f = f.replace(aliasvar, g)
                 return Factorize(f.DiffT(v, gradin), g)
             
-            def DiffT_new(self, v, gradin):
-                f, g = self.children
-                aliasvar = self.aliasvar
-                gradin_g = f.DiffT(aliasvar, gradin)
-                out = f.DiffT(v, gradin) + g.DiffT(v,gradin_g)
-                return Factorize_Impl_Factory(aliasvar)(out,g)
+            def DiffT(self, v, gradin):
+                f = Defactorize(self)
+                return f.DiffT(v,gradin)
 
         self.Class = Class
 
@@ -125,9 +122,7 @@ def Factorize_(formula, g, v):
 
 
 def Factorize(formula, g):
-    #if (isinstance(g, Var_Impl) and g.ind<0) or isinstance(g, Zero_Impl) or isinstance(g, IntCst_Impl):
-    #    return formula
-    if isinstance(g, Var_Impl) or isinstance(g, Zero_Impl) or isinstance(g, IntCst_Impl):
+    if (isinstance(g, Var_Impl) and g.ind<0) or isinstance(g, Zero_Impl) or isinstance(g, IntCst_Impl):
         return formula
     # we get a new negative index (negative because it must not refer to an actual input tensor index)
     inds = GetInds(formula.Vars_)
@@ -170,12 +165,12 @@ def Defactorize(f):
 
 def AutoFactorize_new(f):
 
-    no_factorize_classes = [Var_Impl, Zero_Impl, IntCst_Impl, RatCst_Impl]
-
     def can_factorize(f):
-        for cls in no_factorize_classes:
+        for cls in [Zero_Impl, IntCst_Impl, RatCst_Impl]:
             if isinstance(f,cls):
                 return False
+        if isinstance(f, Var_Impl) and f.ind<0:
+            return False
         return True
     
     def detect(f, parent, newind):
