@@ -13,14 +13,13 @@ class unique_object(type):
             ind = cls.library_args.index(params)
             cls.library_counter[ind] += 1
             res = cls.library_instances[ind]
-            return res
         else:
-            cls.library_args.append(params)
-            cls.library_counter.append(1)
             res = cls.__new__(cls, *args, **kwargs)
             res.__init__(*args, **kwargs)
             cls.library_instances.append(res)
-            return res
+            cls.library_args.append(params)
+            cls.library_counter.append(1)
+        return res
 
     def reset():
         for cls in unique_object.library_cls:
