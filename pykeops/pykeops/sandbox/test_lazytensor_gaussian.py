@@ -6,7 +6,7 @@ import math
 import torch
 from pykeops.torch import LazyTensor
 
-M, N, D, DV = 100000, 100000, 3, 1
+M, N, D, DV = 1000, 1000, 3, 1
 
 dtype = torch.float32
 
@@ -39,7 +39,7 @@ def fun(x, y, b, backend):
     return out
 
 
-backends = ["keops"]  # , "torch"]
+backends = ["keops", "torch"]
 
 out = []
 for backend in backends:

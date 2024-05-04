@@ -1,14 +1,15 @@
 from keopscore.formulas.Operation import Operation
 from keopscore.formulas.maths.Extract import Extract
 from keopscore.utils.meta_toolbox import c_empty_instruction
-
+from keopscore.utils.misc_utils import KeOps_Error
+from keopscore.formulas.variables.Zero import Zero, Zero_Impl
 
 ############################
 ######    Concat       #####
 ############################
 
 
-class Concat(Operation):
+class Concat_Impl(Operation):
     string_id = "Concat"
     print_fun = lambda *args: "[" + ",".join(str(arg) for arg in args) + "]"
     print_level = 9
@@ -23,7 +24,6 @@ class Concat(Operation):
         return sum((out.copy(arg) for out,arg in zip(outs,args)), start=c_empty_instruction)
 
     def DiffT_fun(self, v, gradin):
-        from keopscore.formulas import Zero
         curr_dim = 0
         res = Zero(v.dim)
         for f in self.children:
@@ -36,3 +36,15 @@ class Concat(Operation):
     nargs = 2  # number of arguments
     test_argdims = [5, 3]  # dimensions of arguments for testing
     torch_op = None
+
+
+
+def Concat(*args):
+    if len(args)==0:
+        KeOps_Error("Concat should have at least one arg")
+    elif len(args)==1:
+        return args[0]
+    elif all(isinstance(arg, Zero_Impl) for arg in args):
+        return Zero(sum(arg.dim for arg in args))
+    else:
+        return Concat_Impl(*args)
