@@ -27,7 +27,7 @@ class ComplexExp(VectorizedComplexScalarOp):
         )
 
     # building equivalent formula for autodiff
-    def DiffT(self, v, gradin):
+    def GradFun(self, v, gradin):
         f = self.children[0]
         AltAbs = Exp(ComplexReal(f))
         AltReal = AltAbs * Cos(ComplexImag(f))

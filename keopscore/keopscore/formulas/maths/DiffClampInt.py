@@ -32,7 +32,7 @@ class DiffClampInt_Impl_Factory:
 
             ScalarOpFun = keops_diffclampint
 
-            def DiffT(self, v, gradin):
+            def GradFun(self, v, gradin):
                 from keopscore.formulas import Zero
 
                 return Zero(v.dim)

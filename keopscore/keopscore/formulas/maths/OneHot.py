@@ -46,7 +46,7 @@ class OneHot_Impl_Factory:
                             """
                     return string
 
-            def DiffT(self, v, gradin):
+            def GradFun(self, v, gradin):
                 from keopscore.formulas.variables.Zero import Zero
 
                 return Zero(v.dim)

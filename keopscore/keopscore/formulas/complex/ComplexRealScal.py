@@ -26,7 +26,7 @@ class ComplexRealScal_Impl(Operation):
         body += out[i + 1].assign(inF[0] * inG[i + 1])
         return forloop(body)
 
-    def DiffT(self, v, gradin):
+    def GradFun(self, v, gradin):
         f, g = self.children
         AltFormula = ComplexMult(Real2Complex(f), g)
         return AltFormula.DiffT(v, gradin)

@@ -32,7 +32,7 @@ class Round_Impl_Factory(metaclass=unique_object):
 
             ScalarOpFun = keops_round
 
-            def DiffT(self, v, gradin):
+            def GradFun(self, v, gradin):
                 return Zero(v.dim)
 
         self.Class = Class

@@ -36,7 +36,7 @@ class RatCst_Impl_Factory(metaclass=unique_object):
             def get_code_and_expr(self, dtype, table, i, j, tagI):
                 return c_empty_instruction, c_array_scalar(self.p / self.q)
 
-            def DiffT(self, v, gradin):
+            def GradFun(self, v, gradin):
                 return Zero(v.dim)
 
         self.Class = Class

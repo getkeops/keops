@@ -46,7 +46,7 @@ class IndexT_Factory:
                 res += out[argb.value].assign(arga.value)
                 return res
 
-            def DiffT(self, v, gradin):
+            def GradFun(self, v, gradin):
                 from keopscore.formulas.maths.Index import Index
 
                 f, g = self.children

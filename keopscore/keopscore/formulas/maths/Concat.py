@@ -22,7 +22,7 @@ class Concat(Operation):
         out0, out1 = out.split(arg0.dim, arg1.dim)
         return out0.copy(arg0) + out1.copy(arg1)
 
-    def DiffT(self, v, gradin):
+    def GradFun(self, v, gradin):
         f = self.children[0]
         g = self.children[1]
         return f.DiffT(v, Extract(gradin, 0, f.dim)) + g.DiffT(

@@ -54,7 +54,7 @@ class ElemT_Impl_Factory(metaclass=unique_object):
                 res += loop2(out[k].assign(c_zero_float))
                 return res
 
-            def DiffT(self, v, gradin):
+            def GradFun(self, v, gradin):
                 from keopscore.formulas.maths.Elem import Elem
 
                 f = self.children[0]

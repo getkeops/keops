@@ -14,7 +14,7 @@ class LessOrEqual(VectorizedScalarOp):
 
     ScalarOpFun = keops_lessorequal
 
-    def DiffT(self, v, gradin):
+    def GradFun(self, v, gradin):
         return Zero(v.dim)
 
     # parameters for testing the operation (optional)

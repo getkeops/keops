@@ -10,5 +10,5 @@ class Floor(VectorizedScalarOp):
 
     ScalarOpFun = keops_floor
 
-    def DiffT(self, v, gradin):
+    def GradFun(self, v, gradin):
         return Zero(v.dim)

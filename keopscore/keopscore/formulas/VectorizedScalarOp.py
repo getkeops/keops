@@ -70,7 +70,7 @@ class VectorizedScalarOp(Operation):
         # the result in out
         return out.assign(type(self).ScalarOpFun(*args), out.dtype)
 
-    def DiffT(self, v, gradin):
+    def GradFun(self, v, gradin):
         derivatives = self.Derivative(*self.children)
         if len(self.children) == 1:
             derivatives = (derivatives,)

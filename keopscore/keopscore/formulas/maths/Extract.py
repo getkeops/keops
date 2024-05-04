@@ -42,7 +42,7 @@ class Extract_Impl_Factory:
                 v = c_array_from_address(out.dim, arg0.c_address + self.start)
                 return out.copy(v)
 
-            def DiffT(self, v, gradin):
+            def GradFun(self, v, gradin):
                 from keopscore.formulas.maths.ExtractT import ExtractT
 
                 f = self.children[0]

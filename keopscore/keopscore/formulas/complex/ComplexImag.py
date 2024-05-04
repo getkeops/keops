@@ -22,6 +22,6 @@ class ComplexImag(Operation):
         forloop, i = c_for_loop(0, f.dim, 2, pragma_unroll=True)
         return forloop(out[i / 2].assign(inF[i + 1]))
 
-    def DiffT(self, v, gradin):
+    def GradFun(self, v, gradin):
         f = self.children[0]
         return f.DiffT(v, Imag2Complex(gradin))

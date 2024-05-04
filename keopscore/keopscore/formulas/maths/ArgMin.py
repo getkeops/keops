@@ -41,7 +41,7 @@ class ArgMin(Operation):
             res += loop(c_if(arg[k] < tmp, tmp.assign(arg[k]) + out.assign(k)))
         return res
 
-    def DiffT(self, v, gradin):
+    def GradFun(self, v, gradin):
         return Zero(v.dim)
 
     # parameters for testing the operation (optional)

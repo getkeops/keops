@@ -24,7 +24,7 @@ class ComplexExp1j(Operation):
         body = keops_sincos(inF[i / 2], out[i + 1].pointer, out[i].pointer)
         return forloop(body)
 
-    def DiffT(self, v, gradin):
+    def GradFun(self, v, gradin):
         # building equivalent formula for autodiff
         f = self.children[0]
         AltFormula = Real2Complex(Cos(f)) + Imag2Complex(Sin(f))

@@ -14,7 +14,7 @@ class Equal(VectorizedScalarOp):
 
     ScalarOpFun = keops_equal
 
-    def DiffT(self, v, gradin):
+    def GradFun(self, v, gradin):
         return Zero(v.dim)
 
     # parameters for testing the operation (optional)

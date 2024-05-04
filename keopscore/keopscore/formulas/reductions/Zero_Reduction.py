@@ -13,7 +13,7 @@ class Zero_Reduction(Reduction):
         super().__init__(Zero(dim), tagIJ)
         self.dim = dim
 
-    def DiffT(self, v, gradin, f0=None):
+    def GradFun(self, v, gradin, f0=None):
         return Zero_Reduction(v.dim, v.cat % 2)
 
     def Diff(self, v, diffin, f0=None):

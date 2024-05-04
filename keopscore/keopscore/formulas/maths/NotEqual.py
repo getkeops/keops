@@ -14,7 +14,7 @@ class NotEqual(VectorizedScalarOp):
 
     ScalarOpFun = keops_notequal
 
-    def DiffT(self, v, gradin):
+    def GradFun(self, v, gradin):
         return Zero(v.dim)
 
     # parameters for testing the operation (optional)

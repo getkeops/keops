@@ -113,7 +113,7 @@ class BSpline_Impl_Factory:
                 )
                 return code
 
-            def DiffT(self, v, gradin):
+            def GradFun(self, v, gradin):
                 raise NotImplementedError(
                     "KeOps BSplines are not yet differentiable."
                     "Please consider disabling autograd for the relevant variables"

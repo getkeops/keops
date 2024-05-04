@@ -29,7 +29,7 @@ class ComplexSum(Operation):
         res += forloop(body)
         return res
 
-    def DiffT(self, v, gradin):
+    def GradFun(self, v, gradin):
         from keopscore.formulas.complex.ComplexSumT import ComplexSumT
 
         f = self.children[0]

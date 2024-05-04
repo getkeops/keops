@@ -215,7 +215,7 @@ class TensorDot_Impl_Factory(metaclass=unique_object):
 
                 return c_instruction_from_string(res)
 
-            def DiffT(self, v, gradin):
+            def GradFun(self, v, gradin):
                 f = self.children[0]
                 g = self.children[1]
                 return f.DiffT(

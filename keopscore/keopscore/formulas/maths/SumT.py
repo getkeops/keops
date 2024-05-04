@@ -30,7 +30,7 @@ class SumT_Impl_Factory(metaclass=unique_object):
             def Op(self, out, table, arg):
                 return out.assign(arg.value)
 
-            def DiffT(self, v, gradin):
+            def GradFun(self, v, gradin):
                 from keopscore.formulas.maths.Sum import Sum
 
                 f = self.children[0]

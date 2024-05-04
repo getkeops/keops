@@ -146,6 +146,9 @@ class Operation(Tree, metaclass=unique_object):
         code = c_block(code)
         return code
 
+    def DiffT(self, v, gradin):
+        return GradClass(self, v, gradin).value
+
     def __mul__(self, other):
         """f*g redirects to Mult(f,g)"""
         from keopscore.formulas.maths.Mult import Mult
@@ -266,6 +269,10 @@ class Operation(Tree, metaclass=unique_object):
     enable_test = False
     disable_testgrad = False
 
+
+class GradClass(metaclass=unique_object):
+    def __init__(self, f, v, gradin):
+        self.value = f.GradFun(v, gradin)
 
 def int2Op(x):
     if isinstance(x, int):

@@ -42,7 +42,7 @@ class VecMatMult(Operation):
                 """
         return c_instruction_from_string(res)
 
-    def DiffT(self, v, gradin):
+    def GradFun(self, v, gradin):
         from keopscore.formulas.maths.MatVecMult import MatVecMult
         from keopscore.formulas.maths.TensorProd import TensorProd
 

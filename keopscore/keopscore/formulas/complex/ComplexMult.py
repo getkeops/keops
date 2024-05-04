@@ -15,7 +15,7 @@ class ComplexMult(VectorizedComplexScalarOp):
         res += out[1].assign(inF[0] * inG[1] + inF[1] * inG[0])
         return res
 
-    def DiffT(self, v, gradin):
+    def GradFun(self, v, gradin):
         from keopscore.formulas.complex.ComplexSum import ComplexSum
 
         f, g = self.children

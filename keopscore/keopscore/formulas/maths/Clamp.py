@@ -10,7 +10,7 @@ class Clamp(VectorizedScalarOp):
 
     ScalarOpFun = keops_clamp
 
-    def DiffT(self, v, gradin):
+    def GradFun(self, v, gradin):
         # N.B.   Clamp(F,G,H) = Clamp((F-G)/(H-G),0,1) * (H-G) + G
         # We use this fact to avoid writing another custom operation for the gradient.
         # (This may be slower however...)
