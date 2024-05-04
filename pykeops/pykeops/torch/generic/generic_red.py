@@ -172,8 +172,6 @@ class GenredAutograd_base:
 
         grads = []  # list of gradients wrt. args;
 
-        print("ctx.needs_input_grad=", ctx.needs_input_grad)
-
         vars = []
         grads = [None]*len(args)
         for var_ind, (sig, arg_ind) in enumerate(
