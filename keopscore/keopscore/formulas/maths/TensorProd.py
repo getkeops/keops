@@ -35,7 +35,7 @@ class TensorProd(Operation):
                 """
         return c_instruction_from_string(res)
 
-    def DiffT(self, v, gradin):
+    def DiffT_fun(self, v, gradin):
         from keopscore.formulas import MatVecMult, VecMatMult
 
         f, g = self.children

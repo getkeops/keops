@@ -20,7 +20,7 @@ class Imag2Complex(Operation):
         body += out[i + 1].assign(inF[i / 2])
         return forloop(body)
 
-    def DiffT(self, v, gradin):
+    def DiffT_fun(self, v, gradin):
         from keopscore.formulas.complex.ComplexImag import ComplexImag
 
         f = self.children[0]

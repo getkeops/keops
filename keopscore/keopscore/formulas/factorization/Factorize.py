@@ -95,18 +95,18 @@ class Factorize_Impl_Factory(metaclass=unique_object):
                 res = c_block(res)
                 return res
 
-            def DiffT_old(self, v, gradin):
+            def DiffT_fun_old(self, v, gradin):
                 f, g = self.children
                 aliasvar = self.aliasvar
                 f = f.replace(aliasvar, g)
                 return Factorize(f.DiffT(v, gradin), g)
             
-            def DiffT(self, v, gradin):
+            def DiffT_fun(self, v, gradin):
                 f = Defactorize(self)
                 return DiffT(f,v,gradin).val
                 #return f.DiffT(v,gradin)
             
-            def DiffT_new(self, v, gradin):
+            def DiffT_fun_new(self, v, gradin):
                 f, g = self.children
                 aliasvar = self.aliasvar
                 f = f.replace(aliasvar, g)

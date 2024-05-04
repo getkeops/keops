@@ -32,7 +32,7 @@ class Zero_Impl_Factory(metaclass=unique_object):
             def Op(self, out, table):
                 return out.assign(c_zero_float)
 
-            def DiffT(self, v, gradin):
+            def DiffT_fun(self, v, gradin):
                 return Zero(v.dim)
 
         self.Class = Class

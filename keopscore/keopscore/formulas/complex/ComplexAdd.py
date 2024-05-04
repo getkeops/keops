@@ -13,7 +13,7 @@ class ComplexAdd(VectorizedComplexScalarOp):
         string += out[1].assign(inF[1] + inG[1])
         return string
 
-    def DiffT(self, v, gradin):
+    def DiffT_fun(self, v, gradin):
         from keopscore.formulas.complex.ComplexSum import ComplexSum
 
         f, g = self.children

@@ -30,7 +30,7 @@ class Scalprod_Impl(InnerReductionOp):
     def ScalarOp(self, out, arga, argb):
         return out.assign(keops_fma(arga, argb, out))
 
-    def DiffT(self, v, gradin):
+    def DiffT_fun(self, v, gradin):
         fa, fb = self.children
         return gradin * (fa.DiffT(v, fb) + fb.DiffT(v, fa))
 

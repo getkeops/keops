@@ -65,7 +65,7 @@ class Var_Factory(metaclass=unique_object):
             # Assuming that the gradient wrt. Var is GRADIN, how does it affect V ?
             # Var::DiffT<V, grad_input> = grad_input   if V == Var (in the sense that it represents the same symb. var.)
             #                             Zero(V::DIM) otherwise
-            def DiffT(self, v, gradin):
+            def DiffT_fun(self, v, gradin):
                 from keopscore.formulas.variables.Zero import Zero
 
                 return gradin if v == self else Zero(v.dim)

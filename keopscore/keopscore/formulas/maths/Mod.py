@@ -11,7 +11,7 @@ class Mod(VectorizedScalarOp):
 
     ScalarOpFun = keops_mod
 
-    def DiffT(self, v, gradin):
+    def DiffT_fun(self, v, gradin):
         from keopscore.formulas.maths.Floor import Floor
 
         # we fall back to an alternative definition of Mod for defining the gradient

@@ -26,7 +26,7 @@ class IntCst_Impl_Factory(metaclass=unique_object):
             def get_code_and_expr(self, dtype, table, i, j, tagI):
                 return c_empty_instruction, c_array_scalar(val)
 
-            def DiffT(self, v, gradin):
+            def DiffT_fun(self, v, gradin):
                 return Zero(v.dim)
 
         self.Class = Class

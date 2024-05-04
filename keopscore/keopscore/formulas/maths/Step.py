@@ -10,5 +10,5 @@ class Step(VectorizedScalarOp):
 
     ScalarOpFun = keops_step
 
-    def DiffT(self, v, gradin):
+    def DiffT_fun(self, v, gradin):
         return Zero(v.dim)

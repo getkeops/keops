@@ -21,7 +21,7 @@ class Index(Operation):
     def Op(self, out, table, arga, argb):
         return out.assign(arga[argb])
 
-    def DiffT(self, v, gradin):
+    def DiffT_fun(self, v, gradin):
         from keopscore.formulas.maths.IndexT import IndexT
 
         f, g = self.children

@@ -62,7 +62,7 @@ class Elem_Factory(metaclass=unique_object):
                 )
                 return code + code_elem + out.assign(expr)
 
-            def DiffT(self, v, gradin):
+            def DiffT_fun(self, v, gradin):
                 from keopscore.formulas.maths.ElemT import ElemT
 
                 f = self.children[0]
