@@ -40,7 +40,7 @@ def fun(x, y, b, backend):
     return out
 
 
-backends = ["keops"]#, "torch"]
+backends = ["keops", "torch"]
 
 out = []
 for backend in backends:
