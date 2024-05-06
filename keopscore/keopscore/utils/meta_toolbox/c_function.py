@@ -48,3 +48,20 @@ class cuda_global_kernel(c_function):
 
     def __init__(self, name, input_vars=(), body=c_empty_instruction, **kwargs):
         super().__init__('extern "C" __global__ void', name, input_vars, body, **kwargs)
+
+
+class c_templated_function(c_function):
+
+    def __init__(
+        self,
+        dtype_out,
+        name,
+        input_vars=(),
+        body=c_empty_instruction,
+        typename="TYPE",
+        **kwargs,
+    ):
+        decorator = f"template < typename {typename} >"
+        super().__init__(
+            dtype_out, name, input_vars, body, decorator=decorator, **kwargs
+        )

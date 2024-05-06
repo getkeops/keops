@@ -1,8 +1,14 @@
 import keopscore
 from keopscore.binders.cpp.Cpu_link_compile import Cpu_link_compile
+from keopscore.utils.meta_toolbox.c_function import c_templated_function
 from keopscore.mapreduce.cpu.CpuAssignZero import CpuAssignZero
 from keopscore.mapreduce.MapReduce import MapReduce
-from keopscore.utils.meta_toolbox import c_include
+from keopscore.utils.meta_toolbox import (
+    c_include,
+    c_variable,
+    c_for,
+    c_return,
+)
 import keopscore
 
 
@@ -34,6 +40,11 @@ class CpuReduc(MapReduce, Cpu_link_compile):
         table = self.varloader.direct_table(args, i, j)
         sum_scheme = self.sum_scheme
 
+        nx = c_variable("signed long int", "nx")
+        ny = c_variable("signed long int", "ny")
+
+        out = self.out
+
         headers = ["cmath", "stdlib.h"]
         if keopscore.config.config.use_OpenMP:
             headers.append("omp.h")
@@ -41,28 +52,41 @@ class CpuReduc(MapReduce, Cpu_link_compile):
             headers.append("iostream")
         self.headers += c_include(*headers)
 
-        self.code = f"""
-{self.headers}
-template < typename TYPE > 
-int CpuConv_{self.gencode_filename}(signed long int nx, signed long int ny, TYPE* out, TYPE **{arg.id}) {{
-    #pragma omp parallel for
-    for (signed long int i = 0; i < nx; i++) {{
-        {fout.declare()}
-        {acc.declare()}
-        {sum_scheme.declare_temporary_accumulator()}
-        {red_formula.InitializeReduction(acc)}
-        {sum_scheme.initialize_temporary_accumulator()}
-        for (signed long int j = 0; j < ny; j++) {{
-            {red_formula.formula(fout,table,i,j,tagI)}
-            {sum_scheme.accumulate_result(acc, fout, j)}
-            {sum_scheme.periodic_accumulate_temporary(acc, j)}
-        }}
-        {sum_scheme.final_operation(acc)}
-        {red_formula.FinalizeOutput(acc, outi, i)}
-    }}
-    return 0;
-}}
-                    """
+        code = self.headers + c_templated_function(
+            dtype_out="int",
+            name="CpuConv_" + self.gencode_filename,
+            input_vars=(nx, ny, out, arg),
+            body=(
+                c_for(
+                    decorator="#pragma omp parallel for",
+                    init=i.declare_assign(0),
+                    end=i < nx,
+                    loop=i.plus_plus,
+                    body=(
+                        fout.declare(),
+                        acc.declare(),
+                        sum_scheme.declare_temporary_accumulator(),
+                        red_formula.InitializeReduction(acc),
+                        sum_scheme.initialize_temporary_accumulator(),
+                        c_for(
+                            init=j.declare_assign(0),
+                            end=j < ny,
+                            loop=j.plus_plus,
+                            body=(
+                                red_formula.formula(fout, table, i, j, tagI),
+                                sum_scheme.accumulate_result(acc, fout, j),
+                                sum_scheme.periodic_accumulate_temporary(acc, j),
+                            ),
+                        ),
+                        sum_scheme.final_operation(acc),
+                        red_formula.FinalizeOutput(acc, outi, i),
+                    ),
+                ),
+                c_return(0),
+            ),
+        )
+
+        self.code = str(code)
 
         self.code += f"""
 #include "stdarg.h"

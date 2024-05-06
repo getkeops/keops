@@ -31,3 +31,6 @@ def c_include(*headers, **kwargs):
 
 def c_define(name, value, **kwargs):
     return c_code(f"#define {name} {value}\n", **kwargs)
+
+
+c_line_break = c_code("\n")
