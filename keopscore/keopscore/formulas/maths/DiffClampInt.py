@@ -31,7 +31,7 @@ class DiffClampInt_Impl_Factory:
             string_id = "DiffClampInt"
             print_fun = lambda x: f"DiffClampInt({x},{a},{b})"
 
-            ScalarOpFun = lambda x : keops_diffclampint(x,a,b)
+            ScalarOpFun = lambda x: keops_diffclampint(x, a, b)
 
             def DiffT_fun(self, v, gradin):
                 from keopscore.formulas import Zero

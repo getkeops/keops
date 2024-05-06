@@ -29,7 +29,7 @@ class ClampInt_Impl_Factory(metaclass=unique_object):
             string_id = "ClampInt"
             print_fun = lambda x: f"ClampInt({x},{a},{b})"
 
-            ScalarOpFun = lambda x : keops_clampint(x,a,b)
+            ScalarOpFun = lambda x: keops_clampint(x, a, b)
 
             @staticmethod
             def Derivative(x):
