@@ -3,8 +3,8 @@ from keopscore.formulas.VectorizedScalarOp import VectorizedScalarOp
 from keopscore.formulas.maths.Scalprod import Scalprod
 from keopscore.formulas.maths.Sum import Sum
 from keopscore.formulas.maths.Square import Square
-from keopscore.formulas.variables.Zero import Zero
-from keopscore.formulas.variables.IntCst import IntCst, IntCst_Impl
+from keopscore.formulas.variables.Zero import Zero_Impl
+from keopscore.formulas.variables.IntCst import IntCst_Impl
 from keopscore.formulas.variables.RatCst import RatCst, RatCst_Impl
 from keopscore.utils.misc_utils import KeOps_Error
 from keopscore.utils.math_functions import keops_div
@@ -43,9 +43,9 @@ class Divide_Impl(VectorizedScalarOp):
 # N.B. The following separate function should theoretically be implemented
 # as a __new__ method of the previous class, but this can generate infinite recursion problems
 def Divide(arg0, arg1):
-    if isinstance(arg0, Zero):
+    if isinstance(arg0, Zero_Impl):
         return Broadcast(arg0, arg1.dim)
-    elif isinstance(arg1, Zero):
+    elif isinstance(arg1, Zero_Impl):
         KeOps_Error("division by zero")
     elif isinstance(arg1, IntCst_Impl):
         return RatCst(1, arg1.val) * arg0

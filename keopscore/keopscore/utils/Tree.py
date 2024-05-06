@@ -46,7 +46,7 @@ class Tree:
             formula_string = formula_string.replace(var_string, v.label)
             if v.ind >= 0:
                 varstrings.append(f"{v.label}={var_string}")
-        string = formula_string + " with " + ", ".join(varstrings)
+        string = formula_string + " with " + "; ".join(varstrings)
         return string
 
     def make_dot(self, filename=None):
