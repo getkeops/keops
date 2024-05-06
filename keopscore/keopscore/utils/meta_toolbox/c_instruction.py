@@ -1,4 +1,5 @@
 from .c_code import c_code
+from .c_expression import py2c
 from .misc import Meta_Toolbox_Error
 
 
@@ -54,6 +55,11 @@ def c_instruction_from_string(string):
         return c_composed_instruction(string, set(), set())
     else:
         return c_instruction(string, set(), set())
+
+
+def c_return(c_expr):
+    c_expr = py2c(c_expr)
+    return c_instruction_from_string(f"return {c_expr}")
 
 
 def c_comment(string):

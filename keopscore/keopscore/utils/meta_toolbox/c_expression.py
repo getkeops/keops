@@ -74,6 +74,10 @@ class c_expression(c_code):
         python_op = lambda x, y: x / y
         return self.binary_op(other, python_op, "/", "division")
 
+    def equals(self, other):
+        python_op = lambda x, y: x == y
+        return self.binary_op(other, python_op, "==", "comparison", dtype="bool")
+
     def __lt__(self, other):
         python_op = lambda x, y: x < y
         return self.binary_op(other, python_op, "<", "comparison", dtype="bool")

@@ -1,13 +1,13 @@
 import keopscore
 from keopscore.binders.cpp.Cpu_link_compile import Cpu_link_compile
-from keopscore.utils.meta_toolbox.c_function import templated_function
+from keopscore.utils.meta_toolbox.c_function import c_templated_function
 from keopscore.mapreduce.cpu.CpuAssignZero import CpuAssignZero
 from keopscore.mapreduce.MapReduce import MapReduce
 from keopscore.utils.meta_toolbox import (
     c_include,
     c_variable,
     c_for,
-    c_instruction_from_string,
+    c_return,
 )
 import keopscore
 
@@ -52,7 +52,8 @@ class CpuReduc(MapReduce, Cpu_link_compile):
             headers.append("iostream")
         self.headers += c_include(*headers)
 
-        code = self.headers + templated_function(
+        code = self.headers + c_templated_function(
+            dtype_out="int",
             name="CpuConv_" + self.gencode_filename,
             input_vars=(nx, ny, out, arg),
             body=(
@@ -81,7 +82,7 @@ class CpuReduc(MapReduce, Cpu_link_compile):
                         red_formula.FinalizeOutput(acc, outi, i),
                     ),
                 ),
-                c_instruction_from_string("return 0"),
+                c_return(0),
             ),
         )
 
