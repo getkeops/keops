@@ -45,6 +45,8 @@ class c_block(c_composed_instruction):
                     self.code_string += " {\n"
                 else:
                     Meta_Toolbox_Error("invalid braces style")
+        else:
+            self.code_string += "\n"
         self.code_string += add_indent(str(self.body))
         if use_braces:
             self.code_string += "\n}"

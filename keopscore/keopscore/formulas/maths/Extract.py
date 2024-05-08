@@ -1,5 +1,5 @@
 from keopscore.formulas.Operation import Operation
-from keopscore.utils.meta_toolbox import c_array_from_address
+from keopscore.utils.meta_toolbox import c_array_from_address, c_for_loop
 from keopscore.utils.misc_utils import KeOps_Error
 
 # //////////////////////////////////////////////////////////////
@@ -41,6 +41,21 @@ class Extract_Impl_Factory:
                 # the result in out
                 v = c_array_from_address(out.dim, arg0.c_address + self.start)
                 return out.copy(v)
+
+            def get_code_and_expr_elem(self, dtype, table, i, j, tagI, elem):
+                (child,) = self.children
+                code, code_elem, expr = child.get_code_and_expr_elem(
+                    dtype, table, i, j, tagI, elem+start
+                )
+                return code, code_elem, expr
+
+            def __call__(self, out, table, i, j, tagI):
+                (child,) = self.children
+                loop, k = c_for_loop(0,dim,1,pragma_unroll=True)
+                code, code_elem, expr = child.get_code_and_expr_elem(
+                    out.dtype, table, i, j, tagI, k+start
+                )
+                return code + loop(code_elem + out[k].assign(expr))
 
             def DiffT_fun(self, v, gradin):
                 from keopscore.formulas.maths.ExtractT import ExtractT

@@ -62,3 +62,8 @@ class ExtractT_Impl_Factory(metaclass=unique_object):
 
                 f = self.children[0]
                 return f.DiffT(v, Extract(gradin, self.start, f.dim))
+        
+        self.Class = Class
+    
+    def __call__(self, f):
+        return self.Class(f)
