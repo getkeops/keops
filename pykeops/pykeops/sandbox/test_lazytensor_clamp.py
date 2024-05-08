@@ -8,11 +8,11 @@ from pykeops.torch import LazyTensor
 
 M, N, D = 1000, 1000, 3
 
-test_grad = True
+test_grad = False
 
 device_id = "cuda:0" if torch.cuda.is_available() else "cpu"
 
-do_warmup = True
+do_warmup = False
 
 x = torch.randn(M, 1, D, requires_grad=test_grad, device=device_id)
 y = torch.randn(1, N, D, device=device_id)
