@@ -35,6 +35,7 @@ class ExtractT_Impl_Factory(metaclass=unique_object):
         class Class(ExtracT_Impl):
 
             string_id = "ExtractT"
+            print_fun = lambda x: f"ExtractT({x},{start},{dim})"
             linearity_type = "all"
 
             def __init__(self, f):

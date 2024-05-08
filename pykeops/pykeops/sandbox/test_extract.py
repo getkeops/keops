@@ -22,9 +22,12 @@ def fun(x, y, backend):
     if backend == "keops":
         x = LazyTensor(x)
         y = LazyTensor(y)
-    elif backend != "torch":
+        Kxy = (-((x-y)**2).sum(axis=2)*x**2).exp()[:,:,2]
+    elif backend == "torch":
+        Kxy = (-((x-y)**2).sum(axis=2, keepdim=True)*x**2).exp()[:,:,2]
+    else:
         raise ValueError("wrong backend")
-    Kxy = (-(x[:,:,0:4]-y[:,:,3:7])**2).exp()[:,:,2:4]
+        
     return Kxy.sum(dim=1)
 
 backends = ["torch", "keops"]

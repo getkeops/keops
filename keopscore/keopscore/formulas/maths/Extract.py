@@ -27,6 +27,7 @@ class Extract_Impl_Factory:
 
         class Class(Extract_Impl):
             string_id = "Extract"
+            print_fun = lambda x: f"{x}[{start}:{start+dim}]"
             linearity_type = "all"
 
             def __init__(self, arg0):
