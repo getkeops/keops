@@ -77,6 +77,8 @@ class GpuReduc1D(MapReduce, Gpu_link_compile):
         def cond_j(*instructions):
             return c_if(j < ny, instructions)
 
+        fout, acc, outi = sum_scheme.outputs(fout, acc, outi)
+
         code = self.headers + cuda_global_kernel(
             "GpuConv1DOnDevice",
             (nx, ny, out, arg),
@@ -85,12 +87,12 @@ class GpuReduc1D(MapReduce, Gpu_link_compile):
                 yj.declare(force_declare=True),
                 param_loc.declare(),
                 varloader.load_vars("p", param_loc, args),
-                fout.declare(),
+                sum_scheme.declare_formula_out(fout),
                 xi.declare(),
-                acc.declare(),
+                sum_scheme.declare_formula_out(acc),
                 sum_scheme.declare_temporary_accumulator(),
                 cond_i(
-                    red_formula.InitializeReduction(acc),
+                    sum_scheme.InitializeReduction(acc),
                     sum_scheme.initialize_temporary_accumulator_first_init(),
                     varloader.load_vars("i", xi, args, row_index=i),
                 ),
@@ -122,7 +124,7 @@ class GpuReduc1D(MapReduce, Gpu_link_compile):
                         sync_threads,
                     ),
                 ),
-                cond_i(red_formula.FinalizeOutput(acc, outi, i)),
+                cond_i(sum_scheme.FinalizeOutput(acc, outi, i)),
             ),
         )
 
