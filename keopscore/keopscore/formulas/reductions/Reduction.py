@@ -5,6 +5,8 @@ from keopscore.utils.Tree import Tree
 class Reduction(Tree):
     """Base class for all KeOps final reductions over a formula"""
 
+    print_level = 0
+    
     def __init__(self, formula, tagI):
         """- formula is an object of type Operation, it is the formula on which we apply a reduction
         - tagI : 0 or 1, specifies wether we do the reduction over "i"-indexed or "j"-indexed variables.

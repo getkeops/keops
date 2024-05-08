@@ -45,7 +45,7 @@ KeOpsdtype = torchdtype.__str__().split(".")[1]  # 'float32'
 
 
 if use_cuda:
-    datafile = "data/hippos.pt"
+    datafile = "/home/glaunes/repos_git/keops/pykeops/pykeops/tutorials/surface_registration/data/hippos.pt"
 else:
     datafile = "data/hippos_reduc_reduc.pt"
 
@@ -227,8 +227,8 @@ it, jt, kt = (
     FT[:, 2].detach().cpu().numpy(),
 )
 
-save_folder = os.path.join("..", "..", "..", "..", "doc", "_build", "html", "_images")
-os.makedirs(save_folder, exist_ok=True)
+#save_folder = os.path.join("..", "..", "..", "..", "doc", "_build", "html", "_images")
+#os.makedirs(save_folder, exist_ok=True)
 
 fig = go.Figure(
     data=[
@@ -236,7 +236,7 @@ fig = go.Figure(
         go.Mesh3d(x=x, y=y, z=z, i=i, j=j, k=k, color="red", opacity=0.50),
     ]
 )
-fig.write_html(os.path.join(save_folder, "data.html"), auto_open=False)
+#fig.write_html(os.path.join(save_folder, "data.html"), auto_open=False)
 # sphinx_gallery_thumbnail_path = '_static/plot_LDDMM_Surface_thumb.png'
 
 

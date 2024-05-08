@@ -8,7 +8,7 @@ from keopscore.utils.misc_utils import KeOps_Error, KeOps_Message
 
 def get_hash_name(*args):
     return sha256("".join(list(str(arg) for arg in args)).encode("utf-8")).hexdigest()[
-        :10
+        :20
     ]
 
 

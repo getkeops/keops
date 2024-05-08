@@ -128,14 +128,22 @@ class GenredAutograd_base:
             *args,
         )
 
-        return result, torch.tensor([myconv.dimout, myconv.tagIJ])
+        if False:#params.formula=="Grad_WithSavedForward(Sum_Reduction((Exp((Minus(SqDist(Var(0,3,0), Var(1,3,1))) * Var(3,1,2))) * Var(2,3,1)),0),[Var(1,3,1),Var(2,3,1)],Var(4,3,0),Var(5,3,0))":
+            print()
+            print("in forward:")
+            print("params.formula=", params.formula)
+            print("myconv.dimout=", myconv.dimout)
+            print("len(params.formula)=", len(params.formula))
+            print()
+
+        return result, torch.tensor([myconv.dimout, myconv.tagIJ, len(params.formula)])
 
     @staticmethod
     def _setup_context(ctx, inputs, outputs):
         params, *args = inputs
         result, info = outputs
         ctx.mark_non_differentiable(info)
-        dimout, tagIJ = int(info[0]), int(info[1])
+        dimout, tagIJ, lenparams = int(info[0]), int(info[1]), int(info[2])
 
         ctx.optional_flags = params.optional_flags.copy()
 
@@ -143,6 +151,17 @@ class GenredAutograd_base:
         ctx.params = params
         ctx.dimout = dimout
         ctx.tagIJ = tagIJ
+        ctx.lenparams = lenparams
+
+        if False:#params.formula=="Grad_WithSavedForward(Sum_Reduction((Exp((Minus(SqDist(Var(0,3,0), Var(1,3,1))) * Var(3,1,2))) * Var(2,3,1)),0),[Var(1,3,1),Var(2,3,1)],Var(4,3,0),Var(5,3,0))":
+            print()
+            print("in _setup_context:")
+            print("params.formula=", params.formula)
+            print("dimout=", dimout)
+            print("id(ctx)=", id(ctx))
+            print()
+        
+        print("id(ctx), dimout, formula=", id(ctx), dimout, params.formula)
 
         # relying on the 'ctx.saved_variables' attribute is necessary  if you want to be able to differentiate the output
         #  of the backward once again. It helps pytorch to keep track of 'who is who'.
@@ -156,6 +175,20 @@ class GenredAutograd_base:
         args = ctx.saved_tensors[:-1]  # Unwrap the saved variables
         nargs = len(args)
         result = ctx.saved_tensors[-1].detach()
+
+
+        print("id(ctx), dimout, formula=", id(ctx), dimout, params.formula)
+        
+        if False:#params.formula=="Grad_WithSavedForward(Sum_Reduction((Exp((Minus(SqDist(Var(0,3,0), Var(1,3,1))) * Var(3,1,2))) * Var(2,3,1)),0),[Var(1,3,1),Var(2,3,1)],Var(4,3,0),Var(5,3,0))":
+            print()
+            print("in backward:")
+            print("params.formula=", params.formula)
+            print("dimout=", dimout)
+            print("len(params.formula)=", len(params.formula))
+            print("ctx.lenparams=",ctx.lenparams)
+            print("id(ctx)=", id(ctx))
+            print("result.shape=", result.shape)
+            print()
 
         check_AD_supported(params.formula)
 

@@ -145,6 +145,8 @@ class Operation(Tree, metaclass=unique_object):
         return code
 
     def DiffT(self, v, gradin):
+        if gradin.dim != self.dim:
+            KeOps_Error("dim of gradin should match dim of formula")
         return DiffT_class(self, v, gradin).value
 
     def __mul__(self, other):

@@ -50,6 +50,10 @@ class LinkCompile:
         #                                            tagI (O or 1, reduction over i or j indices),
         #                                            dimy (sum of dimensions of j-indexed vectors)
         f = open(self.info_file, "w")
+        print("**************")
+        print("self.red_formula_string=", self.red_formula_string)
+        print("self.dim=", self.dim)
+        print("****************")
         f.write(
             f"red_formula={self.red_formula_string}\ndim={self.dim}\ntagI={self.tagI}\ndimy={self.dimy}"
         )

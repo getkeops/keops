@@ -29,6 +29,12 @@ class GetReduction:
                 if "=" in alias:
                     varname, var = alias.split("=")
                     aliases_dict[varname] = eval(var)
+
+            print("**********************")
+            print("red_formula_string=")
+            print(red_formula_string)
+            print("**********************")
+            
             reduction = eval(red_formula_string, globals(), aliases_dict)
             if keopscore.auto_factorize:
                 formula = reduction.children[0]
