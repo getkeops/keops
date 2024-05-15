@@ -121,35 +121,37 @@ def gaussianconv_pytorch_eager(x, y, b, tf32=False, cdist=False, **kwargs):
 # we will update this demo with new PyTorch releases.
 #
 
+# N.B. currently PyTorch dynamic is not supported with Python version >= 3.12
+import sys
 
-# Inner function to be compiled:
-def _gaussianconv_pytorch(x, y, b):
-    """(B,N,D), (B,N,D), (B,N,1) -> (B,N,1)"""
-    # Note that cdist is not currently supported by torch.compile with dynamic=True.
+test_dynamic = torch.__version__ >= "2.0" and sys.version_info < (3, 12)
+if test_dynamic:
 
-    D_xx = (x * x).sum(-1).unsqueeze(2)  # (B,N,1)
-    D_xy = torch.matmul(x, y.permute(0, 2, 1))  # (B,N,D) @ (B,D,M) = (B,N,M)
-    D_yy = (y * y).sum(-1).unsqueeze(1)  # (B,1,M)
-    D_xy = D_xx - 2 * D_xy + D_yy  # (B,N,M)
-    K_xy = (-D_xy).exp()  # (B,N,M)
+    # Inner function to be compiled:
+    def _gaussianconv_pytorch(x, y, b):
+        """(B,N,D), (B,N,D), (B,N,1) -> (B,N,1)"""
+        # Note that cdist is not currently supported by torch.compile with dynamic=True.
 
-    return K_xy @ b  # (B,N,1)
+        D_xx = (x * x).sum(-1).unsqueeze(2)  # (B,N,1)
+        D_xy = torch.matmul(x, y.permute(0, 2, 1))  # (B,N,D) @ (B,D,M) = (B,N,M)
+        D_yy = (y * y).sum(-1).unsqueeze(1)  # (B,1,M)
+        D_xy = D_xx - 2 * D_xy + D_yy  # (B,N,M)
+        K_xy = (-D_xy).exp()  # (B,N,M)
 
+        return K_xy @ b  # (B,N,1)
 
-# Compile the function:
-gaussianconv_pytorch_compiled = torch.compile(_gaussianconv_pytorch, dynamic=True)
+    # Compile the function:
+    gaussianconv_pytorch_compiled = torch.compile(_gaussianconv_pytorch, dynamic=True)
 
+    # Wrap it to ignore optional keyword arguments:
+    def gaussianconv_pytorch_dynamic(x, y, b, **kwargs):
+        return gaussianconv_pytorch_compiled(x, y, b)
 
-# Wrap it to ignore optional keyword arguments:
-def gaussianconv_pytorch_dynamic(x, y, b, **kwargs):
-    return gaussianconv_pytorch_compiled(x, y, b)
-
-
-# And apply our function to compile the function once and for all:
-# On the GPU, if it is available:
-_ = gaussianconv_pytorch_compiled(*generate_samples(1000))
-# And on the CPU, in any case:
-# _ = gaussianconv_pytorch_compiled(*generate_samples(1000, device="cpu"))
+    # And apply our function to compile the function once and for all:
+    # On the GPU, if it is available:
+    _ = gaussianconv_pytorch_compiled(*generate_samples(1000))
+    # And on the CPU, in any case:
+    # _ = gaussianconv_pytorch_compiled(*generate_samples(1000, device="cpu"))
 
 
 ##############################################
@@ -213,11 +215,16 @@ if use_cuda:
         (gaussianconv_numpy, "Numpy (CPU)", {"lang": "numpy"}),
         (gaussianconv_pytorch_eager, "PyTorch (GPU, matmul)", {"cdist": False}),
         (gaussianconv_pytorch_eager, "PyTorch (GPU, cdist)", {"cdist": True}),
-        (
-            gaussianconv_pytorch_dynamic,
-            "PyTorch (GPU, compiled with dynamic shapes)",
-            {},
-        ),
+    ]
+    if test_dynamic:
+        routines.append(
+            (
+                gaussianconv_pytorch_dynamic,
+                "PyTorch (GPU, compiled with dynamic shapes)",
+                {},
+            )
+        )
+    routines += [
         (gaussianconv_lazytensor, "KeOps (GPU, LazyTensor)", {}),
         (
             gaussianconv_lazytensor,
