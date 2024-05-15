@@ -96,13 +96,17 @@ class Var_loader:
             dims_sorted, inds_sorted, cats_sorted = zip(
                 *sorted(zip(self.dims, self.inds, self.cats))
             )
-            dimcur = 0
+            dimcur_i = 0
+            dimcur_j = 0
             for k in range(len(dims_sorted)):
-                dimcur += dims_sorted[k]
-                if dimcur < keopscore.config.config.lim_dim_local_var:
-                    self.is_local_var[inds_sorted[k]] = True
+                if cats_sorted[k] in [0,2]:
+                    dimcur_i += dims_sorted[k]
+                    if dimcur_i < keopscore.config.config.lim_dim_local_var_i:
+                        self.is_local_var[inds_sorted[k]] = True
                 else:
-                    break
+                    dimcur_j += dims_sorted[k]
+                    if dimcur_j < keopscore.config.config.lim_dim_local_var_j:
+                        self.is_local_var[inds_sorted[k]] = True
 
             cnt = [0, 0, 0]
             for k in range(len(dims_sorted)):

@@ -10,7 +10,8 @@ import platform, sys
 # global parameters can be set here :
 use_cuda = True  # use cuda if possible
 use_OpenMP = True  # use OpenMP if possible (see function set_OpenMP below)
-lim_dim_local_var = 0#10000
+lim_dim_local_var_i = 0#10000
+lim_dim_local_var_j = 10000
 
 # System Path
 base_dir_path = os.path.abspath(join(os.path.dirname(os.path.realpath(__file__)), ".."))

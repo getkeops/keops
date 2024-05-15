@@ -18,7 +18,8 @@ def fun_keops(A, I, J):
 
 
 def bench(Ptab, lim_dim_local_var):
-    keopscore.config.config.lim_dim_local_var = lim_dim_local_var
+    keopscore.config.config.lim_dim_local_var_i = lim_dim_local_var
+    keopscore.config.config.lim_dim_local_var_j = lim_dim_local_var
     pykeops.clean_pykeops()
     M, N = 100000, 100000
     times = []
