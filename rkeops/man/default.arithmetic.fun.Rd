@@ -107,14 +107,14 @@ The unary and binary arithmetic operators are generic functions:
 
   \code{\%\%} and \code{x \%/\% y} can be used for non-integer \code{y},
   e.g.\ifelse{latex}{\out{~}}{ }{}\code{1 \%/\% 0.2}, but the results are subject to representation
-  error and so may be platform-dependent.  Because the IEC 60559
+  error and so may be platform-dependent.  Mathematically, the answer to
+  \code{1 \%/\% 0.2} should be \code{5}, but because the \abbr{IEC} 60559
   representation of \code{0.2} is a binary fraction slightly larger than
-  \code{0.2}, the answer to \code{1 \%/\% 0.2} should be \code{4} but
-  most platforms give \code{5}.
+  \code{0.2} most platforms give \code{4}.
 
   Users are sometimes surprised by the value returned, for example why
   \code{(-8)^(1/3)} is \code{NaN}.  For \link[base]{double} inputs, \R makes
-  use of IEC 60559 arithmetic on all platforms, together with the C
+  use of \abbr{IEC} 60559 arithmetic on all platforms, together with the C
   system function \samp{pow} for the \code{^} operator.  The relevant
   standards define the result in many corner cases.  In particular, the
   result in the example above is mandated by the C99 standard.  On many
@@ -123,7 +123,7 @@ The unary and binary arithmetic operators are generic functions:
 
   Arithmetic on type \link[base]{double} in \R is supposed to be done in
   \sQuote{round to nearest, ties to even} mode, but this does depend on
-  the compiler and FPU being set up correctly.
+  the compiler and \abbr{FPU} being set up correctly.
 }
 \examples{
 x <- -1:12
@@ -133,6 +133,10 @@ x \%\%  3 # is periodic  2 0  1  2 0  1 ...
 x \%\% -3 #  (ditto)    -1 0 -2 -1 0 -2 ...
 x \%/\% 5
 x \%\% Inf # now is defined by limit (gave NaN in earlier versions of R)
+\dontdiff{
+## Illustrating PR#18677, see above
+1 \%/\% print(0.2, digits=19)
+}
 }
 \seealso{
 \link[base:Arithmetic]{base::Arithmetic}

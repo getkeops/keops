@@ -2,9 +2,9 @@
 % Please edit documentation in R/rkeops_utils.R
 \name{clean_rkeops}
 \alias{clean_rkeops}
-\title{Clean RKeOps build directory}
+\title{Clean RKeOps cache directory}
 \usage{
-clean_rkeops(verbose = TRUE, all = TRUE)
+clean_rkeops(verbose = TRUE, all = TRUE, remove_cache_dir = FALSE)
 }
 \arguments{
 \item{verbose}{logical, if \code{TRUE} (default), give user information about
@@ -12,6 +12,9 @@ cleaning.}
 
 \item{all}{logical, if \code{TRUE} (default), all cached files are removed,
 otherwise only out-dated files are removed.}
+
+\item{remove_cache_dir}{logical, if \code{TRUE} (default is \code{FALSE}), cache
+directory is also removed.}
 }
 \value{
 None
@@ -22,15 +25,18 @@ operators.
 }
 \details{
 When compiling a user-defined operators, a shared object (\code{.so}) library
-(or dynamic link library, \code{.dll}) file is created in RKeOps build
-directory (located in the \code{.cache} folder in your home). For every
-new operators, such a file is created.
+(or dynamic link library, \code{.dll}) file is created in RKeOps cache
+directory (located in the \code{.cache} folder in your home by default).
+For every new operators, such a file is created.
 
-Calling \code{clean_rkeops()} allows you to empty RKeOps build directory.
+Calling \code{clean_rkeops()} allows you to empty RKeOps cache directory.
 
-You can \code{\link[=get_rkeops_cache_dir]{get_rkeops_cache_dir()}} to get the path to RKeOps
-build directory, and you can use \code{\link[=stat_rkeops_cache_dir]{stat_rkeops_cache_dir()}} to
+You can use \code{\link[=get_rkeops_cache_dir]{get_rkeops_cache_dir()}} to get the path to RKeOps
+cache directory, and you can use \code{\link[=stat_rkeops_cache_dir]{stat_rkeops_cache_dir()}} to
 verify its disk usage.
+
+\code{clean_rkeops(remove_cache_dir = TRUE)} will entirely delete RKeOps cache
+directory.
 
 \strong{Attention}: \code{clean_rkeops(all = TRUE)} will work without a functioning
 Python setup, but \code{clean_rkeops(all = FALSE)} will not.
