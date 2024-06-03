@@ -60,7 +60,7 @@ stat_rkeops_cache_dir <- function(verbose = TRUE, startup = FALSE) {
     return(dir_du)
 }
 
-#' Clean RKeOps build directory
+#' Clean RKeOps cache directory
 #' 
 #' @description
 #' Remove all dynamic library files generated from compilations of user-defined 
@@ -68,15 +68,18 @@ stat_rkeops_cache_dir <- function(verbose = TRUE, startup = FALSE) {
 #' 
 #' @details
 #' When compiling a user-defined operators, a shared object (`.so`) library 
-#' (or dynamic link library, `.dll`) file is created in RKeOps build 
-#' directory (located in the `.cache` folder in your home). For every 
-#' new operators, such a file is created.
+#' (or dynamic link library, `.dll`) file is created in RKeOps cache 
+#' directory (located in the `.cache` folder in your home by default). 
+#' For every new operators, such a file is created.
 #' 
-#' Calling `clean_rkeops()` allows you to empty RKeOps build directory.
+#' Calling `clean_rkeops()` allows you to empty RKeOps cache directory.
 #' 
-#' You can [rkeops::get_rkeops_cache_dir()] to get the path to RKeOps 
-#' build directory, and you can use [rkeops::stat_rkeops_cache_dir()] to 
+#' You can use [rkeops::get_rkeops_cache_dir()] to get the path to RKeOps 
+#' cache directory, and you can use [rkeops::stat_rkeops_cache_dir()] to 
 #' verify its disk usage.
+#' 
+#' `clean_rkeops(remove_cache_dir = TRUE)` will entirely delete RKeOps cache 
+#' directory.
 #' 
 #' **Attention**: `clean_rkeops(all = TRUE)` will work without a functioning
 #' Python setup, but `clean_rkeops(all = FALSE)` will not.
@@ -87,6 +90,8 @@ stat_rkeops_cache_dir <- function(verbose = TRUE, startup = FALSE) {
 #' cleaning.
 #' @param all logical, if `TRUE` (default), all cached files are removed, 
 #' otherwise only out-dated files are removed.
+#' @param remove_cache_dir logical, if `TRUE` (default is `FALSE`), cache 
+#' directory is also removed.
 #' 
 #' @seealso [rkeops::get_rkeops_cache_dir()], [rkeops::stat_rkeops_cache_dir()]
 #' 
@@ -94,17 +99,18 @@ stat_rkeops_cache_dir <- function(verbose = TRUE, startup = FALSE) {
 #' 
 #' @importFrom stringr str_c
 #' @importFrom checkmate assert_flag
-#' @importFrom fs dir_ls file_delete
+#' @importFrom fs dir_exists dir_ls file_delete
 #' 
 #' @examples
 #' \dontrun{
 #' clean_rkeops()
 #' }
 #' @export
-clean_rkeops <- function(verbose = TRUE, all = TRUE) {
+clean_rkeops <- function(verbose = TRUE, all = TRUE, remove_cache_dir = FALSE) {
     # check input
     assert_flag(verbose)
     assert_flag(all)
+    assert_flag(remove_cache_dir)
     # get cache directory
     cache_dir <- get_rkeops_cache_dir()
     # list cache dir content
@@ -119,12 +125,18 @@ clean_rkeops <- function(verbose = TRUE, all = TRUE) {
     if(length(dir_list) > 0) {
         fs::file_delete(dir_list)
     }
+    # remove cache dir altogether
+    if(remove_cache_dir && fs::dir_exists(cache_dir)) {
+        fs::file_delete(cache_dir)
+    }
     # verbosity
     msg <- NULL
     if(all) {
         msg <- str_c(
-            "rkeops cache directory '", cache_dir, "' has been cleaned.\n",
-            "You should restard your R session and reload rkeops after cleaning."
+            "rkeops cache directory '", cache_dir, "' has been cleaned ", 
+            "and deleted.\n",
+            "You should restard your R session and reload rkeops after ", 
+            "cleaning."
         )
     } else {
         msg <- str_c(
