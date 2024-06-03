@@ -103,6 +103,12 @@ usethis::use_lifecycle()
 usethis::use_testthat(3)
 ```
 
+### Install requirements
+
+```{r dev-req}
+devtools::install_dev_deps(pkg_dir, dependencies = TRUE)
+```
+
 ### Documentation
 
 ```{r dev-doc}
@@ -154,5 +160,5 @@ devtools::check_man(pkg_dir)
 
 ```{r dev-check}
 # fully check the package
-devtools::check(pkg_dir, run_dont_test = TRUE)
+devtools::check(pkg_dir)
 ```
