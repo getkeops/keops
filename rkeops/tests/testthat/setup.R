@@ -48,5 +48,9 @@ check_parse_args <- function(formula, args, arg_order = NULL, decl = "dim") {
 
 
 # dedicated cache directory
-testing_cache_dir <- file.path(get_rkeops_cache_dir(), "testing_rkeops")
+current_cache_dir <- get_rkeops_cache_dir()
+testing_cache_dir <- file.path(current_cache_dir, "testing_rkeops")
 fs::dir_create(testing_cache_dir, recurse = TRUE)
+
+# Run after all tests (cleanup)
+withr::defer(fs::file_delete(current_cache_dir), teardown_env())
