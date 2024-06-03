@@ -95,8 +95,13 @@ if(!check_rkeops(verbose = FALSE)) {
 ```
 
 For build on CRAN, use CPU computing with 2 cores:
-```{r}
+```{r limit_cpu_usage}
 rkeops_use_cpu(ncore = 2)
+```
+
+```{r cleanup, include=FALSE}
+# cleanup afterward
+withr::defer(clean_rkeops(verbose = FALSE, remove_cache_dir = TRUE))
 ```
 
 **Note**: you can run `rkeops_use_cpu()` to use all available CPU cores or `rkeops_use_gpu()` to enable GPU computing.
@@ -345,11 +350,4 @@ fig <- fig %>% plotly::layout(xaxis = list(title = ""),
                       yaxis = list(title = ""))
 
 colorbar(fig, limits = c(0, 1), x = 1, y = 0.75)
-```
-
-
-
-```{r include=FALSE}
-# clean afterward
-clean_rkeops(verbose = FALSE)
 ```
