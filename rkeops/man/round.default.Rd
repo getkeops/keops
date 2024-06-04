@@ -34,15 +34,13 @@
   \code{signif} rounds the values in its first argument to the specified
   number of \emph{significant} digits.   Hence, for \code{numeric} \code{x},
   \code{signif(x, dig)} is the same as \code{round(x, dig - ceiling(log10(abs(x))))}.
-  For \code{\link[base]{complex}} \code{x}, this is not the case, % currently (?)
-  see the \sQuote{Details}.
 }
 \details{
 These are generic functions: methods can be defined for them
   individually or via the \code{\link[base:S3groupGeneric]{Math}} group
   generic.
 
-  Note that for rounding off a 5, the IEC 60559 standard (see also
+  Note that for rounding off a 5, the \abbr{IEC} 60559 standard (see also
   \sQuote{IEEE 754}) is expected to be used, \sQuote{\emph{go to the even digit}}.
   Therefore \code{round(0.5)} is \code{0} and \code{round(-1.5)} is
   \code{-2}.  However, this is dependent on OS services and on
@@ -57,9 +55,8 @@ These are generic functions: methods can be defined for them
 
   For \code{signif} the recognized values of \code{digits} are
   \code{1...22}, and non-missing values are rounded to the nearest
-  integer in that range.  Complex numbers are rounded to retain the
-  specified number of digits in the larger of the components.  Each
-  element of the vector is rounded individually, unlike printing.
+  integer in that range. Each element of the vector is rounded individually, 
+  unlike printing.
 
   These are all primitive functions.
 }
