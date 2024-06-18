@@ -18,6 +18,8 @@ CUDA_SUCCESS = 0
 CU_DEVICE_ATTRIBUTE_MAX_THREADS_PER_BLOCK = 1
 CU_DEVICE_ATTRIBUTE_MAX_SHARED_MEMORY_PER_BLOCK = 8
 
+# warning : libcuda.so is shipped with nvidia drivers (usually system-wide)
+# but nvrtc is shipped with cuda-toolkit-dev (may be user installed)
 libcuda_folder = os.path.dirname(find_library_abspath("cuda"))
 libnvrtc_folder = os.path.dirname(find_library_abspath("nvrtc"))
 
@@ -35,15 +37,20 @@ def get_cuda_include_path():
             return path
 
     # if not successfull, we try a few standard locations:
+    cuda_paths_to_try_start = []
+    # if user has installed cuda toolkit via conda in the current env, 
+    # we will find it via CONDA_PREFIX environment variable
+    path_conda = os.getenv("CONDA_PREFIX")
+    if path_conda is not None:
+        cuda_paths_to_try_start.append(path_conda)
+
     cuda_version = get_cuda_version(out_type="string")
-    cuda_paths_to_try_start = [
+    cuda_paths_to_try_start += [
         join(os.path.sep, "opt", "cuda"),
         join(os.path.sep, "usr", "local", "cuda"),
         join(os.path.sep, "usr", "local", f"cuda-{cuda_version}"),
     ]
-    path_conda = os.getenv("CONDA_PREFIX")
-    if path_conda is not None:
-        cuda_paths_to_try_start.append(path_conda)
+    
     cuda_paths_to_try_end = [
         "include",
         join("targets", "x86_64-linux", "include"),
