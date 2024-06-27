@@ -10,7 +10,7 @@ M, N, D, DV = 100000, 100000, 3, 1
 
 dtype = torch.float32
 
-test_grad = False
+test_grad = True
 test_grad2 = False
 device_id = "cuda:0" if torch.cuda.is_available() else "cpu"
 do_warmup = True
@@ -29,7 +29,7 @@ def fun(x, y, b, backend):
     Dxy = ((x - y) ** 2).sum(dim=2)
     Kxy = (-Dxy).exp()
     if backend == "keops":
-        out = LazyTensor.__matmul__(Kxy, b, sum_scheme="direct_acc")
+        out = LazyTensor.__matmul__(Kxy, b)
     else:
         out = Kxy @ b
     if device_id != "cpu":

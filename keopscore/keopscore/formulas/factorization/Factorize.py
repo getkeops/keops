@@ -86,23 +86,23 @@ class Factorize_Impl(Operation):
         f, g = self.children
         (aliasvar,) = self.params
         f = f.replace(aliasvar, g)
-        return Factorize(f.DiffT(v, gradin), g)
+        return Factorize_(f.DiffT(v, gradin), g)
 
     # parameters for testing the operation (optional)
     enable_test = False  # enable testing for this operation
 
 
-def Factorize_(formula, g, v):
+def Factorize(formula, g, v):
     if isinstance(formula, Factorize_Impl):
         if set.intersection(set(formula.defined_temp_Vars), set(g.Vars_)):
             f_inner, g_inner = formula.children
             v_inner = formula.aliasvar
-            return Factorize_Impl(Factorize_(f_inner, g, v), g_inner, v_inner)
+            return Factorize_Impl(Factorize(f_inner, g, v), g_inner, v_inner)
     res = Factorize_Impl(formula, g, v)
     return res
 
 
-def Factorize(formula, g):
+def Factorize_(formula, g):
     if type(g) in (Var, Zero, IntCst_Impl):
         return formula
     # we get a new negative index (negative because it must not refer to an actual input tensor index)
@@ -112,14 +112,14 @@ def Factorize(formula, g):
     v = Var(newind, g.dim, 3)
     newformula, cnt = formula.replace_and_count(g, v)
     if cnt > 1:
-        return Factorize_(newformula, g, v)
+        return Factorize(newformula, g, v)
     else:
         return formula
 
 
 def AutoFactorize(formula):
     def RecSearch(formula, g):
-        newformula = Factorize(formula, g)
+        newformula = Factorize_(formula, g)
         if newformula != formula:
             return newformula
         for child in g.children:

@@ -1,14 +1,14 @@
 from keopscore.formulas.Operation import Operation
 from keopscore.formulas.maths.Extract import Extract
 from keopscore.utils.misc_utils import KeOps_Error
-
+from keopscore.formulas.variables.Zero import Zero
 
 ############################
 ######    Concat       #####
 ############################
 
 
-class Concat(Operation):
+class Concat_Impl(Operation):
     string_id = "Concat"
     print_spec = ("[", "]"), "brackets", 9
     linearity_type = "all"
@@ -36,3 +36,9 @@ class Concat(Operation):
     nargs = 2  # number of arguments
     test_argdims = [5, 3]  # dimensions of arguments for testing
     torch_op = None
+
+def Concat(arg0, arg1):
+    if isinstance(arg0, Zero) and isinstance(arg1, Zero):
+        return Zero(arg0.dim+arg1.dim)
+    else:
+        return Concat_Impl(arg0, arg1)

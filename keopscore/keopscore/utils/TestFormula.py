@@ -1,13 +1,12 @@
-import time
+from time import time
 import torch
 import numpy as np
 from torch.autograd import grad
 from pykeops.torch import Genred
 from keopscore.formulas import *
-import types
 
 
-def TestFormula(formula, tol=1e-4, dtype="float32", test_grad=False, randseed=None):
+def TestFormula(formula, dtype="float32", test_grad=False, randseed=None):
     # N.B. dtype can be 'float32', 'float64' or 'float16'
 
     if isinstance(formula, str):
@@ -28,8 +27,8 @@ def TestFormula(formula, tol=1e-4, dtype="float32", test_grad=False, randseed=No
     #####################################################################
     # Declare random inputs:
 
-    M = 3000
-    N = 5000
+    M = 300000
+    N = 500000
 
     # Choose the storage place for our data : CPU (host) or GPU (device) memory.
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -58,6 +57,11 @@ def TestFormula(formula, tol=1e-4, dtype="float32", test_grad=False, randseed=No
     c = my_routine(*args)
 
     print("ok, no error")
+    start = time()
+    for k in range(10):
+        c = my_routine(*args)
+    end = time()
+    print("average time over 10 calls:", (end-start)/10)
     print("5 first values :", *c.flatten()[:5].tolist())
 
     ####################################################################
@@ -72,6 +76,12 @@ def TestFormula(formula, tol=1e-4, dtype="float32", test_grad=False, randseed=No
         g = grad(c, args, e)
 
         print("ok, no error")
+        start = time()
+        for k in range(10):
+            g = grad(c, args, e)
+        end = time()
+        print("average time over 10 calls:", (end-start)/10)
+
         for k in range(nargs):
             app_str = f"number {k}" if len(args) > 1 else ""
             print(

@@ -68,10 +68,10 @@ class Tree:
     def nice_print(self):
         import os
 
-        formula_string = self.__repr__()
+        formula_string = self.__str__()
         varstrings = []
         for v in self.Vars_:
-            var_string = v.__repr__()
+            var_string = v.__str__()
             formula_string = formula_string.replace(var_string, v.label)
             if v.ind >= 0:
                 varstrings.append(f"{v.label}={var_string}")
@@ -111,10 +111,12 @@ class Tree:
         print(f"Saved formula graph to file {filename}.")
 
     def __str__(self):
-        return self.nice_print()  # self.recursive_str()
+        return self.recursive_str() # self.nice_print()  # 
 
     def __repr__(self):
-        return self.recursive_str()
+        inner_strings = [child.__repr__() for child in self.children]
+        inner_strings += [param.__repr__() for param in self.params]
+        return self.string_id + "(" + ",".join(inner_strings) + ")"
 
     # custom __eq__ method
     def __eq__(self, other):

@@ -1,3 +1,4 @@
+from keopscore.formulas.maths.Concat import Concat
 from keopscore.utils.meta_toolbox import c_empty_instruction
 from keopscore.formulas.Operation import Operation
 
@@ -62,7 +63,17 @@ class Var(Operation):
     def DiffT(self, v, gradin):
         from keopscore.formulas.variables.Zero import Zero
 
-        return gradin if v == self else Zero(v.dim)
+        if isinstance(v, Var):
+            return gradin if v == self else Zero(v.dim)
+        elif isinstance(v, list):
+            if len(v)==1:
+                return self.DiffT(v[0])
+            else:
+                grads = [self.DiffT(u, gradin) for u in v]
+                res = grads[0]
+                for k in range(len(v)-1):
+                    res = Concat(res, grads[k+1])
+                return res
 
     def chunked_version(self, dimchk):
         return Var(self.ind, dimchk, self.cat)
