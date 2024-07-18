@@ -1,0 +1,41 @@
+Metadata-Version: 2.1
+Name: keopscore
+Version: 2.1.2
+Summary: keopscore is the KeOps meta programming engine. This python module should be used through a binder (e.g. pykeops or rkeops)
+Home-page: http://www.kernel-operations.io/
+Author: B. Charlier, J. Feydy, J. Glaunes
+Author-email: benjamin.charlier@umontpellier.fr, jean.feydy@gmail.com, alexis.glaunes@parisdescartes.fr
+License: UNKNOWN
+Project-URL: Bug Reports, https://github.com/getkeops/keops/issues
+Project-URL: Source, https://github.com/getkeops/keops
+Description: ![logo pykeops](http://www.kernel-operations.io/keops/_images/keops_logo.png)
+        
+        **keopscore** contains the [KeOps](https://www.kernel-operations.io/) meta programming engine. Given a formula, 
+        it generates the c++/cuda code executed on the fly. 
+        
+        # Usage 
+        
+        This modules is for developers only and should be used only through 
+        bindings (e.g. [pykeops](https://pypi.org/project/pykeops/) or [Rkeops](https://cran.r-project.org/web/packages/rkeops/index.html))
+        
+        * [Documentation](https://www.kernel-operations.io/)
+        * [Code](https://github.com/getkeops/keops/)
+        
+        # Authors
+        
+        - [Benjamin Charlier](https://imag.umontpellier.fr/~charlier/)
+        - [Jean Feydy](https://www.math.ens.fr/~feydy/)
+        - [Joan Alexis Glaunès](https://www.mi.parisdescartes.fr/~glaunes/)
+        
+Keywords: kernels gpu autodiff
+Platform: UNKNOWN
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Intended Audience :: Developers
+Classifier: Topic :: Scientific/Engineering
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: POSIX :: Linux
+Classifier: Operating System :: MacOS :: MacOS X
+Classifier: Programming Language :: C++
+Classifier: Programming Language :: Python :: 3 :: Only
+Requires-Python: >=3
+Description-Content-Type: text/markdown
