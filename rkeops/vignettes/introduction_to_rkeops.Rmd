@@ -203,9 +203,9 @@ rkeops_use_gpu()
 # Data
 M <- 10000
 N <- 15000
-x <- matrix(runif(N * 3), nrow = M, ncol = 3) # arbitrary R matrix representing 
+x <- matrix(runif(N * 3), nrow = N, ncol = 3) # arbitrary R matrix representing 
                                               # 10000 data points in R^3
-y <- matrix(runif(M * 3), nrow = N, ncol = 3) # arbitrary R matrix representing 
+y <- matrix(runif(M * 3), nrow = M, ncol = 3) # arbitrary R matrix representing 
                                               # 15000 data points in R^3
 s <- 0.1                                      # scale parameter
 
