@@ -143,9 +143,15 @@ RKeOps provides<br>
 
 # Installing and using RKeOps
 
+> **Note**: due to a code refactoring, `rkeops` is not available on CRAN at the moment. Please refer to the next section for installing the development version from Github.
+
 ```{r}
 # install rkeops
-install.packages("rkeops")
+install.packages("remotes")
+remotes::install_github("getkeops/keops", subdir = "rkeops")
+```
+
+```{r}
 # load rkeops
 library(rkeops)
 # create a dedicated Python environment with reticulate (!!to be done only once)

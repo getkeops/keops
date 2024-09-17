@@ -41,11 +41,13 @@ Thanks to RKeOps, you can use **GPU computing directly inside R** without the co
 
 ## Install from CRAN
 
-> **Note:** RKeOps is avaible on CRAN but only for UNIX environment (GNU/Linux and MacOS) and not for Windows.
+**Important**: due to a code refactoring, `rkeops` is not available on CRAN at the moment. Please refer to the next section for installing the development version from Github.
 
-```{r install}
-install.packages("rkeops")
-```
+<!-- > **Note:** RKeOps is avaible on CRAN but only for UNIX environment (GNU/Linux and MacOS) and not for Windows. -->
+
+<!-- ```{r install} -->
+<!-- install.packages("rkeops") -->
+<!-- ``` -->
 
 <!-- RKeOps >=2 is not available on CRAN yet, please refer to the next section. -->
 
