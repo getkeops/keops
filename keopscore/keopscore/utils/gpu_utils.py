@@ -38,7 +38,7 @@ def get_cuda_include_path():
 
     # if not successfull, we try a few standard locations:
     cuda_paths_to_try_start = []
-    # if user has installed cuda toolkit via conda in the current env, 
+    # if user has installed cuda toolkit via conda in the current env,
     # we will find it via CONDA_PREFIX environment variable
     path_conda = os.getenv("CONDA_PREFIX")
     if path_conda is not None:
@@ -50,7 +50,7 @@ def get_cuda_include_path():
         join(os.path.sep, "usr", "local", "cuda"),
         join(os.path.sep, "usr", "local", f"cuda-{cuda_version}"),
     ]
-    
+
     cuda_paths_to_try_end = [
         "include",
         join("targets", "x86_64-linux", "include"),
