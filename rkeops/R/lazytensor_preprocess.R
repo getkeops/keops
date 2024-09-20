@@ -538,7 +538,7 @@ binaryop.LazyTensor <- function(x, y, opstr, is_operator = FALSE,
     # special formula for operator
     
     if(is_operator)
-        formula <- paste("(", formula_x, opstr, formula_y, ")", sep = "")
+        formula <- paste(formula_x, opstr, formula_y, sep = "")
     
     else if(!is_operator && is.na(opt_arg))
         formula <- paste(opstr, "(", formula_x, ",", formula_y, ")", sep = "")
