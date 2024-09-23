@@ -1347,8 +1347,15 @@ preprocess_reduction <- function(x, opstr, index, opt_arg = NULL) {
     }
     
     if(get_rkeops_options("formula_only")) {
+        message("Formula:")
         print(formula)
-        stop("Debugging LazyTensor reduction: printing formula only.")
+        message("Arguments")
+        print(args)
+        msg <- paste(
+            "Debugging LazyTensor reduction: printing formula and",
+            "arguments only."
+        )
+        stop(msg)
     } else {
         op <- keops_kernel(formula, args)
         return(op)
