@@ -9,8 +9,9 @@ get_rkeops_options(option = NULL)
 \arguments{
 \item{option}{string character or vector of string character,
 specific option name(s) among \code{"backend"}, \code{"device_id"}, \code{"precision"},
-\code{"verbosity"}, \code{"debug"}, \code{"cache_dir"} to get the corresponding option
-current values. Default is \code{NULL} and all option values are returned.}
+\code{"verbosity"}, \code{"debug"}, \code{"cache_dir"}, \code{"formula_only"} to get the
+corresponding option current values. Default is \code{NULL} and all option
+values are returned.}
 }
 \value{
 a scalar value if only one option was specified or a list with
