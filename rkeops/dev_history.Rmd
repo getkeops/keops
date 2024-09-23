@@ -20,11 +20,11 @@ usethis::proj_sitrep()
 
 ```{r dev-reticulate}
 # create virtualenv
-reticulate::virtualenv_create("rkeops")
+reticulate::virtualenv_create("rkeops-dev")
 # install pykeops
-reticulate::virtualenv_install("rkeops", "pykeops")
+reticulate::virtualenv_install("rkeops-dev", "pykeops")
 # activate python environment
-reticulate::use_virtualenv(virtualenv = "rkeops", required = TRUE)
+reticulate::use_virtualenv(virtualenv = "rkeops-dev", required = TRUE)
 # check Python config
 reticulate::py_config()
 ```
