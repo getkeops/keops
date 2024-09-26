@@ -112,7 +112,7 @@
         stop("'+' operand not implemented for a single LazyTensor argument")
     else
         res <- binaryop.LazyTensor(
-            x, y, "+", is_operator = TRUE, dim_check_type = "sameor1")
+            x, y, "Add", dim_check_type = "sameor1")
     return(res)
 }
 
@@ -265,7 +265,7 @@
         res <- unaryop.LazyTensor(x, "Minus")
     else
         res <- binaryop.LazyTensor(
-            x, y, "-", is_operator = TRUE, dim_check_type = "sameor1")
+            x, y, "Subtract", dim_check_type = "sameor1")
     return(res)
 }
 
@@ -384,8 +384,7 @@
 #' }
 #' @export
 "*.LazyTensor" <- function(x, y) {
-    res <- binaryop.LazyTensor(x, y, "*", is_operator = TRUE,
-                               dim_check_type = "sameor1")
+    res <- binaryop.LazyTensor(x, y, "Mult", dim_check_type = "sameor1")
     return(res)
 }
 
@@ -507,8 +506,7 @@
 #' }
 #' @export
 "/.LazyTensor" <- function(x, y) {
-    res <- binaryop.LazyTensor(x, y, "/", is_operator = TRUE,
-                               dim_check_type = "sameor1")
+    res <- binaryop.LazyTensor(x, y, "Divide", dim_check_type = "sameor1")
     return(res)
 }
 

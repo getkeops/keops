@@ -53,6 +53,10 @@
 #' avoid unnecessary recompilation). Default is `NULL` and default build
 #' directory (see [rkeops::default_rkeops_cache_dir()] is used. Otherwise
 #' `cache_dir` should be an existing writable directory on the system.
+#' @param formula_only logical flag, enable/disable returning the formula 
+#' associated with a LazyTensor reductions, instead of doing the actual 
+#' computation. Default is `FALSE`, should be set to `TRUE` for debugging 
+#' purpose only.
 #' 
 #' @return a list (of class `rkeops_options`) with the following containing 
 #' named values corresponding to the function input parameters.
@@ -63,12 +67,14 @@
 #' [rkeops::get_rkeops_cache_dir()], [rkeops::set_rkeops_cache_dir()].
 #' 
 #' @importFrom tibble lst
-#' @importFrom checkmate assert_choice assert_directory assert_integerish
-#' qassert
+#' @importFrom checkmate assert_choice assert_directory assert_flag 
+#' assert_integerish qassert
 def_rkeops_options <- function(
-        backend = "CPU", device_id = -1, precision = "float32",
-        verbosity = TRUE, debug = FALSE,
-        cache_dir = NULL) {
+    backend = "CPU", device_id = -1, precision = "float32",
+    verbosity = TRUE, debug = FALSE,
+    cache_dir = NULL,
+    formula_only = FALSE
+) {
     # check input
     assert_choice(backend, c("CPU", "GPU"))
     assert_integerish(device_id)
@@ -76,6 +82,7 @@ def_rkeops_options <- function(
     qassert(verbosity, c("B1", "X[0,1]"))
     qassert(debug, c("B1", "X[0,1]"))
     assert_string(cache_dir, null.ok = TRUE)
+    assert_flag(formula_only)
     # cast input
     device_id <- as.integer(device_id)
     verbosity <- as.integer(verbosity)
@@ -87,7 +94,10 @@ def_rkeops_options <- function(
         assert_directory(cache_dir, "rw")
     }
     # output
-    out <- lst(backend, device_id, precision, verbosity, debug, cache_dir)
+    out <- lst(
+        backend, device_id, precision, verbosity, debug, cache_dir, 
+        formula_only
+    )
     class(out) <- "rkeops_options"
     return(out)
 }
@@ -128,8 +138,9 @@ def_rkeops_options <- function(
 #' 
 #' @param option string character or vector of string character, 
 #' specific option name(s) among `"backend"`, `"device_id"`, `"precision"`,
-#' `"verbosity"`, `"debug"`, `"cache_dir"` to get the corresponding option 
-#' current values. Default is `NULL` and all option values are returned.
+#' `"verbosity"`, `"debug"`, `"cache_dir"`, `"formula_only"` to get the 
+#' corresponding option current values. Default is `NULL` and all option 
+#' values are returned.
 #' 
 #' @return a scalar value if only one option was specified or a list with 
 #' specified `rkeops` current options values.
@@ -156,7 +167,7 @@ get_rkeops_options <- function(option = NULL) {
         option, 
         choices = c(
             "backend", "device_id", "precision", "verbosity", "debug", 
-            "cache_dir"
+            "cache_dir", "formula_only"
         )
     )
     ## check rkeops global options
@@ -245,7 +256,7 @@ set_rkeops_options <- function(input = NULL) {
         names(input), 
         choices = c(
             "backend", "device_id", "precision", "verbosity", "debug", 
-            "cache_dir"
+            "cache_dir", "formula_only"
         )
     )
     ## current state of rkeops options 

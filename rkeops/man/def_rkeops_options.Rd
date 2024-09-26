@@ -10,7 +10,8 @@ def_rkeops_options(
   precision = "float32",
   verbosity = TRUE,
   debug = FALSE,
-  cache_dir = NULL
+  cache_dir = NULL,
+  formula_only = FALSE
 )
 }
 \arguments{
@@ -37,6 +38,11 @@ compilation byproducts will be stored to be re-used for further use (and
 avoid unnecessary recompilation). Default is \code{NULL} and default build
 directory (see \code{\link[=default_rkeops_cache_dir]{default_rkeops_cache_dir()}} is used. Otherwise
 \code{cache_dir} should be an existing writable directory on the system.}
+
+\item{formula_only}{logical flag, enable/disable returning the formula
+associated with a LazyTensor reductions, instead of doing the actual
+computation. Default is \code{FALSE}, should be set to \code{TRUE} for debugging
+purpose only.}
 }
 \value{
 a list (of class \code{rkeops_options}) with the following containing

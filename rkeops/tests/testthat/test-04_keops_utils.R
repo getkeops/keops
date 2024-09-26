@@ -88,4 +88,13 @@ test_that("get_pykeops_formula", {
              weighted_reduction = TRUE)
     )
     
+    formula <- "Sum_Reduction(Divide(Mult(Subtract(V0,V1),V2),Powf(Subtract(Add(SqNorm2(Subtract(V0,V1)),IntCst(1)),Step(Subtract(Abs(Subtract(V3,V4)),V5))),V6)),1)"
+    res <- get_pykeops_formula(formula)
+    expect_equal(
+        res,
+        list(reduction_op = "Sum", 
+             main_formula = "Divide(Mult(Subtract(V0,V1),V2),Powf(Subtract(Add(SqNorm2(Subtract(V0,V1)),IntCst(1)),Step(Subtract(Abs(Subtract(V3,V4)),V5))),V6))", 
+             axis = 1L, opt_arg = NULL, weighted_reduction = FALSE)
+    )
+    
 })

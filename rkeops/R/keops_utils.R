@@ -37,6 +37,7 @@
 #' 
 #' @importFrom checkmate assert_flag assert_string
 #' @importFrom stringr str_c str_detect str_match str_replace_all str_split
+#' str_extract_all str_locate_all str_sub str_sub<-
 #' 
 #' @author Ghislain Durif
 get_pykeops_formula <- function(
@@ -57,9 +58,39 @@ get_pykeops_formula <- function(
     formula <- str_replace_all(formula, " +", "")
     
     # extract formula inside 'Grad' or 'XXX_Reduction' 
+    tmp_form <- str_match(formula, "\\((.*)\\)")[, 2]
+    
     # and add placeholder ('$') for inside ','
-    tmp_form <- str_replace_all(
-        str_match(formula, "\\((.*)\\)")[, 2], "\\,(?=[^()]*\\))", "$")
+    # (i.e. ',' between pairs of '(' and ')')
+    ## extract coma and parenthesis
+    extract_coma_parenthesis <- unlist(str_extract_all(
+        tmp_form, "[\\(\\)\\,]"))
+    ## cumulative count of parenthesis and commas
+    count_parenthesis <- cumsum(sapply(extract_coma_parenthesis, function(item) {
+        return(switch(
+            item,
+            "(" = 1,
+            ")" = -1,
+            "," = 0
+        ))
+    }))
+    ## get position of coma in tmp_form
+    coma_position <- str_locate_all(tmp_form, "\\,")[[1]]
+    coma_position <- as.data.frame(as.matrix(coma_position))
+    coma_position <- subset(
+        coma_position,
+        count_parenthesis[extract_coma_parenthesis == ","] > 0
+    )
+    ## replace ',' by '$' if their count is higher than 0
+    if(nrow(coma_position) > 0) {
+        for(ind in 1:nrow(coma_position)) {
+            str_sub(
+                tmp_form, 
+                start = coma_position[ind,1], 
+                end = coma_position[ind,2]
+            ) <- "$"
+        }
+    }
     
     # manage 'Grad' case
     # note: no problem if gradient inside reduction
