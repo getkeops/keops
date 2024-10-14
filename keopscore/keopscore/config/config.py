@@ -16,6 +16,7 @@ base_dir_path = os.path.abspath(join(os.path.dirname(os.path.realpath(__file__))
 template_path = join(base_dir_path, "templates")
 bindings_source_dir = join(base_dir_path)
 
+# First, check environment variables. If not set, use default values
 keops_cache_folder = os.getenv("KEOPS_CACHE_FOLDER")
 if keops_cache_folder is None:
     keops_cache_folder = join(
