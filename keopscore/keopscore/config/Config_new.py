@@ -3,12 +3,17 @@ from os.path import join
 import shutil
 import platform
 import sys
-import keopscore
 from ctypes import CDLL, RTLD_GLOBAL
 from ctypes.util import find_library
-from keopscore.utils.misc_utils import KeOps_Warning, KeOps_Error, KeOps_Print
+import keopscore
+from keopscore.utils.misc_utils import KeOps_Warning, KeOps_Print
 
-class newConfig:
+from pathlib import Path
+import shutil
+import sys
+import os
+
+class ConfigNew:
     """
     Configuration and system health check for the KeOps library.
     This class encapsulates configuration settings, system checks, and provides methods
@@ -16,354 +21,482 @@ class newConfig:
     """
 
     def __init__(self):
-        # Initialize configuration attributes with default values
-        self._use_cuda = True
-        self._use_OpenMP = True
+        # Initialize attributes with default values or None
+        self.os = None
+        self.python_version = None
+        self.env_type = None
+        self.use_cuda = None
+        self.use_OpenMP = None
 
-        # Detect platform and Python version
+        self.base_dir_path = None
+        self.template_path = None
+        self.bindings_source_dir = None
+        self.keops_cache_folder = None
+        self.default_build_folder_name = None
+        self.specific_gpus = None
+        self.default_build_path = None
+        self.jit_binary = None
+        self.cxx_compiler = None
+        self.cpp_env_flags = None
+        self.compile_options = None
+        self.cpp_flags = None
+        self.disable_pragma_unrolls = None
+        self.init_cudalibs_flag = False
+
+        # Initialize all attributes using their setter methods
+        self.set_os()
+        self.set_python_version()
+        self.set_env_type()
+        self.set_use_cuda()
+        self.set_use_OpenMP()
+        self.set_base_dir_path()
+        self.set_template_path()
+        self.set_bindings_source_dir()
+        self.set_keops_cache_folder()
+        self.set_default_build_folder_name()
+        self.set_specific_gpus()
+        self.set_default_build_path()
+        self.set_jit_binary()
+        self.set_cxx_compiler()
+        self.set_cpp_env_flags()
+        self.set_compile_options()
+        self.set_cpp_flags()
+        self.set_disable_pragma_unrolls()
+
+    # Setters, getters, and print methods for each attribute
+
+    def set_os(self):
+        """Set the operating system."""
         self.os = platform.system()
+
+    def get_os(self):
+        """Get the operating system."""
+        return self.os
+
+    def print_os(self):
+        """Print the operating system."""
+        print(f"Operating System: {self.os}")
+
+    def set_python_version(self):
+        """Set the Python version."""
         self.python_version = platform.python_version()
 
-        # Initialize paths for directories and files
-        self._initialize_paths()
+    def get_python_version(self):
+        """Get the Python version."""
+        return self.python_version
 
-        # Initialize compiler settings
-        self._initialize_compiler_settings()
+    def print_python_version(self):
+        """Print the Python version."""
+        print(f"Python Version: {self.python_version}")
 
-        # Check and set OpenMP support
-        self._check_and_set_OpenMP_support()
+    def set_env_type(self):
+        """Determine and set the environment type (conda, virtualenv, or system)."""
+        if 'CONDA_DEFAULT_ENV' in os.environ:
+            self.env_type = f"conda ({os.environ['CONDA_DEFAULT_ENV']})"
+        elif hasattr(sys, 'real_prefix') or (hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix):
+            self.env_type = "virtualenv"
+        else:
+            self.env_type = "system"
 
-        # Check and set CUDA support
-        self._check_and_set_CUDA_support()
+    def get_env_type(self):
+        """Get the environment type."""
+        return self.env_type
 
-    def _initialize_paths(self):
-        """
-        Initialize base directories, cache folders, and build paths.
-        """
-        # Base directories of KeOps source code
+    def print_env_type(self):
+        """Print the environment type."""
+        print(f"Environment Type: {self.env_type}")
+
+    def set_use_cuda(self):
+        """Determine and set whether to use CUDA."""
+        # By default, try to use CUDA
+        self.use_cuda = True
+        # Additional logic can be added here to check CUDA availability
+
+    def get_use_cuda(self):
+        """Get the use_cuda flag."""
+        return self.use_cuda
+
+    def print_use_cuda(self):
+        """Print the CUDA support status."""
+        status = "Enabled" if self.use_cuda else "Disabled"
+        print(f"CUDA Support: {status}")
+
+    def set_use_OpenMP(self):
+        """Determine and set whether to use OpenMP."""
+        # By default, try to use OpenMP
+        self.use_OpenMP = True
+        # Additional logic can be added here to check OpenMP availability
+
+    def get_use_OpenMP(self):
+        """Get the use_OpenMP flag."""
+        return self.use_OpenMP
+
+    def print_use_OpenMP(self):
+        """Print the OpenMP support status."""
+        status = "Enabled" if self.use_OpenMP else "Disabled"
+        print(f"OpenMP Support: {status}")
+
+    def set_base_dir_path(self):
+        """Set the base directory path."""
         self.base_dir_path = os.path.abspath(
             join(os.path.dirname(os.path.realpath(__file__)), "..")
         )
-        # Path to templates directory
-        self.template_path = join(self.base_dir_path, "templates")
-        # Path to bindings directory
-        self.bindings_source_dir = join(self.base_dir_path)
 
-        # Cache and build directories
+    def get_base_dir_path(self):
+        """Get the base directory path."""
+        return self.base_dir_path
+
+    def print_base_dir_path(self):
+        """Print the base directory path."""
+        print(f"Base Directory Path: {self.base_dir_path}")
+
+    def set_template_path(self):
+        """Set the template path."""
+        self.template_path = join(self.base_dir_path, "templates")
+
+    def get_template_path(self):
+        """Get the template path."""
+        return self.template_path
+
+    def print_template_path(self):
+        """Print the template path."""
+        print(f"Template Path: {self.template_path}")
+
+    def set_bindings_source_dir(self):
+        """Set the bindings source directory."""
+        self.bindings_source_dir = self.base_dir_path
+
+    def get_bindings_source_dir(self):
+        """Get the bindings source directory."""
+        return self.bindings_source_dir
+
+    def print_bindings_source_dir(self):
+        """Print the bindings source directory."""
+        print(f"Bindings Source Directory: {self.bindings_source_dir}")
+
+    def set_keops_cache_folder(self):
+        """Set the KeOps cache folder."""
         self.keops_cache_folder = os.getenv("KEOPS_CACHE_FOLDER")
         if self.keops_cache_folder is None:
-            # Default cache folder is '~/.cache/keops<version>'
             self.keops_cache_folder = join(
                 os.path.expanduser("~"), ".cache", f"keops{keopscore.__version__}"
             )
-        # Ensure the cache folder exists    
+        # Ensure the cache folder exists
         os.makedirs(self.keops_cache_folder, exist_ok=True)
 
-        # Create default build folder name
+    def get_keops_cache_folder(self):
+        """Get the KeOps cache folder."""
+        return self.keops_cache_folder
+
+    def print_keops_cache_folder(self):
+        """Print the KeOps cache folder."""
+        print(f"KeOps Cache Folder: {self.keops_cache_folder}")
+
+    def set_default_build_folder_name(self):
+        """Set the default build folder name."""
+        uname = platform.uname()
         self.default_build_folder_name = (
-            "_".join(platform.uname()[:3]) + f"_p{sys.version.split(' ')[0]}"
+            "_".join(uname[:3]) + f"_p{sys.version.split(' ')[0]}"
         )
-        # Handle specific GPUs if CUDA_VISIBLE_DEVICES is set
+
+    def get_default_build_folder_name(self):
+        """Get the default build folder name."""
+        return self.default_build_folder_name
+
+    def print_default_build_folder_name(self):
+        """Print the default build folder name."""
+        print(f"Default Build Folder Name: {self.default_build_folder_name}")
+
+    def set_specific_gpus(self):
+        """Set specific GPUs from CUDA_VISIBLE_DEVICES."""
         self.specific_gpus = os.getenv("CUDA_VISIBLE_DEVICES")
         if self.specific_gpus:
-            self.specific_gpus = self.specific_gpus.replace(",", "_")
-            self.default_build_folder_name += "_CUDA_VISIBLE_DEVICES_" + self.specific_gpus
+            # Modify the build folder name to include GPU specifics
+            gpu_suffix = self.specific_gpus.replace(",", "_")
+            self.default_build_folder_name += f"_CUDA_VISIBLE_DEVICES_{gpu_suffix}"
 
-        # Create default build folder path
+    def get_specific_gpus(self):
+        """Get the specific GPUs."""
+        return self.specific_gpus
+
+    def print_specific_gpus(self):
+        """Print the specific GPUs."""
+        if self.specific_gpus:
+            print(f"Specific GPUs (CUDA_VISIBLE_DEVICES): {self.specific_gpus}")
+        else:
+            print("Specific GPUs (CUDA_VISIBLE_DEVICES): Not Set")
+
+    def set_default_build_path(self):
+        """Set the default build path."""
         self.default_build_path = join(
             self.keops_cache_folder, self.default_build_folder_name
         )
-        # Set the build path to default
-        self.build_path = self.default_build_path
-        # Add the build path to sys.path to make modules in it importable
-        sys.path.append(self.build_path)
+        # Ensure the build path exists
+        os.makedirs(self.default_build_path, exist_ok=True)
+        # Add the build path to sys.path
+        if self.default_build_path not in sys.path:
+            sys.path.append(self.default_build_path)
 
-    def _initialize_compiler_settings(self): 
-        """
-        Initialize the C++ compiler settings and compiler flags
-        """
-        # Compiler selection (from CXX environement variable or by default to g++)
+    def get_default_build_path(self):
+        """Get the default build path."""
+        return self.default_build_path
+
+    def print_default_build_path(self):
+        """Print the default build path."""
+        print(f"Default Build Path: {self.default_build_path}")
+
+    def set_jit_binary(self):
+        """Set the path to the JIT binary."""
+        self.jit_binary = join(self.default_build_path, "keops_nvrtc.so")
+
+    def get_jit_binary(self):
+        """Get the path to the JIT binary."""
+        return self.jit_binary
+
+    def print_jit_binary(self):
+        """Print the path to the JIT binary."""
+        print(f"JIT Binary Path: {self.jit_binary}")
+
+    def set_cxx_compiler(self):
+        """Set the C++ compiler."""
         self.cxx_compiler = os.getenv("CXX")
         if self.cxx_compiler is None:
             self.cxx_compiler = "g++"
-        # Check if the compiler is available
         if shutil.which(self.cxx_compiler) is None:
             KeOps_Warning(
                 f"The C++ compiler '{self.cxx_compiler}' could not be found on your system."
                 " You need to either define the CXX environment variable or ensure that 'g++' is installed."
             )
 
-        # Additional compiler flags
+    def get_cxx_compiler(self):
+        """Get the C++ compiler."""
+        return self.cxx_compiler
+
+    def print_cxx_compiler(self):
+        """Print the C++ compiler."""
+        print(f"C++ Compiler: {self.cxx_compiler}")
+
+    def set_cpp_env_flags(self):
+        """Set the C++ environment flags."""
         self.cpp_env_flags = os.getenv("CXXFLAGS") if "CXXFLAGS" in os.environ else ""
-        # Basic compile options
+
+    def get_cpp_env_flags(self):
+        """Get the C++ environment flags."""
+        return self.cpp_env_flags
+
+    def print_cpp_env_flags(self):
+        """Print the C++ environment flags."""
+        print(f"C++ Environment Flags (CXXFLAGS): {self.cpp_env_flags}")
+
+    def set_compile_options(self):
+        """Set the compile options."""
         self.compile_options = " -shared -fPIC -O3 -std=c++11"
-        # Combine env flags and combine options
+
+    def get_compile_options(self):
+        """Get the compile options."""
+        return self.compile_options
+
+    def print_compile_options(self):
+        """Print the compile options."""
+        print(f"Compile Options: {self.compile_options}")
+
+    def set_cpp_flags(self):
+        """Set the C++ compiler flags."""
         self.cpp_flags = f"{self.cpp_env_flags} {self.compile_options}"
-
-        # Add flags based on  operating system
-        if self.os == "Darwin":   # for macOS
+        if self.os == "Darwin":
             self.cpp_flags += " -flto"
-        else:  # other Unix systems
+        else:
             self.cpp_flags += " -flto=auto"
-
-    def _check_and_set_OpenMP_support(self):
-        """
-        Check if OpenMP is supported and configure compiler flags accordingly
-        """
         if self.use_OpenMP:
-            if self.os == "Darwin": # macOS needs special handling detailed in the method below
-                self._configure_OpenMP_mac()
-            else: # standard OpenMP compiler flags for other systems
+            if self.os == "Darwin":
+                # Special handling for OpenMP on macOS
+                omp_env_path = f" -I{os.getenv('OMP_PATH')}" if "OMP_PATH" in os.environ else ""
+                self.cpp_env_flags += omp_env_path
+                self.cpp_flags += omp_env_path
+                self.cpp_flags += " -Xclang -fopenmp"
+            else:
                 self.cpp_flags += " -fopenmp -fno-fat-lto-objects"
 
-    def _configure_OpenMP_mac(self):
-        """
-        Configure OpenMP support on macOS.
-        """
-        import subprocess
+    def get_cpp_flags(self):
+        """Get the C++ compiler flags."""
+        return self.cpp_flags
 
-        omp_env_path = f" -I{os.getenv('OMP_PATH')}" if "OMP_PATH" in os.environ else ""
-        self.cpp_env_flags += omp_env_path
-        self.cpp_flags += omp_env_path
+    def print_cpp_flags(self):
+        """Print the C++ compiler flags."""
+        print(f"C++ Compiler Flags: {self.cpp_flags}")
 
-        res = subprocess.run(
-            f'echo "#include <omp.h>" | {self.cxx_compiler} {self.cpp_env_flags} -E - -o /dev/null',
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.PIPE,
-            shell=True,
-        )
+    def set_disable_pragma_unrolls(self):
+        """Set the flag for disabling pragma unrolls."""
+        self.disable_pragma_unrolls = True  # Or set based on logic
 
-        if res.returncode != 0:
-            KeOps_Warning(
-                "omp.h header is not in the path, disabling OpenMP. To fix this, set the OMP_PATH environment variable."
-            )
-            self.use_OpenMP = False
-        else:
-            self._load_OpenMP_libraries_mac()
+    def get_disable_pragma_unrolls(self):
+        """Get the flag for disabling pragma unrolls."""
+        return self.disable_pragma_unrolls
 
-    def _load_OpenMP_libraries_mac(self):
-        """
-        Try to load OpenMP libraries on macOS.
-        """
-        import importlib.util
-        import subprocess
+    def print_disable_pragma_unrolls(self):
+        """Print the flag for disabling pragma unrolls."""
+        status = "Enabled" if self.disable_pragma_unrolls else "Disabled"
+        print(f"Disable Pragma Unrolls: {status}")
 
-        # Try to import common libraries that may load OpenMP
-        for lib in ["mkl", "sklearn", "numpy"]:
-            if importlib.util.find_spec(lib):
-                __import__(lib)
-                break
+    # Methods for init_cudalibs_flag, init_cudalibs, show_cuda_status, show_gpu_config can be added similarly.
 
-        # Check if OpenMP libraries are loaded
-        success, loaded_libs = self._check_openmp_loaded_mac()
-        if not success:
-            # Try to directly load OpenMP shared libraries
-            self._load_dll_mac()
-
-        # Re-check if OpenMP libraries are loaded
-        success, loaded_libs = self._check_openmp_loaded_mac()
-
-        # Update compiler flags based on loaded libraries
-        if loaded_libs.get("libmkl_rt"):
-            self.cpp_flags += f' -Xclang -fopenmp -lmkl_rt -L{loaded_libs["libmkl_rt"]}'
-        elif loaded_libs.get("libiomp5"):
-            self.cpp_flags += f' -Xclang -fopenmp -liomp5 -L{loaded_libs["libiomp5"]}'
-        elif loaded_libs.get("libiomp"):
-            self.cpp_flags += f' -Xclang -fopenmp -liomp5 -L{loaded_libs["libiomp"]}'
-        elif loaded_libs.get("libomp"):
-            self.cpp_flags += f' -Xclang -fopenmp -lomp -L{loaded_libs["libomp"]}'
-        else:
-            # if libraries still not loaded, disabling OpenMP
-            KeOps_Warning("OpenMP shared libraries not loaded, disabling OpenMP.")
-            self.use_OpenMP = False
-
-    def _check_openmp_loaded_mac(self):
-        """
-        Check if OpenMP libraries are loaded on macOS.
-        Return a tuple (success, loaded_libs)
-        """
-        import subprocess
-
-        pid = os.getpid()
-        loaded_libs = {}
-        success = False
-
-        # Listing OpenMp libraries to check
-        for lib in ["libomp", "libiomp", "libiomp5", "libmkl_rt"]:
-            res = subprocess.run(
-                f"lsof -p {pid} | grep {lib}",
-                stdout=subprocess.PIPE,
-                shell=True,
-            )
-            if res.returncode == 0:
-                # If ibrary is loaded, extracting its directory
-                loaded_libs[lib] = os.path.dirname(
-                    res.stdout.split(b" ")[-1]).decode("utf-8")
-                success = True
+    def print_environment_variables(self):
+        """Print relevant environment variables."""
+        print("\nEnvironment Variables:")
+        env_vars = ["KEOPS_CACHE_FOLDER", "CUDA_VISIBLE_DEVICES", "CXX", "CXXFLAGS", "OMP_PATH", "CONDA_DEFAULT_ENV"]
+        for var in env_vars:
+            value = os.environ.get(var, None)
+            if value:
+                print(f"{var} = {value}")
             else:
-                loaded_libs[lib] = None
-        return success, loaded_libs
+                print(f"{var} is not set")
 
-    def _load_dll_mac(self):
-        """
-        Attempt to directly load OpenMP shared libraries on macOS.
-        """
-        from ctypes import cdll
-
-        # Listing possible OpenMP library names
-        for libname in ["libmkl_rt.dylib", "libiomp5.dylib", "libiomp.dylib", "libomp.dylib"]:
-            try:
-                # Try loading the library
-                cdll.LoadLibrary(libname)
-                break
-            except OSError:
-                continue # Try loading next library if loading fails
-
-    def _check_and_set_CUDA_support(self): ## need to continue commenting from here
-        """
-        Check if CUDA is supported and configure CUDA settings accordingly.
-        """
-        self.cuda_message = ""
-        if self.use_cuda:
-            if self._cuda_libraries_available():
-                from keopscore.utils.gpu_utils import get_gpu_props
-
-                cuda_available = get_gpu_props()[0] > 0
-                if not cuda_available:
-                    self.cuda_message = (
-                        "CUDA libraries detected, but GPU configuration is invalid; using CPU only mode."
-                    )
-                    self.use_cuda = False
-                else:
-                    self.cuda_message = "CUDA configuration is OK."
-                    self._initialize_cuda_settings()
-            else:
-                self.cuda_message = (
-                    "CUDA libraries not detected or could not be loaded; using CPU only mode."
-                )
-                KeOps_Warning(self.cuda_message)
-                self.use_cuda = False
-        else:
-            self.cuda_message = "CUDA is disabled (use_cuda is set to False)."
-
-    def _cuda_libraries_available(self):
-        required_libraries = ["cuda", "nvrtc"]
-        return all(self._find_and_try_library(lib) for lib in required_libraries)
-
-    def _find_and_try_library(self, libtag):
-        libname = find_library(libtag)
-        if libname is None:
-            return False
-        try:
-            CDLL(libname)
-            return True
-        except OSError:
-            return False
-
-    def _initialize_cuda_settings(self):
-        from keopscore.utils.gpu_utils import (
-            libcuda_folder,
-            libnvrtc_folder,
-            get_cuda_include_path,
-            get_cuda_version,
-        )
-
-        self.cuda_version = get_cuda_version()
-        self.libcuda_folder = libcuda_folder
-        self.libnvrtc_folder = libnvrtc_folder
-        self.cuda_include_path = get_cuda_include_path()
-
-        self.nvrtc_flags = (
-            self.compile_options
-            + f" -fpermissive -L{self.libcuda_folder} -L{self.libnvrtc_folder} -lcuda -lnvrtc"
-        )
-        self.nvrtc_include = f" -I{self.bindings_source_dir}"
-        if self.cuda_include_path:
-            self.nvrtc_include += f" -I{self.cuda_include_path}"
-
-        self.jit_source_file = join(
-            self.base_dir_path, "binders", "nvrtc", "keops_nvrtc.cpp"
-        )
-        self.jit_source_header = join(
-            self.base_dir_path, "binders", "nvrtc", "keops_nvrtc.h"
-        )
-        self.jit_binary = join(self.build_path, "keops_nvrtc.so")
-
-        self.init_cudalibs_flag = False
-
-    def init_cudalibs(self):
-        if not self.init_cudalibs_flag and self.use_cuda:
-            # Load necessary CUDA libraries to avoid "undefined symbols" errors
-            CDLL(find_library("nvrtc"), mode=RTLD_GLOBAL)
-            CDLL(find_library("cuda"), mode=RTLD_GLOBAL)
-            CDLL(find_library("cudart"), mode=RTLD_GLOBAL)
-            self.init_cudalibs_flag = True
-
-    def show_cuda_status(self):
-        KeOps_Print(self.cuda_message)
-
-    def show_gpu_config(self):
-        if self.use_cuda:
-            attributes = [
-                "cuda_version",
-                "libcuda_folder",
-                "libnvrtc_folder",
-                "nvrtc_flags",
-                "nvrtc_include",
-                "cuda_include_path",
-                "jit_source_file",
-                "jit_source_header",
-                "jit_binary",
-            ]
-            for attr in attributes:
-                KeOps_Print(f"{attr}: {getattr(self, attr)}")
-        else:
-            KeOps_Print("GPU support is disabled.")
 
     def print_all(self):
         """
-        Print all the configuration and system health status.
+        Print all configuration settings and system health status in a clear and organized manner,
+        including various paths and using status indicators. Uses pathlib for path handling.
         """
-        KeOps_Print(f"Operating System: {self.os}")
-        KeOps_Print(f"Python Version: {self.python_version}")
-        KeOps_Print(f"Using CUDA: {self.use_cuda}")
-        KeOps_Print(f"Using OpenMP: {self.use_OpenMP}")
-        KeOps_Print(f"C++ Compiler: {self.cxx_compiler}")
-        KeOps_Print(f"Compiler Flags: {self.cpp_flags}")
-        KeOps_Print(f"Base Directory Path: {self.base_dir_path}")
-        KeOps_Print(f"Template Path: {self.template_path}")
-        KeOps_Print(f"Bindings Source Dir: {self.bindings_source_dir}")
-        KeOps_Print(f"KeOps Cache Folder: {self.keops_cache_folder}")
-        KeOps_Print(f"Default Build Path: {self.default_build_path}")
-        self.show_cuda_status()
-        self.show_gpu_config()
+        # Define emojis for status indicators
+        check_mark = '✅'
+        cross_mark = '❌'
 
-    # Getters and setters for use_cuda
-    @property
-    def use_cuda(self):
-        return self._use_cuda
+        # Header
+        print("\nKeOps Configuration and System Health Check")
+        print("=" * 60)
 
-    @use_cuda.setter
-    def use_cuda(self, value):
-        if isinstance(value, bool):
-            self._use_cuda = value
-            self._check_and_set_CUDA_support()
+        # General Information
+        print(f"\nGeneral Information")
+        print("-" * 60)
+        self.print_os()
+        self.print_python_version()
+        self.print_env_type()
+
+        # Python Executable Path
+        python_path = Path(sys.executable)
+        python_path_exists = python_path.exists()
+        python_status = check_mark if python_path_exists else cross_mark
+        print(f"Python Executable: {python_path} {python_status}")
+
+        # Environment Path
+        env_path = os.environ.get('PATH', '')
+        print(f"System PATH Environment Variable:")
+        print(env_path)
+
+        # Compiler Configuration
+        print(f"\nCompiler Configuration")
+        print("-" * 60)
+        compiler_path = shutil.which(self.cxx_compiler)
+        compiler_available = compiler_path is not None
+        compiler_status = check_mark if compiler_available else cross_mark
+        self.print_cxx_compiler()
+        print(f"C++ Compiler Path: {compiler_path or 'Not Found'} {compiler_status}")
+        if not compiler_available:
+            print(f"  {cross_mark} Compiler '{self.cxx_compiler}' not found on the system.")
+
+        # OpenMP Support
+        openmp_status = check_mark if self.use_OpenMP else cross_mark
+        print(f"\nOpenMP Support")
+        print("-" * 60)
+        self.print_use_OpenMP()
+        if not self.use_OpenMP:
+            print(f"  {cross_mark} OpenMP support is disabled or not available.")
+
+        # CUDA Support
+        cuda_status = check_mark if self.use_cuda else cross_mark
+        print(f"\nCUDA Support")
+        print("-" * 60)
+        self.print_use_cuda()
+        if self.use_cuda:
+            # CUDA is enabled; display CUDA configuration details
+            # Get CUDA include path from environment variables
+            cuda_include_path = os.environ.get('CUDA_PATH') or os.environ.get('CUDA_HOME')
+            cuda_include_status = check_mark if cuda_include_path else cross_mark
+            print(f"CUDA Include Path: {cuda_include_path or 'Not Found'} {cuda_include_status}")
+
+            # Attempt to find CUDA compiler
+            nvcc_path = shutil.which('nvcc')
+            nvcc_status = check_mark if nvcc_path else cross_mark
+            print(f"CUDA Compiler (nvcc): {nvcc_path or 'Not Found'} {nvcc_status}")
+            if not nvcc_path:
+                print(f"  {cross_mark} CUDA compiler 'nvcc' not found in PATH.")
         else:
-            raise ValueError("use_cuda must be a boolean value.")
+            # CUDA is disabled; display the CUDA message
+            print(f"  {cross_mark} CUDA support is disabled or not available.")
 
-    # Getters and setters for use_OpenMP
-    @property
-    def use_OpenMP(self):
-        return self._use_OpenMP
-
-    @use_OpenMP.setter
-    def use_OpenMP(self, value):
-        if isinstance(value, bool):
-            self._use_OpenMP = value
-            self._check_and_set_OpenMP_support()
+        # Conda or Virtual Environment Paths
+        print(f"\nEnvironment Paths")
+        print("-" * 60)
+        if self.env_type.startswith("conda"):
+            conda_env_path = Path(os.environ.get('CONDA_PREFIX', ''))
+            conda_env_status = check_mark if conda_env_path.exists() else cross_mark
+            print(f"Conda Environment Path: {conda_env_path} {conda_env_status}")
+        elif self.env_type == "virtualenv":
+            venv_path = Path(sys.prefix)
+            venv_status = check_mark if venv_path.exists() else cross_mark
+            print(f"Virtualenv Path: {venv_path} {venv_status}")
         else:
-            raise ValueError("use_OpenMP must be a boolean value.")
+            print("Not using Conda or Virtualenv.")
+
+        # Paths and Directories
+        print(f"\nPaths and Directories")
+        print("-" * 60)
+        # Check if paths exist
+        paths = [
+            ('Base Directory Path', Path(self.base_dir_path)),
+            ('Template Path', Path(self.template_path)),
+            ('Bindings Source Directory', Path(self.bindings_source_dir)),
+            ('KeOps Cache Folder', Path(self.keops_cache_folder)),
+            ('Default Build Path', Path(self.default_build_path)),
+        ]
+        for name, path in paths:
+            path_exists = path.exists()
+            status = check_mark if path_exists else cross_mark
+            print(f"{name}: {path} {status}")
+            if not path_exists:
+                print(f"  {cross_mark} Path '{path}' does not exist.")
+
+        # JIT Binary
+        jit_binary_path = Path(self.jit_binary)
+        jit_binary_exists = jit_binary_path.exists()
+        jit_binary_status = check_mark if jit_binary_exists else cross_mark
+        self.print_jit_binary()
+        print(f"JIT Binary Exists: {'Yes' if jit_binary_exists else 'No'} {jit_binary_status}")
+
+        # Environment Variables
+        print(f"\nEnvironment Variables")
+        print("-" * 60)
+        env_vars = ["KEOPS_CACHE_FOLDER", "CUDA_VISIBLE_DEVICES", "CXX", "CXXFLAGS", "OMP_PATH", "CONDA_DEFAULT_ENV"]
+        for var in env_vars:
+            value = os.environ.get(var, None)
+            status = check_mark if value else cross_mark
+            print(f"{var}: {value or 'Not Set'} {status}")
+
+        # Conclusion
+        print("\nConfiguration Status Summary")
+        print("=" * 60)
+        # Determine overall status
+        issues = []
+        if not compiler_available:
+            issues.append(f"{cross_mark} C++ compiler '{self.cxx_compiler}' not found.")
+        if not self.use_OpenMP:
+            issues.append(f"{cross_mark} OpenMP support is disabled or not available.")
+        if self.use_cuda:
+            if not nvcc_path:
+                issues.append(f"{cross_mark} CUDA compiler 'nvcc' not found.")
+            if not cuda_include_path:
+                issues.append(f"{cross_mark} CUDA include path not found.")
+        if not Path(self.keops_cache_folder).exists():
+            issues.append(f"{cross_mark} KeOps cache folder '{self.keops_cache_folder}' does not exist.")
+        if issues:
+            print(f"{cross_mark} Some configurations are missing or disabled:")
+            for issue in issues:
+                print(f"  {issue}")
+        else:
+            print(f"{check_mark} All configurations are properly set up.")
 
 if __name__ == "__main__":
-    conf = newConfig()
-    conf.print_all()
+    # Create an instance of the configuration class
+    config = ConfigNew()
+    # Print all configuration and system health information
+    config.print_all()
