@@ -1,0 +1,14 @@
+# This workflow will launch the tests
+
+name: Cuda test
+
+on:
+  push
+
+jobs:
+  test:
+    runs-on: self-hosted
+    steps:
+    - name: Test with pytest
+      run:
+        sh ./pytest.sh
