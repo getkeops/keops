@@ -1,0 +1,15 @@
+# Launch test on a cuda machine
+name: Cuda test
+
+on:
+  push
+
+jobs:
+  test:
+    runs-on: self-hosted
+    steps:
+      - name: Clone Repository
+        uses: actions/checkout@v2
+      - name: Test with pytest
+        run: |
+          sh ./pytest.sh
