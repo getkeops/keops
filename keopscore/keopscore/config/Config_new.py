@@ -25,41 +25,42 @@ class ConfigNew:
     CU_DEVICE_ATTRIBUTE_MAX_THREADS_PER_BLOCK = 1
     CU_DEVICE_ATTRIBUTE_MAX_SHARED_MEMORY_PER_BLOCK = 8
 
+    # Initialize attributes with default values or None
+    os = None
+    python_version = None
+    env_type = None
+    _use_cuda = None
+    _use_OpenMP = None
+
+    base_dir_path = None
+    template_path = None
+    bindings_source_dir = None
+    keops_cache_folder = None
+    default_build_folder_name = None
+    specific_gpus = None
+    default_build_path = None
+    jit_binary = None
+    cxx_compiler = None
+    cpp_env_flags = None
+    compile_options = None
+    cpp_flags = None
+    disable_pragma_unrolls = None
+    init_cudalibs_flag = False
+
+    # CUDA related attributes
+    libcuda_folder = None
+    libnvrtc_folder = None
+    cuda_include_path = None
+    cuda_version = None
+    n_gpus = 0
+    gpu_compile_flags = ''
+    cuda_message = ''
+
+    # OpenMP related attributes
+    openmp_lib_path = None
+    
     def __init__(self):
-        # Initialize attributes with default values or None
-        self.os = None
-        self.python_version = None
-        self.env_type = None
-        self._use_cuda = None
-        self._use_OpenMP = None
-
-        self.base_dir_path = None
-        self.template_path = None
-        self.bindings_source_dir = None
-        self.keops_cache_folder = None
-        self.default_build_folder_name = None
-        self.specific_gpus = None
-        self.default_build_path = None
-        self.jit_binary = None
-        self.cxx_compiler = None
-        self.cpp_env_flags = None
-        self.compile_options = None
-        self.cpp_flags = None
-        self.disable_pragma_unrolls = None
-        self.init_cudalibs_flag = False
-
-        # CUDA related attributes
-        self.libcuda_folder = None
-        self.libnvrtc_folder = None
-        self.cuda_include_path = None
-        self.cuda_version = None
-        self.n_gpus = 0
-        self.gpu_compile_flags = ''
-        self.cuda_message = ''
-
-        # OpenMP related attributes
-        self.openmp_lib_path = None
-
+        
         # Initialize all attributes using their setter methods
         self.set_os()
         self.set_python_version()
