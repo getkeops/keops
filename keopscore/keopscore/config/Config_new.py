@@ -3,13 +3,15 @@ from os.path import join
 import shutil
 import platform
 import sys
-from ctypes import CDLL, RTLD_GLOBAL
 from ctypes.util import find_library
 import ctypes
 import tempfile
 from pathlib import Path
 import keopscore
 from keopscore.utils.misc_utils import KeOps_Warning, KeOps_Error, KeOps_Print
+import subprocess
+import distro 
+
 
 class ConfigNew:
     """
@@ -55,11 +57,15 @@ class ConfigNew:
         self.gpu_compile_flags = ''
         self.cuda_message = ''
 
+        # OpenMP related attributes
+        self.openmp_lib_path = None
+
         # Initialize all attributes using their setter methods
         self.set_os()
         self.set_python_version()
         self.set_env_type()
         self.set_use_cuda()
+        self.set_cxx_compiler()     # Ensure compiler is set before OpenMP check
         self.set_use_OpenMP()
         self.set_base_dir_path()
         self.set_template_path()
@@ -69,7 +75,6 @@ class ConfigNew:
         self.set_specific_gpus()
         self.set_default_build_path()
         self.set_jit_binary()
-        self.set_cxx_compiler()
         self.set_cpp_env_flags()
         self.set_compile_options()
         self.set_cpp_flags()
@@ -79,7 +84,7 @@ class ConfigNew:
 
     def set_os(self):
         """Set the operating system."""
-        self.os = platform.system()
+        self.os = platform.system() + ' ' + distro.name() + ' ' + distro.version()
 
     def get_os(self):
         """Get the operating system."""
@@ -142,11 +147,34 @@ class ConfigNew:
         status = "Enabled" if self._use_cuda else "Disabled"
         print(f"CUDA Support: {status}")
 
+    def set_cxx_compiler(self):
+        """Set the C++ compiler."""
+        env_cxx = os.getenv("CXX")
+        if env_cxx and shutil.which(env_cxx):
+            self.cxx_compiler = env_cxx
+        elif shutil.which("g++"):
+            self.cxx_compiler = "g++"
+        else:
+            self.cxx_compiler = None
+            KeOps_Warning(
+                "No C++ compiler found. You need to either define the CXX environment variable pointing to a valid compiler, or ensure that 'g++' is installed and in your PATH."
+            )
+
+    def get_cxx_compiler(self):
+        """Get the C++ compiler."""
+        return self.cxx_compiler
+
+    def print_cxx_compiler(self):
+        """Print the C++ compiler."""
+        print(f"C++ Compiler: {self.cxx_compiler}")
+
     def set_use_OpenMP(self):
         """Determine and set whether to use OpenMP."""
-        # By default, try to use OpenMP
-        self._use_OpenMP = True
-        # Additional logic can be added here to check OpenMP availability
+        compiler_supports_openmp = self.check_compiler_for_openmp()
+        openmp_libs_available = self.check_openmp_libraries()
+        self._use_OpenMP = compiler_supports_openmp and openmp_libs_available
+        if not self._use_OpenMP:
+            KeOps_Warning("OpenMP support is not available. Disabling OpenMP.")
 
     def get_use_OpenMP(self):
         """Get the use_OpenMP flag."""
@@ -156,6 +184,57 @@ class ConfigNew:
         """Print the OpenMP support status."""
         status = "Enabled" if self._use_OpenMP else "Disabled"
         print(f"OpenMP Support: {status}")
+
+    def check_compiler_for_openmp(self):
+        """Check if the compiler supports OpenMP by compiling a test program."""
+        if not self.cxx_compiler:
+            KeOps_Warning("No C++ compiler available to check for OpenMP support.")
+            return False
+
+        test_program = '''
+        #include <omp.h>
+        int main() {
+            #pragma omp parallel
+            {}
+            return 0;
+        }
+        '''
+        with tempfile.NamedTemporaryFile('w', suffix='.cpp', delete=False) as f:
+            f.write(test_program)
+            test_file = f.name
+
+        compile_command = [self.cxx_compiler, test_file, '-fopenmp', '-o', test_file + '.out']
+        try:
+            subprocess.check_output(compile_command, stderr=subprocess.STDOUT)
+            os.remove(test_file)
+            os.remove(test_file + '.out')
+            return True
+        except subprocess.CalledProcessError:
+            os.remove(test_file)
+            return False
+
+    def check_openmp_libraries(self):
+        """Check if OpenMP libraries are available."""
+        if self.os.startswith("Linux"):
+            openmp_lib = find_library('gomp')
+            if not openmp_lib:
+                KeOps_Warning("OpenMP library 'libgomp' not found.")
+                return False
+            else:
+                self.openmp_lib_path = openmp_lib
+                return True
+        elif self.os.startswith("Darwin"):
+            openmp_lib = find_library('omp')
+            if not openmp_lib:
+                KeOps_Warning("OpenMP library 'libomp' not found.")
+                return False
+            else:
+                self.openmp_lib_path = openmp_lib
+                return True
+        else:
+            # For other operating systems, additional checks may be needed
+            self.openmp_lib_path = None
+            return False
 
     def set_base_dir_path(self):
         """Set the base directory path."""
@@ -278,25 +357,6 @@ class ConfigNew:
         """Print the path to the JIT binary."""
         print(f"JIT Binary Path: {self.jit_binary}")
 
-    def set_cxx_compiler(self):
-        """Set the C++ compiler."""
-        self.cxx_compiler = os.getenv("CXX")
-        if self.cxx_compiler is None:
-            self.cxx_compiler = "g++"
-        if shutil.which(self.cxx_compiler) is None:
-            KeOps_Warning(
-                f"The C++ compiler '{self.cxx_compiler}' could not be found on your system."
-                " You need to either define the CXX environment variable or ensure that 'g++' is installed."
-            )
-
-    def get_cxx_compiler(self):
-        """Get the C++ compiler."""
-        return self.cxx_compiler
-
-    def print_cxx_compiler(self):
-        """Print the C++ compiler."""
-        print(f"C++ Compiler: {self.cxx_compiler}")
-
     def set_cpp_env_flags(self):
         """Set the C++ environment flags."""
         self.cpp_env_flags = os.getenv("CXXFLAGS") if "CXXFLAGS" in os.environ else ""
@@ -332,7 +392,6 @@ class ConfigNew:
             if self.os == "Darwin":
                 # Special handling for OpenMP on macOS
                 omp_env_path = f" -I{os.getenv('OMP_PATH')}" if "OMP_PATH" in os.environ else ""
-                self.cpp_env_flags += omp_env_path
                 self.cpp_flags += omp_env_path
                 self.cpp_flags += " -Xclang -fopenmp"
             else:
@@ -391,7 +450,7 @@ class ConfigNew:
         tmp_file = tempfile.NamedTemporaryFile(dir=self.default_build_path, delete=False)
         tmp_file_name = tmp_file.name
         tmp_file.close()
-        command = f'echo "#include <{filename}>" | {self.cxx_compiler} -M -E -x c++ - | head -n 2 > {tmp_file_name}'
+        command = f'echo "#include <{filename}>" | {self.cxx_compiler} -M -E -x c++ - > {tmp_file_name}'
         os.system(command)
         with open(tmp_file_name, 'r') as f:
             content = f.read()
@@ -401,7 +460,6 @@ class ConfigNew:
             if filename in s:
                 return s.strip()
         return None
-
 
     def get_cuda_include_path(self):
         """Attempt to find the CUDA include path."""
@@ -444,7 +502,6 @@ class ConfigNew:
             "CUDA include path not found. Please set the CUDA_PATH or CUDA_HOME environment variable."
         )
         self.cuda_include_path = None
-
 
     def get_cuda_version(self, out_type="single_value"):
         """Retrieve the installed CUDA runtime version."""
@@ -552,7 +609,7 @@ class ConfigNew:
         # Compiler Configuration
         print(f"\nCompiler Configuration")
         print("-" * 60)
-        compiler_path = shutil.which(self.cxx_compiler)
+        compiler_path = shutil.which(self.cxx_compiler) if self.cxx_compiler else None
         compiler_available = compiler_path is not None
         compiler_status = check_mark if compiler_available else cross_mark
         self.print_cxx_compiler()
@@ -565,7 +622,10 @@ class ConfigNew:
         print(f"\nOpenMP Support")
         print("-" * 60)
         self.print_use_OpenMP()
-        if not self._use_OpenMP:
+        if self._use_OpenMP:
+            openmp_lib_path = self.openmp_lib_path or 'Not Found'
+            print(f"OpenMP Library Path: {openmp_lib_path}")
+        else:
             print(f"  {cross_mark} OpenMP support is disabled or not available.")
 
         # CUDA Support
@@ -625,10 +685,10 @@ class ConfigNew:
                 print(f"Path '{path}' does not exist.")
 
         # JIT Binary
+        self.print_jit_binary()
         jit_binary_path = Path(self.jit_binary)
         jit_binary_exists = jit_binary_path.exists()
         jit_binary_status = check_mark if jit_binary_exists else cross_mark
-        self.print_jit_binary()
         print(f"JIT Binary Exists: {'Yes' if jit_binary_exists else 'No'} {jit_binary_status}")
 
         # Environment Variables

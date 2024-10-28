@@ -3,6 +3,7 @@ from ctypes import create_string_buffer, CDLL, c_int
 from os import RTLD_LAZY
 import sysconfig
 
+# double check the file with the already available version to check if there is a mistake
 from keopscore.binders.LinkCompile import LinkCompile
 import keopscore.config
 from keopscore.config.config import (
@@ -56,7 +57,7 @@ class Gpu_link_compile(LinkCompile):
         self.true_dllname = jit_binary
         # file to check for existence to detect compilation is needed
         self.file_to_check = self.low_level_code_file
-
+        
     def generate_code(self):
         # method to generate the code and compile it
         # generate the code and save it in self.code, by calling get_code method from GpuReduc class :
