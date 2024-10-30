@@ -1,0 +1,36 @@
+# Launch test on various platforms
+name: Test
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, closed]
+    branches: ['main']
+  workflow_dispatch:
+
+jobs:
+  test-self-hosted:
+    runs-on: self-hosted
+    steps:
+      - name: Clone Repository
+        uses: actions/checkout@v2
+      - name: Test with pytest
+        run: |
+          sh ./pytest.sh
+
+  test-ubuntu:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone Repository
+        uses: actions/checkout@v2
+      - name: Test with pytest
+        run: |
+          sh ./pytest.sh
+
+  test-macos:
+    runs-on: macOS-latest
+    steps:
+      - name: Clone Repository
+        uses: actions/checkout@v2
+      - name: Test with pytest
+        run: |
+          sh ./pytest.sh
