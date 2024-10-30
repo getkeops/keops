@@ -1,4 +1,4 @@
-# Requirements for the KeOps doc and tutorials:
+# Requirements for the KeOps doc and tutorials :
 sphinx
 sphinx-gallery
 recommonmark
