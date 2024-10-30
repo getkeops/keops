@@ -4,21 +4,23 @@ name: Test
 on: [pull_request, workflow_dispatch]
 
 jobs:
-  test-self-hosted:
-    runs-on: self-hosted
-    steps:
-      - name: Clone Repository
-        uses: actions/checkout@v2
-      - name: Test with pytest
-        run: |
-          sh ./pytest.sh
-
-  test-ubuntu:
+  test-ubuntu-gpu:
     runs-on: ubuntu-latest
     steps:
       - name: Clone Repository
         uses: actions/checkout@v2
       - name: Test with pytest
+        run: |
+          bash ./pytest.sh
+
+  test-ubuntu-cpu:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone Repository
+        uses: actions/checkout@v2
+      - name: Test with pytest
+        env:
+          CUDA_VISIBLE_DEVICES: -1
         run: |
           bash ./pytest.sh
 
