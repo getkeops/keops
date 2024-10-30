@@ -49,7 +49,7 @@ class GenericLazyTensor:
     symbolic_variables = ()
     formula = None
     formula2 = None
-    ndim = None
+    inner_dim = None
     tools = None
     Genred = None
     KernelSolve = None
@@ -130,15 +130,15 @@ class GenericLazyTensor:
 
                 self.symbolic_variables = (x,)
                 self.ind = x[0]
-                self.ndim = x[1]
+                self.inner_dim = x[1]
                 self.axis = x[2]
-                self.formula = "VarSymb({},{},{})".format(x[0], self.ndim, self.axis)
+                self.formula = "VarSymb({},{},{})".format(x[0], self.inner_dim, self.axis)
                 return  # That's it!
 
             # Integer constants are best handled directly by the compiler
             elif typex == int:
                 self.formula = "IntCst(" + str(x) + ")"
-                self.ndim = 1
+                self.inner_dim = 1
                 self.axis = 2
                 return  # That's it!
 
@@ -158,9 +158,9 @@ class GenericLazyTensor:
                     )
 
                 self.variables = (x,)
-                self.ndim = len(x)
+                self.inner_dim = len(x)
                 self.axis = 2
-                self.formula = "Var({},{},2)".format(id(x), self.ndim)
+                self.formula = "Var({},{},2)".format(id(x), self.inner_dim)
                 return  # That's it!
             else:
                 self._dtype = self.tools.dtypename(self.tools.dtype(x))
@@ -228,9 +228,9 @@ class GenericLazyTensor:
                     x = self.tools.view(x, x.shape)
 
                 self.variables = (x,)
-                self.ndim = x.shape[-1]
+                self.inner_dim = x.shape[-1]
                 self.axis = axis
-                self.formula = "Var({},{},{})".format(id(x), self.ndim, self.axis)
+                self.formula = "Var({},{},{})".format(id(x), self.inner_dim, self.axis)
 
                 if axis == 0:
                     self.ni = x.shape[-2]
@@ -247,9 +247,9 @@ class GenericLazyTensor:
                         "When 'x' is encoded as a 1D or 0D array, 'axis' must be None or 2 (= Parameter variable)."
                     )
                 self.variables = (x,)
-                self.ndim = x.shape[-1]
+                self.inner_dim = x.shape[-1]
                 self.axis = 2
-                self.formula = "Var({},{},2)".format(id(x), self.ndim)
+                self.formula = "Var({},{},2)".format(id(x), self.inner_dim)
 
             else:
                 raise ValueError(
@@ -449,7 +449,7 @@ class GenericLazyTensor:
             )
 
         if not dimres:
-            dimres = self.ndim
+            dimres = self.inner_dim
 
         res = self.init(is_complex)  # Copy of self, without a formula
         if opt_arg2 is not None:
@@ -460,7 +460,7 @@ class GenericLazyTensor:
             res.formula = "{}({},{})".format(operation, self.formula, opt_arg)
         else:
             res.formula = "{}({})".format(operation, self.formula)
-        res.ndim = dimres
+        res.inner_dim = dimres
         return res
 
     def binary(
@@ -502,33 +502,33 @@ class GenericLazyTensor:
 
         # By default, the dimension of the output variable is the max of the two operands:
         if not dimres:
-            dimres = max(self.ndim, other.ndim)
+            dimres = max(self.inner_dim, other.inner_dim)
 
         if dimcheck == "same":
-            if self.ndim != other.ndim:
+            if self.inner_dim != other.inner_dim:
                 raise ValueError(
                     "Operation {} expects inputs of the same dimension. ".format(
                         operation
                     )
-                    + "Received {} and {}.".format(self.ndim, other.ndim)
+                    + "Received {} and {}.".format(self.inner_dim, other.inner_dim)
                 )
 
         elif dimcheck == "sameor1":
-            if self.ndim != other.ndim and self.ndim != 1 and other.ndim != 1:
+            if self.inner_dim != other.inner_dim and self.inner_dim != 1 and other.inner_dim != 1:
                 raise ValueError(
                     "Operation {} expects inputs of the same dimension or dimension 1. ".format(
                         operation
                     )
-                    + "Received {} and {}.".format(self.ndim, other.ndim)
+                    + "Received {} and {}.".format(self.inner_dim, other.inner_dim)
                 )
 
         elif dimcheck == "vecand1":
-            if other.ndim != 1:
+            if other.inner_dim != 1:
                 raise ValueError(
                     "Operation {} expects a vector and a scalar input (of dimension 1). ".format(
                         operation
                     )
-                    + "Received {} and {}.".format(self.ndim, other.ndim)
+                    + "Received {} and {}.".format(self.inner_dim, other.inner_dim)
                 )
 
         elif dimcheck != None:
@@ -538,7 +538,7 @@ class GenericLazyTensor:
             other, is_complex=is_complex
         )  # Merge the attributes and variables of both operands
 
-        res.ndim = dimres
+        res.inner_dim = dimres
 
         if not rversion:
             lformula, rformula = self.formula, other.formula
@@ -561,7 +561,7 @@ class GenericLazyTensor:
         else:
             res.formula = "{}({}, {})".format(operation, lformula, rformula)
 
-        if operation == "*" and other.formula[:3] == "Var" and other.ndim > 100:
+        if operation == "*" and other.formula[:3] == "Var" and other.inner_dim > 100:
             res.rec_multVar_highdim = (self, other)
 
         return res
@@ -598,27 +598,27 @@ class GenericLazyTensor:
 
         # By default, the dimension of the output variable is the max of the three operands:
         if not dimres:
-            dimres = max(self.ndim, other1.ndim, other2.ndim)
+            dimres = max(self.inner_dim, other1.inner_dim, other2.inner_dim)
 
         if dimcheck == "same":
-            if (self.ndim != other1.ndim) or (self.ndim != other2.ndim):
+            if (self.inner_dim != other1.inner_dim) or (self.inner_dim != other2.inner_dim):
                 raise ValueError(
                     "Operation {} expects inputs of the same dimension. ".format(
                         operation
                     )
                     + "Received {}, {} and {}.".format(
-                        self.ndim, other1.ndim, other2.ndim
+                        self.inner_dim, other1.inner_dim, other2.inner_dim
                     )
                 )
 
         elif dimcheck == "sameor1":
-            if not same_or_one_test(self.ndim, other1.ndim, other2.ndim):
+            if not same_or_one_test(self.inner_dim, other1.inner_dim, other2.inner_dim):
                 raise ValueError(
                     "Operation {} expects inputs of the same dimension or dimension 1. ".format(
                         operation
                     )
                     + "Received {}, {} and {}.".format(
-                        self.ndim, other1.ndim, other2.ndim
+                        self.inner_dim, other1.inner_dim, other2.inner_dim
                     )
                 )
 
@@ -628,7 +628,7 @@ class GenericLazyTensor:
         res = self.join(
             other1.join(other2)
         )  # Merge the attributes and variables of operands
-        res.ndim = dimres
+        res.inner_dim = dimres
 
         if opt_arg is not None:
             if hasattr(opt_arg, "__GenericLazyTensor__"):
@@ -741,7 +741,7 @@ class GenericLazyTensor:
         kwargs_init, kwargs_call = self.separate_kwargs(kwargs)
 
         res.kwargs = kwargs_call
-        res.ndim = self.ndim
+        res.inner_dim = self.inner_dim
         if reduction_op == "Sum" and hasattr(self, "rec_multVar_highdim"):
             # this means we have detected that the reduction is of the form Sum(F*V) with V a high dimension variable.
             if res.axis != self.rec_multVar_highdim[1].axis:
@@ -856,7 +856,7 @@ class GenericLazyTensor:
             # we define var as a new symbolic variable with same dimension as other
             # and we assume axis of var is same as axis of reduction
             varindex = self.new_variable_index()
-            var = self.lt_constructor((varindex, other.ndim, axis))
+            var = self.lt_constructor((varindex, other.inner_dim, axis))
             res = self * var
         else:
             # var is given and must be a symbolic variable which is already inside self
@@ -873,9 +873,9 @@ class GenericLazyTensor:
 
         kwargs_init, res.kwargs = self.separate_kwargs(kwargs)
 
-        res.ndim = self.ndim
+        res.inner_dim = self.inner_dim
 
-        if other.ndim > 100:
+        if other.inner_dim > 100:
             res.rec_multVar_highdim = varindex
         else:
             res.rec_multVar_highdim = None
@@ -996,8 +996,8 @@ class GenericLazyTensor:
         btch = () if self.batchdims is None else self.batchdims
         ni = 1 if self.ni is None else self.ni
         nj = 1 if self.nj is None else self.nj
-        ndim = 1 if self.ndim is None else self.ndim
-        return btch + (ni, nj, ndim)
+        inner_dim = 1 if self.inner_dim is None else self.inner_dim
+        return btch + (ni, nj, inner_dim)
 
     @property
     def shape(self):
@@ -1013,6 +1013,10 @@ class GenericLazyTensor:
         Just as in PyTorch, returns the number of dimensions of a :class:`LazyTensor`.
         """
         return len(self._shape)
+    
+    @property
+    def ndim(self):
+        return self.dim()
 
     @property
     def nbatchdims(self):
@@ -1353,12 +1357,12 @@ class GenericLazyTensor:
                 other = self.lt_constructor(other)
 
         if hasattr(other, "__GenericLazyTensor__"):
-            if other.ndim == 1 or other.ndim == self.ndim:
+            if other.inner_dim == 1 or other.inner_dim == self.inner_dim:
                 return self.binary(other, "Powf", dimcheck=None)
             else:
                 raise ValueError(
                     "Incompatible dimensions for the LazyTensor and its exponent: "
-                    + "{} and {}.".format(self.ndim, other.ndim)
+                    + "{} and {}.".format(self.inner_dim, other.inner_dim)
                 )
         else:
             raise ValueError(
@@ -1564,11 +1568,11 @@ class GenericLazyTensor:
         if not hasattr(other, "__GenericLazyTensor__"):
             other = self.lt_constructor(other)
 
-        if other.ndim not in (1, self.ndim, self.ndim**2):
+        if other.inner_dim not in (1, self.inner_dim, self.inner_dim**2):
             raise ValueError(
                 "Squared norm weights should be of size 1 (scalar), "
                 + "D (diagonal) or D^2 (full symmetric tensor), but received "
-                + "{} with D={}.".format(other.ndim, self.ndim)
+                + "{} with D={}.".format(other.inner_dim, self.inner_dim)
             )
 
         return self.binary(
@@ -1592,7 +1596,7 @@ class GenericLazyTensor:
         return self.binary(
             other,
             "DifferenceMatrix",
-            dimres=(other.ndim * self.ndim),
+            dimres=(other.inner_dim * self.inner_dim),
             dimcheck=None,
         )
 
@@ -1620,9 +1624,9 @@ class GenericLazyTensor:
         """
         if type(i) is not int:
             raise ValueError("Elem indexing is only supported for integer indices.")
-        if i < 0 or i >= self.ndim:
+        if i < 0 or i >= self.inner_dim:
             raise ValueError(
-                "Index i={} is out of bounds [0,D) = [0,{}).".format(i, self.ndim)
+                "Index i={} is out of bounds [0,D) = [0,{}).".format(i, self.inner_dim)
             )
         return self.unary("Elem", dimres=1, opt_arg=i)
 
@@ -1635,9 +1639,9 @@ class GenericLazyTensor:
         """
         if (type(i) is not int) or (type(d) is not int):
             raise ValueError("Indexing is only supported for integer indices.")
-        if i < 0 or i >= self.ndim:
+        if i < 0 or i >= self.inner_dim:
             raise ValueError("Starting index is out of bounds.")
-        if d < 1 or i + d > self.ndim:
+        if d < 1 or i + d > self.inner_dim:
             raise ValueError("Slice dimension is out of bounds.")
         return self.unary("Extract", dimres=d, opt_arg=i, opt_arg2=d)
 
@@ -1678,7 +1682,7 @@ class GenericLazyTensor:
             if key.start is None:
                 key = slice(0, key.stop)
             if key.stop is None:
-                key = slice(key.start, self.ndim)
+                key = slice(key.start, self.inner_dim)
             return self.extract(key.start, key.stop - key.start)
         elif isinstance(key, int):
             return self.elem(key)
@@ -1698,7 +1702,7 @@ class GenericLazyTensor:
             raise ValueError(
                 "One-hot encoding expects an integer dimension of the output vector."
             )
-        if self.ndim != 1:
+        if self.inner_dim != 1:
             raise ValueError("One-hot encoding is only supported for scalar formulas.")
 
         return self.unary("OneHot", dimres=D, opt_arg=D)
@@ -1710,7 +1714,7 @@ class GenericLazyTensor:
         :param k: a non-negative integer.
         """
         return self.binary(
-            x, "BSpline", dimres=(self.ndim - k - 1), dimcheck="vecand1", opt_arg=f"{k}"
+            x, "BSpline", dimres=(self.inner_dim - k - 1), dimcheck="vecand1", opt_arg=f"{k}"
         )
 
     def concat(self, other):
@@ -1721,7 +1725,7 @@ class GenericLazyTensor:
         the concatenation of ``x`` and ``y`` along their last dimension.
         """
         return self.binary(
-            other, "Concat", dimres=(self.ndim + other.ndim), dimcheck=None
+            other, "Concat", dimres=(self.inner_dim + other.inner_dim), dimcheck=None
         )
 
     @staticmethod
@@ -1780,7 +1784,7 @@ class GenericLazyTensor:
         the :doc:`main reference page <../../../api/math-operations>`.
         """
         return self.binary(
-            other, "MatVecMult", dimres=(self.ndim // other.ndim), dimcheck=None
+            other, "MatVecMult", dimres=(self.inner_dim // other.inner_dim), dimcheck=None
         )
 
     def vecmatmult(self, other):
@@ -1795,7 +1799,7 @@ class GenericLazyTensor:
         the :doc:`main reference page <../../../api/math-operations>`.
         """
         return self.binary(
-            other, "VecMatMult", dimres=(other.ndim // self.ndim), dimcheck=None
+            other, "VecMatMult", dimres=(other.inner_dim // self.inner_dim), dimcheck=None
         )
 
     def tensorprod(self, other):
@@ -1810,7 +1814,7 @@ class GenericLazyTensor:
         the :doc:`main reference page <../../../api/math-operations>`.
         """
         return self.binary(
-            other, "TensorProd", dimres=(other.ndim * self.ndim), dimcheck=None
+            other, "TensorProd", dimres=(other.inner_dim * self.inner_dim), dimcheck=None
         )
 
     def keops_tensordot(self, other, dimfa, dimfb, contfa, contfb, *args):
@@ -1910,7 +1914,7 @@ class GenericLazyTensor:
         return self.binary(
             other,
             "Kron",
-            dimres=(other.ndim * self.ndim),
+            dimres=(other.inner_dim * self.inner_dim),
             dimcheck=None,
             opt_arg=opt_arg,
         )
@@ -1929,7 +1933,7 @@ class GenericLazyTensor:
         return self.binary(
             gradin,
             "Grad",
-            dimres=other.ndim,
+            dimres=other.inner_dim,
             dimcheck="same",
             opt_arg=other,
             opt_pos="middle",
@@ -1949,7 +1953,7 @@ class GenericLazyTensor:
         return self.binary(
             diffin,
             "Diff",
-            dimres=self.ndim,
+            dimres=self.inner_dim,
             dimcheck=None,
             opt_arg=other,
             opt_pos="middle",
@@ -1968,7 +1972,7 @@ class GenericLazyTensor:
         return self.binary(
             other,
             "Factorize",
-            dimres=self.ndim,
+            dimres=self.inner_dim,
             dimcheck=None,
         )
 
@@ -1984,7 +1988,7 @@ class GenericLazyTensor:
         """
         return self.unary(
             "AutoFactorize",
-            dimres=self.ndim,
+            dimres=self.inner_dim,
         )
 
     def grad_matrix(self, other):
@@ -2000,7 +2004,7 @@ class GenericLazyTensor:
         """
         return self.unary(
             "GradMatrix",
-            dimres=self.ndim * other.ndim,
+            dimres=self.inner_dim * other.inner_dim,
             opt_arg=other,
         )
 
@@ -2031,7 +2035,7 @@ class GenericLazyTensor:
         )
         if var.ind >= 0:
             res.formula = res.formula.replace(
-                var.formula, f"VarSymb(-{var.ind}-1,{var.ndim},{var.axis})"
+                var.formula, f"VarSymb(-{var.ind}-1,{var.inner_dim},{var.axis})"
             )
         return res
 
@@ -2042,7 +2046,7 @@ class GenericLazyTensor:
         ``z = x.divergence(v)`` returns a :class:`LazyTensor`
         which encodes, symbolically,
         the divergence of ``x``, with respect to variable ``v``.
-        Inner dimensions of ``x`` (``x.ndim``) and ``v`` (``v.ndim``) must match.
+        Inner dimensions of ``x`` (``x.inner_dim``) and ``v`` (``v.inner_dim``) must match.
         """
         return self.binary(
             var,
@@ -2058,7 +2062,7 @@ class GenericLazyTensor:
         ``z = x.laplacian(v)`` returns a :class:`LazyTensor`
         which encodes, symbolically,
         the laplacian of ``x``, with respect to variable ``v``.
-        Inner dimension of ``x`` (``x.ndim``) must equal 1.
+        Inner dimension of ``x`` (``x.inner_dim``) must equal 1.
         """
         return self.binary(
             var,
