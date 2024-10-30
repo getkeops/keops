@@ -5,8 +5,8 @@
 <!-- [![Build status](https://ci.inria.fr/keops/buildStatus/icon?job=keops%2Fmain)](https://ci.inria.fr/keops/job/keops/job/main/) -->
 [![PyPI version](https://img.shields.io/pypi/v/pykeops?color=blue)](https://pypi.org/project/pykeops/)
 [![PyPI downloads](https://pepy.tech/badge/pykeops?color=green)](https://pypi.org/project/pykeops/)
-[![CRAN version](https://img.shields.io/cran/v/rkeops?color=yellowgreen)](https://cran.r-project.org/web/packages/rkeops/index.html)
-[![CRAN downloads](http://cranlogs.r-pkg.org/badges/grand-total/rkeops?color=yellowgreen)](https://cran.r-project.org/web/packages/rkeops/index.html)
+<!-- [![CRAN version](https://img.shields.io/cran/v/rkeops?color=yellowgreen)](https://cran.r-project.org/web/packages/rkeops/index.html) -->
+<!-- [![CRAN downloads](http://cranlogs.r-pkg.org/badges/grand-total/rkeops?color=yellowgreen)](https://cran.r-project.org/web/packages/rkeops/index.html) -->
 
 
 Please visit our [website](https://www.kernel-operations.io/) for 
