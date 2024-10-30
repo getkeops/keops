@@ -132,7 +132,9 @@ class GenericLazyTensor:
                 self.ind = x[0]
                 self.inner_dim = x[1]
                 self.axis = x[2]
-                self.formula = "VarSymb({},{},{})".format(x[0], self.inner_dim, self.axis)
+                self.formula = "VarSymb({},{},{})".format(
+                    x[0], self.inner_dim, self.axis
+                )
                 return  # That's it!
 
             # Integer constants are best handled directly by the compiler
@@ -514,7 +516,11 @@ class GenericLazyTensor:
                 )
 
         elif dimcheck == "sameor1":
-            if self.inner_dim != other.inner_dim and self.inner_dim != 1 and other.inner_dim != 1:
+            if (
+                self.inner_dim != other.inner_dim
+                and self.inner_dim != 1
+                and other.inner_dim != 1
+            ):
                 raise ValueError(
                     "Operation {} expects inputs of the same dimension or dimension 1. ".format(
                         operation
@@ -601,7 +607,9 @@ class GenericLazyTensor:
             dimres = max(self.inner_dim, other1.inner_dim, other2.inner_dim)
 
         if dimcheck == "same":
-            if (self.inner_dim != other1.inner_dim) or (self.inner_dim != other2.inner_dim):
+            if (self.inner_dim != other1.inner_dim) or (
+                self.inner_dim != other2.inner_dim
+            ):
                 raise ValueError(
                     "Operation {} expects inputs of the same dimension. ".format(
                         operation
@@ -1013,7 +1021,7 @@ class GenericLazyTensor:
         Just as in PyTorch, returns the number of dimensions of a :class:`LazyTensor`.
         """
         return len(self._shape)
-    
+
     @property
     def ndim(self):
         return self.dim()
@@ -1714,7 +1722,11 @@ class GenericLazyTensor:
         :param k: a non-negative integer.
         """
         return self.binary(
-            x, "BSpline", dimres=(self.inner_dim - k - 1), dimcheck="vecand1", opt_arg=f"{k}"
+            x,
+            "BSpline",
+            dimres=(self.inner_dim - k - 1),
+            dimcheck="vecand1",
+            opt_arg=f"{k}",
         )
 
     def concat(self, other):
@@ -1784,7 +1796,10 @@ class GenericLazyTensor:
         the :doc:`main reference page <../../../api/math-operations>`.
         """
         return self.binary(
-            other, "MatVecMult", dimres=(self.inner_dim // other.inner_dim), dimcheck=None
+            other,
+            "MatVecMult",
+            dimres=(self.inner_dim // other.inner_dim),
+            dimcheck=None,
         )
 
     def vecmatmult(self, other):
@@ -1799,7 +1814,10 @@ class GenericLazyTensor:
         the :doc:`main reference page <../../../api/math-operations>`.
         """
         return self.binary(
-            other, "VecMatMult", dimres=(other.inner_dim // self.inner_dim), dimcheck=None
+            other,
+            "VecMatMult",
+            dimres=(other.inner_dim // self.inner_dim),
+            dimcheck=None,
         )
 
     def tensorprod(self, other):
@@ -1814,7 +1832,10 @@ class GenericLazyTensor:
         the :doc:`main reference page <../../../api/math-operations>`.
         """
         return self.binary(
-            other, "TensorProd", dimres=(other.inner_dim * self.inner_dim), dimcheck=None
+            other,
+            "TensorProd",
+            dimres=(other.inner_dim * self.inner_dim),
+            dimcheck=None,
         )
 
     def keops_tensordot(self, other, dimfa, dimfb, contfa, contfb, *args):
