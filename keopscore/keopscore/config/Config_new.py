@@ -10,7 +10,6 @@ from pathlib import Path
 import keopscore
 from keopscore.utils.misc_utils import KeOps_Warning, KeOps_Error, KeOps_Print
 import subprocess
-import distro 
 
 
 class ConfigNew:
@@ -42,6 +41,7 @@ class ConfigNew:
     jit_binary = None
     cxx_compiler = None
     cpp_env_flags = None
+    nvrtc_flags = None
     compile_options = None
     cpp_flags = None
     disable_pragma_unrolls = None
@@ -85,7 +85,18 @@ class ConfigNew:
 
     def set_os(self):
         """Set the operating system."""
-        self.os = platform.system() + ' ' + distro.name() + ' ' + distro.version()
+        if platform.system() == "Linux":
+            try:
+                with open("/etc/os-release") as f:
+                    info = dict(line.strip().split("=") for line in f if "=" in line)
+                    name = info.get("NAME", "Linux").strip('"')
+                    version = info.get("VERSION_ID", "").strip('"')
+                    self.os = f"{platform.system()} {name} {version}"
+            except FileNotFoundError:
+                self.os = "Linux (distribution info not found)"
+        else:
+            self.os = platform.system() + " " + platform.version()
+
 
     def get_os(self):
         """Get the operating system."""
@@ -145,7 +156,7 @@ class ConfigNew:
 
     def print_use_cuda(self):
         """Print the CUDA support status."""
-        status = "Enabled" if self._use_cuda else "Disabled"
+        status = "Enabled ✅" if self._use_cuda else "Disabled ❌"
         print(f"CUDA Support: {status}")
 
     def set_cxx_compiler(self):
@@ -183,7 +194,7 @@ class ConfigNew:
 
     def print_use_OpenMP(self):
         """Print the OpenMP support status."""
-        status = "Enabled" if self._use_OpenMP else "Disabled"
+        status = "Enabled ✅" if self._use_OpenMP else "Disabled ❌"
         print(f"OpenMP Support: {status}")
 
     def check_compiler_for_openmp(self):
@@ -233,7 +244,7 @@ class ConfigNew:
                 self.openmp_lib_path = openmp_lib
                 return True
         else:
-            # For other operating systems, additional checks may be needed
+            # For other operating systems, additional checks that may be needed
             self.openmp_lib_path = None
             return False
 
@@ -441,7 +452,7 @@ class ConfigNew:
                 full_path = os.path.join(directory, libpath)
                 if os.path.exists(full_path):
                     return full_path
-            # As a fallback, return the library name
+            # If not found, return the library name
             return libpath
         else:
             return None
@@ -581,7 +592,7 @@ class ConfigNew:
         Print all configuration settings and system health status in a clear and organized manner,
         including various paths and using status indicators. Uses pathlib for path handling.
         """
-        # Define emojis for status indicators
+        # Define check and cross marks for status indicators
         check_mark = '✅'
         cross_mark = '❌'
 
@@ -616,7 +627,7 @@ class ConfigNew:
         self.print_cxx_compiler()
         print(f"C++ Compiler Path: {compiler_path or 'Not Found'} {compiler_status}")
         if not compiler_available:
-            print(f"  {cross_mark} Compiler '{self.cxx_compiler}' not found on the system.")
+            print(f"Compiler '{self.cxx_compiler}' not found on the system.{cross_mark}")
 
         # OpenMP Support
         openmp_status = check_mark if self._use_OpenMP else cross_mark
@@ -625,9 +636,9 @@ class ConfigNew:
         self.print_use_OpenMP()
         if self._use_OpenMP:
             openmp_lib_path = self.openmp_lib_path or 'Not Found'
-            print(f"OpenMP Library Path: {openmp_lib_path}")
+            print(f"OpenMP Library Path: {openmp_lib_path}{check_mark}")
         else:
-            print(f"  {cross_mark} OpenMP support is disabled or not available.")
+            print(f"OpenMP support is disabled or not available. {cross_mark}")
 
         # CUDA Support
         cuda_status = check_mark if self._use_cuda else cross_mark
@@ -648,10 +659,10 @@ class ConfigNew:
             nvcc_status = check_mark if nvcc_path else cross_mark
             print(f"CUDA Compiler (nvcc): {nvcc_path or 'Not Found'} {nvcc_status}")
             if not nvcc_path:
-                print(f"  {cross_mark} CUDA compiler 'nvcc' not found in PATH.")
+                print(f"CUDA compiler 'nvcc' not found in PATH.{cross_mark}")
         else:
             # CUDA is disabled; display the CUDA message
-            print(f"  {cross_mark} {self.cuda_message}")
+            print(f"{self.cuda_message}{cross_mark}")
 
         # Conda or Virtual Environment Paths
         print(f"\nEnvironment Paths")
@@ -703,21 +714,21 @@ class ConfigNew:
         # Determine overall status
         issues = []
         if not compiler_available:
-            issues.append(f"{cross_mark} C++ compiler '{self.cxx_compiler}' not found.")
+            issues.append(f"C++ compiler '{self.cxx_compiler}' not found.")
         if not self._use_OpenMP:
-            issues.append(f"{cross_mark} OpenMP support is disabled or not available.")
+            issues.append(f"OpenMP support is disabled or not available.")
         if self._use_cuda:
             nvcc_path = shutil.which('nvcc')
             if not nvcc_path:
-                issues.append(f"{cross_mark} CUDA compiler 'nvcc' not found.")
+                issues.append(f"CUDA compiler 'nvcc' not found.")
             if not self.cuda_include_path:
-                issues.append(f"{cross_mark} CUDA include path not found.")
+                issues.append(f"CUDA include path not found.")
         if not Path(self.keops_cache_folder).exists():
-            issues.append(f"{cross_mark} KeOps cache folder '{self.keops_cache_folder}' does not exist.")
+            issues.append(f"KeOps cache folder '{self.keops_cache_folder}' does not exist.")
         if issues:
-            print(f"{cross_mark} Some configurations are missing or disabled:")
+            print(f"Some configurations are missing or disabled:")
             for issue in issues:
-                print(f"  {issue}")
+                print(f"{issue} {cross_mark}")
         else:
             print(f"{check_mark} All configurations are properly set up.")
 
