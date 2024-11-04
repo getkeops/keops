@@ -1,57 +1,59 @@
-"""
-Detect the platform and set the correct path for the keops library
-
-Detect if venv is active and set the correct path for the keops library
-
-Detect if conda is active and set the correct path for the keops library
-"""
-
-from Config_new import ConfigNew
-import shutil
+import platform
+import sys
+import os
+from base_config import ConfigNew 
 
 class DetectPlatform(ConfigNew):
     """
-    A class to detect the operating system, virtual environment or conda environment,
-    and CUDA detection by inheriting from ConfigNew.
+    Class for detecting the operating system, Python version, and environment type.
     """
-
     def __init__(self):
-        super().__init__()  # Initialize ConfigNew
+        super().__init__()
+        self.set_os()
+        self.set_python_version()
+        self.set_env_type()
 
-    def print_all(self):
-        print("\nPlatform Detection Summary")
-        print("=" * 40)
-        self.print_os()
-        self.print_env_type()
-        self.print_cuda_details()
-        print("=" * 40)
-
-    def print_cuda_details(self):
-        self.print_use_cuda()
-        if self.get_use_cuda():
-            print(f"CUDA Version: {self.get_cuda_version()}")
-            print(f"Number of GPUs: {self.n_gpus}")
+    def set_os(self):
+        """Set the operating system."""
+        if platform.system() == "Linux":
+            try:
+                with open("/etc/os-release") as f:
+                    info = dict(line.strip().split("=", 1) for line in f if "=" in line)
+                    name = info.get("NAME", "Linux").strip('"')
+                    version = info.get("VERSION_ID", "").strip('"')
+                    self.os = f"{platform.system()} {name} {version}"
+            except FileNotFoundError:
+                self.os = "Linux (distribution info not found)"
         else:
-            print("CUDA is not available.")
-        if self._use_cuda:
-            print(f"CUDA Version: {self.cuda_version}")
-            print(f"Number of GPUs: {self.n_gpus}")
-            print(f"GPU Compile Flags: {self.gpu_compile_flags}")
-            # CUDA Include Path
-            cuda_include_path = self.cuda_include_path
-            print(f"CUDA Include Path: {cuda_include_path or 'Not Found'}")
+            self.os = platform.system() + " " + platform.version()
 
-            # Attempt to find CUDA compiler
-            nvcc_path = shutil.which('nvcc')
-            print(f"CUDA Compiler (nvcc): {nvcc_path or 'Not Found'}")
-            if not nvcc_path:
-                print(f"CUDA compiler 'nvcc' not found in PATH.")
+    def get_os(self):
+        return self.os
+
+    def print_os(self):
+        print(f"Operating System: {self.os}")
+
+    def set_python_version(self):
+        """Set the Python version."""
+        self.python_version = platform.python_version()
+
+    def get_python_version(self):
+        return self.python_version
+
+    def print_python_version(self):
+        print(f"Python Version: {self.python_version}")
+
+    def set_env_type(self):
+        """Set the environment type (conda, virtualenv, or system)."""
+        if 'CONDA_DEFAULT_ENV' in os.environ:
+            self.env_type = f"conda ({os.environ['CONDA_DEFAULT_ENV']})"
+        elif hasattr(sys, 'real_prefix') or (hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix):
+            self.env_type = "virtualenv"
         else:
-            # CUDA is disabled; display the CUDA message
-            print(f"{self.cuda_message}")
+            self.env_type = "system"
 
-if __name__ == "__main__":
-    # Create an instance of DetectPlatform
-    detector = DetectPlatform()
-    # Print all detection results
-    detector.print_all()
+    def get_env_type(self):
+        return self.env_type
+
+    def print_env_type(self):
+        print(f"Environment Type: {self.env_type}")

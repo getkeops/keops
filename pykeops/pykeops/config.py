@@ -9,8 +9,11 @@ from os.path import join, dirname, realpath
 numpy_found = importlib.util.find_spec("numpy") is not None
 torch_found = importlib.util.find_spec("torch") is not None
 
-from keopscore.config.config import use_cuda as gpu_available
-from keopscore.config.config import get_build_folder
+from keopscore.config.cuda import CUDAconfig
+from keopscore.config.base_config import ConfigNew
+
+gpu_available = CUDAconfig.get_use_cuda()
+get_build_folder = ConfigNew.get_default_build_folder_name()
 
 
 def pykeops_nvrtc_name(type="src"):
