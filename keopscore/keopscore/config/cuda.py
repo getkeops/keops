@@ -2,6 +2,7 @@ import os
 import ctypes
 from ctypes.util import find_library
 from pathlib import Path
+import shutil
 import tempfile
 import sys
 from base_config import ConfigNew 
@@ -16,9 +17,20 @@ class CUDAConfig(ConfigNew):
     CU_DEVICE_ATTRIBUTE_MAX_THREADS_PER_BLOCK = 1
     CU_DEVICE_ATTRIBUTE_MAX_SHARED_MEMORY_PER_BLOCK = 8
 
+    # Cuda attributes
+    libcuda_folder = None
+    libnvrtc_folder = None
+    cuda_include_path = None
+    cuda_version = None
+    n_gpus = 0
+    gpu_compile_flags = ''
+    cuda_message = ''
+    specific_gpus = None
+
     def __init__(self):
         super().__init__()
         self.set_use_cuda()
+        self.set_specific_gpus()
 
     def set_use_cuda(self):
         """Determine and set whether to use CUDA."""
@@ -40,6 +52,25 @@ class CUDAConfig(ConfigNew):
     def print_use_cuda(self):
         status = "Enabled ✅" if self._use_cuda else "Disabled ❌"
         print(f"CUDA Support: {status}")
+
+    def set_specific_gpus(self):
+        """Set specific GPUs from CUDA_VISIBLE_DEVICES."""
+        self.specific_gpus = os.getenv("CUDA_VISIBLE_DEVICES")
+        if self.specific_gpus:
+            # Modify the build folder name to include GPU specifics
+            gpu_suffix = self.specific_gpus.replace(",", "_")
+            self.default_build_folder_name += f"_CUDA_VISIBLE_DEVICES_{gpu_suffix}"
+
+    def get_specific_gpus(self):
+        """Get the specific GPUs."""
+        return self.specific_gpus
+
+    def print_specific_gpus(self):
+        """Print the specific GPUs."""
+        if self.specific_gpus:
+            print(f"Specific GPUs (CUDA_VISIBLE_DEVICES): {self.specific_gpus}")
+        else:
+            print("Specific GPUs (CUDA_VISIBLE_DEVICES): Not Set")
 
     def _cuda_libraries_available(self):
         """Check if CUDA libraries are available."""
@@ -85,11 +116,66 @@ class CUDAConfig(ConfigNew):
             self.cuda_version = None
             return None
 
+
     def get_cuda_include_path(self):
         """Attempt to find the CUDA include path."""
-        # Implement logic similar to the original code
-        # For brevity, omitted here
-        pass
+        # Check the CUDA_PATH and CUDA_HOME environment variables
+        for env_var in ["CUDA_PATH", "CUDA_HOME"]:
+            path = os.getenv(env_var)
+            if path:
+                include_path = Path(path) / "include"
+                if (include_path / "cuda.h").is_file() and (include_path / "nvrtc.h").is_file():
+                    self.cuda_include_path = str(include_path)
+                    return
+        # Check if CUDA is installed via conda
+        conda_prefix = os.getenv("CONDA_PREFIX")
+        if conda_prefix:
+            include_path = Path(conda_prefix) / "include"
+            if (include_path / "cuda.h").is_file() and (include_path / "nvrtc.h").is_file():
+                self.cuda_include_path = str(include_path)
+                return
+        # Check standard locations
+        cuda_version_str = self.get_cuda_version(out_type="string")
+        possible_paths = [
+            Path("/usr/local/cuda"),
+            Path(f"/usr/local/cuda-{cuda_version_str}"),
+            Path("/opt/cuda"),
+        ]
+        for base_path in possible_paths:
+            include_path = base_path / "include"
+            if (include_path / "cuda.h").is_file() and (include_path / "nvrtc.h").is_file():
+                self.cuda_include_path = str(include_path)
+                return
+        # Use get_include_file_abspath to locate headers
+        cuda_h_path = self.get_include_file_abspath("cuda.h")
+        nvrtc_h_path = self.get_include_file_abspath("nvrtc.h")
+        if cuda_h_path and nvrtc_h_path:
+            if os.path.dirname(cuda_h_path) == os.path.dirname(nvrtc_h_path):
+                self.cuda_include_path = os.path.dirname(cuda_h_path)
+                return
+        # If not found, issue a warning
+        KeOps_Warning(
+            "CUDA include path not found. Please set the CUDA_PATH or CUDA_HOME environment variable."
+        )
+        self.cuda_include_path = None
+
+
+    def get_include_file_abspath(self, filename):
+        """Find the absolute path of a header file."""
+        tmp_file = tempfile.NamedTemporaryFile(dir=self.default_build_path, delete=False)
+        tmp_file_name = tmp_file.name
+        tmp_file.close()
+        command = f'echo "#include <{filename}>" | {self.cxx_compiler} -M -E -x c++ - > {tmp_file_name}'
+        os.system(command)
+        with open(tmp_file_name, 'r') as f:
+            content = f.read()
+        os.remove(tmp_file_name)
+        strings = content.split()
+        for s in strings:
+            if filename in s:
+                return s.strip()
+        return None
+
 
     def get_gpu_props(self):
         """Retrieve GPU properties and set related attributes."""
@@ -128,4 +214,55 @@ class CUDAConfig(ConfigNew):
         except Exception as e:
             KeOps_Warning(f"Error retrieving GPU properties: {e}")
             self.n_gpus = 0
+
+
+    def print_all(self):
+        """
+        Print all CUDA-related configuration and system health status.
+        """
+        # Define status indicators
+        check_mark = '✅'
+        cross_mark = '❌'
+
+        # CUDA Support
+        cuda_status = check_mark if self.get_use_cuda() else cross_mark
+        print(f"\nCUDA Support")
+        print("-" * 60)
+        self.print_use_cuda()
+        if self.get_use_cuda():
+            print(f"CUDA Version: {self.cuda_version}")
+            print(f"Number of GPUs: {self.n_gpus}")
+            print(f"GPU Compile Flags: {self.gpu_compile_flags}")
+            # CUDA Include Path
+            cuda_include_path = self.cuda_include_path
+            cuda_include_status = check_mark if cuda_include_path else cross_mark
+            print(f"CUDA Include Path: {cuda_include_path or 'Not Found'} {cuda_include_status}")
+
+            # Attempt to find CUDA compiler
+            nvcc_path = shutil.which('nvcc')
+            nvcc_status = check_mark if nvcc_path else cross_mark
+            print(f"CUDA Compiler (nvcc): {nvcc_path or 'Not Found'} {nvcc_status}")
+            if not nvcc_path:
+                print(f"CUDA compiler 'nvcc' not found in PATH.{cross_mark}")
+        else:
+            # CUDA is disabled; display the CUDA message
+            print(f"{self.cuda_message}{cross_mark}")
+        # Print relevant environment variables.
+        print("\nRelevant Environment Variables:")
+        env_vars = [
+            "CUDA_VISIBLE_DEVICES",
+            "CUDA_PATH",
+        ]
+        for var in env_vars:
+            value = os.environ.get(var, None)
+            if value:
+                print(f"{var} = {value}")
+            else:
+                print(f"{var} is not set")
+
+
+if __name__ == "__main__":
+    # Create an instance of CUDAConfig and print all CUDA-related information
+    cuda_config = CUDAConfig()
+    cuda_config.print_all()
 

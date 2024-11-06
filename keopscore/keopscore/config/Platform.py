@@ -9,6 +9,9 @@ class DetectPlatform(ConfigNew):
     """
     def __init__(self):
         super().__init__()
+        self.os = None
+        self.python_version = None
+        self.env_type = None
         self.set_os()
         self.set_python_version()
         self.set_env_type()
@@ -57,3 +60,34 @@ class DetectPlatform(ConfigNew):
 
     def print_env_type(self):
         print(f"Environment Type: {self.env_type}")
+
+    def print_all(self):
+        """
+        Print all platform-related information, including relevant environment variables.
+        """
+        print("\nPlatform Information")
+        print("=" * 60)
+        self.print_os()
+        self.print_python_version()
+        self.print_env_type()
+
+        # Print relevant environment variables
+        print("\nRelevant Environment Variables")
+        print("-" * 60)
+        env_vars = [
+            "CONDA_DEFAULT_ENV",
+            "VIRTUAL_ENV",
+            "PATH",
+            "PYTHONPATH",
+        ]
+        for var in env_vars:
+            value = os.environ.get(var)
+            if value:
+                print(f"{var} = {value}")
+            else:
+                print(f"{var} is not set")
+
+if __name__ == "__main__":
+    # Create an instance of DetectPlatform and print all platform related information
+    platform_detector = DetectPlatform()
+    platform_detector.print_all()

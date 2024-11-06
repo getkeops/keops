@@ -2,6 +2,7 @@ import os
 import shutil
 import tempfile
 import subprocess
+import platform
 from ctypes.util import find_library
 from base_config import ConfigNew
 from keopscore.utils.misc_utils import KeOps_Warning
@@ -12,6 +13,9 @@ class OpenMPConfig(ConfigNew):
     """
     def __init__(self):
         super().__init__()
+        self._use_OpenMP = None
+        self.openmp_lib_path = None
+        self.os_name = platform.system()
         self.set_cxx_compiler()
         self.set_use_OpenMP()
 
@@ -90,3 +94,46 @@ class OpenMPConfig(ConfigNew):
         else:
             self.openmp_lib_path = None
             return False
+
+
+    def print_all(self):
+        """
+        Print all OpenMP-related configuration and system health status.
+        """
+        # Define status indicators
+        check_mark = '✅'
+        cross_mark = '❌'
+
+        # OpenMP Support
+        openmp_status = check_mark if self.get_use_OpenMP() else cross_mark
+        print(f"\nOpenMP Support")
+        print("-" * 60)
+        self.print_use_OpenMP()
+        if self.get_use_OpenMP():
+            openmp_lib_path = self.openmp_lib_path or 'Not Found'
+            print(f"OpenMP Library Path: {openmp_lib_path}")
+            # Compiler path
+            compiler_path = shutil.which(self.cxx_compiler) if self.cxx_compiler else None
+            compiler_status = check_mark if compiler_path else cross_mark
+            print(f"C++ Compiler: {self.cxx_compiler} {compiler_status}")
+            if not compiler_path:
+                print(f"Compiler '{self.cxx_compiler}' not found on the system.{cross_mark}")
+        else:
+            print(f"OpenMP support is disabled or not available.{cross_mark}")
+        # Print relevant environment variables.
+        print("\nRelevant Environment Variables:")
+        env_vars = [
+            "OMP_PATH",
+        ]
+        for var in env_vars:
+            value = os.environ.get(var, None)
+            if value:
+                print(f"{var} = {value}")
+            else:
+                print(f"{var} is not set")
+
+
+if __name__ == "__main__":
+    # Create an instance of OpenMPConfig and print all OpenMP-related information
+    openmp_config = OpenMPConfig()
+    openmp_config.print_all()

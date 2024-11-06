@@ -13,23 +13,23 @@ class ConfigNew:
     This class contains common attributes and methods shared by other configuration classes.
     """
 
-    def __init__(self):
+    # Common attributes
+    base_dir_path = None
+    template_path = None
+    bindings_source_dir = None
+    keops_cache_folder = None
+    default_build_folder_name = None
+    default_build_path = None
+    jit_binary = None
+    cxx_compiler = None
+    cpp_env_flags = None
+    compile_options = None
+    cpp_flags = None
+    disable_pragma_unrolls = None
+    os = None
+    _build_path = None  
 
-        # Common attributes
-        self.base_dir_path = None
-        self.template_path = None
-        self.bindings_source_dir = None
-        self.keops_cache_folder = None
-        self.default_build_folder_name = None
-        self.specific_gpus = None
-        self.default_build_path = None
-        self.jit_binary = None
-        self.cxx_compiler = None
-        self.cpp_env_flags = None
-        self.compile_options = None
-        self.cpp_flags = None
-        self.disable_pragma_unrolls = None
-        self.os  = None
+    def __init__(self):
 
         # Initialize common configuration settings
         self.set_base_dir_path()
@@ -37,7 +37,6 @@ class ConfigNew:
         self.set_bindings_source_dir()
         self.set_keops_cache_folder()
         self.set_default_build_folder_name()
-        self.set_specific_gpus()
         self.set_default_build_path()
         self.set_jit_binary()
         self.set_cxx_compiler()
@@ -120,25 +119,6 @@ class ConfigNew:
         """Print the default build folder name."""
         print(f"Default Build Folder Name: {self.default_build_folder_name}")
 
-    def set_specific_gpus(self):
-        """Set specific GPUs from CUDA_VISIBLE_DEVICES."""
-        self.specific_gpus = os.getenv("CUDA_VISIBLE_DEVICES")
-        if self.specific_gpus:
-            # Modify the build folder name to include GPU specifics
-            gpu_suffix = self.specific_gpus.replace(",", "_")
-            self.default_build_folder_name += f"_CUDA_VISIBLE_DEVICES_{gpu_suffix}"
-
-    def get_specific_gpus(self):
-        """Get the specific GPUs."""
-        return self.specific_gpus
-
-    def print_specific_gpus(self):
-        """Print the specific GPUs."""
-        if self.specific_gpus:
-            print(f"Specific GPUs (CUDA_VISIBLE_DEVICES): {self.specific_gpus}")
-        else:
-            print("Specific GPUs (CUDA_VISIBLE_DEVICES): Not Set")
-
     def set_default_build_path(self):
         """Set the default build path."""
         self.default_build_path = join(
@@ -149,6 +129,8 @@ class ConfigNew:
         # Add the build path to sys.path
         if self.default_build_path not in sys.path:
             sys.path.append(self.default_build_path)
+        # Initialize _build_path
+        self._build_path = self.default_build_path
 
     def get_default_build_path(self):
         """Get the default build path."""
@@ -242,7 +224,6 @@ class ConfigNew:
             self.cpp_flags += " -flto"
         else:
             self.cpp_flags += " -flto=auto"
-        
 
     def get_cpp_flags(self):
         """Get the C++ compiler flags."""
@@ -254,7 +235,7 @@ class ConfigNew:
 
     def set_disable_pragma_unrolls(self):
         """Set the flag for disabling pragma unrolls."""
-        self.disable_pragma_unrolls = True  
+        self.disable_pragma_unrolls = True
 
     def get_disable_pragma_unrolls(self):
         """Get the flag for disabling pragma unrolls."""
@@ -265,18 +246,68 @@ class ConfigNew:
         status = "Enabled" if self.disable_pragma_unrolls else "Disabled"
         print(f"Disable Pragma Unrolls: {status}")
 
+    def set_build_folder(
+        self, path=None, read_save_file=False, write_save_file=True, reset_all=True
+    ):
+        """
+        Set or update the build folder path for KeOps.
+
+        Parameters:
+        - path: The new build folder path. If None, it will be determined based on saved settings or defaults.
+        - read_save_file: If True, read the build folder path from a save file if path is not provided.
+        - write_save_file: If True, write the new build folder path to the save file.
+        - reset_all: If True, reset all cached formulas and recompile necessary components.
+        """
+        # If path is not given, we either read the save file or use the default build path
+        save_file = join(self.keops_cache_folder, "build_folder_location.txt")
+        if not path:
+            if read_save_file and os.path.isfile(save_file):
+                with open(save_file, "r") as f:
+                    path = f.read()
+            else:
+                path = self.default_build_path
+
+        # Create the folder if not yet done
+        os.makedirs(path, exist_ok=True)
+
+        # Remove the old build path from sys.path if it's there
+        if self._build_path and self._build_path in sys.path:
+            sys.path.remove(self._build_path)
+        # Update _build_path to the new path
+        self._build_path = path
+        # Add the new build path to sys.path
+        if self._build_path not in sys.path:
+            sys.path.append(self._build_path)
+
+        # Saving the location of the build path in a file
+        if write_save_file:
+            with open(save_file, "w") as f:
+                f.write(path)
+
+        # Reset all cached formulas if needed
+        if reset_all:
+            # Reset cached formulas
+            keopscore.get_keops_dll.get_keops_dll.reset(new_save_folder=self._build_path)
+            # Handle CUDA-specific recompilation if CUDA is used
+            if hasattr(self, '_use_cuda') and self._use_cuda:
+                from keopscore.binders.nvrtc.Gpu_link_compile import (
+                    Gpu_link_compile,
+                    jit_compile_dll,
+                )
+                if not os.path.exists(jit_compile_dll()):
+                    Gpu_link_compile.compile_jit_compile_dll()
+
+        def get_build_folder(self):
+            return self._build_path           
+
     # Environment variables printing method
     def print_environment_variables(self):
         """Print relevant environment variables."""
-        print("\nEnvironment Variables:")
+        print("\nRelevant Environment Variables:")
         env_vars = [
             "KEOPS_CACHE_FOLDER",
-            "CUDA_VISIBLE_DEVICES",
             "CXX",
             "CXXFLAGS",
-            "OMP_PATH",
-            "CONDA_DEFAULT_ENV",
-            "CUDA_PATH",
         ]
         for var in env_vars:
             value = os.environ.get(var, None)
@@ -307,3 +338,4 @@ if __name__ == "__main__":
     config.print_cpp_flags()
     config.print_disable_pragma_unrolls()
     config.print_environment_variables()
+
