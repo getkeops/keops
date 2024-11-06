@@ -6,16 +6,35 @@ import sysconfig
 # double check the file with the already available version to check if there is a mistake
 from keopscore.binders.LinkCompile import LinkCompile
 import keopscore.config
-from keopscore.config.config import (
-    cuda_version,
-    jit_binary,
-    cxx_compiler,
-    nvrtc_flags,
-    nvrtc_include,
-    jit_source_file,
-    cuda_available,
-    get_build_folder,
-)
+from keopscore.config.base_config import ConfigNew
+from keopscore.config.cuda import CUDAConfig
+# from keopscore.config.config import (
+#     cuda_version,
+#     jit_binary,
+#     cxx_compiler,
+#     nvrtc_flags,
+#     nvrtc_include,
+#     jit_source_file,
+#     cuda_available,
+#     get_build_folder,
+# )
+
+base_config = ConfigNew()
+cuda_config = CUDAConfig()
+
+cuda_version = cuda_config.get_cuda_version()
+jit_binary = base_config.get_jit_binary()
+cxx_compiler = base_config.get_cxx_compiler()
+compile_options = " -shared -fPIC -O3 -std=c++11"
+nvrtc_flags = (
+        compile_options
+        + f" -fpermissive -L{cuda_config.get_libcuda_folder()} -L{cuda_config.get_libnvrtc_folder()} -lcuda -lnvrtc"
+    )
+# add nvrtc_include
+# add jit_source_file,
+# add cuda_available,
+# add get_build_folder,
+
 from keopscore.utils.misc_utils import KeOps_Error, KeOps_Message, KeOps_OS_Run
 from keopscore.utils.gpu_utils import get_gpu_props, custom_cuda_include_fp16_path
 

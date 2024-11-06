@@ -13,7 +13,7 @@ from keopscore.config.cuda import CUDAconfig
 from keopscore.config.base_config import ConfigNew
 
 gpu_available = CUDAconfig.get_use_cuda()
-get_build_folder = ConfigNew.get_default_build_folder_name()
+get_build_folder = ConfigNew.get_build_folder()
 
 
 def pykeops_nvrtc_name(type="src"):

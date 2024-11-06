@@ -31,6 +31,8 @@ class CUDAConfig(ConfigNew):
         super().__init__()
         self.set_use_cuda()
         self.set_specific_gpus()
+        self.set_libcuda_folder()
+        self.set_libnvrtc_folder()
 
     def set_use_cuda(self):
         """Determine and set whether to use CUDA."""
@@ -71,6 +73,26 @@ class CUDAConfig(ConfigNew):
             print(f"Specific GPUs (CUDA_VISIBLE_DEVICES): {self.specific_gpus}")
         else:
             print("Specific GPUs (CUDA_VISIBLE_DEVICES): Not Set")
+
+    def set_libcuda_folder(self):
+         """Check if CUDA libraries are available, and then set libcuda_folder"""
+        cuda_lib = find_library("cuda")
+        nvrtc_lib = find_library("nvrtc")
+        if cuda_lib and nvrtc_lib:
+            self.libcuda_folder = os.path.dirname(self.find_library_abspath("cuda"))
+
+    def get_libcuda_folder(self):
+        return self.libcuda_folder
+
+    def set_libnvrtc_folder(self):
+         """Check if CUDA libraries are available, and then set libnvrtc_folder"""
+        cuda_lib = find_library("cuda")
+        nvrtc_lib = find_library("nvrtc")
+        if cuda_lib and nvrtc_lib:
+            self.libnvrtc_folder = os.path.dirname(self.find_library_abspath("nvrtc"))
+
+    def get_libnvrtc_folder(self):
+        return self.libnvrtc_folder
 
     def _cuda_libraries_available(self):
         """Check if CUDA libraries are available."""

@@ -297,8 +297,8 @@ class ConfigNew:
                 if not os.path.exists(jit_compile_dll()):
                     Gpu_link_compile.compile_jit_compile_dll()
 
-        def get_build_folder(self):
-            return self._build_path           
+    def get_build_folder(self):
+        return self._build_path           
 
     # Environment variables printing method
     def print_environment_variables(self):
