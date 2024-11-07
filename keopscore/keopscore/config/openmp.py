@@ -4,7 +4,8 @@ import tempfile
 import subprocess
 import platform
 from ctypes.util import find_library
-from base_config import ConfigNew
+from base_config import ConfigNew 
+
 from keopscore.utils.misc_utils import KeOps_Warning
 
 class OpenMPConfig(ConfigNew):

@@ -1,4 +1,5 @@
 import os
+from os.path import join
 from ctypes import create_string_buffer, CDLL, c_int
 from os import RTLD_LAZY
 import sysconfig
@@ -30,10 +31,11 @@ nvrtc_flags = (
         compile_options
         + f" -fpermissive -L{cuda_config.get_libcuda_folder()} -L{cuda_config.get_libnvrtc_folder()} -lcuda -lnvrtc"
     )
-# add nvrtc_include
-# add jit_source_file,
-# add cuda_available,
-# add get_build_folder,
+nvrtc_include = " -I" + base_config.get_bindings_source_dir() + " -I" + cuda_config.get_cuda_include_path()
+jit_source_file = join(base_config.get_base_dir_path(), "binders", "nvrtc", "keops_nvrtc.cpp")
+jit_source_header = join(base_config.get_base_dir_path(), "binders", "nvrtc", "keops_nvrtc.h")
+cuda_available = cuda_config.get_use_cuda()
+get_build_folder = base_config.get_build_folder()
 
 from keopscore.utils.misc_utils import KeOps_Error, KeOps_Message, KeOps_OS_Run
 from keopscore.utils.gpu_utils import get_gpu_props, custom_cuda_include_fp16_path
@@ -45,7 +47,7 @@ jit_compile_src = os.path.join(
 
 def jit_compile_dll():
     return os.path.join(
-        get_build_folder(),
+        get_build_folder,
         "nvrtc_jit" + sysconfig.get_config_var("SHLIB_SUFFIX"),
     )
 

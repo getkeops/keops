@@ -75,7 +75,7 @@ class CUDAConfig(ConfigNew):
             print("Specific GPUs (CUDA_VISIBLE_DEVICES): Not Set")
 
     def set_libcuda_folder(self):
-         """Check if CUDA libraries are available, and then set libcuda_folder"""
+        """Check if CUDA libraries are available, and then set libcuda_folder"""
         cuda_lib = find_library("cuda")
         nvrtc_lib = find_library("nvrtc")
         if cuda_lib and nvrtc_lib:
@@ -85,7 +85,7 @@ class CUDAConfig(ConfigNew):
         return self.libcuda_folder
 
     def set_libnvrtc_folder(self):
-         """Check if CUDA libraries are available, and then set libnvrtc_folder"""
+        """Check if CUDA libraries are available, and then set libnvrtc_folder"""
         cuda_lib = find_library("cuda")
         nvrtc_lib = find_library("nvrtc")
         if cuda_lib and nvrtc_lib:
@@ -148,14 +148,14 @@ class CUDAConfig(ConfigNew):
                 include_path = Path(path) / "include"
                 if (include_path / "cuda.h").is_file() and (include_path / "nvrtc.h").is_file():
                     self.cuda_include_path = str(include_path)
-                    return
+                    return self.cuda_include_path
         # Check if CUDA is installed via conda
         conda_prefix = os.getenv("CONDA_PREFIX")
         if conda_prefix:
             include_path = Path(conda_prefix) / "include"
             if (include_path / "cuda.h").is_file() and (include_path / "nvrtc.h").is_file():
                 self.cuda_include_path = str(include_path)
-                return
+                return self.cuda_include_path
         # Check standard locations
         cuda_version_str = self.get_cuda_version(out_type="string")
         possible_paths = [
@@ -167,14 +167,14 @@ class CUDAConfig(ConfigNew):
             include_path = base_path / "include"
             if (include_path / "cuda.h").is_file() and (include_path / "nvrtc.h").is_file():
                 self.cuda_include_path = str(include_path)
-                return
+                return self.cuda_include_path
         # Use get_include_file_abspath to locate headers
         cuda_h_path = self.get_include_file_abspath("cuda.h")
         nvrtc_h_path = self.get_include_file_abspath("nvrtc.h")
         if cuda_h_path and nvrtc_h_path:
             if os.path.dirname(cuda_h_path) == os.path.dirname(nvrtc_h_path):
                 self.cuda_include_path = os.path.dirname(cuda_h_path)
-                return
+                return self.cuda_include_path
         # If not found, issue a warning
         KeOps_Warning(
             "CUDA include path not found. Please set the CUDA_PATH or CUDA_HOME environment variable."
