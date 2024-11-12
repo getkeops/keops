@@ -11,7 +11,7 @@ here = path.abspath(path.dirname(__file__))
 with open(os.path.join(here, "keops_version"), encoding="utf-8") as v:
     __version__ = v.read().rstrip()
 
-from keopscore.config.config import set_build_folder, get_build_folder
+from keopscore.config.config import set_build_folder, get_build_folder  ## pas de setteurs et getters dans les fichiers
 from keopscore.utils.code_gen_utils import clean_keops
 
 # flags for debugging :
@@ -26,7 +26,7 @@ auto_factorize = False
 
 cuda_block_size = 192
 
-from keopscore import config as keopscoreconfig
+from keopscore import config as keopscoreconfig  # singleton à généraliser dans init.py
 
 if keopscoreconfig.config.use_cuda:
     keopscoreconfig.config.init_cudalibs()

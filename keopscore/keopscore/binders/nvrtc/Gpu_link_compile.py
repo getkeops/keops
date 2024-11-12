@@ -20,7 +20,7 @@ from keopscore.config.cuda import CUDAConfig
 #     get_build_folder,
 # )
 
-base_config = ConfigNew()
+base_config = ConfigNew() ## à virer 
 cuda_config = CUDAConfig()
 
 cuda_version = cuda_config.get_cuda_version()

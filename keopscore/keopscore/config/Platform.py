@@ -3,7 +3,7 @@ import sys
 import os
 from base_config import ConfigNew 
 
-class DetectPlatform(ConfigNew):
+class DetectPlatform:
     """
     Class for detecting the operating system, Python version, and environment type.
     """

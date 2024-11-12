@@ -5,10 +5,9 @@ from pathlib import Path
 import shutil
 import tempfile
 import sys
-from base_config import ConfigNew 
 from keopscore.utils.misc_utils import KeOps_Warning
 
-class CUDAConfig(ConfigNew):
+class CUDAConfig:
     """
     Class for CUDA detection and configuration.
     """
