@@ -1,5 +1,5 @@
 # Import the configuration classes
-from .config import ConfigNew
+from .base_config import ConfigNew
 from .cuda import CUDAConfig
 from .openmp import OpenMPConfig
 from .Platform import DetectPlatform

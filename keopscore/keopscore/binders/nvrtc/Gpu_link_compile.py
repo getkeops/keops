@@ -1,42 +1,20 @@
 import os
-from os.path import join
 from ctypes import create_string_buffer, CDLL, c_int
 from os import RTLD_LAZY
 import sysconfig
 
-# double check the file with the already available version to check if there is a mistake
 from keopscore.binders.LinkCompile import LinkCompile
 import keopscore.config
-from keopscore.config.base_config import ConfigNew
-from keopscore.config.cuda import CUDAConfig
-# from keopscore.config.config import (
-#     cuda_version,
-#     jit_binary,
-#     cxx_compiler,
-#     nvrtc_flags,
-#     nvrtc_include,
-#     jit_source_file,
-#     cuda_available,
-#     get_build_folder,
-# )
-
-base_config = ConfigNew() ## à virer 
-cuda_config = CUDAConfig()
-
-cuda_version = cuda_config.get_cuda_version()
-jit_binary = base_config.get_jit_binary()
-cxx_compiler = base_config.get_cxx_compiler()
-compile_options = " -shared -fPIC -O3 -std=c++11"
-nvrtc_flags = (
-        compile_options
-        + f" -fpermissive -L{cuda_config.get_libcuda_folder()} -L{cuda_config.get_libnvrtc_folder()} -lcuda -lnvrtc"
-    )
-nvrtc_include = " -I" + base_config.get_bindings_source_dir() + " -I" + cuda_config.get_cuda_include_path()
-jit_source_file = join(base_config.get_base_dir_path(), "binders", "nvrtc", "keops_nvrtc.cpp")
-jit_source_header = join(base_config.get_base_dir_path(), "binders", "nvrtc", "keops_nvrtc.h")
-cuda_available = cuda_config.get_use_cuda()
-get_build_folder = base_config.get_build_folder()
-
+from keopscore.config.config import (
+    cuda_version,
+    jit_binary,
+    cxx_compiler,
+    nvrtc_flags,
+    nvrtc_include,
+    jit_source_file,
+    cuda_available,
+    get_build_folder,
+)
 from keopscore.utils.misc_utils import KeOps_Error, KeOps_Message, KeOps_OS_Run
 from keopscore.utils.gpu_utils import get_gpu_props, custom_cuda_include_fp16_path
 
@@ -47,7 +25,7 @@ jit_compile_src = os.path.join(
 
 def jit_compile_dll():
     return os.path.join(
-        get_build_folder,
+        get_build_folder(),
         "nvrtc_jit" + sysconfig.get_config_var("SHLIB_SUFFIX"),
     )
 
@@ -78,7 +56,7 @@ class Gpu_link_compile(LinkCompile):
         self.true_dllname = jit_binary
         # file to check for existence to detect compilation is needed
         self.file_to_check = self.low_level_code_file
-        
+
     def generate_code(self):
         # method to generate the code and compile it
         # generate the code and save it in self.code, by calling get_code method from GpuReduc class :

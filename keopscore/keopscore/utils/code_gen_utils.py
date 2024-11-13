@@ -1,8 +1,9 @@
 import os
 from hashlib import sha256
 
-from keopscore.config.config import disable_pragma_unrolls
+from keopscore.config import config
 from keopscore.utils.misc_utils import KeOps_Error, KeOps_Message
+disable_pragma_unrolls = config.get_disable_pragma_unrolls()
 
 
 def get_hash_name(*args):

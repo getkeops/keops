@@ -1,7 +1,6 @@
 import platform
 import sys
 import os
-from base_config import ConfigNew 
 
 class DetectPlatform:
     """

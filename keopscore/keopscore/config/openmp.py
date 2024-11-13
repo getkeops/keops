@@ -15,7 +15,7 @@ class OpenMPConfig:
         super().__init__()
         self._use_OpenMP = None
         self.openmp_lib_path = None
-        self.os_name = platform.system()
+        self.os = platform.system()
         self.set_cxx_compiler()
         self.set_use_OpenMP()
 
