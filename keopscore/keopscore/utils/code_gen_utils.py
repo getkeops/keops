@@ -3,6 +3,7 @@ from hashlib import sha256
 
 from keopscore.config import config
 from keopscore.utils.misc_utils import KeOps_Error, KeOps_Message
+
 disable_pragma_unrolls = config.get_disable_pragma_unrolls()
 
 

@@ -7,6 +7,7 @@ from pathlib import Path
 import keopscore
 from keopscore.utils.misc_utils import KeOps_Warning
 
+
 class ConfigNew:
     """
     Base configuration class for the KeOps library.
@@ -27,7 +28,7 @@ class ConfigNew:
     cpp_flags = None
     disable_pragma_unrolls = None
     os = None
-    _build_path = None  
+    _build_path = None
 
     def __init__(self):
 
@@ -287,18 +288,21 @@ class ConfigNew:
         # Reset all cached formulas if needed
         if reset_all:
             # Reset cached formulas
-            keopscore.get_keops_dll.get_keops_dll.reset(new_save_folder=self._build_path)
+            keopscore.get_keops_dll.get_keops_dll.reset(
+                new_save_folder=self._build_path
+            )
             # Handle CUDA-specific recompilation if CUDA is used
-            if hasattr(self, '_use_cuda') and self._use_cuda:
+            if hasattr(self, "_use_cuda") and self._use_cuda:
                 from keopscore.binders.nvrtc.Gpu_link_compile import (
                     Gpu_link_compile,
                     jit_compile_dll,
                 )
+
                 if not os.path.exists(jit_compile_dll()):
                     Gpu_link_compile.compile_jit_compile_dll()
 
     def get_build_folder(self):
-        return self._build_path           
+        return self._build_path
 
     # Environment variables printing method
     def print_environment_variables(self):
@@ -316,7 +320,6 @@ class ConfigNew:
             else:
                 print(f"{var} is not set")
 
-    
 
 if __name__ == "__main__":
     # Create an instance of the configuration class
@@ -326,8 +329,8 @@ if __name__ == "__main__":
     from openmp import OpenMPConfig
 
     # Define status indicators
-    check_mark = '✅'
-    cross_mark = '❌'
+    check_mark = "✅"
+    cross_mark = "❌"
 
     # Create instances of the configuration classes
     platform_detector = DetectPlatform()
@@ -353,7 +356,7 @@ if __name__ == "__main__":
     print(f"Python Executable: {python_path} {python_status}")
 
     # Environment Path
-    env_path = os.environ.get('PATH', '')
+    env_path = os.environ.get("PATH", "")
     print(f"System PATH Environment Variable:")
     print(env_path)
 
@@ -366,7 +369,9 @@ if __name__ == "__main__":
     config.print_cxx_compiler()
     print(f"C++ Compiler Path: {compiler_path or 'Not Found'} {compiler_status}")
     if not compiler_available:
-        print(f"  {cross_mark} Compiler '{config.cxx_compiler}' not found on the system.")
+        print(
+            f"  {cross_mark} Compiler '{config.cxx_compiler}' not found on the system."
+        )
 
     # OpenMP Support
     openmp_status = check_mark if openmp_config.get_use_OpenMP() else cross_mark
@@ -374,7 +379,7 @@ if __name__ == "__main__":
     print("-" * 60)
     openmp_config.print_use_OpenMP()
     if openmp_config.get_use_OpenMP():
-        openmp_lib_path = openmp_config.openmp_lib_path or 'Not Found'
+        openmp_lib_path = openmp_config.openmp_lib_path or "Not Found"
         print(f"OpenMP Library Path: {openmp_lib_path}")
     else:
         print(f"  {cross_mark} OpenMP support is disabled or not available.")
@@ -391,10 +396,12 @@ if __name__ == "__main__":
         # CUDA Include Path
         cuda_include_path = cuda_config.get_cuda_include_path
         cuda_include_status = check_mark if cuda_include_path else cross_mark
-        print(f"CUDA Include Path: {cuda_include_path or 'Not Found'} {cuda_include_status}")
+        print(
+            f"CUDA Include Path: {cuda_include_path or 'Not Found'} {cuda_include_status}"
+        )
 
         # Attempt to find CUDA compiler
-        nvcc_path = shutil.which('nvcc')
+        nvcc_path = shutil.which("nvcc")
         nvcc_status = check_mark if nvcc_path else cross_mark
         print(f"CUDA Compiler (nvcc): {nvcc_path or 'Not Found'} {nvcc_status}")
         if not nvcc_path:
@@ -408,7 +415,7 @@ if __name__ == "__main__":
     print("-" * 60)
     env_type = platform_detector.get_env_type()
     if env_type.startswith("conda"):
-        conda_env_path = Path(os.environ.get('CONDA_PREFIX', ''))
+        conda_env_path = Path(os.environ.get("CONDA_PREFIX", ""))
         conda_env_status = check_mark if conda_env_path.exists() else cross_mark
         print(f"Conda Environment Path: {conda_env_path} {conda_env_status}")
     elif env_type == "virtualenv":
@@ -423,11 +430,11 @@ if __name__ == "__main__":
     print("-" * 60)
     # Check if paths exist
     paths = [
-        ('Base Directory Path', Path(config.base_dir_path)),
-        ('Template Path', Path(config.template_path)),
-        ('Bindings Source Directory', Path(config.bindings_source_dir)),
-        ('KeOps Cache Folder', Path(config.keops_cache_folder)),
-        ('Default Build Path', Path(config.default_build_path)),
+        ("Base Directory Path", Path(config.base_dir_path)),
+        ("Template Path", Path(config.template_path)),
+        ("Bindings Source Directory", Path(config.bindings_source_dir)),
+        ("KeOps Cache Folder", Path(config.keops_cache_folder)),
+        ("Default Build Path", Path(config.default_build_path)),
     ]
     for name, path in paths:
         path_exists = path.exists()
@@ -441,7 +448,9 @@ if __name__ == "__main__":
     jit_binary_path = Path(config.jit_binary)
     jit_binary_exists = jit_binary_path.exists()
     jit_binary_status = check_mark if jit_binary_exists else cross_mark
-    print(f"JIT Binary Exists: {'Yes' if jit_binary_exists else 'No'} {jit_binary_status}")
+    print(
+        f"JIT Binary Exists: {'Yes' if jit_binary_exists else 'No'} {jit_binary_status}"
+    )
 
     # Environment Variables
     print(f"\nEnvironment Variables")
@@ -458,17 +467,18 @@ if __name__ == "__main__":
     if not openmp_config.get_use_OpenMP():
         issues.append(f"OpenMP support is disabled or not available.{cross_mark}")
     if cuda_config.get_use_cuda():
-        nvcc_path = shutil.which('nvcc')
+        nvcc_path = shutil.which("nvcc")
         if not nvcc_path:
             issues.append(f"CUDA compiler 'nvcc' not found.{cross_mark}")
         if not cuda_config.get_cuda_include_path:
             issues.append(f"CUDA include path not found.{cross_mark}")
     if not Path(config.keops_cache_folder).exists():
-        issues.append(f"KeOps cache folder '{config.keops_cache_folder}' does not exist.")
+        issues.append(
+            f"KeOps cache folder '{config.keops_cache_folder}' does not exist."
+        )
     if issues:
         print(f"Some configurations are missing or disabled:{cross_mark}")
         for issue in issues:
             print(f"{issue}")
     else:
         print(f"{check_mark} All configurations are properly set up.")
-

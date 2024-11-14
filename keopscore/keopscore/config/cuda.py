@@ -7,10 +7,12 @@ import tempfile
 import sys
 from keopscore.utils.misc_utils import KeOps_Warning
 
+
 class CUDAConfig:
     """
     Class for CUDA detection and configuration.
     """
+
     # CUDA constants
     CUDA_SUCCESS = 0
     CU_DEVICE_ATTRIBUTE_MAX_THREADS_PER_BLOCK = 1
@@ -20,10 +22,11 @@ class CUDAConfig:
     libcuda_folder = None
     libnvrtc_folder = None
     cuda_include_path = None
+    nvrtc_flags = None
     cuda_version = None
     n_gpus = 0
-    gpu_compile_flags = ''
-    cuda_message = ''
+    gpu_compile_flags = ""
+    cuda_message = ""
     specific_gpus = None
 
     def __init__(self):
@@ -32,6 +35,7 @@ class CUDAConfig:
         self.set_specific_gpus()
         self.set_libcuda_folder()
         self.set_libnvrtc_folder()
+        self.set_nvrtc_flags()
 
     def set_use_cuda(self):
         """Determine and set whether to use CUDA."""
@@ -108,7 +112,7 @@ class CUDAConfig:
         """Find the absolute path of a library."""
         libpath = find_library(libname)
         if libpath is not None:
-            for directory in os.environ.get('LD_LIBRARY_PATH', '').split(':'):
+            for directory in os.environ.get("LD_LIBRARY_PATH", "").split(":"):
                 full_path = os.path.join(directory, libpath)
                 if os.path.exists(full_path):
                     return full_path
@@ -137,7 +141,6 @@ class CUDAConfig:
             self.cuda_version = None
             return None
 
-
     def get_cuda_include_path(self):
         """Attempt to find the CUDA include path."""
         # Check the CUDA_PATH and CUDA_HOME environment variables
@@ -145,14 +148,18 @@ class CUDAConfig:
             path = os.getenv(env_var)
             if path:
                 include_path = Path(path) / "include"
-                if (include_path / "cuda.h").is_file() and (include_path / "nvrtc.h").is_file():
+                if (include_path / "cuda.h").is_file() and (
+                    include_path / "nvrtc.h"
+                ).is_file():
                     self.cuda_include_path = str(include_path)
                     return self.cuda_include_path
         # Check if CUDA is installed via conda
         conda_prefix = os.getenv("CONDA_PREFIX")
         if conda_prefix:
             include_path = Path(conda_prefix) / "include"
-            if (include_path / "cuda.h").is_file() and (include_path / "nvrtc.h").is_file():
+            if (include_path / "cuda.h").is_file() and (
+                include_path / "nvrtc.h"
+            ).is_file():
                 self.cuda_include_path = str(include_path)
                 return self.cuda_include_path
         # Check standard locations
@@ -164,7 +171,9 @@ class CUDAConfig:
         ]
         for base_path in possible_paths:
             include_path = base_path / "include"
-            if (include_path / "cuda.h").is_file() and (include_path / "nvrtc.h").is_file():
+            if (include_path / "cuda.h").is_file() and (
+                include_path / "nvrtc.h"
+            ).is_file():
                 self.cuda_include_path = str(include_path)
                 return self.cuda_include_path
         # Use get_include_file_abspath to locate headers
@@ -179,16 +188,18 @@ class CUDAConfig:
             "CUDA include path not found. Please set the CUDA_PATH or CUDA_HOME environment variable."
         )
         self.cuda_include_path = None
-
+        return self.cuda_include_path
 
     def get_include_file_abspath(self, filename):
         """Find the absolute path of a header file."""
-        tmp_file = tempfile.NamedTemporaryFile(dir=self.default_build_path, delete=False)
+        tmp_file = tempfile.NamedTemporaryFile(
+            dir=self.default_build_path, delete=False
+        )
         tmp_file_name = tmp_file.name
         tmp_file.close()
         command = f'echo "#include <{filename}>" | {self.cxx_compiler} -M -E -x c++ - > {tmp_file_name}'
         os.system(command)
-        with open(tmp_file_name, 'r') as f:
+        with open(tmp_file_name, "r") as f:
             content = f.read()
         os.remove(tmp_file_name)
         strings = content.split()
@@ -197,6 +208,28 @@ class CUDAConfig:
                 return s.strip()
         return None
 
+    def set_nvrtc_flags(self):
+        """Set the NVRTC flags for CUDA compilation."""
+        # Ensure that compile_options is set (inherited from ConfigNew)
+        compile_options = " -shared -fPIC -O3 -std=c++11"
+
+        # Ensure that libcuda_folder and libnvrtc_folder are set
+        libcuda_folder = self.libcuda_folder
+        libnvrtc_folder = self.libnvrtc_folder
+
+        # Set the NVRTC flags
+        self.nvrtc_flags = (
+            compile_options
+            + f" -fpermissive -L{libcuda_folder} -L{libnvrtc_folder} -lcuda -lnvrtc"
+        )
+
+    def get_nvrtc_flags(self):
+        """Get the NVRTC flags for CUDA compilation."""
+        return self.nvrtc_flags
+
+    def print_nvrtc_flags(self):
+        """Print the NVRTC flags for CUDA compilation."""
+        print(f"NVRTC Flags: {self.nvrtc_flags}")
 
     def get_gpu_props(self):
         """Retrieve GPU properties and set related attributes."""
@@ -207,12 +240,12 @@ class CUDAConfig:
             if result != self.CUDA_SUCCESS:
                 KeOps_Warning("cuInit failed; no CUDA driver available.")
                 self.n_gpus = 0
-                return
+                return self.n_gpus, self.gpu_compile_flags
             result = libcuda.cuDeviceGetCount(ctypes.byref(nGpus))
             if result != self.CUDA_SUCCESS:
                 KeOps_Warning("cuDeviceGetCount failed.")
                 self.n_gpus = 0
-                return
+                return self.n_gpus, self.gpu_compile_flags
             self.n_gpus = nGpus.value
             self.gpu_compile_flags = f"-DMAXIDGPU={self.n_gpus - 1} "
             for d in range(self.n_gpus):
@@ -222,28 +255,31 @@ class CUDAConfig:
                 libcuda.cuDeviceGetAttribute(
                     ctypes.byref(max_threads),
                     self.CU_DEVICE_ATTRIBUTE_MAX_THREADS_PER_BLOCK,
-                    device
+                    device,
                 )
                 shared_mem = ctypes.c_int()
                 libcuda.cuDeviceGetAttribute(
                     ctypes.byref(shared_mem),
                     self.CU_DEVICE_ATTRIBUTE_MAX_SHARED_MEMORY_PER_BLOCK,
-                    device
+                    device,
                 )
-                self.gpu_compile_flags += f"-DMAXTHREADSPERBLOCK{d}={max_threads.value} "
+                self.gpu_compile_flags += (
+                    f"-DMAXTHREADSPERBLOCK{d}={max_threads.value} "
+                )
                 self.gpu_compile_flags += f"-DSHAREDMEMPERBLOCK{d}={shared_mem.value} "
+            return self.n_gpus, self.gpu_compile_flags
         except Exception as e:
             KeOps_Warning(f"Error retrieving GPU properties: {e}")
             self.n_gpus = 0
-
+            return self.n_gpus, self.gpu_compile_flags
 
     def print_all(self):
         """
         Print all CUDA-related configuration and system health status.
         """
         # Define status indicators
-        check_mark = '✅'
-        cross_mark = '❌'
+        check_mark = "✅"
+        cross_mark = "❌"
 
         # CUDA Support
         cuda_status = check_mark if self.get_use_cuda() else cross_mark
@@ -257,10 +293,12 @@ class CUDAConfig:
             # CUDA Include Path
             cuda_include_path = self.cuda_include_path
             cuda_include_status = check_mark if cuda_include_path else cross_mark
-            print(f"CUDA Include Path: {cuda_include_path or 'Not Found'} {cuda_include_status}")
+            print(
+                f"CUDA Include Path: {cuda_include_path or 'Not Found'} {cuda_include_status}"
+            )
 
             # Attempt to find CUDA compiler
-            nvcc_path = shutil.which('nvcc')
+            nvcc_path = shutil.which("nvcc")
             nvcc_status = check_mark if nvcc_path else cross_mark
             print(f"CUDA Compiler (nvcc): {nvcc_path or 'Not Found'} {nvcc_status}")
             if not nvcc_path:
@@ -286,4 +324,3 @@ if __name__ == "__main__":
     # Create an instance of CUDAConfig and print all CUDA-related information
     cuda_config = CUDAConfig()
     cuda_config.print_all()
-

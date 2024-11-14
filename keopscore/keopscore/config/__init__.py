@@ -10,4 +10,4 @@ platform_detector = DetectPlatform()
 cuda_config = CUDAConfig()
 openmp_config = OpenMPConfig()
 
-__all__ = ['config', 'platform_detector', 'cuda_config', 'openmp_config']
+__all__ = ["config", "platform_detector", "cuda_config", "openmp_config"]

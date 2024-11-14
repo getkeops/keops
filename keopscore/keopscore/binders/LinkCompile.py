@@ -1,11 +1,11 @@
 import os
-from keopscore.config.base_config import ConfigNew
+from keopscore.config import config
 from keopscore.utils.code_gen_utils import get_hash_name
 from keopscore.utils.misc_utils import KeOps_Error, KeOps_Message
 
-config = ConfigNew() # instanciate ConfigNew
 cpp_flags = config.get_cpp_flags()
 get_build_folder = config.get_build_folder()
+
 
 class LinkCompile:
     """

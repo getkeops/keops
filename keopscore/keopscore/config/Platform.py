@@ -2,10 +2,12 @@ import platform
 import sys
 import os
 
+
 class DetectPlatform:
     """
     Class for detecting the operating system, Python version, and environment type.
     """
+
     def __init__(self):
         super().__init__()
         self.os = None
@@ -47,9 +49,11 @@ class DetectPlatform:
 
     def set_env_type(self):
         """Set the environment type (conda, virtualenv, or system)."""
-        if 'CONDA_DEFAULT_ENV' in os.environ:
+        if "CONDA_DEFAULT_ENV" in os.environ:
             self.env_type = f"conda ({os.environ['CONDA_DEFAULT_ENV']})"
-        elif hasattr(sys, 'real_prefix') or (hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix):
+        elif hasattr(sys, "real_prefix") or (
+            hasattr(sys, "base_prefix") and sys.base_prefix != sys.prefix
+        ):
             self.env_type = "virtualenv"
         else:
             self.env_type = "system"
@@ -85,6 +89,7 @@ class DetectPlatform:
                 print(f"{var} = {value}")
             else:
                 print(f"{var} is not set")
+
 
 if __name__ == "__main__":
     # Create an instance of DetectPlatform and print all platform related information

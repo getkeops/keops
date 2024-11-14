@@ -15,7 +15,9 @@ from keopscore.config.base_config import ConfigNew
 from . import config as pykeopsconfig
 
 from keopscore import show_cuda_status
+
 keops_get_build_folder = ConfigNew.get_default_build_folder_name()
+
 
 def set_verbose(val):
     global verbose
