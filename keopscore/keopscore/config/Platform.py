@@ -91,7 +91,3 @@ class DetectPlatform:
                 print(f"{var} is not set")
 
 
-if __name__ == "__main__":
-    # Create an instance of DetectPlatform and print all platform related information
-    platform_detector = DetectPlatform()
-    platform_detector.print_all()

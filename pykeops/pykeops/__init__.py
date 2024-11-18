@@ -9,14 +9,14 @@ if os.getenv("PYKEOPS_VERBOSE") == "0":
 
 import keopscore
 import keopscore.config
-import keopscore.config.config
-from keopscore.config.base_config import ConfigNew
+from keopscore.config import config, cuda_config
 
 from . import config as pykeopsconfig
-
 from keopscore import show_cuda_status
 
-keops_get_build_folder = ConfigNew.get_default_build_folder_name()
+keops_get_build_folder = pykeopsconfig.get_build_folder
+from .config import pykeops_nvrtc_name
+from .config import numpy_found, torch_found
 
 
 def set_verbose(val):
@@ -39,8 +39,8 @@ with open(
 
 default_device_id = 0  # default Gpu device number
 
-if keopscore.config.config.use_cuda:
-    if not os.path.exists(pykeopsconfig.pykeops_nvrtc_name(type="target")):
+if cuda_config.get_use_cuda():
+    if not os.path.exists(pykeops_nvrtc_name(type="target")):
         from .common.keops_io.LoadKeOps_nvrtc import compile_jit_binary
 
         compile_jit_binary()
@@ -74,10 +74,10 @@ def get_build_folder():
     return keops_get_build_folder()
 
 
-if pykeopsconfig.numpy_found:
+if numpy_found:
     from .numpy.test_install import test_numpy_bindings
 
-if pykeopsconfig.torch_found:
+if torch_found:
     from .torch.test_install import test_torch_bindings
 
 # next line is to ensure that cache file for formulas is loaded at import

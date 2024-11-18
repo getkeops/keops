@@ -1,6 +1,6 @@
-import keopscore.config
+from keopscore.config import config, cuda_config
 
-if keopscore.config.config.use_cuda:
+if cuda_config._use_cuda:
     from . import LoadKeOps_nvrtc, LoadKeOps_cpp
 
     keops_binder = {

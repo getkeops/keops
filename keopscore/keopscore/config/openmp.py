@@ -144,7 +144,3 @@ class OpenMPConfig:
                 print(f"{var} is not set")
 
 
-if __name__ == "__main__":
-    # Create an instance of OpenMPConfig and print all OpenMP-related information
-    openmp_config = OpenMPConfig()
-    openmp_config.print_all()

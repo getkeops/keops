@@ -40,4 +40,6 @@ if cuda_config.get_use_cuda():
 
 # Retrieve the current build folder
 build_folder = config.get_build_folder()
-# from keopscore.config.config import show_gpu_config, show_cuda_status
+from keopscore.config import cuda_config
+show_gpu_config = cuda_config.print_all()
+show_cuda_status = cuda_config.get_use_cuda()

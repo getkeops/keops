@@ -320,7 +320,4 @@ class CUDAConfig:
                 print(f"{var} is not set")
 
 
-if __name__ == "__main__":
-    # Create an instance of CUDAConfig and print all CUDA-related information
-    cuda_config = CUDAConfig()
-    cuda_config.print_all()
+
