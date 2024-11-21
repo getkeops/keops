@@ -1,5 +1,6 @@
 from .cpu import *
-from ..config.config import use_cuda
+from ..config import get_cuda_config
+cuda_config = get_cuda_config()
 
-if use_cuda:
+if cuda_config._use_cuda:
     from .gpu import *

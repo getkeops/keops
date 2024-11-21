@@ -2,7 +2,7 @@ import os
 import sys
 
 import keopscore.config.config
-from keopscore.config.config import get_build_folder
+from keopscore.config import config
 import pykeops
 from keopscore.binders.nvrtc.Gpu_link_compile import Gpu_link_compile
 from keopscore.utils.Cache import Cache_partial
@@ -10,6 +10,7 @@ from pykeops.common.keops_io.LoadKeOps import LoadKeOps
 from pykeops.common.utils import pyKeOps_Message
 from keopscore.utils.misc_utils import KeOps_OS_Run
 
+get_build_folder = config.get_build_folder
 
 class LoadKeOps_nvrtc_class(LoadKeOps):
     def __init__(self, *args, fast_init=False):

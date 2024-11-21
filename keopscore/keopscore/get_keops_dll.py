@@ -52,9 +52,12 @@ It can be used as a Python function or as a standalone Python script (in which c
 import inspect
 import sys
 
-import keopscore
-import keopscore.config.config
-from keopscore.config.config import get_build_folder
+#import keopscore
+#import keopscore.config.config
+from keopscore.config import get_config
+config = get_config().get_build_folder()
+
+get_build_folder = config.get_build_folder
 import keopscore.mapreduce
 from keopscore import cuda_block_size
 from keopscore.config.chunks import (
