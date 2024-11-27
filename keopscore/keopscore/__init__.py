@@ -12,7 +12,7 @@ with open(os.path.join(here, "keops_version"), encoding="utf-8") as v:
     __version__ = v.read().rstrip()
 
 # from keopscore.config.base_config import set_build_folder, get_build_folder  ## pas de setteurs et getters dans les fichiers
-from keopscore.config import config, cuda_config
+from keopscore.config import *
 from keopscore.utils.code_gen_utils import clean_keops
 
 # flags for debugging :
@@ -41,5 +41,5 @@ if cuda_config.get_use_cuda():
 # Retrieve the current build folder
 build_folder = config.get_build_folder()
 from keopscore.config import cuda_config
-show_gpu_config = cuda_config.print_all()
+show_gpu_config = cuda_config
 show_cuda_status = cuda_config.get_use_cuda()

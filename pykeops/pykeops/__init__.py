@@ -1,5 +1,5 @@
 import os
-
+#keopscore.config.config
 ##############################################################
 # Verbosity level (we must do this before importing keopscore)
 verbose = True
@@ -8,8 +8,7 @@ if os.getenv("PYKEOPS_VERBOSE") == "0":
     os.environ["KEOPS_VERBOSE"] = "0"
 
 import keopscore
-import keopscore.config
-from keopscore.config import config, cuda_config
+from keopscore.config import *
 
 from . import config as pykeopsconfig
 from keopscore import show_cuda_status
@@ -53,7 +52,7 @@ def clean_pykeops(recompile_jit_binaries=True):
     keops_binder = pykeops.common.keops_io.keops_binder
     for key in keops_binder:
         keops_binder[key].reset()
-    if recompile_jit_binaries and keopscore.config.config.use_cuda:
+    if recompile_jit_binaries and cuda_config.get_use_cuda():
         pykeops.common.keops_io.LoadKeOps_nvrtc.compile_jit_binary()
 
 
@@ -64,7 +63,7 @@ def set_build_folder(path=None):
     keops_binder = pykeops.common.keops_io.keops_binder
     for key in keops_binder:
         keops_binder[key].reset(new_save_folder=get_build_folder())
-    if keopscore.config.config.use_cuda and not os.path.exists(
+    if cuda_config.get_use_cuda() and not os.path.exists(
         pykeops.config.pykeops_nvrtc_name(type="target")
     ):
         pykeops.common.keops_io.LoadKeOps_nvrtc.compile_jit_binary()

@@ -1,7 +1,8 @@
 import os
 from hashlib import sha256
 
-from keopscore.config import config
+import keopscore
+from keopscore.config import *
 from keopscore.utils.misc_utils import KeOps_Error, KeOps_Message
 
 disable_pragma_unrolls = config.get_disable_pragma_unrolls()
@@ -828,13 +829,13 @@ def varseq_to_array(vars, vars_ptr_name):
 
 
 def clean_keops(recompile_jit_binary=True, verbose=True):
-    import keopscore.config.config
-    from keopscore.config.config import get_build_folder
+    #import keopscore.config.config
+    #from keopscore.config.config import get_build_folder
 
-    build_path = get_build_folder()
-    use_cuda = keopscore.config.config.use_cuda
+    build_path = config.get_build_folder()
+    use_cuda = keopscore.cuda_config.get_use_cuda()
     if use_cuda:
-        from keopscore.config.config import jit_binary
+        jit_binary = config.get_jit_binary()
     else:
         jit_binary = None
     for f in os.scandir(build_path):

@@ -11,7 +11,8 @@ from keopscore.utils.misc_utils import (
 )
 
 # from keopscore.config.config import cxx_compiler, get_build_folder
-from keopscore.config import config
+import keopscore
+from keopscore.config import *
 
 cxx_compiler = config.get_cxx_compiler()
 get_build_folder = config.get_build_folder()
@@ -121,7 +122,8 @@ def orig_cuda_include_fp16_path():
     We look for float 16 cuda headers cuda_fp16.h and cuda_fp16.hpp
     based on cuda_path locations and return their directory
     """
-    from keopscore.config.config import cuda_include_path
+    #from keopscore.config.config import cuda_include_path
+    cuda_include_path = cuda_config.get_cuda_include_path()
 
     if cuda_include_path:
         return cuda_include_path

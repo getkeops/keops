@@ -4,7 +4,7 @@ from keopscore.utils.code_gen_utils import get_hash_name
 from keopscore.utils.misc_utils import KeOps_Error, KeOps_Message
 
 cpp_flags = config.get_cpp_flags()
-get_build_folder = config.get_build_folder()
+get_build_folder = config.get_build_folder
 
 
 class LinkCompile:

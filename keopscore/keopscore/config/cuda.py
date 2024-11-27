@@ -1,6 +1,7 @@
 import os
 import ctypes
 from ctypes.util import find_library
+from ctypes import c_int, c_void_p, c_char_p, CDLL, byref, cast, POINTER, Structure
 from pathlib import Path
 import shutil
 import tempfile
@@ -108,17 +109,41 @@ class CUDAConfig:
         else:
             return False
 
-    def find_library_abspath(self, libname):
-        """Find the absolute path of a library."""
-        libpath = find_library(libname)
-        if libpath is not None:
-            for directory in os.environ.get("LD_LIBRARY_PATH", "").split(":"):
-                full_path = os.path.join(directory, libpath)
-                if os.path.exists(full_path):
-                    return full_path
-            return libpath
-        else:
-            return None
+    
+
+    def find_library_abspath(self, lib):
+        # linkmap structure, we only need the second entry
+        class LINKMAP(Structure):
+            _fields_ = [("l_addr", c_void_p), ("l_name", c_char_p)]
+
+        res = find_library(lib)
+        if res is None:
+            return ""
+
+        try:
+            lib_handle = CDLL(res)
+            libdl = CDLL(find_library("dl"))
+        except OSError as e:
+            KeOps_Warning(f"Failed to load library {lib}: {e}")
+            return ""
+
+        dlinfo = libdl.dlinfo
+        dlinfo.argtypes = c_void_p, c_int, c_void_p
+        dlinfo.restype = c_int
+
+        # Initialize lmptr as c_void_p
+        lmptr = c_void_p()
+
+        # 2 equals RTLD_DI_LINKMAP, pass pointer by reference
+        result = dlinfo(lib_handle._handle, 2, byref(lmptr))
+        if result != 0:
+            KeOps_Warning(f"dlinfo failed for library {lib}")
+            return ""
+
+        # typecast to a LINKMAP pointer and retrieve the name
+        abspath = cast(lmptr, POINTER(LINKMAP)).contents.l_name
+
+        return abspath.decode("utf-8")
 
     def get_cuda_version(self, out_type="single_value"):
         """Retrieve the installed CUDA runtime version."""
@@ -280,7 +305,8 @@ class CUDAConfig:
         # Define status indicators
         check_mark = "✅"
         cross_mark = "❌"
-
+        print("cudas", self.libcuda_folder)
+        print("nvrtc:", self.libnvrtc_folder)
         # CUDA Support
         cuda_status = check_mark if self.get_use_cuda() else cross_mark
         print(f"\nCUDA Support")
@@ -320,4 +346,8 @@ class CUDAConfig:
                 print(f"{var} is not set")
 
 
+
+if __name__== "__main__":
+    cudastuff = CUDAConfig()
+    cudastuff.print_all()
 
