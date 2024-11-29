@@ -68,6 +68,35 @@ def set_build_folder(path=None):
     ):
         pykeops.common.keops_io.LoadKeOps_nvrtc.compile_jit_binary()
 
+def checkhealth(config_type='all'):
+    """
+    Check the health of the specified configuration.
+
+    Parameters:
+        config_type (str): The configuration to check. Options are:
+                           'cuda', 'openmp', 'platform', 'base', 'all'.
+                           Default is 'all'.
+    """
+    import keopscore
+    from keopscore.config import config
+
+    if config_type == 'cuda':
+        cuda_config.print_all()
+    elif config_type == 'openmp':
+        openmp_config.print_all()
+    elif config_type == 'platform':
+        platform_detector.print_all()
+    elif config_type == ('base'):
+        config.print_all()
+    elif config_type == 'all':
+        config.print_all()
+        platform_detector.print_all()
+        cuda_config.print_all()
+        openmp_config.print_all()
+    else:
+        print(f"Unknown configuration type: '{config_type}'")
+        print("Please specify one of: 'cuda', 'openmp', 'platform', 'base', 'all'")
+
 
 def get_build_folder():
     return keops_get_build_folder()

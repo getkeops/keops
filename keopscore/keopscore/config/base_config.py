@@ -321,164 +321,93 @@ class ConfigNew:
                 print(f"{var} is not set")
 
 
-if __name__ == "__main__":
-    # Create an instance of the configuration class
-    config = ConfigNew()
-    from Platform import DetectPlatform
-    from cuda import CUDAConfig
-    from openmp import OpenMPConfig
+    def print_all(self):
+        """
+        Print all base configuration
+        """
+        # Define status indicators
+        check_mark = "✅"
+        cross_mark = "❌"
 
-    # Define status indicators
-    check_mark = "✅"
-    cross_mark = "❌"
+        # Base Configuration
+        print(f"\nBase Configuration")
+        print("-" * 60)
 
-    # Create instances of the configuration classes
-    platform_detector = DetectPlatform()
-    cuda_config = CUDAConfig()
-    openmp_config = OpenMPConfig()
-    config = ConfigNew()  # Base configuration
+        # Base Directory Path
+        base_dir_path = self.get_base_dir_path()
+        base_dir_status = check_mark if base_dir_path and os.path.exists(base_dir_path) else cross_mark
+        print(f"Base Directory Path: {base_dir_path or 'Not Found'} {base_dir_status}")
 
-    # Header
-    print("\nKeOps Configuration and System Health Check")
-    print("=" * 60)
+        # Template Path
+        template_path = self.get_template_path()
+        template_path_status = check_mark if template_path and os.path.exists(template_path) else cross_mark
+        print(f"Template Path: {template_path or 'Not Found'} {template_path_status}")
 
-    # General Information
-    print(f"\nGeneral Information")
-    print("-" * 60)
-    platform_detector.print_os()
-    platform_detector.print_python_version()
-    platform_detector.print_env_type()
+        # Bindings Source Directory
+        bindings_source_dir = self.get_bindings_source_dir()
+        bindings_source_dir_status = check_mark if bindings_source_dir and os.path.exists(bindings_source_dir) else cross_mark
+        print(f"Bindings Source Directory: {bindings_source_dir or 'Not Found'} {bindings_source_dir_status}")
 
-    # Python Executable Path
-    python_path = Path(sys.executable)
-    python_path_exists = python_path.exists()
-    python_status = check_mark if python_path_exists else cross_mark
-    print(f"Python Executable: {python_path} {python_status}")
+        # KeOps Cache Folder
+        keops_cache_folder = self.get_keops_cache_folder()
+        keops_cache_folder_status = check_mark if keops_cache_folder and os.path.exists(keops_cache_folder) else cross_mark
+        print(f"KeOps Cache Folder: {keops_cache_folder or 'Not Found'} {keops_cache_folder_status}")
 
-    # Environment Path
-    env_path = os.environ.get("PATH", "")
-    print(f"System PATH Environment Variable:")
-    print(env_path)
+        # Default Build Folder Name
+        default_build_folder_name = self.get_default_build_folder_name()
+        print(f"Default Build Folder Name: {default_build_folder_name}")
 
-    # Compiler Configuration
-    print(f"\nCompiler Configuration")
-    print("-" * 60)
-    compiler_path = shutil.which(config.cxx_compiler) if config.cxx_compiler else None
-    compiler_available = compiler_path is not None
-    compiler_status = check_mark if compiler_available else cross_mark
-    config.print_cxx_compiler()
-    print(f"C++ Compiler Path: {compiler_path or 'Not Found'} {compiler_status}")
-    if not compiler_available:
-        print(
-            f"  {cross_mark} Compiler '{config.cxx_compiler}' not found on the system."
-        )
+        # Default Build Path
+        default_build_path = self.get_default_build_path()
+        default_build_path_status = check_mark if default_build_path and os.path.exists(default_build_path) else cross_mark
+        print(f"Default Build Path: {default_build_path or 'Not Found'} {default_build_path_status}")
 
-    # OpenMP Support
-    openmp_status = check_mark if openmp_config.get_use_OpenMP() else cross_mark
-    print(f"\nOpenMP Support")
-    print("-" * 60)
-    openmp_config.print_use_OpenMP()
-    if openmp_config.get_use_OpenMP():
-        openmp_lib_path = openmp_config.openmp_lib_path or "Not Found"
-        print(f"OpenMP Library Path: {openmp_lib_path}")
-    else:
-        print(f"  {cross_mark} OpenMP support is disabled or not available.")
+        # JIT Binary Path
+        jit_binary = self.get_jit_binary()
+        jit_binary_status = check_mark if jit_binary and os.path.exists(jit_binary) else cross_mark
+        print(f"JIT Binary Path: {jit_binary or 'Not Found'} {jit_binary_status}")
 
-    # CUDA Support
-    cuda_status = check_mark if cuda_config.get_use_cuda() else cross_mark
-    print(f"\nCUDA Support")
-    print("-" * 60)
-    cuda_config.print_use_cuda()
-    if cuda_config.get_use_cuda():
-        print(f"CUDA Version: {cuda_config.cuda_version}")
-        print(f"Number of GPUs: {cuda_config.n_gpus}")
-        print(f"GPU Compile Flags: {cuda_config.gpu_compile_flags}")
-        # CUDA Include Path
-        cuda_include_path = cuda_config.get_cuda_include_path
-        cuda_include_status = check_mark if cuda_include_path else cross_mark
-        print(
-            f"CUDA Include Path: {cuda_include_path or 'Not Found'} {cuda_include_status}"
-        )
+        # C++ Compiler
+        cxx_compiler = self.get_cxx_compiler()
+        cxx_compiler_path = shutil.which(cxx_compiler) if cxx_compiler else None
+        cxx_compiler_status = check_mark if cxx_compiler_path else cross_mark
+        print(f"C++ Compiler: {cxx_compiler or 'Not Found'} {cxx_compiler_status}")
+        if not cxx_compiler_path:
+            print(f"C++ compiler '{cxx_compiler}' not found in PATH. {cross_mark}")
 
-        # Attempt to find CUDA compiler
-        nvcc_path = shutil.which("nvcc")
-        nvcc_status = check_mark if nvcc_path else cross_mark
-        print(f"CUDA Compiler (nvcc): {nvcc_path or 'Not Found'} {nvcc_status}")
-        if not nvcc_path:
-            print(f"  {cross_mark} CUDA compiler 'nvcc' not found in PATH.")
-    else:
-        # CUDA is disabled; display the CUDA message
-        print(f"  {cross_mark} {cuda_config.cuda_message}")
+        # C++ Environment Flags (CXXFLAGS)
+        cpp_env_flags = self.get_cpp_env_flags()
+        cpp_env_flags_status = check_mark if cpp_env_flags else cross_mark
+        print(f"C++ Environment Flags (CXXFLAGS): {cpp_env_flags or 'Not Set'} {cpp_env_flags_status}")
 
-    # Conda or Virtual Environment Paths
-    print(f"\nEnvironment Paths")
-    print("-" * 60)
-    env_type = platform_detector.get_env_type()
-    if env_type.startswith("conda"):
-        conda_env_path = Path(os.environ.get("CONDA_PREFIX", ""))
-        conda_env_status = check_mark if conda_env_path.exists() else cross_mark
-        print(f"Conda Environment Path: {conda_env_path} {conda_env_status}")
-    elif env_type == "virtualenv":
-        venv_path = Path(sys.prefix)
-        venv_status = check_mark if venv_path.exists() else cross_mark
-        print(f"Virtualenv Path: {venv_path} {venv_status}")
-    else:
-        print("Not using Conda or Virtualenv.")
+        # Compile Options
+        compile_options = self.get_compile_options()
+        print(f"Compile Options: {compile_options}")
 
-    # Paths and Directories
-    print(f"\nPaths and Directories")
-    print("-" * 60)
-    # Check if paths exist
-    paths = [
-        ("Base Directory Path", Path(config.base_dir_path)),
-        ("Template Path", Path(config.template_path)),
-        ("Bindings Source Directory", Path(config.bindings_source_dir)),
-        ("KeOps Cache Folder", Path(config.keops_cache_folder)),
-        ("Default Build Path", Path(config.default_build_path)),
-    ]
-    for name, path in paths:
-        path_exists = path.exists()
-        status = check_mark if path_exists else cross_mark
-        print(f"{name}: {path} {status}")
-        if not path_exists:
-            print(f"Path '{path}' does not exist.")
+        # C++ Compiler Flags
+        cpp_flags = self.get_cpp_flags()
+        print(f"C++ Compiler Flags: {cpp_flags}")
 
-    # JIT Binary
-    config.print_jit_binary()
-    jit_binary_path = Path(config.jit_binary)
-    jit_binary_exists = jit_binary_path.exists()
-    jit_binary_status = check_mark if jit_binary_exists else cross_mark
-    print(
-        f"JIT Binary Exists: {'Yes' if jit_binary_exists else 'No'} {jit_binary_status}"
-    )
+        # Disable Pragma Unrolls
+        disable_pragma_unrolls = self.get_disable_pragma_unrolls()
+        disable_status = check_mark if disable_pragma_unrolls else cross_mark
+        status_text = "Enabled" if disable_pragma_unrolls else "Disabled"
+        print(f"Disable Pragma Unrolls: {status_text} {disable_status}")
 
-    # Environment Variables
-    print(f"\nEnvironment Variables")
-    print("-" * 60)
-    config.print_environment_variables()
+        # Operating System
+        os_info = self.get_os()
+        print(f"Operating System: {os_info}")
 
-    # Conclusion
-    print("\nConfiguration Status Summary")
-    print("=" * 60)
-    # Determine overall status
-    issues = []
-    if not compiler_available:
-        issues.append(f"C++ compiler '{config.cxx_compiler}' not found.{cross_mark}")
-    if not openmp_config.get_use_OpenMP():
-        issues.append(f"OpenMP support is disabled or not available.{cross_mark}")
-    if cuda_config.get_use_cuda():
-        nvcc_path = shutil.which("nvcc")
-        if not nvcc_path:
-            issues.append(f"CUDA compiler 'nvcc' not found.{cross_mark}")
-        if not cuda_config.get_cuda_include_path:
-            issues.append(f"CUDA include path not found.{cross_mark}")
-    if not Path(config.keops_cache_folder).exists():
-        issues.append(
-            f"KeOps cache folder '{config.keops_cache_folder}' does not exist."
-        )
-    if issues:
-        print(f"Some configurations are missing or disabled:{cross_mark}")
-        for issue in issues:
-            print(f"{issue}")
-    else:
-        print(f"{check_mark} All configurations are properly set up.")
+        # Print relevant environment variables.
+        print("\nRelevant Environment Variables:")
+        env_vars = [
+            "KEOPS_CACHE_FOLDER",
+            "CXX",
+            "CXXFLAGS",
+        ]
+        for var in env_vars:
+            value = os.environ.get(var, None)
+            if value:
+                print(f"{var} = {value}")
+            else:
+                print(f"{var} is not set")
