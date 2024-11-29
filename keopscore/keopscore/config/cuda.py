@@ -305,8 +305,8 @@ class CUDAConfig:
         # Define status indicators
         check_mark = "✅"
         cross_mark = "❌"
-        print("cudas", self.libcuda_folder)
-        print("nvrtc:", self.libnvrtc_folder)
+        #print("cuda", self.libcuda_folder)
+        #print("nvrtc:", self.libnvrtc_folder)
         
         # CUDA Support
         cuda_status = check_mark if self.get_use_cuda() else cross_mark
