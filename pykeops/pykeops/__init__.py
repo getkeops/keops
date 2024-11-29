@@ -68,7 +68,7 @@ def set_build_folder(path=None):
     ):
         pykeops.common.keops_io.LoadKeOps_nvrtc.compile_jit_binary()
 
-def checkhealth(config_type='all'):
+def check_health(config_type='all'):
     """
     Check the health of the specified configuration.
 
