@@ -11,7 +11,6 @@ from pykeops.common.utils import pyKeOps_Message
 from keopscore.utils.misc_utils import KeOps_OS_Run
 
 get_build_folder = config.get_build_folder
-print(get_build_folder())
 
 class LoadKeOps_nvrtc_class(LoadKeOps):
     def __init__(self, *args, fast_init=False):
