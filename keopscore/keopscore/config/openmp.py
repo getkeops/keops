@@ -6,6 +6,7 @@ import platform
 from ctypes.util import find_library
 
 from keopscore.utils.misc_utils import KeOps_Warning
+from keopscore.utils.misc_utils import KeOps_OS_Run
 
 
 class OpenMPConfig:

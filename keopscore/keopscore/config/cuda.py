@@ -5,9 +5,9 @@ from ctypes import c_int, c_void_p, c_char_p, CDLL, byref, cast, POINTER, Struct
 from pathlib import Path
 import shutil
 import tempfile
+import subprocess
 import sys
 from keopscore.utils.misc_utils import KeOps_Warning
-
 
 class CUDAConfig:
     """
@@ -216,22 +216,49 @@ class CUDAConfig:
         return self.cuda_include_path
 
     def get_include_file_abspath(self, filename):
-        """Find the absolute path of a header file."""
-        tmp_file = tempfile.NamedTemporaryFile(
-            dir=self.default_build_path, delete=False
-        )
+        # Get the build folder from the class
+        build_folder = self.get_build_folder()
+
+        # Create a temporary file in the build folder
+        tmp_file = tempfile.NamedTemporaryFile(dir=build_folder, delete=False)
         tmp_file_name = tmp_file.name
         tmp_file.close()
-        command = f'echo "#include <{filename}>" | {self.cxx_compiler} -M -E -x c++ - > {tmp_file_name}'
-        os.system(command)
-        with open(tmp_file_name, "r") as f:
-            content = f.read()
-        os.remove(tmp_file_name)
-        strings = content.split()
-        for s in strings:
-            if filename in s:
-                return s.strip()
-        return None
+
+        # Build the command to find the header file
+        command = (
+            f'echo "#include <{filename}>" | '
+            f'{self.cxx_compiler} -M -E -x c++ - | '
+            f'head -n 2 > {tmp_file_name}'
+        )
+
+        # Function to run shell commands
+        def run_command(cmd):
+            try:
+                subprocess.check_call(cmd, shell=True)
+            except subprocess.CalledProcessError as e:
+                print(f"Command failed with error {e.returncode}: {e.cmd}")
+                raise
+
+        # Run the command and parse the output
+        try:
+            run_command(command)
+            with open(tmp_file_name, 'r') as f:
+                content = f.read()
+            strings = content.split()
+            abspath = None
+            for s in strings:
+                if filename in s:
+                    abspath = s.strip()
+                    break
+        except Exception as e:
+            print(f"An error occurred while searching for {filename}: {e}")
+            abspath = None
+        finally:
+            # Clean up the temporary file
+            if os.path.exists(tmp_file_name):
+                os.remove(tmp_file_name)
+
+        return abspath
 
     def set_nvrtc_flags(self):
         """Set the NVRTC flags for CUDA compilation."""
