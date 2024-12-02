@@ -4,10 +4,14 @@ from ctypes.util import find_library
 from ctypes import c_int, c_void_p, c_char_p, CDLL, byref, cast, POINTER, Structure
 from pathlib import Path
 import shutil
+from os.path import join
+import platform
 import tempfile
 import subprocess
 import sys
+import keopscore
 from keopscore.utils.misc_utils import KeOps_Warning
+from keopscore.utils.misc_utils import KeOps_OS_Run
 
 class CUDAConfig:
     """
@@ -34,6 +38,10 @@ class CUDAConfig:
         super().__init__()
         self.set_use_cuda()
         self.set_specific_gpus()
+        self.set_cxx_compiler()
+        self.set_keops_cache_folder()
+        self.set_default_build_folder_name()
+        self.set_build_folder()
         self.set_libcuda_folder()
         self.set_libnvrtc_folder()
         self.set_nvrtc_flags()
@@ -77,6 +85,43 @@ class CUDAConfig:
             print(f"Specific GPUs (CUDA_VISIBLE_DEVICES): {self.specific_gpus}")
         else:
             print("Specific GPUs (CUDA_VISIBLE_DEVICES): Not Set")
+
+    def set_cxx_compiler(self):
+        """Set the C++ compiler."""
+        env_cxx = os.getenv("CXX")
+        if env_cxx and shutil.which(env_cxx):
+            self.cxx_compiler = env_cxx
+        elif shutil.which("g++"):
+            self.cxx_compiler = "g++"
+        else:
+            self.cxx_compiler = None
+            KeOps_Warning(
+                "No C++ compiler found. You need to either define the CXX environment variable pointing to a valid compiler, or ensure that 'g++' is installed and in your PATH."
+            )
+    def set_keops_cache_folder(self):
+        """Set the KeOps cache folder."""
+        self.keops_cache_folder = os.getenv("KEOPS_CACHE_FOLDER")
+        if self.keops_cache_folder is None:
+            self.keops_cache_folder = join(
+                os.path.expanduser("~"), ".cache", f"keops{keopscore.__version__}"
+            )
+        # Ensure the cache folder exists
+        os.makedirs(self.keops_cache_folder, exist_ok=True)
+
+    def set_default_build_folder_name(self):
+        """Set the default build folder name."""
+        uname = platform.uname()
+        self.default_build_folder_name = (
+            "_".join(uname[:3]) + f"_p{sys.version.split(' ')[0]}"
+        )
+
+    def set_build_folder(self):
+        self.build_folder = join(
+            self.keops_cache_folder, self.default_build_folder_name
+        )
+
+    def get_build_folder(self):
+        return self.build_folder
 
     def set_libcuda_folder(self):
         """Check if CUDA libraries are available, and then set libcuda_folder"""
@@ -216,48 +261,16 @@ class CUDAConfig:
         return self.cuda_include_path
 
     def get_include_file_abspath(self, filename):
-        # Get the build folder from the class
-        build_folder = self.get_build_folder()
-
-        # Create a temporary file in the build folder
-        tmp_file = tempfile.NamedTemporaryFile(dir=build_folder, delete=False)
-        tmp_file_name = tmp_file.name
-        tmp_file.close()
-
-        # Build the command to find the header file
-        command = (
-            f'echo "#include <{filename}>" | '
-            f'{self.cxx_compiler} -M -E -x c++ - | '
-            f'head -n 2 > {tmp_file_name}'
+        tmp_file = tempfile.NamedTemporaryFile(dir=self.get_build_folder()).name
+        KeOps_OS_Run(
+            f'echo "#include <{filename}>" | {self.cxx_compiler} -M -E -x c++ - | head -n 2 > {tmp_file}'
         )
-
-        # Function to run shell commands
-        def run_command(cmd):
-            try:
-                subprocess.check_call(cmd, shell=True)
-            except subprocess.CalledProcessError as e:
-                print(f"Command failed with error {e.returncode}: {e.cmd}")
-                raise
-
-        # Run the command and parse the output
-        try:
-            run_command(command)
-            with open(tmp_file_name, 'r') as f:
-                content = f.read()
-            strings = content.split()
-            abspath = None
-            for s in strings:
-                if filename in s:
-                    abspath = s.strip()
-                    break
-        except Exception as e:
-            print(f"An error occurred while searching for {filename}: {e}")
-            abspath = None
-        finally:
-            # Clean up the temporary file
-            if os.path.exists(tmp_file_name):
-                os.remove(tmp_file_name)
-
+        strings = open(tmp_file).read().split()
+        abspath = None
+        for s in strings:
+            if filename in s:
+                abspath = s
+        os.remove(tmp_file)
         return abspath
 
     def set_nvrtc_flags(self):
