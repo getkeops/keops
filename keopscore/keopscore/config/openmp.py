@@ -124,8 +124,7 @@ class OpenMPConfig:
             compiler_path = (
                 shutil.which(self.cxx_compiler) if self.cxx_compiler else None
             )
-            compiler_status = check_mark if compiler_path else cross_mark
-            print(f"C++ Compiler: {self.cxx_compiler} {compiler_status}")
+            print(f"C++ Compiler: {self.cxx_compiler}")
             if not compiler_path:
                 print(
                     f"Compiler '{self.cxx_compiler}' not found on the system.{cross_mark}"
@@ -143,5 +142,3 @@ class OpenMPConfig:
                 print(f"{var} = {value}")
             else:
                 print(f"{var} is not set")
-
-

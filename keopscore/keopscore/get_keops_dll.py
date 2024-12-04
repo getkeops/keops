@@ -54,8 +54,9 @@ import sys
 
 import keopscore
 from keopscore.config import *
-#config = get_config()
-#print(type(config))
+
+# config = get_config()
+# print(type(config))
 get_build_folder = config.get_build_folder
 import keopscore.mapreduce
 from keopscore import cuda_block_size

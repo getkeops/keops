@@ -16,7 +16,6 @@ class ConfigNew:
 
     # Common attributes
     base_dir_path = None
-    template_path = None
     bindings_source_dir = None
     keops_cache_folder = None
     default_build_folder_name = None
@@ -34,7 +33,6 @@ class ConfigNew:
 
         # Initialize common configuration settings
         self.set_base_dir_path()
-        self.set_template_path()
         self.set_bindings_source_dir()
         self.set_keops_cache_folder()
         self.set_default_build_folder_name()
@@ -62,18 +60,6 @@ class ConfigNew:
     def print_base_dir_path(self):
         """Print the base directory path."""
         print(f"Base Directory Path: {self.base_dir_path}")
-
-    def set_template_path(self):
-        """Set the template path."""
-        self.template_path = join(self.base_dir_path, "templates")
-
-    def get_template_path(self):
-        """Get the template path."""
-        return self.template_path
-
-    def print_template_path(self):
-        """Print the template path."""
-        print(f"Template Path: {self.template_path}")
 
     def set_bindings_source_dir(self):
         """Set the bindings source directory."""
@@ -320,7 +306,6 @@ class ConfigNew:
             else:
                 print(f"{var} is not set")
 
-
     def print_all(self):
         """
         Print all base configuration
@@ -335,23 +320,34 @@ class ConfigNew:
 
         # Base Directory Path
         base_dir_path = self.get_base_dir_path()
-        base_dir_status = check_mark if base_dir_path and os.path.exists(base_dir_path) else cross_mark
+        base_dir_status = (
+            check_mark
+            if base_dir_path and os.path.exists(base_dir_path)
+            else cross_mark
+        )
         print(f"Base Directory Path: {base_dir_path or 'Not Found'} {base_dir_status}")
-
-        # Template Path
-        template_path = self.get_template_path()
-        template_path_status = check_mark if template_path and os.path.exists(template_path) else cross_mark
-        print(f"Template Path: {template_path or 'Not Found'} {template_path_status}")
 
         # Bindings Source Directory
         bindings_source_dir = self.get_bindings_source_dir()
-        bindings_source_dir_status = check_mark if bindings_source_dir and os.path.exists(bindings_source_dir) else cross_mark
-        print(f"Bindings Source Directory: {bindings_source_dir or 'Not Found'} {bindings_source_dir_status}")
+        bindings_source_dir_status = (
+            check_mark
+            if bindings_source_dir and os.path.exists(bindings_source_dir)
+            else cross_mark
+        )
+        print(
+            f"Bindings Source Directory: {bindings_source_dir or 'Not Found'} {bindings_source_dir_status}"
+        )
 
         # KeOps Cache Folder
         keops_cache_folder = self.get_keops_cache_folder()
-        keops_cache_folder_status = check_mark if keops_cache_folder and os.path.exists(keops_cache_folder) else cross_mark
-        print(f"KeOps Cache Folder: {keops_cache_folder or 'Not Found'} {keops_cache_folder_status}")
+        keops_cache_folder_status = (
+            check_mark
+            if keops_cache_folder and os.path.exists(keops_cache_folder)
+            else cross_mark
+        )
+        print(
+            f"KeOps Cache Folder: {keops_cache_folder or 'Not Found'} {keops_cache_folder_status}"
+        )
 
         # Default Build Folder Name
         default_build_folder_name = self.get_default_build_folder_name()
@@ -359,12 +355,20 @@ class ConfigNew:
 
         # Default Build Path
         default_build_path = self.get_default_build_path()
-        default_build_path_status = check_mark if default_build_path and os.path.exists(default_build_path) else cross_mark
-        print(f"Default Build Path: {default_build_path or 'Not Found'} {default_build_path_status}")
+        default_build_path_status = (
+            check_mark
+            if default_build_path and os.path.exists(default_build_path)
+            else cross_mark
+        )
+        print(
+            f"Default Build Path: {default_build_path or 'Not Found'} {default_build_path_status}"
+        )
 
         # JIT Binary Path
         jit_binary = self.get_jit_binary()
-        jit_binary_status = check_mark if jit_binary and os.path.exists(jit_binary) else cross_mark
+        jit_binary_status = (
+            check_mark if jit_binary and os.path.exists(jit_binary) else cross_mark
+        )
         print(f"JIT Binary Path: {jit_binary or 'Not Found'} {jit_binary_status}")
 
         # C++ Compiler
@@ -378,7 +382,9 @@ class ConfigNew:
         # C++ Environment Flags (CXXFLAGS)
         cpp_env_flags = self.get_cpp_env_flags()
         cpp_env_flags_status = check_mark if cpp_env_flags else cross_mark
-        print(f"C++ Environment Flags (CXXFLAGS): {cpp_env_flags or 'Not Set'} {cpp_env_flags_status}")
+        print(
+            f"C++ Environment Flags (CXXFLAGS): {cpp_env_flags or 'Not Set'} {cpp_env_flags_status}"
+        )
 
         # Compile Options
         compile_options = self.get_compile_options()

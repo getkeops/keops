@@ -13,6 +13,7 @@ import keopscore
 from keopscore.utils.misc_utils import KeOps_Warning
 from keopscore.utils.misc_utils import KeOps_OS_Run
 
+
 class CUDAConfig:
     """
     Class for CUDA detection and configuration.
@@ -98,6 +99,7 @@ class CUDAConfig:
             KeOps_Warning(
                 "No C++ compiler found. You need to either define the CXX environment variable pointing to a valid compiler, or ensure that 'g++' is installed and in your PATH."
             )
+
     def set_keops_cache_folder(self):
         """Set the KeOps cache folder."""
         self.keops_cache_folder = os.getenv("KEOPS_CACHE_FOLDER")
@@ -153,8 +155,6 @@ class CUDAConfig:
             return True
         else:
             return False
-
-    
 
     def find_library_abspath(self, lib):
         # linkmap structure, we only need the second entry
@@ -345,31 +345,27 @@ class CUDAConfig:
         # Define status indicators
         check_mark = "✅"
         cross_mark = "❌"
-        
+
         # CUDA Support
         cuda_status = check_mark if self.get_use_cuda() else cross_mark
         print(f"\nCUDA Support")
         print("-" * 60)
         self.print_use_cuda()
         if self.get_use_cuda():
-            print("libcuda", self.libcuda_folder)
-            print("libnvrtc:", self.libnvrtc_folder)
+            print(f"Libcuda Path: {self.libcuda_folder}")
+            print(f"Libnvrtc Path: {self.libnvrtc_folder}")
             print(f"CUDA Version: {self.cuda_version}")
             print(f"Number of GPUs: {self.n_gpus}")
             print(f"GPU Compile Flags: {self.gpu_compile_flags}")
             # CUDA Include Path
             cuda_include_path = self.cuda_include_path
-            cuda_include_status = check_mark if cuda_include_path else cross_mark
-            print(
-                f"CUDA Include Path: {cuda_include_path or 'Not Found'} {cuda_include_status}"
-            )
+            print(f"CUDA Include Path: {cuda_include_path or 'Not Found'}")
 
             # Attempt to find CUDA compiler
             nvcc_path = shutil.which("nvcc")
-            nvcc_status = check_mark if nvcc_path else cross_mark
-            print(f"CUDA Compiler (nvcc): {nvcc_path or 'Not Found'} {nvcc_status}")
+            print(f"CUDA Compiler (nvcc): {nvcc_path or 'Not Found'}")
             if not nvcc_path:
-                print(f"CUDA compiler 'nvcc' not found in PATH.{cross_mark}")
+                print(f"CUDA compiler 'nvcc' not found in PATH")
         else:
             # CUDA is disabled; display the CUDA message
             print(f"{self.cuda_message}{cross_mark}")
@@ -386,11 +382,7 @@ class CUDAConfig:
             else:
                 print(f"{var} is not set")
 
-    
 
-
-
-if __name__== "__main__":
+if __name__ == "__main__":
     cudastuff = CUDAConfig()
     cudastuff.print_all()
-

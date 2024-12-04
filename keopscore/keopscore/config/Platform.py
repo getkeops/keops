@@ -89,5 +89,3 @@ class DetectPlatform:
                 print(f"{var} = {value}")
             else:
                 print(f"{var} is not set")
-
-

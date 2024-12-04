@@ -829,8 +829,8 @@ def varseq_to_array(vars, vars_ptr_name):
 
 
 def clean_keops(recompile_jit_binary=True, verbose=True):
-    #import keopscore.config.config
-    #from keopscore.config.config import get_build_folder
+    # import keopscore.config.config
+    # from keopscore.config.config import get_build_folder
 
     build_path = config.get_build_folder()
     use_cuda = keopscore.cuda_config.get_use_cuda()

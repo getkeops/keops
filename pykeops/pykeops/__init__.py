@@ -1,5 +1,6 @@
 import os
-#keopscore.config.config
+
+# keopscore.config.config
 ##############################################################
 # Verbosity level (we must do this before importing keopscore)
 verbose = True
@@ -68,7 +69,8 @@ def set_build_folder(path=None):
     ):
         pykeops.common.keops_io.LoadKeOps_nvrtc.compile_jit_binary()
 
-def check_health(config_type='all'):
+
+def check_health(config_type="all"):
     """
     Check the health of the specified configuration.
 
@@ -80,15 +82,15 @@ def check_health(config_type='all'):
     import keopscore
     from keopscore.config import config
 
-    if config_type == 'cuda':
+    if config_type == "cuda":
         cuda_config.print_all()
-    elif config_type == 'openmp':
+    elif config_type == "openmp":
         openmp_config.print_all()
-    elif config_type == 'platform':
+    elif config_type == "platform":
         platform_detector.print_all()
-    elif config_type == ('base'):
+    elif config_type == ("base"):
         config.print_all()
-    elif config_type == 'all':
+    elif config_type == "all":
         config.print_all()
         platform_detector.print_all()
         cuda_config.print_all()

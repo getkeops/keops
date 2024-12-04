@@ -1,9 +1,10 @@
 import os
 import sysconfig
 
-#import keopscore.config.config
+# import keopscore.config.config
 import keopscore
 from keopscore.config import *
+
 get_build_folder = config.get_build_folder
 
 from keopscore.utils.Cache import Cache_partial

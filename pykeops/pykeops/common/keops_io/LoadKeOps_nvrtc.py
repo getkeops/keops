@@ -12,6 +12,7 @@ from keopscore.utils.misc_utils import KeOps_OS_Run
 
 get_build_folder = config.get_build_folder
 
+
 class LoadKeOps_nvrtc_class(LoadKeOps):
     def __init__(self, *args, fast_init=False):
         super().__init__(*args, fast_init=fast_init)
