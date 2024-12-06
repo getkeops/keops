@@ -82,6 +82,7 @@ class DetectPlatform:
             "VIRTUAL_ENV",
             "PATH",
             "PYTHONPATH",
+            "CXX",
         ]
         for var in env_vars:
             value = os.environ.get(var)

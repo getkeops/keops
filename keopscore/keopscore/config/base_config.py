@@ -371,20 +371,11 @@ class ConfigNew:
         )
         print(f"JIT Binary Path: {jit_binary or 'Not Found'} {jit_binary_status}")
 
-        # C++ Compiler
-        cxx_compiler = self.get_cxx_compiler()
-        cxx_compiler_path = shutil.which(cxx_compiler) if cxx_compiler else None
-        cxx_compiler_status = check_mark if cxx_compiler_path else cross_mark
-        print(f"C++ Compiler: {cxx_compiler or 'Not Found'} {cxx_compiler_status}")
-        if not cxx_compiler_path:
-            print(f"C++ compiler '{cxx_compiler}' not found in PATH. {cross_mark}")
-
-        # C++ Environment Flags (CXXFLAGS)
-        cpp_env_flags = self.get_cpp_env_flags()
-        cpp_env_flags_status = check_mark if cpp_env_flags else cross_mark
-        print(
-            f"C++ Environment Flags (CXXFLAGS): {cpp_env_flags or 'Not Set'} {cpp_env_flags_status}"
-        )
+        # Disable Pragma Unrolls
+        disable_pragma_unrolls = self.get_disable_pragma_unrolls()
+        disable_status = check_mark if disable_pragma_unrolls else cross_mark
+        status_text = "Enabled" if disable_pragma_unrolls else "Disabled"
+        print(f"Disable Pragma Unrolls: {status_text} {disable_status}")
 
         # Compile Options
         compile_options = self.get_compile_options()
@@ -394,21 +385,10 @@ class ConfigNew:
         cpp_flags = self.get_cpp_flags()
         print(f"C++ Compiler Flags: {cpp_flags}")
 
-        # Disable Pragma Unrolls
-        disable_pragma_unrolls = self.get_disable_pragma_unrolls()
-        disable_status = check_mark if disable_pragma_unrolls else cross_mark
-        status_text = "Enabled" if disable_pragma_unrolls else "Disabled"
-        print(f"Disable Pragma Unrolls: {status_text} {disable_status}")
-
-        # Operating System
-        os_info = self.get_os()
-        print(f"Operating System: {os_info}")
-
         # Print relevant environment variables.
         print("\nRelevant Environment Variables:")
         env_vars = [
             "KEOPS_CACHE_FOLDER",
-            "CXX",
             "CXXFLAGS",
         ]
         for var in env_vars:

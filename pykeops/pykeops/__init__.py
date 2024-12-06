@@ -91,8 +91,8 @@ def check_health(config_type="all"):
     elif config_type == ("base"):
         config.print_all()
     elif config_type == "all":
-        config.print_all()
         platform_detector.print_all()
+        config.print_all()
         cuda_config.print_all()
         openmp_config.print_all()
     else:

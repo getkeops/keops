@@ -361,14 +361,6 @@ class CUDAConfig:
             cuda_include_path = self.cuda_include_path
             print(f"CUDA Include Path: {cuda_include_path or 'Not Found'}")
 
-            # Attempt to find CUDA compiler
-            nvcc_path = shutil.which("nvcc")
-            print(f"CUDA Compiler (nvcc): {nvcc_path or 'Not Found'}")
-            if not nvcc_path:
-                print(f"CUDA compiler 'nvcc' not found in PATH")
-        else:
-            # CUDA is disabled; display the CUDA message
-            print(f"{self.cuda_message}{cross_mark}")
         # Print relevant environment variables.
         print("\nRelevant Environment Variables:")
         env_vars = [

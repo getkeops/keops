@@ -122,13 +122,12 @@ def orig_cuda_include_fp16_path():
     We look for float 16 cuda headers cuda_fp16.h and cuda_fp16.hpp
     based on cuda_path locations and return their directory
     """
-    # from keopscore.config.config import cuda_include_path
     cuda_include_path = cuda_config.get_cuda_include_path()
 
     if cuda_include_path:
         return cuda_include_path
-    cuda_fp16_h_abspath = get_include_file_abspath("cuda_fp16.h")
-    cuda_fp16_hpp_abspath = get_include_file_abspath("cuda_fp16.hpp")
+    cuda_fp16_h_abspath = cuda_config.get_include_file_abspath("cuda_fp16.h")
+    cuda_fp16_hpp_abspath = cuda_config.get_include_file_abspath("cuda_fp16.hpp")
     if cuda_fp16_h_abspath and cuda_fp16_hpp_abspath:
         path = os.path.dirname(cuda_fp16_h_abspath)
         if path != os.path.dirname(cuda_fp16_hpp_abspath):

@@ -322,3 +322,12 @@ Alternatively, you can disable verbose compilation from your python script using
   import pykeops
   pykeops.set_verbose(False)
 
+KeOps health check
+---------------
+
+To get a general overview of your **KeOps** install (and any related issues), with the relevant paths, environments, compilation flags, ... It is a good idea to run the ``pykeops.check_health`` function. In a Python shell, just type:
+
+.. code-block:: python
+
+  import pykeops
+  pykeops.check_health()

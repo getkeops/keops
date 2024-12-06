@@ -38,7 +38,6 @@ def KeOps_Error(message, show_line_number=True):
 def KeOps_OS_Run(command):
     import sys
 
-    print(command)
     python_version = sys.version_info
     if python_version >= (3, 7):
         import subprocess
