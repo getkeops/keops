@@ -63,7 +63,7 @@ class ConfigNew:
 
     def set_bindings_source_dir(self):
         """Set the bindings source directory."""
-        self.bindings_source_dir = self.base_dir_path
+        self.bindings_source_dir = self.get_base_dir_path()
 
     def get_bindings_source_dir(self):
         """Get the bindings source directory."""
