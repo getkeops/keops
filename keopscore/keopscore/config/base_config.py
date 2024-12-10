@@ -8,7 +8,7 @@ import keopscore
 from keopscore.utils.misc_utils import KeOps_Warning
 
 
-class ConfigNew:
+class Config:
     """
     Base configuration class for the KeOps library.
     This class contains common attributes and methods shared by other configuration classes.
@@ -169,7 +169,13 @@ class ConfigNew:
         else:
             self.cxx_compiler = None
             KeOps_Warning(
-                "No C++ compiler found. You need to either define the CXX environment variable pointing to a valid compiler, or ensure that 'g++' is installed and in your PATH."
+                """
+                The default C++ compiler could not be found on your system. 
+                You need to either define the CXX environment variable or a symlink to the g++ command.
+                For example if g++-8 is the command you can do:
+                import os
+                os.environ['CXX'] = 'g++-8'
+                """
             )
 
     def get_cxx_compiler(self):

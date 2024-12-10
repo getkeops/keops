@@ -1,11 +1,11 @@
 # Import the configuration classes
-from .base_config import ConfigNew
+from .base_config import Config
 from .cuda import CUDAConfig
 from .openmp import OpenMPConfig
 from .Platform import DetectPlatform
 
 # Instantiate the configurations
-config = ConfigNew()
+config = Config()
 platform_detector = DetectPlatform()
 cuda_config = CUDAConfig()
 openmp_config = OpenMPConfig()

@@ -29,7 +29,7 @@ class LoadKeOps_cpp_class(LoadKeOps):
             f = open(srcname, "w")
             f.write(self.get_pybind11_code())
             f.close()
-            compile_command = f"{keopscore.config.get_cxx_compiler()} {keopscore.config.get_cpp_flags()} {python_includes} {srcname} -o {dllname}"
+            compile_command = f"{config.get_cxx_compiler()} {config.get_cpp_flags()} {python_includes} {srcname} -o {dllname}"
             pyKeOps_Message(
                 "Compiling pykeops cpp " + self.params.tag + " module ... ",
                 flush=True,
