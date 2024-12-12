@@ -635,12 +635,17 @@ public:
 
     if (RR.tagRanges == 1) {
       CUDA_SAFE_CALL(cuMemFree((CUdeviceptr)lookup_d));
+      // slices_x_d and ranges_y_d are always allocated in range_preprocess_from_host 
+      // if RR.tagRanges == 1, regardless of nbatchdims. So we always free them
+      CUDA_SAFE_CALL(cuMemFree((CUdeviceptr)slices_x_d));
+      CUDA_SAFE_CALL(cuMemFree((CUdeviceptr)ranges_y_d));
+
+      // offsets_d is only allocated if nbatchdims > 0, so free it with condition
       if (SS.nbatchdims > 0) {
-        CUDA_SAFE_CALL(cuMemFree((CUdeviceptr)slices_x_d));
-        CUDA_SAFE_CALL(cuMemFree((CUdeviceptr)ranges_y_d));
-        CUDA_SAFE_CALL(cuMemFree((CUdeviceptr)offsets_d));
+          CUDA_SAFE_CALL(cuMemFree((CUdeviceptr)offsets_d));
       }
     }
+
 
     // end_ = end = clock();
     ////std::cout << "  time for last part : " << double(//end_ - start_) /
