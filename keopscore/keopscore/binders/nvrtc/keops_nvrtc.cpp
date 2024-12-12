@@ -633,27 +633,14 @@ public:
     if (tagHostDevice == 0)
       CUDA_SAFE_CALL(cuMemFree(p_data));
 
-    // if (RR.tagRanges == 1) {
-    //   CUDA_SAFE_CALL(cuMemFree((CUdeviceptr)lookup_d));
-    //   if (SS.nbatchdims > 0) {
-    //     CUDA_SAFE_CALL(cuMemFree((CUdeviceptr)slices_x_d));
-    //     CUDA_SAFE_CALL(cuMemFree((CUdeviceptr)ranges_y_d));
-    //     CUDA_SAFE_CALL(cuMemFree((CUdeviceptr)offsets_d));
-    //   }
-    // }
-
     if (RR.tagRanges == 1) {
-        CUDA_SAFE_CALL(cuMemFree((CUdeviceptr)lookup_d));
-    // Always free slices_x_d and ranges_y_d if they are allocated
+      CUDA_SAFE_CALL(cuMemFree((CUdeviceptr)lookup_d));
+      if (SS.nbatchdims > 0) {
         CUDA_SAFE_CALL(cuMemFree((CUdeviceptr)slices_x_d));
         CUDA_SAFE_CALL(cuMemFree((CUdeviceptr)ranges_y_d));
-
-    // offsets_d is only allocated if nbatchdims > 0
-        if (SS.nbatchdims > 0) {
-          CUDA_SAFE_CALL(cuMemFree((CUdeviceptr)offsets_d));
-        }
+        CUDA_SAFE_CALL(cuMemFree((CUdeviceptr)offsets_d));
+      }
     }
-
 
     // end_ = end = clock();
     ////std::cout << "  time for last part : " << double(//end_ - start_) /
