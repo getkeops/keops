@@ -850,3 +850,30 @@ def clean_keops(recompile_jit_binary=True, verbose=True):
         from keopscore.binders.nvrtc.Gpu_link_compile import Gpu_link_compile
 
         Gpu_link_compile.compile_jit_compile_dll()
+
+
+def check_health(config_type="all"):
+    """
+    Check the health of the specified configuration.
+
+    Parameters:
+        config_type (str): The configuration to check. Options are:
+                           'cuda', 'openmp', 'platform', 'base', 'all'.
+                           Default is 'all'.
+    """
+    if config_type == "cuda":
+        cuda_config.print_all()
+    elif config_type == "openmp":
+        openmp_config.print_all()
+    elif config_type == "platform":
+        platform_detector.print_all()
+    elif config_type == ("base"):
+        config.print_all()
+    elif config_type == "all":
+        platform_detector.print_all()
+        config.print_all()
+        cuda_config.print_all()
+        openmp_config.print_all()
+    else:
+        print(f"Unknown configuration type: '{config_type}'")
+        print("Please specify one of: 'cuda', 'openmp', 'platform', 'base', 'all'")
