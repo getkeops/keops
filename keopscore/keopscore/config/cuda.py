@@ -296,47 +296,145 @@ class CUDAConfig:
         """Print the NVRTC flags for CUDA compilation."""
         print(f"NVRTC Flags: {self.nvrtc_flags}")
 
+
     def get_gpu_props(self):
-        """Retrieve GPU properties and set related attributes."""
-        try:
-            libcuda = ctypes.CDLL(find_library("cuda"))
-            nGpus = ctypes.c_int()
-            result = libcuda.cuInit(0)
-            if result != self.CUDA_SUCCESS:
-                KeOps_Warning("cuInit failed; no CUDA driver available.")
-                self.n_gpus = 0
-                return self.n_gpus, self.gpu_compile_flags
-            result = libcuda.cuDeviceGetCount(ctypes.byref(nGpus))
-            if result != self.CUDA_SUCCESS:
-                KeOps_Warning("cuDeviceGetCount failed.")
-                self.n_gpus = 0
-                return self.n_gpus, self.gpu_compile_flags
-            self.n_gpus = nGpus.value
-            self.gpu_compile_flags = f"-DMAXIDGPU={self.n_gpus - 1} "
-            for d in range(self.n_gpus):
-                device = ctypes.c_int()
-                libcuda.cuDeviceGet(ctypes.byref(device), d)
-                max_threads = ctypes.c_int()
-                libcuda.cuDeviceGetAttribute(
-                    ctypes.byref(max_threads),
-                    self.CU_DEVICE_ATTRIBUTE_MAX_THREADS_PER_BLOCK,
-                    device,
+        """
+        Retrieve GPU properties and set related attributes.
+        """
+
+        def safe_call(d, result):
+            test = (result == self.CUDA_SUCCESS)
+            if not test:
+                KeOps_Warning(
+                    f"""
+                    CUDA was detected, the driver API has been initialized, 
+                    but there was an error detecting properties of GPU device nr {d}.
+                    Switching to CPU only.
+                    """
                 )
-                shared_mem = ctypes.c_int()
-                libcuda.cuDeviceGetAttribute(
-                    ctypes.byref(shared_mem),
-                    self.CU_DEVICE_ATTRIBUTE_MAX_SHARED_MEMORY_PER_BLOCK,
-                    device,
-                )
-                self.gpu_compile_flags += (
-                    f"-DMAXTHREADSPERBLOCK{d}={max_threads.value} "
-                )
-                self.gpu_compile_flags += f"-DSHAREDMEMPERBLOCK{d}={shared_mem.value} "
-            return self.n_gpus, self.gpu_compile_flags
-        except Exception as e:
-            KeOps_Warning(f"Error retrieving GPU properties: {e}")
+            return test
+
+        # Attempt to load the CUDA driver library
+        libcuda = ctypes.CDLL(find_library("cuda"))
+        if not libcuda:
+            KeOps_Warning("cuda library not found. Switching to CPU only.")
             self.n_gpus = 0
+            self.gpu_compile_flags = ""
             return self.n_gpus, self.gpu_compile_flags
+
+        # Initialize CUDA
+        result = libcuda.cuInit(0)
+        if result != self.CUDA_SUCCESS:
+            KeOps_Warning(
+                "cuda was detected, but driver API could not be initialized. Switching to CPU only."
+            )
+            self.n_gpus = 0
+            self.gpu_compile_flags = ""
+            return self.n_gpus, self.gpu_compile_flags
+
+        # Get GPU count
+        nGpus = ctypes.c_int()
+        result = libcuda.cuDeviceGetCount(ctypes.byref(nGpus))
+        if result != self.CUDA_SUCCESS:
+            KeOps_Warning(
+                "cuda was detected, driver API has been initialized, but no working GPU found. Switching to CPU only."
+            )
+            self.n_gpus = 0
+            self.gpu_compile_flags = ""
+            return self.n_gpus, self.gpu_compile_flags
+
+        self.n_gpus = nGpus.value
+        # If no GPUs, return immediately
+        if self.n_gpus == 0:
+            self.gpu_compile_flags = ""
+            return self.n_gpus, self.gpu_compile_flags
+
+        # Query each GPU for properties
+        MaxThreadsPerBlock = [0] * self.n_gpus
+        SharedMemPerBlock = [0] * self.n_gpus
+        test = True
+
+        for d in range(self.n_gpus):
+            device = ctypes.c_int()
+            if not safe_call(d, libcuda.cuDeviceGet(ctypes.byref(device), d)):
+                test = False
+                break
+
+            output = ctypes.c_int()
+            if not safe_call(d, libcuda.cuDeviceGetAttribute(
+                ctypes.byref(output),
+                self.CU_DEVICE_ATTRIBUTE_MAX_THREADS_PER_BLOCK,
+                device,
+            )):
+                test = False
+                break
+            MaxThreadsPerBlock[d] = output.value
+
+            if not safe_call(d, libcuda.cuDeviceGetAttribute(
+                ctypes.byref(output),
+                self.CU_DEVICE_ATTRIBUTE_MAX_SHARED_MEMORY_PER_BLOCK,
+                device,
+            )):
+                test = False
+                break
+            SharedMemPerBlock[d] = output.value
+
+        # If any call failed, switch to CPU mode
+        if not test:
+            self.n_gpus = 0
+            self.gpu_compile_flags = ""
+            return self.n_gpus, self.gpu_compile_flags
+
+        # Build the compile flags string based on GPU properties
+        self.gpu_compile_flags = f"-DMAXIDGPU={self.n_gpus - 1} "
+        for d in range(self.n_gpus):
+            self.gpu_compile_flags += f"-DMAXTHREADSPERBLOCK{d}={MaxThreadsPerBlock[d]} "
+            self.gpu_compile_flags += f"-DSHAREDMEMPERBLOCK{d}={SharedMemPerBlock[d]} "
+
+        return self.n_gpus, self.gpu_compile_flags
+
+
+    # def get_gpu_props(self):
+    #     """Retrieve GPU properties and set related attributes."""
+    #     try:
+    #         libcuda = ctypes.CDLL(find_library("cuda"))
+    #         nGpus = ctypes.c_int()
+    #         result = libcuda.cuInit(0)
+    #         if result != self.CUDA_SUCCESS:
+    #             KeOps_Warning("cuInit failed; no CUDA driver available.")
+    #             self.n_gpus = 0
+    #             return self.n_gpus, self.gpu_compile_flags
+    #         result = libcuda.cuDeviceGetCount(ctypes.byref(nGpus))
+    #         if result != self.CUDA_SUCCESS:
+    #             KeOps_Warning("cuDeviceGetCount failed.")
+    #             self.n_gpus = 0
+    #             return self.n_gpus, self.gpu_compile_flags
+    #         self.n_gpus = nGpus.value
+    #         self.gpu_compile_flags = f"-DMAXIDGPU={self.n_gpus - 1} "
+    #         for d in range(self.n_gpus):
+    #             device = ctypes.c_int()
+    #             libcuda.cuDeviceGet(ctypes.byref(device), d)
+    #             max_threads = ctypes.c_int()
+    #             libcuda.cuDeviceGetAttribute(
+    #                 ctypes.byref(max_threads),
+    #                 self.CU_DEVICE_ATTRIBUTE_MAX_THREADS_PER_BLOCK,
+    #                 device,
+    #             )
+    #             shared_mem = ctypes.c_int()
+    #             libcuda.cuDeviceGetAttribute(
+    #                 ctypes.byref(shared_mem),
+    #                 self.CU_DEVICE_ATTRIBUTE_MAX_SHARED_MEMORY_PER_BLOCK,
+    #                 device,
+    #             )
+    #             self.gpu_compile_flags += (
+    #                 f"-DMAXTHREADSPERBLOCK{d}={max_threads.value} "
+    #             )
+    #             self.gpu_compile_flags += f"-DSHAREDMEMPERBLOCK{d}={shared_mem.value} "
+    #         return self.n_gpus, self.gpu_compile_flags
+    #     except Exception as e:
+    #         KeOps_Warning(f"Error retrieving GPU properties: {e}")
+    #         self.n_gpus = 0
+    #         return self.n_gpus, self.gpu_compile_flags
 
     def print_all(self):
         """
