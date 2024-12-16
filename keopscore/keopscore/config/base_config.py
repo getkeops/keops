@@ -215,6 +215,7 @@ class Config:
         self.cpp_flags = f"{self.cpp_env_flags} {self.compile_options}"
         # here is the fix
         self.cpp_flags += f" -I{self.base_dir_path}/include"
+        self.cpp_flags += f" -I{self.bindings_source_dir}"
         if platform.system() == "Darwin":
             self.cpp_flags += " -flto"
         else:
