@@ -213,6 +213,8 @@ class Config:
     def set_cpp_flags(self):
         """Set the C++ compiler flags."""
         self.cpp_flags = f"{self.cpp_env_flags} {self.compile_options}"
+        # here is the fix
+        self.cpp_flags += f" -I{self.base_dir_path}/include"
         if platform.system() == "Darwin":
             self.cpp_flags += " -flto"
         else:
