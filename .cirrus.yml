@@ -14,6 +14,10 @@ task:
   macos_instance:
     image: ghcr.io/cirruslabs/macos-ventura-xcode:latest
   script: 
+    - brew install python@3.12
+    - /usr/local/bin/python3.10 -m venv .test_venv
+    - source .test_venv/bin/activate
+    - pip install --upgrade pip
     - sh ./pytest.sh
 
 
