@@ -164,19 +164,27 @@ class Config:
         env_cxx = os.getenv("CXX")
         if env_cxx and shutil.which(env_cxx):
             self.cxx_compiler = env_cxx
-        elif shutil.which("g++"):
-            self.cxx_compiler = "g++"
         else:
-            self.cxx_compiler = None
-            KeOps_Warning(
-                """
-                The default C++ compiler could not be found on your system. 
-                You need to either define the CXX environment variable or a symlink to the g++ command.
-                For example if g++-8 is the command you can do:
-                import os
-                os.environ['CXX'] = 'g++-8'
-                """
-            )
+            # On macOS, try clang++ first, as it's the canonical C++ compiler driver for Apple Clang
+            if platform.system() == "Darwin":
+                if shutil.which("clang++"):
+                    self.cxx_compiler = "clang++"
+                elif shutil.which("g++"):
+                    self.cxx_compiler = "g++"
+                else:
+                    self.cxx_compiler = None
+                    KeOps_Warning(
+                        "No suitable C++ compiler (clang++ or g++) found on macOS."
+                    )
+            else:
+                # On Linux or other systems, fall back to g++ if available
+                if shutil.which("g++"):
+                    self.cxx_compiler = "g++"
+                else:
+                    self.cxx_compiler = None
+                    KeOps_Warning(
+                        "No C++ compiler found. Define CXX environment variable or install g++."
+                    )
 
     def get_cxx_compiler(self):
         """Get the C++ compiler."""
@@ -215,7 +223,7 @@ class Config:
         self.cpp_flags = f"{self.cpp_env_flags} {self.compile_options}"
         # here is the fix
         self.cpp_flags += f" -I{self.base_dir_path}/include"
-        self.cpp_flags += f" -I{self.bindings_source_dir}"
+        #self.cpp_flags += f" -I{self.bindings_source_dir}"
         if platform.system() == "Darwin" and platform.machine() == "arm64":
             self.cpp_flags += " -arch arm64"
             self.cpp_flags += " -undefined dynamic_lookup"
@@ -225,6 +233,7 @@ class Config:
             self.cpp_flags += " -flto"
         else:
             self.cpp_flags += " -flto=auto"
+        self.cpp_flags += f" -I{self.bindings_source_dir}"
 
     def get_cpp_flags(self):
         """Get the C++ compiler flags."""
