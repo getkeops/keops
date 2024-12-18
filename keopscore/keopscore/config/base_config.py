@@ -216,7 +216,12 @@ class Config:
         # here is the fix
         self.cpp_flags += f" -I{self.base_dir_path}/include"
         self.cpp_flags += f" -I{self.bindings_source_dir}"
+        if platform.system() == "Darwin" and platform.machine() == "arm64":
+            self.cpp_flags += " -arch arm64"
+            self.cpp_flags += " -undefined dynamic_lookup"
+            self.cpp_flags += " -flto"
         if platform.system() == "Darwin":
+            self.cpp_flags += " -undefined dynamic_lookup"
             self.cpp_flags += " -flto"
         else:
             self.cpp_flags += " -flto=auto"
