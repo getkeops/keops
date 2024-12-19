@@ -230,6 +230,7 @@ class Config:
             self.cpp_flags += " -flto"
         if platform.system() == "Darwin":
             self.cpp_flags += " -undefined dynamic_lookup"
+            self.cpp_flags += f' -Xclang -fopenmp -lomp -L{os.getenv("OMP_PATH")}'
             self.cpp_flags += " -flto"
         else:
             self.cpp_flags += " -flto=auto"
