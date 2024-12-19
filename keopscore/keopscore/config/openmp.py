@@ -39,7 +39,7 @@ class OpenMPConfig:
         """Determine and set whether to use OpenMP."""
         compiler_supports_openmp = self.check_compiler_for_openmp()
         openmp_libs_available = self.check_openmp_libraries()
-        self._use_OpenMP = compiler_supports_openmp and openmp_libs_available
+        self._use_OpenMP = compiler_supports_openmp or openmp_libs_available
         if not self._use_OpenMP:
             KeOps_Warning("OpenMP support is not available. Disabling OpenMP.")
 
