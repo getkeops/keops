@@ -3,6 +3,7 @@ from os.path import join
 import platform
 import sys
 import shutil
+import subprocess
 from pathlib import Path
 import keopscore
 from keopscore.utils.misc_utils import KeOps_Warning
@@ -218,6 +219,34 @@ class Config:
         """Print the compile options."""
         print(f"Compile Options: {self.compile_options}")
 
+    def check_openmp_loaded(self):
+        # we look if one of libmkl_rt, libomp and/or libiomp is loaded.
+        pid = os.getpid()
+        loaded_libs = {}
+        success = False
+        for lib in ["libomp", "libiomp", "libiomp5", "libmkl_rt"]:
+            res = subprocess.run(
+                f"lsof -p {pid} | grep {lib}",
+                stdout=subprocess.PIPE,
+                shell=True,
+            )
+            loaded_libs[lib] = (
+            os.path.dirname(res.stdout.split(b" ")[-1]).decode("utf-8")
+                if res.returncode == 0
+                else None
+            )
+            success = success or (res.returncode == 0)
+        return success, loaded_libs
+    
+    def load_dll(self, libname):
+        from ctypes import cdll
+        try:
+            cdll.LoadLibrary(libname)
+            return True
+        except:
+            return False
+
+
     def set_cpp_flags(self):
         """Set the C++ compiler flags."""
         self.cpp_flags = f"{self.cpp_env_flags} {self.compile_options}"
@@ -229,8 +258,11 @@ class Config:
             self.cpp_flags += " -undefined dynamic_lookup"
             self.cpp_flags += " -flto"
         if platform.system() == "Darwin":
+            _, loaded_libs = self.check_openmp_loaded()
+            self.load_dll("libomp.dylib")
+            _, loaded_libs = self.check_openmp_loaded()
             self.cpp_flags += " -undefined dynamic_lookup"
-            #self.cpp_flags += f' -Xclang -fopenmp -lomp -L{os.getenv("OMP_PATH")}'
+            self.cpp_flags += f' -Xclang -fopenmp -lomp -L{loaded_libs["libomp"]}'
             self.cpp_flags += " -flto"
         else:
             self.cpp_flags += " -flto=auto"
