@@ -252,21 +252,29 @@ class Config:
         self.cpp_flags = f"{self.cpp_env_flags} {self.compile_options}"
         # here is the fix
         self.cpp_flags += f" -I{self.base_dir_path}/include"
-        #self.cpp_flags += f" -I{self.bindings_source_dir}"
+        self.cpp_flags += f" -I{self.bindings_source_dir}"
         if platform.system() == "Darwin" and platform.machine() == "arm64":
             self.cpp_flags += " -arch arm64"
-            self.cpp_flags += " -undefined dynamic_lookup"
-            self.cpp_flags += " -flto"
+            
         if platform.system() == "Darwin":
             _, loaded_libs = self.check_openmp_loaded()
             self.load_dll("libomp.dylib")
+            self.load_dll("libmkl_rt.dylib")
+            self.load_dll("libiomp5.dylib")
+            self.load_dll("libiomp.dylib")
             _, loaded_libs = self.check_openmp_loaded()
             self.cpp_flags += " -undefined dynamic_lookup"
-            self.cpp_flags += f' -Xclang -fopenmp -lomp -L{loaded_libs["libomp"]}'
-            self.cpp_flags += " -flto"
-        else:
-            self.cpp_flags += " -flto=auto"
-        self.cpp_flags += f" -I{self.bindings_source_dir}"
+            if loaded_libs["libmkl_rt"]:
+                self.cpp_flags += f' -Xclang -fopenmp -lmkl_rt -L{loaded_libs["libmkl_rt"]}'
+            elif loaded_libs["libiomp5"]:
+                self.cpp_flags += f' -Xclang -fopenmp -liomp5 -L{loaded_libs["libiomp5"]}'
+            elif loaded_libs["libiomp"]:
+                self.cpp_flags += f' -Xclang -fopenmp -liomp5 -L{loaded_libs["libiomp"]}'
+            elif loaded_libs["libomp"]:
+                self.cpp_flags += f' -Xclang -fopenmp -lomp -L{loaded_libs["libomp"]}'
+            
+        self.cpp_flags += " -flto"
+        
 
     def get_cpp_flags(self):
         """Get the C++ compiler flags."""
