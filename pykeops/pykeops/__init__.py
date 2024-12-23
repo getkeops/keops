@@ -56,8 +56,10 @@ def clean_pykeops(recompile_jit_binaries=True):
     if recompile_jit_binaries and cuda_config.get_use_cuda():
         pykeops.common.keops_io.LoadKeOps_nvrtc.compile_jit_binary()
 
+
 def check_health():
     import pykeops
+
     keopscore.check_health()
 
 

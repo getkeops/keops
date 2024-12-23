@@ -224,17 +224,16 @@ class Config:
         self.cpp_flags = f"{self.cpp_env_flags} {self.compile_options}"
         self.cpp_flags += f" -I{self.base_dir_path}/include"
         self.cpp_flags += f" -I{self.bindings_source_dir}"
-        
-        # Specific check for M1/M2 Mac chips 
+
+        # Specific check for M1/M2 Mac chips
         if platform.system() == "Darwin" and platform.machine() == "arm64":
             self.cpp_flags += " -arch arm64"
-        
+
         if platform.system() == "Darwin":
             self.cpp_flags += " -undefined dynamic_lookup"
             self.cpp_flags += " -flto"
-            
+
         self.cpp_flags += " -flto=auto"
-        
 
     def get_cpp_flags(self):
         """Get the C++ compiler flags."""

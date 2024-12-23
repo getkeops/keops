@@ -296,14 +296,13 @@ class CUDAConfig:
         """Print the NVRTC flags for CUDA compilation."""
         print(f"NVRTC Flags: {self.nvrtc_flags}")
 
-
     def get_gpu_props(self):
         """
         Retrieve GPU properties and set related attributes.
         """
 
         def safe_call(d, result):
-            test = (result == self.CUDA_SUCCESS)
+            test = result == self.CUDA_SUCCESS
             if not test:
                 KeOps_Warning(
                     f"""
@@ -361,20 +360,26 @@ class CUDAConfig:
                 break
 
             output = ctypes.c_int()
-            if not safe_call(d, libcuda.cuDeviceGetAttribute(
-                ctypes.byref(output),
-                self.CU_DEVICE_ATTRIBUTE_MAX_THREADS_PER_BLOCK,
-                device,
-            )):
+            if not safe_call(
+                d,
+                libcuda.cuDeviceGetAttribute(
+                    ctypes.byref(output),
+                    self.CU_DEVICE_ATTRIBUTE_MAX_THREADS_PER_BLOCK,
+                    device,
+                ),
+            ):
                 test = False
                 break
             MaxThreadsPerBlock[d] = output.value
 
-            if not safe_call(d, libcuda.cuDeviceGetAttribute(
-                ctypes.byref(output),
-                self.CU_DEVICE_ATTRIBUTE_MAX_SHARED_MEMORY_PER_BLOCK,
-                device,
-            )):
+            if not safe_call(
+                d,
+                libcuda.cuDeviceGetAttribute(
+                    ctypes.byref(output),
+                    self.CU_DEVICE_ATTRIBUTE_MAX_SHARED_MEMORY_PER_BLOCK,
+                    device,
+                ),
+            ):
                 test = False
                 break
             SharedMemPerBlock[d] = output.value
@@ -388,7 +393,9 @@ class CUDAConfig:
         # Build the compile flags string based on GPU properties
         self.gpu_compile_flags = f"-DMAXIDGPU={self.n_gpus - 1} "
         for d in range(self.n_gpus):
-            self.gpu_compile_flags += f"-DMAXTHREADSPERBLOCK{d}={MaxThreadsPerBlock[d]} "
+            self.gpu_compile_flags += (
+                f"-DMAXTHREADSPERBLOCK{d}={MaxThreadsPerBlock[d]} "
+            )
             self.gpu_compile_flags += f"-DSHAREDMEMPERBLOCK{d}={SharedMemPerBlock[d]} "
 
         return self.n_gpus, self.gpu_compile_flags
