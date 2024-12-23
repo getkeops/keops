@@ -28,7 +28,7 @@ class Config:
     cpp_flags = None
     disable_pragma_unrolls = None
     os = None
-    _build_path = None
+    _build_folder = None
 
     def __init__(self):
 
@@ -118,7 +118,7 @@ class Config:
         if self.default_build_path not in sys.path:
             sys.path.append(self.default_build_path)
         # Initialize _build_path
-        self._build_path = self.default_build_path
+        self._build_folder = self.default_build_path
 
     def get_default_build_path(self):
         """Get the default build path."""
@@ -219,61 +219,21 @@ class Config:
         """Print the compile options."""
         print(f"Compile Options: {self.compile_options}")
 
-    def check_openmp_loaded(self):
-        # we look if one of libmkl_rt, libomp and/or libiomp is loaded.
-        pid = os.getpid()
-        loaded_libs = {}
-        success = False
-        for lib in ["libomp", "libiomp", "libiomp5", "libmkl_rt"]:
-            res = subprocess.run(
-                f"lsof -p {pid} | grep {lib}",
-                stdout=subprocess.PIPE,
-                shell=True,
-            )
-            loaded_libs[lib] = (
-            os.path.dirname(res.stdout.split(b" ")[-1]).decode("utf-8")
-                if res.returncode == 0
-                else None
-            )
-            success = success or (res.returncode == 0)
-        return success, loaded_libs
-    
-    def load_dll(self, libname):
-        from ctypes import cdll
-        try:
-            cdll.LoadLibrary(libname)
-            return True
-        except:
-            return False
-
-
     def set_cpp_flags(self):
         """Set the C++ compiler flags."""
         self.cpp_flags = f"{self.cpp_env_flags} {self.compile_options}"
-        # here is the fix
         self.cpp_flags += f" -I{self.base_dir_path}/include"
         self.cpp_flags += f" -I{self.bindings_source_dir}"
+        
+        # Specific check for M1/M2 Mac chips 
         if platform.system() == "Darwin" and platform.machine() == "arm64":
             self.cpp_flags += " -arch arm64"
-            
+        
         if platform.system() == "Darwin":
-            _, loaded_libs = self.check_openmp_loaded()
-            self.load_dll("libomp.dylib")
-            self.load_dll("libmkl_rt.dylib")
-            self.load_dll("libiomp5.dylib")
-            self.load_dll("libiomp.dylib")
-            _, loaded_libs = self.check_openmp_loaded()
             self.cpp_flags += " -undefined dynamic_lookup"
-            if loaded_libs["libmkl_rt"]:
-                self.cpp_flags += f' -Xclang -fopenmp -lmkl_rt -L{loaded_libs["libmkl_rt"]}'
-            elif loaded_libs["libiomp5"]:
-                self.cpp_flags += f' -Xclang -fopenmp -liomp5 -L{loaded_libs["libiomp5"]}'
-            elif loaded_libs["libiomp"]:
-                self.cpp_flags += f' -Xclang -fopenmp -liomp5 -L{loaded_libs["libiomp"]}'
-            elif loaded_libs["libomp"]:
-                self.cpp_flags += f' -Xclang -fopenmp -lomp -L{loaded_libs["libomp"]}'
+            self.cpp_flags += " -flto"
             
-        self.cpp_flags += " -flto"
+        self.cpp_flags += " -flto=auto"
         
 
     def get_cpp_flags(self):
@@ -297,7 +257,7 @@ class Config:
         status = "Enabled" if self.disable_pragma_unrolls else "Disabled"
         print(f"Disable Pragma Unrolls: {status}")
 
-    def set_build_folder(
+    def set_different_build_folder(
         self, path=None, read_save_file=False, write_save_file=True, reset_all=True
     ):
         """
@@ -322,13 +282,13 @@ class Config:
         os.makedirs(path, exist_ok=True)
 
         # Remove the old build path from sys.path if it's there
-        if self._build_path and self._build_path in sys.path:
-            sys.path.remove(self._build_path)
-        # Update _build_path to the new path
-        self._build_path = path
+        if self._build_folder and self._build_folder in sys.path:
+            sys.path.remove(self._build_folder)
+        # Update _build_folder to the new path
+        self._build_folder = path
         # Add the new build path to sys.path
-        if self._build_path not in sys.path:
-            sys.path.append(self._build_path)
+        if self._build_folder not in sys.path:
+            sys.path.append(self._build_folder)
 
         # Saving the location of the build path in a file
         if write_save_file:
@@ -339,7 +299,7 @@ class Config:
         if reset_all:
             # Reset cached formulas
             keopscore.get_keops_dll.get_keops_dll.reset(
-                new_save_folder=self._build_path
+                new_save_folder=self._build_folder
             )
             # Handle CUDA-specific recompilation if CUDA is used
             if hasattr(self, "_use_cuda") and self._use_cuda:
@@ -352,7 +312,7 @@ class Config:
                     Gpu_link_compile.compile_jit_compile_dll()
 
     def get_build_folder(self):
-        return self._build_path
+        return self._build_folder
 
     # Environment variables printing method
     def print_environment_variables(self):

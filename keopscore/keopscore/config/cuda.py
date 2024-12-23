@@ -393,49 +393,6 @@ class CUDAConfig:
 
         return self.n_gpus, self.gpu_compile_flags
 
-
-    # def get_gpu_props(self):
-    #     """Retrieve GPU properties and set related attributes."""
-    #     try:
-    #         libcuda = ctypes.CDLL(find_library("cuda"))
-    #         nGpus = ctypes.c_int()
-    #         result = libcuda.cuInit(0)
-    #         if result != self.CUDA_SUCCESS:
-    #             KeOps_Warning("cuInit failed; no CUDA driver available.")
-    #             self.n_gpus = 0
-    #             return self.n_gpus, self.gpu_compile_flags
-    #         result = libcuda.cuDeviceGetCount(ctypes.byref(nGpus))
-    #         if result != self.CUDA_SUCCESS:
-    #             KeOps_Warning("cuDeviceGetCount failed.")
-    #             self.n_gpus = 0
-    #             return self.n_gpus, self.gpu_compile_flags
-    #         self.n_gpus = nGpus.value
-    #         self.gpu_compile_flags = f"-DMAXIDGPU={self.n_gpus - 1} "
-    #         for d in range(self.n_gpus):
-    #             device = ctypes.c_int()
-    #             libcuda.cuDeviceGet(ctypes.byref(device), d)
-    #             max_threads = ctypes.c_int()
-    #             libcuda.cuDeviceGetAttribute(
-    #                 ctypes.byref(max_threads),
-    #                 self.CU_DEVICE_ATTRIBUTE_MAX_THREADS_PER_BLOCK,
-    #                 device,
-    #             )
-    #             shared_mem = ctypes.c_int()
-    #             libcuda.cuDeviceGetAttribute(
-    #                 ctypes.byref(shared_mem),
-    #                 self.CU_DEVICE_ATTRIBUTE_MAX_SHARED_MEMORY_PER_BLOCK,
-    #                 device,
-    #             )
-    #             self.gpu_compile_flags += (
-    #                 f"-DMAXTHREADSPERBLOCK{d}={max_threads.value} "
-    #             )
-    #             self.gpu_compile_flags += f"-DSHAREDMEMPERBLOCK{d}={shared_mem.value} "
-    #         return self.n_gpus, self.gpu_compile_flags
-    #     except Exception as e:
-    #         KeOps_Warning(f"Error retrieving GPU properties: {e}")
-    #         self.n_gpus = 0
-    #         return self.n_gpus, self.gpu_compile_flags
-
     def print_all(self):
         """
         Print all CUDA-related configuration and system health status.

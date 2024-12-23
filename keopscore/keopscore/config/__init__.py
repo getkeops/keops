@@ -16,6 +16,7 @@ __all__ = [
     "cuda_config",
     "openmp_config",
     "get_config",
+    "get_platform_config",
     "get_cuda_config",
     "get_openmp_config",
 ]
@@ -40,3 +41,7 @@ def get_cuda_config():
 
 def get_openmp_config():
     return get_instance("openmp_config", openmp_config)
+
+
+def get_platform_config():
+    return get_instance("platform_detector", platform_config)
