@@ -190,7 +190,7 @@ RUN /opt/conda/bin/pip install -r doc-requirements.txt
 
 
 # Super-full environment with optional dependencies:
-FROM keops-doc as keops-full
+FROM keops-doc AS keops-full
 # PyTorch-scatter is a complex dependency:
 # it relies on binaries that often lag behind new PyTorch releases
 # by a few days/weeks.
