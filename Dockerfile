@@ -15,6 +15,8 @@
 # --tag getkeops/keops:2.1-geomloss0.2.5-cuda11.3-pytorch1.11-full \
 # --no-cache .
 
+ARG NUMPY_VERSION=1.26.4
+
 # KeOps version - the most important parameter:
 ARG KEOPS_VERSION=2.2
 # We also include all the libraries hosted on www.kernel-operations.io,
@@ -113,7 +115,7 @@ RUN curl -fsSL -v -o ~/miniconda.sh -O  https://repo.anaconda.com/miniconda/Mini
     /opt/conda/bin/conda install -y python=${PYTHON_VERSION} \
         conda-build \
         pyyaml \
-        numpy \
+        numpy=${NUMPY_VERSION} \
         ipython \
         matplotlib \
         ipykernel && \
