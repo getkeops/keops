@@ -28,7 +28,7 @@ ARG GEOMLOSS_VERSION=0.2.5
 
 
 # Base OS:
-ARG BASE_IMAGE=ubuntu:22.04
+ARG BASE_IMAGE=ubuntu:24.04
 # Useful to test support across Python versions:
 ARG PYTHON_VERSION=3.10
 

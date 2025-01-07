@@ -5,7 +5,7 @@
 # to clear the docker cache and make sure that the config works
 # with the current version of e.g. the Ubuntu repositories.
 
-# Up to date as of Monday, Feb. 12th, 2024:
+# Up to date as of Monday, Jan. 7th, 2025:
 PYTHON_VERSION=3.13
 NUMPY_VERSION=2.2.1
 KEOPS_VERSION=2.2.3
