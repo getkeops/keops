@@ -195,6 +195,8 @@ FROM keops-doc as keops-full
 # it relies on binaries that often lag behind new PyTorch releases
 # by a few days/weeks.
 ARG PYTORCH_SCATTER_VERSION
-RUN /opt/conda/bin/conda install -y -c pyg \
-    pytorch-scatter==${PYTORCH_SCATTER_VERSION} && \
-    /opt/conda/bin/conda clean -ya
+RUN /opt/conda/bin/pip install torch-scatter -f ${PYTORCH_SCATTER_VERSION}
+
+#RUN /opt/conda/bin/conda install -y -c pyg \
+#    pytorch-scatter==${PYTORCH_SCATTER_VERSION} && \
+#    /opt/conda/bin/conda clean -ya
