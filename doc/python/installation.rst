@@ -269,6 +269,17 @@ let you perform an in-depth test of the entire KeOps codebase.
 Troubleshooting
 ===============
 
+KeOps health check
+------------------
+
+To get a general overview of your KeOps installation (along with any related issues), including relevant paths, environments, compilation flags, and more, it’s recommended to run the :func:``pykeops.check_health <pykeops.check_health>`` function. Simply type the following in a Python shell:
+
+.. code-block:: python
+
+  import pykeops
+  pykeops.check_health()
+
+
 Compilation issues
 ------------------
 
@@ -315,19 +326,9 @@ You can deactivate all messages and warnings by setting the environment variable
   export PYKEOPS_VERBOSE=0
   python my_script_calling_pykeops.py
 
-Alternatively, you can disable verbose compilation from your python script using the function ``pykeops.set_verbose``. In a python shell, type:
+Alternatively, you can disable verbose compilation from your python script using the function ``pykeops.set_verbose()``. In a python shell, type:
 
 .. code-block:: python
 
   import pykeops
   pykeops.set_verbose(False)
-
-KeOps health check
----------------
-
-To get a general overview of your **KeOps** install (and any related issues), with the relevant paths, environments, compilation flags, ... It is a good idea to run the ``pykeops.check_health`` function. In a Python shell, just type:
-
-.. code-block:: python
-
-  import pykeops
-  pykeops.check_health()
