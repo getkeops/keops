@@ -270,7 +270,7 @@ def infinity(dtype):
         code = "( 1.0/0.0 )"
     else:
         KeOps_Error(
-            "only float and double dtypes are implemented in new python engine for now"
+            "Using infinity in formula currently only works with float and double dtypes."
         )
     return c_variable(dtype, code)
 
