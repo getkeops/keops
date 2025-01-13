@@ -219,14 +219,43 @@ class Config:
         """Print the compile options."""
         print(f"Compile Options: {self.compile_options}")
 
+    def get_brew_prefix():
+        """Get Homebrew prefix path using KeOps_OS_Run."""
+        import platform
+        if platform.system() != "Darwin":
+            return None
+    
+        out = KeOps_OS_Run("brew --prefix")
+        if isinstance(out, subprocess.CompletedProcess):
+            return out.stdout.decode().strip()
+        return None
+
     def set_cpp_flags(self):
         """Set the C++ compiler flags."""
         self.cpp_flags = f"{self.cpp_env_flags} {self.compile_options}"
         self.cpp_flags += f" -I{self.base_dir_path}/include"
+        
         self.cpp_flags += f" -I{self.bindings_source_dir}"
 
-        # Specific check for M1/M2 Mac chips
-        if platform.system() == "Darwin" and platform.machine() == "arm64":
+        # # Detect if using Apple Clang
+        # is_apple_clang = False
+        # if platform.system() == "Darwin":
+        #     compiler_info = subprocess.check_output(['c++', '--version']).decode()
+        #     is_apple_clang = 'Apple clang' in compiler_info
+
+        # Add OpenMP flags based on compiler
+        if is_apple_clang:
+            # For Apple Clang, need to specify OpenMP library location
+            brew_prefix = self.get_brew_prefix()
+            self.cpp_flags += f" -Xpreprocessor -fopenmp"
+            self.cpp_flags += f" -I{brew_prefix}/opt/libomp/include"
+            self.cpp_flags += f" -L{brew_prefix}/opt/libomp/lib"
+        else:
+            # For GCC and other compilers
+            self.cpp_flags += " -fopenmp"
+
+        # Specific check for Apple Silicon chips
+        if platform.system() == "Darwin" and platform.machine() in ["arm64", "arm64e"]:
             self.cpp_flags += " -arch arm64"
 
         if platform.system() == "Darwin":

@@ -272,7 +272,7 @@ Troubleshooting
 KeOps health check
 ------------------
 
-To get a general overview of your KeOps installation (along with any related issues), including relevant paths, environments, compilation flags, and more, it’s recommended to run the :func:``pykeops.check_health <pykeops.check_health>`` function. Simply type the following in a Python shell:
+To get a general overview of your KeOps installation (along with any related issues), including relevant paths, environments, compilation flags, and more, it’s recommended to run the :func:`check_health() <pykeops.check_health>` function. Simply type the following in a Python shell:
 
 .. code-block:: python
 
