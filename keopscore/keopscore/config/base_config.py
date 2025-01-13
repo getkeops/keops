@@ -6,8 +6,7 @@ import shutil
 import subprocess
 from pathlib import Path
 import keopscore
-from keopscore.utils.misc_utils import KeOps_Warning
-
+from keopscore.utils.misc_utils import KeOps_Warning, KeOps_OS_Run
 
 class Config:
     """
@@ -219,15 +218,30 @@ class Config:
         """Print the compile options."""
         print(f"Compile Options: {self.compile_options}")
 
-    def get_brew_prefix():
-        """Get Homebrew prefix path using KeOps_OS_Run."""
-        import platform
+    def get_brew_prefix(self):
+        """Get Homebrew prefix path using KeOps_OS_Run"""
         if platform.system() != "Darwin":
             return None
-    
-        out = KeOps_OS_Run("brew --prefix")
-        if isinstance(out, subprocess.CompletedProcess):
-            return out.stdout.decode().strip()
+        
+        # Redirect brew --prefix to a temporary file
+        tmp_file = "/tmp/brew_prefix.txt"
+        
+        # brew --prefix > /tmp/brew_prefix.txt
+        # We use shell redirection so the output ends up in the file
+        KeOps_OS_Run(f"brew --prefix > {tmp_file}")
+        
+        # Now read the file if it was created
+        if os.path.exists(tmp_file):
+            with open(tmp_file, "r") as f:
+                prefix = f.read().strip()
+            
+            # Optional: Clean up
+            os.remove(tmp_file)
+            
+            # Return the prefix if it's non-empty
+            return prefix if prefix else None
+        
+        # If file doesn't exist or is empty, return None
         return None
 
     def set_cpp_flags(self):
