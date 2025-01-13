@@ -237,11 +237,11 @@ class Config:
         
         self.cpp_flags += f" -I{self.bindings_source_dir}"
 
-        # # Detect if using Apple Clang
-        # is_apple_clang = False
-        # if platform.system() == "Darwin":
-        #     compiler_info = subprocess.check_output(['c++', '--version']).decode()
-        #     is_apple_clang = 'Apple clang' in compiler_info
+        # Detect if using Apple Clang
+        is_apple_clang = False
+        if platform.system() == "Darwin":
+            compiler_info = subprocess.check_output(['c++', '--version']).decode()
+            is_apple_clang = 'Apple clang' in compiler_info
 
         # Add OpenMP flags based on compiler
         if is_apple_clang:
