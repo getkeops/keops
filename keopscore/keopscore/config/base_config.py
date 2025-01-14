@@ -3,7 +3,6 @@ from os.path import join
 import platform
 import sys
 import shutil
-import subprocess
 from pathlib import Path
 import keopscore
 from keopscore.utils.misc_utils import KeOps_Warning, KeOps_OS_Run
@@ -244,22 +243,34 @@ class Config:
         # If file doesn't exist or is empty, return None
         return None
 
+    def get_use_Apple_clang(self):
+        """Detect if using Apple Clang."""
+        is_apple_clang = False
+        if platform.system() == "Darwin":
+            tmp_file = "/tmp/compiler_version.txt"
+            # Run "c++ --version" and write output to /tmp/compiler_version.txt
+            KeOps_OS_Run(f"c++ --version > {tmp_file}")
+
+            # Now read the file
+            if os.path.exists(tmp_file):
+                with open(tmp_file, "r") as f:
+                    compiler_info = f.read()
+                os.remove(tmp_file)
+
+                # Check if 'Apple clang' appears in the output
+                is_apple_clang = "Apple clang" in compiler_info
+        return is_apple_clang
+
+
     def set_cpp_flags(self):
         """Set the C++ compiler flags."""
         self.cpp_flags = f"{self.cpp_env_flags} {self.compile_options}"
         self.cpp_flags += f" -I{self.base_dir_path}/include"
-        
         self.cpp_flags += f" -I{self.bindings_source_dir}"
 
-        # Detect if using Apple Clang
-        is_apple_clang = False
-        if platform.system() == "Darwin":
-            compiler_info = subprocess.check_output(['c++', '--version']).decode()
-            is_apple_clang = 'Apple clang' in compiler_info
-
         # Add OpenMP flags based on compiler
-        if is_apple_clang:
-            # For Apple Clang, need to specify OpenMP library location
+        if self.get_use_Apple_clang():
+            # For Apple Clang, you need to specify OpenMP library location
             brew_prefix = self.get_brew_prefix()
             self.cpp_flags += f" -Xpreprocessor -fopenmp"
             self.cpp_flags += f" -I{brew_prefix}/opt/libomp/include"

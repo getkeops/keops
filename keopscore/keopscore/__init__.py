@@ -11,7 +11,6 @@ here = path.abspath(path.dirname(__file__))
 with open(os.path.join(here, "keops_version"), encoding="utf-8") as v:
     __version__ = v.read().rstrip()
 
-# from keopscore.config.base_config import set_build_folder, get_build_folder  ## pas de setteurs et getters dans les fichiers
 from keopscore.config import *
 from keopscore.utils.code_gen_utils import clean_keops
 from keopscore.utils.code_gen_utils import check_health

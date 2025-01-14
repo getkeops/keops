@@ -47,6 +47,10 @@ if cuda_config.get_use_cuda():
 
 
 def clean_pykeops(recompile_jit_binaries=True):
+    r"""This function cleans the KeOps cache and recompiles the JIT binaries if necessary.
+
+    Returns:
+         None"""
     import pykeops
 
     keopscore.clean_keops(recompile_jit_binary=recompile_jit_binaries)
@@ -58,6 +62,12 @@ def clean_pykeops(recompile_jit_binaries=True):
 
 
 def check_health():
+    r"""Runs a complete sanity check of the KeOps installation within your system.
+    This function verifies the setup and configuration of KeOps,
+    including compilation flags, paths, ....
+
+    Returns:
+        None"""
     import pykeops
 
     keopscore.check_health()

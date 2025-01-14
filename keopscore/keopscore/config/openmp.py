@@ -50,6 +50,7 @@ class OpenMPConfig:
         status = "Enabled ✅" if self._use_OpenMP else "Disabled ❌"
         print(f"OpenMP Support: {status}")
 
+
     def check_compiler_for_openmp(self):
         if not self.cxx_compiler:
             KeOps_Warning("No C++ compiler available to check for OpenMP support.")
@@ -75,6 +76,7 @@ class OpenMPConfig:
             test_file + ".out",
         ]
         try:
+            # Compile the test program (using subprocess.check_output to capture stderr)
             subprocess.check_output(compile_command, stderr=subprocess.STDOUT)
             os.remove(test_file)
             os.remove(test_file + ".out")
@@ -82,6 +84,7 @@ class OpenMPConfig:
         except subprocess.CalledProcessError:
             os.remove(test_file)
             return False
+
 
     def check_openmp_libraries(self):
         if self.os.startswith("Linux"):
