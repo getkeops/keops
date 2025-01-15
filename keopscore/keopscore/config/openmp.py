@@ -7,6 +7,7 @@ from ctypes.util import find_library
 
 from keopscore.utils.misc_utils import KeOps_Warning
 from keopscore.utils.misc_utils import KeOps_OS_Run
+from keopscore.utils.misc_utils import CHECK_MARK, CROSS_MARK
 
 
 class OpenMPConfig:
@@ -50,7 +51,6 @@ class OpenMPConfig:
         status = "Enabled ✅" if self._use_OpenMP else "Disabled ❌"
         print(f"OpenMP Support: {status}")
 
-
     def check_compiler_for_openmp(self):
         if not self.cxx_compiler:
             KeOps_Warning("No C++ compiler available to check for OpenMP support.")
@@ -85,7 +85,6 @@ class OpenMPConfig:
             os.remove(test_file)
             return False
 
-
     def check_openmp_libraries(self):
         if self.os.startswith("Linux"):
             openmp_lib = find_library("gomp")
@@ -111,12 +110,8 @@ class OpenMPConfig:
         """
         Print all OpenMP-related configuration and system health status.
         """
-        # Define status indicators
-        check_mark = "✅"
-        cross_mark = "❌"
-
         # OpenMP Support
-        openmp_status = check_mark if self.get_use_OpenMP() else cross_mark
+        openmp_status = CHECK_MARK if self.get_use_OpenMP() else CROSS_MARK
         print(f"\nOpenMP Support")
         print("-" * 60)
         self.print_use_OpenMP()
@@ -130,10 +125,10 @@ class OpenMPConfig:
             print(f"C++ Compiler: {self.cxx_compiler}")
             if not compiler_path:
                 print(
-                    f"Compiler '{self.cxx_compiler}' not found on the system.{cross_mark}"
+                    f"Compiler '{self.cxx_compiler}' not found on the system.{CROSS_MARK}"
                 )
         else:
-            print(f"OpenMP support is disabled or not available.{cross_mark}")
+            print(f"OpenMP support is disabled or not available.{CROSS_MARK}")
         # Print relevant environment variables.
         print("\nRelevant Environment Variables:")
         env_vars = [

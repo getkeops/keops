@@ -137,3 +137,8 @@ def pack_header(filename, origin_folder, target_folder):
             used_headers.append(header)
         code = code[: match.start()] + code_to_insert + code[match.end() :]
     string_to_file(code, join(target_folder, filename))
+
+
+# Factoring the check/cross marks used in the config classes prints
+CHECK_MARK = "✅"
+CROSS_MARK = "❌"

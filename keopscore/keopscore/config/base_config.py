@@ -6,6 +6,8 @@ import shutil
 from pathlib import Path
 import keopscore
 from keopscore.utils.misc_utils import KeOps_Warning, KeOps_OS_Run
+from keopscore.utils.misc_utils import CHECK_MARK, CROSS_MARK
+
 
 class Config:
     """
@@ -221,25 +223,25 @@ class Config:
         """Get Homebrew prefix path using KeOps_OS_Run"""
         if platform.system() != "Darwin":
             return None
-        
+
         # Redirect brew --prefix to a temporary file
         tmp_file = "/tmp/brew_prefix.txt"
-        
+
         # brew --prefix > /tmp/brew_prefix.txt
         # We use shell redirection so the output ends up in the file
         KeOps_OS_Run(f"brew --prefix > {tmp_file}")
-        
+
         # Now read the file if it was created
         if os.path.exists(tmp_file):
             with open(tmp_file, "r") as f:
                 prefix = f.read().strip()
-            
+
             # Optional: Clean up
             os.remove(tmp_file)
-            
+
             # Return the prefix if it's non-empty
             return prefix if prefix else None
-        
+
         # If file doesn't exist or is empty, return None
         return None
 
@@ -260,7 +262,6 @@ class Config:
                 # Check if 'Apple clang' appears in the output
                 is_apple_clang = "Apple clang" in compiler_info
         return is_apple_clang
-
 
     def set_cpp_flags(self):
         """Set the C++ compiler flags."""
@@ -387,9 +388,6 @@ class Config:
         """
         Print all base configuration
         """
-        # Define status indicators
-        check_mark = "✅"
-        cross_mark = "❌"
 
         # Base Configuration
         print(f"\nBase Configuration")
@@ -398,18 +396,18 @@ class Config:
         # Base Directory Path
         base_dir_path = self.get_base_dir_path()
         base_dir_status = (
-            check_mark
+            CHECK_MARK
             if base_dir_path and os.path.exists(base_dir_path)
-            else cross_mark
+            else CROSS_MARK
         )
         print(f"Base Directory Path: {base_dir_path or 'Not Found'} {base_dir_status}")
 
         # Bindings Source Directory
         bindings_source_dir = self.get_bindings_source_dir()
         bindings_source_dir_status = (
-            check_mark
+            CHECK_MARK
             if bindings_source_dir and os.path.exists(bindings_source_dir)
-            else cross_mark
+            else CROSS_MARK
         )
         print(
             f"Bindings Source Directory: {bindings_source_dir or 'Not Found'} {bindings_source_dir_status}"
@@ -418,9 +416,9 @@ class Config:
         # KeOps Cache Folder
         keops_cache_folder = self.get_keops_cache_folder()
         keops_cache_folder_status = (
-            check_mark
+            CHECK_MARK
             if keops_cache_folder and os.path.exists(keops_cache_folder)
-            else cross_mark
+            else CROSS_MARK
         )
         print(
             f"KeOps Cache Folder: {keops_cache_folder or 'Not Found'} {keops_cache_folder_status}"
@@ -433,9 +431,9 @@ class Config:
         # Default Build Path
         default_build_path = self.get_default_build_path()
         default_build_path_status = (
-            check_mark
+            CHECK_MARK
             if default_build_path and os.path.exists(default_build_path)
-            else cross_mark
+            else CROSS_MARK
         )
         print(
             f"Default Build Path: {default_build_path or 'Not Found'} {default_build_path_status}"
@@ -444,13 +442,13 @@ class Config:
         # JIT Binary Path
         jit_binary = self.get_jit_binary()
         jit_binary_status = (
-            check_mark if jit_binary and os.path.exists(jit_binary) else cross_mark
+            CHECK_MARK if jit_binary and os.path.exists(jit_binary) else CROSS_MARK
         )
         print(f"JIT Binary Path: {jit_binary or 'Not Found'} {jit_binary_status}")
 
         # Disable Pragma Unrolls
         disable_pragma_unrolls = self.get_disable_pragma_unrolls()
-        disable_status = check_mark if disable_pragma_unrolls else cross_mark
+        disable_status = CHECK_MARK if disable_pragma_unrolls else CROSS_MARK
         status_text = "Enabled" if disable_pragma_unrolls else "Disabled"
         print(f"Disable Pragma Unrolls: {status_text} {disable_status}")
 

@@ -12,8 +12,12 @@ torch_found = importlib.util.find_spec("torch") is not None
 import keopscore
 from keopscore.config import *
 
-gpu_available = cuda_config.get_use_cuda()
-get_build_folder = config.get_build_folder
+pykeops_cuda = cuda_config
+pykeops_openmp = openmp_config
+pykeops_base = config
+
+get_build_folder = pykeops_base.get_build_folder
+gpu_available = pykeops_cuda.get_use_cuda()
 
 
 def pykeops_nvrtc_name(type="src"):
@@ -23,7 +27,7 @@ def pykeops_nvrtc_name(type="src"):
         (
             join(dirname(realpath(__file__)), "common", "keops_io")
             if type == "src"
-            else get_build_folder()
+            else config.get_build_folder()
         ),
         basename + extension,
     )
@@ -32,7 +36,7 @@ def pykeops_nvrtc_name(type="src"):
 def pykeops_cpp_name(tag="", extension=""):
     basename = "pykeops_cpp_"
     return join(
-        get_build_folder(),
+        config.get_build_folder(),
         basename + tag + extension,
     )
 

@@ -1,7 +1,7 @@
-Utilities
+Tests
 ---------
 
-This section contains the full API documentation for the PyKeOps utilities.
+This section contains the full PyTorch API documentation for the PyKeOps bindings tests.
 
 .. rubric:: Summary
 
@@ -12,10 +12,8 @@ This section documents the general-purpose utilities available in PyKeOps.
 .. autosummary::
     :nosignatures:
 
-    check_health
-    clean_keops
+    test_torch_bindings
 
 .. rubric:: Syntax
 
-.. autofunction:: check_health
-.. autofunction:: clean_keops
+.. autofunction:: test_torch_bindings

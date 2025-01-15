@@ -10,4 +10,4 @@ Numpy API
     KernelSolve
     GenericOps
     Cluster
-    pykeops.test_numpy_bindings
+    Tests

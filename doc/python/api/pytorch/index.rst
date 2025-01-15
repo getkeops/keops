@@ -10,4 +10,4 @@ PyTorch API
     GenericOps
     KernelSolve
     Cluster
-    pykeops.test_torch_bindings
+    Tests

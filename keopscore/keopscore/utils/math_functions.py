@@ -8,8 +8,6 @@ from keopscore.utils.misc_utils import KeOps_Error
 import keopscore
 from keopscore.config import *
 
-# import keopscore.config.config
-
 
 def math_function(
     cpu_code, gpu_code=None, gpu_half2_code=None, gpu_float_code=None, void=False

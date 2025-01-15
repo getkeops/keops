@@ -10,12 +10,9 @@ from keopscore.utils.misc_utils import (
     KeOps_OS_Run,
 )
 
-# from keopscore.config.config import cxx_compiler, get_build_folder
 import keopscore
 from keopscore.config import *
 
-cxx_compiler = config.get_cxx_compiler()
-get_build_folder = config.get_build_folder()
 import os
 from os.path import join
 
@@ -104,9 +101,9 @@ def get_cuda_include_path():
 
 
 def get_include_file_abspath(filename):
-    tmp_file = tempfile.NamedTemporaryFile(dir=get_build_folder).name
+    tmp_file = tempfile.NamedTemporaryFile(dir=config.get_build_folder()).name
     KeOps_OS_Run(
-        f'echo "#include <{filename}>" | {cxx_compiler} -M -E -x c++ - | head -n 2 > {tmp_file}'
+        f'echo "#include <{filename}>" | {config.cxx_compiler()} -M -E -x c++ - | head -n 2 > {tmp_file}'
     )
     strings = open(tmp_file).read().split()
     abspath = None
@@ -150,7 +147,7 @@ def custom_cuda_include_fp16_path():
     """
     from keopscore.utils.misc_utils import pack_header
 
-    build_folder = get_build_folder
+    build_folder = config.get_build_folder()
     fp16_header = "cuda_fp16.h"
     fp16_header_path = join(build_folder, fp16_header)
     if not os.path.isfile(fp16_header_path):

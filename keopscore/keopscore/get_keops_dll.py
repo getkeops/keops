@@ -55,9 +55,6 @@ import sys
 import keopscore
 from keopscore.config import *
 
-# config = get_config()
-# print(type(config))
-get_build_folder = config.get_build_folder
 import keopscore.mapreduce
 from keopscore import cuda_block_size
 from keopscore.config.chunks import (
@@ -165,7 +162,7 @@ def get_keops_dll_impl(
 get_keops_dll = Cache(
     get_keops_dll_impl,
     use_cache_file=True,
-    save_folder=get_build_folder(),
+    save_folder=config.get_build_folder(),
 )
 
 

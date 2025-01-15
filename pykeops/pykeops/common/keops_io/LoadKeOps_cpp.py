@@ -1,11 +1,9 @@
 import os
 import sysconfig
 
-# import keopscore.config.config
-import keopscore
-from keopscore.config import *
+import pykeops.config as pykeopsconfig
 
-get_build_folder = config.get_build_folder
+get_build_folder = pykeopsconfig.pykeops_base.get_build_folder
 
 from keopscore.utils.Cache import Cache_partial
 from pykeops.common.keops_io.LoadKeOps import LoadKeOps
@@ -29,7 +27,7 @@ class LoadKeOps_cpp_class(LoadKeOps):
             f = open(srcname, "w")
             f.write(self.get_pybind11_code())
             f.close()
-            compile_command = f"{config.get_cxx_compiler()} {config.get_cpp_flags()} {python_includes} {srcname} -o {dllname}"
+            compile_command = f"{pykeopsconfig.pykeops_base.get_cxx_compiler()} {pykeopsconfig.pykeops_base.get_cpp_flags()} {python_includes} {srcname} -o {dllname}"
             pyKeOps_Message(
                 "Compiling pykeops cpp " + self.params.tag + " module ... ",
                 flush=True,

@@ -235,7 +235,7 @@ Testing your installation
 
 You can use the following test functions to compile and run simple KeOps formulas. If the compilation fails, it returns the full log.
 
-1.  In a python terminal, 
+1.  In a python terminal, run :func:`pykeops.test_numpy_bindings <pykeops.test_numpy_bindings>`.
 
   .. code-block:: python
 
@@ -248,7 +248,7 @@ You can use the following test functions to compile and run simple KeOps formula
 
     pyKeOps with numpy bindings is working!
 
-2. If you use PyTorch, the following code:
+2. If you use PyTorch, run :func:`pykeops.test_torch_bindings <pykeops.test_torch_bindings>`.
 
   .. code-block:: python
 
@@ -272,7 +272,7 @@ Troubleshooting
 KeOps health check
 ------------------
 
-To get a general overview of your KeOps installation (along with any related issues), including relevant paths, environments, compilation flags, and more, it’s recommended to run the :func:`pykeops.check_health <pykeops.check_health>` function. Simply type the following in a Python shell:
+To get an overview of your KeOps installation (along with any related issues), including relevant paths, environments, compilation flags, and more, it’s recommended to run the :func:`pykeops.check_health <pykeops.check_health>` function. Simply type the following in a Python shell:
 
 .. code-block:: python
 

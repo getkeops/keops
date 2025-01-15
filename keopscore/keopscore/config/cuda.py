@@ -12,6 +12,7 @@ import sys
 import keopscore
 from keopscore.utils.misc_utils import KeOps_Warning
 from keopscore.utils.misc_utils import KeOps_OS_Run
+from keopscore.utils.misc_utils import CHECK_MARK, CROSS_MARK
 
 
 class CUDAConfig:
@@ -34,6 +35,7 @@ class CUDAConfig:
     gpu_compile_flags = ""
     cuda_message = ""
     specific_gpus = None
+    cuda_block_size = None
 
     def __init__(self):
         super().__init__()
@@ -46,6 +48,7 @@ class CUDAConfig:
         self.set_libcuda_folder()
         self.set_libnvrtc_folder()
         self.set_nvrtc_flags()
+        self.set_cuda_block_size()
 
     def set_use_cuda(self):
         """Determine and set whether to use CUDA."""
@@ -67,6 +70,16 @@ class CUDAConfig:
     def print_use_cuda(self):
         status = "Enabled ✅" if self._use_cuda else "Disabled ❌"
         print(f"CUDA Support: {status}")
+
+    def set_cuda_block_size(self, cuda_block_size=192):
+        """Sets default cuda block size."""
+        self.cuda_block_size = cuda_block_size
+
+    def get_cuda_block_size(self):
+        return self.cuda_block_size
+
+    def print_cuda_block_size(self):
+        print(f"CUDA Block Size: {self.cuda_block_size}")
 
     def set_specific_gpus(self):
         """Set specific GPUs from CUDA_VISIBLE_DEVICES."""
@@ -404,12 +417,9 @@ class CUDAConfig:
         """
         Print all CUDA-related configuration and system health status.
         """
-        # Define status indicators
-        check_mark = "✅"
-        cross_mark = "❌"
 
         # CUDA Support
-        cuda_status = check_mark if self.get_use_cuda() else cross_mark
+        cuda_status = CHECK_MARK if self.get_use_cuda() else CROSS_MARK
         print(f"\nCUDA Support")
         print("-" * 60)
         self.print_use_cuda()

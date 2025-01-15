@@ -14,6 +14,7 @@ with open(os.path.join(here, "keops_version"), encoding="utf-8") as v:
 from keopscore.config import *
 from keopscore.utils.code_gen_utils import clean_keops
 from keopscore.utils.code_gen_utils import check_health
+from keopscore.utils.misc_utils import CHECK_MARK, CROSS_MARK
 
 # flags for debugging :
 # prints information about atomic operations during code building
@@ -24,8 +25,6 @@ debug_ops_at_exec = False
 
 # flag for automatic factorization : apply automatic factorization for all formulas before reduction.
 auto_factorize = False
-
-cuda_block_size = 192
 
 # Initialize CUDA libraries if CUDA is used
 if cuda_config.get_use_cuda():
@@ -40,7 +39,8 @@ if cuda_config.get_use_cuda():
 
 # Retrieve the current build folder
 build_folder = config.get_build_folder()
-from keopscore.config import cuda_config
 
+# Retrieve details about the current CUDA configuration
 show_gpu_config = cuda_config
 show_cuda_status = cuda_config.get_use_cuda()
+cuda_block_size = cuda_config.get_cuda_block_size()
