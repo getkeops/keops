@@ -1,4 +1,5 @@
 import os
+import keopscore
 
 ##############################################################
 # Verbosity level (we must do this before importing keopscore)
