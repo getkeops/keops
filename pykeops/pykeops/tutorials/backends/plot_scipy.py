@@ -371,7 +371,7 @@ K = aslinearoperator(K_xx)
 
 D = K @ np.ones(N, dtype=dtype)  # Sum along the lines of the adjacency matrix
 D_2 = aslinearoperator(diags(1 / np.sqrt(D)))
-L_norm = IdentityOperator((N, N)) - D_2 @ K @ D_2
+L_norm = aslinearoperator(diags(np.ones_like(D))) - D_2 @ K @ D_2
 L_norm.dtype = np.dtype(
     dtype
 )  # Scipy Bugfix: by default, "-" removes the dtype information...
