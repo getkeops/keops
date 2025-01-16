@@ -12,7 +12,7 @@ torch_found = importlib.util.find_spec("torch") is not None
 import keopscore
 from keopscore.config import *
 
-pykeops_cuda = cuda_config
+pykeops_cuda = cuda_config # TODO: add relevant comments here
 pykeops_openmp = openmp_config
 pykeops_base = config
 
