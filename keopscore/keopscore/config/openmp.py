@@ -84,7 +84,7 @@ class OpenMPConfig:
         except subprocess.CalledProcessError:
             os.remove(test_file)
             return False
-        
+
     def get_brew_prefix(self):
         """Get Homebrew prefix path using KeOps_OS_Run"""
         if platform.system() != "Darwin":
@@ -126,7 +126,9 @@ class OpenMPConfig:
             openmp_path = f"{brew_prefix}/opt/libomp/lib/libomp.dylib"
             openmp_lib = openmp_path if os.path.exists(openmp_path) else None
             if not openmp_lib:
-                KeOps_Warning("OpenMP library not found, it must be downloaded through Homebrew for apple Silicon chips")
+                KeOps_Warning(
+                    "OpenMP library not found, it must be downloaded through Homebrew for apple Silicon chips"
+                )
                 return False
             else:
                 self.openmp_lib_path = openmp_lib
@@ -177,5 +179,3 @@ class OpenMPConfig:
                 print(f"{var} = {value}")
             else:
                 print(f"{var} is not set")
-
-            

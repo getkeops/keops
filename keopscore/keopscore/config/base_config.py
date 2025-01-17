@@ -279,7 +279,7 @@ class Config:
         else:
             # For GCC and other compilers
             self.cpp_flags += " -fopenmp"
-        
+
         # Specific check for Apple Silicon chips
         if platform.system() == "Darwin" and platform.machine() in ["arm64", "arm64e"]:
             self.cpp_flags += " -arch arm64"

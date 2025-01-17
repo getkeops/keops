@@ -46,7 +46,6 @@ def complete_aliases(formula, aliases):
 
 
 def get_sizes(aliases, *args):
-    print('This is the version with the bug')
     nx, ny = None, None
     for var_ind, sig in enumerate(aliases):
         _, cat, dim, pos = get_type(sig, position_in_list=var_ind)
@@ -67,8 +66,6 @@ def get_sizes(aliases, *args):
         ny = 1
 
     return nx, ny
-
-
 
 
 def get_type(type_str, position_in_list=None):

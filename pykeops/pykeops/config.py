@@ -13,7 +13,7 @@ import keopscore
 from keopscore.config import *
 
 # Instantiating the keopscore.config main classes for pykeops
-pykeops_cuda = cuda_config 
+pykeops_cuda = cuda_config
 pykeops_openmp = openmp_config
 pykeops_base = config
 
