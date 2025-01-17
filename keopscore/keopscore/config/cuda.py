@@ -182,7 +182,7 @@ class CUDAConfig:
             lib_handle = CDLL(res)
             libdl = CDLL(find_library("dl"))
         except OSError as e:
-            KeOps_Warning(f"Failed to load library {lib}: {e}")
+            KeOps_Warning(f"Failed to load library {lib}: {e}. Switching to CPU only.")
             return ""
 
         dlinfo = libdl.dlinfo
@@ -327,7 +327,13 @@ class CUDAConfig:
             return test
 
         # Attempt to load the CUDA driver library
-        libcuda = ctypes.CDLL(find_library("cuda"))
+        try:
+            libcuda = ctypes.CDLL(find_library("cuda"))
+        except OSError as e:
+            KeOps_Warning(f"Failed to load library cuda: {e}. Switching to CPU only.")
+            self.n_gpus = 0
+            self.gpu_compile_flags = ""
+            return self.n_gpus, self.gpu_compile_flags
         if not libcuda:
             KeOps_Warning("cuda library not found. Switching to CPU only.")
             self.n_gpus = 0
