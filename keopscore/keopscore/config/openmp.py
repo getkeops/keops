@@ -123,7 +123,7 @@ class OpenMPConfig:
         # Specific check for M1/M2/M3 apple Silicon chips
         elif self.os.startswith("Darwin") and platform.machine() in ["arm64", "arm64e"]:
             brew_prefix = self.get_brew_prefix()
-            openmp_path = "{brew_prefix}/opt/libomp/lib/libmop.dylib"
+            openmp_path = f"{brew_prefix}/opt/libomp/lib/libomp.dylib"
             openmp_lib = openmp_path if os.path.exists(openmp_path) else None
             if not openmp_lib:
                 KeOps_Warning("OpenMP library not found, it must be downloaded through Homebrew for apple Silicon chips")
