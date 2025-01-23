@@ -15,6 +15,8 @@
 # --tag getkeops/keops:2.1-geomloss0.2.5-cuda11.3-pytorch1.11-full \
 # --no-cache .
 
+ARG NUMPY_VERSION=1.26.4
+
 # KeOps version - the most important parameter:
 ARG KEOPS_VERSION=2.2
 # We also include all the libraries hosted on www.kernel-operations.io,
@@ -26,7 +28,7 @@ ARG GEOMLOSS_VERSION=0.2.5
 
 
 # Base OS:
-ARG BASE_IMAGE=ubuntu:22.04
+ARG BASE_IMAGE=ubuntu:24.04
 # Useful to test support across Python versions:
 ARG PYTHON_VERSION=3.10
 
@@ -113,7 +115,7 @@ RUN curl -fsSL -v -o ~/miniconda.sh -O  https://repo.anaconda.com/miniconda/Mini
     /opt/conda/bin/conda install -y python=${PYTHON_VERSION} \
         conda-build \
         pyyaml \
-        numpy \
+        numpy=${NUMPY_VERSION} \
         ipython \
         matplotlib \
         ipykernel && \
@@ -188,11 +190,13 @@ RUN /opt/conda/bin/pip install -r doc-requirements.txt
 
 
 # Super-full environment with optional dependencies:
-FROM keops-doc as keops-full
+FROM keops-doc AS keops-full
 # PyTorch-scatter is a complex dependency:
 # it relies on binaries that often lag behind new PyTorch releases
 # by a few days/weeks.
 ARG PYTORCH_SCATTER_VERSION
-RUN /opt/conda/bin/conda install -y -c pyg \
-    pytorch-scatter==${PYTORCH_SCATTER_VERSION} && \
-    /opt/conda/bin/conda clean -ya
+RUN /opt/conda/bin/pip install torch-scatter -f ${PYTORCH_SCATTER_VERSION}
+
+#RUN /opt/conda/bin/conda install -y -c pyg \
+#    pytorch-scatter==${PYTORCH_SCATTER_VERSION} && \
+#    /opt/conda/bin/conda clean -ya
