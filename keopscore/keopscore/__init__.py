@@ -1,4 +1,4 @@
-import sys, os
+import os
 from os import path
 
 ###########################################################
@@ -12,8 +12,7 @@ with open(os.path.join(here, "keops_version"), encoding="utf-8") as v:
     __version__ = v.read().rstrip()
 
 from keopscore.config import *
-from keopscore.utils.code_gen_utils import clean_keops
-from keopscore.utils.code_gen_utils import check_health
+from keopscore.utils.code_gen_utils import clean_keops, check_health
 from keopscore.utils.misc_utils import CHECK_MARK, CROSS_MARK
 
 # flags for debugging :
