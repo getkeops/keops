@@ -57,7 +57,7 @@ def clean_pykeops(recompile_jit_binaries=True):
     keops_binder = pykeops.common.keops_io.keops_binder
     for key in keops_binder:
         keops_binder[key].reset()
-    if recompile_jit_binaries and cuda_config.get_use_cuda():
+    if recompile_jit_binaries and pykeopsconfig.pykeops_cuda.get_use_cuda():
         pykeops.common.keops_io.LoadKeOps_nvrtc.compile_jit_binary()
 
 
