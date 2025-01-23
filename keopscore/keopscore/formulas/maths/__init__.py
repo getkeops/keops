@@ -1,6 +1,6 @@
 from .Abs import Abs
 from .Acos import Acos
-from .Add import Add
+from .Add import Add, Add_Impl
 from .ArgMax import ArgMax
 from .ArgMin import ArgMin
 from .Asin import Asin
@@ -57,7 +57,7 @@ from .Square import Square
 from .Step import Step
 from .Subtract import Subtract
 from .Sum import Sum
-from .SumT import SumT
+from .SumT import SumT, SumT_Impl
 from .SymSqNorm import SymSqNorm
 from .TensorDot import TensorDot
 from .TensorProd import TensorProd
@@ -134,4 +134,14 @@ __all__ = [
     "WeightedSqDist",
     "WeightedSqNorm",
     "XLogX",
+    "Add_Impl",
+    "SumT_Impl",
+    "BSpline_Impl",
+    "Divide_Impl",
+    "Minus_Impl",
+    "Mult_Impl",
+    "Scalprod_Impl",
+    "Subtract_Impl",
+    "Sum_Impl",
+    "Square_Impl",
 ]
