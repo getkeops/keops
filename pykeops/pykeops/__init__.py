@@ -87,7 +87,7 @@ def set_build_folder(path=None):
     keops_binder = pykeops.common.keops_io.keops_binder
     for key in keops_binder:
         keops_binder[key].reset(new_save_folder=get_build_folder())
-    if cuda_config.get_use_cuda() and not os.path.exists(
+    if pykeopsconfig.pykeops_cuda.get_use_cuda() and not os.path.exists(
         pykeops.config.pykeops_nvrtc_name(type="target")
     ):
         pykeops.common.keops_io.LoadKeOps_nvrtc.compile_jit_binary()
