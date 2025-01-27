@@ -52,5 +52,10 @@ class ArgMin(Operation):
     enable_test = True  # enable testing for this operation
     nargs = 1  # number of arguments
     test_argdims = [5]  # dimensions of arguments for testing
-    torch_op = "lambda x : torch.argmin(x, dim=-1, keepdim=True).type(x.dtype)"
+
+    @staticmethod
+    def torch_op():
+        """equivalent torch operation"""
+        import torch
+        return lambda x : torch.argmin(x, dim=-1, keepdim=True).type(x.dtype)
     no_torch_grad = True

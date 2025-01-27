@@ -39,4 +39,8 @@ class Extract(Operation):
     nargs = 1  # number of arguments
     test_argdims = [10]  # dimensions of arguments for testing
     test_params = [3, 5]  # values of parameters for testing
-    torch_op = "lambda x,s,d : x[...,s:(s+d)]"  # equivalent PyTorch operation
+
+    @staticmethod
+    def torch_op():
+        """equivalent torch operation"""
+        return  lambda x,s,d : x[...,s:(s+d)]

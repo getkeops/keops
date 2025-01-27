@@ -22,6 +22,12 @@ class Mod(VectorizedScalarOp):
     # parameters for testing the operation (optional)
     nargs = 3  # number of arguments
 
+    @staticmethod
+    def torch_op():
+        """equivalent torch operation"""
+        import torch
+        return lambda x, n, d : x - n * torch.floor((x - d)/n)
+
 
 """
 # N.B. below is alternative definition as a simple alias.

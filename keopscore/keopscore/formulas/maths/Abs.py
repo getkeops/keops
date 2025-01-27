@@ -13,3 +13,9 @@ class Abs(VectorizedScalarOp):
     @staticmethod
     def Derivative(f):
         return Sign(f)
+
+    @staticmethod
+    def torch_op():
+        """equivalent torch operation"""
+        import torch
+        return torch.abs

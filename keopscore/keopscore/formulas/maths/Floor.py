@@ -12,3 +12,9 @@ class Floor(VectorizedScalarOp):
 
     def DiffT(self, v, gradin):
         return Zero(v.dim)
+
+    @staticmethod
+    def torch_op():
+        """equivalent torch operation"""
+        import torch
+        return torch.floor

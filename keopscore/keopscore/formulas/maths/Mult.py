@@ -39,8 +39,12 @@ class Mult_Impl(VectorizedScalarOp):
 
     # parameters for testing the operation (optional)
     nargs = 2  # number of arguments
-    torch_op = "torch.mul"  # equivalent PyTorch operation
 
+    @staticmethod
+    def torch_op():
+        """equivalent torch operation"""
+        import torch
+        return torch.mul
 
 # N.B. The following separate function should theoretically be implemented
 # as a __new__ method of the previous class, but this can generate infinite recursion problems

@@ -39,6 +39,12 @@ class Divide_Impl(VectorizedScalarOp):
     # parameters for testing the operation (optional)
     nargs = 2  # number of arguments
 
+    @staticmethod
+    def torch_op():
+        """equivalent torch operation"""
+        import torch
+        return torch.div
+
 
 # N.B. The following separate function should theoretically be implemented
 # as a __new__ method of the previous class, but this can generate infinite recursion problems

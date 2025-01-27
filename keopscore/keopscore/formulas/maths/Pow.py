@@ -28,7 +28,12 @@ class Pow_Impl(VectorizedScalarOp):
     nargs = 1  # number of arguments (excluding parameters)
     test_ranges = [(0, 2)]  # ranges of arguments
     test_params = [2]  # values of parameters for testing
-    torch_op = "lambda x,m : torch.pow(x, m)"
+
+    @staticmethod
+    def torch_op():
+        """equivalent torch operation"""
+        import torch
+        return lambda x, m: torch.pow(x, m)
 
 
 # N.B. The following separate function could theoretically be implemented

@@ -133,15 +133,9 @@ def perform_test(op_str, tol=1e-4, dtype="float32", verbose=True):
         #    app_str = f"number {k}" if len(args) > 1 else ""
         #    print(f"5 first values for gradient {app_str}:", *g[k].flatten()[:5].tolist())
 
-    if not hasattr(keops_op_class, "torch_op"):
-        torch_op_str = keops_op_class.string_id.lower()
-        if not torch_op_str in dir(torch):
-            return None
-        torch_op = "torch." + torch_op_str
-    else:
-        if keops_op_class.torch_op is None:
-            return None
-        torch_op = keops_op_class.torch_op
+    torch_op = keops_op_class.torch_op()
+    if torch_op is None:
+        return None
 
     if verbose:
         print("Comparing with PyTorch implementation ")
@@ -154,9 +148,6 @@ def perform_test(op_str, tol=1e-4, dtype="float32", verbose=True):
 
     ####################################################################
     # The equivalent code with a "vanilla" pytorch implementation
-
-    if isinstance(torch_op, str):
-        torch_op = eval(torch_op)
 
     c_torch = torch_op(*torch_args, *params).sum(dim=1)
     # err_op = torch.norm(c - c_torch).item() / torch.norm(c_torch).item()
@@ -198,4 +189,4 @@ def test_formula_maths(test_input, verbose=False):
 
 
 if __name__ == "__main__":
-    test_formula_maths("Add", verbose=True)
+    test_formula_maths("WeightedSqNorm", verbose=True)

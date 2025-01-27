@@ -35,6 +35,12 @@ class Sum_Impl(Chunkable_Op):
     def acc_chunk(self, acc, out):
         return f"*{acc.id} += *{out.id};\n"
 
+    @staticmethod
+    def torch_op():
+        """equivalent torch operation"""
+        import torch
+        return torch.sum
+
 
 # N.B. The following separate function should theoretically be implemented
 # as a __new__ method of the previous class, but this can generate infinite recursion problems

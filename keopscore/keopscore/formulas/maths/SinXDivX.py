@@ -16,3 +16,9 @@ class SinXDivX(VectorizedScalarOp):
     @staticmethod
     def Derivative(f):
         return Cos(f) / f - Sin(f) / f**2
+
+    @staticmethod
+    def torch_op():
+        """equivalent torch operation"""
+        import torch
+        return lambda x: torch.where(x == 0, 1., torch.sin(x) / x)
