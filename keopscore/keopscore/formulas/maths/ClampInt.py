@@ -28,4 +28,9 @@ class ClampInt(VectorizedScalarOp):
 
     # parameters for testing the operation (optional)
     test_params = [0, 1]  # parameters to try
-    torch_op = "torch.clamp"  # equivalent PyTorch operation
+
+    @staticmethod
+    def torch_op():
+        """equivalent torch operation"""
+        import torch
+        return torch.clamp

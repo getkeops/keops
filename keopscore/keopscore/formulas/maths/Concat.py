@@ -36,4 +36,3 @@ class Concat(Operation):
     enable_test = True  # enable testing for this operation
     nargs = 2  # number of arguments
     test_argdims = [5, 3]  # dimensions of arguments for testing
-    torch_op = None

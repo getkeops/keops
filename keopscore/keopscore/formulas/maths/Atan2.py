@@ -16,3 +16,10 @@ class Atan2(VectorizedScalarOp):
     def Derivative(f, g):
         r2 = f**2 + g**2
         return g / r2, -f / r2
+
+    @staticmethod
+    def torch_op():
+        """equivalent torch operation"""
+        import torch
+        return torch.atan2
+

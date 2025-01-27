@@ -20,4 +20,4 @@ class Clamp(VectorizedScalarOp):
 
     # parameters for testing the operation (optional)
     nargs = 3  # number of arguments
-    torch_op = None  # equivalent PyTorch operation
+
