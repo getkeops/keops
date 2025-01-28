@@ -21,4 +21,5 @@ class XLogX(VectorizedScalarOp):
     def torch_op():
         """equivalent torch operation"""
         import torch
-        return lambda x:x*torch.log(x)
+
+        return lambda x: x * torch.log(x)

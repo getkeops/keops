@@ -21,5 +21,5 @@ class Atan2(VectorizedScalarOp):
     def torch_op():
         """equivalent torch operation"""
         import torch
-        return torch.atan2
 
+        return torch.atan2

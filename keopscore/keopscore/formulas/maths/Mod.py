@@ -26,7 +26,8 @@ class Mod(VectorizedScalarOp):
     def torch_op():
         """equivalent torch operation"""
         import torch
-        return lambda x, n, d : x - n * torch.floor((x - d)/n)
+
+        return lambda x, n, d: x - n * torch.floor((x - d) / n)
 
 
 """

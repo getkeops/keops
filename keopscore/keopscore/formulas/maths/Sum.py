@@ -39,6 +39,7 @@ class Sum_Impl(Chunkable_Op):
     def torch_op():
         """equivalent torch operation"""
         import torch
+
         return torch.sum
 
 

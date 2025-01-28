@@ -33,6 +33,7 @@ class Pow_Impl(VectorizedScalarOp):
     def torch_op():
         """equivalent torch operation"""
         import torch
+
         return lambda x, m: torch.pow(x, m)
 
 

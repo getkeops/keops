@@ -41,7 +41,9 @@ class Add_Impl(VectorizedScalarOp):
     def torch_op():
         """equivalent torch operation"""
         import torch
+
         return torch.add
+
 
 # N.B. The following separate function could theoretically be implemented
 # as a __new__ method of the previous class, but this can generate infinite recursion problems

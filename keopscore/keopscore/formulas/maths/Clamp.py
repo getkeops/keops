@@ -20,4 +20,3 @@ class Clamp(VectorizedScalarOp):
 
     # parameters for testing the operation (optional)
     nargs = 3  # number of arguments
-

@@ -21,4 +21,5 @@ class SinXDivX(VectorizedScalarOp):
     def torch_op():
         """equivalent torch operation"""
         import torch
-        return lambda x: torch.where(x == 0, 1., torch.sin(x) / x)
+
+        return lambda x: torch.where(x == 0, 1.0, torch.sin(x) / x)

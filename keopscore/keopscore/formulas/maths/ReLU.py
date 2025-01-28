@@ -18,4 +18,5 @@ class ReLU(VectorizedScalarOp):
     def torch_op():
         """equivalent torch operation"""
         import torch
+
         return torch.relu

@@ -33,4 +33,5 @@ class Kron(Operation):
     def torch_op():
         """equivalent torch operation"""
         import torch
+
         return torch.kron

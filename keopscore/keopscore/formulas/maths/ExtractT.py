@@ -58,4 +58,5 @@ class ExtractT(Operation):
             out = torch.zeros((*x.shape[:-1], d), device=x.device, dtype=x.dtype)
             out[..., s : (s + x.shape[-1])] = x
             return out
+
         return _torch_op

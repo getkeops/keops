@@ -14,6 +14,7 @@ with open(os.path.join(here, "keops_version"), encoding="utf-8") as v:
 from keopscore.config import *
 from keopscore.utils.code_gen_utils import clean_keops, check_health
 from keopscore.utils.misc_utils import CHECK_MARK, CROSS_MARK
+
 set_build_folder = config.set_different_build_folder
 
 # flags for debugging :

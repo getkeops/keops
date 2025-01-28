@@ -23,6 +23,7 @@ class NotEqual(VectorizedScalarOp):
     def torch_op():
         """equivalent torch operation"""
         import torch
-        return lambda x,y : torch.ne(x,y).float()
+
+        return lambda x, y: torch.ne(x, y).float()
 
     no_torch_grad = True

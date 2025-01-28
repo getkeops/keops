@@ -48,8 +48,10 @@ class ElemT(Operation):
     def torch_op():
         """equivalent torch operation"""
         import torch
+
         def _torch_op(x, n, m):  # equivalent PyTorch operation
             out = torch.zeros((*x.shape[:-1], n), device=x.device, dtype=x.dtype)
             out[..., m][..., None] = x
             return out
+
         return _torch_op

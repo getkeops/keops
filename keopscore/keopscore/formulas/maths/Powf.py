@@ -22,4 +22,5 @@ class Powf(VectorizedScalarOp):
     def torch_op():
         """equivalent torch operation"""
         import torch
+
         return lambda x, y: torch.pow(x, y)

@@ -21,4 +21,4 @@ class Equal(VectorizedScalarOp):
 
     @staticmethod
     def torch_op():
-        return  None  # "lambda x,y : torch.eq(x,y).float()"
+        return None  # "lambda x,y : torch.eq(x,y).float()"

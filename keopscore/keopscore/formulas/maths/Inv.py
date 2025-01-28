@@ -24,4 +24,5 @@ class Inv(VectorizedScalarOp):
     def torch_op():
         """equivalent torch operation"""
         import torch
-        return lambda x : 1 / x
+
+        return lambda x: 1 / x

@@ -43,4 +43,4 @@ class Extract(Operation):
     @staticmethod
     def torch_op():
         """equivalent torch operation"""
-        return  lambda x,s,d : x[...,s:(s+d)]
+        return lambda x, s, d: x[..., s : (s + d)]

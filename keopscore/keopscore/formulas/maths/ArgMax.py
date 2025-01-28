@@ -58,6 +58,7 @@ class ArgMax(Operation):
     def torch_op():
         """equivalent torch operation"""
         import torch
-        return lambda x : torch.argmax(x, dim=-1, keepdim=True).type(x.dtype)
+
+        return lambda x: torch.argmax(x, dim=-1, keepdim=True).type(x.dtype)
 
     no_torch_grad = True

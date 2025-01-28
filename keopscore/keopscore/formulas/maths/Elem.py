@@ -43,5 +43,4 @@ class Elem(Operation):
         """
         equivalent torch operation
         """
-        return lambda x, m : x[..., m][..., None]
-
+        return lambda x, m: x[..., m][..., None]

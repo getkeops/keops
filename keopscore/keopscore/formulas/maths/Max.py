@@ -50,4 +50,5 @@ class Max(Operation):
     def torch_op():
         """equivalent torch operation"""
         import torch
-        return lambda x : torch.max(x, dim=-1, keepdim=True)[0].type(x.dtype)
+
+        return lambda x: torch.max(x, dim=-1, keepdim=True)[0].type(x.dtype)
