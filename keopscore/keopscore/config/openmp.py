@@ -16,7 +16,6 @@ class OpenMPConfig:
     """
 
     def __init__(self):
-        super().__init__()
         self._use_OpenMP = None
         self.openmp_lib_path = None
         self.os = platform.system()

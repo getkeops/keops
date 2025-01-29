@@ -9,7 +9,6 @@ class DetectPlatform:
     """
 
     def __init__(self):
-        super().__init__()
         self.os = None
         self.python_version = None
         self.env_type = None
