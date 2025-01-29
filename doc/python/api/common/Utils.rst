@@ -13,7 +13,7 @@ This section documents the general-purpose utilities available in PyKeOps.
     :nosignatures:
 
     check_health
-    clean_keops
+    clean_pykeops
 
 .. rubric:: Syntax
 
