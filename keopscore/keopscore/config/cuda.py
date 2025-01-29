@@ -113,10 +113,10 @@ class CUDAConfig:
         success_nvrtc, nvrtc_path, err_nvrtc = self._try_load_library("nvrtc")
 
         if not success_cuda or not success_nvrtc:
-            if not success_cuda:
-                KeOps_Warning(err_cuda)
-            if not success_nvrtc:
-                KeOps_Warning(err_nvrtc)
+            # if not success_cuda:
+            #     KeOps_Warning(err_cuda)
+            # if not success_nvrtc:
+            #     KeOps_Warning(err_nvrtc)
 
             self.cuda_message = "CUDA libraries not found or could not be loaded; Switching to CPU only."
             KeOps_Warning(self.cuda_message)
@@ -137,7 +137,7 @@ class CUDAConfig:
         self.get_cuda_version()
         self.get_cuda_include_path()
         self.get_gpu_props()
-        if self.n_gpus == 0:
+        if self.n_gpus == 0 and self._use_cuda:
             self._use_cuda = False
             self.cuda_message = "CUDA libraries detected, but no GPUs found on this system; Switching to CPU only."
             KeOps_Warning(self.cuda_message)
