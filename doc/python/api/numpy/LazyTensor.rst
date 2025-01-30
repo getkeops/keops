@@ -28,4 +28,5 @@ This section contains the full API documentation of the :doc:`LazyTensor <../../
     :special-members:
 
 .. autofunction:: pykeops.test_numpy_bindings
+    :noindex:
 

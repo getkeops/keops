@@ -107,7 +107,7 @@ sphinx_gallery_conf = {
     "within_subsection_order": FileNameSortKey,
     # Add patterns
     # 'filename_pattern': r'../pykeops/pykeops/tutorials/*',
-    "ignore_pattern": r"__init__\.py|benchmark_utils\.py| dataset_utils\.py",
+    "ignore_pattern": r"__init__\.py|benchmark_utils\.py|dataset_utils\.py|plot_grid_cluster_pytorch\.py",
 }
 
 # Generate the API documentation when building
@@ -202,7 +202,6 @@ html_theme_options = {
     "canonical_url": "",
     "analytics_id": "",
     "logo_only": False,
-    "display_version": True,
     "prev_next_buttons_location": "bottom",
     "style_external_links": False,
     # Toc options

@@ -30,4 +30,5 @@ This section contains the full API documentation of the :doc:`LazyTensor <../../
     :special-members:
 
 .. autofunction:: pykeops.test_torch_bindings
+    :noindex:
 

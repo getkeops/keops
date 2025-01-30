@@ -24,7 +24,9 @@ from pykeops.torch import LazyTensor
 
 nump = lambda t: t.cpu().numpy()
 use_cuda = torch.cuda.is_available()
-dtype = torch.cuda.FloatTensor if use_cuda else torch.FloatTensor
+#dtype = torch.cuda.FloatTensor if use_cuda else torch.FloatTensor
+device = torch.device('cuda' if use_cuda else 'cpu')
+dtype = torch.float32  # Standard float type for both CPU/GPU
 
 #########################################################################
 # Define our dataset: two point clouds on the unit square.
@@ -34,11 +36,10 @@ M, N = (5000, 5000) if use_cuda else (2000, 2000)
 t = torch.linspace(0, 2 * np.pi, M + 1)[:-1]
 x = torch.stack((0.4 + 0.4 * (t / 7) * t.cos(), 0.5 + 0.3 * t.sin()), 1)
 x = x + 0.01 * torch.randn(x.shape)
-x = x.type(dtype)
+x = x.to(device=device, dtype=dtype)  # Replace .type(dtype)
 
-y = torch.randn(N, 2).type(dtype)
-y = y / 10 + dtype([0.6, 0.6])
-
+y = torch.randn(N, 2, device=device, dtype=dtype)
+y = y / 10 + torch.tensor([0.6, 0.6], device=device, dtype=dtype)
 ####################################################################
 # Computing a block-sparse reduction
 # ---------------------------------------
@@ -72,8 +73,8 @@ if use_cuda:
     torch.cuda.synchronize()
 Start = time.time()
 start = time.time()
-x_labels = grid_cluster(x, eps)  # class labels
-y_labels = grid_cluster(y, eps)  # class labels
+x_labels = grid_cluster(x.cpu(), eps).to(device)  # Cluster on CPU but move back to device
+y_labels = grid_cluster(y.cpu(), eps).to(device)
 if use_cuda:
     torch.cuda.synchronize()
 end = time.time()
@@ -188,8 +189,7 @@ K = (-D_ij / 2).exp()  # Symbolic (M,N,1) Gaussian kernel matrix
 #####################################################################
 # And create a random signal supported by the points :math:`y_j`:
 
-b = torch.randn(N, 1).type(dtype)
-
+b = torch.randn(N, 1, device=device, dtype=dtype)
 #######################################################
 # Compare the performances of our **block-sparse** code
 # with those of a **dense** implementation, on both CPU and GPU backends:
