@@ -36,6 +36,20 @@
 #include "include/CudaSizes.h"
 #include <cuda_fp16.h>
 
+// TODO: do this
+// struct devicePointer{
+//   signed long int *pointer;
+//   bool allocated_by_keops;
+//   void devicePointer() // constrsuteur
+//   void destroy()
+//   {
+//     if (allocated_by_keops)
+//     {
+//       CUDA_SAFE_CALL(cuMemFree((CUdeviceptr)pointer));
+//     }
+//   }
+// }
+
 signed long int *build_offset_tables(int nbatchdims, signed long int *shapes, signed long int nblocks,
                             signed long int *lookup_h, const std::vector<int> &indsi,
                             const std::vector<int> &indsj,
