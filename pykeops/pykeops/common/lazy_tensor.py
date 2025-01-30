@@ -1643,7 +1643,7 @@ class GenericLazyTensor:
 
     def __getitem__(self, idx):
         """
-        Allows PyTorch-like slicing over all dimensions.
+        Allows slicing over all dimensions.
         """
         if not isinstance(idx, tuple):
             idx = (idx,)
