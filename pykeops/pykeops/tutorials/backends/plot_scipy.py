@@ -8,13 +8,13 @@ provides a simple abstraction for implicit tensors:
 the `LinearOperator <https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.linalg.LinearOperator.html>`_
 class,
 which represents generic "Matrix-Vector" products
-and can be plugged seamlessly in a `large collection <https://docs.scipy.org/doc/scipy/reference/sparse.linalg.html>`_ 
+and can be plugged seamlessly in a `large collection <https://docs.scipy.org/doc/scipy/reference/sparse.linalg.html>`_
 of linear algebra routines.
 
 Crucially, KeOps :class:`pykeops.torch.LazyTensor` are now **fully compatible**
 with this interface.
-As an example, let's see how to combine KeOps with a 
-`fast eigenproblem solver <https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.linalg.eigsh.html>`_ 
+As an example, let's see how to combine KeOps with a
+`fast eigenproblem solver <https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.linalg.eigsh.html>`_
 to compute **spectral coordinates** on a large 2D or 3D point cloud.
 
 .. note::

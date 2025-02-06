@@ -1,5 +1,5 @@
 """
-Sum reduction 
+Sum reduction
 =====================
 """
 

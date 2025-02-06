@@ -2,12 +2,12 @@
 Scaling up Gaussian convolutions on 3D point clouds
 ===========================================================
 
-Let's compare the performance of PyTorch and KeOps on 
+Let's compare the performance of PyTorch and KeOps on
 simple Gaussian RBF kernel products,
 as the number of samples grows from 100 to 1,000,000.
 
 .. note::
-    In this demo, we use exact **bruteforce** computations 
+    In this demo, we use exact **bruteforce** computations
     (tensorized for PyTorch and online for KeOps), without leveraging any multiscale
     or low-rank (Nystroem/multipole) decomposition of the Kernel matrix.
     We are working on providing transparent support for these approximations in KeOps.

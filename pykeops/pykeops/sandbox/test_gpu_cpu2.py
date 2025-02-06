@@ -5,7 +5,7 @@ Block-sparse reductions
 This script showcases the use of the optional **ranges** argument
 to compute block-sparse reductions with **sub-quadratic time complexity**.
 
- 
+
 """
 
 ########################################################################

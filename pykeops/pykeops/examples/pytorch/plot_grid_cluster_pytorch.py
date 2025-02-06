@@ -5,7 +5,7 @@ Block-sparse reductions
 This script showcases the use of the optional **ranges** argument
 to compute block-sparse reductions with **sub-quadratic time complexity**.
 
- 
+
 """
 
 ########################################################################
@@ -24,8 +24,8 @@ from pykeops.torch import LazyTensor
 
 nump = lambda t: t.cpu().numpy()
 use_cuda = torch.cuda.is_available()
-#dtype = torch.cuda.FloatTensor if use_cuda else torch.FloatTensor
-device = torch.device('cuda' if use_cuda else 'cpu')
+# dtype = torch.cuda.FloatTensor if use_cuda else torch.FloatTensor
+device = torch.device("cuda" if use_cuda else "cpu")
 dtype = torch.float32  # Standard float type for both CPU/GPU
 
 #########################################################################
@@ -73,7 +73,9 @@ if use_cuda:
     torch.cuda.synchronize()
 Start = time.time()
 start = time.time()
-x_labels = grid_cluster(x.cpu(), eps).to(device)  # Cluster on CPU but move back to device
+x_labels = grid_cluster(x.cpu(), eps).to(
+    device
+)  # Cluster on CPU but move back to device
 y_labels = grid_cluster(y.cpu(), eps).to(device)
 if use_cuda:
     torch.cuda.synchronize()
