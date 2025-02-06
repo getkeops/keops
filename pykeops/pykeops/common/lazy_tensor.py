@@ -1641,210 +1641,51 @@ class GenericLazyTensor:
             raise ValueError("Slice dimension is out of bounds.")
         return self.unary("Extract", dimres=d, opt_arg=i, opt_arg2=d)
 
-    def __getitem__(self, idx):
+    def __getitem__(self, key):
+        r"""
+        Element or range indexing - a unary operation.
+
+        ``x[key]`` redirects to the :meth:`elem` or :meth:`extract` methods, depending on the ``key`` argument.
+        Supported values are:
+
+            - an integer ``k``, in which case ``x[key]``
+              redirects to ``elem(x,k)``,
+            - a tuple ``..,:,:,k`` with ``k`` an integer,
+              which is equivalent to the case above,
+            - a slice of the form ``k:l``, ``k:`` or ``:l``, with ``k``
+              and ``l`` two integers, in which case ``x[key]`` redirects to ``extract(x,k,l-k)``,
+            - a tuple of slices of the form ``..,:,:,k:l``, ``..,:,:,k:`` or ``..,:,:,:l``,
+              with ``k`` and ``l`` two integers, which are equivalent to the case above.
         """
-        Allows slicing over all dimensions.
-        """
-        if not isinstance(idx, tuple):
-            idx = (idx,)
+        # we allow only these forms:
+        #    [..,:,:,k], [..,:,:,k:l], [..,:,:,k:], [..,:,:,:l]
+        #    or equivalent [k], [k:l], [k:], [:l]
+        if isinstance(key, tuple):
+            if len(key) == len(self._shape) and key[:-1] == (slice(None),) * (
+                len(self._shape) - 1
+            ):
+                key = key[-1]
+            else:
+                raise ValueError(
+                    "LazyTensors only support indexing with respect to their last dimension."
+                )
 
-       
-        full_rank = len(self._shape)  # = self.dim()
-
-        real_slices = 0
-        for s in idx:
-            if s is not Ellipsis:
-                real_slices += 1
-        
-        if Ellipsis in idx:
-            missing = full_rank - real_slices
-            expanded = []
-            for s in idx:
-                if s is Ellipsis:
-                    expanded += [slice(None)] * missing
-                else:
-                    expanded.append(s)
-            idx = tuple(expanded)
-
-        if len(idx) < full_rank:
-            idx = idx + (slice(None),) * (full_rank - len(idx))
-
-        # If more slices were given than the dimension, it's an error
-        if len(idx) != full_rank:
+        if isinstance(key, slice):
+            if not key.step in [None, 1]:
+                raise ValueError(
+                    "LazyTensors do not support sliced indexing with stepsizes > 1."
+                )
+            if key.start is None:
+                key = slice(0, key.stop)
+            if key.stop is None:
+                key = slice(key.start, self.ndim)
+            return self.extract(key.start, key.stop - key.start)
+        elif isinstance(key, int):
+            return self.elem(key)
+        else:
             raise ValueError(
-                f"Too many indices {idx} for LazyTensor of dimension {self._shape}."
+                "LazyTensors only support indexing with integers and vanilla python slices."
             )
-
-
-        effective_slices = [None] * full_rank
-        indexed_out = [False] * full_rank
-
-        def normalize_slice(s, dim_size):
-            """Helper: interpret a slice or int for a dimension of size dim_size."""
-            if isinstance(s, int):
-                # handle negative
-                if s < 0:
-                    s += dim_size
-                if s < 0 or s >= dim_size:
-                    raise IndexError(f"Index {s} out of range for dimension size {dim_size}.")
-                return slice(s, s+1, 1), True
-            elif isinstance(s, slice):
-                if s.step not in (1, None):
-                    raise ValueError("Step != 1 not supported in LazyTensor slices.")
-                start = 0 if s.start is None else s.start
-                stop  = dim_size if s.stop is None else s.stop
-                # handle negatives
-                if start < 0:
-                    start += dim_size
-                if stop < 0:
-                    stop += dim_size
-                start = max(0, start)
-                stop  = min(dim_size, stop)
-                return slice(start, stop, 1), False
-            else:
-                raise ValueError(f"Invalid slice type {s} for dimension of size {dim_size}.")
-
-        # Gather shape info
-        shape = self._shape  # something like (b1, b2, ..., ni, nj, ndim)
-
-        # We'll parse dimension by dimension
-        for dim_id in range(full_rank):
-            s = idx[dim_id]
-            dim_size = shape[dim_id]
-            eff_slice, is_indexed_out = normalize_slice(s, dim_size)
-            effective_slices[dim_id] = eff_slice
-            indexed_out[dim_id] = is_indexed_out
-
-        res = copy.copy(self)  # shallow copy
-
-        newvars = []
-
-        def slice_array(arr, cat):
-            """
-            Slice a single array "arr" of shape presumably (1,...1, actualDimension),
-            adjusting for batch dims, i or j if cat=0 or 1, or batch+feature if cat=2.
-            This is the trickiest part: we have to interpret how "arr" shape lines up with (batchdims, ni/nj, feature).
-            """
-
-            # get the final shape we want to expand to
-            fullshape = self._shape
-            # arr might not be the correct total number of elements if some dimension is unused, but let's do a safe approach:
-            arr_expanded = arr
-            # The rank difference:
-            rank_diff = len(fullshape) - len(arr.shape)
-            if rank_diff > 0:
-                arr_expanded = self.tools.view(arr_expanded, (1,)*rank_diff + arr.shape)
-            # Now arr_expanded has at least len(fullshape) dims. We can do a final .view on it to match fullshape:
-            arr_expanded = self.tools.view(arr_expanded, fullshape)
-
-            # Step 2: apply the effective_slices
-            out_arr = arr_expanded
-            out_arr = out_arr[ tuple(effective_slices) ]  # actual slicing in PyTorch or NumPy
-
-            return out_arr
-
-        # We also have to rewrite self.formula to ensure it references the new arrays by their new id(...).
-        updated_formula = self.formula
-        if self.formula2 is not None:
-            updated_formula2 = self.formula2
-        else:
-            updated_formula2 = None
-
-        # Rebuild variables and fix references in formula
-        for arr in self.variables:
-            cat = None
-            for c in (0,1,2):
-                pattern = f"Var({id(arr)},"
-                if pattern in str(updated_formula):
-                    cat = c
-                    break
-                if updated_formula2 and pattern in str(updated_formula2):
-                    cat = c
-                    break
-
-            if cat is None:
-                # just keep it as is
-                newvars.append(arr)
-                continue
-
-            sliced_arr = slice_array(arr, cat)
-
-            # create a new array reference
-            newvars.append(sliced_arr)
-            # update the formula to reference the new id:
-            old_str = f"Var({id(arr)},"
-            new_str = f"Var({id(sliced_arr)},"
-            if old_str in updated_formula:
-                updated_formula = updated_formula.replace(old_str, new_str)
-            if updated_formula2 and (old_str in updated_formula2):
-                updated_formula2 = updated_formula2.replace(old_str, new_str)
-
-        # Now determine the new shape after slicing:
-        new_shape = []
-        for dim_id in range(full_rank):
-            s = effective_slices[dim_id]
-            length = s.stop - s.start
-            if not indexed_out[dim_id]:
-                new_shape.append(length)
-            else:
-                pass
-
-        nb = 0 if (self.batchdims is None) else len(self.batchdims)
-
-        new_batchdims = []
-        new_ni = None
-        new_nj = None
-        new_ndim = None
-
-        shape_idx = 0
-        for b in range(nb):
-            if not indexed_out[b]:
-                new_batchdims.append(new_shape[0])
-                new_shape = new_shape[1:]
-            else:
-                # remove that dimension
-                pass
-            shape_idx += 1
-
-        # i dimension
-        if shape_idx < full_rank and not indexed_out[shape_idx]:
-            new_ni = new_shape[0]
-            new_shape = new_shape[1:]
-        elif shape_idx < full_rank:
-            # i dimension is removed
-            new_ni = None
-        shape_idx += 1
-
-        # j dimension
-        if shape_idx < full_rank and not indexed_out[shape_idx]:
-            new_nj = new_shape[0]
-            new_shape = new_shape[1:]
-        elif shape_idx < full_rank:
-            new_nj = None
-        shape_idx += 1
-
-        # last dimension
-        if shape_idx < full_rank and not indexed_out[shape_idx]:
-            new_ndim = new_shape[0]
-            new_shape = new_shape[1:]
-        else:
-            new_ndim = 1  # or None, if removed?
-
-        # finalize
-        if len(new_batchdims) == 0:
-            new_batchdims = None
-
-        # assign them in res
-        res.variables = tuple(newvars)
-        res.formula = updated_formula
-        res.formula2 = updated_formula2
-        res.batchdims = tuple(new_batchdims) if new_batchdims else None
-        res.ni = new_ni
-        res.nj = new_nj
-        res.ndim = new_ndim
-
-        # done
-        return res
 
 
 
