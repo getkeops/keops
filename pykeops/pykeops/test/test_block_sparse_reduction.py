@@ -72,7 +72,7 @@ def test_block_sparse_reduction():
     t_full = time.time() - t0
 
     # Compute the sparse convolution result using the ranges
-    K.ranges = ranges_ij 
+    K.ranges = ranges_ij
     t0 = time.time()
     a_sparse = K @ b
     t_sparse = time.time() - t0
