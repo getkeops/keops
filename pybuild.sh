@@ -8,15 +8,12 @@ set -e
 ################################################################################
 function print_help() {
     # Display Help
-    echo "Build script for keopscore/pykeops packages."
+    echo "Test script for keopscore/pykeops packages."
     echo
     echo "Usage: $0 [option...]"
     echo
     echo "   -h     Print the help"
-    echo "   -l     Build in local mode (without hard-coded keopscore version requirement in pykeops)"
     echo "   -v     Verbose mode"
-    echo
-    echo "Note: by default, the keopscore version requirement is hard-coded in pykeops."
     echo
     exit 1
 }
@@ -27,8 +24,8 @@ function print_help() {
 
 # log with verbosity management
 function logging() {
-    if [[ ${PYBUILD_VERBOSE} == 1 ]]; then
-        echo -e $1
+    if [[ ${PYTEST_VERBOSE} == 1 ]]; then
+        echo -e "$1"
     fi
 }
 
@@ -37,21 +34,16 @@ function logging() {
 ################################################################################
 
 # default options
-LOCAL_PYBUILD=0
-PYBUILD_VERBOSE=0
+PYTEST_VERBOSE=0
 
 # Get the options
-while getopts 'hlv' option; do
+while getopts 'hv' option; do
     case $option in
         h) # display Help
             print_help
             ;;
-        l) # local build (no hard-coded keopscore version requirements)
-            LOCAL_PYBUILD=1
-            logging "## local build (keopscore version requirements is NOT hard-coded in pykeops)"
-            ;;
         v) # enable verbosity
-            PYBUILD_VERBOSE=1
+            PYTEST_VERBOSE=1
             logging "## verbose mode"
             ;;
         \?) # Invalid option
@@ -66,78 +58,58 @@ done
 ################################################################################
 
 # project root directory
-PROJDIR=$(git rev-parse --show-toplevel)
+PROJDIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 # python exec
 PYTHON="python3"
 
-# python environment for build
-BUILD_VENV=${PROJDIR}/.build_venv
+# python environment for test
+TEST_VENV=${PROJDIR}/.test_venv
 
-# python build requirements (names of packages to be installed with pip)
-BUILD_REQ="pip build pyclean"
-
-# KeOps current version
-VERSION=$(cat ./keops_version)
-
-################################################################################
-# prepare build (and cleanup after)                                            #
-################################################################################
-
-# prepare setup and clean up on exit
-function prepare_setup() {
-    logging "-- Preparing setup..."
-    # hard-code keopscore requirements
-    if [[ ${LOCAL_PYBUILD} == 0 ]]; then
-        cp ${PROJDIR}/pykeops/setup.py ${PROJDIR}/pykeops/setup.py.pybuild.bak
-        sed -i -e "s/\"keopscore\"/\"keopscore==\" + current_version/" ${PROJDIR}/pykeops/setup.py
-    fi
-}
-
-function cleanup_setup() {
-    logging "-- Cleaning up setup..."
-    cp ${PROJDIR}/pykeops/setup.py.pybuild.bak ${PROJDIR}/pykeops/setup.py
-    rm ${PROJDIR}/pykeops/setup.py.pybuild.bak
-}
-
-prepare_setup
-trap cleanup_setup EXIT
+# python test requirements (names of packages to be installed with pip)
+TEST_REQ="pip"
 
 ################################################################################
 # prepare python environment                                                   #
 ################################################################################
 
-logging "-- Preparing python environment for build..."
+logging "-- Preparing python environment for test..."
 
-${PYTHON} -m venv --clear ${BUILD_VENV}
-source ${BUILD_VENV}/bin/activate
+${PYTHON} -m venv --clear ${TEST_VENV}
+source ${TEST_VENV}/bin/activate
 
 logging "---- Python version = $(python -V)"
 
-pip install -U ${BUILD_REQ}
+pip install -U ${TEST_REQ}
 
 ################################################################################
-# clean before build                                                           #
+# Installing keopscore (using pyproject.toml)                                 #
 ################################################################################
 
-logging "-- Cleaning Python sources before build..."
+logging "-- Installing keopscore (editable install via pyproject.toml)..."
 
-# remove __pycache__ *.pyc
-pyclean ${PROJDIR}/keopscore
-pyclean ${PROJDIR}/pykeops
-
-################################################################################
-# build keopscore                                                              #
-################################################################################
-
-logging "-- Building keopscore..."
-
-python -m build --sdist --outdir ${PROJDIR}/build/dist ${PROJDIR}/keopscore
+# With no setup.py present, pip will use pyproject.toml to build keopscore
+pip install -e "${PROJDIR}/keopscore"
 
 ################################################################################
-# build pykeops                                                                #
+# Installing pykeops (using pyproject.toml)                                    #
 ################################################################################
 
-logging "-- Building pykeops..."
+logging "-- Installing pykeops (editable install with test extras via pyproject.toml)..."
 
-python -m build --sdist --outdir ${PROJDIR}/build/dist ${PROJDIR}/pykeops
+# The [test] extras (if defined in pyproject.toml) will be installed as well.
+pip install -e "${PROJDIR}/pykeops[test]"
+
+################################################################################
+# Running keopscore tests                                                     #
+################################################################################
+
+logging "-- Running keopscore tests..."
+pytest -v keopscore/keopscore/test/
+
+################################################################################
+# Running pykeops tests                                                        #
+################################################################################
+
+logging "-- Running pykeops tests..."
+pytest -v pykeops/pykeops/test/

@@ -1,0 +1,59 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "keopscore"
+version = "2.2.3"  # The version should be set manually
+description = "keopscore is the KeOps meta programming engine. This python module should be used through a binder (e.g. pykeops or rkeops)" # Required
+readme = { file = "pykeops/readme.md", content-type = "text/markdown" }
+license = { file = "keopscore/licence.txt" }
+requires-python = ">=3.8"
+keywords = ["kernels", "gpu", "autodiff"]
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "Intended Audience :: Developers",
+  "Topic :: Scientific/Engineering",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: POSIX :: Linux",
+  "Operating System :: MacOS :: MacOS X",
+  "Programming Language :: C++",
+  "Programming Language :: Python :: 3 :: Only",
+]
+
+dependencies = []  # No runtime dependencies for keopscore
+
+[project.urls]
+Homepage = "http://www.kernel-operations.io/"
+BugReports = "https://github.com/getkeops/keops/issues"
+Source = "https://github.com/getkeops/keops"
+
+[[project.authors]]
+name = "B. Charlier"
+email = "benjamin.charlier@umontpellier.fr"
+
+[[project.authors]]
+name = "J. Feydy"
+email = "jean.feydy@gmail.com"
+
+[[project.authors]]
+name = "J. Glaunes"
+email = "alexis.glaunes@parisdescartes.fr"
+
+[tool.setuptools.packages.find]
+where = ["keopscore"]
+
+[tool.setuptools.package-data]
+"keopscore" = [
+  "readme.md",
+  "licence.txt",
+  "keops_version",
+  "config/libiomp5.dylib",
+  "binders/nvrtc/keops_nvrtc.cpp",
+  "binders/nvrtc/nvrtc_jit.cpp",
+  "include/CudaSizes.h",
+  "include/ranges_utils.h",
+  "include/Ranges.h",
+  "include/Sizes.h",
+  "include/utils_pe.h"
+]

@@ -1,0 +1,81 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pykeops"
+version = "2.2.3"  # The version should be set manually
+description = "Python bindings of KeOps: KErnel OPerationS, on CPUs and GPUs, with autodiff and without memory overflows" # Required
+readme = { file = "pykeops/readme.md", content-type = "text/markdown" }
+license = { file = "pykeops/licence.txt" }
+requires-python = ">=3.8"
+keywords = ["kernels", "gpu", "autodiff"]
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "Intended Audience :: Developers",
+  "Topic :: Scientific/Engineering",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: POSIX :: Linux",
+  "Operating System :: MacOS :: MacOS X",
+  "Programming Language :: C++",
+  "Programming Language :: Python :: 3 :: Only"
+]
+dependencies = [
+  "numpy",
+  "pybind11",
+  "keopscore"
+]
+
+[project.urls]
+Homepage = "http://www.kernel-operations.io/"
+BugReports = "https://github.com/getkeops/keops/issues"
+Source = "https://github.com/getkeops/keops"
+
+[[project.authors]]
+name = "B. Charlier"
+email = "benjamin.charlier@umontpellier.fr"
+
+[[project.authors]]
+name = "J. Feydy"
+email = "jean.feydy@gmail.com"
+
+[[project.authors]]
+name = "J. Glaunes"
+email = "alexis.glaunes@parisdescartes.fr"
+
+[project.optional-dependencies]
+full = [
+  "sphinx",
+  "sphinx-gallery",
+  "recommonmark",
+  "sphinxcontrib-httpdomain",
+  "sphinx_rtd_theme",
+  "sphinx-prompt",
+  "breathe",
+  "matplotlib",
+  "imageio",
+  "torch",
+  "gpytorch",
+  "scikit-learn",
+  "multiprocess",
+  "faiss",
+  "h5py",
+  "jaxlib",
+  "jax"
+]
+test = [
+  "pytest",
+  "numpy",
+  "torch"
+]
+
+[tool.setuptools.packages.find]
+where = ["pykeops"]
+
+[tool.setuptools.package-data]
+"pykeops" = [
+  "readme.md",
+  "licence.txt",
+  "keops_version",
+  "common/keops_io/pykeops_nvrtc.cpp"
+]

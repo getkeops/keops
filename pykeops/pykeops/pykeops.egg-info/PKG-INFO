@@ -1,0 +1,84 @@
+Metadata-Version: 2.2
+Name: pykeops
+Version: 2.2.3
+Summary: Python bindings of KeOps: KErnel OPerationS, on CPUs and GPUs, with autodiff and without memory overflows
+Author-email: "B. Charlier" <benjamin.charlier@umontpellier.fr>, "J. Feydy" <jean.feydy@gmail.com>, "J. Glaunes" <alexis.glaunes@parisdescartes.fr>
+License: The MIT License (MIT)
+        
+        Copyright (c) 2023 B. Charlier, J. Feydy, J. Glaunès, G. Durif, F.-D. Collin, A. Vernay, C. Serre-Combe (KeOps/PyKeOps/KeOpslab/RKeOps)
+        
+        Permission is hereby granted, free of charge, to any person obtaining a copy
+        of this software and associated documentation files (the "Software"), to deal
+        in the Software without restriction, including without limitation the rights
+        to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+        copies of the Software, and to permit persons to whom the Software is
+        furnished to do so, subject to the following conditions:
+        
+        The above copyright notice and this permission notice shall be included in all
+        copies or substantial portions of the Software.
+        
+        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+        IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+        FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+        AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+        LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+        OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+        SOFTWARE.
+        
+Project-URL: Homepage, http://www.kernel-operations.io/
+Project-URL: BugReports, https://github.com/getkeops/keops/issues
+Project-URL: Source, https://github.com/getkeops/keops
+Keywords: kernels,gpu,autodiff
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Intended Audience :: Developers
+Classifier: Topic :: Scientific/Engineering
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: POSIX :: Linux
+Classifier: Operating System :: MacOS :: MacOS X
+Classifier: Programming Language :: C++
+Classifier: Programming Language :: Python :: 3 :: Only
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+Requires-Dist: numpy
+Requires-Dist: pybind11
+Requires-Dist: keopscore
+Provides-Extra: full
+Requires-Dist: sphinx; extra == "full"
+Requires-Dist: sphinx-gallery; extra == "full"
+Requires-Dist: recommonmark; extra == "full"
+Requires-Dist: sphinxcontrib-httpdomain; extra == "full"
+Requires-Dist: sphinx_rtd_theme; extra == "full"
+Requires-Dist: sphinx-prompt; extra == "full"
+Requires-Dist: breathe; extra == "full"
+Requires-Dist: matplotlib; extra == "full"
+Requires-Dist: imageio; extra == "full"
+Requires-Dist: torch; extra == "full"
+Requires-Dist: gpytorch; extra == "full"
+Requires-Dist: scikit-learn; extra == "full"
+Requires-Dist: multiprocess; extra == "full"
+Requires-Dist: faiss; extra == "full"
+Requires-Dist: h5py; extra == "full"
+Requires-Dist: jaxlib; extra == "full"
+Requires-Dist: jax; extra == "full"
+Provides-Extra: test
+Requires-Dist: pytest; extra == "test"
+Requires-Dist: numpy; extra == "test"
+Requires-Dist: torch; extra == "test"
+
+![logo pykeops](http://www.kernel-operations.io/keops/_images/pykeops_logo.png)
+
+PyKeOps contains the python bindings (numpy and pytorch) for the cpp/cuda library [KeOps](https://www.kernel-operations.io/). It provides
+standard python functions that can be used in any **python 3** codes.
+
+For a full documentation you may read:
+
+* [Installation](https://www.kernel-operations.io/keops/introduction/installation.html)
+* [Documentation](https://www.kernel-operations.io/)
+* [Learning KeOps syntax with examples](https://www.kernel-operations.io/keops/_auto_examples/index.html)
+* [Tutorials gallery](https://www.kernel-operations.io/keops/_auto_tutorials/index.html)
+
+# Authors
+
+- [Benjamin Charlier](https://imag.umontpellier.fr/~charlier/)
+- [Jean Feydy](https://www.math.ens.fr/~feydy/)
+- [Joan Alexis Glaunès](https://www.mi.parisdescartes.fr/~glaunes/)
