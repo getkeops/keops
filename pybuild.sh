@@ -83,22 +83,25 @@ logging "---- Python version = $(python -V)"
 pip install -U ${TEST_REQ}
 
 ################################################################################
-# Installing keopscore (using pyproject.toml)                                 #
+# Installing keopscore (via pyproject.toml)                                   #
 ################################################################################
 
 logging "-- Installing keopscore (editable install via pyproject.toml)..."
-
-# With no setup.py present, pip will use pyproject.toml to build keopscore
 pip install -e "${PROJDIR}/keopscore"
 
 ################################################################################
-# Installing pykeops (using pyproject.toml)                                    #
+# Installing pykeops (via pyproject.toml)                                      #
 ################################################################################
 
 logging "-- Installing pykeops (editable install with test extras via pyproject.toml)..."
-
-# The [test] extras (if defined in pyproject.toml) will be installed as well.
 pip install -e "${PROJDIR}/pykeops[test]"
+
+################################################################################
+# Ensure repository root is in PYTHONPATH to locate sibling packages          #
+################################################################################
+
+export PYTHONPATH="${PROJDIR}:${PYTHONPATH}"
+logging "---- PYTHONPATH set to: ${PYTHONPATH}"
 
 ################################################################################
 # Running keopscore tests                                                     #
