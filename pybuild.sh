@@ -8,7 +8,7 @@ set -e
 ################################################################################
 function print_help() {
     # Display Help
-    echo "Test script for keopscore/pykeops packages."
+    echo "Build script for keopscore/pykeops packages."
     echo
     echo "Usage: $0 [option...]"
     echo
@@ -27,8 +27,8 @@ function print_help() {
 
 # log with verbosity management
 function logging() {
-    if [[ ${PYTEST_VERBOSE} == 1 ]]; then
-        echo -e "$1"
+    if [[ ${PYBUILD_VERBOSE} == 1 ]]; then
+        echo -e $1
     fi
 }
 
@@ -38,7 +38,7 @@ function logging() {
 
 # default options
 LOCAL_PYBUILD=0
-PYTEST_VERBOSE=0
+PYBUILD_VERBOSE=0
 
 # Get the options
 while getopts 'hlv' option; do
@@ -62,66 +62,82 @@ while getopts 'hlv' option; do
 done
 
 ################################################################################
-# script setup                                                                 #    # already checked until here (same as checkhealth)
+# script setup                                                                 #
 ################################################################################
 
 # project root directory
-# PROJDIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd ) # Here is the issue with CI cuda_test
 PROJDIR=$(git rev-parse --show-toplevel)
 
 # python exec
 PYTHON="python3"
 
-# python environment for test
-TEST_VENV=${PROJDIR}/.test_venv
+# python environment for build
+BUILD_VENV=${PROJDIR}/.build_venv
 
-# python test requirements (names of packages to be installed with pip)
-TEST_REQ="pip"
+# python build requirements (names of packages to be installed with pip)
+BUILD_REQ="pip build pyclean"
+
+# KeOps current version
+VERSION=$(cat ./keops_version)
+
+################################################################################
+# prepare build (and cleanup after)                                            #
+################################################################################
+
+# prepare setup and clean up on exit
+# function prepare_setup() {
+#     logging "-- Preparing setup..."
+#     # hard-code keopscore requirements
+#     if [[ ${LOCAL_PYBUILD} == 0 ]]; then
+#         cp ${PROJDIR}/pykeops/setup.py ${PROJDIR}/pykeops/setup.py.pybuild.bak
+#         sed -i -e "s/\"keopscore\"/\"keopscore==\" + current_version/" ${PROJDIR}/pykeops/setup.py
+#     fi
+# }
+
+# function cleanup_setup() {
+#     logging "-- Cleaning up setup..."
+#     cp ${PROJDIR}/pykeops/setup.py.pybuild.bak ${PROJDIR}/pykeops/setup.py
+#     rm ${PROJDIR}/pykeops/setup.py.pybuild.bak
+# }
+
+# prepare_setup
+# trap cleanup_setup EXIT
 
 ################################################################################
 # prepare python environment                                                   #
 ################################################################################
 
-logging "-- Preparing python environment for test..."
+logging "-- Preparing python environment for build..."
 
-${PYTHON} -m venv --clear ${TEST_VENV}
-source ${TEST_VENV}/bin/activate
+${PYTHON} -m venv --clear ${BUILD_VENV}
+source ${BUILD_VENV}/bin/activate
 
 logging "---- Python version = $(python -V)"
 
-pip install -U ${TEST_REQ}
+pip install -U ${BUILD_REQ}
 
 ################################################################################
-# Installing keopscore (via pyproject.toml)                                   #
+# clean before build                                                           #
 ################################################################################
 
-logging "-- Installing keopscore (editable install via pyproject.toml)..."
-pip install -e "${PROJDIR}/keopscore"
+logging "-- Cleaning Python sources before build..."
+
+# remove __pycache__ *.pyc
+pyclean ${PROJDIR}/keopscore
+pyclean ${PROJDIR}/pykeops
 
 ################################################################################
-# Installing pykeops (via pyproject.toml)                                      #
+# build keopscore                                                              #
 ################################################################################
 
-logging "-- Installing pykeops (editable install with test extras via pyproject.toml)..."
-pip install -e "${PROJDIR}/pykeops[test]"
+logging "-- Building keopscore..."
+
+python -m build --sdist --outdir ${PROJDIR}/build/dist ${PROJDIR}/keopscore
 
 ################################################################################
-# Ensure repository root is in PYTHONPATH to locate sibling packages          #
+# build pykeops                                                                #
 ################################################################################
 
-export PYTHONPATH="${PROJDIR}:${PYTHONPATH}"
-logging "---- PYTHONPATH set to: ${PYTHONPATH}"
+logging "-- Building pykeops..."
 
-################################################################################
-# Running keopscore tests                                                     #
-################################################################################
-
-logging "-- Running keopscore tests..."
-pytest -v keopscore/keopscore/test/
-
-################################################################################
-# Running pykeops tests                                                        #
-################################################################################
-
-logging "-- Running pykeops tests..."
-pytest -v pykeops/pykeops/test/
+python -m build --sdist --outdir ${PROJDIR}/build/dist ${PROJDIR}/pykeops
