@@ -13,7 +13,10 @@ function print_help() {
     echo "Usage: $0 [option...]"
     echo
     echo "   -h     Print the help"
+    echo "   -l     Build in local mode (without hard-coded keopscore version requirement in pykeops)"
     echo "   -v     Verbose mode"
+    echo
+    echo "Note: by default, the keopscore version requirement is hard-coded in pykeops."
     echo
     exit 1
 }
@@ -34,16 +37,21 @@ function logging() {
 ################################################################################
 
 # default options
+LOCAL_PYBUILD=0
 PYTEST_VERBOSE=0
 
 # Get the options
-while getopts 'hv' option; do
+while getopts 'hlv' option; do
     case $option in
         h) # display Help
             print_help
             ;;
+        l) # local build (no hard-coded keopscore version requirements)
+            LOCAL_PYBUILD=1
+            logging "## local build (keopscore version requirements is NOT hard-coded in pykeops)"
+            ;;
         v) # enable verbosity
-            PYTEST_VERBOSE=1
+            PYBUILD_VERBOSE=1
             logging "## verbose mode"
             ;;
         \?) # Invalid option
@@ -54,11 +62,12 @@ while getopts 'hv' option; do
 done
 
 ################################################################################
-# script setup                                                                 #
+# script setup                                                                 #    # already checked until here (same as checkhealth)
 ################################################################################
 
 # project root directory
-PROJDIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+# PROJDIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd ) # Here is the issue with CI cuda_test
+PROJDIR=$(git rev-parse --show-toplevel)
 
 # python exec
 PYTHON="python3"
