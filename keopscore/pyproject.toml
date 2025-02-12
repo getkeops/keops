@@ -41,7 +41,7 @@ name = "J. Glaunes"
 email = "alexis.glaunes@parisdescartes.fr"
 
 [tool.setuptools.packages.find]
-where = ["keopscore"]
+where = ["."]
 
 [tool.setuptools.package-data]
 "keopscore" = [

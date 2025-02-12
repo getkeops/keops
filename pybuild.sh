@@ -85,23 +85,23 @@ VERSION=$(cat ./keops_version)
 ################################################################################
 
 # prepare setup and clean up on exit
-# function prepare_setup() {
-#     logging "-- Preparing setup..."
-#     # hard-code keopscore requirements
-#     if [[ ${LOCAL_PYBUILD} == 0 ]]; then
-#         cp ${PROJDIR}/pykeops/setup.py ${PROJDIR}/pykeops/setup.py.pybuild.bak
-#         sed -i -e "s/\"keopscore\"/\"keopscore==\" + current_version/" ${PROJDIR}/pykeops/setup.py
-#     fi
-# }
+function prepare_setup() {
+    logging "-- Preparing setup..."
+    # hard-code keopscore requirements
+    if [[ ${LOCAL_PYBUILD} == 0 ]]; then
+        cp ${PROJDIR}/pykeops/pyproject.toml ${PROJDIR}/pykeops/pyproject.toml.pybuild.bak
+        sed -i -e "s/keopscore\"/keopscore==${VERSION}\"/" ${PROJDIR}/pykeops/pyproject.toml
+    fi
+}
 
-# function cleanup_setup() {
-#     logging "-- Cleaning up setup..."
-#     cp ${PROJDIR}/pykeops/setup.py.pybuild.bak ${PROJDIR}/pykeops/setup.py
-#     rm ${PROJDIR}/pykeops/setup.py.pybuild.bak
-# }
+function cleanup_setup() {
+    logging "-- Cleaning up setup..."
+    cp ${PROJDIR}/pykeops/pyproject.toml.pybuild.bak ${PROJDIR}/pykeops/pyproject.toml
+    rm ${PROJDIR}/pykeops/pyproject.toml.pybuild.bak
+}
 
-# prepare_setup
-# trap cleanup_setup EXIT
+prepare_setup
+trap cleanup_setup EXIT
 
 ################################################################################
 # prepare python environment                                                   #

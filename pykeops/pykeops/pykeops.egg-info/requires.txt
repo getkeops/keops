@@ -1,6 +1,6 @@
 numpy
 pybind11
-keopscore
+keopscore==2.2.3
 
 [full]
 sphinx

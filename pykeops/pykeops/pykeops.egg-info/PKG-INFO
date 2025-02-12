@@ -41,7 +41,7 @@ Requires-Python: >=3.8
 Description-Content-Type: text/markdown
 Requires-Dist: numpy
 Requires-Dist: pybind11
-Requires-Dist: keopscore
+Requires-Dist: keopscore==2.2.3
 Provides-Extra: full
 Requires-Dist: sphinx; extra == "full"
 Requires-Dist: sphinx-gallery; extra == "full"
