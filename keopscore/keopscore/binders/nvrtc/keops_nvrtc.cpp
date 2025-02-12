@@ -36,24 +36,40 @@
 #include <cuda_fp16.h>
 
 // ------------------------------------------------------------------------
-// Begin added DevicePointer wrapper
-// This structure wraps a device pointer along with a flag indicating
-// whether the memory was allocated by KeOps (and thus must be freed)
+// DevicePointer wrapper
+// Allocates memory on the device and links it to a boolean flag indicating if it was allocated by KeOps.
 struct DevicePointer {
   signed long int* ptr;
   bool allocated_by_keops;
 
   DevicePointer() : ptr(nullptr), allocated_by_keops(false) {}
 
+  // Allocates memory on the device and marks the pointer as owned.
+  void allocate(size_t size) {
+    CUDA_SAFE_CALL(cuMemAlloc((CUdeviceptr *)&ptr, size));
+    allocated_by_keops = true;
+  }
+
+  // Copies data from host memory to the allocated device memory.
+  void copyFromHost(const void *host_data, size_t size) {
+    CUDA_SAFE_CALL(cuMemcpyHtoD((CUdeviceptr)ptr, host_data, size));
+  }
+
+  // Sets the pointer from an externally allocated device pointer.
+  void setFromDevice(void *dev_ptr) {
+    ptr = (signed long int*)dev_ptr;
+    allocated_by_keops = false;
+  }
+
+  // Frees the memory only if it was allocated by this wrapper.
   void destroy() {
     if (allocated_by_keops && ptr != nullptr) {
-      // Free the memory only if we allocated it.
       CUDA_SAFE_CALL_NO_EXCEPTION(cuMemFree((CUdeviceptr)ptr));
       ptr = nullptr;
     }
   }
 };
-// End added DevicePointer wrapper
+// End DevicePointer wrapper
 // ------------------------------------------------------------------------
 
 signed long int *build_offset_tables(int nbatchdims, signed long int *shapes, signed long int nblocks,
@@ -133,7 +149,6 @@ signed long int *build_offset_tables(int nbatchdims, signed long int *shapes, si
 }
 
 // ------------------------------------------------------------------------
-// Updated function: use DevicePointer wrappers instead of raw pointers.
 void range_preprocess_from_device(signed long int &nblocks, int tagI, signed long int nranges_x,
                                   signed long int nranges_y, signed long int **castedranges,
                                   int nbatchdims, DevicePointer &slices_x_d,
@@ -146,7 +161,15 @@ void range_preprocess_from_device(signed long int &nblocks, int tagI, signed lon
 
   // Ranges pre-processing...
   // ==================================================================
-  // See comments below regarding tagJ and ranges
+
+  // N.B.: In the following code, we assume that the x-ranges do not overlap.
+  //       Otherwise, we'd have to assume that DIMRED == DIMOUT
+  //       or allocate a buffer of size nx * DIMRED. This may be done in the
+  //       future.
+  // Cf. reduction.h:
+  //    FUN::tagJ = 1 for a reduction over j, result indexed by i
+  //    FUN::tagJ = 0 for a reduction over i, result indexed by j
+
   int tagJ = 1 - tagI;
   signed long int nranges = tagJ ? nranges_x : nranges_y;
 
@@ -158,35 +181,34 @@ void range_preprocess_from_device(signed long int &nblocks, int tagI, signed lon
   signed long int *ranges_x_h_arr = ranges_x_h_arr_vec.data();
   signed long int *ranges_x_h;
 
-  // Depending on where the ranges are stored (device vs host),
-  // copy the appropriate arrays.
+  // The code below needs a pointer to ranges_x on *host* memory,
+  // ------------------- as well as pointers to slices_x and ranges_y on
+  // *device* memory.
+  // -> Depending on the "ranges" location, we'll copy ranges_x *or* slices_x
+  // and ranges_y
+  //    to the appropriate memory:
   bool ranges_on_device = (nbatchdims == 0);
-  if (ranges_on_device) { // The ranges are on the device
-    ranges_x_h = &ranges_x_h_arr[0];
-    // Copy ranges_x from device to host.
-    cuMemcpyDtoH(ranges_x_h, (CUdeviceptr)ranges_x, sizeof(signed long int) * 2 * nranges);
-    // Mark these pointers as "borrowed": do not free them.
-    slices_x_d.ptr = slices_x;
-    slices_x_d.allocated_by_keops = false;
-   
-    ranges_y_d.ptr = ranges_y;
-    ranges_y_d.allocated_by_keops = false;
-  } else { // The ranges are on host (batch processing)
-    ranges_x_h = ranges_x;
-    // Allocate device memory for slices_x_d.
-    CUDA_SAFE_CALL(cuMemAlloc((CUdeviceptr *)&(slices_x_d.ptr), sizeof(signed long int) * nranges));
-    slices_x_d.allocated_by_keops = true;
-    CUDA_SAFE_CALL(cuMemcpyHtoD((CUdeviceptr)slices_x_d.ptr, slices_x,
-                                sizeof(signed long int) * nranges));
+  // N.B.: We only support Host ranges with Device data when these ranges were
+  // created
+  //       to emulate block-sparse reductions.
 
-    // Allocate device memory for ranges_y_d.
-    CUDA_SAFE_CALL(cuMemAlloc((CUdeviceptr *)&(ranges_y_d.ptr), sizeof(signed long int) * 2 * nranges));
-    ranges_y_d.allocated_by_keops = true;
-    CUDA_SAFE_CALL(cuMemcpyHtoD((CUdeviceptr)ranges_y_d.ptr, ranges_y,
-                                sizeof(signed long int) * 2 * nranges));
+  if (ranges_on_device) { // Ranges already on device.
+    ranges_x_h = &ranges_x_h_arr[0];
+    cuMemcpyDtoH(ranges_x_h, (CUdeviceptr)ranges_x, sizeof(signed long int) * 2 * nranges);
+    // Set the pointers as borrowed.
+    slices_x_d.setFromDevice(slices_x);
+    ranges_y_d.setFromDevice(ranges_y);
+  } else { // Ranges on host; allocate device memory.
+    ranges_x_h = ranges_x;
+    slices_x_d.allocate(sizeof(signed long int) * nranges);
+    slices_x_d.copyFromHost(slices_x, sizeof(signed long int) * nranges);
+
+    ranges_y_d.allocate(sizeof(signed long int) * 2 * nranges);
+    ranges_y_d.copyFromHost(ranges_y, sizeof(signed long int) * 2 * nranges);
   }
 
-  // Compute the number of blocks needed.
+  // Compute number of blocks needed.
+  // ---------------------------------------------
   nblocks = 0;
   signed long int len_range = 0;
   for (signed long int i = 0; i < nranges; i++) {
@@ -195,10 +217,10 @@ void range_preprocess_from_device(signed long int &nblocks, int tagI, signed lon
   }
 
   // Create a lookup table for the blocks.
+  // ---------------------------------------------
   std::vector<signed long int> lookup_h_vec(3 * nblocks);
   signed long int *lookup_h = lookup_h_vec.data();
   signed long int index = 0;
-
   for (signed long int i = 0; i < nranges; i++) {
     len_range = ranges_x_h[2 * i + 1] - ranges_x_h[2 * i];
     for (signed long int j = 0; j < len_range; j += blockSize_x) {
@@ -209,22 +231,22 @@ void range_preprocess_from_device(signed long int &nblocks, int tagI, signed lon
     }
   }
 
-  // Allocate device memory for the lookup table.
-  CUDA_SAFE_CALL(cuMemAlloc((CUdeviceptr *)&(lookup_d.ptr), sizeof(signed long int) * 3 * nblocks));
-  lookup_d.allocated_by_keops = true;
-  CUDA_SAFE_CALL(cuMemcpyHtoD((CUdeviceptr)lookup_d.ptr, lookup_h, sizeof(signed long int) * 3 * nblocks));
+  // Allocate and copy lookup table.
+  // -----------------------------------------------------
+  lookup_d.allocate(sizeof(signed long int) * 3 * nblocks);
+  lookup_d.copyFromHost(lookup_h, sizeof(signed long int) * 3 * nblocks);
 
-  // Support for broadcasting over batch dimensions: allocate offsets if needed.
+    // Support for broadcasting over batch dimensions
+  // =============================================
+
+  // We create a lookup table, "offsets", of shape (nblock, SIZEVARS):
   if (nbatchdims > 0) {
     offsets_d.ptr = build_offset_tables(nbatchdims, shapes, nblocks, lookup_h,
                                         indsi, indsj, indsp, tagJ);
     offsets_d.allocated_by_keops = true;
   }
 }
-// ------------------------------------------------------------------------
 
-// ------------------------------------------------------------------------
-// Updated function: use DevicePointer wrappers instead of raw pointers.
 void range_preprocess_from_host(signed long int &nblocks, int tagI, signed long int nranges_x,
                                 signed long int nranges_y, signed long int nredranges_x,
                                 signed long int nredranges_y, signed long int **castedranges,
@@ -237,6 +259,15 @@ void range_preprocess_from_host(signed long int &nblocks, int tagI, signed long 
 
   // Ranges pre-processing...
   // ==================================================================
+  
+  // N.B.: In the following code, we assume that the x-ranges do not overlap.
+  //       Otherwise, we'd have to assume that DIMRED == DIMOUT
+  //       or allocate a buffer of size nx * DIMRED. This may be done in the
+  //       future.
+  // Cf. reduction.h:
+  //    FUN::tagJ = 1 for a reduction over j, result indexed by i
+  //    FUN::tagJ = 0 for a reduction over i, result indexed by j
+
   int tagJ = 1 - tagI;
   signed long int nranges = tagJ ? nranges_x : nranges_y;
   signed long int nredranges = tagJ ? nredranges_y : nredranges_x;
@@ -245,7 +276,8 @@ void range_preprocess_from_host(signed long int &nblocks, int tagI, signed long 
   signed long int *slices_x = tagJ ? castedranges[1] : castedranges[4];
   signed long int *ranges_y = tagJ ? castedranges[2] : castedranges[5];
 
-  // Compute the number of blocks needed.
+  // Computes the number of blocks needed
+  // ---------------------------------------------
   nblocks = 0;
   signed long int len_range = 0;
   for (signed long int i = 0; i < nranges; i++) {
@@ -253,11 +285,11 @@ void range_preprocess_from_host(signed long int &nblocks, int tagI, signed long 
     nblocks += (len_range / blockSize_x) + (len_range % blockSize_x == 0 ? 0 : 1);
   }
 
-  // Create a lookup table for the blocks.
+  // Create a lookup table for the blocks
+  // --------------------------------------------
   std::vector<signed long int> lookup_h_vec(3 * nblocks);
   signed long int *lookup_h = lookup_h_vec.data();
   signed long int index = 0;
-
   for (signed long int i = 0; i < nranges; i++) {
     len_range = ranges_x[2 * i + 1] - ranges_x[2 * i];
     for (signed long int j = 0; j < len_range; j += blockSize_x) {
@@ -268,22 +300,23 @@ void range_preprocess_from_host(signed long int &nblocks, int tagI, signed long 
     }
   }
 
-  // Allocate device memory for the lookup table.
-  CUDA_SAFE_CALL(cuMemAlloc((CUdeviceptr *)&(lookup_d.ptr), sizeof(signed long int) * 3 * nblocks));
-  lookup_d.allocated_by_keops = true;
-  CUDA_SAFE_CALL(cuMemcpyHtoD((CUdeviceptr)lookup_d.ptr, lookup_h, sizeof(signed long int) * 3 * nblocks));
+  // Allocate and copy lookup table.
+  // --------------------------------------------
+  lookup_d.allocate(sizeof(signed long int) * 3 * nblocks);
+  lookup_d.copyFromHost(lookup_h, sizeof(signed long int) * 3 * nblocks);
 
-  // Send data from host to device: allocate slices_x_d.
-  CUDA_SAFE_CALL(cuMemAlloc((CUdeviceptr *)&(slices_x_d.ptr), sizeof(signed long int) * 2 * nranges));
-  slices_x_d.allocated_by_keops = true;
-  CUDA_SAFE_CALL(cuMemcpyHtoD((CUdeviceptr)slices_x_d.ptr, slices_x, sizeof(signed long int) * 2 * nranges));
+  // Allocate and copy slices_x_d.
+  slices_x_d.allocate(sizeof(signed long int) * 2 * nranges);
+  slices_x_d.copyFromHost(slices_x, sizeof(signed long int) * 2 * nranges);
 
-  // Allocate device memory for ranges_y_d.
-  CUDA_SAFE_CALL(cuMemAlloc((CUdeviceptr *)&(ranges_y_d.ptr), sizeof(signed long int) * 2 * nredranges));
-  ranges_y_d.allocated_by_keops = true;
-  CUDA_SAFE_CALL(cuMemcpyHtoD((CUdeviceptr)ranges_y_d.ptr, ranges_y, sizeof(signed long int) * 2 * nredranges));
+  // Allocate and copy ranges_y_d.
+  ranges_y_d.allocate(sizeof(signed long int) * 2 * nredranges);
+  ranges_y_d.copyFromHost(ranges_y, sizeof(signed long int) * 2 * nredranges);
 
-  // Support for broadcasting over batch dimensions: allocate offsets if needed.
+  // Support for broadcasting over batch dimensions
+  // =============================================
+
+  // We create a lookup table, "offsets", of shape (nblock, SIZEVARS):
   if (nbatchdims > 0) {
     offsets_d.ptr = build_offset_tables(nbatchdims, shapes, nblocks, lookup_h,
                                         indsi, indsj, indsp, tagJ);
@@ -342,9 +375,7 @@ public:
     CUDA_SAFE_CALL(cuModuleLoadDataEx(&module, target, 0, NULL, NULL));
 
     // allocate a small memory buffer for "on device" computation mode,
-    // This is just used for storing the list of pointers to device data
-    // as a device array; it is better to allocate it here once for all,
-    // otherwise allocating it at each call may cause a small overhead.
+    // This is used for storing a list of pointers to device data.
     CUDA_SAFE_CALL(cuMemAlloc(&buffer, nargs * sizeof(TYPE *)));
   }
 
@@ -368,8 +399,17 @@ public:
 
     SetContext();
 
+    ////end_ = clock();
+    ////std::cout << "  time for set device : " << double(//end_ - start_) /
+    /// CLOCKS_PER_SEC << std::endl;
+    // start_ = clock();
+
     Sizes<TYPE> SS(nargs, arg, argshape, nx, ny, tagI, use_half, dimout, indsi,
                    indsj, indsp, dimsx, dimsy, dimsp);
+
+    // end_ = clock();
+    // std::cout << "  time for Sizes : " << double(//end_ - start_) /
+    // CLOCKS_PER_SEC << std::endl; start_ = clock();
 
     if (use_half)
       SS.switch_to_half2_indexing();
@@ -378,54 +418,61 @@ public:
     nx = SS.nx;
     ny = SS.ny;
 
-    // Adjust indices if tagI==1 (swap i and j variables)
+    // end_ = clock();
+    // std::cout << "  time for Ranges : " << double(//end_ - start_) /
+    // CLOCKS_PER_SEC << std::endl; start_ = clock();
+
+    // now we switch (back...) indsi, indsj and dimsx, dimsy in case tagI=1.
+    // This is to be consistent with the convention used in the old
+    // bindings where i and j variables had different meanings in bindings
+    // and in the core code. Clearly we could do better if we
+    // carefully rewrite some parts of the code
+
     if (tagI == 1) {
-      std::vector<int> tmpind;
-      tmpind = indsj;
+      std::vector<int> tmpind = indsj;
       indsj = indsi;
       indsi = tmpind;
 
-      std::vector<signed long int> tmpdim;
-      tmpdim = dimsy;
+      std::vector<signed long int> tmpdim = dimsy;
       dimsy = dimsx;
       dimsx = tmpdim;
     }
 
     unsigned int blockSize_x = 1, blockSize_y = 1, blockSize_z = 1;
-
     if (use_chunk_mode == 0) {
-      // Block size is the minimum between cuda_block_size, maxThreadsPerBlock, and a bound imposed by shared memory.
+      // warning : blockSize.x was previously set to CUDA_BLOCK_SIZE; currently
+      // CUDA_BLOCK_SIZE value is used as a bound.
       blockSize_x = std::min(
           cuda_block_size,
           std::min((signed long int)maxThreadsPerBlock,
                    (signed long int)(sharedMemPerBlock /
-                                      std::max((signed long int)1, (signed long int)(dimY * sizeof(TYPE))))));
+                     std::max((signed long int)1, (signed long int)(dimY * sizeof(TYPE))))));
     } else {
-      // In chunk mode, blockSize_x is further limited.
+      // warning : the value here must match the one which is set in file
+      // GpuReduc1D_chunks.py, line 59 and file GpuReduc1D_finalchunks.py, line
+      // 67
       blockSize_x = std::min((signed long int)cuda_block_size,
                              std::min((signed long int)1024,
                                       (signed long int)(49152 /
-                                                        std::max((signed long int)1, (signed long int)(dimY * sizeof(TYPE))))));
+                                        std::max((signed long int)1, (signed long int)(dimY * sizeof(TYPE))))));
     }
 
     signed long int nblocks;
-
     if (tagI == 1) {
       signed long int tmp = ny;
       ny = nx;
       nx = tmp;
     }
 
-    // Declare our DevicePointer wrappers.
+    // Declare DevicePointer wrappers.
     DevicePointer lookup_d, slices_x_d, ranges_y_d, offsets_d;
-
     if (RR.tagRanges == 1) {
       if (tagHostDevice == 1) {
         range_preprocess_from_device(
             nblocks, tagI, RR.nranges_x, RR.nranges_y, RR.castedranges,
             SS.nbatchdims, slices_x_d, ranges_y_d, lookup_d, offsets_d,
             blockSize_x, indsi, indsj, indsp, SS.shapes);
-      } else { // tagHostDevice == 0: host mode
+      } else { // Host mode
         range_preprocess_from_host(nblocks, tagI, RR.nranges_x, RR.nranges_y,
                                    RR.nredranges_x, RR.nredranges_y, RR.castedranges,
                                    SS.nbatchdims, slices_x_d, ranges_y_d, lookup_d, offsets_d,
@@ -433,13 +480,16 @@ public:
       }
     }
 
+    ////end_ = clock();
+    ////std::cout << "  time for interm : " << double(//end_ - start_) /
+    /// CLOCKS_PER_SEC << std::endl;
+    // start_ = clock();
+
     CUdeviceptr p_data;
     TYPE *out_d;
     TYPE **arg_d;
-
     signed long int sizeout = std::accumulate(shapeout.begin(), shapeout.end(), 1,
-                                              std::multiplies<signed long int>());
-
+                                std::multiplies<signed long int>());
     if (tagHostDevice == 1) {
       p_data = buffer;
       load_args_FromDevice(p_data, out, out_d, nargs, arg, arg_d);
@@ -447,18 +497,34 @@ public:
       load_args_FromHost(p_data, out, out_d, nargs, arg, arg_d, argshape, sizeout);
     }
 
+    ////end_ = clock();
+    ////std::cout << "  time for load_args : " << double(//end_ - start_) /
+    /// CLOCKS_PER_SEC << std::endl;
+    // start_ = clock();
+
     CUfunction kernel;
+
     unsigned int gridSize_x = 1, gridSize_y = 1, gridSize_z = 1;
 
     if (tag1D2D == 1) { // 2D scheme
+
       gridSize_x = nx / blockSize_x + (nx % blockSize_x == 0 ? 0 : 1);
       gridSize_y = ny / blockSize_x + (ny % blockSize_x == 0 ? 0 : 1);
 
-      // For reduction, allocate a temporary output array outB.
-      unsigned int blockSize2_x = blockSize_x;
-      unsigned int gridSize2_x = (nx * dimred) / blockSize2_x + (((nx * dimred) % blockSize2_x == 0) ? 0 : 1);
+      // Reduce : grid and block are both 1d
+      unsigned int blockSize2_x = 1, blockSize2_y = 1, blockSize2_z = 1;
+      blockSize2_x = blockSize_x; // number of threads in each block
+      unsigned int gridSize2_x = 1, gridSize2_y = 1, gridSize2_z = 1;
+      gridSize2_x = (nx * dimred) / blockSize2_x +
+                    ((nx * dimred) % blockSize2_x == 0 ? 0 : 1);
+
+      
+      // Data on the device. We need an "inflated" outB, which contains
+      // gridSize.y "copies" of out that will be reduced in the final pass.
 
       TYPE *outB;
+
+      // single cudaMalloc
       CUdeviceptr p_data_outB;
       CUDA_SAFE_CALL(cuMemAlloc(&p_data_outB, sizeof(TYPE) * (nx * dimred * gridSize_y)));
       outB = (TYPE *)((TYPE **)p_data_outB);
@@ -471,14 +537,19 @@ public:
       kernel_params[2] = &outB;
       kernel_params[3] = &arg_d;
 
-      CUDA_SAFE_CALL(cuLaunchKernel(
-          kernel, gridSize_x, gridSize_y, gridSize_z, // grid dimensions
-          blockSize_x, blockSize_y, blockSize_z,      // block dimensions
-          blockSize_x * dimY * sizeof(TYPE), NULL,    // shared memory and stream
-          kernel_params, 0));
-      CUDA_SAFE_CALL(cuCtxSynchronize());
+      // Size of the SharedData : blockSize.x*(DIMY)*sizeof(TYPE)
 
-      // Perform final reduction using the "reduce2D" kernel.
+      CUDA_SAFE_CALL(cuLaunchKernel(
+          kernel, gridSize_x, gridSize_y, gridSize_z,  // grid dim
+          blockSize_x, blockSize_y, blockSize_z,      // block dim
+          blockSize_x * dimY * sizeof(TYPE), NULL,    // shared mem and stream
+          kernel_params, 0));
+      // block until the device has completed
+      CUDA_SAFE_CALL(cuCtxSynchronize());
+      
+      // Since we've used a 2D scheme, there's still a "blockwise" line
+      // reduction to make on the output array px_d[0] = x1B. We go from shape (
+      // gridSize.y * nx, DIMRED ) to (nx, DIMOUT)
       CUfunction kernel_reduce;
       CUDA_SAFE_CALL(cuModuleGetFunction(&kernel_reduce, module, "reduce2D"));
       void *kernel_reduce_params[4];
@@ -486,21 +557,25 @@ public:
       kernel_reduce_params[1] = &out_d;
       kernel_reduce_params[2] = &gridSize_y;
       kernel_reduce_params[3] = &nx;
+
       CUDA_SAFE_CALL(cuLaunchKernel(
-          kernel_reduce, gridSize2_x, 1, 1, // grid dimensions for reduction
-          blockSize2_x, 1, 1,              // block dimensions for reduction
-          0, NULL, kernel_reduce_params, 0));
+          kernel_reduce, gridSize2_x, 1, 1,   // grid dim
+          blockSize2_x, 1, 1,                 // block dim
+          0, NULL, kernel_reduce_params, 0)); // shared mem and stream
+
       CUDA_SAFE_CALL(cuMemFree(p_data_outB));
+
     } else if (RR.tagRanges == 1 && tagZero == 0) {
-      // Ranges mode
+      // ranges mode
+
       gridSize_x = nblocks;
+
+
       CUDA_SAFE_CALL(cuModuleGetFunction(&kernel, module, "GpuConv1DOnDevice_ranges"));
       void *kernel_params[9];
       kernel_params[0] = &nx;
       kernel_params[1] = &ny;
       kernel_params[2] = &SS.nbatchdims;
-      // --- Pass the unwrapped device pointers to the kernel ---
-      // *** NEW CAST: explicitly cast our inner pointer to CUdeviceptr ***
       CUdeviceptr offsets_ptr = (CUdeviceptr)(offsets_d.ptr);
       CUdeviceptr lookup_ptr  = (CUdeviceptr)(lookup_d.ptr);
       CUdeviceptr slices_ptr  = (CUdeviceptr)(slices_x_d.ptr);
@@ -511,30 +586,42 @@ public:
       kernel_params[6] = &ranges_ptr;
       kernel_params[7] = &out_d;
       kernel_params[8] = &arg_d;
-      // ---------------------------------------------------------
+
+
       CUDA_SAFE_CALL(cuLaunchKernel(
-          kernel, gridSize_x, gridSize_y, gridSize_z, // grid dimensions
-          blockSize_x, blockSize_y, blockSize_z,      // block dimensions
-          blockSize_x * dimY * sizeof(TYPE), NULL,    // shared memory and stream
-          kernel_params, 0));
+          kernel, gridSize_x, gridSize_y, gridSize_z,     // grid dim
+          blockSize_x, blockSize_y, blockSize_z,          // block dim
+          blockSize_x * dimY * sizeof(TYPE), NULL,        // shared mem and stream
+          kernel_params, 0));                             // arguments
     } else {
-      // Simple mode (no ranges)
+      // simple mode
+
       gridSize_x = nx / blockSize_x + (nx % blockSize_x == 0 ? 0 : 1);
+
       CUDA_SAFE_CALL(cuModuleGetFunction(&kernel, module, "GpuConv1DOnDevice"));
+
       void *kernel_params[4];
       kernel_params[0] = &nx;
       kernel_params[1] = &ny;
       kernel_params[2] = &out_d;
       kernel_params[3] = &arg_d;
+
       CUDA_SAFE_CALL(cuLaunchKernel(
           kernel, gridSize_x, gridSize_y, gridSize_z,
           blockSize_x, blockSize_y, blockSize_z,
-          blockSize_x * dimY * sizeof(TYPE), NULL, kernel_params, 0));
+          blockSize_x * dimY * sizeof(TYPE), NULL,
+          kernel_params, 0));
     }
 
     CUDA_SAFE_CALL(cuCtxSynchronize());
 
-    // Copy the output from device to host if necessary.
+    ////end_ = clock();
+    ////std::cout << "  time for kernel : " << double(//end_ - start_) /
+    /// CLOCKS_PER_SEC << std::endl;
+    // start_ = clock();
+
+    // Send data from device to host.
+
     if (tagHostDevice == 0) {
       CUDA_SAFE_CALL(cuMemcpyDtoH(out, (CUdeviceptr)out_d, sizeof(TYPE) * sizeout));
     }
@@ -542,7 +629,7 @@ public:
     if (tagHostDevice == 0)
       CUDA_SAFE_CALL(cuMemFree(p_data));
 
-    // --- Cleanup: free only the memory allocated by KeOps ---
+    // Cleanup: free only the memory allocated by KeOps.
     if (RR.tagRanges == 1) {
       lookup_d.destroy();
       slices_x_d.destroy();
@@ -551,7 +638,6 @@ public:
         offsets_d.destroy();
       }
     }
-    // ---------------------------------------------------------
 
     return 0;
   }
