@@ -49,9 +49,14 @@ class ExtractT(Operation):
     test_argdims = [5]  # dimensions of arguments for testing
     test_params = [3, 10]  # dimensions of parameters for testing
 
-    def torch_op(x, s, d):  # equivalent PyTorch operation
+    @staticmethod
+    def torch_op():
+        """equivalent torch operation"""
         import torch
 
-        out = torch.zeros((*x.shape[:-1], d), device=x.device, dtype=x.dtype)
-        out[..., s : (s + x.shape[-1])] = x
-        return out
+        def _torch_op(x, s, d):
+            out = torch.zeros((*x.shape[:-1], d), device=x.device, dtype=x.dtype)
+            out[..., s : (s + x.shape[-1])] = x
+            return out
+
+        return _torch_op

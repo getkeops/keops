@@ -51,4 +51,3 @@ class MatVecMult(Operation):
     enable_test = True  # enable testing for this operation
     nargs = 2  # number of arguments
     test_argdims = [6, 2]  # dimensions of arguments for testing
-    torch_op = None  # equivalent PyTorch operation

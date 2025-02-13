@@ -108,7 +108,6 @@ class BSpline_Impl(Operation):
     nargs = 2  # number of arguments
     test_argdims = [5, 1]  # dimensions of arguments for testing
     test_params = [3]  # values of parameters for testing
-    torch_op = None  # equivalent PyTorch operation
 
 
 # TODO Jean: The two ways of defining an alias seem equivalent to me...

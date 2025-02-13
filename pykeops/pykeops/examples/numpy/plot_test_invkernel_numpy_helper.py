@@ -67,7 +67,6 @@ print("Timing (KeOps implementation):", round(end - start, 5), "s")
 
 from scipy.sparse import diags
 from scipy.sparse.linalg import aslinearoperator, cg
-from scipy.sparse.linalg.interface import IdentityOperator
 
 print("Solving a Gaussian linear system, with {} points in dimension {}.".format(N, D))
 start = time.time()

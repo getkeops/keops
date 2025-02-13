@@ -6,7 +6,7 @@ Let's see how to solve discrete deconvolution problems
 using the **conjugate gradient solver** provided by
 :class:`numpy.KernelSolve <pykeops.numpy.KernelSolve>`.
 
- 
+
 """
 
 ###############################################################################

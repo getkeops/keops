@@ -14,3 +14,10 @@ class Sin(VectorizedScalarOp):
         from .Cos import Cos
 
         return Cos(f)
+
+    @staticmethod
+    def torch_op():
+        """equivalent torch operation"""
+        import torch
+
+        return torch.sin

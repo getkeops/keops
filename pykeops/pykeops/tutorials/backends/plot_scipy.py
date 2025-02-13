@@ -8,13 +8,13 @@ provides a simple abstraction for implicit tensors:
 the `LinearOperator <https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.linalg.LinearOperator.html>`_
 class,
 which represents generic "Matrix-Vector" products
-and can be plugged seamlessly in a `large collection <https://docs.scipy.org/doc/scipy/reference/sparse.linalg.html>`_ 
+and can be plugged seamlessly in a `large collection <https://docs.scipy.org/doc/scipy/reference/sparse.linalg.html>`_
 of linear algebra routines.
 
 Crucially, KeOps :class:`pykeops.torch.LazyTensor` are now **fully compatible**
 with this interface.
-As an example, let's see how to combine KeOps with a 
-`fast eigenproblem solver <https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.linalg.eigsh.html>`_ 
+As an example, let's see how to combine KeOps with a
+`fast eigenproblem solver <https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.linalg.eigsh.html>`_
 to compute **spectral coordinates** on a large 2D or 3D point cloud.
 
 .. note::
@@ -154,10 +154,8 @@ L.dtype = np.dtype(
 #       L_{\text{norm}}= \text{Id} - \text{diag}(D^{-1/2}) K \text{diag}(D^{-1/2}).
 
 
-from scipy.sparse.linalg.interface import IdentityOperator
-
 D_2 = aslinearoperator(diags(1 / np.sqrt(D)))
-L_norm = IdentityOperator((N, N)) - D_2 @ K @ D_2
+L_norm = aslinearoperator(diags(np.ones_like(D))) - D_2 @ K @ D_2
 L_norm.dtype = np.dtype(
     dtype
 )  # Scipy Bugfix: by default, "-" removes the dtype information...
@@ -373,7 +371,7 @@ K = aslinearoperator(K_xx)
 
 D = K @ np.ones(N, dtype=dtype)  # Sum along the lines of the adjacency matrix
 D_2 = aslinearoperator(diags(1 / np.sqrt(D)))
-L_norm = IdentityOperator((N, N)) - D_2 @ K @ D_2
+L_norm = aslinearoperator(diags(np.ones_like(D))) - D_2 @ K @ D_2
 L_norm.dtype = np.dtype(
     dtype
 )  # Scipy Bugfix: by default, "-" removes the dtype information...

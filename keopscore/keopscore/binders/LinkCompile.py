@@ -1,10 +1,10 @@
 import os
-
-import keopscore.config.config
-from keopscore.config.config import get_build_folder
+from keopscore.config import config
 from keopscore.utils.code_gen_utils import get_hash_name
 from keopscore.utils.misc_utils import KeOps_Error, KeOps_Message
-from keopscore.config.config import cpp_flags
+
+cpp_flags = config.get_cpp_flags()
+get_build_folder = config.get_build_folder
 
 
 class LinkCompile:

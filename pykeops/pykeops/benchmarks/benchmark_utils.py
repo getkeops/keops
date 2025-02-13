@@ -340,15 +340,15 @@ def bench_config(
 
     except (TimeoutError, IndexError):  # Thrown by Nloops.pop(0) if Nloops = []
         print("** Too slow!")
-        not_recorded_times = (len(problem_sizes) - len(times)) * [np.Infinity]
+        not_recorded_times = (len(problem_sizes) - len(times)) * [np.inf]
 
     except NotImplementedError:
         print("** This metric is not supported!")
-        not_recorded_times = (len(problem_sizes) - len(times)) * [np.Infinity]
+        not_recorded_times = (len(problem_sizes) - len(times)) * [np.inf]
 
     except ValueError as err:
         print(err)
-        not_recorded_times = (len(problem_sizes) - len(times)) * [np.NINF]
+        not_recorded_times = (len(problem_sizes) - len(times)) * [-np.inf]
 
     except RuntimeError as err:
         print(err)

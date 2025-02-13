@@ -44,9 +44,14 @@ class ElemT(Operation):
     test_argdims = [1]  # dimensions of arguments for testing
     test_params = [5, 3]  # dimensions of parameters for testing
 
-    def torch_op(x, n, m):  # equivalent PyTorch operation
+    @staticmethod
+    def torch_op():
+        """equivalent torch operation"""
         import torch
 
-        out = torch.zeros((*x.shape[:-1], n), device=x.device, dtype=x.dtype)
-        out[..., m][..., None] = x
-        return out
+        def _torch_op(x, n, m):  # equivalent PyTorch operation
+            out = torch.zeros((*x.shape[:-1], n), device=x.device, dtype=x.dtype)
+            out[..., m][..., None] = x
+            return out
+
+        return _torch_op

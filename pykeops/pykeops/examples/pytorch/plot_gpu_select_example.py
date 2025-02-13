@@ -1,13 +1,13 @@
 """
 =========
-Multi GPU 
+Multi GPU
 =========
 
 On multi-device clusters,
 let's see how to select the card on which a KeOps
 operation will be performed.
 
- 
+
 """
 
 ###############################################################

@@ -5,7 +5,7 @@ Anisotropic kernels
 Let's see how to encode anisotropic kernels
 with a minimal amount of effort.
 
- 
+
 """
 
 ##############################################

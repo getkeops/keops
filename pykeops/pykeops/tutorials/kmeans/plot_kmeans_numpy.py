@@ -5,17 +5,17 @@ K-means clustering - NumPy API
 
 The :meth:`pykeops.numpy.LazyTensor.argmin` reduction supported by KeOps :class:`pykeops.numpy.LazyTensor` allows us
 to perform **bruteforce nearest neighbor search** with four lines of code.
-It can thus be used to implement a **large-scale** 
+It can thus be used to implement a **large-scale**
 `K-means clustering <https://en.wikipedia.org/wiki/K-means_clustering>`_,
 **without memory overflows**.
 
 
 .. note::
-    For large and high dimensional datasets, this script 
+    For large and high dimensional datasets, this script
     **is outperformed by its PyTorch counterpart**
     which avoids transfers between CPU (host) and GPU (device) memories.
 
- 
+
 """
 
 #########################################################################

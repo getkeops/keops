@@ -28,7 +28,13 @@ class Minus_Impl(VectorizedScalarOp):
 
     # parameters for testing the operation (optional)
     nargs = 1  # number of arguments
-    torch_op = "torch.neg"  # equivalent PyTorch operation
+
+    @staticmethod
+    def torch_op():
+        """equivalent torch operation"""
+        import torch
+
+        return torch.neg
 
 
 # N.B. The following separate function should theoretically be implemented

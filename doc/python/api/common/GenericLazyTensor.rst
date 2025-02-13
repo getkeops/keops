@@ -21,5 +21,3 @@ This section contains the full API documentation of the :doc:`LazyTensor <../../
 .. autoclass:: ComplexGenericLazyTensor
     :members:
     :special-members:
-
-		

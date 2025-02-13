@@ -6,6 +6,7 @@ from keopscore.utils.code_gen_utils import (
     c_zero_float,
 )
 import keopscore
+from keopscore.config import *
 
 
 class CpuAssignZero(MapReduce, Cpu_link_compile):
@@ -25,7 +26,7 @@ class CpuAssignZero(MapReduce, Cpu_link_compile):
         args = self.args
 
         headers = ["stdlib.h"]
-        if keopscore.config.config.use_OpenMP:
+        if keopscore.openmp_config.get_use_OpenMP():
             headers.append("omp.h")
         if keopscore.debug_ops_at_exec:
             headers.append("iostream")

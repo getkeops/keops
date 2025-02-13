@@ -245,6 +245,10 @@ class Operation(Tree):
     enable_test = False
     disable_testgrad = False
 
+    @staticmethod
+    def torch_op():
+        return None
+
 
 def int2Op(x):
     if isinstance(x, int):

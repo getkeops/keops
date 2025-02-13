@@ -18,5 +18,12 @@ class NotEqual(VectorizedScalarOp):
 
     # parameters for testing the operation (optional)
     nargs = 2  # number of arguments
-    torch_op = "lambda x,y : torch.ne(x,y).float()"
+
+    @staticmethod
+    def torch_op():
+        """equivalent torch operation"""
+        import torch
+
+        return lambda x, y: torch.ne(x, y).float()
+
     no_torch_grad = True

@@ -53,8 +53,8 @@ import inspect
 import sys
 
 import keopscore
-import keopscore.config.config
-from keopscore.config.config import get_build_folder
+from keopscore.config import *
+
 import keopscore.mapreduce
 from keopscore import cuda_block_size
 from keopscore.config.chunks import (
@@ -87,7 +87,7 @@ def get_keops_dll_impl(
     # detecting the need for special chunked computation modes :
     use_chunk_mode = 0
     if "Gpu" in map_reduce_id:
-        if not keopscore.config.config.use_cuda:
+        if not cuda_config.get_use_cuda():
             KeOps_Error(
                 "You selected a Gpu reduce scheme but KeOps is in Cpu only mode."
             )
@@ -162,7 +162,7 @@ def get_keops_dll_impl(
 get_keops_dll = Cache(
     get_keops_dll_impl,
     use_cache_file=True,
-    save_folder=get_build_folder(),
+    save_folder=config.get_build_folder(),
 )
 
 

@@ -1,4 +1,5 @@
 import os
+import keopscore
 
 ##############################################################
 # Verbosity level (we must do this before importing keopscore)
@@ -7,14 +8,13 @@ if os.getenv("PYKEOPS_VERBOSE") == "0":
     verbose = False
     os.environ["KEOPS_VERBOSE"] = "0"
 
-import keopscore
-import keopscore.config
-import keopscore.config.config
-from keopscore.config.config import get_build_folder as keops_get_build_folder
 
 from . import config as pykeopsconfig
-
 from keopscore import show_cuda_status
+
+keops_get_build_folder = pykeopsconfig.pykeops_base.get_build_folder
+from .config import pykeops_nvrtc_name
+from .config import numpy_found, torch_found
 
 
 def set_verbose(val):
@@ -37,22 +37,47 @@ with open(
 
 default_device_id = 0  # default Gpu device number
 
-if keopscore.config.config.use_cuda:
-    if not os.path.exists(pykeopsconfig.pykeops_nvrtc_name(type="target")):
+if pykeopsconfig.pykeops_cuda.get_use_cuda():
+    if not os.path.exists(pykeops_nvrtc_name(type="target")):
         from .common.keops_io.LoadKeOps_nvrtc import compile_jit_binary
 
         compile_jit_binary()
 
 
 def clean_pykeops(recompile_jit_binaries=True):
+    r"""
+    This function cleans the KeOps cache and recompiles the JIT binaries if necessary.
+
+    Returns:
+         None
+    """
     import pykeops
 
     keopscore.clean_keops(recompile_jit_binary=recompile_jit_binaries)
     keops_binder = pykeops.common.keops_io.keops_binder
     for key in keops_binder:
         keops_binder[key].reset()
-    if recompile_jit_binaries and keopscore.config.config.use_cuda:
+    if recompile_jit_binaries and pykeopsconfig.pykeops_cuda.get_use_cuda():
         pykeops.common.keops_io.LoadKeOps_nvrtc.compile_jit_binary()
+
+
+def check_health():
+    r"""
+    Runs a complete sanity check of the KeOps installation within your system.
+    This function verifies the setup and configuration of KeOps,
+    including compilation flags, paths, ....
+
+    Parameters:
+        config_type (str): The configuration to check. Options are:
+                           'base', 'cuda', 'openmp', 'platform', 'all'.
+                           Default is 'all'.
+
+    Returns:
+        None
+    """
+    import pykeops
+
+    keopscore.check_health()
 
 
 def set_build_folder(path=None):
@@ -62,7 +87,7 @@ def set_build_folder(path=None):
     keops_binder = pykeops.common.keops_io.keops_binder
     for key in keops_binder:
         keops_binder[key].reset(new_save_folder=get_build_folder())
-    if keopscore.config.config.use_cuda and not os.path.exists(
+    if pykeopsconfig.pykeops_cuda.get_use_cuda() and not os.path.exists(
         pykeops.config.pykeops_nvrtc_name(type="target")
     ):
         pykeops.common.keops_io.LoadKeOps_nvrtc.compile_jit_binary()
@@ -72,10 +97,10 @@ def get_build_folder():
     return keops_get_build_folder()
 
 
-if pykeopsconfig.numpy_found:
+if numpy_found:
     from .numpy.test_install import test_numpy_bindings
 
-if pykeopsconfig.torch_found:
+if torch_found:
     from .torch.test_install import test_torch_bindings
 
 # next line is to ensure that cache file for formulas is loaded at import

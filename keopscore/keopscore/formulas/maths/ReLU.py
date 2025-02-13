@@ -13,3 +13,10 @@ class ReLU(VectorizedScalarOp):
     @staticmethod
     def Derivative(f):
         return Step(f)
+
+    @staticmethod
+    def torch_op():
+        """equivalent torch operation"""
+        import torch
+
+        return torch.relu

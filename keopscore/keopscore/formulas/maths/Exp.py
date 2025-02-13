@@ -17,3 +17,10 @@ class Exp(VectorizedScalarOp):
     @staticmethod
     def Derivative(f):
         return Exp(f)
+
+    @staticmethod
+    def torch_op():
+        """equivalent torch operation"""
+        import torch
+
+        return torch.exp
