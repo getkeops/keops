@@ -113,11 +113,6 @@ class CUDAConfig:
         success_nvrtc, nvrtc_path, err_nvrtc = self._try_load_library("nvrtc")
 
         if not success_cuda or not success_nvrtc:
-            # if not success_cuda:
-            #     KeOps_Warning(err_cuda)
-            # if not success_nvrtc:
-            #     KeOps_Warning(err_nvrtc)
-
             self.cuda_message = "CUDA libraries not found or could not be loaded; Switching to CPU only."
             KeOps_Warning(self.cuda_message)
 
@@ -216,13 +211,6 @@ class CUDAConfig:
     def get_build_folder(self):
         return self.build_folder
 
-    # def set_libcuda_folder(self):
-    #     """Check if CUDA libraries are available, and then set libcuda_folder"""
-    #     cuda_lib = find_library("cuda")
-    #     nvrtc_lib = find_library("nvrtc")
-    #     if cuda_lib and nvrtc_lib:
-    #         self.libcuda_folder = os.path.dirname(self.find_library_abspath("cuda"))
-
     def set_libcuda_folder(self):
         """
         Return nothing if not using cuda
@@ -234,13 +222,6 @@ class CUDAConfig:
     def get_libcuda_folder(self):
         return self.libcuda_folder
 
-    # def set_libnvrtc_folder(self):
-    #     """Check if CUDA libraries are available, and then set libnvrtc_folder"""
-    #     cuda_lib = find_library("cuda")
-    #     nvrtc_lib = find_library("nvrtc")
-    #     if cuda_lib and nvrtc_lib:
-    #         self.libnvrtc_folder = os.path.dirname(self.find_library_abspath("nvrtc"))
-
     def set_libnvrtc_folder(self):
         """
         Return nothing if not using cuda
@@ -251,40 +232,6 @@ class CUDAConfig:
 
     def get_libnvrtc_folder(self):
         return self.libnvrtc_folder
-
-    # def find_library_abspath(self, lib):
-    #     # linkmap structure, we only need the second entry
-    #     class LINKMAP(Structure):
-    #         _fields_ = [("l_addr", c_void_p), ("l_name", c_char_p)]
-
-    #     res = find_library(lib)
-    #     if res is None:
-    #         return ""
-
-    #     try:
-    #         lib_handle = CDLL(res)
-    #         libdl = CDLL(find_library("dl"))
-    #     except OSError as e:
-    #         KeOps_Warning(f"Failed to load library {lib}: {e}. Switching to CPU only.")
-    #         return ""
-
-    #     dlinfo = libdl.dlinfo
-    #     dlinfo.argtypes = c_void_p, c_int, c_void_p
-    #     dlinfo.restype = c_int
-
-    #     # Initialize lmptr as c_void_p
-    #     lmptr = c_void_p()
-
-    #     # 2 equals RTLD_DI_LINKMAP, pass pointer by reference
-    #     result = dlinfo(lib_handle._handle, 2, byref(lmptr))
-    #     if result != 0:
-    #         KeOps_Warning(f"dlinfo failed for library {lib}")
-    #         return ""
-
-    #     # typecast to a LINKMAP pointer and retrieve the name
-    #     abspath = cast(lmptr, POINTER(LINKMAP)).contents.l_name
-
-    #     return abspath.decode("utf-8")
 
     def get_cuda_version(self, out_type="single_value"):
         if not self._use_cuda:
