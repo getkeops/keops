@@ -4,7 +4,6 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "keopscore"
-version = "2.2.3"  # The version should be set manually
 description = "keopscore is the KeOps meta programming engine. This python module should be used through a binder (e.g. pykeops or rkeops)" # Required
 readme = { file = "pykeops/readme.md", content-type = "text/markdown" }
 license = { file = "keopscore/licence.txt" }
@@ -22,6 +21,9 @@ classifiers = [
 ]
 
 dependencies = []  # No runtime dependencies for keopscore
+
+[project]
+dynamic = ["version"]
 
 [project.urls]
 Homepage = "http://www.kernel-operations.io/"

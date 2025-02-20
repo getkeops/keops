@@ -4,7 +4,6 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pykeops"
-version = "2.2.3"  # The version should be set manually
 description = "Python bindings of KeOps: KErnel OPerationS, on CPUs and GPUs, with autodiff and without memory overflows" # Required
 readme = { file = "pykeops/readme.md", content-type = "text/markdown" }
 license = { file = "pykeops/licence.txt" }
@@ -20,6 +19,10 @@ classifiers = [
   "Programming Language :: C++",
   "Programming Language :: Python :: 3 :: Only"
 ]
+
+[project]
+dynamic = ["version"]
+
 dependencies = [
   "numpy",
   "pybind11",
