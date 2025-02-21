@@ -28,6 +28,29 @@ Using pip (recommended)
 
 3. Test your installation, as described in the :ref:`next section <part.checkPython>`.
 
+
+Using Conda (reproducible, Linux with CUDA support only)
+=======================
+
+Anaconda (and its alternatives such as Miniconda) provide a distribution of Python and R languages for scientific programming. The package management utilities that come along make installing software packages with multiple dependencies easier. 
+
+If you have anaconda installed in your computer, you can set up a keops-capable environment in seconds. 
+
+2. In a terminal, type:
+
+  .. code-block:: bash
+    wget https://gist.githubusercontent.com/hypnopump/9be7f345b621fdec44982a352f5da2c0/raw/aacf9a5e3f0047d88b77ed36745057ad5b197528/keops_151.yml
+    conda env create --file keops_151.yml --yes
+    rm keops_151.yml
+
+
+  Note that compiled shared objects (``*.so`` files) will be stored in the folder  ``~/.cache/libkeops-$version``, where ``~`` is the path to your home folder and ``$version`` is the package version number.
+
+3. Test your installation, as described in the :ref:`next section <part.checkPython>`.
+
+4. Be sure to activate your conda environment by typing ``conda activate keops-151`` before running your python scripts. 
+
+
 On Google Colab
 ===============
 
