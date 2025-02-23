@@ -134,7 +134,11 @@ RUN /opt/conda/bin/conda install -y -c "${CUDA_CHANNEL}" cuda && \
 # Full PyTorch installation:
 FROM cuda AS pytorch 
 ARG PYTORCH_URL
-ARG PYTORCH_VERSION 
+ARG PYTORCH_VERSION
+# Now that torch does not support conda anymore, we need to use pip
+# that overflows on modest machines...
+RUN mkdir -p ~/pip_cache && \
+    export TMPDIR=~/pip_cache
 RUN /opt/conda/bin/pip install \
     torch==${PYTORCH_VERSION} \
     torchvision \
