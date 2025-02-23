@@ -9,8 +9,6 @@
 # --build-arg CUDA_VERSION=11.3 \
 # --build-arg CUDA_CHANNEL=nvidia/label/cuda-11.3.1
 # --build-arg PYTORCH_VERSION=1.11.0 \
-# --build-arg TORCHVISION_VERSION=0.13.0 \
-# --build-arg TORCHAUDIO_VERSION=0.12.0 \
 # --build-arg PYTORCH_SCATTER_VERSION=2.0.9 \
 # --tag getkeops/keops:2.1-geomloss0.2.5-cuda11.3-pytorch1.11-full \
 # --no-cache .
@@ -40,8 +38,6 @@ ARG CUDA_CHANNEL=nvidia/label/cuda-11.8.0
 # Check https://pytorch.org/ and https://pytorch.org/get-started/previous-versions/
 # for compatible version numbers:
 ARG PYTORCH_VERSION=2.0.0
-ARG TORCHVISION_VERSION=0.15.0
-ARG TORCHAUDIO_VERSION=2.0.0
 ARG PYTORCH_URL=https://download.pytorch.org/whl/cu126
 
 # PyTorch scatter (used by the "survival" environment)
@@ -139,12 +135,10 @@ RUN /opt/conda/bin/conda install -y -c "${CUDA_CHANNEL}" cuda && \
 FROM cuda AS pytorch 
 ARG PYTORCH_URL
 ARG PYTORCH_VERSION 
-ARG TORCHVISION_VERSION
-ARG TORCHAUDIO_VERSION
 RUN /opt/conda/bin/pip install \
     torch==${PYTORCH_VERSION} \
-    torchvision==${TORCHVISION_VERSION} \
-    torchaudio==${TORCHAUDIO_VERSION} \
+    torchvision \
+    torchaudio \
     --index-url ${PYTORCH_URL} 
 
 
