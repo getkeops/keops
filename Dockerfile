@@ -143,7 +143,8 @@ RUN /opt/conda/bin/pip install \
     torch==${PYTORCH_VERSION} \
     torchvision \
     torchaudio \
-    --index-url ${PYTORCH_URL} 
+    --index-url ${PYTORCH_URL} \
+    --cache-dir=~/pip_cache
 
 
 # torch.compile(...) introduced by PyTorch 2.0 links to libcuda.so instead 
