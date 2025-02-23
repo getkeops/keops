@@ -6,7 +6,7 @@
 # with the current version of e.g. the Ubuntu repositories.
 
 # Up to date as of Sunday, Feb. 23rd, 2025:
-PYTHON_VERSION=3.13
+PYTHON_VERSION=3.12
 NUMPY_VERSION=2.2.3
 KEOPS_VERSION=2.2.3
 GEOMLOSS_VERSION=0.2.6
