@@ -42,11 +42,12 @@ ARG CUDA_CHANNEL=nvidia/label/cuda-11.8.0
 ARG PYTORCH_VERSION=2.0.0
 ARG TORCHVISION_VERSION=0.15.0
 ARG TORCHAUDIO_VERSION=2.0.0
+ARG PYTORCH_URL=https://download.pytorch.org/whl/cu126
 
 # PyTorch scatter (used by the "survival" environment)
 # is a dependency that may lag behind PyTorch releases by a few days.
 # Please check https://github.com/rusty1s/pytorch_scatter for compatibility info.
-ARG PYTORCH_SCATTER_VERSION=2.1.1
+#ARG PYTORCH_SCATTER_VERSION=2.1.1
 
 # KeOps relies on PyTest, Hypothesis, Beartype and Jaxtyping for unit tests...
 ARG PYTEST_VERSION=7.2.2
@@ -93,6 +94,7 @@ RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y \
     r-base \
     r-base-dev \
+    libtirpc-dev \
     r-cran-survival \
     r-cran-reticulate \
     r-cran-formatr \
@@ -118,8 +120,11 @@ RUN curl -fsSL -v -o ~/miniconda.sh -O  https://repo.anaconda.com/miniconda/Mini
         numpy=${NUMPY_VERSION} \
         ipython \
         matplotlib \
+        rpy2 \
         ipykernel && \
     /opt/conda/bin/conda clean -ya
+# Switch default matplotlib backend to avoid issues with Qt:
+ENV MPLBACKEND=tkagg
 
 
 # Full CUDA installation, with the headers, from the official Nvidia repository:
@@ -131,19 +136,16 @@ RUN /opt/conda/bin/conda install -y -c "${CUDA_CHANNEL}" cuda && \
 
 # Full PyTorch installation:
 FROM cuda AS pytorch 
-ARG PYTHON_VERSION
-ARG CUDA_VERSION
+ARG PYTORCH_URL
 ARG PYTORCH_VERSION 
 ARG TORCHVISION_VERSION
 ARG TORCHAUDIO_VERSION
-ENV CONDA_OVERRIDE_CUDA=${CUDA_VERSION}
-RUN /opt/conda/bin/conda install -y -c pytorch -c nvidia \
-        pytorch==${PYTORCH_VERSION} \
-        torchvision==${TORCHVISION_VERSION} \
-        torchaudio==${TORCHAUDIO_VERSION} \
-        python=${PYTHON_VERSION} \
-        pytorch-cuda=${CUDA_VERSION} && \
-    /opt/conda/bin/conda clean -ya
+RUN /opt/conda/bin/pip install \
+    torch==${PYTORCH_VERSION} \
+    torchvision==${TORCHVISION_VERSION} \
+    torchaudio==${TORCHAUDIO_VERSION} \
+    --index-url ${PYTORCH_URL} 
+
 
 # torch.compile(...) introduced by PyTorch 2.0 links to libcuda.so instead 
 # of the usual runtime library libcudart.so. We must therefore export the
@@ -188,14 +190,20 @@ FROM keops AS keops-doc
 COPY doc-requirements.txt doc-requirements.txt
 RUN /opt/conda/bin/pip install -r doc-requirements.txt
 
-
 # Super-full environment with optional dependencies:
 FROM keops-doc AS keops-full
+ARG JAXTYPING_VERSION
+# N.B.: GPytorch may mess up with the jaxtyping version, 
+# so we install it again:
+RUN /opt/conda/bin/pip install \
+    jaxtyping==${JAXTYPING_VERSION}
+
+
 # PyTorch-scatter is a complex dependency:
 # it relies on binaries that often lag behind new PyTorch releases
 # by a few days/weeks.
-ARG PYTORCH_SCATTER_VERSION
-RUN /opt/conda/bin/pip install torch-scatter -f ${PYTORCH_SCATTER_VERSION}
+#ARG PYTORCH_SCATTER_VERSION
+#RUN /opt/conda/bin/pip install torch-scatter -f ${PYTORCH_SCATTER_VERSION}
 
 #RUN /opt/conda/bin/conda install -y -c pyg \
 #    pytorch-scatter==${PYTORCH_SCATTER_VERSION} && \
