@@ -9,8 +9,12 @@ current_version = (
     (here / "pykeops" / "keops_version").read_text(encoding="utf-8").strip()
 )
 
+readme = (here / "README.rst").read_text(encoding="utf-8")
+
 # Dynamically inject version
 setup(
     version=current_version,
     install_requires=["numpy", "pybind11", f"keopscore=={current_version}"],
+    long_description=readme,
+    long_description_content_type="text/markdown",
 )

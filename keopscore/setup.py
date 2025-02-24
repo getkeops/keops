@@ -9,4 +9,10 @@ current_version = (
     (here / "keopscore" / "keops_version").read_text(encoding="utf-8").strip()
 )
 
-setup(version=current_version)  # Dynamically inject version
+readme = (here / "README.rst").read_text(encoding="utf-8")
+
+# Dynamically inject version
+setup(version=current_version,
+      long_description=readme,
+      long_description_content_type="text/markdown",
+      )
