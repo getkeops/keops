@@ -1,9 +1,14 @@
-from pathlib import Path
 from setuptools import setup
+from pathlib import Path
 
-# Read version from version.txt
-version = Path("../keops_version").read_text().strip()
+# Get the absolute path of the directory where this script is located
+here = Path(__file__).resolve().parent
 
+# Read the version from keops_version
+current_version = (here / "pykeops" / "keops_version").read_text(encoding="utf-8").strip()
+
+# Dynamically inject version
 setup(
-    version=version  # Dynamically inject version
+    version=current_version,
+    install_requires=["numpy", "pybind11", f"keopscore=={current_version}"]
 )
