@@ -22,7 +22,6 @@ classifiers = [
 
 dependencies = []  # No runtime dependencies for keopscore
 
-[project]
 dynamic = ["version"]
 
 [project.urls]

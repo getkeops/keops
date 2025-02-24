@@ -20,7 +20,7 @@ classifiers = [
   "Programming Language :: Python :: 3 :: Only"
 ]
 
-[project]
+# Marking 'version' as dynamic means the build backend must supply it
 dynamic = ["version"]
 
 dependencies = [
