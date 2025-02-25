@@ -38,12 +38,12 @@ class CUDAConfig:
     cuda_block_size = None
 
     def __init__(self):
-        self.set_use_cuda()
-        self.set_specific_gpus()
-        self.set_cxx_compiler()
         self.set_keops_cache_folder()
         self.set_default_build_folder_name()
+        self.set_specific_gpus()
         self.set_build_folder()
+        self.set_cxx_compiler()
+        self.set_use_cuda()
         # If cuda is enabled, then we finalize the rest of the config
         if self._use_cuda:
             self.set_libcuda_folder()
