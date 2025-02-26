@@ -295,6 +295,29 @@ First of all, make sure that you are using a C++ compiler which is compatible wi
 
 .. _`part.cache`:
 
+Adding nvcc to a working installation of pytorch
+-------------------------------------------------
+A common starting point for users looking to get started with pykeops, is to have a working gpu accelerated installation of pytorch, without nvcc. In this situation, it is possible to add nvcc to PATH without installing anything globally or modifying your drivers.
+
+1. Find the version of CUDA that pytorch is using. With conda, this is often different from the system-wide CUDA version
+
+.. code-block:: python
+
+  import torch
+  torch.version.cuda
+
+2. Download a matching CUDA runfile installer from https://developer.nvidia.com/cuda-toolkit-archive
+
+3. Install the runfile using the --toolkit and --toolkitpath options.  This installs nvcc to a directory, without modifying your drivers or system configuration. Do not use sudo, to guarantee that this step doesn't modify your drivers. For example,
+
+.. code-block:: bash
+
+  sh cuda_version_here_linux --silent --override --toolkit --toolkitpath=/local/path/to/put/nvcc
+  
+4. Add /local/path/to/put/nvcc/bin to $PATH and /local/path/to/put/nvcc/lib64 to $LD_LIBRARY_PATH . You can either do this in .bashrc, or a script local to your pykeops project
+
+
+
 Cache directory
 ---------------
 
