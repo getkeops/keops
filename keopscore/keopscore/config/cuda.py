@@ -1,7 +1,17 @@
 import os
 import ctypes
 from ctypes.util import find_library
-from ctypes import c_int, c_void_p, c_char_p, CDLL, byref, cast, POINTER, Structure
+from ctypes import (
+    c_int,
+    c_void_p,
+    c_char_p,
+    CDLL,
+    byref,
+    cast,
+    POINTER,
+    Structure,
+    RTLD_GLOBAL,
+)
 from pathlib import Path
 import shutil
 from os.path import join
@@ -66,7 +76,7 @@ class CUDAConfig:
 
         # Try to load it
         try:
-            lib_handle = CDLL(found_path)
+            lib_handle = CDLL(found_path, mode=RTLD_GLOBAL)
         except OSError as e:
             return (False, "", f"Failed to load library '{lib_name}': {e}")
 
@@ -109,6 +119,9 @@ class CUDAConfig:
             True if both cuda and nvrtc are loadable, False otherwise.
             This is also where we handle one single warning if needed.
         """
+
+        # This step loads "libcuda.so (driver) and libnvrtc (cuda tool kit) **Globaly** to
+        # make cuda avalaible to keops shared objects
         success_cuda, cuda_path, err_cuda = self._try_load_library("cuda")
         success_nvrtc, nvrtc_path, err_nvrtc = self._try_load_library("nvrtc")
 
