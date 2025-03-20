@@ -2,6 +2,12 @@
 
 # Before an official release, please consider using
 # docker builder prune
+#
+# or full cleanup with
+# docker stop $(docker ps -a -q)
+# docker system prune -a
+# docker images # to check if this is empty
+#
 # to clear the docker cache and make sure that the config works
 # with the current version of e.g. the Ubuntu repositories.
 
