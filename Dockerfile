@@ -177,7 +177,7 @@ RUN /opt/conda/bin/pip install \
 #    ln -s /usr/lib/x86_64-linux-gnu/libstdc++.so.6 /opt/conda/lib/libstdc++.so.6
 
 # Tell KeOps that the CUDA headers can be found in /opt/conda/include/...
-ENV CUDA_PATH=/opt/conda/
+ENV CUDA_PATH=/opt/conda/targets/x86_64-linux/
 # If survivalGPU, geomloss or keops are mounted in the opt folder, they will override the pip version:
 ENV PYTHONPATH=/opt/survivalGPU/:/opt/geomloss/:/opt/keops/pykeops/:/opt/keops/keopscore/:$PYTHONPATH
 
