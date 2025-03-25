@@ -64,3 +64,6 @@ keopslab/common/pathtocmake
 benchmarks/*halide*
 *benchmark_datasets*
 sg_execution_times.rst
+
+# Docker build logs
+docker-build-*.log

@@ -45,7 +45,7 @@ do
     --build-arg JAXTYPING_VERSION=${JAXTYPING_VERSION} \
     --build-arg BEARTYPE_VERSION=${BEARTYPE_VERSION} \
     --build-arg BLACK_VERSION=${BLACK_VERSION} \
-    --tag getkeops/${TARGET}:${VERSION_TAG} .
+    --tag getkeops/${TARGET}:${VERSION_TAG} . 2>&1 | tee docker-build-${TARGET}-${VERSION_TAG}.log
 
     docker tag getkeops/${TARGET}:${VERSION_TAG} getkeops/${TARGET}:latest
 done
