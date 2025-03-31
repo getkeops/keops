@@ -12,13 +12,12 @@
 # with the current version of e.g. the Ubuntu repositories.
 
 # Up to date as of Sunday, Feb. 23rd, 2025:
+BASE_IMAGE=ubuntu:24.04
 PYTHON_VERSION=3.12
 NUMPY_VERSION=2.2.3
 KEOPS_VERSION=2.2.3
 GEOMLOSS_VERSION=0.2.6
-CUDA_VERSION=12.6
-CUDA_CHANNEL=nvidia/label/cuda-12.6.3
-PYTORCH_URL=https://download.pytorch.org/whl/cu126
+CUDA_VERSION=12.4.1
 PYTORCH_VERSION=2.6.0
 PYTEST_VERSION=8.3.4
 HYPOTHESIS_VERSION=6.126.0
@@ -32,13 +31,12 @@ for TARGET in keops keops-doc keops-full
 do
     docker build \
     --target ${TARGET} \
+    --build-arg BASE_IMAGE=${BASE_IMAGE} \
     --build-arg PYTHON_VERSION=${PYTHON_VERSION} \
     --build-arg NUMPY_VERSION=${NUMPY_VERSION} \
     --build-arg KEOPS_VERSION=${KEOPS_VERSION} \
     --build-arg GEOMLOSS_VERSION=${GEOMLOSS_VERSION} \
     --build-arg CUDA_VERSION=${CUDA_VERSION} \
-    --build-arg CUDA_CHANNEL=${CUDA_CHANNEL} \
-    --build-arg PYTORCH_URL=${PYTORCH_URL} \
     --build-arg PYTORCH_VERSION=${PYTORCH_VERSION} \
     --build-arg PYTEST_VERSION=${PYTEST_VERSION} \
     --build-arg HYPOTHESIS_VERSION=${HYPOTHESIS_VERSION} \
