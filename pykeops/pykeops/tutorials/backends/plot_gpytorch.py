@@ -79,7 +79,7 @@ train_y = torch.sin(train_x * (2 * math.pi)) + 0.2 * torch.randn(train_x.size())
 from pykeops.torch import LazyTensor
 
 
-class KeOpsRBFLazyTensor(gpytorch.lazy.LazyTensor):
+class KeOpsRBFLazyTensor(gpytorch.lazy.LazyEvaluatedKernelTensor):
     def __init__(self, x_i, y_j):
         """Creates a symbolic Gaussian RBF kernel out of two point clouds `x_i` and `y_j`."""
         super().__init__(
