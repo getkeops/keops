@@ -1,3 +1,6 @@
+# This is the branch in which I am implementing the new lazy tensor class to include slicing
+# First version : slicing computed Lazytensor with no gradient graph tracking
+
 import copy
 import re
 
