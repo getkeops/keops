@@ -5,7 +5,7 @@ K-NN classification - NumPy API
 
 The :meth:`pykeops.numpy.LazyTensor.argKmin` reduction supported by KeOps :class:`pykeops.numpy.LazyTensor` allows us
 to perform **bruteforce k-nearest neighbors search** with four lines of code.
-It can thus be used to implement a **large-scale** 
+It can thus be used to implement a **large-scale**
 `K-NN classifier <https://en.wikipedia.org/wiki/K-nearest_neighbors_algorithm>`_,
 **without memory overflows**.
 

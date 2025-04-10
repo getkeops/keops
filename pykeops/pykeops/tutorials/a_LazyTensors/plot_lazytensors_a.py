@@ -8,7 +8,7 @@ to modern computing libraries:
 it alleviates the need for **huge intermediate variables**
 such as *kernel* or *distance* matrices in machine
 learning and computational geometry.
- 
+
 """
 
 #########################################################################

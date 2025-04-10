@@ -11,8 +11,8 @@ kernels convolutions. Namely it computes:
 
 where :math:`f` is a Gauss or Cauchy or Laplace or inverse multiquadric kernel. See e.g. `wikipedia  <https://en.wikipedia.org/wiki/Radial_basis_function>`_
 
- 
- 
+
+
 """
 
 #####################################################################

@@ -4,7 +4,7 @@ Advanced usage: Vi, Vj, Pm helpers and symbolic variables
 =========================================================
 
 This tutorial shows some advanced features of the LazyTensor class.
- 
+
 """
 
 import time

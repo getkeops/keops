@@ -2,11 +2,11 @@
 Benchmarking Gaussian convolutions in high dimensions
 ===========================================================
 
-Let's compare the performances of PyTorch and KeOps on 
+Let's compare the performances of PyTorch and KeOps on
 simple Gaussian RBF kernel products,
 as the dimension grows.
- 
- 
+
+
 """
 
 ##############################################
