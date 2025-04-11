@@ -13,6 +13,6 @@ and that's about it.
 Fortunately though, the GPytorch team has now integrated
 `explicit KeOps kernels <https://docs.gpytorch.ai/en/latest/keops_kernels.html>`_ within
 their repository: they are documented
-`in this tutorial <https://docs.gpytorch.ai/en/latest/examples/02_Scalable_Exact_GPs/KeOps_GP_Regression.html>`_ . 
+`in this tutorial <https://docs.gpytorch.ai/en/latest/examples/02_Scalable_Exact_GPs/KeOps_GP_Regression.html>`_ .
 
 """
