@@ -1,60 +1,45 @@
 # syntax=docker/dockerfile:1
 
-# Build this file with e.g.
-#
-# docker build \
-# --target full \
-# --build-arg KEOPS_VERSION=2.1 \
-# --build-arg GEOMLOSS_VERSION=0.2.5 \
-# --build-arg CUDA_VERSION=11.3 \
-# --build-arg CUDA_CHANNEL=nvidia/label/cuda-11.3.1
-# --build-arg PYTORCH_VERSION=1.11.0 \
-# --build-arg TORCHVISION_VERSION=0.13.0 \
-# --build-arg TORCHAUDIO_VERSION=0.12.0 \
-# --build-arg PYTORCH_SCATTER_VERSION=2.0.9 \
-# --tag getkeops/keops:2.1-geomloss0.2.5-cuda11.3-pytorch1.11-full \
-# --no-cache .
+# Build this file with:
+# ./docker-images.sh
 
-ARG NUMPY_VERSION=1.26.4
+# Base OS:
+ARG BASE_IMAGE
+# Useful to test support across Python versions:
+ARG PYTHON_VERSION
+
+# Numpy:
+ARG NUMPY_VERSION
 
 # KeOps version - the most important parameter:
-ARG KEOPS_VERSION=2.2
+ARG KEOPS_VERSION
 # We also include all the libraries hosted on www.kernel-operations.io,
 # such as GeomLoss. This is convenient, and has negligible impact
 # on the size of the final image. Cuda and PyTorch weigh ~5Gb anyway,
 # so there is little point trying to maintain separate images that
 # differ by a handful of Python files.
-ARG GEOMLOSS_VERSION=0.2.5
+ARG GEOMLOSS_VERSION
 
 
-# Base OS:
-ARG BASE_IMAGE=ubuntu:24.04
-# Useful to test support across Python versions:
-ARG PYTHON_VERSION=3.10
-
-# Cuda version for the Pytorch install:
-ARG CUDA_VERSION=11.8
-# Cuda version for the "full" install with development headers, nvcc, etc.:
-ARG CUDA_CHANNEL=nvidia/label/cuda-11.8.0
+# Cuda version for nvcc, etc.:
+ARG CUDA_VERSION
 
 # Check https://pytorch.org/ and https://pytorch.org/get-started/previous-versions/
 # for compatible version numbers:
-ARG PYTORCH_VERSION=2.0.0
-ARG TORCHVISION_VERSION=0.15.0
-ARG TORCHAUDIO_VERSION=2.0.0
+ARG PYTORCH_VERSION
 
 # PyTorch scatter (used by the "survival" environment)
 # is a dependency that may lag behind PyTorch releases by a few days.
 # Please check https://github.com/rusty1s/pytorch_scatter for compatibility info.
-ARG PYTORCH_SCATTER_VERSION=2.1.1
+#ARG PYTORCH_SCATTER_VERSION=2.1.1
 
 # KeOps relies on PyTest, Hypothesis, Beartype and Jaxtyping for unit tests...
-ARG PYTEST_VERSION=7.2.2
-ARG HYPOTHESIS_VERSION=6.70.0
-ARG JAXTYPING_VERSION=0.2.14
-ARG BEARTYPE_VERSION=0.12.0
+ARG PYTEST_VERSION
+ARG HYPOTHESIS_VERSION
+ARG JAXTYPING_VERSION
+ARG BEARTYPE_VERSION
 # and Black for code formatting:
-ARG BLACK_VERSION=23.1.0
+ARG BLACK_VERSION
 
 
 # First step: 
@@ -93,6 +78,7 @@ RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y \
     r-base \
     r-base-dev \
+    libtirpc-dev \
     r-cran-survival \
     r-cran-reticulate \
     r-cran-formatr \
@@ -120,30 +106,32 @@ RUN curl -fsSL -v -o ~/miniconda.sh -O  https://repo.anaconda.com/miniconda/Mini
         matplotlib \
         ipykernel && \
     /opt/conda/bin/conda clean -ya
+# rpy2 on conda is not supported anymore. We install it with pip:
+RUN /opt/conda/bin/pip install rpy2
+# Switch default matplotlib backend to avoid issues with Qt:
+ENV MPLBACKEND=tkagg
 
 
-# Full CUDA installation, with the headers, from the official Nvidia repository:
+# Full CUDA installation, with the headers, from cuda-forge:
 FROM conda AS cuda 
-ARG CUDA_CHANNEL 
-RUN /opt/conda/bin/conda install -y -c "${CUDA_CHANNEL}" cuda && \
+ARG CUDA_VERSION 
+RUN /opt/conda/bin/conda install cuda=${CUDA_VERSION} -c conda-forge && \
     /opt/conda/bin/conda clean -ya
 
 
 # Full PyTorch installation:
 FROM cuda AS pytorch 
-ARG PYTHON_VERSION
-ARG CUDA_VERSION
-ARG PYTORCH_VERSION 
-ARG TORCHVISION_VERSION
-ARG TORCHAUDIO_VERSION
-ENV CONDA_OVERRIDE_CUDA=${CUDA_VERSION}
-RUN /opt/conda/bin/conda install -y -c pytorch -c nvidia \
-        pytorch==${PYTORCH_VERSION} \
-        torchvision==${TORCHVISION_VERSION} \
-        torchaudio==${TORCHAUDIO_VERSION} \
-        python=${PYTHON_VERSION} \
-        pytorch-cuda=${CUDA_VERSION} && \
-    /opt/conda/bin/conda clean -ya
+ARG PYTORCH_VERSION
+# Now that torch does not support conda anymore, we need to use pip
+# that overflows on modest machines...
+#RUN mkdir -p ~/pip_cache && \
+#    export TMPDIR=~/pip_cache
+RUN /opt/conda/bin/pip install \
+    torch==${PYTORCH_VERSION} \
+    torchvision \
+    torchaudio
+#    --cache-dir=~/pip_cache
+
 
 # torch.compile(...) introduced by PyTorch 2.0 links to libcuda.so instead 
 # of the usual runtime library libcudart.so. We must therefore export the
@@ -175,7 +163,7 @@ RUN /opt/conda/bin/pip install \
 #    ln -s /usr/lib/x86_64-linux-gnu/libstdc++.so.6 /opt/conda/lib/libstdc++.so.6
 
 # Tell KeOps that the CUDA headers can be found in /opt/conda/include/...
-ENV CUDA_PATH=/opt/conda/
+ENV CUDA_PATH=/opt/conda/targets/x86_64-linux/
 # If survivalGPU, geomloss or keops are mounted in the opt folder, they will override the pip version:
 ENV PYTHONPATH=/opt/survivalGPU/:/opt/geomloss/:/opt/keops/pykeops/:/opt/keops/keopscore/:$PYTHONPATH
 
@@ -188,14 +176,20 @@ FROM keops AS keops-doc
 COPY doc-requirements.txt doc-requirements.txt
 RUN /opt/conda/bin/pip install -r doc-requirements.txt
 
-
 # Super-full environment with optional dependencies:
 FROM keops-doc AS keops-full
+ARG JAXTYPING_VERSION
+# N.B.: GPytorch may mess up with the jaxtyping version, 
+# so we install it again:
+RUN /opt/conda/bin/pip install \
+    jaxtyping==${JAXTYPING_VERSION}
+
+
 # PyTorch-scatter is a complex dependency:
 # it relies on binaries that often lag behind new PyTorch releases
 # by a few days/weeks.
-ARG PYTORCH_SCATTER_VERSION
-RUN /opt/conda/bin/pip install torch-scatter -f ${PYTORCH_SCATTER_VERSION}
+#ARG PYTORCH_SCATTER_VERSION
+#RUN /opt/conda/bin/pip install torch-scatter -f ${PYTORCH_SCATTER_VERSION}
 
 #RUN /opt/conda/bin/conda install -y -c pyg \
 #    pytorch-scatter==${PYTORCH_SCATTER_VERSION} && \
