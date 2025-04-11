@@ -3,6 +3,9 @@ import numpy as np
 import torch
 from pykeops.torch import LazyTensor
 
+import pykeops
+pykeops.clean_pykeops()
+
 # Import clustering functions from KeOps
 from pykeops.torch.cluster import (
     grid_cluster,
