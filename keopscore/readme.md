@@ -3,7 +3,7 @@
 **keopscore** contains the [KeOps](https://www.kernel-operations.io/) meta programming engine. Given a formula, 
 it generates the c++/cuda code executed on the fly. 
 
-# Usage 
+# Usage
 
 This modules is for developers only and should be used only through 
 bindings (e.g. [pykeops](https://pypi.org/project/pykeops/) or [Rkeops](https://cran.r-project.org/web/packages/rkeops/index.html))
