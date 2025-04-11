@@ -105,7 +105,11 @@ pip install -e "${PROJDIR}/pykeops[test]"
 
 logging "-- Cleaning pykeops..."
 
+mkdir tmp
+cd tmp
 ${PYTHON} -c "import pykeops; pykeops.clean_pykeops()"
+cd ..
+rmdir tmp
 
 ################################################################################
 # Running keopscore tests                                                     #
