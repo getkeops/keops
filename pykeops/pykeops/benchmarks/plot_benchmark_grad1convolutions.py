@@ -1,4 +1,4 @@
-"""
+r"""
 Gradient of Radial kernels convolutions
 ========================================
 
