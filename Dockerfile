@@ -156,11 +156,11 @@ RUN /opt/conda/bin/pip install \
     jaxtyping==${JAXTYPING_VERSION} \
     beartype==${BEARTYPE_VERSION}
 
-# Work around a compatibility bug for KeOps, caused by the fact that conda 
+# Work around a compatibility bug for rpy2, caused by the fact that conda 
 # currently ships a version of libstdc++ that is slightly older than
-# that of Ubuntu 22.04:
-#RUN rm /opt/conda/lib/libstdc++.so.6 && \
-#    ln -s /usr/lib/x86_64-linux-gnu/libstdc++.so.6 /opt/conda/lib/libstdc++.so.6
+# that of Ubuntu 24.04:
+RUN rm /opt/conda/lib/libstdc++.so.6 && \
+    ln -s /usr/lib/x86_64-linux-gnu/libstdc++.so.6 /opt/conda/lib/libstdc++.so.6
 
 # Tell KeOps that the CUDA headers can be found in /opt/conda/include/...
 ENV CUDA_PATH=/opt/conda/targets/x86_64-linux/
