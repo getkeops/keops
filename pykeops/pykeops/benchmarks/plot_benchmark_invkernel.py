@@ -1,4 +1,4 @@
-"""
+r"""
 Solving positive definite linear systems
 =========================================
 

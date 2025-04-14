@@ -266,8 +266,10 @@ Beyond explicit code contributions, KeOps has grown out of numerous discussions 
 for their valuable suggestions and financial support.
 
 
-This website was rendered on the `Jean Zay <http://www.idris.fr/eng/jean-zay/index.html>`_ scientific cluster with a Nvidia A100 GPU and 8 cores of an AMD Milan EPYC 7543.
-Access to the HPC resources of IDRIS was granted to Jean Feydy under the allocation 2022-AD011013722 made by GENCI.
+This website was rendered on a Dell workstation with 
+an Intel Xeon W-2255 CPU (3.70GHz), 
+64 Gb RAM
+and a NVIDIA GeForce RTX 3090 GPU (24 Gb VRAM).
 
 KeOps was awarded an `open science prize <https://www.enseignementsup-recherche.gouv.fr/fr/remise-des-prix-science-ouverte-du-logiciel-libre-de-la-recherche-2023-93732>`_ by the French Ministry of Higher Education and Research in 2023 ("Espoir - Documentation").
 

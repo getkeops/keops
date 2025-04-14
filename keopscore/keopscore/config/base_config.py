@@ -130,7 +130,7 @@ class Config:
 
     def set_jit_binary(self):
         """Set the path to the JIT binary."""
-        self.jit_binary = join(self.default_build_path, "keops_nvrtc.so")
+        self.jit_binary = join(self.default_build_path)
 
     def get_jit_binary(self):
         """Get the path to the JIT binary."""
