@@ -11,17 +11,17 @@
 # to clear the docker cache and make sure that the config works
 # with the current version of e.g. the Ubuntu repositories.
 
-# Up to date as of Monday, March 31st, 2025:
+# Up to date as of Monday, April 17th, 2025:
 BASE_IMAGE=ubuntu:24.04
 PYTHON_VERSION=3.12
 NUMPY_VERSION=2.2.4
-KEOPS_VERSION=2.2.3
+KEOPS_VERSION=2.3
 GEOMLOSS_VERSION=0.2.6
 CUDA_VERSION=12.4.1
 PYTORCH_VERSION=2.6.0
 PYTEST_VERSION=8.3.5
-HYPOTHESIS_VERSION=6.130.6
-JAXTYPING_VERSION=0.3.0
+HYPOTHESIS_VERSION=6.131.1
+JAXTYPING_VERSION=0.3.1
 BEARTYPE_VERSION=0.20.2
 BLACK_VERSION=25.1.0
 
