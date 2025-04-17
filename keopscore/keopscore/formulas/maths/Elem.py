@@ -37,4 +37,10 @@ class Elem(Operation):
     nargs = 1  # number of arguments
     test_argdims = [5]  # dimensions of arguments for testing
     test_params = [3]  # dimensions of parameters for testing
-    torch_op = "lambda x, m : x[..., m][..., None]"
+
+    @staticmethod
+    def torch_op():
+        """
+        equivalent torch operation
+        """
+        return lambda x, m: x[..., m][..., None]

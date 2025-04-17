@@ -1,4 +1,4 @@
-"""
+r"""
 Radial kernels convolutions
 ===========================
 

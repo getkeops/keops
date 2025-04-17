@@ -40,3 +40,15 @@ class OneHot(Operation):
         from keopscore.formulas.variables.Zero import Zero
 
         return Zero(v.dim)
+
+    @staticmethod
+    def torch_op():
+        """equivalent torch operation"""
+        import torch
+
+        def _torch_op(x, d):
+            out = torch.zeros((*x.shape[:-1], d), device=x.device, dtype=x.dtype)
+            out[..., x.long()] = 1.0
+            return out
+
+        return _torch_op

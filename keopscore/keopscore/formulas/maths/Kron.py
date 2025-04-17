@@ -28,3 +28,10 @@ class Kron(Operation):
             permute=list(range(0, len(dimsfa) * 2, 2))
             + list(range(1, len(dimsfa) * 2, 2)),
         )
+
+    @staticmethod
+    def torch_op():
+        """equivalent torch operation"""
+        import torch
+
+        return torch.kron

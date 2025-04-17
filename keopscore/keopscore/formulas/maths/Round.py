@@ -25,4 +25,3 @@ class Round(VectorizedScalarOp):
     # parameters for testing the operation (optional)
     nargs = 1  # number of arguments
     test_params = [3]  # parameters to try
-    torch_op = None  # equivalent PyTorch operation

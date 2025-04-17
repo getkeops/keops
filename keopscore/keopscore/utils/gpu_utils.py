@@ -2,14 +2,17 @@ import ctypes
 from ctypes.util import find_library
 import tempfile
 
-import keopscore.config.config
+
 from keopscore.utils.misc_utils import (
     KeOps_Error,
     KeOps_Warning,
     find_library_abspath,
     KeOps_OS_Run,
 )
-from keopscore.config.config import cxx_compiler, get_build_folder
+
+import keopscore
+from keopscore.config import *
+
 import os
 from os.path import join
 
@@ -98,9 +101,9 @@ def get_cuda_include_path():
 
 
 def get_include_file_abspath(filename):
-    tmp_file = tempfile.NamedTemporaryFile(dir=get_build_folder()).name
+    tmp_file = tempfile.NamedTemporaryFile(dir=config.get_build_folder()).name
     KeOps_OS_Run(
-        f'echo "#include <{filename}>" | {cxx_compiler} -M -E -x c++ - | head -n 2 > {tmp_file}'
+        f'echo "#include <{filename}>" | {config.cxx_compiler()} -M -E -x c++ - | head -n 2 > {tmp_file}'
     )
     strings = open(tmp_file).read().split()
     abspath = None
@@ -116,12 +119,12 @@ def orig_cuda_include_fp16_path():
     We look for float 16 cuda headers cuda_fp16.h and cuda_fp16.hpp
     based on cuda_path locations and return their directory
     """
-    from keopscore.config.config import cuda_include_path
+    cuda_include_path = cuda_config.get_cuda_include_path()
 
     if cuda_include_path:
         return cuda_include_path
-    cuda_fp16_h_abspath = get_include_file_abspath("cuda_fp16.h")
-    cuda_fp16_hpp_abspath = get_include_file_abspath("cuda_fp16.hpp")
+    cuda_fp16_h_abspath = cuda_config.get_include_file_abspath("cuda_fp16.h")
+    cuda_fp16_hpp_abspath = cuda_config.get_include_file_abspath("cuda_fp16.hpp")
     if cuda_fp16_h_abspath and cuda_fp16_hpp_abspath:
         path = os.path.dirname(cuda_fp16_h_abspath)
         if path != os.path.dirname(cuda_fp16_hpp_abspath):
@@ -144,7 +147,7 @@ def custom_cuda_include_fp16_path():
     """
     from keopscore.utils.misc_utils import pack_header
 
-    build_folder = get_build_folder()
+    build_folder = config.get_build_folder()
     fp16_header = "cuda_fp16.h"
     fp16_header_path = join(build_folder, fp16_header)
     if not os.path.isfile(fp16_header_path):

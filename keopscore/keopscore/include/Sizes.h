@@ -97,15 +97,15 @@ public:
     nx = _nx;
     ny = _ny;
 
-    // fill shapes wit "batch dimensions" [A, .., B], the table will look like:
+    // fill _shapes with "batch dimensions" [A, .., B], the table will look like:
     //
     // [ A, .., B, M, N, D_out]  -> output
     // [ A, .., B, M, 1, D_1  ]  -> "i" variable
     // [ A, .., B, 1, N, D_2  ]  -> "j" variable
     // [ A, .., B, 1, 1, D_3  ]  -> "parameter"
-    // [ A, .., 1, M, 1, D_4  ]  -> N.B.: we support broadcasting on the batch
-    // dimensions! [ 1, .., 1, M, 1, D_5  ]  ->      (we'll just ask users to
-    // fill in the shapes with *explicit* ones)
+    // [ A, .., 1, M, 1, D_4  ]  -> N.B.: we support broadcasting on the batch dimensions
+    // [ 1, .., 1, M, 1, D_5  ]  -> (we'll just ask users to fill in the shapes 
+    //                               with *explicit* ones)
     fill_shape(nargs, argshapes);
 
     check_ranges(argshapes);
@@ -114,8 +114,15 @@ public:
     _shape_out.resize(nbatchdims + 3);
 
 #if C_CONTIGUOUS
+    // Copy the first row "[A, .., B, M, N, D_out]" of _shapes into _shape_out
     std::copy(_shapes.begin(), _shapes.begin() + nbatchdims + 3,
-              _shape_out.begin()); // Copy the "batch dimensions"
+              _shape_out.begin());
+    // If this is a reduction over the "j" variables, tagIJ = 0,
+    // we need to remove the "N" dimension from the output shape:
+    // [A, .., B, M, N, D_out] -> [A, .., B, M, D_out]
+    //
+    // Otherwise, if this is a reduction over the "i" variables, tagIJ = 1,
+    // we drop the "M" dimension.
     _shape_out.erase(_shape_out.begin() + nbatchdims + (1 - tagIJ));
 
 #else
@@ -136,6 +143,8 @@ public:
     nx = nbatches * M; // = A * ... * B * M
     ny = nbatches * N; // = A * ... * B * N
 
+    // The KeOps numerical routines expect pointers to raw integer arrays, 
+    // not the clean std::vector that we've been using so far.
     shapes = &_shapes[0];
     shape_out = &_shape_out[0];
   }
@@ -148,6 +157,11 @@ private:
   void fill_shape(const int nargs,
                   const std::vector<std::vector<signed long int>> &argshapes);
 
+  void check_broadcasting_batch_dimensions(
+    const std::vector<std::vector<signed long int>> &argshapes,
+    int off_i,
+    int i);
+
   void check_ranges(const std::vector<std::vector<signed long int>> &argshapes);
 
   int MN_pos, D_pos;
@@ -156,6 +170,9 @@ private:
 template <typename TYPE>
 void Sizes<TYPE>::fill_shape(
     const int nargs, const std::vector<std::vector<signed long int>> &argshapes) {
+  // This function starts filling the _shapes array with the shapes of the output and all
+  // the input variables, following the conventions described in the comments a few lines
+  // above.
 
   int pos = std::max(pos_first_argI, pos_first_argJ);
 
@@ -177,8 +194,9 @@ void Sizes<TYPE>::fill_shape(
   }
 
 #if C_CONTIGUOUS
-  MN_pos = nbatchdims;
-  D_pos = nbatchdims + 1;
+  // The arguments' shapes read something like [A, .., B, "M or N", D]
+  MN_pos = nbatchdims;  // Position of the "M" or "N" dimension
+  D_pos = nbatchdims + 1;  // Position of the "D" dimension
 #else
   D_pos = 0;
   MN_pos = 1;
@@ -186,8 +204,10 @@ void Sizes<TYPE>::fill_shape(
 
   // Now, we'll keep track of the output + all arguments' shapes in a large
   // array:
+  // _shapes = ones(1 + nargs, nbatchdims + 3), with the first row describing the output.
   _shapes.resize((nargs + 1) * (nbatchdims + 3), 1);
 
+  // Put "M, N, D_out" at the end of the first row of _shapes
   if (use_half) {
     if (tagIJ == 0) {
       _shapes[nbatchdims] = nx % 2 ? nx + 1 : nx;
@@ -202,7 +222,41 @@ void Sizes<TYPE>::fill_shape(
   }
 
   _shapes[nbatchdims + 2] = dimout; // Top right corner: dimension of the output
+
+  // See check_ranges below for the rest of the filling process
 }
+
+
+template <typename TYPE>
+void Sizes<TYPE>::check_broadcasting_batch_dimensions(
+  const std::vector<std::vector<signed long int>> &argshapes,
+  int off_i,
+  int i) {
+  // First, the batch dimensions:
+  for (int b = 0; b < nbatchdims; b++) {
+    // if C_CONTIGUOUS, we read the batch dimensions from the left:
+    // this is just argshapes[i][b]
+    _shapes[off_i + b] = get_val_batch(argshapes[i], nbatchdims + 2, b);
+
+    // Check that the current value is compatible with what
+    // we've encountered so far, as stored in the first line of "shapes"
+    if (_shapes[off_i + b] != 1) { // This dimension is not "broadcasted"
+      if (_shapes[b] == 1) {
+        _shapes[b] = _shapes[off_i + b]; // -> it becomes the new standard
+      }
+#if do_checks
+      else if (_shapes[b] != _shapes[off_i + b]) {
+        error("[KeOps] Wrong value of the batch dimension " +
+              std::to_string(b) + " for argument number " +
+              std::to_string(i) + " : is " +
+              std::to_string(_shapes[off_i + b]) + " but was " +
+              std::to_string(_shapes[b]) + " or 1 in previous arguments.");
+      }
+#endif
+    }
+  }
+}
+
 
 template <typename TYPE>
 void Sizes<TYPE>::check_ranges(
@@ -223,6 +277,10 @@ void Sizes<TYPE>::check_ranges(
       // Check the number of dimensions
       // --------------------------------------------
       int ndims = argshapes[i].size(); // Number of dims of the i-th tensor
+      // We expect argshapes[i] to be a vector that reads something like
+      // [A, ..., B, M, D_in]
+      // with batch dimensions that are compatible with broadcast
+      // and a D_in which is compatible with its usage in the required KeOps formula.
 
 #if do_checks
       if (ndims != nbatchdims + 2) {
@@ -239,33 +297,14 @@ void Sizes<TYPE>::check_ranges(
       }
 #endif
 
-      // First, the batch dimensions:
-      for (int b = 0; b < nbatchdims; b++) {
-        _shapes[off_i + b] = get_val_batch(argshapes[i], nbatchdims + 2, b);
-
-        // Check that the current value is compatible with what
-        // we've encountered so far, as stored in the first line of "shapes"
-        if (_shapes[off_i + b] != 1) { // This dimension is not "broadcasted"
-          if (_shapes[b] == 1) {
-            _shapes[b] = _shapes[off_i + b]; // -> it becomes the new standard
-          }
-#if do_checks
-          else if (_shapes[b] != _shapes[off_i + b]) {
-            error("[KeOps] Wrong value of the batch dimension " +
-                  std::to_string(b) + " for argument number " +
-                  std::to_string(i) + " : is " +
-                  std::to_string(_shapes[off_i + b]) + " but was " +
-                  std::to_string(_shapes[b]) + " or 1 in previous arguments.");
-          }
-#endif
-        }
-      }
+      check_broadcasting_batch_dimensions(argshapes, off_i, i);
 
       _shapes[off_i + nbatchdims] = argshapes[i][MN_pos];    // = "M"
+      // _shapes[off_i + nbatchdims + 1] remains equal to 1
       _shapes[off_i + nbatchdims + 2] = argshapes[i][D_pos]; // = "D"
 
 #if do_checks
-      // Check the number of "lines":
+      // Check the number of "lines", the index "M":
       if (_shapes[nbatchdims] != _shapes[off_i + nbatchdims]) {
         error("[KeOps] Wrong value of the 'i' dimension " +
               std::to_string(nbatchdims) + "for arg at position " +
@@ -275,7 +314,7 @@ void Sizes<TYPE>::check_ranges(
               " in previous 'i' arguments.");
       }
 
-      // And the number of "columns":
+      // And the number of "columns", the dimension "D":
       if (_shapes[off_i + nbatchdims + 2] != static_cast<int>(dimsX[k])) {
         error("[KeOps] Wrong value of the 'vector size' dimension " +
               std::to_string(nbatchdims + 1) + " for arg at position " +
@@ -313,33 +352,14 @@ void Sizes<TYPE>::check_ranges(
       // ---------------------------
       int off_i = (i + 1) * (nbatchdims + 3);
 
-      // First, the batch dimensions:
-      for (int b = 0; b < nbatchdims; b++) {
-        _shapes[off_i + b] = get_val_batch(argshapes[i], nbatchdims + 2, b);
+      check_broadcasting_batch_dimensions(argshapes, off_i, i);
 
-        // Check that the current value is compatible with what
-        // we've encountered so far, as stored in the first line of "shapes"
-        if (_shapes[off_i + b] != 1) { // This dimension is not "broadcasted"
-          if (_shapes[b] == 1) {
-            _shapes[b] = _shapes[off_i + b]; // -> it becomes the new standard
-          }
-#if do_checks
-          else if (_shapes[b] != _shapes[off_i + b]) {
-            error("[KeOps] Wrong value of the batch dimension " +
-                  std::to_string(b) + " for argument number " +
-                  std::to_string(i) + " : is " +
-                  std::to_string(_shapes[off_i + b]) + " but was " +
-                  std::to_string(_shapes[b]) + " or 1 in previous arguments.");
-          }
-#endif
-        }
-      }
-
+      // _shapes[off_i + nbatchdims] remains equal to 1
       _shapes[off_i + nbatchdims + 1] = argshapes[i][MN_pos]; // = "N"
       _shapes[off_i + nbatchdims + 2] = argshapes[i][D_pos];  // = "D"
 
 #if do_checks
-      // Check the number of "lines":
+      // Check the number of "lines", the index "N":
       if (_shapes[nbatchdims + 1] != _shapes[off_i + nbatchdims + 1]) {
         error("[KeOps] Wrong value of the 'j' dimension " +
               std::to_string(nbatchdims) + " for arg at position " +
@@ -349,7 +369,7 @@ void Sizes<TYPE>::check_ranges(
               " in previous 'j' arguments.");
       }
 
-      // And the number of "columns":
+      // And the number of "columns", the dimension "D":
       if (_shapes[off_i + nbatchdims + 2] != static_cast<int>(dimsY[k])) {
         error("[KeOps] Wrong value of the 'vector size' dimension " +
               std::to_string(nbatchdims + 1) + " for arg at position " +
@@ -360,15 +380,18 @@ void Sizes<TYPE>::check_ranges(
 #endif
     }
 
+    // Finally, we check the parameters, i.e. variables that may vary with
+    // batch dimensions, but not with the "i" or "j" indices:
     for (int k = 0; k < nvarsP; k++) {
       int i = indsP[k];
       // Fill in the (i+1)-th line of the "shapes" array
       // ---------------------------
       int off_i = (i + 1) * (nbatchdims + 3);
-      // First, the batch dimensions:
-      for (int b = 0; b < nbatchdims; b++) {
-        _shapes[off_i + b] = get_val_batch(argshapes[i], nbatchdims + 2, b);
-      }
+      
+      check_broadcasting_batch_dimensions(argshapes, off_i, i);
+
+      // _shapes[off_i + nbatchdims] remains equal to 1
+      // _shapes[off_i + nbatchdims + 1] remains equal to 1
       _shapes[off_i + nbatchdims + 2] = argshapes[i][nbatchdims]; // = "D"
 #if do_checks
       signed long int dim_param;

@@ -10,3 +10,4 @@ PyTorch API
     GenericOps
     KernelSolve
     Cluster
+    Tests

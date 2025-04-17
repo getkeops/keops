@@ -1,5 +1,38 @@
 #!/bin/bash
 
+################################################################################
+#  Instructions for Creating a New Release
+#
+#  0) Generate a Twine API token and configure your `.pypirc` file
+#     Ensure both TestPyPI and PyPI are properly set up.
+#
+#  1) Update the version number in the file: ./keops_version
+#
+#  2) Build the packages using the build script:
+#       sh ./pybuild.sh
+#
+#  3) Test the installation locally:
+#       pip install ./build/dist/keopscore-XXXXX.tar.gz
+#       pip install ./build/dist/pykeops-XXXXX.tar.gz
+#
+#  4) Upload to TestPyPI and validate the installation (e.g., on Colab):
+#       twine upload ./build/dist/keopscore-XXXXX.tar.gz --repository testpypi
+#       twine upload ./build/dist/pykeops-XXXXX.tar.gz --repository testpypi
+#       pip install -i https://test.pypi.org/simple/ pykeops
+#
+#     ⚠️  Note: TestPyPI may have dependency resolution issues.
+#        If problems occur, install pykeops from PyPI, uninstall it,
+#        then reinstall pykeops from TestPyPI.
+#
+#     ⚠️  Note: Do not forget to remove the install from TestPyPI...
+#
+#  5) Once validated, upload to the official PyPI:
+#       twine upload ./build/dist/keopscore-XXXXX.tar.gz
+#       twine upload ./build/dist/pykeops-XXXXX.tar.gz
+################################################################################
+
+
+
 # exit in case of any errors
 set -e
 

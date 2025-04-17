@@ -10,6 +10,7 @@ expected_res = np.array([63.0, 90.0])
 def test_numpy_bindings():
     """
     This function try to compile a simple keops formula using the numpy binder.
+
     """
     x = np.arange(1, 10).reshape(-1, 3).astype("float32")
     y = np.arange(3, 9).reshape(-1, 3).astype("float32")

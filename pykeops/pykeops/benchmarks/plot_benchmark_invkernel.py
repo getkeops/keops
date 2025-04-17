@@ -1,4 +1,4 @@
-"""
+r"""
 Solving positive definite linear systems
 =========================================
 
@@ -37,7 +37,6 @@ from matplotlib import pyplot as plt
 
 from scipy.sparse import diags
 from scipy.sparse.linalg import aslinearoperator, cg
-from scipy.sparse.linalg.interface import IdentityOperator
 
 from pykeops.numpy import KernelSolve as KernelSolve_np, LazyTensor
 from pykeops.torch import KernelSolve

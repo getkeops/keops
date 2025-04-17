@@ -1,32 +1,15 @@
-import os.path
-import sys
-
-sys.path.append(
-    os.path.join(
-        os.path.dirname(os.path.abspath(__file__)), os.path.sep.join([os.pardir] * 2)
-    )
-)
-sys.path.append(
-    os.path.join(
-        os.path.dirname(os.path.abspath(__file__)),
-        os.path.sep.join([os.pardir] * 3),
-        "pykeops",
-    )
-)
-
 import types
+from importlib import import_module
 
 import numpy as np
+import pytest
 import torch
 from torch.autograd import grad
 
 import keopscore
+import keopscore.formulas
 from keopscore.utils.misc_utils import KeOps_Error
 from pykeops.torch import Genred
-
-import pytest
-from keopscore.formulas.maths import *
-
 
 # fix seed for reproducibility
 seed = 0
@@ -38,11 +21,11 @@ def perform_test(op_str, tol=1e-4, dtype="float32", verbose=True):
     if verbose:
         print("")
 
-    keops_op = eval(op_str)
+    keops_op = getattr(keopscore.formulas.maths, op_str)
+
     if isinstance(keops_op, types.FunctionType):
         op_class_str = f"{op_str}_Impl"
-        exec(f"from {keops_op.__module__} import {op_class_str}")
-        keops_op_class = eval(op_class_str)
+        keops_op_class = getattr(import_module(keops_op.__module__), op_class_str)
     else:
         keops_op_class = keops_op
 
@@ -150,15 +133,9 @@ def perform_test(op_str, tol=1e-4, dtype="float32", verbose=True):
         #    app_str = f"number {k}" if len(args) > 1 else ""
         #    print(f"5 first values for gradient {app_str}:", *g[k].flatten()[:5].tolist())
 
-    if not hasattr(keops_op_class, "torch_op"):
-        torch_op_str = keops_op_class.string_id.lower()
-        if not torch_op_str in dir(torch):
-            return None
-        torch_op = "torch." + torch_op_str
-    else:
-        if keops_op_class.torch_op is None:
-            return None
-        torch_op = keops_op_class.torch_op
+    torch_op = keops_op_class.torch_op()
+    if torch_op is None:
+        return None
 
     if verbose:
         print("Comparing with PyTorch implementation ")
@@ -171,9 +148,6 @@ def perform_test(op_str, tol=1e-4, dtype="float32", verbose=True):
 
     ####################################################################
     # The equivalent code with a "vanilla" pytorch implementation
-
-    if isinstance(torch_op, str):
-        torch_op = eval(torch_op)
 
     c_torch = torch_op(*torch_args, *params).sum(dim=1)
     # err_op = torch.norm(c - c_torch).item() / torch.norm(c_torch).item()
@@ -204,9 +178,9 @@ def perform_test(op_str, tol=1e-4, dtype="float32", verbose=True):
 
 
 @pytest.mark.parametrize("test_input", keopscore.formulas.maths.__all__)
-def test_formula_maths(test_input):
+def test_formula_maths(test_input, verbose=False):
     # Call cuda kernel
-    res = perform_test(test_input, verbose=False)
+    res = perform_test(test_input, verbose=verbose)
 
     if res is not None:
         assert res
@@ -215,4 +189,4 @@ def test_formula_maths(test_input):
 
 
 if __name__ == "__main__":
-    test_formula_maths("Exp")
+    test_formula_maths("WeightedSqNorm", verbose=True)

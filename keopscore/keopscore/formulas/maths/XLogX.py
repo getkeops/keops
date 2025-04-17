@@ -16,4 +16,10 @@ class XLogX(VectorizedScalarOp):
 
     # parameters for testing the operation (optional)
     test_ranges = [(0, 2)]  # range of argument
-    torch_op = "lambda x:x*torch.log(x)"
+
+    @staticmethod
+    def torch_op():
+        """equivalent torch operation"""
+        import torch
+
+        return lambda x: x * torch.log(x)

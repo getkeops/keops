@@ -1,8 +1,11 @@
 import os
 from hashlib import sha256
 
-from keopscore.config.config import disable_pragma_unrolls
+import keopscore
+from keopscore.config import *
 from keopscore.utils.misc_utils import KeOps_Error, KeOps_Message
+
+disable_pragma_unrolls = config.get_disable_pragma_unrolls()
 
 
 def get_hash_name(*args):
@@ -826,13 +829,11 @@ def varseq_to_array(vars, vars_ptr_name):
 
 
 def clean_keops(recompile_jit_binary=True, verbose=True):
-    import keopscore.config.config
-    from keopscore.config.config import get_build_folder
 
-    build_path = get_build_folder()
-    use_cuda = keopscore.config.config.use_cuda
+    build_path = config.get_build_folder()
+    use_cuda = keopscore.cuda_config.get_use_cuda()
     if use_cuda:
-        from keopscore.config.config import jit_binary
+        jit_binary = config.get_jit_binary()
     else:
         jit_binary = None
     for f in os.scandir(build_path):
@@ -847,3 +848,30 @@ def clean_keops(recompile_jit_binary=True, verbose=True):
         from keopscore.binders.nvrtc.Gpu_link_compile import Gpu_link_compile
 
         Gpu_link_compile.compile_jit_compile_dll()
+
+
+def check_health(config_type="all"):
+    """
+    Check the health of the specified configuration.
+
+    Parameters:
+        config_type (str): The configuration to check. Options are:
+                           'cuda', 'openmp', 'platform', 'base', 'all'.
+                           Default is 'all'.
+    """
+    if config_type == "cuda":
+        cuda_config.print_all()
+    elif config_type == "openmp":
+        openmp_config.print_all()
+    elif config_type == "platform":
+        platform_detector.print_all()
+    elif config_type == ("base"):
+        config.print_all()
+    elif config_type == "all":
+        platform_detector.print_all()
+        config.print_all()
+        cuda_config.print_all()
+        openmp_config.print_all()
+    else:
+        print(f"Unknown configuration type: '{config_type}'")
+        print("Please specify one of: 'cuda', 'openmp', 'platform', 'base', 'all'")

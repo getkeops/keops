@@ -10,3 +10,4 @@ Numpy API
     KernelSolve
     GenericOps
     Cluster
+    Tests

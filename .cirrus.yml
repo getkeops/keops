@@ -13,8 +13,13 @@ task:
   name: Tests (macOS)
   macos_instance:
     image: ghcr.io/cirruslabs/macos-ventura-xcode:latest
-  script: 
-    - sh ./pytest.sh
 
+  script:
+    - brew install libomp
+    - brew install python@3.12
+    - $(brew --prefix python@3.12)/bin/python3.12 -m venv .test_venv
+    - source .test_venv/bin/activate
+    - pip install --upgrade pip
+    - sh ./pytest.sh
 
 

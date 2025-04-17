@@ -22,3 +22,10 @@ class Sqrt(VectorizedScalarOp):
 
     # parameters for testing the operation (optional)
     test_ranges = [(0, 2)]  # range of argument
+
+    @staticmethod
+    def torch_op():
+        """equivalent torch operation"""
+        import torch
+
+        return torch.sqrt

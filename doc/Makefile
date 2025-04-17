@@ -72,7 +72,7 @@ html_abort_on_example_error:
 
 html: export SPHX_GLR_THEME = $(theme)
 html:
-	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
+	PYKEOPS_VERBOSE=0 KEOPS_VERBOSE=0 $(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
 	@echo
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."
 

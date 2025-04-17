@@ -1,11 +1,12 @@
 import os
 import pickle
 import keopscore
+from keopscore.config import *
 
 # global configuration parameter to be added for the lookup :
 # N.B we turn this into a function because the parameters need to be read dynamically.
 env_param = (
-    lambda: keopscore.config.config.cpp_flags
+    lambda: keopscore.config.get_cpp_flags()
     + " auto_factorize="
     + str(keopscore.auto_factorize)
 )
