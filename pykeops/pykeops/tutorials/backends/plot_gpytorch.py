@@ -4,7 +4,7 @@ Linking KeOps with GPytorch
 =================================
 
 Out-of-the-box, KeOps only provides :ref:`limited support <interpolation-tutorials>` for
-`Kriging <https://en.wikipedia.org/wiki/Kriging>`_ 
+`Kriging <https://en.wikipedia.org/wiki/Kriging>`_
 or `Gaussian process regression <https://scikit-learn.org/stable/modules/gaussian_process.html>`_:
 the :class:`KernelSolve <pykeops.torch.KernelSolve>` operator
 implements a conjugate gradient solver for kernel linear systems...
@@ -24,7 +24,7 @@ if you encounter any unexpected behavior with this experimental KeOps-GPytorch i
 
 
 .. note::
-    The GPytorch team has now integrated 
+    The GPytorch team has now integrated
     `explicit KeOps kernels <https://github.com/cornellius-gp/gpytorch/tree/main/gpytorch/kernels/keops>`_ within
     their repository: they are documented
     `in this tutorial <https://docs.gpytorch.ai/en/v1.1.1/examples/02_Scalable_Exact_GPs/KeOps_GP_Regression.html>`_ and make the handcrafted example below

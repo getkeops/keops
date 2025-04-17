@@ -2,7 +2,7 @@
 K-Nearest Neighbors search
 =========================================
 
-We compare the performances of PyTorch, JAX, KeOps, Scikit-Learn and FAISS (when applicable) 
+We compare the performances of PyTorch, JAX, KeOps, Scikit-Learn and FAISS (when applicable)
 for K-NN queries on random samples and standard datasets.
 A detailed discussion of these results can be found in Section 5.2
 of our `NeurIPS 2020 paper <https://www.jeanfeydy.com/Papers/KeOps_NeurIPS_2020.pdf>`_.
@@ -17,7 +17,7 @@ Crucially, KeOps is easy to use with **any metric**:
 it provides the only competitive run times in the many settings
 that are not supported by existing C++ libraries.
 
-In this demo, we often use exact **bruteforce** computations 
+In this demo, we often use exact **bruteforce** computations
 (tensorized for PyTorch/JAX, on-the-fly for KeOps) and do not leverage any
 quantization scheme or multiscale
 decomposition of the distance matrix.
@@ -33,9 +33,9 @@ such as hyperbolic or discrete spaces.
 .. note::
     Note that timings are always subject to change:
     libraries and hardware get better with time.
-    If you find a way of improving these benchmarks, please 
+    If you find a way of improving these benchmarks, please
     `let us know <https://github.com/getkeops/keops/issues>`_!
- 
+
 """
 
 ##############################################

@@ -1024,7 +1024,9 @@ class GenericLazyTensor:
 
     @property
     def ndim(self):
-        KeOps_Warning("Note that x.ndim does not return the number of dimensions of the tensor x as in other frameworks (e.g. PyTorch), but instead returns the trailing dimension x.shape[-1], i.e. the inner dimension of the KeOps formula. If you want to return the number of dimensions of the tensor, use len(x.shape). Otherwise, to suppress this warning, use x.inner_dim instead of x.ndim, or deactivate verbosity with pykeops.set_verbose(False).")
+        KeOps_Warning(
+            "Note that x.ndim does not return the number of dimensions of the tensor x as in other frameworks (e.g. PyTorch), but instead returns the trailing dimension x.shape[-1], i.e. the inner dimension of the KeOps formula. If you want to return the number of dimensions of the tensor, use len(x.shape). Otherwise, to suppress this warning, use x.inner_dim instead of x.ndim, or deactivate verbosity with pykeops.set_verbose(False)."
+        )
         return self.inner_dim()
 
     @property
