@@ -435,7 +435,7 @@ def fun_lazytensor_diffmatrix(x, y, gamma):
     x = LazyTensor(x[:, None, :])
     y = LazyTensor(y[None, :, :])
     dist_l2 = x.difference_matrix(y) ** 2
-    sdtw = dist_l2.softdtw(gamma, input_shape=(x.ndim, y.ndim))
+    sdtw = dist_l2.softdtw(gamma, input_shape=(x.inner_dim, y.inner_dim))
     K = (-sdtw).exp()
     return K.sum(axis=1)
 
