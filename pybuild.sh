@@ -6,7 +6,7 @@
 #  0) Generate a Twine API token and configure your `.pypirc` file
 #     Ensure both TestPyPI and PyPI are properly set up.
 #
-#  1) Update the version number in the file: ./keops_version
+#  1) Update the version number in the file: ./keops_version and Changes log: ./CHANGELOG.md 
 #
 #  2) Build the packages using the build script:
 #       sh ./pybuild.sh

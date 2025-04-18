@@ -1,3 +1,11 @@
+* v2.3 - April 17, 2025
+   - Fix memory leak (in ranges) and `keops_nvrtc.cpp` refactoring (issue 284)
+   - Fix broadcasting_params issue 366/382
+   - Fix issue 327 relating to incorrect number of arguments
+   - Complete refactor of keopscore.config module. Add a checkhealth() method that displays the paths detected on the system (cuda, nvrtc, etc...). May help on issues 398, 385, 371, 361, ...
+   - Docker update to ubuntu 24.04, Cuda 12.4 and PyTorch 2.6 
+   - Adding ARM processor to compilation clang flags
+
 * v2.2.3 - April 14, 2024
    - Add `KEOPS_CACHE_FOLDER` environment variable
    - Now require explicitely `python>=3.8` in doc
