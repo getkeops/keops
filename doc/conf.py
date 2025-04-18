@@ -19,6 +19,7 @@
 #
 import os
 import sys
+import time
 
 sys.path.insert(0, os.path.abspath("."))
 sys.path.insert(0, os.path.abspath("sphinxext"))
@@ -151,10 +152,7 @@ root_doc = "index"
 # General information about the project.
 project = "KeOps"
 
-# import time
-# copyright = '2018-{}, Benjamin Charlier, Jean Feydy, Joan A. Glaunès'.format(time.strftime("%Y"))
-
-copyright = "2018-2022, Benjamin Charlier, Jean Feydy, Joan A. Glaunès."
+copyright = f"2018-{time.strftime("%Y")}, Benjamin Charlier, Jean Feydy, Joan A. Glaunès"
 author = "Benjamin Charlier, Jean Feydy, Joan A. Glaunès."
 
 # The version info for the project you're documenting, acts as replacement for
