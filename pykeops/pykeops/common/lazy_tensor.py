@@ -1643,6 +1643,55 @@ class GenericLazyTensor:
         if d < 1 or i + d > self.ndim:
             raise ValueError("Slice dimension is out of bounds.")
         return self.unary("Extract", dimres=d, opt_arg=i, opt_arg2=d)
+    
+    def _generic_getitem(self, key):
+        r"""
+        Generic getitem method for LazyTensors.
+        """
+            
+        shape = self._shape
+        ndim = len(shape)
+
+        if isinstance(key, tuple):
+            key_tuple = key
+        else:
+            key_tuple = (key,)
+
+        # Ellipsis handling: replace ... with the required number of ':'
+        if Ellipsis in key_tuple:
+            ellipsis_pos = key_tuple.index(Ellipsis)
+            nb_missing = ndim - (len(key_tuple) - 1)
+            key_tuple = (
+                key_tuple[:ellipsis_pos]
+                + (slice(None),) * nb_missing
+                + key_tuple[ellipsis_pos + 1 :]
+            )
+
+        # Pad with full slices so that len == ndim
+        if len(key_tuple) < ndim:
+            key_tuple = key_tuple + (slice(None),) * (ndim - len(key_tuple))
+
+        if len(key_tuple) != ndim:
+            raise IndexError(
+                f"Invalid slice: expected at most {ndim} indices but got {len(key_tuple)}."
+            )
+        
+        vector_axis = ndim - 1 if shape[-1] != 1 else None  # None when scalar kernel
+        symbolic_safe = (
+            vector_axis is not None
+            and all((idx == slice(None)) for i, idx in enumerate(key_tuple) if i != vector_axis)
+        )
+
+        if symbolic_safe:
+            return self._original_getitem(key)  # type: ignore[attr-defined]
+
+        dense = self()
+        return dense.__getitem__(key_tuple)
+    
+    def _apply_patch(cls):
+        pass
+
+    
 
     def __getitem__(self, key):
         r"""
