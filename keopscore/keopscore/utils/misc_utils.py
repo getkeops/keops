@@ -5,7 +5,7 @@
 import keopscore
 from os.path import join
 import re
-
+import warnings
 
 def KeOps_Print(message, force_print=False, **kwargs):
     if keopscore.verbose or force_print:
@@ -21,8 +21,9 @@ def KeOps_Message(message, use_tag=True, **kwargs):
 
 def KeOps_Warning(message, newline=False):
     if keopscore.verbose:
-        message = ("\n" if newline else "") + "[KeOps] Warning : " + message
-        print(message)
+        prefix = "\n" if newline else ""
+        formatted = f"{prefix}[KeOps] Warning: {message}"
+        warnings.warn(formatted, category=UserWarning, stacklevel=2)
 
 
 def KeOps_Error(message, show_line_number=True):
