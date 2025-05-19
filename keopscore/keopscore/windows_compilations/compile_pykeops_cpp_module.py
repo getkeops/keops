@@ -16,19 +16,15 @@ def compile_pykeops_cpp_module(source_file, build_folder):
 
     compile(
         source_file=source_file,
-        includes= [
+        includes=[
             include_dirs["python"],
             include_dirs["pybind11"],
-            include_dirs["keops"]
+            include_dirs["keops"],
         ],
-        link_dirs=[
-            lib_dirs["python"]
-        ],
-        links=[
-            lib_names["python"]
-        ],
-        suffix='.pyd',
+        link_dirs=[lib_dirs["python"]],
+        links=[lib_names["python"]],
+        suffix=".pyd",
         output_dir=build_folder,
         print_cmakelists=False,
-        show_cmake_commands_output=False
+        show_cmake_commands_output=False,
     )

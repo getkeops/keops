@@ -21,16 +21,15 @@ except ImportError:
     keops_available = False
 
 
-
 include_dirs["pybind11"] = pybind11.get_include()
 
 
 # Python
-include_dirs["python"] = sysconfig.get_path('include')
+include_dirs["python"] = sysconfig.get_path("include")
 
 if sys.platform == "win32":
     # On Windows, get the path to the Python DLL
-    python_libs = Path(sysconfig.get_path('include')).parent / "libs"
+    python_libs = Path(sysconfig.get_path("include")).parent / "libs"
 
     # Get the path to the standard library (Lib)
     if python_libs.is_dir():
@@ -41,9 +40,8 @@ if sys.platform == "win32":
             lib_names["python"] = "python" + version
 else:
     # On Unix-like systems, use sysconfig to get the library directory and name
-    lib_dirs["python"] = Path(sysconfig.get_config_var('LIBDIR'))
-    lib_names["python"] = sysconfig.get_config_var('LDLIBRARY')
-
+    lib_dirs["python"] = Path(sysconfig.get_config_var("LIBDIR"))
+    lib_names["python"] = sysconfig.get_config_var("LDLIBRARY")
 
 
 # Cuda

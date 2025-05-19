@@ -14,31 +14,23 @@ def compile_nvrtc_jit(build_folder):
     keops_dir = Path(find_package_location("keopscore")).parent
     source_file = keops_dir / "binders" / "nvrtc" / "nvrtc_jit.cpp"
 
-
     macros = [
         "-DMAXIDGPU=0",
         "-DMAXTHREADSPERBLOCK0=1024",
         "-DSHAREDMEMPERBLOCK0=49152",
         "-DnvrtcGetTARGET=nvrtcGetCUBIN",
         "-DnvrtcGetTARGETSize=nvrtcGetCUBINSize",
-        "-DARCHTAG=\"sm\""
+        '-DARCHTAG="sm"',
     ]
-
 
     compile(
         source_file=source_file,
         macros=macros,
-        includes= [
-            include_dirs[key] for key in ["keops", "cuda"]
-        ],
-        link_dirs=[
-            lib_dirs[key] for key in ["cuda"]
-        ],
-        links=[
-            lib_names[key] for key in ["cuda", "nvrtc", "cudart"]
-        ],
-        suffix='.dll',
+        includes=[include_dirs[key] for key in ["keops", "cuda"]],
+        link_dirs=[lib_dirs[key] for key in ["cuda"]],
+        links=[lib_names[key] for key in ["cuda", "nvrtc", "cudart"]],
+        suffix=".dll",
         output_dir=build_folder,
         print_cmakelists=False,
-        show_cmake_commands_output=False
+        show_cmake_commands_output=False,
     )

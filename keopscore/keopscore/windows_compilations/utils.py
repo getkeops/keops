@@ -27,5 +27,5 @@ def find_package_location(package_name: str) -> str:
     if spec.origin:
         return spec.origin
     else:
-        message =  f"Package '{package_name}' not found."
+        message = f"Package '{package_name}' not found."
         raise ImportError(message)

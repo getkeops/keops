@@ -24,4 +24,4 @@ __all__ = [
     "compile_nvrtc_jit",
     "compile_pykeops_nvrtc",
     "keops_available",
-    ]
+]

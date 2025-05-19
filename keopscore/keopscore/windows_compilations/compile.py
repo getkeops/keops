@@ -9,19 +9,20 @@ from .globals import tmp_dir
 path_type = str | os.PathLike | bytes
 _empty_list = []
 
+
 def compile(
-        source_file: path_type,
-        project_name: str | None = None,
-        includes: list[path_type] | None = _empty_list,
-        link_dirs: list[path_type] | None = _empty_list,
-        links: list[str] | None = _empty_list,
-        macros: list[str] | None = _empty_list,
-        suffix: str = ".dll",
-        output_dir=".",
-        print_cmakelists=False,
-        show_cmake_commands_output=False,
-        clean_tmp_build_dir=True,
-        ):
+    source_file: path_type,
+    project_name: str | None = None,
+    includes: list[path_type] | None = _empty_list,
+    link_dirs: list[path_type] | None = _empty_list,
+    links: list[str] | None = _empty_list,
+    macros: list[str] | None = _empty_list,
+    suffix: str = ".dll",
+    output_dir=".",
+    print_cmakelists=False,
+    show_cmake_commands_output=False,
+    clean_tmp_build_dir=True,
+):
 
     output_dir = Path(output_dir)
 
@@ -30,12 +31,12 @@ def compile(
 
     includes_str = ""
     for include in includes:
-        includes_str += f"include_directories(\"{include!s}\")\n"
+        includes_str += f'include_directories("{include!s}")\n'
     includes_str = includes_str.replace("\\", "/")
 
     link_dirs_str = ""
     for link in link_dirs:
-        link_dirs_str += f"link_directories(\"{link!s}\")\n"
+        link_dirs_str += f'link_directories("{link!s}")\n'
     link_dirs_str = link_dirs_str.replace("\\", "/")
 
     macros_str = ""
@@ -58,16 +59,20 @@ def compile(
     source_file = str(Path(source_file).resolve()).replace("\\", "/")
 
     if "pyd" in suffix:
-        suffix = sysconfig.get_config_var('EXT_SUFFIX')
+        suffix = sysconfig.get_config_var("EXT_SUFFIX")
 
-    fields = ["source_file", "project_name", "includes", "link_dirs", "links", "macros", "suffix"]
+    fields = [
+        "source_file",
+        "project_name",
+        "includes",
+        "link_dirs",
+        "links",
+        "macros",
+        "suffix",
+    ]
 
     for field in fields:
-        content = content.replace(
-            f"***{field}***",
-            locals()[field]
-        )
-
+        content = content.replace(f"***{field}***", locals()[field])
 
     import os
     import subprocess
@@ -99,7 +104,9 @@ def compile(
         with Path.open(tmp_build / "log", "w") as log_file:
 
             subprocess.check_call(["cmake", ".."], stdout=log_file)
-            subprocess.check_call(["cmake", "--build", ".", "--config", "Release"], stdout=log_file)
+            subprocess.check_call(
+                ["cmake", "--build", ".", "--config", "Release"], stdout=log_file
+            )
 
     else:
         subprocess.check_call(["cmake", ".."])
