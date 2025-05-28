@@ -84,6 +84,8 @@ keops_asin = math_function(cpu_code="asin", gpu_half2_code="NA")
 keops_atan = math_function(cpu_code="atan", gpu_half2_code="NA")
 keops_atan2 = math_function(cpu_code="atan2", gpu_half2_code="NA")
 keops_exp = math_function(cpu_code="exp", gpu_half2_code="h2exp")
+keops_expInt = math_function(cpu_code = lambda x: f"expi({x})", gpu_half2_code="NA")
+keops_expn = math_function(cpu_code = lambda x, n: f"expn({int(n)}, {x})", gpu_half2_code="NA")
 keops_floor = math_function(cpu_code="floor", gpu_half2_code="h2floor")
 keops_log = math_function(cpu_code="log", gpu_half2_code="h2log")
 keops_xlogx = math_function(

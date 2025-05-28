@@ -17,6 +17,8 @@ from .Elem import Elem
 from .ElemT import ElemT
 from .Equal import Equal
 from .Exp import Exp
+from .Expi import Expi
+from .Expn import Expn
 from .Extract import Extract
 from .ExtractT import ExtractT
 from .Floor import Floor
@@ -86,6 +88,8 @@ __all__ = [
     "ElemT",
     "Equal",
     "Exp",
+    "Expi",
+    "Expn",
     "Extract",
     "ExtractT",
     "GradMatrix",
