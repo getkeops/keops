@@ -47,55 +47,59 @@ test_that("+", {
     obj <- x_i + y_j
     expect_equal(length(obj$args), 2)
     expect_equal(length(obj$data), 2)
-    bool_grep_formula <- grep("A0x.*i\\+A0x.*j", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(
+        obj$formula, "Add\\(A0x.*i,A0x.*j\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     expect_warning(obj <- x_i + xc_i)
     expect_equal(length(obj$args), 2)
     expect_equal(length(obj$data), 2)
-    bool_grep_formula <- grep(
-        "Add\\(Real2Complex\\(A0x.*i\\),A0x.*i\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(
+        obj$formula, "Add\\(Real2Complex\\(A0x.*i\\),A0x.*i\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     expect_warning(obj <- xc_i + x_i)
     expect_equal(length(obj$args), 2)
     expect_equal(length(obj$data), 2)
-    bool_grep_formula <- grep(
-        "Add\\(A0x.*i,Real2Complex\\(A0x.*i\\)\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(
+        obj$formula, "Add\\(A0x.*i,Real2Complex\\(A0x.*i\\)\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     expect_warning(obj <-  xc_i + 3)
     expect_equal(length(obj$args), 1)
     expect_equal(length(obj$data), 1)
-    bool_grep_formula <- grep("Add\\(A0x.*i,Real2Complex\\(IntCst\\(3\\)\\)\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(
+        obj$formula, "Add\\(A0x.*i,Real2Complex\\(IntCst\\(3\\)\\)\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     expect_warning(obj <-  3 + xc_i)
     expect_equal(length(obj$args), 1)
     expect_equal(length(obj$data), 1)
-    bool_grep_formula <- grep(
-        "Add\\(Real2Complex\\(IntCst\\(3\\)\\),A0x.*i\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(
+        obj$formula, "Add\\(Real2Complex\\(IntCst\\(3\\)\\),A0x.*i\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     obj <-  x_i + 3
     expect_equal(length(obj$args), 1)
     expect_equal(length(obj$data), 1)
-    bool_grep_formula <- grep("A0x.*i\\+IntCst\\(3\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(
+        obj$formula, "Add\\(A0x.*i,IntCst\\(3\\)\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     obj <-  3.14 + x_i
     expect_equal(length(obj$args), 2)
     expect_equal(length(obj$data), 2)
-    bool_grep_formula <- grep("A0x.*NA\\+A0x.*i", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "Add\\(A0x.*NA,A0x.*i\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     # errors
     expect_error(
         x_i + z_j,
-        paste(
-            "Operation `+` expects inputs of the same dimension or dimension 1.", 
-            " Received 3 and 7.", 
-            sep = ""
+        str_c(
+            "Operation `Add` expects inputs of the same dimension",
+            "or dimension 1.", 
+            "Received 3 and 7.", 
+            sep = " "
         ),
         fixed = TRUE
     )
@@ -142,65 +146,67 @@ test_that("-", {
     obj <- x_i - y_j
     expect_equal(length(obj$args), 2)
     expect_equal(length(obj$data), 2)
-    bool_grep_formula <- grep("A0x.*i-A0x.*j", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "Subtract\\(A0x.*i,A0x.*j\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     obj <- xc_i - yc_j
     expect_equal(length(obj$args), 2)
     expect_equal(length(obj$data), 2)
-    bool_grep_formula <- grep("Subtract\\(A0x.*i,A0x.*j\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "Subtract\\(A0x.*i,A0x.*j\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     expect_warning(obj <- xc_i - y_j)
     expect_equal(length(obj$args), 2)
     expect_equal(length(obj$data), 2)
-    bool_grep_formula <- grep(
-        "Subtract\\(A0x.*i,Real2Complex\\(A0x.*j\\)\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(
+        obj$formula, "Subtract\\(A0x.*i,Real2Complex\\(A0x.*j\\)\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     expect_warning(obj <- x_i - yc_j)
-    bool_grep_formula <- grep(
-        "Subtract\\(Real2Complex\\(A0x.*i\\),A0x.*j\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(
+        obj$formula, "Subtract\\(Real2Complex\\(A0x.*i\\),A0x.*j\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     expect_warning(obj <- xc_i - 3)
     expect_equal(length(obj$args), 1)
     expect_equal(length(obj$data), 1)
-    bool_grep_formula <- grep(
-        "Subtract\\(A0x.*i,Real2Complex\\(IntCst\\(3\\)\\)\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(
+        obj$formula, "Subtract\\(A0x.*i,Real2Complex\\(IntCst\\(3\\)\\)\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     expect_warning(obj <- 3.3 - xc_i)
     expect_equal(length(obj$args), 2)
     expect_equal(length(obj$data), 2)
-    bool_grep_formula <- grep(
-        "Subtract\\(Real2Complex\\(A0x.*NA\\),A0x.*i\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(
+        obj$formula, "Subtract\\(Real2Complex\\(A0x.*NA\\),A0x.*i\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     obj <-  x_i - 3
     expect_equal(length(obj$args), 1)
     expect_equal(length(obj$data), 1)
-    bool_grep_formula <- grep("A0x.*i-IntCst\\(3\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(
+        obj$formula, "Subtract\\(A0x.*i,IntCst\\(3\\)\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     obj <-  -x_i
     expect_equal(length(obj$args), 1)
     expect_equal(length(obj$data), 1)
-    bool_grep_formula <- grep("Minus\\(A0x.*i\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "Minus\\(A0x.*i\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     obj <-  3.14 - x_i
     expect_equal(length(obj$args), 2)
     expect_equal(length(obj$data), 2)
-    bool_grep_formula <- grep("A0x.*NA-A0x.*i", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(
+        obj$formula, "Subtract\\(A0x.*NA,A0x.*i\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     # errors
     expect_error(
         x_i - z_j,
-        paste(
-            "Operation `-` expects inputs of the same dimension or dimension 1.", 
-            " Received 3 and 7.", sep = ""
+        str_c(
+            "Operation `Subtract` expects inputs of the same dimension",
+            "or dimension 1. Received 3 and 7.", sep = " "
         ),
         fixed = TRUE
     )
@@ -246,74 +252,77 @@ test_that("*", {
     obj <- x_i * y_j
     expect_equal(length(obj$args), 2)
     expect_equal(length(obj$data), 2)
-    bool_grep_formula <- grep("A0x.*i\\*A0x.*j", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "Mult\\(A0x.*i,A0x.*j\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     expect_warning(obj <- x_i * xc_i)
     expect_equal(length(obj$args), 2)
     expect_equal(length(obj$data), 2)
-    bool_grep_formula <- grep(
-        "ComplexMult\\(Real2Complex\\(A0x.*i\\),A0x.*i\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(
+        obj$formula, "ComplexMult\\(Real2Complex\\(A0x.*i\\),A0x.*i\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     expect_warning(obj <- xc_i * x_i)
     expect_equal(length(obj$args), 2)
     expect_equal(length(obj$data), 2)
-    bool_grep_formula <- grep(
-        "ComplexMult\\(A0x.*i,Real2Complex\\(A0x.*i\\)\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(
+        obj$formula, "ComplexMult\\(A0x.*i,Real2Complex\\(A0x.*i\\)\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     obj <- xc_i * Pm(2i)
     expect_equal(length(obj$args), 2)
     expect_equal(length(obj$data), 2)
-    bool_grep_formula <- grep("ComplexScal\\(A0x.*i,A0x.*NA\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(
+        obj$formula, "ComplexScal\\(A0x.*i,A0x.*NA\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     obj <- Pm(2i) * xc_i
     expect_equal(length(obj$args), 2)
     expect_equal(length(obj$data), 2)
-    bool_grep_formula <- grep("ComplexScal\\(A0x.*NA,A0x.*i\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(
+        obj$formula, "ComplexScal\\(A0x.*NA,A0x.*i\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     obj <- xc_i * Pm(2)
     expect_equal(length(obj$args), 1)
     expect_equal(length(obj$data), 1)
-    bool_grep_formula <- grep(
-        "ComplexRealScal\\(A0x.*i,IntCst\\(2\\)\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(
+        obj$formula, "ComplexRealScal\\(A0x.*i,IntCst\\(2\\)\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     obj <- xc_i * 2
     expect_equal(length(obj$args), 1)
     expect_equal(length(obj$data), 1)
-    bool_grep_formula <- grep(
-        "ComplexRealScal\\(A0x.*i,IntCst\\(2\\)\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(
+        obj$formula, "ComplexRealScal\\(A0x.*i,IntCst\\(2\\)\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     obj <- 2 * xc_i
     expect_equal(length(obj$args), 1)
     expect_equal(length(obj$data), 1)
-    bool_grep_formula <- grep(
-        "ComplexRealScal\\(IntCst\\(2\\),A0x.*i\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(
+        obj$formula, "ComplexRealScal\\(IntCst\\(2\\),A0x.*i\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
-    obj <-  x_i * 3
+    obj <-  x_i * 3L
     expect_equal(length(obj$args), 1)
     expect_equal(length(obj$data), 1)
-    bool_grep_formula <- grep("A0x.*i\\*+IntCst\\(3\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(
+        obj$formula, "Mult\\(A0x.*i,IntCst\\(3\\)\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     obj <-  3.14 * x_i
     expect_equal(length(obj$args), 2)
     expect_equal(length(obj$data), 2)
-    bool_grep_formula <- grep("A0x.*NA\\*A0x.*i", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "Mult\\(A0x.*NA,A0x.*i\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     # errors
     expect_error(
         x_i * z_j,
         paste(
-            "Operation `*` expects inputs of the same dimension or dimension 1.",
-            " Received 3 and 7.", sep = ""
+            "Operation `Mult` expects inputs of the same dimension",
+            "or dimension 1. Received 3 and 7.", sep = " "
         ),
         fixed = TRUE
     )
@@ -360,59 +369,58 @@ test_that("/", {
     obj <- x_i / y_j
     expect_equal(length(obj$args), 2)
     expect_equal(length(obj$data), 2)
-    bool_grep_formula <- grep("A0x.*i/A0x.*j", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "Divide\\(A0x.*i,A0x.*j\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     expect_warning(obj <- xc_i / y_j)
     expect_equal(length(obj$args), 2)
     expect_equal(length(obj$data), 2)
-    bool_grep_formula <- grep(
-        "ComplexDivide\\(A0x.*i,Real2Complex\\(A0x.*j\\)\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(
+        obj$formula, "ComplexDivide\\(A0x.*i,Real2Complex\\(A0x.*j\\)\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     expect_warning(obj <- y_j / xc_i)
     expect_equal(length(obj$args), 2)
     expect_equal(length(obj$data), 2)
-    bool_grep_formula <- grep(
-        "ComplexDivide\\(Real2Complex\\(A0x.*j\\),A0x.*i\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(
+        obj$formula, "ComplexDivide\\(Real2Complex\\(A0x.*j\\),A0x.*i\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     expect_warning(obj <- yc_j / 3)
     expect_equal(length(obj$args), 1)
     expect_equal(length(obj$data), 1)
-    bool_grep_formula <- grep(
-        "ComplexDivide\\(A0x.*j,Real2Complex\\(IntCst\\(3\\)\\)\\)", 
-        obj$formula
+    bool_grep_formula <- str_detect(
+        obj$formula,
+        "ComplexDivide\\(A0x.*j,Real2Complex\\(IntCst\\(3\\)\\)\\)"
     )
-    expect_equal(bool_grep_formula, 1)
+    expect_equal(bool_grep_formula, TRUE)
     
     expect_warning(obj <- 3 / xc_i)
     expect_equal(length(obj$args), 1)
     expect_equal(length(obj$data), 1)
-    bool_grep_formula <- grep(
-        "ComplexDivide\\(Real2Complex\\(IntCst\\(3\\)\\),A0x.*i\\)", 
-        obj$formula
-    )
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(
+        obj$formula, "ComplexDivide\\(Real2Complex\\(IntCst\\(3\\)\\),A0x.*i\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     obj <-  x_i / 3
     expect_equal(length(obj$args), 1)
     expect_equal(length(obj$data), 1)
-    bool_grep_formula <- grep("A0x.*i/IntCst\\(3\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(
+        obj$formula, "Divide\\(A0x.*i,IntCst\\(3\\)\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     obj <-  3.14 / x_i
     expect_equal(length(obj$args), 2)
     expect_equal(length(obj$data), 2)
-    bool_grep_formula <- grep("A0x.*NA/A0x.*i", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "Divide\\(A0x.*NA,A0x.*i\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     # errors
     expect_error(
         x_i / z_j,
         paste(
-            "Operation `/` expects inputs of the same dimension or dimension 1.",
-            " Received 3 and 7.", sep = ""
+            "Operation `Divide` expects inputs of the same dimension",
+            "or dimension 1. Received 3 and 7.", sep = " "
         ),
         fixed = TRUE
     )
@@ -453,44 +461,44 @@ test_that("^", {
     obj <- x_i^y_j
     expect_equal(length(obj$args), 2)
     expect_equal(length(obj$data), 2)
-    bool_grep_formula <- grep("Powf\\(A0x.*i,A0x.*j\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "Powf\\(A0x.*i,A0x.*j\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     obj <-  x_i^3
     expect_equal(length(obj$args), 1)
     expect_equal(length(obj$data), 1)
-    bool_grep_formula <- grep("Pow\\(A0x.*i,3\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "Pow\\(A0x.*i,3\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     obj <-  x_i^(-0.5)
     expect_equal(length(obj$args), 1)
     expect_equal(length(obj$data), 1)
-    bool_grep_formula <- grep("Rsqrt\\(A0x.*i\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "Rsqrt\\(A0x.*i\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     obj <-  x_i^(0.5)
     expect_equal(length(obj$args), 1)
     expect_equal(length(obj$data), 1)
-    bool_grep_formula <- grep("Sqrt\\(A0x.*i\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "Sqrt\\(A0x.*i\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     obj <-  y_j^2
     expect_equal(length(obj$args), 1)
     expect_equal(length(obj$data), 1)
-    bool_grep_formula <- grep("Square\\(A0x.*j\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "Square\\(A0x.*j\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     obj <-  x_i^0.314
     expect_equal(length(obj$args), 2)
     expect_equal(length(obj$data), 2)
-    bool_grep_formula <- grep("Powf\\(A0x.*i,A0x.*NA\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "Powf\\(A0x.*i,A0x.*NA\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     obj <- 3.14^x_i
     expect_equal(length(obj$args), 2)
     expect_equal(length(obj$data), 2)
-    bool_grep_formula <- grep("Powf\\(A0x.*NA,A0x.*i\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "Powf\\(A0x.*NA,A0x.*i\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
 })
 
@@ -517,8 +525,8 @@ test_that("square", {
     obj <-  square(x_i)
     expect_equal(length(obj$args), 1)
     expect_equal(length(obj$data), 1)
-    bool_grep_formula <- grep("Square\\(A0x.*i\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "Square\\(A0x.*i\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
 })
 
@@ -545,8 +553,8 @@ test_that("sqrt", {
     obj <-  sqrt(x_i)
     expect_equal(length(obj$args), 1)
     expect_equal(length(obj$data), 1)
-    bool_grep_formula <- grep("Sqrt\\(A0x.*i\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "Sqrt\\(A0x.*i\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
 })
 
@@ -573,8 +581,8 @@ test_that("rsqrt", {
     obj <-  rsqrt(x_i)
     expect_equal(length(obj$args), 1)
     expect_equal(length(obj$data), 1)
-    bool_grep_formula <- grep("Rsqrt\\(A0x.*i\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "Rsqrt\\(A0x.*i\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
 })
 
@@ -617,8 +625,8 @@ test_that("|", {
     obj <- x_i | y_j
     expect_equal(length(obj$args), 2)
     expect_equal(length(obj$data), 2)
-    bool_grep_formula <- grep("\\(A0x.*i\\|A0x.*j\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "\\(A0x.*i\\|A0x.*j\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     # errors
     expect_error(
@@ -663,20 +671,21 @@ test_that("exp", {
     obj <- exp(x_i)
     expect_equal(length(obj$args), 1)
     expect_equal(length(obj$data), 1)
-    bool_grep_formula <- grep("Exp\\(A0x.*i\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "Exp\\(A0x.*i\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     obj <- exp(x_i - y_j)
     expect_equal(length(obj$args), 2)
     expect_equal(length(obj$data), 2)
-    bool_grep_formula <- grep("Exp\\(A0x.*i-A0x.*j\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(
+        obj$formula, "Exp\\(Subtract\\(A0x.*i,A0x.*j\\)\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     obj <- exp(z_i)
     expect_equal(length(obj$args), 1)
     expect_equal(length(obj$data), 1)
-    bool_grep_formula <- grep("ComplexExp\\(A0x.*i\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "ComplexExp\\(A0x.*i\\)")
+    expect_equal(bool_grep_formula, TRUE)
 })
 
 
@@ -709,20 +718,21 @@ test_that("log", {
     obj <- log(x_i)
     expect_equal(length(obj$args), 1)
     expect_equal(length(obj$data), 1)
-    bool_grep_formula <- grep("Log\\(A0x.*i\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "Log\\(A0x.*i\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     obj <-  log(x_i - y_j)
     expect_equal(length(obj$args), 2)
     expect_equal(length(obj$data), 2)
-    bool_grep_formula <- grep("Log\\(A0x.*i-A0x.*j\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(
+        obj$formula, "Log\\(Subtract\\(A0x.*i,A0x.*j\\)\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     obj <- log(z_i)
     expect_equal(length(obj$args), 1)
     expect_equal(length(obj$data), 1)
-    bool_grep_formula <- grep("Log\\(A0x.*i\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "Log\\(A0x.*i\\)")
+    expect_equal(bool_grep_formula, TRUE)
 })
 
 
@@ -755,20 +765,21 @@ test_that("inv", {
     obj <- inv(x_i)
     expect_equal(length(obj$args), 1)
     expect_equal(length(obj$data), 1)
-    bool_grep_formula <- grep("Inv\\(A0x.*i\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "Inv\\(A0x.*i\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     obj <-  inv(x_i + y_j)
     expect_equal(length(obj$args), 2)
     expect_equal(length(obj$data), 2)
-    bool_grep_formula <- grep("Inv\\(A0x.*i\\+A0x.*j\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(
+        obj$formula, "Inv\\(Add\\(A0x.*i,A0x.*j\\)\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     obj <-  inv(z_i)
     expect_equal(length(obj$args), 1)
     expect_equal(length(obj$data), 1)
-    bool_grep_formula <- grep("Inv\\(A0x.*i\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "Inv\\(A0x.*i\\)")
+    expect_equal(bool_grep_formula, TRUE)
 })
 
 
@@ -801,20 +812,21 @@ test_that("cos", {
     obj <- cos(x_i)
     expect_equal(length(obj$args), 1)
     expect_equal(length(obj$data), 1)
-    bool_grep_formula <- grep("Cos\\(A0x.*i\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "Cos\\(A0x.*i\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     obj <-  cos(x_i + y_j)
     expect_equal(length(obj$args), 2)
     expect_equal(length(obj$data), 2)
-    bool_grep_formula <- grep("Cos\\(A0x.*i\\+A0x.*j\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(
+        obj$formula, "Cos\\(Add\\(A0x.*i,A0x.*j\\)\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     obj <-  cos(z_i)
     expect_equal(length(obj$args), 1)
     expect_equal(length(obj$data), 1)
-    bool_grep_formula <- grep("Cos\\(A0x.*i\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "Cos\\(A0x.*i\\)")
+    expect_equal(bool_grep_formula, TRUE)
 })
 
 
@@ -847,20 +859,21 @@ test_that("sin", {
     obj <- sin(x_i)
     expect_equal(length(obj$args), 1)
     expect_equal(length(obj$data), 1)
-    bool_grep_formula <- grep("Sin\\(A0x.*i\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "Sin\\(A0x.*i\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     obj <-  sin(x_i + y_j)
     expect_equal(length(obj$args), 2)
     expect_equal(length(obj$data), 2)
-    bool_grep_formula <- grep("Sin\\(A0x.*i\\+A0x.*j\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(
+        obj$formula, "Sin\\(Add\\(A0x.*i,A0x.*j\\)\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     obj <- sin(z_i)
     expect_equal(length(obj$args), 1)
     expect_equal(length(obj$data), 1)
-    bool_grep_formula <- grep("Sin\\(A0x.*i\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "Sin\\(A0x.*i\\)")
+    expect_equal(bool_grep_formula, TRUE)
 })
 
 
@@ -893,14 +906,15 @@ test_that("acos", {
     obj <- acos(x_i)
     expect_equal(length(obj$args), 1)
     expect_equal(length(obj$data), 1)
-    bool_grep_formula <- grep("Acos\\(A0x.*i\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "Acos\\(A0x.*i\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     obj <-  acos(x_i + y_j)
     expect_equal(length(obj$args), 2)
     expect_equal(length(obj$data), 2)
-    bool_grep_formula <- grep("Acos\\(A0x.*i\\+A0x.*j\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(
+        obj$formula, "Acos\\(Add\\(A0x.*i,A0x.*j\\)\\)")
+    expect_equal(bool_grep_formula, TRUE)
 })
 
 
@@ -931,14 +945,15 @@ test_that("asin", {
     obj <- asin(x_i)
     expect_equal(length(obj$args), 1)
     expect_equal(length(obj$data), 1)
-    bool_grep_formula <- grep("Asin\\(A0x.*i\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "Asin\\(A0x.*i\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     obj <-  asin(x_i + y_j)
     expect_equal(length(obj$args), 2)
     expect_equal(length(obj$data), 2)
-    bool_grep_formula <- grep("Asin\\(A0x.*i\\+A0x.*j\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(
+        obj$formula, "Asin\\(Add\\(A0x.*i,A0x.*j\\)\\)")
+    expect_equal(bool_grep_formula, TRUE)
 })
 
 
@@ -968,14 +983,15 @@ test_that("atan", {
     obj <- atan(x_i)
     expect_equal(length(obj$args), 1)
     expect_equal(length(obj$data), 1)
-    bool_grep_formula <- grep("Atan\\(A0x.*i\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "Atan\\(A0x.*i\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     obj <-  atan(x_i + y_j)
     expect_equal(length(obj$args), 2)
     expect_equal(length(obj$data), 2)
-    bool_grep_formula <- grep("Atan\\(A0x.*i\\+A0x.*j\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(
+        obj$formula, "Atan\\(Add\\(A0x.*i,A0x.*j\\)\\)")
+    expect_equal(bool_grep_formula, TRUE)
 })
 
 
@@ -1010,8 +1026,8 @@ test_that("atan2", {
     obj <- atan2(x_i, y_j)
     expect_equal(length(obj$args), 2)
     expect_equal(length(obj$data), 2)
-    bool_grep_formula <- grep("Atan2\\(A0x.*i,A0x.*j\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "Atan2\\(A0x.*i,A0x.*j\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     # errors
     expect_error(atan2(x_i, z_j),
@@ -1103,20 +1119,20 @@ test_that("abs", {
     obj <- abs(x_i)
     expect_equal(length(obj$args), 1)
     expect_equal(length(obj$data), 1)
-    bool_grep_formula <- grep("Abs\\(A0x.*i\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "Abs\\(A0x.*i\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     obj <-  abs(-y_j)
     expect_equal(length(obj$args), 1)
     expect_equal(length(obj$data), 1)
-    bool_grep_formula <- grep("Abs\\(Minus\\(A0x.*j\\)\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "Abs\\(Minus\\(A0x.*j\\)\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     obj <-  abs(-xc_i)
     expect_equal(length(obj$args), 1)
     expect_equal(length(obj$data), 1)
-    bool_grep_formula <- grep("ComplexAbs\\(Minus\\(A0x.*i\\)\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "ComplexAbs\\(Minus\\(A0x.*i\\)\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
 })
 
@@ -1146,14 +1162,14 @@ test_that("sign", {
     obj <- sign(x_i)
     expect_equal(length(obj$args), 1)
     expect_equal(length(obj$data), 1)
-    bool_grep_formula <- grep("Sign\\(A0x.*i\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "Sign\\(A0x.*i\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     obj <-  sign(-y_j)
     expect_equal(length(obj$args), 1)
     expect_equal(length(obj$data), 1)
-    bool_grep_formula <- grep("Sign\\(Minus\\(A0x.*j\\)\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "Sign\\(Minus\\(A0x.*j\\)\\)")
+    expect_equal(bool_grep_formula, TRUE)
 })
 
 
@@ -1185,20 +1201,20 @@ test_that("round", {
     obj <- round(x_i, 3)
     expect_equal(length(obj$args), 1)
     expect_equal(length(obj$data), 1)
-    bool_grep_formula <- grep("Round\\(A0x.*i,3\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "Round\\(A0x.*i,3\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     obj <- round(y_j, 3.14)
     expect_equal(length(obj$args), 1)
     expect_equal(length(obj$data), 1)
-    bool_grep_formula <- grep("Round\\(A0x.*j,3.14\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "Round\\(A0x.*j,3.14\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     obj <- round(Pm(3), 3)
     expect_null(obj$args)
     expect_null(obj$data)
-    bool_grep_formula <- grep("Round\\(IntCst\\(.*\\),3\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "Round\\(IntCst\\(.*\\),3\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     # errors
     expect_error(round(x_i, x), 
@@ -1237,14 +1253,14 @@ test_that("xlogx", {
     obj <- xlogx(x_i)
     expect_equal(length(obj$args), 1)
     expect_equal(length(obj$data), 1)
-    bool_grep_formula <- grep("XLogX\\(A0x.*i\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "XLogX\\(A0x.*i\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     obj <- xlogx(Pm(3))
     expect_null(obj$args)
     expect_null(obj$data)
-    bool_grep_formula <- grep("XLogX\\(IntCst\\(.*\\)\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "XLogX\\(IntCst\\(.*\\)\\)")
+    expect_equal(bool_grep_formula, TRUE)
 })
 
 
@@ -1274,14 +1290,14 @@ test_that("sinxdivx", {
     obj <- sinxdivx(x_i)
     expect_equal(length(obj$args), 1)
     expect_equal(length(obj$data), 1)
-    bool_grep_formula <- grep("SinXDivX\\(A0x.*i\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "SinXDivX\\(A0x.*i\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     obj <- sinxdivx(Pm(3))
     expect_null(obj$args)
     expect_null(obj$data)
-    bool_grep_formula <- grep("SinXDivX\\(IntCst\\(.*\\)\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "SinXDivX\\(IntCst\\(.*\\)\\)")
+    expect_equal(bool_grep_formula, TRUE)
 })
 
 
@@ -1310,14 +1326,14 @@ test_that("step", {
     obj <- step(x_i)
     expect_equal(length(obj$args), 1)
     expect_equal(length(obj$data), 1)
-    bool_grep_formula <- grep("Step\\(A0x.*i\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "Step\\(A0x.*i\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     obj <- step(Pm(2))
     expect_null(obj$args)
     expect_null(obj$data)
-    bool_grep_formula <- grep("Step\\(IntCst\\(.*\\)\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "Step\\(IntCst\\(.*\\)\\)")
+    expect_equal(bool_grep_formula, TRUE)
 })
 
 
@@ -1346,14 +1362,14 @@ test_that("relu", {
     obj <- relu(x_i)
     expect_equal(length(obj$args), 1)
     expect_equal(length(obj$data), 1)
-    bool_grep_formula <- grep("ReLU\\(A0x.*i\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "ReLU\\(A0x.*i\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     obj <- relu(LazyTensor(4))
     expect_null(obj$args)
     expect_null(obj$data)
-    bool_grep_formula <- grep("ReLU\\(IntCst\\(.*\\)\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "ReLU\\(IntCst\\(.*\\)\\)")
+    expect_equal(bool_grep_formula, TRUE)
 })
 
 
@@ -1382,29 +1398,29 @@ test_that("clamp", {
     expect_true(is.LazyTensor(obj))
     expect_equal(length(obj$args), 3)
     expect_equal(length(obj$data), 3)
-    bool_grep_formula <- grep("Clamp\\(A0x.*i,A0x.*j,A0x.*i\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "Clamp\\(A0x.*i,A0x.*j,A0x.*i\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     obj <-  clamp(x_i, y_j, 3)
     expect_true(is.LazyTensor(obj))
     expect_equal(length(obj$args), 2)
     expect_equal(length(obj$data), 2)
-    bool_grep_formula <- grep("Clamp\\(A0x.*i,A0x.*j,IntCst\\(3\\)\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "Clamp\\(A0x.*i,A0x.*j,IntCst\\(3\\)\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     obj <-  clamp(2, y_j, 3)
     expect_true(is.LazyTensor(obj))
     expect_equal(length(obj$args), 1)
     expect_equal(length(obj$data), 1)
-    bool_grep_formula <- grep("Clamp\\(IntCst\\(2\\),A0x.*j,IntCst\\(3\\)\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "Clamp\\(IntCst\\(2\\),A0x.*j,IntCst\\(3\\)\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     obj <-  clamp(x_i, 2, 3)
     expect_true(is.LazyTensor(obj))
     expect_equal(length(obj$args), 1)
     expect_equal(length(obj$data), 1)
-    bool_grep_formula <- grep("ClampInt\\(A0x.*i,2,3\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "ClampInt\\(A0x.*i,2,3\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     # errors
     expect_error(
@@ -1461,15 +1477,15 @@ test_that("clampint", {
     expect_equal(length(obj$args), 1)
     expect_equal(length(obj$data), 1)
     expect_s3_class(obj, "LazyTensor")
-    bool_grep_formula <- grep("ClampInt\\(A0x.*i,6,8\\)", obj$formula) 
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "ClampInt\\(A0x.*i,6,8\\)") 
+    expect_equal(bool_grep_formula, TRUE)
     
     obj <-  clampint(1, 6, 8)
     expect_null(obj$args)
     expect_null(obj$data)
     expect_s3_class(obj, "LazyTensor")
-    bool_grep_formula <- grep("ClampInt\\(IntCst\\(1\\),6,8\\)", obj$formula) 
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "ClampInt\\(IntCst\\(1\\),6,8\\)") 
+    expect_equal(bool_grep_formula, TRUE)
     
     
     # errors
@@ -1538,22 +1554,22 @@ test_that("ifelse", {
     obj <-  ifelse(x_i, y_j, z_i)
     expect_equal(length(obj$args), 3)
     expect_equal(length(obj$data), 3)
-    bool_grep_formula <- grep("IfElse\\(A0x.*i,A0x.*j,A0x.*i\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "IfElse\\(A0x.*i,A0x.*j,A0x.*i\\)")
+    expect_equal(bool_grep_formula, TRUE)
     expect_s3_class(obj, "LazyTensor")
     
     obj <-  ifelse(x_i, y_j, 3)
     expect_equal(length(obj$args), 2)
     expect_equal(length(obj$data), 2)
-    bool_grep_formula <- grep("IfElse\\(A0x.*i,A0x.*j,IntCst\\(3\\)\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "IfElse\\(A0x.*i,A0x.*j,IntCst\\(3\\)\\)")
+    expect_equal(bool_grep_formula, TRUE)
     expect_s3_class(obj, "LazyTensor")
     
     obj <-  ifelse(x_i, 2, 3)
     expect_equal(length(obj$args), 1)
     expect_equal(length(obj$data), 1)
-    bool_grep_formula <- grep("IfElse\\(A0x.*i,IntCst\\(2\\),IntCst\\(3\\)\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "IfElse\\(A0x.*i,IntCst\\(2\\),IntCst\\(3\\)\\)")
+    expect_equal(bool_grep_formula, TRUE)
     expect_s3_class(obj, "LazyTensor")
     
     # errors
@@ -1610,51 +1626,50 @@ test_that("mod", {
     obj <-  mod(x_i, y_j, z_i)
     expect_equal(length(obj$args), 3)
     expect_equal(length(obj$data), 3)
-    bool_grep_formula <- grep("Mod\\(A0x.*i,A0x.*j,A0x.*i\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "Mod\\(A0x.*i,A0x.*j,A0x.*i\\)")
+    expect_equal(bool_grep_formula, TRUE)
     expect_s3_class(obj, "LazyTensor")
     
     obj <-  mod(xc_i, yc_j, zc_i)
     expect_equal(length(obj$args), 3)
     expect_equal(length(obj$data), 3)
-    bool_grep_formula <- grep("Mod\\(A0x.*i,A0x.*j,A0x.*i\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "Mod\\(A0x.*i,A0x.*j,A0x.*i\\)")
+    expect_equal(bool_grep_formula, TRUE)
     expect_s3_class(obj, "ComplexLazyTensor")
     
     obj <-  mod(x_i, yc_j, zc_i)
     expect_equal(length(obj$args), 3)
     expect_equal(length(obj$data), 3)
-    bool_grep_formula <- grep("Mod\\(A0x.*i,A0x.*j,A0x.*i\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "Mod\\(A0x.*i,A0x.*j,A0x.*i\\)")
+    expect_equal(bool_grep_formula, TRUE)
     expect_s3_class(obj, "ComplexLazyTensor")
     
     obj <-  mod(xc_i, y_j, z_i)
     expect_equal(length(obj$args), 3)
     expect_equal(length(obj$data), 3)
-    bool_grep_formula <- grep("Mod\\(A0x.*i,A0x.*j,A0x.*i\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "Mod\\(A0x.*i,A0x.*j,A0x.*i\\)")
+    expect_equal(bool_grep_formula, TRUE)
     expect_s3_class(obj, "ComplexLazyTensor")
     
     obj <-  mod(x_i, y_j, 3)
     expect_equal(length(obj$args), 2)
     expect_equal(length(obj$data), 2)
-    bool_grep_formula <- grep("Mod\\(A0x.*i,A0x.*j,IntCst\\(3\\)\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "Mod\\(A0x.*i,A0x.*j,IntCst\\(3\\)\\)")
+    expect_equal(bool_grep_formula, TRUE)
     expect_s3_class(obj, "LazyTensor")
     
     obj <-  mod(x_i, 2, 3)
     expect_equal(length(obj$args), 1)
     expect_equal(length(obj$data), 1)
-    bool_grep_formula <- grep("Mod\\(A0x.*i,IntCst\\(2\\),IntCst\\(3\\)\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "Mod\\(A0x.*i,IntCst\\(2\\),IntCst\\(3\\)\\)")
+    expect_equal(bool_grep_formula, TRUE)
     expect_s3_class(obj, "LazyTensor")
     
     obj <-  mod(x_i, 2)
     expect_equal(length(obj$args), 1)
     expect_equal(length(obj$data), 1)
-    bool_grep_formula <- grep("Mod\\(A0x.*i,IntCst\\(2\\),IntCst\\(0\\)\\)",
-                              obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "Mod\\(A0x.*i,IntCst\\(2\\),IntCst\\(0\\)\\)")
+    expect_equal(bool_grep_formula, TRUE)
     expect_s3_class(obj, "LazyTensor")
     
     # errors
@@ -1691,8 +1706,8 @@ test_that("sqnorm2", {
     obj <- sqnorm2(x_i)
     expect_equal(length(obj$args), 1)
     expect_equal(length(obj$data), 1)
-    bool_grep_formula <- grep("SqNorm2\\(A0x.*i\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "SqNorm2\\(A0x.*i\\)")
+    expect_equal(bool_grep_formula, TRUE)
 })
 
 
@@ -1714,8 +1729,8 @@ test_that("norm2", {
     obj <- norm2(x_i)
     expect_equal(length(obj$args), 1)
     expect_equal(length(obj$data), 1)
-    bool_grep_formula <- grep("Norm2\\(A0x.*i\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "Norm2\\(A0x.*i\\)")
+    expect_equal(bool_grep_formula, TRUE)
 })
 
 
@@ -1736,8 +1751,8 @@ test_that("normalize", {
     obj <- normalize(x_i)
     expect_equal(length(obj$args), 1)
     expect_equal(length(obj$data), 1)
-    bool_grep_formula <- grep("Normalize\\(A0x.*i\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "Normalize\\(A0x.*i\\)")
+    expect_equal(bool_grep_formula, TRUE)
 })
 
 
@@ -1778,14 +1793,14 @@ test_that("sqdist", {
     obj <- sqdist(x_i, y_j)
     expect_equal(length(obj$args), 2)
     expect_equal(length(obj$data), 2)
-    bool_grep_formula <- grep("SqDist\\(A0x.*i,A0x.*j\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "SqDist\\(A0x.*i,A0x.*j\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     obj <- sqdist(x_i, 3)
     expect_equal(length(obj$args), 1)
     expect_equal(length(obj$data), 1)
-    bool_grep_formula <- grep("SqDist\\(A0x.*i,IntCst\\(3\\)\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "SqDist\\(A0x.*i,IntCst\\(3\\)\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     # errors
     expect_error(
@@ -1823,14 +1838,14 @@ test_that("weightedsqnorm", {
     obj <- weightedsqnorm(x_i, s_j)
     expect_equal(length(obj$args), 2)
     expect_equal(length(obj$data), 2)
-    bool_grep_formula <- grep("WeightedSqNorm\\(A0x.*j,A0x.*i\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "WeightedSqNorm\\(A0x.*j,A0x.*i\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     obj <- weightedsqnorm(x_i, 3)
     expect_equal(length(obj$args), 1)
     expect_equal(length(obj$data), 1)
-    bool_grep_formula <- grep("WeightedSqNorm\\(IntCst\\(3\\),A0x.*i\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "WeightedSqNorm\\(IntCst\\(3\\),A0x.*i\\)")
+    expect_equal(bool_grep_formula, TRUE)
 })
 
 
@@ -1869,32 +1884,33 @@ test_that("weightedsqdist", {
     obj <- weightedsqdist(x_i, y_j, s_i)
     expect_equal(length(obj$args), 3)
     expect_equal(length(obj$data), 3)
-    bool_grep_formula <- grep("WeightedSqNorm\\(A0x.*i,A0x.*i-A0x.*j\\)", 
-                              obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(
+        obj$formula, "WeightedSqNorm\\(A0x.*i,Subtract\\(A0x.*i,A0x.*j\\)\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     obj <- weightedsqdist(x_i, 2, s_i)
     expect_equal(length(obj$args), 2)
     expect_equal(length(obj$data), 2)
-    bool_grep_formula <- grep("WeightedSqNorm\\(A0x.*i,A0x.*i-IntCst\\(2\\)\\)", 
-                              obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(
+        obj$formula,
+        "WeightedSqNorm\\(A0x.*i,Subtract\\(A0x.*i,IntCst\\(2\\)\\)\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     obj <- weightedsqdist(x_i, y_j, 3)
     expect_equal(length(obj$args), 2)
     expect_equal(length(obj$data), 2)
-    bool_grep_formula <- grep("WeightedSqNorm\\(IntCst\\(3\\),A0x.*i-A0x.*j\\)", 
-                              obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(
+        obj$formula,
+        "WeightedSqNorm\\(IntCst\\(3\\),Subtract\\(A0x.*i,A0x.*j\\)\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     obj <- weightedsqdist(x_i, 2, 3)
     expect_equal(length(obj$args), 1)
     expect_equal(length(obj$data), 1)
-    bool_grep_formula <- grep(
-        "WeightedSqNorm\\(IntCst\\(3\\),A0x.*i-IntCst\\(2\\)\\)", 
-        obj$formula
-    )
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(
+        obj$formula,
+        "WeightedSqNorm\\(IntCst\\(3\\),Subtract\\(A0x.*i,IntCst\\(2\\)\\)\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
 })
 
@@ -1933,13 +1949,17 @@ test_that("Re", {
     obj <-  Re(z_i)
     expect_equal(length(obj$args), 1)
     expect_equal(length(obj$data), 1)
-    bool_grep_formula <- grep("ComplexReal\\(A0x.*i\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "ComplexReal\\(A0x.*i\\)")
+    expect_equal(bool_grep_formula, TRUE)
     expect_s3_class(obj, "LazyTensor")
     
     expect_error(
         Re(x_i), 
-        "`Re` cannot be applied to a LazyTensor. See `?Re` for compatible types.",
+        str_c(
+            "`Re` cannot be applied to a LazyTensor.",
+            "See `?Re` for compatible types.",
+            sep = " "
+        ),
         fixed = TRUE
     )
     
@@ -1975,13 +1995,17 @@ test_that("Im", {
     obj <-  Im(z_i)
     expect_equal(length(obj$args), 1)
     expect_equal(length(obj$data), 1)
-    bool_grep_formula <- grep("ComplexImag\\(A0x.*i\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "ComplexImag\\(A0x.*i\\)")
+    expect_equal(bool_grep_formula, TRUE)
     expect_s3_class(obj, "LazyTensor")
     
     expect_error(
-        Im(x_i), 
-        "`Im` cannot be applied to a LazyTensor. See `?Im` for compatible types.",
+        Im(x_i),
+        str_c(
+            "`Im` cannot be applied to a LazyTensor.",
+            "See `?Im` for compatible types.",
+            sep = " "
+        ),
         fixed = TRUE
     )
     
@@ -2017,14 +2041,18 @@ test_that("Arg", {
     obj <- Arg(z_i)
     expect_equal(length(obj$args), 1)
     expect_equal(length(obj$data), 1)
-    bool_grep_formula <- grep("ComplexAngle\\(A0x.*i\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "ComplexAngle\\(A0x.*i\\)")
+    expect_equal(bool_grep_formula, TRUE)
     expect_s3_class(obj, "LazyTensor")
     
     # error
     expect_error(
-        Arg(x_i), 
-        "`Arg` cannot be applied to a LazyTensor. See `?Arg` for compatible types.",
+        Arg(x_i),
+        str_c(
+            "`Arg` cannot be applied to a LazyTensor.",
+            "See `?Arg` for compatible types.",
+            sep = " "
+        ),
         fixed = TRUE
     )
     
@@ -2046,16 +2074,16 @@ test_that("real2complex", {
     expect_equal(length(obj$args), 1)
     expect_equal(length(obj$data), 1)
     expect_equal(obj$dimres, x_i$dimres)
-    bool_grep_formula <- grep("Real2Complex\\(A0x.*i\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "Real2Complex\\(A0x.*i\\)")
+    expect_equal(bool_grep_formula, TRUE)
     expect_s3_class(obj, "ComplexLazyTensor")
     
     expect_warning(obj <-  real2complex(Pm(2)))
     expect_null(obj$args)
     expect_null(obj$data)
     expect_equal(obj$dimres, 1)
-    bool_grep_formula <- grep("Real2Complex\\(IntCst\\(2\\)\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "Real2Complex\\(IntCst\\(2\\)\\)")
+    expect_equal(bool_grep_formula, TRUE)
     expect_s3_class(obj, "ComplexLazyTensor")
     
     # errors
@@ -2083,16 +2111,16 @@ test_that("imag2complex", {
     expect_equal(length(obj$args), 1)
     expect_equal(length(obj$data), 1)
     expect_equal(obj$dimres, x_i$dimres)
-    bool_grep_formula <- grep("Imag2Complex\\(A0x.*i\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "Imag2Complex\\(A0x.*i\\)")
+    expect_equal(bool_grep_formula, TRUE)
     expect_s3_class(obj, "ComplexLazyTensor")
     
     obj <-  imag2complex(Pm(2))
     expect_null(obj$args)
     expect_null(obj$data)
     expect_equal(obj$dimres, 1)
-    bool_grep_formula <- grep("Imag2Complex\\(IntCst\\(2\\)\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "Imag2Complex\\(IntCst\\(2\\)\\)")
+    expect_equal(bool_grep_formula, TRUE)
     expect_s3_class(obj, "ComplexLazyTensor")
     
     expect_error(imag2complex(xc_i), 
@@ -2116,8 +2144,8 @@ test_that("exp1j", {
     expect_equal(length(obj$args), 1)
     expect_equal(length(obj$data), 1)
     expect_equal(obj$dimres, x_i$dimres)
-    bool_grep_formula <- grep("ComplexExp1j\\(A0x.*i\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "ComplexExp1j\\(A0x.*i\\)")
+    expect_equal(bool_grep_formula, TRUE)
     expect_s3_class(obj, "ComplexLazyTensor")
     
     expect_error(exp1j(xc_i), 
@@ -2152,8 +2180,8 @@ test_that("Conj", {
     expect_s3_class(obj, "ComplexLazyTensor")
     expect_equal(length(obj$args), 1)
     expect_equal(length(obj$data), 1)
-    bool_grep_formula <- grep("Conj\\(A0x.*i\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "Conj\\(A0x.*i\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     obj <- Conj(1 + 2i)
     expect_equal(obj, 1 - 2i)
@@ -2194,8 +2222,8 @@ test_that("Mod", {
     expect_equal(obj$dimres, 3)
     expect_true(is.LazyTensor(obj))
     expect_false(is.ComplexLazyTensor(obj))
-    bool_grep_formula <- grep("ComplexAbs\\(A0x.*i\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "ComplexAbs\\(A0x.*i\\)")
+    expect_equal(bool_grep_formula, TRUE)
 })
 
 
@@ -2216,13 +2244,13 @@ test_that("elem", {
     # check formulas, args & classes
     obj <- elem(x_i, m)
     expect_true(is.LazyTensor(obj))
-    bool_grep_formula <- grep("Elem\\(A0x.*i,2\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "Elem\\(A0x.*i,2\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     obj <- elem(Pm_int, 0)
     expect_true(is.LazyTensor(obj))
-    bool_grep_formula <- grep("Elem\\(IntCst\\(5\\),0\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "Elem\\(IntCst\\(5\\),0\\)")
+    expect_equal(bool_grep_formula, TRUE)
     expect_null <- obj$args
     expect_null <- obj$data
     expect_equal(obj$dimres, 1)
@@ -2264,19 +2292,19 @@ test_that("elemT", {
     # check formulas, args & classes
     obj <- elemT(Pm_x, m, n)
     expect_true(is.LazyTensor(obj))
-    bool_grep_formula <- grep("ElemT\\(A0x.*NA,3,2\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "ElemT\\(A0x.*NA,3,2\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     obj <- elemT(Pm_z, m, n)
     expect_true(is.LazyTensor(obj))
     expect_true(is.ComplexLazyTensor(obj))
-    bool_grep_formula <- grep("ElemT\\(A0x.*NA,3,2\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "ElemT\\(A0x.*NA,3,2\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     obj <- elemT(Pm_int, 5, 7)
     expect_true(is.LazyTensor(obj))
-    bool_grep_formula <- grep("ElemT\\(IntCst\\(4\\),7,5\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "ElemT\\(IntCst\\(4\\),7,5\\)")
+    expect_equal(bool_grep_formula, TRUE)
     expect_null <- obj$args
     expect_null <- obj$data
     expect_equal(obj$dimres, 1)
@@ -2319,18 +2347,18 @@ test_that("extract", {
     # check formulas, args & classes
     obj <- extract(x_i, m, d)
     expect_true(is.LazyTensor(obj))
-    bool_grep_formula <- grep("Extract\\(A0x.*i,1,3\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "Extract\\(A0x.*i,1,3\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     obj <- extract(Pm_v, 0, d)
     expect_true(is.LazyTensor(obj))
-    bool_grep_formula <- grep("Extract\\(A0x.*NA,0,3\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "Extract\\(A0x.*NA,0,3\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     obj <- extract(Pm_int, 0, 1)
     expect_true(is.LazyTensor(obj))
-    bool_grep_formula <- grep("Extract\\(IntCst\\(2\\),0,1\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "Extract\\(IntCst\\(2\\),0,1\\)")
+    expect_equal(bool_grep_formula, TRUE)
     expect_null <- obj$args
     expect_null <- obj$data
     expect_equal(obj$dimres, 1)
@@ -2376,18 +2404,18 @@ test_that("extractT", {
     # check formulas, args & classes
     obj <- extractT(x_i, m, d)
     expect_true(is.LazyTensor(obj))
-    bool_grep_formula <- grep("ExtractT\\(A0x.*i,1,8\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "ExtractT\\(A0x.*i,1,8\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     obj <- extractT(Pm_v, 0, d)
     expect_true(is.LazyTensor(obj))
-    bool_grep_formula <- grep("ExtractT\\(A0x.*NA,0,8\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "ExtractT\\(A0x.*NA,0,8\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     obj <- extractT(Pm_int, 0, d)
     expect_true(is.LazyTensor(obj))
-    bool_grep_formula <- grep("ExtractT\\(IntCst\\(2\\),0,8\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "ExtractT\\(IntCst\\(2\\),0,8\\)")
+    expect_equal(bool_grep_formula, TRUE)
     expect_null <- obj$args
     expect_null <- obj$data
     expect_equal(obj$dimres, 1)
@@ -2428,8 +2456,8 @@ test_that("concat", {
     
     obj <- concat(x_i, y_j)
     expect_true(is.LazyTensor(obj))
-    bool_grep_formula <- grep("Concat\\(A0x.*i,A0x.*j\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "Concat\\(A0x.*i,A0x.*j\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     res <- sum(concat(x_i,y_j), "i")
     expected_res <- rep(1:2, each = 3)
@@ -2447,13 +2475,14 @@ test_that("concat", {
     # check formulas, args & classes
     obj <- concat(x_i, y_j)
     expect_true(is.LazyTensor(obj))
-    bool_grep_formula <- grep("Concat\\(A0x.*i,A0x.*j\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "Concat\\(A0x.*i,A0x.*j\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     obj <- concat(x_i, Pm_int)
     expect_true(is.LazyTensor(obj))
-    bool_grep_formula <- grep("Concat\\(A0x.*i,IntCst\\(5\\)\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(
+        obj$formula, "Concat\\(A0x.*i,IntCst\\(5\\)\\)")
+    expect_equal(bool_grep_formula, TRUE)
     expect_equal(length(obj$args), 1)
     expect_equal(length(obj$data), 1)
     expect_equal(obj$dimres, 4)
@@ -2478,16 +2507,16 @@ test_that("one_hot", {
     # check formulas, args & classes
     obj <- one_hot(LT_s, D)
     expect_true(is.LazyTensor(obj))
-    bool_grep_formula <- grep("OneHot\\(IntCst\\(13\\),7\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "OneHot\\(IntCst\\(13\\),7\\)")
+    expect_equal(bool_grep_formula, TRUE)
     expect_null <- obj$args
     expect_null <- obj$data
     expect_equal(obj$dimres, 7)
     
     obj <- one_hot(LT_dec, D)
     expect_true(is.LazyTensor(obj))
-    bool_grep_formula <- grep("OneHot\\(A0x.*NA,7\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "OneHot\\(A0x.*NA,7\\)")
+    expect_equal(bool_grep_formula, TRUE)
     expect_equal(length(obj$args), 1)
     expect_equal(length(obj$data), 1)
     expect_equal(obj$dimres, 7)
@@ -2528,15 +2557,13 @@ test_that("matvecmult", {
     # check formulas, args & classes
     obj <- matvecmult(m_i, Pm_v)
     expect_true(is.LazyTensor(obj))
-    bool_grep_formula <- grep("MatVecMult\\(A0x.*i,A0x.*NA\\)",
-                              obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "MatVecMult\\(A0x.*i,A0x.*NA\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     obj_Pm_one <- matvecmult(m_i, Pm_one)
     expect_true(is.LazyTensor(obj_Pm_one))
-    bool_grep_formula <- grep("MatVecMult\\(A0x.*i,A0x.*NA\\)",
-                              obj_Pm_one$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj_Pm_one$formula, "MatVecMult\\(A0x.*i,A0x.*NA\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     # check dimres
     expect_equal(obj$dimres, 1)
@@ -2578,15 +2605,13 @@ test_that("vecmatmult", {
     # check formulas, args & classes
     obj <- vecmatmult(Pm_v, m_i)
     expect_true(is.LazyTensor(obj))
-    bool_grep_formula <- grep("VecMatMult\\(A0x.*NA,A0x.*i\\)",
-                              obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "VecMatMult\\(A0x.*NA,A0x.*i\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     obj_Pm_one <- vecmatmult(Pm_one, m_i)
     expect_true(is.LazyTensor(obj_Pm_one))
-    bool_grep_formula <- grep("VecMatMult\\(A0x.*NA,A0x.*i\\)",
-                              obj_Pm_one$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj_Pm_one$formula, "VecMatMult\\(A0x.*NA,A0x.*i\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     # check dimres
     expect_equal(obj$dimres, 1)
@@ -2630,8 +2655,8 @@ test_that("tensorprod", {
     expect_true(is.LazyTensor(obj))
     expect_false(is.ComplexLazyTensor(obj))
     expect_equal(obj$dimres, 9)
-    bool_grep_formula <- grep("TensorProd\\(A0x.*i,A0x.*i\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "TensorProd\\(A0x.*i,A0x.*i\\)")
+    expect_equal(bool_grep_formula, TRUE)
 })
 
 
@@ -2763,11 +2788,11 @@ test_that("sum", {
     expect_equal(as.vector(res), expected_res, tolerance = 1E-5)
     
     # check formulae
-    bool_grep_formula <- grep("Sum\\(A0x.*NA\\)", sum(Pm_v)$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(sum(Pm_v)$formula, "Sum\\(A0x.*NA\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
-    bool_grep_formula <- grep("ComplexSum\\(A0x.*NA\\)", sum(Pm_complex)$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(sum(Pm_complex)$formula, "ComplexSum\\(A0x.*NA\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     # errors
     expect_error(sum(x_i, "b"),
@@ -2871,8 +2896,8 @@ test_that("min", {
     # checks when there is no reduction
     obj <- min(x_i)
     expect_true(is.LazyTensor(obj))
-    bool_grep_formula <- grep("Min\\(A0x.*i\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "Min\\(A0x.*i\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     # errors
     expect_error(min(x_i, "b"),
@@ -2940,8 +2965,8 @@ test_that("argmin", {
     
     obj <- argmin(x_i)
     expect_true(is.LazyTensor(obj))
-    bool_grep_formula <- grep("ArgMin\\(A0x.*i\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "ArgMin\\(A0x.*i\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     # errors
     expect_error(argmin(3, "i"),
@@ -3106,8 +3131,8 @@ test_that("max", {
     # when there is no reduction
     obj <- max(x_i)
     expect_true(is.LazyTensor(obj))
-    bool_grep_formula <- grep("Max\\(A0x.*i\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "Max\\(A0x.*i\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     # errors
     expect_error(max(x_i, "b"),
@@ -3163,8 +3188,8 @@ test_that("argmax", {
     
     obj <- argmax(x_i)
     expect_true(is.LazyTensor(obj))
-    bool_grep_formula <- grep("ArgMax\\(A0x.*i\\)", obj$formula)
-    expect_equal(bool_grep_formula, 1)
+    bool_grep_formula <- str_detect(obj$formula, "ArgMax\\(A0x.*i\\)")
+    expect_equal(bool_grep_formula, TRUE)
     
     # errors
     expect_error(argmax(3, "i"),
@@ -3827,10 +3852,10 @@ test_that("sumsoftmaxweight", {
     x_i <- LazyTensor(x, index = 'i')
     y <- matrix(runif(100 * 3), 100, 3)
     y_j <- LazyTensor(y, index = 'j')
-
+    
     V_ij <- x_i - y_j   # weight matrix
     S_ij = sum(V_ij^2)
-
+    
     res <- sumsoftmaxweight(S_ij, 'i', V_ij)
     expect_false(is.LazyTensor(res))
     expect_true(is.matrix(res))
@@ -3946,7 +3971,7 @@ test_that("grad", {
     
     expect_error(
         grad(sqnorm2(x_i - y_j), eta_i, "Sum", var = 0,  1),
-        paste0("`index` input argument should be a character, either 'i' or 'j'."), 
+        "`index` input argument should be a character, either 'i' or 'j'.", 
         fixed = TRUE
     )
     
