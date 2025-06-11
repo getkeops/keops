@@ -6,6 +6,7 @@ skip_if_not_installed("fs")
 library(checkmate)
 library(withr)
 library(fs)
+library(stringr)
 
 # helper function to skip tests if Python is not available on the system
 skip_if_no_python <- function() {
@@ -53,4 +54,5 @@ testing_cache_dir <- file.path(current_cache_dir, "testing_rkeops")
 fs::dir_create(testing_cache_dir, recurse = TRUE)
 
 # Run after all tests (cleanup)
+withr::defer(fs::file_delete(testing_cache_dir), teardown_env())
 withr::defer(fs::file_delete(current_cache_dir), teardown_env())
