@@ -3,6 +3,7 @@ test_that("install_rkeops", {
     
     withr::with_options(list(rkeops = NULL), {
         set_rkeops_options()
-        expect_error(install_rkeops(), NA)
+        setup_pyreq()
+        expect_true(reticulate::py_available("pykeops"))
     })
 })
