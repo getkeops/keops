@@ -2,11 +2,11 @@ test_that("def_rkeops_options", {
     res <- def_rkeops_options()
     
     expect_equal(class(res), "rkeops_options")
-    checkmate::expect_list(res, len = 6)
+    checkmate::expect_list(res, len = 7)
     checkmate::expect_set_equal(
         names(res), 
         c("backend", "device_id", "precision", "verbosity", "debug", 
-          "cache_dir"))
+          "cache_dir", "formula_only"))
     checkmate::expect_choice(res$backend, c("CPU", "GPU"))
     checkmate::expect_integerish(res$device_id)
     checkmate::expect_choice(res$precision, c("float32", "float64"))
@@ -19,11 +19,11 @@ test_that("def_rkeops_options", {
         verbosity = FALSE, debug = FALSE, cache_dir = getwd())
     
     expect_equal(class(res), "rkeops_options")
-    checkmate::expect_list(res, len = 6)
+    checkmate::expect_list(res, len = 7)
     checkmate::expect_set_equal(
         names(res), 
         c("backend", "device_id", "precision", "verbosity", "debug", 
-          "cache_dir"))
+          "cache_dir", "formula_only"))
     checkmate::expect_choice(res$backend, c("CPU", "GPU"))
     checkmate::expect_integerish(res$device_id)
     checkmate::expect_choice(res$precision, c("float32", "float64"))
@@ -37,6 +37,7 @@ test_that("def_rkeops_options", {
     expect_error(def_rkeops_options(verbosity = "FALSE"))
     expect_error(def_rkeops_options(debug = "FALSE"))
     expect_error(def_rkeops_options(cache_dir = "/not/existing/dir"))
+    expect_error(def_rkeops_options(formula_only = "TRUE"))
 })
 
 test_that("get_rkeops_options", {
