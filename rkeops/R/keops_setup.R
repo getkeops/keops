@@ -37,7 +37,7 @@ def_pykeops_build_dir <- function() {
         str_c(
             "keops_",
             str_c("R", as.character(getRversion())),
-            str_c("Python", reticulate::py_config()$version),
+            str_c("Python", as.character(reticulate::py_config()$version)),
             str_c("pykeops", pykeops[["__version__"]]),
             str_c(
                 sys_info$sysname, sys_info$release, 
