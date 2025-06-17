@@ -88,6 +88,9 @@ class LoadKeOps:
         elif dtype == "float16":
             self.params.c_dtype = "half2"
             self.params.use_half = True
+        elif dtype == "bfloat16":
+            self.params.c_dtype = "bf162"
+            self.params.use_half = True
         else:
             raise ValueError("not implemented")
 
@@ -185,11 +188,18 @@ class LoadKeOps:
         *args,
     ):
         if self.params.use_half:
-            from pykeops.torch.half2_convert import preprocess_half2
+            if self.params.c_dtype == "half2":
+                from pykeops.torch.half2_convert import preprocess_half2
 
-            args, ranges, tag_dummy, N = preprocess_half2(
-                args, self.params.aliases_old, self.params.axis, ranges, nx, ny
-            )
+                args, ranges, tag_dummy, N = preprocess_half2(
+                    args, self.params.aliases_old, self.params.axis, ranges, nx, ny
+                )
+            else:
+                from pykeops.torch.bf16_convert import preprocess_bf162
+
+                args, ranges, tag_dummy, N = preprocess_bf162(
+                    args, self.params.aliases_old, self.params.axis, ranges, nx, ny
+                )
 
         # get ranges argument
         if not ranges:
@@ -235,10 +245,19 @@ class LoadKeOps:
         else:
             self.call_keops(nx, ny)
 
-        if self.params.dtype == "float16":
-            from pykeops.torch.half2_convert import postprocess_half2
+        if self.params.dtype in ("float16", "bfloat16"):
+            if self.params.c_dtype == "half2":
+                from pykeops.torch.half2_convert import postprocess_half2
 
-            out = postprocess_half2(out, tag_dummy, self.params.reduction_op, N)
+                out = postprocess_half2(
+                    out, tag_dummy, self.params.reduction_op, N
+                )
+            else:
+                from pykeops.torch.bf16_convert import postprocess_bf162
+
+                out = postprocess_bf162(
+                    out, tag_dummy, self.params.reduction_op, N
+                )
 
         return out
 

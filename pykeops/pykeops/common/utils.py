@@ -5,7 +5,7 @@ import os
 
 import pykeops.config
 
-c_type = dict(float16="half2", float32="float", float64="double")
+c_type = dict(float16="half2", float32="float", float64="double", bfloat16="bf162")
 
 
 def axis2cat(axis):

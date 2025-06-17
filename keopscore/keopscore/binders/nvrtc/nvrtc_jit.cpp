@@ -42,8 +42,8 @@ extern "C" int Compile(const char *target_file_name, const char *cu_code,
   nvrtcProgram prog;
 
   int numHeaders;
-  const char *header_names[1];
-  const char *header_sources[1];
+  const char *header_names[2];
+  const char *header_sources[2];
 
   if (use_half) {
     numHeaders = 1;
@@ -51,6 +51,14 @@ extern "C" int Compile(const char *target_file_name, const char *cu_code,
     header_path << cuda_include_path << "cuda_fp16.h";
     header_names[0] = "cuda_fp16.h";
     header_sources[0] = read_text_file(header_path.str().c_str());
+    std::ostringstream header_bf_path;
+    header_bf_path << cuda_include_path << "cuda_bf16.h";
+    if (FILE *f = fopen(header_bf_path.str().c_str(), "r")) {
+      fclose(f);
+      header_names[numHeaders] = "cuda_bf16.h";
+      header_sources[numHeaders] = read_text_file(header_bf_path.str().c_str());
+      numHeaders += 1;
+    }
   } else {
     numHeaders = 0;
   }
@@ -108,6 +116,12 @@ extern "C" int Compile(const char *target_file_name, const char *cu_code,
   }
 
   if (compileResult != NVRTC_SUCCESS) {
+    // Get compilation log for debugging
+    size_t logSize;
+    nvrtcGetProgramLogSize(prog, &logSize);
+    std::vector<char> log(logSize);
+    nvrtcGetProgramLog(prog, log.data());
+    std::cerr << "[KeOps][NVRTC] Compilation failed with log:\n" << log.data() << std::endl;
     return compileResult;
   }
 

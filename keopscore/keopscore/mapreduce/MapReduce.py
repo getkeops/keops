@@ -48,6 +48,9 @@ class MapReduce:
         if self.use_half == 1:
             self.headers += "#define USE_HALF 1\n"
             self.headers += c_include("cuda_fp16.h")
+            if self.dtype == "bf162":
+                self.headers += c_include("cuda_bf16.h")
+                self.headers += "typedef __nv_bfloat162 bf162;\n"
         else:
             self.headers += "#define USE_HALF 0\n"
 

@@ -126,6 +126,8 @@ class torchtools:
             return "float64"
         elif dtype == torch.float16:
             return "float16"
+        elif dtype == torch.bfloat16:
+            return "bfloat16"
         elif dtype == int:
             return int
         elif dtype == list:
@@ -177,6 +179,8 @@ class torchtools:
             dtype = torch.float64
         elif dtype == "float16":
             dtype = torch.float16
+        elif dtype == "bfloat16":
+            dtype = torch.bfloat16
         elif dtype == "int32":
             dtype = torch.int32
         elif dtype == "int64":

@@ -26,7 +26,7 @@ class Max_ArgMax_Reduction_Base(Reduction):
 
     def ReducePairScalar(self, acc_val, acc_ind, xi, ind):
         # Subroutine of ReducePairShort and ReducePair methods.
-        if xi.dtype == "half2":
+        if xi.dtype in ("half2", "bf162"):
             KeOps_Error("not implemented")
         return c_if(xi > acc_val, acc_val.assign(xi) + acc_ind.assign(ind))
 
@@ -38,7 +38,7 @@ class Max_ArgMax_Reduction_Base(Reduction):
         return VectApply(self.ReducePairScalar, acc_val, xi_val, xi_ind)
 
     def ReducePairShort(self, acc, xi, ind):
-        if xi.dtype == "half2":
+        if xi.dtype in ("half2", "bf162"):
             KeOps_Error("not implemented")
             half2_val = c_variable("half2_ind")
             string = half2_val.declare_assign(

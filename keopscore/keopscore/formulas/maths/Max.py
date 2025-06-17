@@ -25,7 +25,7 @@ class Max(Operation):
     def Op(self, out, table, arg):
         loop, k = c_for_loop(1, arg.dim, 1, pragma_unroll=True)
         string = value(out).assign(arg[0])
-        if out.dtype == "half2":
+        if out.dtype in ("half2", "bf162"):
             loop_string = f"""
                 // we have to work element-wise...
                 __half2 cond = __hlt2(*{out.id},{arg[k].id});                       // cond = (out > outF[k]) (element-wise)

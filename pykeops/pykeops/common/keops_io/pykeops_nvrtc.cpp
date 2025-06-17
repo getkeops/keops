@@ -100,4 +100,8 @@ PYBIND11_MODULE(pykeops_nvrtc, m) {
   py::class_<KeOps_module_python<half2>>(m, "KeOps_module_half2")
       .def(py::init<int, int, const char *>())
       .def("__call__", &KeOps_module_python<half2>::operator());
+
+  py::class_<KeOps_module_python<bf162>>(m, "KeOps_module_bf162")
+      .def(py::init<int, int, const char *>())
+      .def("__call__", &KeOps_module_python<bf162>::operator());
 }

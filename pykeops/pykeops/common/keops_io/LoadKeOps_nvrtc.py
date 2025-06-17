@@ -43,6 +43,12 @@ class LoadKeOps_nvrtc_class(LoadKeOps):
                 self.params.nargs,
                 self.params.low_level_code_file,
             )
+        elif self.params.c_dtype == "bf162":
+            self.launch_keops = pykeops_nvrtc.KeOps_module_bf162(
+                self.params.device_id_request,
+                self.params.nargs,
+                self.params.low_level_code_file,
+            )
 
     def call_keops(self, nx, ny):
         self.launch_keops(

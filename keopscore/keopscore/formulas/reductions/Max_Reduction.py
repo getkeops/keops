@@ -22,6 +22,6 @@ class Max_Reduction(Reduction):
 
     def ReducePairScalar(self, acc, xi):
         # Subroutine of ReducePairShort and ReducePair methods.
-        if xi.dtype == "half2":
+        if xi.dtype in ("half2", "bf162"):
             KeOps_Error("not implemented")
         return c_if(xi > acc, acc.assign(xi))

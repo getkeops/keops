@@ -23,7 +23,7 @@ class OneHot(Operation):
         self.dim = dim
 
     def Op(self, out, table, arg0):
-        if out.dtype == "half2" and arg0.dtype == "half2":
+        if out.dtype in ("half2", "bf162") and arg0.dtype in ("half2", "bf162"):
             return f"""
                         #pragma unroll
                         for (signed long int k = 0; k < {self.dim}; k++)

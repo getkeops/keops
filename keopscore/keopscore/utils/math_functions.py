@@ -34,7 +34,7 @@ def math_function(
                 args[k] = c_variable(c_dtype, str(arg))
         # N.B. first argument gives main dtype
         dtype = args[0].dtype
-        if dtype == "half2":
+        if dtype in ("half2", "bf162"):
             if gpu_half2_code == "NA":
                 KeOps_Error("Operation is not implemented for half precision")
             code_fun_gpu = convert_to_fun(gpu_half2_code)
@@ -69,6 +69,14 @@ h2eq0 = lambda x: f"__heq2({x},{h2zero})"
 h2ifelse = lambda x, a, b: f"(({b})+(({a})-({b}))*{h2ge0(x)})"
 int2h2 = lambda x: f"__float2half2_rn((float){x})"
 
+# helpers for bf162
+bfzero = "__float2bfloat162_rn(0.0f)"
+bfone = "__float2bfloat162_rn(1.0f)"
+bfge0 = lambda x: f"__hge2({x},{bfzero})"
+bfle0 = lambda x: f"__hle2({x},{bfzero})"
+bfeq0 = lambda x: f"__heq2({x},{bfzero})"
+bfifelse = lambda x, a, b: f"(({b})+(({a})-({b}))*{bfge0(x)})"
+int2bf = lambda x: f"__float2bfloat162_rn((float){x})"
 
 keops_mul = math_function(cpu_code=lambda x, y: f"({x}*{y})", gpu_half2_code="__hmul2")
 

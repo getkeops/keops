@@ -24,6 +24,9 @@ class GpuAssignZero(MapReduce, Gpu_link_compile):
 
         if dtype == "half2":
             self.headers += c_include("cuda_fp16.h")
+        elif dtype == "bf162":
+            self.headers += c_include("cuda_bf16.h")
+            self.headers += "using bf162 = __nv_bfloat162;\n"
 
         self.code = f"""
                         {self.headers}

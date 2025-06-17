@@ -30,7 +30,7 @@ class ArgMin(Operation):
         tmp = c_variable(out.dtype)
         loop, k = c_for_loop(1, arg.dim, 1, pragma_unroll=True)
         string = value(out).assign(c_zero_float) + tmp.declare_assign(arg[0])
-        if out.dtype == "half2":
+        if out.dtype in ("half2", "bf162"):
             loop_string = f"""
                 // we have to work element-wise...
                 __half2 cond = __hgt2({tmp.id},{arg[k].id});                          // cond = (tmp > outF[k]) (element-wise)

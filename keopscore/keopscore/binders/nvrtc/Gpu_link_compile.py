@@ -9,7 +9,10 @@ from keopscore.binders.LinkCompile import LinkCompile
 from keopscore.config import *
 
 from keopscore.utils.misc_utils import KeOps_Error, KeOps_Message, KeOps_OS_Run
-from keopscore.utils.gpu_utils import custom_cuda_include_fp16_path
+from keopscore.utils.gpu_utils import (
+    custom_cuda_include_fp16_path,
+    custom_cuda_include_bf16_path,
+)
 
 cuda_version = cuda_config.get_cuda_version()
 jit_binary = config.get_jit_binary()
@@ -75,15 +78,19 @@ class Gpu_link_compile(LinkCompile):
         self.write_code()
         # we execute the main dll, passing the code as argument, and the name of the low level code file to save the assembly instructions
 
+        include_dir = (
+            custom_cuda_include_bf16_path()
+            if self.dtype == "bf162"
+            else custom_cuda_include_fp16_path()
+        )
+
         res = self.my_c_dll.Compile(
             create_string_buffer(self.low_level_code_file),
             create_string_buffer(self.code.encode("utf-8")),
             c_int(self.use_half),
             c_int(self.use_fast_math),
             c_int(self.device_id),
-            create_string_buffer(
-                (custom_cuda_include_fp16_path() + os.path.sep).encode("utf-8")
-            ),
+            create_string_buffer((include_dir + os.path.sep).encode("utf-8")),
         )
         if res != 0:
             KeOps_Error(

@@ -33,7 +33,7 @@ class KMin_ArgKMin_Reduction(Reduction):
 
     def InitializeReduction(self, acc):
         # Returns C++ code to be used at initialization phase of the reduction.
-        if acc.dtype == "half2":
+        if acc.dtype in ("half2", "bf162"):
             KeOps_Error("not implemented")
         fdim, K = self.formula.dim, self.K
         outer_loop, k = c_for_loop(0, fdim, 1, pragma_unroll=True)

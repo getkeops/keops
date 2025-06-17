@@ -152,6 +152,7 @@ def custom_cuda_include_fp16_path():
     fp16_header_path = join(build_folder, fp16_header)
     if not os.path.isfile(fp16_header_path):
         pack_header(fp16_header, orig_cuda_include_fp16_path(), build_folder)
+
     return build_folder
 
 
@@ -256,3 +257,58 @@ def get_gpu_props():
         return nGpus, string_flags
     else:
         return 0, 0, ""
+
+
+# ------------------------ BF16 support ----------------------------
+
+
+def orig_cuda_include_bf16_path():
+    """
+    Locate the original CUDA bfloat16 header (cuda_bf16.h).
+    Returns the directory containing the header, or raises an error if not found.
+    """
+
+    cuda_include_path = cuda_config.get_cuda_include_path()
+
+    if cuda_include_path and os.path.isfile(join(cuda_include_path, "cuda_bf16.h")):
+        return cuda_include_path
+
+    # Try generic include search
+    cuda_bf16_h_abspath = cuda_config.get_include_file_abspath("cuda_bf16.h")
+    if cuda_bf16_h_abspath:
+        return os.path.dirname(cuda_bf16_h_abspath)
+
+    KeOps_Error("cuda_bf16.h was not found on your system – your CUDA version may not support bfloat16.")
+
+
+def custom_cuda_include_bf16_path():
+    """
+    Create (if necessary) a stand-alone, packed version of cuda_bf16.h inside the KeOps build
+    folder – alongside the already-packed cuda_fp16.h – and return that folder.
+    """
+
+    from keopscore.utils.misc_utils import pack_header
+
+    build_folder = config.get_build_folder()
+
+    bf16_header = "cuda_bf16.h"
+    bf16_header_path = join(build_folder, bf16_header)
+
+    # Ensure we have standalone cuda_bf16.h
+    if not os.path.isfile(bf16_header_path):
+        try:
+            orig_path = orig_cuda_include_bf16_path()
+        except ValueError:
+            # Header not available – silently ignore; compilation will fail later if bf16 is actually used.
+            return build_folder
+
+        pack_header(bf16_header, orig_path, build_folder)
+
+    # For NVRTC we always include both fp16 and bf16 headers (see nvrtc_jit.cpp) whenever use_half==1.
+    # Therefore make sure a packed cuda_fp16.h is available alongside cuda_bf16.h.
+    from keopscore.utils.gpu_utils import custom_cuda_include_fp16_path as _ensure_fp16_header
+
+    # Calling the helper will create the fp16 header in the same build folder (idempotent).
+    _ = _ensure_fp16_header()
+
+    return build_folder

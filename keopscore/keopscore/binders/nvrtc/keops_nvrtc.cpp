@@ -34,6 +34,8 @@
 
 #include "include/CudaSizes.h"
 #include <cuda_fp16.h>
+#include <cuda_bf16.h>
+typedef __nv_bfloat162 bf162;
 
 // ------------------------------------------------------------------------
 // DevicePointer wrapper
@@ -646,3 +648,4 @@ public:
 template class KeOps_module<float>;
 template class KeOps_module<double>;
 template class KeOps_module<half2>;
+template class KeOps_module<bf162>;

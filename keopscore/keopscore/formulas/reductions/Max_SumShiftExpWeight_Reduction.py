@@ -43,7 +43,7 @@ class Max_SumShiftExpWeight_Reduction(Reduction):
         """Returns C++ code that implements the update phase of the reduction.
         (m,s) + (m',s'), i.e. exp(m)*s + exp(m')*s'"""
 
-        if xi.dtype == "half2":
+        if xi.dtype in ("half2", "bf162"):
             KeOps_Error("Not implemented.")
 
         tmpexp = c_variable(acc.dtype, new_c_varname("tmpexp"))
@@ -64,7 +64,7 @@ class Max_SumShiftExpWeight_Reduction(Reduction):
         return self.ReducePair(acc, xi)
 
     def KahanScheme(self, acc, xi, tmp):
-        if xi.dtype == "half2":
+        if xi.dtype in ("half2", "bf162"):
             KeOps_Error("Not implemented.")
         tmpexp = c_variable(acc.dtype, new_c_varname("tmpexp"))
         loop, k = c_for_loop(1, self.dimred, 1, pragma_unroll=True)

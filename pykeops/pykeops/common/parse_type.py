@@ -218,6 +218,10 @@ def parse_dtype_acc(dtype_acc, dtype):
         raise ValueError(
             "[KeOps] invalid parameter dtype_acc : should be either 'float16' or 'float32' when dtype is 'float16'"
         )
+    elif dtype == "bfloat16" and dtype_acc not in ("bfloat16", "float32"):
+        raise ValueError(
+            "[KeOps] invalid parameter dtype_acc : should be either 'bfloat16' or 'float32' when dtype is 'bfloat16'"
+        )
     elif dtype == "float64" and dtype_acc not in "float64":
         raise ValueError(
             "[KeOps] invalid parameter dtype_acc : should be 'float64' when dtype is 'float64'"
@@ -232,6 +236,8 @@ def parse_dtype_acc(dtype_acc, dtype):
             dtype_acc = "float"
     elif dtype_acc == "float16":
         dtype_acc = "half2"
+    elif dtype_acc == "bfloat16":
+        dtype_acc = "bf162"
     else:
         raise ValueError(
             '[KeOps] invalid value for option dtype_acc : should be one of "auto", "float16", "float32" or "float64".'
