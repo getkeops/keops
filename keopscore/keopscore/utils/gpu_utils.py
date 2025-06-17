@@ -278,7 +278,9 @@ def orig_cuda_include_bf16_path():
     if cuda_bf16_h_abspath:
         return os.path.dirname(cuda_bf16_h_abspath)
 
-    KeOps_Error("cuda_bf16.h was not found on your system – your CUDA version may not support bfloat16.")
+    KeOps_Error(
+        "cuda_bf16.h was not found on your system – your CUDA version may not support bfloat16."
+    )
 
 
 def custom_cuda_include_bf16_path():
@@ -306,7 +308,9 @@ def custom_cuda_include_bf16_path():
 
     # For NVRTC we always include both fp16 and bf16 headers (see nvrtc_jit.cpp) whenever use_half==1.
     # Therefore make sure a packed cuda_fp16.h is available alongside cuda_bf16.h.
-    from keopscore.utils.gpu_utils import custom_cuda_include_fp16_path as _ensure_fp16_header
+    from keopscore.utils.gpu_utils import (
+        custom_cuda_include_fp16_path as _ensure_fp16_header,
+    )
 
     # Calling the helper will create the fp16 header in the same build folder (idempotent).
     _ = _ensure_fp16_header()

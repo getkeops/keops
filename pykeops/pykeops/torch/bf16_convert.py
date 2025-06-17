@@ -18,7 +18,7 @@ def make_even_size(x):
     bdims = x.shape[:-2]
     M, D = x.shape[-2:]
     if M % 2 == 1:
-        xend = x[..., -1, :].view(bdims + (1, D)) 
+        xend = x[..., -1, :].view(bdims + (1, D))
         x = torch.cat((x, xend), dim=-2)
         tag_dummy = True
     else:
@@ -83,9 +83,7 @@ def preprocess_bf162(args, aliases, axis, ranges, nx, ny):
     tag_dummy = False
     for var_ind, sig in enumerate(aliases):
         _, cat, dim, pos = get_type(sig, position_in_list=var_ind)
-        arg = args[
-            pos
-        ].data  
+        arg = args[pos].data
         if cat == 2:
             arg = arg[..., None, :]  # (...,D)   -> (...,1,D)
             arg, _ = make_even_size(arg)  # (...,1,D) -> (...,2,D)
@@ -96,9 +94,7 @@ def preprocess_bf162(args, aliases, axis, ranges, nx, ny):
             arg, tag_dummy = make_even_size(arg)
         arg = bf162bf162(arg)
         if cat == 2:
-            arg = arg.view(
-                tuple(arg.shape[:-2]) + (2 * dim,)
-            )  # (...,2,D) -> (...,2*D)
+            arg = arg.view(tuple(arg.shape[:-2]) + (2 * dim,))  # (...,2,D) -> (...,2*D)
         newargs[pos] = arg
 
     return newargs, ranges, tag_dummy, N

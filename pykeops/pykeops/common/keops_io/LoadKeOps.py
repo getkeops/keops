@@ -249,15 +249,11 @@ class LoadKeOps:
             if self.params.c_dtype == "half2":
                 from pykeops.torch.half2_convert import postprocess_half2
 
-                out = postprocess_half2(
-                    out, tag_dummy, self.params.reduction_op, N
-                )
+                out = postprocess_half2(out, tag_dummy, self.params.reduction_op, N)
             else:
                 from pykeops.torch.bf16_convert import postprocess_bf162
 
-                out = postprocess_bf162(
-                    out, tag_dummy, self.params.reduction_op, N
-                )
+                out = postprocess_bf162(out, tag_dummy, self.params.reduction_op, N)
 
         return out
 
