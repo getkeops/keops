@@ -49,8 +49,13 @@ class Slice(Operation):
         self.length = length
         self.step = step
         self.axis = axis
-        # Output dimension identical to the child:
-        self.dim = f.dim
+
+        # Output dimension: for feature-axis slice it's the slice length;
+        # for axis 0/1 (not yet supported) keep parent's dim for now.
+        if axis == 2:
+            self.dim = length
+        else:
+            self.dim = f.dim
 
     # ---------------------------------------------------------------------
     # Low-level code generation helpers
@@ -77,11 +82,12 @@ class Slice(Operation):
         """Backward rule – for the feature axis only (axis == 2)."""
         if self.axis != 2:
             KeOps_Error("Backward of Slice along axis 0/1 not implemented yet.")
-        # For axis == 2 we can rely on ExtractT to scatter the gradient.
+
+        # Scatter-add the gradient back into the parent feature vector using ExtractT.
         from keopscore.formulas.maths.ExtractT import ExtractT
 
         f = self.children[0]
-        return f.DiffT(v, ExtractT(gradin, self.start, self.length))
+        return f.DiffT(v, ExtractT(gradin, self.start, f.dim))
 
     enable_test = True
     nargs = 1
