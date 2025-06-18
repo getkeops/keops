@@ -25,9 +25,9 @@ Please contact us for any **bug report**, **question** or **feature
 request** by filing a report on our [GitHub issue
 tracker](https://github.com/getkeops/keops/issues)!
 
-**Core library - KeOps, PyKeOps, KeOpsLab:**
+**Core library - KeOps, PyKeOps:**
 
-- [Benjamin Charlier](https://imag.umontpellier.fr/~charlier/), from the
+- [Benjamin Charlier](https://miat.inrae.fr/bcharlier/), from the
   University of Montpellier.
 - [Jean Feydy](https://www.jeanfeydy.com), from Inria.
 - [Joan Alexis Glaunès](http://helios.mi.parisdescartes.fr/~glaunes/),
