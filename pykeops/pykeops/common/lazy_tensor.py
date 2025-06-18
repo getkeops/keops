@@ -2251,6 +2251,30 @@ class GenericLazyTensor:
         else:
             return self.reduction("ArgMin", axis=axis, **kwargs)
 
+    def min_argmin(self, axis=None, dim=None, **kwargs):
+        r"""
+        Min-ArgMin reduction.
+
+        ``min_argmin(axis, dim, **kwargs)`` will:
+
+          - if **axis or dim = 0**, return the minimal values and their indices of **self** over the "i" indexes.
+          - if **axis or dim = 1**, return the minimal values and their indices of **self** over the "j" indexes.
+
+        Keyword Args:
+          axis (integer): reduction dimension, which should be equal to the number
+            of batch dimensions plus 0 (= reduction over :math:`i`),
+            or 1 (= reduction over :math:`j`).
+          dim (integer): alternative keyword for the axis parameter.
+          **kwargs: optional parameters that are passed to the :meth:`reduction` method.
+        """
+        return self.reduction("Min_ArgMin", axis=axis, dim=dim, **kwargs)
+
+    def min_argmin_reduction(self, **kwargs):
+        r"""
+        Min-ArgMin reduction. Redirects to :meth:`min_argmin` method.
+        """
+        return self.min_argmin(**kwargs)
+
     def argmax_reduction(self, axis=None, dim=None, **kwargs):
         r"""
         ArgMax reduction.
