@@ -2251,121 +2251,6 @@ class GenericLazyTensor:
         else:
             return self.reduction("ArgMin", axis=axis, **kwargs)
 
-    def argmin_reduction(self, axis=None, dim=None, **kwargs):
-        r"""
-        ArgMin reduction.
-
-        ``argmin_reduction(axis, dim, **kwargs)`` will return the argmin reduction of **self**.
-
-        Keyword Args:
-          axis (integer): reduction dimension, which should be equal to the number
-            of batch dimensions plus 0 (= reduction over :math:`i`),
-            or 1 (= reduction over :math:`j`).
-          dim (integer): alternative keyword for the axis parameter.
-          **kwargs: optional parameters that are passed to the :meth:`reduction` method.
-
-        """
-        return self.reduction("ArgMin", axis=axis, dim=dim, **kwargs)
-
-    def min_argmin(self, axis=None, dim=None, **kwargs):
-        r"""
-        Min-ArgMin reduction.
-
-        ``min_argmin(axis, dim, **kwargs)`` will:
-
-          - if **axis or dim = 0**, return the minimal values and its indices of **self** over the "i" indexes.
-          - if **axis or dim = 1**, return the minimal values and its indices of **self** over the "j" indexes.
-
-        Keyword Args:
-          axis (integer): reduction dimension, which should be equal to the number
-            of batch dimensions plus 0 (= reduction over :math:`i`),
-            or 1 (= reduction over :math:`j`).
-          dim (integer): alternative keyword for the axis parameter.
-          **kwargs: optional parameters that are passed to the :meth:`reduction` method.
-
-        """
-        return self.reduction("Min_ArgMin", axis=axis, dim=dim, **kwargs)
-
-    def min_argmin_reduction(self, **kwargs):
-        r"""
-        Min-ArgMin reduction. Redirects to :meth:`min_argmin` method.
-        """
-        return self.min_argmin(**kwargs)
-
-    def max(self, axis=-1, dim=None, **kwargs):
-        r"""
-        Miaximum unary operation, or Max reduction.
-
-        ``max(axis, dim, **kwargs)`` will:
-
-          - if **axis or dim = 0**, return the max reduction of **self** over the "i" indexes.
-          - if **axis or dim = 1**, return the max reduction of **self** over the "j" indexes.
-          - if **axis or dim = 2**, return a new :class:`LazyTensor` object representing the max of the values of the vector **self**,
-
-        Keyword Args:
-          axis (integer): reduction dimension, which should be equal to the number
-            of batch dimensions plus 0 (= reduction over :math:`i`),
-            1 (= reduction over :math:`j`) or 2 (i.e. -1, max along the
-            dimension of the vector variable).
-          dim (integer): alternative keyword for the axis parameter.
-          **kwargs: optional parameters that are passed to the :meth:`reduction` method.
-
-        """
-        if dim is not None:
-            axis = dim
-        if axis in [-1, len(self._shape) - 1]:
-            return self.unary("Max", dimres=1)
-        else:
-            return self.reduction("Max", axis=axis, **kwargs)
-
-    def max_reduction(self, axis=None, dim=None, **kwargs):
-        r"""
-        Max reduction.
-
-        ``max_reduction(axis, dim, **kwargs)`` will return the max reduction of **self**.
-
-        Keyword Args:
-          axis (integer): reduction dimension, which should be equal to the number
-            of batch dimensions plus 0 (= reduction over :math:`i`),
-            or 1 (= reduction over :math:`j`).
-          dim (integer): alternative keyword for the axis parameter.
-          **kwargs: optional parameters that are passed to the :meth:`reduction` method.
-
-        """
-        return self.reduction("Max", axis=axis, dim=dim, **kwargs)
-
-    def __max__(self, **kwargs):
-        r"""
-        Maximum unary operation, or Max reduction. Redirects to :meth:`max` method.
-        """
-        return self.max(**kwargs)
-
-    def argmax(self, axis=-1, dim=None, **kwargs):
-        r"""
-        ArgMax unary operation, or ArgMax reduction.
-
-        ``argmax(axis, dim, **kwargs)`` will:
-
-          - if **axis or dim = 0**, return the argmax reduction of **self** over the "i" indexes.
-          - if **axis or dim = 1**, return the argmax reduction of **self** over the "j" indexes.
-          - if **axis or dim = 2**, return a new :class:`LazyTensor` object representing the argmax of the values of the vector **self**,
-
-        Keyword Args:
-          axis (integer): reduction dimension, which should be equal to the number
-            of batch dimensions plus 0 (= reduction over :math:`i`),
-            1 (= reduction over :math:`j`) or 2 (i.e. -1, argmax along the
-            dimension of the vector variable).
-          dim (integer): alternative keyword for the axis parameter.
-          **kwargs: optional parameters that are passed to the :meth:`reduction` method.
-
-        """
-        if dim is not None:
-            axis = dim
-        if axis in [-1, len(self._shape) - 1]:
-            return self.unary("ArgMax", dimres=1)
-        else:
-            return self.reduction("ArgMax", axis=axis, **kwargs)
-
     def argmax_reduction(self, axis=None, dim=None, **kwargs):
         r"""
         ArgMax reduction.
@@ -2664,6 +2549,103 @@ class GenericLazyTensor:
         the complex exponential of ``1j*x``.
         """
         return self.unary("ComplexExp1j", dimres=2 * self._shape[-1], is_complex=True)
+
+    # ------------------------------------------------------------------
+    # Advanced slicing API (matrix axes views)
+    # ------------------------------------------------------------------
+    def _normalise_slice(self, s, dim):
+        """Internal helper: returns (start, stop) for a slice or int, with step=1."""
+        if isinstance(s, int):
+            if s < 0:
+                s += dim
+            return s, s + 1
+        if not isinstance(s, slice):
+            raise ValueError("Indices must be int or slice objects.")
+        step = 1 if s.step is None else s.step
+        if step != 1:
+            raise ValueError("Only step=1 supported in LazyTensor slicing.")
+        start = 0 if s.start is None else s.start
+        stop = dim if s.stop is None else s.stop
+        if start < 0:
+            start += dim
+        if stop < 0:
+            stop += dim
+        if start < 0 or stop > dim or start > stop:
+            raise ValueError("Invalid slice bounds.")
+        return start, stop
+
+    def __getitem__(self, key):
+        """Extended slicing.
+
+        * Feature-axis (last dim) => legacy Elem/Extract behaviour.
+        * 1- or 2-D keys on the (i,j) matrix axes build a view using the Slice op
+          without materialising any data.
+        """
+        # ---------- First, try legacy last-dimension behaviour -------------
+        if not isinstance(key, tuple):
+            legacy_try = (key,)
+        else:
+            legacy_try = key
+        if len(legacy_try) == len(self._shape) and legacy_try[:-1] == (slice(None),) * (
+            len(self._shape) - 1
+        ):
+            k = legacy_try[-1]
+            if isinstance(k, int):
+                return self.elem(k)
+            elif isinstance(k, slice):
+                s, e = self._normalise_slice(k, self.ndim)
+                return self.extract(s, e - s)
+
+        # Matrix-axes slicing ------------------------------------------------
+        if not isinstance(key, tuple):
+            key = (key,)
+        if len(key) > 2:
+            raise ValueError("LazyTensor slicing: only 1- or 2-D keys are allowed.")
+        slice_i = key[0]
+        slice_j = key[1] if len(key) == 2 else slice(None)
+        if self.ni is None or self.nj is None:
+            raise ValueError(
+                "Cannot slice a symbolic LazyTensor until it has concrete ni/nj dimensions."
+            )
+        i0, i1 = self._normalise_slice(slice_i, self.ni)
+        j0, j1 = self._normalise_slice(slice_j, self.nj)
+        len_i, len_j = i1 - i0, j1 - j0
+        import re
+
+        formula = self.formula
+        new_vars = []
+        replaced = {}
+        for v in self.variables:
+            vid = id(v)
+            pattern = rf"Var\({vid},(\d+),(\d)\)"
+
+            def replace_and_update(m):
+                dim, cat = m.group(1), int(m.group(2))
+                if cat == 0 and (i0 != 0 or len_i != self.ni):
+                    vslice = v[i0:i1]
+                    new_vars.append(vslice)
+                    replaced[id(v)] = vslice
+                    return f"Var({id(vslice)},{dim},{cat})"
+                if cat == 1 and (j0 != 0 or len_j != self.nj):
+                    vslice = v[j0:j1]
+                    new_vars.append(vslice)
+                    replaced[id(v)] = vslice
+                    return f"Var({id(vslice)},{dim},{cat})"
+                new_vars.append(v)
+                return m.group(0)
+
+            formula = re.sub(pattern, replace_and_update, formula)
+
+        # Build the updated variables tuple with identity mapping only, this prevents any accidental broadcasted equality checks on tensors
+        variables_updated = tuple(replaced.get(id(v), v) for v in self.variables)
+        res = self.init(is_complex=self.is_complex)
+        res.formula = formula
+        res.ndim = self.ndim
+        res.ni = len_i
+        res.nj = len_j
+        res.variables = variables_updated
+        res.symbolic_variables = self.symbolic_variables
+        return res
 
 
 class ComplexGenericLazyTensor(GenericLazyTensor):

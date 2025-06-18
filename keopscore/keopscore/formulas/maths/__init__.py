@@ -65,6 +65,7 @@ from .VecMatMult import VecMatMult
 from .WeightedSqDist import WeightedSqDist
 from .WeightedSqNorm import WeightedSqNorm
 from .XLogX import XLogX
+from .Slice import Slice
 
 __all__ = [
     "Abs",
@@ -134,4 +135,5 @@ __all__ = [
     "WeightedSqDist",
     "WeightedSqNorm",
     "XLogX",
+    "Slice",
 ]
