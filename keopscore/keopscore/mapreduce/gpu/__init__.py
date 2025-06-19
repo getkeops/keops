@@ -8,3 +8,4 @@ from .GpuReduc1D_ranges_finalchunks import (
     GpuReduc1D_ranges_finalchunks,
 )
 from .GpuReduc2D import GpuReduc2D
+from .GpuReducSparse import GpuReducSparse

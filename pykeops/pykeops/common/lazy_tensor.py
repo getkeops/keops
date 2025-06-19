@@ -61,6 +61,8 @@ class GenericLazyTensor:
     backend = None  # "CPU", "GPU", "GPU_2D", etc.
     _dtype = None
     is_complex = False
+    # Irregular (boolean / sparse) selection mask. See masked_select() helper.
+    _mask = None
 
     def __init__(self, x=None, axis=None):
         r"""Creates a KeOps symbolic variable.
@@ -397,6 +399,7 @@ class GenericLazyTensor:
         res.backend = self.backend
         res.variables = self.variables
         res.symbolic_variables = self.symbolic_variables
+        res._mask = self._mask
         return res
 
     def join(self, other, is_complex=False):
@@ -425,6 +428,15 @@ class GenericLazyTensor:
         # N.B.: If needed, variables will be padded with "dummy 1's" just before the Genred call, in self/res.fixvariables():
         res.variables = self.variables + other.variables
 
+        # Propagate irregular mask information from operands.
+        if self._mask is not None and other._mask is not None:
+            if self._mask is other._mask:
+                res._mask = self._mask
+            else:
+                raise NotImplementedError("Binary operation with two different masks is not yet supported.")
+        else:
+            res._mask = self._mask if self._mask is not None else other._mask
+
         return res
 
     # Prototypes for unary and binary operations  ==============================
@@ -452,6 +464,7 @@ class GenericLazyTensor:
             dimres = self.ndim
 
         res = self.init(is_complex)  # Copy of self, without a formula
+        res._mask = self._mask  # propagate irregular mask
         if opt_arg2 is not None:
             res.formula = "{}({},{},{})".format(
                 operation, self.formula, opt_arg, opt_arg2
@@ -721,6 +734,25 @@ class GenericLazyTensor:
 
         if axis is None:
             axis = dim  # NumPy uses axis, PyTorch uses dim...
+
+        # ------------------------------------------------------------------
+        # Irregular mask: materialise to a dense (K x 1) view and recurse.  
+        # This avoids the need for a dedicated sparse kernel until it is
+        # implemented while keeping user-facing semantics unchanged.
+        # ------------------------------------------------------------------
+        if self._mask is not None:
+            dense_self = self._densify_mask()
+            return dense_self.reduction(
+                reduction_op,
+                other=other,
+                opt_arg=opt_arg,
+                axis=axis,
+                dim=dim,
+                call=call,
+                is_complex=is_complex,
+                **kwargs,
+            )
+
         if axis - self.nbatchdims not in (0, 1):
             raise ValueError(
                 "Reductions must be called with 'axis' (or 'dim') equal to the number of batch dimensions + 0 or 1."
@@ -1853,7 +1885,7 @@ class GenericLazyTensor:
         Kronecker product (on KeOps internal dimensions) - a binary operation.
 
         If ``self._shape[-1] == d0 * d1 * ... * dN`` and ``other._shape[-1] == D0 * D1 * ... * DN``,
-        ``z = x.keops_kron(y, [d0, d1, ..., dN], [D0, D1, ..., DN])`` returns a :class:`GenericLazyTensor` of shape
+        ``z = x.keops_kron(y, dimfa, dimfb)`` returns a :class:`GenericLazyTensor` of shape
         ``z._shape[-1] == d0 * D0 * d1 * D1 * ... * dN * DN`` which encodes, symbolically,
         the (flattened version of) Kronecker product of ``self`` and ``other`` along their internal dimension.
 
@@ -2669,6 +2701,140 @@ class GenericLazyTensor:
         res.nj = len_j
         res.variables = variables_updated
         res.symbolic_variables = self.symbolic_variables
+        return res
+
+    # ---------------------------------------------------------------------
+    # Masked / Sparse slicing utilities (work in progress)
+    # ---------------------------------------------------------------------
+
+    def _normalise_mask(self, mask):
+        """Internal helper that converts different mask representations to a
+        canonical `(I, J)` pair of 1-D index tensors.
+
+        Accepted inputs (for now):
+            1. torch.sparse_coo_tensor with `indices` shape (2, K).
+            2. Tuple `(I, J)` of 1-D integer tensors (same length).
+        """
+        if mask is None:
+            return None
+
+        # 1. PyTorch sparse COO tensor (if backend exposes the helper)
+        if hasattr(self.tools, "is_sparse") and self.tools.is_sparse(mask):
+            idx = mask.indices()
+            if idx.shape[0] != 2:
+                raise ValueError("COO mask must have 2 rows (i, j).")
+            return idx[0], idx[1]
+
+        # 2. Explicit (I, J) tensors
+        if (
+            isinstance(mask, (tuple, list))
+            and len(mask) == 2
+            and self.tools.is_tensor(mask[0])
+            and self.tools.is_tensor(mask[1])
+        ):
+            I, J = mask
+            if I.shape != J.shape:
+                raise ValueError("I and J must have identical shape.")
+            return I, J
+
+        raise TypeError("Unsupported mask format. Provide COO sparse tensor or (I, J) tuple.")
+
+    def _attach_mask(self, mask):
+        """Attach (or replace) an irregular mask on *self* in-place."""
+        self._mask = self._normalise_mask(mask)
+        return self
+
+    @property
+    def mask(self):
+        """The currently attached irregular mask as `(I, J)` tuple, or `None`."""
+        return self._mask
+
+    @mask.setter
+    def mask(self, mask):
+        self._attach_mask(mask)
+
+    def masked_select(self, I, J):
+        """Return a *view* restricted to the `(I[k], J[k])` pairs.
+
+        The returned `LazyTensor` shares storage with *self* but records the
+        provided index lists so subsequent map-reduce ops can use sparse kernels.
+        """
+        if not self.tools.is_tensor(I) or not self.tools.is_tensor(J):
+            raise TypeError("I and J must be tensors.")
+        if I.shape != J.shape:
+            raise ValueError("I and J must have the same shape.")
+
+        res = self.init(is_complex=self.is_complex)
+        res.formula = self.formula
+        res.ndim = self.ndim
+        K = int(I.shape[0])
+        res.ni = K  # pseudo-row axis length
+        res.nj = 1  # dummy column
+        res.variables = self.variables
+        res.symbolic_variables = self.symbolic_variables
+        res._mask = (I, J)
+        return res
+
+    def _densify_mask(self):
+        """Return an equivalent LazyTensor with the irregular mask materialised
+        as explicit slices on the underlying input variables.
+
+        Strategy: we build *new* PyTorch / NumPy tensors that contain only the
+        rows ``I`` or columns ``J`` that are referenced by the mask and patch
+        the symbolic formula to point to those new variables.  The resulting
+        LazyTensor therefore has shape ``(K,1,dim)`` and no longer carries a
+        ``_mask`` attribute, meaning that the standard dense back-end can be
+        used unchanged.
+        """
+
+        if self._mask is None:
+            return self
+
+        I, J = self._mask  # both 1-D integer tensors of same length K
+        K = int(I.shape[0])
+
+        import re
+
+        formula = self.formula
+        new_vars = []
+        replaced = {}
+
+        # Loop over current variables and create sliced copies when needed
+        for v in self.variables:
+            vid = id(v)
+            pattern = rf"Var\({vid},(\d+),(\d)\)"
+
+            def _replace(m):
+                dim, cat = m.group(1), int(m.group(2))
+                # cat : 0 → Vi, 1 → Vj, 2 → Pm
+                if cat == 0:
+                    vslice = v[I]
+                    new_vars.append(vslice)
+                    replaced[id(v)] = vslice
+                    return f"Var({id(vslice)},{dim},{cat})"
+                elif cat == 1:
+                    vslice = v[J]
+                    new_vars.append(vslice)
+                    replaced[id(v)] = vslice
+                    return f"Var({id(vslice)},{dim},{cat})"
+                else:
+                    # Parameter – unchanged
+                    new_vars.append(v)
+                    return m.group(0)
+
+            formula = re.sub(pattern, _replace, formula)
+
+        # Build updated variable tuple (preserve order)
+        variables_updated = tuple(replaced.get(id(v), v) for v in self.variables)
+
+        res = self.init(is_complex=self.is_complex)
+        res.formula = formula
+        res.ndim = self.ndim
+        res.ni = K  # new pseudo-row axis
+        res.nj = 1
+        res.variables = variables_updated
+        res.symbolic_variables = self.symbolic_variables
+        res._mask = None  # mask has been materialised
         return res
 
 
