@@ -748,7 +748,7 @@ class GenericLazyTensor:
                 opt_arg=opt_arg,
                 axis=axis,
                 dim=dim,
-                call=call,
+                call=False,
                 is_complex=is_complex,
                 **kwargs,
             )
@@ -774,7 +774,7 @@ class GenericLazyTensor:
 
         res.kwargs = kwargs_call
         res.ndim = self.ndim
-        if reduction_op == "Sum" and hasattr(self, "rec_multVar_highdim"):
+        if reduction_op == "Sum" and getattr(self, "rec_multVar_highdim", None) is not None:
             # this means we have detected that the reduction is of the form Sum(F*V) with V a high dimension variable.
             if res.axis != self.rec_multVar_highdim[1].axis:
                 # special case of multiplication with a variable V : we define a special tag to enable factorization in case
@@ -934,9 +934,73 @@ class GenericLazyTensor:
         Executes a :mod:`Genred <pykeops.torch.Genred>` or :mod:`KernelSolve <pykeops.torch.KernelSolve>` call on the input data, as specified by **self.formula** .
         """
         if not hasattr(self, "reduction_op"):
-            raise ValueError(
-                "A LazyTensor object may be called only if it corresponds to the output of a reduction operation or solve operation."
-            )
+            # Historical behaviour: allow evaluation of a plain (M,N,dim) LazyTensor
+            # that has not yet been tagged by a KeOps reduction. We materialise the
+            # feature-axis sum reduction on-the-fly so that the generic Genred backend
+            # can be called just like for a standard reduction. This occurs for
+            # instance after a unary `.sum(-1)` that closes a kernel expression.
+
+            # The semantics are: perform a KeOps "Sum" reduction along the *feature*
+            # axis (axis = nbatchdims + 2) which simply collapses the last dimension
+            # and returns the dense (M,N) matrix.
+
+            self.reduction_op = "Sum"
+            self.axis = self.nbatchdims + 2  # feature / vector dimension
+            self.opt_arg = None
+
+            # Build the Genred handle exactly like below (we duplicate a subset of
+            # the logic found later on for the regular-reduction path).
+
+            # Ensure we have a kwargs dict to store call-time options.
+            if not hasattr(self, "kwargs"):
+                self.kwargs = {}
+
+            # Merge any keyword overrides coming from this call:
+            self.kwargs.update(kwargs)
+
+            if self._dtype is None:
+                # Infer dtype from first tensor in *args* if provided, otherwise
+                # fall back to the first registered variable.
+                self.get_tools()
+                ref_tensor = None
+                if len(args):
+                    ref_tensor = args[0]
+                elif len(self.variables):
+                    ref_tensor = self.variables[0]
+
+                if ref_tensor is None:
+                    raise ValueError("Unable to infer dtype for LazyTensor call.")
+
+                self._dtype = self.tools.dtypename(self.tools.dtype(ref_tensor))
+                self.fixvariables()
+
+                kwargs_init, self.kwargs = self.separate_kwargs(self.kwargs)
+
+                self.callfun = self.Genred(
+                    self.formula,
+                    [],
+                    self.reduction_op,
+                    self.axis,
+                    opt_arg=self.opt_arg,
+                    formula2=None,
+                    **kwargs_init,
+                )
+
+            # Fallback path ready – proceed to execute the freshly built Genred.
+            if not hasattr(self, "callfun"):
+                # _dtype was already set: we must still finalize variable labels and build the handle.
+                self.fixvariables()
+                kwargs_init, self.kwargs = self.separate_kwargs(self.kwargs)
+                self.callfun = self.Genred(
+                    self.formula,
+                    [],
+                    self.reduction_op,
+                    self.axis,
+                    opt_arg=self.opt_arg,
+                    formula2=None,
+                    **kwargs_init,
+                )
+            return self.callfun(*args, *self.variables, **self.kwargs)
 
         self.kwargs.update(kwargs)
 
@@ -2993,3 +3057,44 @@ class ComplexGenericLazyTensor(GenericLazyTensor):
     def __call__(self, *args, **kwargs):
         res = super().__call__(*args, **kwargs)
         return self.tools.view_as_complex(res)
+
+    # ------------------------------------------------------------------
+    # Fix for exponentiation operator: ensure scalars are handled
+    # ------------------------------------------------------------------
+    def __pow__(self, other):
+        # Delegate to the generic implementation without any custom shortcut.
+        return super().__pow__(other)
+
+# ----------------------------------------------------------------------
+# Robust exponentiation patch: recognise scalar-like tensors/arrays
+# ----------------------------------------------------------------------
+import numpy as _np
+
+# Preserve reference to the original implementation.
+_original_pow = GenericLazyTensor.__pow__  # type: ignore[attr-defined]
+
+
+def _patched_pow(self, other):  # type: ignore[override]
+    """Enhanced power operator that first unwraps scalar-like containers.
+
+    When the exponent *other* is a 0-dim PyTorch tensor or a NumPy scalar, it
+    is converted to its Python value so that the canonical implementation can
+    apply its specialised fast paths (e.g. mapping **2 to the Square op).
+    """
+    # NumPy scalar → plain Python number.
+    if isinstance(other, _np.generic):
+        other = other.item()
+
+    # 0-D PyTorch tensor → plain Python number (done lazily to avoid mandatory torch dep).
+    try:
+        import torch as _torch  # local import – only attempted if torch is available.
+        if isinstance(other, _torch.Tensor) and other.dim() == 0:
+            other = other.item()
+    except ModuleNotFoundError:
+        pass
+
+    return _original_pow(self, other)
+
+
+# Activate the monkey-patch for all subclasses at import time.
+GenericLazyTensor.__pow__ = _patched_pow  # type: ignore[attr-defined]

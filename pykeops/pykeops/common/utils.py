@@ -15,10 +15,19 @@ def axis2cat(axis):
     :param axis: 0 or 1
     :return: cat: 1 or 0
     """
-    if axis in [0, 1]:
+    # KeOps works with two main categorical axes: 0 (Vi) and 1 (Vj).
+    # However, inside PyKeOps we sometimes want to perform a *feature*-axis
+    # reduction (axis == 2), e.g. when collapsing the last dimension of a
+    # LazyTensor that has been closed by a unary `.sum(-1)` operation.
+    # In that special case we simply propagate the value 2 so that downstream
+    # code can recognise it and generate the appropriate instructions.  This
+    # keeps backward-compatibility with the legacy mapping for 0 ↔︎ 1 and 1 ↔︎ 0.
+    if axis in (0, 1):
         return (axis + 1) % 2
+    elif axis == 2:
+        return 2
     else:
-        raise ValueError("Axis should be 0 or 1.")
+        raise ValueError("Axis should be 0, 1 or 2.")
 
 
 def cat2axis(cat):
@@ -28,10 +37,19 @@ def cat2axis(cat):
     :param cat: 0 or 1
     :return: axis: 1 or 0
     """
-    if cat in [0, 1]:
+    # KeOps works with two main categorical axes: 0 (Vi) and 1 (Vj).
+    # However, inside PyKeOps we sometimes want to perform a *feature*-axis
+    # reduction (axis == 2), e.g. when collapsing the last dimension of a
+    # LazyTensor that has been closed by a unary `.sum(-1)` operation.
+    # In that special case we simply propagate the value 2 so that downstream
+    # code can recognise it and generate the appropriate instructions.  This
+    # keeps backward-compatibility with the legacy mapping for 0 ↔︎ 1 and 1 ↔︎ 0.
+    if cat in (0, 1):
         return (cat + 1) % 2
+    elif cat == 2:
+        return 2
     else:
-        raise ValueError("Category should be Vi or Vj.")
+        raise ValueError("Category should be 0, 1 or 2.")
 
 
 def get_tools(lang):
