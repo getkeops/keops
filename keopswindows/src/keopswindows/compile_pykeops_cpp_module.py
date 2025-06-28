@@ -27,4 +27,5 @@ def compile_pykeops_cpp_module(source_file, build_folder):
         output_dir=build_folder,
         print_cmakelists=False,
         show_cmake_commands_output=False,
+        clean_tmp_build_dir=False,
     )

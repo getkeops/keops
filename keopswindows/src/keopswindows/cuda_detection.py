@@ -2,6 +2,8 @@ import os
 from ctypes.util import find_library
 from pathlib import Path
 
+cuda_available = find_library("nvcuda") is not None
+
 
 def detect_cuda_toolkit():
 

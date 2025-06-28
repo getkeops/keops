@@ -12,6 +12,7 @@ from .detection import (
     lib_names,
 )
 from .globals import tmp_dir
+from .cuda_detection import cuda_available
 
 __all__ = [
     "compile",
