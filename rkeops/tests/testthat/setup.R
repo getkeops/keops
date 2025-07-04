@@ -54,5 +54,4 @@ testing_cache_dir <- file.path(current_cache_dir, "testing_rkeops")
 fs::dir_create(testing_cache_dir, recurse = TRUE)
 
 # Run after all tests (cleanup)
-withr::defer(fs::file_delete(testing_cache_dir), teardown_env())
 withr::defer(fs::file_delete(current_cache_dir), teardown_env())
