@@ -306,7 +306,7 @@ mean_t <- mean_t[nrow(mean_t):1, ]
 data2plot_sample <- data.frame(
     X = x[,1],
     Y = x[,2],
-    value = b
+    value = b[,1]
 )
 
 ggplot(data2plot_sample, aes(x = X, y = Y, col = value)) + 
