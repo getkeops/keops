@@ -25,6 +25,8 @@ pykeops <- NULL
     check_os(startup = TRUE)
     # set up rkeops global options
     set_rkeops_options()
+    # setup Python requirements
+    setup_pyreq()
     # disable pykeops import verbosity
     Sys.setenv("PYKEOPS_VERBOSE" = "0")
     if(reticulate::py_available()) 
