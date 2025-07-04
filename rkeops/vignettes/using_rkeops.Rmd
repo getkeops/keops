@@ -33,11 +33,35 @@ Thanks to RKeOps, you can use **GPU computing directly inside R** without the co
 
 * R (tested with R >= 4.2)
 * C++ compiler (g++ >=7 or clang) for CPU computing or CUDA compiler (nvcc >=10) and CUDA libs for GPU computing
-* Python (>= 3.10)
+* Python (>= 3.10), c.f. [next section](#note-on-python-requirement)
+
+**Disclaimer:** KeOps (including RKeOps) is not functional on Windows, it was only tested on Linux and MacOS.
 
 **Important:** Python is a requirement as an intern machinery for the package to work but you will not need to create nor manipulate Python codes to use the RKeOps package.
 
-**Disclaimer:** KeOps (including RKeOps) is not functional on Windows, it was only tested on Linux and MacOS.
+### Note on Python requirement
+
+RKeOps now uses PyKeOps Python package under the hood thanks to the [`reticulate`](https://rstudio.github.io/reticulate/) R package that provides an “R Interface to Python”.
+
+Everything related to Python, including the installation of the required Python version and required Python packages, should be automatically managed with `reticulate`. It should be transparent for the user.
+
+#### Troubleshooting
+
+In case of trouble with `reticulate` not being able to setup the Python configuration, you can try the following workaround:
+
+- install the development version of `reticulate`:
+```{r}
+remotes::install_github("rstudio/reticulate")
+```
+
+- check if `reticulate` is able to setup a Python environment:
+```{r, eval=FALSE}
+unlink(tools::R_user_dir("reticulate", "cache"), recursive = TRUE)
+Sys.setenv("_RETICULATE_DEBUG_UV_" = "1")
+library(reticulate)
+py_require(python_version="3.12")
+py_config()
+```
 
 ## Install from CRAN
 
@@ -58,29 +82,6 @@ install.packages("remotes")
 remotes::install_github("getkeops/keops", subdir = "rkeops")
 ```
 
-## Setup and requirement install
-
-**To be done once after installation:**
-
-```{r install_requirements}
-# load rkeops
-library(rkeops)
-# create a dedicated Python environment with reticulate (!!to be done only once)
-reticulate::virtualenv_create("rkeops")
-# activate the dedicated Python environment
-reticulate::use_virtualenv(virtualenv = "rkeops", required = TRUE)
-# install rkeops requirements (!!to be done only once)
-install_rkeops()
-```
-
-### Note on Python requirement
-
-RKeOps now uses PyKeOps Python package under the hood thanks to the [`reticulate`](https://rstudio.github.io/reticulate/) R package that provides an “R Interface to Python”.
-
-We recommend to use a dedicated Python environment (through `reticulate`) to install and use RKeOps Python dependencies (c.f. [previously](#setup-and-requirement-install)).
-
-> **Note:** To get more information about **managing** which **version of Python** you are using, you can refer to `reticulate` [documentation](https://rstudio.github.io/reticulate/articles/versions.html) about “Python Version Configuration”. In particular, if you are a Miniconda/Anaconda Python distribution user, you can either user a Python virtual environment (c.f. above) or a **Conda environment** with the same results. Please refer to the `reticulate` [documentation](https://rstudio.github.io/reticulate/articles/versions.html#providing-hints) in this case.
-
 ---
 
 # How to use RKeOps
@@ -89,11 +90,7 @@ Load RKeOps in R:
 ```{r setup}
 # load rkeops
 library(rkeops)
-# activate the dedicated Python environment
-reticulate::use_virtualenv(virtualenv = "rkeops", required = TRUE)
 ```
-
-**Note**: If you are using a Python environment (c.f. [previously](#note-on-python-requirement)), you should always activate it after loading RKeOps.
 
 You can verify that every thing is ok:
 ```{r check}

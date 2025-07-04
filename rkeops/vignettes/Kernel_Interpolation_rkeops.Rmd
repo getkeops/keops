@@ -49,14 +49,6 @@ library(reshape) # matrix to data.frame reformatting
 ```{r init, message=FALSE, warning=FALSE, results='hide', eval=FALSE}
 # load rkeops
 library(rkeops)
-# create a dedicated Python environment with reticulate (!!to be done only once)
-reticulate::virtualenv_create("rkeops")
-# activate the dedicated Python environment
-reticulate::use_virtualenv(virtualenv = "rkeops", required = TRUE)
-# install rkeops requirements (!!to be done only once)
-install_rkeops()
-# use 64bit floating operation precision
-rkeops_use_float64()
 ```
 
 ```{r safe_init, message=FALSE, warning=FALSE, results='hide', include=FALSE}
@@ -64,20 +56,11 @@ rkeops_use_float64()
 library(rkeops)
 
 tryCatch({
-    # create a dedicated Python environment with reticulate (to be done only once)
-    reticulate::virtualenv_create("rkeops")
-    # activate the dedicated Python environment
-    reticulate::use_virtualenv(virtualenv = "rkeops", required = TRUE)
-    
     # check Python availability
-    if(reticulate::py_available(initialize = TRUE)) {
-        # install rkeops requirements (to be done only once)
-        install_rkeops()
-    } else {
+    if(!reticulate::py_available(initialize = TRUE)) {
         knitr::opts_chunk$set(eval = FALSE)
     }
 }, error = function(e) {knitr::opts_chunk$set(eval = FALSE)})
-
 ```
 
 ```{r}
@@ -94,13 +77,13 @@ if(!check_rkeops(verbose = FALSE)) {
 }
 ```
 
-For build on CRAN, use CPU computing with 2 cores:
-```{r limit_cpu_usage}
+```{r limit_cpu_usage, include=FALSE}
+# For build on CRAN, use CPU computing with 2 cores max
 rkeops_use_cpu(ncore = 2)
 ```
 
 ```{r cleanup, include=FALSE}
-# cleanup afterward
+# cleanup afterward (especially for CRAN build)
 withr::defer(clean_rkeops(verbose = FALSE, remove_cache_dir = TRUE))
 ```
 
