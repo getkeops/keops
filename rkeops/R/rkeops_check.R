@@ -153,6 +153,7 @@ check_keopscore <- function(verbose = TRUE) {
 #' check_rkeops()
 #' }
 check_rkeops <- function(verbose = TRUE) {
+    
     # init
     check0 <- FALSE
     check1 <- FALSE
@@ -171,16 +172,23 @@ check_rkeops <- function(verbose = TRUE) {
         if(check2) {
             
             setup_pykeops()
+            msg1 <- NULL
+            msg2 <- NULL
             out <- tryCatch({
-                msg <- py_capture_output({
-                    pykeops$show_cuda_status()
+                msg1 <- py_capture_output({
+                    pykeops$config$cuda_config$print_use_cuda()
                 })
-                py_capture_output({
+                msg2 <- py_capture_output({
                     pykeops$test_numpy_bindings()
                 })
             }, error = function(e) e)
             
-            if(verbose && (str_length(msg) > 0)) warning(msg)
+            if(verbose) {
+                if(!is.null(msg1) && (str_length(msg1) > 0))
+                    message(msg1)
+                if(!is.null(msg2) && (str_length(msg2) > 0))
+                    message(msg2)
+            }
             
             check3 <- !any(class(out) == "error")
         }
