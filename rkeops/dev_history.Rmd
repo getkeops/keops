@@ -16,24 +16,20 @@ usethis::proj_set(pkg_dir, force = TRUE)
 usethis::proj_sitrep()
 ```
 
-## Reticulate config
+## Reticulate config (use only if issue with Python)
 
 ```{r dev-reticulate}
-# create virtualenv
-reticulate::virtualenv_create("rkeops-dev")
-# install pykeops
-reticulate::virtualenv_install("rkeops-dev", "pykeops")
-# activate python environment
-reticulate::use_virtualenv(virtualenv = "rkeops-dev", required = TRUE)
+# choose a python version
+reticulate::py_require(packages="pykeops", python_version="3.12")
 # check Python config
 reticulate::py_config()
 ```
 
 ## Package development
 
-### Metadata
+### Metadata (do not run if no modification)
 
-:warning: Code chunk in this section should be run only once. :warning:
+:warning: Code chunk in this section should be run only if something is modified. :warning:
 
 ```{r dev-metadata}
 # description
