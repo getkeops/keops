@@ -63,6 +63,6 @@ Date/Publication: 2024/04/16
 Encoding: UTF-8
 OS_type: unix
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.1
+RoxygenNote: 7.3.2
 SystemRequirements: Python (>= 3.5.0), C++ compiler (gcc/clang), CUDA
     (optional but recommended)
