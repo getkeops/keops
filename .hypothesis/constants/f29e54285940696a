@@ -1,4 +1,0 @@
-# file: /home/nizarben/keops/keopscore/keopscore/mapreduce/gpu/GpuReduc1D_ranges_chunks.py
-# hypothesis_version: 6.135.16
-
-[1024, 49152, 'acc', 'chunk', 'end_x', 'end_y', 'fout_chunk', 'fout_tmp', 'foutj', 'indices_i', 'indices_j', 'indices_p', 'int', 'jstart', 'nbatchdims', 'nx', 'ny', 'param_loc', 'signed long int', 'start_y', 'threadIdx.x', 'tile', 'xi', 'yj', 'yjrel']

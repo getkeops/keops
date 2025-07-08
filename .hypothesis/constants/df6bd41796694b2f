@@ -1,4 +1,0 @@
-# file: /home/nizarben/keops/pykeops/pykeops/torch/generic/generic_ops.py
-# hypothesis_version: 6.135.16
-
-['ArgKMin', 'ArgMin', 'LogSumExp', 'Sum']

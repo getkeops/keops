@@ -1,4 +1,0 @@
-# file: /home/nizarben/keops/pykeops/pykeops/common/get_options.py
-# hypothesis_version: 6.135.16
-
-['1D', '2D', 'CPU', 'GPU', 'GPU_1D', 'GPU_1D_device', 'GPU_1D_host', 'GPU_2D', 'GPU_2D_device', 'GPU_2D_host', '_', 'auto', 'device', 'host']

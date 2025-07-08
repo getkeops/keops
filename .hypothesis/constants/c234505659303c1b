@@ -1,4 +1,0 @@
-# file: /home/nizarben/keops/keopscore/keopscore/utils/code_gen_utils.py
-# hypothesis_version: 6.135.16
-
-[2000000000.0, '\n{\n', '\n}\n', '     a++;\n', '%d, ', '%f, ', '&&', '( 1.0/0.0 )', '( 1.0f/0.0f )', ');\n', '*', '+', ', ', '-', '/', '0', '0.0f', '<', '<=', '>', '>=', '_', 'addition', 'all', 'array', 'base', 'bf162', 'bool', 'comparison', 'cuda', 'division', 'double', 'double*', 'float', 'float*', 'float2', 'half', 'half2', 'i', 'int', 'j', 'k', 'not implemented', 'openmp', 'p', 'platform', 'product', 'signed long int', 'subtraction', 'utf-8', 'var', '{', '{\n', '||', '}', '}\n']

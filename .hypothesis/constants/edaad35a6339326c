@@ -1,4 +1,0 @@
-# file: /home/nizarben/keops/pykeops/pykeops/config.py
-# hypothesis_version: 6.135.16
-
-['.cpp', 'EXT_SUFFIX', 'common', 'keops_io', 'numpy', 'pykeops_cpp_', 'pykeops_nvrtc', 'src', 'torch']

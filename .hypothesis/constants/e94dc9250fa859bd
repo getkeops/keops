@@ -1,4 +1,0 @@
-# file: /home/nizarben/keops/keopscore/keopscore/formulas/maths/SoftDTW_SqDist.py
-# hypothesis_version: 6.135.16
-
-['GradSoftDTW_SqDist', 'SoftDTW_SqDist']

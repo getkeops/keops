@@ -1,4 +1,0 @@
-# file: /home/nizarben/keops/pykeops/pykeops/torch/generic/generic_red.py
-# hypothesis_version: 6.135.16
-
-[1.0, 16000000.0, 2048, ' reduction. ', '.', '2.0', 'Arg', 'KMin_Reduction', 'Max_ArgMax_Reduction', 'Max_Reduction', 'Min_ArgMin_Reduction', 'Min_Reduction', 'Sum', 'auto', 'cpp', 'float', 'float16', 'float32', 'half', 'multVar_highdim', 'nvrtc', 'torch']

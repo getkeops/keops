@@ -1,4 +1,0 @@
-# file: /home/nizarben/keops/pykeops/pykeops/common/parse_type.py
-# hypothesis_version: 6.135.16
-
-['Max_SumShiftExp', 'Pm', 'Sum', 'Vi', 'Vj', 'Vx', 'Vy', '[0-9]+', 'auto', 'bf162', 'bfloat16', 'block_sum', 'direct_sum', 'double', 'dtype_acc', 'enable_chunks', 'float', 'float16', 'float2', 'float32', 'float64', 'half2', 'kahan_scheme', 'sum_scheme', 'use_fast_math']

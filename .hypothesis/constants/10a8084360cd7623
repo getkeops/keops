@@ -1,4 +1,0 @@
-# file: /home/nizarben/keops/pykeops/pykeops/numpy/utils.py
-# hypothesis_version: 6.135.16
-
-[-2.0, -1.0, -0.5, 1.0, 1.5, 2.0, 'Sum', 'b = Vj(1)', 'binet', 'cauchy', 'complex128', 'complex64', 'cpu', 'data', 'float32', 'float64', 'gaussian', 'gaussian_oriented', 'gaussian_unoriented', 'int64', 'inverse_multiquadric', 'laplacian', 'linear', 'oos2 = Pm(1)', 'x = Vi(1)', 'y = Vj(1)']

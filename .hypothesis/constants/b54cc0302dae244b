@@ -1,4 +1,0 @@
-# file: /home/nizarben/keops/keopscore/keopscore/binders/nvrtc/Gpu_link_compile.py
-# hypothesis_version: 6.135.16
-
-[11010, ' -I', 'CUBIN', 'OK', 'PTX', 'SHLIB_SUFFIX', 'Size', '\\"compute\\"', '\\"sm\\"', 'bf162', 'binders', 'cu', 'cubin_', 'keops_nvrtc.cpp', 'nvrtc', 'nvrtcGet', 'nvrtc_jit', 'nvrtc_jit.cpp', 'ptx_', 'utf-8']

@@ -1,4 +1,0 @@
-# file: /home/nizarben/keops/keopscore/keopscore/config/Platform.py
-# hypothesis_version: 6.135.16
-
-['"', '-', '/etc/os-release', '=', 'CONDA_DEFAULT_ENV', 'CXX', 'Linux', 'NAME', 'PATH', 'PYTHONPATH', 'VERSION_ID', 'VIRTUAL_ENV', 'base_prefix', 'real_prefix', 'system', 'virtualenv']

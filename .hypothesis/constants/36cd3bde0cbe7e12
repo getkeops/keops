@@ -1,4 +1,0 @@
-# file: /home/nizarben/keops/keopscore/keopscore/config/openmp.py
-# hypothesis_version: 6.135.16
-
-['-', '-fopenmp', '-o', '.cpp', '.out', '/tmp/brew_prefix.txt', 'CXX', 'Darwin', 'Disabled ❌', 'Enabled ✅', 'Linux', 'Not Found', 'OMP_PATH', 'arm64', 'arm64e', 'g++', 'gomp', 'omp', 'r', 'w']

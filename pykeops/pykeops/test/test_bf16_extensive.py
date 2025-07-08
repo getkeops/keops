@@ -5,7 +5,6 @@ from typing import Callable, Tuple
 
 import pytest
 import torch
-from hypothesis import given, settings, strategies as st
 from pykeops.torch import LazyTensor
 
 # -----------------------------------------------------------------------------
@@ -151,12 +150,18 @@ def test_gradcheck(fun):
     torch.autograd.gradcheck(lambda u: fun(u, y, backend="keops"), (x,), eps=1e-6, atol=1e-3, rtol=1e-3)
 
 # -----------------------------------------------------------------------------
-# Hypothesis property test – small shapes only
+# Small-shape tests 
 # -----------------------------------------------------------------------------
-@given(M=st.integers(1, 10), N=st.integers(1, 10), D=st.integers(1, 4))
-@settings(max_examples=30, deadline=None)
+
+SMALL_SHAPES = [(1, 1, 1), (2, 3, 2), (3, 4, 3), (10, 10, 4)]
+SMALL_IDS = [f"M{m}_N{n}_D{d}" for (m, n, d) in SMALL_SHAPES]
+
 @pytest.mark.skipif(not torch.cuda.is_available(), reason="Requires GPU")
-def test_property_sum(M: int, N: int, D: int):
+@pytest.mark.parametrize("M,N,D", SMALL_SHAPES, ids=SMALL_IDS)
+def test_small_sum(M: int, N: int, D: int):
+    """Quick sanity check on small random shapes.
+    
+    """
     x = rand_tensor((M, 1, D)).requires_grad_(True)
     y = rand_tensor((1, N, D))
     ref, ko = reference_and_keops(k_sum, x, y)

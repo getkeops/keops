@@ -1,4 +1,0 @@
-# file: /home/nizarben/keops/pykeops/pykeops/torch/bf16_convert.py
-# hypothesis_version: 6.135.16
-
-[2.0, 'ArgKMin', 'ArgMax', 'ArgMin', 'KMinArgKMin', 'KMin_ArgKMin', 'MaxArgMax', 'Max_ArgMax', 'MinArgMin', 'Min_ArgMin']

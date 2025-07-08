@@ -1,4 +1,0 @@
-# file: /home/nizarben/keops/keopscore/keopscore/get_keops_dll.py
-# hypothesis_version: 6.135.16
-
-['Gpu', 'GpuReduc1D', 'GpuReduc2D', '__main__', '_chunks', '_finalchunks', 'aliases', 'device_id', 'dim', 'dimred', 'dimsp', 'dimsx', 'dimsy', 'dimy', 'dtype', 'dtypeacc', 'enable_chunks', 'enable_finalchunks', 'indsi', 'indsj', 'indsp', 'low_level_code_file', 'map_reduce_id', 'mul_var_highdim', 'nargs', 'red_formula_string', 'source_file', 'sum_scheme_string', 'tag', 'tag1D2D', 'tagCPUGPU', 'tagHostDevice', 'tagI', 'use_fast_math', 'use_half']

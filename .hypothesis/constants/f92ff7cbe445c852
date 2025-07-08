@@ -1,4 +1,0 @@
-# file: /home/nizarben/keops/pykeops/pykeops/torch/utils.py
-# hypothesis_version: 6.135.16
-
-[1.0, 2.0, '1.8', '[KeOps] data type ', 'bfloat16', 'cauchy', 'dtype', 'float16', 'float32', 'float64', 'gaussian', 'int32', 'int64', 'inverse_multiquadric', 'laplacian']

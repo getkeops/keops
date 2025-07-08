@@ -1,4 +1,0 @@
-# file: /home/nizarben/keops/keopscore/keopscore/utils/math_functions.py
-# hypothesis_version: 6.135.16
-
-[2000000000.0, '(', ')', ',', 'NA', '__habs2', '__heq2', '__hfma2', '__hle2', '__hlt2', '__hmul2', '__hne2', 'abs', 'acos', 'asin', 'atan', 'atan2', 'bf162', 'cos', 'exp', 'float', 'floor', 'fma', 'h2cos', 'h2exp', 'h2floor', 'h2log', 'h2rcp', 'h2sin', 'h2sqrt', 'half2', 'int', 'log', 'pow', 'powf', 'signed long int', 'sin', 'sqrt']

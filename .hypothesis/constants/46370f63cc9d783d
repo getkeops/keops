@@ -1,4 +1,0 @@
-# file: /home/nizarben/keops/pykeops/pykeops/numpy/__init__.py
-# hypothesis_version: 6.135.16
-
-['Genred', 'GenredR', 'KernelSolve', 'LazyTensor', 'Pm', 'Vi', 'Vj', 'generic_argkmin', 'generic_argmin', 'generic_logsumexp', 'generic_sum']

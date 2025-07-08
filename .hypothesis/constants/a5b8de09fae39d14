@@ -1,4 +1,0 @@
-# file: /home/nizarben/keops/keopscore/keopscore/mapreduce/cpu/CpuReduc_ranges.py
-# hypothesis_version: 6.135.16
-
-['cmath', 'i-start_x', 'indices_i', 'indices_j', 'indices_p', 'int', 'iostream', 'j-start_y', 'omp.h', 'stdlib.h', 'yj']
