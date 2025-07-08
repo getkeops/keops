@@ -1,0 +1,4 @@
+# file: /home/nizarben/keops/keopscore/keopscore/mapreduce/gpu/GpuReduc1D_ranges.py
+# hypothesis_version: 6.135.16
+
+['bf162', 'cuda_bf16.h', 'cuda_fp16.h', 'half2', 'indices_i', 'indices_j', 'indices_p', 'signed long int', 'start_y', 'threadIdx.x', 'yjrel']

@@ -1,0 +1,4 @@
+# file: /home/nizarben/keops/pykeops/pykeops/common/utils.py
+# hypothesis_version: 6.135.16
+
+['SqDist(x,y)', 'Sum', '[pyKeOps] ', '[pyKeOps] Warning : ', 'bf162', 'double', 'float', 'half2', 'numpy', 'pytorch', 'torch', 'x = Vi(1)', 'y = Vj(1)']

@@ -1,0 +1,4 @@
+# file: /home/nizarben/keops/pykeops/pykeops/numpy/generic/generic_red.py
+# hypothesis_version: 6.135.16
+
+[16000000.0, 2048, ')', ',', 'Arg', 'C', 'C_CONTIGUOUS', 'Sum', '_Reduction(', 'auto', 'cpp', 'float', 'float16', 'float32', 'half', 'int64', 'multVar_highdim', 'numpy', 'nvrtc']

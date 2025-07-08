@@ -1,0 +1,4 @@
+# file: /home/nizarben/keops/keopscore/keopscore/formulas/reductions/KMin_ArgKMin_Reduction.py
+# hypothesis_version: 6.135.16
+
+['bf162', 'half2', 'indtmpl', 'k', 'l', 'not implemented', 'out', 'p', 'q', 'signed long int', 'tmpl', 'xik']

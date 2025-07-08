@@ -1,0 +1,4 @@
+# file: /home/nizarben/keops/keopscore/keopscore/formulas/maths/Rsqrt.py
+# hypothesis_version: 6.135.16
+
+[0.5, 'Rsqrt']

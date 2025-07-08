@@ -1,0 +1,4 @@
+# file: /home/nizarben/keops/keopscore/keopscore/utils/misc_utils.py
+# hypothesis_version: 6.135.16
+
+['#include *"([^"]*)"', '[KeOps] ', '[KeOps] Error : ', '[KeOps] Warning : ', 'dl', 'l_addr', 'l_name', 'r', 'utf-8', 'w', '✅', '❌']

@@ -1,0 +1,4 @@
+# file: /home/nizarben/keops/keopscore/keopscore/formulas/maths/LessOrEqual.py
+# hypothesis_version: 6.135.16
+
+['<=', 'LessOrEqual', 'mid']

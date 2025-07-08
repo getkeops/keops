@@ -1,0 +1,4 @@
+# file: /home/nizarben/keops/pykeops/pykeops/__init__.py
+# hypothesis_version: 6.135.16
+
+['0', 'KEOPS_VERBOSE', 'PYKEOPS_VERBOSE', 'keops_version', 'target', 'utf-8']

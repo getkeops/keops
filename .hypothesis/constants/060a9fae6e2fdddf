@@ -1,0 +1,4 @@
+# file: /home/nizarben/keops/keopscore/keopscore/config/base_config.py
+# hypothesis_version: 6.135.16
+
+[' -arch arm64', ' -flto', ' -flto=auto', ' -fopenmp', '"', '-', '..', '.cache', '/etc/os-release', '/tmp/brew_prefix.txt', '=', 'Apple clang', 'CXX', 'CXXFLAGS', 'Darwin', 'Disabled', 'Enabled', 'KEOPS_CACHE_FOLDER', 'Linux', 'NAME', 'VERSION_ID', '_', '_use_cuda', 'arm64', 'arm64e', 'clang++', 'g++', 'r', 'w', '~']

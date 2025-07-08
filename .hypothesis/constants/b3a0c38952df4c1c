@@ -1,0 +1,4 @@
+# file: /home/nizarben/keops/keopscore/keopscore/config/__init__.py
+# hypothesis_version: 6.135.16
+
+['config', 'cuda_config', 'get_config', 'get_cuda_config', 'get_openmp_config', 'get_platform_config', 'openmp_config', 'platform_detector']

@@ -1,0 +1,4 @@
+# file: /home/nizarben/keops/pykeops/pykeops/common/keops_io/LoadKeOps_nvrtc.py
+# hypothesis_version: 6.135.16
+
+['OK', 'bf162', 'double', 'float', 'half2', 'pykeops_nvrtc', 'src', 'target']

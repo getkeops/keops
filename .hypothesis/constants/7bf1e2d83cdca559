@@ -1,0 +1,4 @@
+# file: /home/nizarben/keops/keopscore/keopscore/formulas/maths/__init__.py
+# hypothesis_version: 6.135.16
+
+['Abs', 'Acos', 'Add', 'ArgMax', 'ArgMin', 'Asin', 'Atan', 'Atan2', 'BSpline', 'Clamp', 'ClampInt', 'Concat', 'Cos', 'DiffClampInt', 'Divide', 'Elem', 'ElemT', 'Equal', 'Exp', 'Extract', 'ExtractT', 'Floor', 'GradMatrix', 'IfElse', 'IntInv', 'Inv', 'Kron', 'LessOrEqual', 'LessThan', 'Log', 'MatVecMult', 'Max', 'Min', 'Minus', 'Mod', 'Mult', 'Norm2', 'Normalize', 'NotEqual', 'OneHot', 'Pow', 'Powf', 'ReLU', 'Round', 'Rsqrt', 'Scalprod', 'Sign', 'Sin', 'SinXDivX', 'SoftDTW_SqDist', 'SqDist', 'SqNorm2', 'SqNormDiag', 'SqNormIso', 'Sqrt', 'Square', 'Step', 'Subtract', 'Sum', 'SumT', 'SymSqNorm', 'TensorDot', 'TensorProd', 'VecMatMult', 'WeightedSqDist', 'WeightedSqNorm', 'XLogX']

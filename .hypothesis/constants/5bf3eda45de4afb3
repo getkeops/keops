@@ -1,0 +1,4 @@
+# file: /home/nizarben/keops/keopscore/keopscore/formulas/maths/Equal.py
+# hypothesis_version: 6.135.16
+
+['==', 'Equal', 'mid']

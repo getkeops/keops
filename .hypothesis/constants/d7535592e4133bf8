@@ -1,0 +1,4 @@
+# file: /home/nizarben/keops/pykeops/pykeops/common/keops_io/LoadKeOps.py
+# hypothesis_version: 6.135.16
+
+['(', ',', '1D', '2D', '=', 'CpuReduc', 'GpuReduc', 'Pm', 'Vi', 'Vj', '_ranges', 'bf162', 'bfloat16', 'cpu', 'data', 'double', 'dtype_acc', 'enable_chunks', 'float', 'float16', 'float32', 'float64', 'half2', 'int64', 'multVar_highdim', 'not implemented', 'numpy', 'sum_scheme', 'torch', 'use_fast_math']

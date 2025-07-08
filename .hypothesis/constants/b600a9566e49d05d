@@ -1,0 +1,4 @@
+# file: /home/nizarben/keops/keopscore/keopscore/formulas/maths/VecMatMult.py
+# hypothesis_version: 6.135.16
+
+['VecMatMult', 'int', 'one']

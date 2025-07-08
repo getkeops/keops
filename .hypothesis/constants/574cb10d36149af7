@@ -1,0 +1,4 @@
+# file: /home/nizarben/keops/keopscore/keopscore/utils/gpu_utils.py
+# hypothesis_version: 6.135.16
+
+[1000, 'CONDA_PREFIX', 'CUDA_PATH', 'cuda', 'cuda.h', 'cuda_bf16.h', 'cuda_fp16.h', 'cuda_fp16.hpp', 'cudart', 'include', 'lib', 'lib64', 'local', 'major,minor', 'nvrtc', 'nvrtc.h', 'opt', 'single_value', 'string', 'targets', 'usr', 'x86_64-linux']

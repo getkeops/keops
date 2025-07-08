@@ -1,0 +1,4 @@
+# file: /home/nizarben/keops/keopscore/keopscore/mapreduce/gpu/GpuReduc1D_ranges_finalchunks.py
+# hypothesis_version: 6.135.16
+
+[1024, 49152, 'acc', 'chunk', 'dimfout should be 1', 'end_x', 'end_y', 'fout', 'indices_i', 'indices_j', 'indices_p', 'int', 'jstart', 'nbatchdims', 'nx', 'ny', 'offsets', 'out', 'param_loc', 'signed long int', 'start_x', 'start_y', 'threadIdx.x', 'xi', 'yj', 'yjrel']

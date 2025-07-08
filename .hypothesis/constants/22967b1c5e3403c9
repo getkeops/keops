@@ -1,0 +1,4 @@
+# file: /home/nizarben/keops/keopscore/keopscore/mapreduce/gpu/GpuReduc1D_chunks.py
+# hypothesis_version: 6.135.16
+
+[1024, 49152, 'acc', 'chunk', 'fout_chunk', 'fout_tmp', 'foutj', 'jstart', 'nx', 'ny', 'param_loc', 'signed long int', 'tile', 'xi', 'yj', 'yjrel']

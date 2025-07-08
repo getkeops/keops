@@ -1,0 +1,4 @@
+# file: /home/nizarben/keops/keopscore/keopscore/formulas/reductions/KMin_Reduction.py
+# hypothesis_version: 6.135.16
+
+['KMin_Reduction', 'p', 'signed long int']

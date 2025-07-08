@@ -1,0 +1,4 @@
+# file: /home/nizarben/keops/keopscore/keopscore/formulas/variables/RatCst.py
+# hypothesis_version: 6.135.16
+
+['RatCst', 'float']

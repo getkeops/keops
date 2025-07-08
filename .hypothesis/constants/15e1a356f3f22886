@@ -1,0 +1,4 @@
+# file: /home/nizarben/keops/keopscore/keopscore/mapreduce/MapReduce.py
+# hypothesis_version: 6.135.16
+
+['#define USE_HALF 0\n', '#define USE_HALF 1\n', 'acc', 'acctmp', 'arg', 'bf162', 'cuda_bf16.h', 'cuda_fp16.h', 'fout', 'i', 'j', 'nx', 'ny', 'param_loc', 'signed long int', 'xi']

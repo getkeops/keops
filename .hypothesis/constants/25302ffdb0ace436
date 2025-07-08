@@ -1,0 +1,4 @@
+# file: /home/nizarben/keops/pykeops/pykeops/common/operations.py
+# hypothesis_version: 6.135.16
+
+[1e-06, 1.0, ')', 'ArgKMin', 'ArgMax', 'ArgMin', 'Concat(IntCst(1),', 'KMin', 'KMinArgKMin', 'KMin_ArgKMin', 'LogSumExp', 'LogSumExpWeight', 'MaxArgMax', 'Max_ArgMax', 'Max_SumShiftExp', 'MinArgMin', 'Min_ArgMin', 'SoftMax', 'Sum', 'SumSoftMaxWeight', 'b = Vj(', 'gaussian', 'oos2 = Pm(1)', 'u = Vi(', 'v = Vi(', 'x = Vi(', 'x = Vj(', 'y = Vj(']
