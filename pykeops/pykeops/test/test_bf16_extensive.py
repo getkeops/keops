@@ -24,6 +24,7 @@ default_atol = 3e-2  # 3 % absolute error
 # Helpers
 # -----------------------------------------------------------------------------
 
+
 def rand_tensor(shape: Tuple[int, ...], *, scale: float = 1.0) -> torch.Tensor:
     """Random bf16 tensor of the given *shape* and *scale*."""
     return (torch.randn(shape, dtype=torch.float32, device=device) * scale).to(dtype)
@@ -34,7 +35,13 @@ def to_bf16(t: torch.Tensor) -> torch.Tensor:
     return t.to(dtype)
 
 
-def assert_close(a: torch.Tensor, b: torch.Tensor, *, rtol: float | None = None, atol: float | None = None) -> None:
+def assert_close(
+    a: torch.Tensor,
+    b: torch.Tensor,
+    *,
+    rtol: float | None = None,
+    atol: float | None = None,
+) -> None:
     """Wrapper around *torch.allclose* with nicer error messages."""
     rtol = default_rtol if rtol is None else rtol
     atol = default_atol if atol is None else atol
@@ -45,9 +52,11 @@ def assert_close(a: torch.Tensor, b: torch.Tensor, *, rtol: float | None = None,
             f"max abs err {delta.max():.3e}, max rel err {(delta / a.abs().clamp_min(1)).max():.3e}"
         )
 
+
 # -----------------------------------------------------------------------------
 # Kernels test
 # -----------------------------------------------------------------------------
+
 
 def k_sum(x: torch.Tensor, y: torch.Tensor, *, backend: str) -> torch.Tensor:
     """Sum kernel → output shape (N,).
@@ -64,14 +73,13 @@ def k_sum(x: torch.Tensor, y: torch.Tensor, *, backend: str) -> torch.Tensor:
 
 
 def k_exp_sqnorm(x: torch.Tensor, y: torch.Tensor, *, backend: str) -> torch.Tensor:
-    """RBF-like kernel → output shape (N,).
-
-    """
+    """RBF-like kernel → output shape (N,)."""
     if backend == "keops":
         x, y = LazyTensor(x), LazyTensor(y)
 
     d2 = ((x - y) ** 2).sum(dim=-1)  # shape (M, N)
     return (-d2).exp().sum(dim=0).squeeze()
+
 
 ALL_FUNS: list[Callable[[torch.Tensor, torch.Tensor, str], torch.Tensor]] = [
     k_sum,
@@ -82,10 +90,16 @@ ALL_FUNS: list[Callable[[torch.Tensor, torch.Tensor, str], torch.Tensor]] = [
 # Reference vs Keops helper
 # -----------------------------------------------------------------------------
 
-def reference_and_keops(fun: Callable[[torch.Tensor, torch.Tensor, str], torch.Tensor], x: torch.Tensor, y: torch.Tensor):
+
+def reference_and_keops(
+    fun: Callable[[torch.Tensor, torch.Tensor, str], torch.Tensor],
+    x: torch.Tensor,
+    y: torch.Tensor,
+):
     ref = fun(to_bf16(x), to_bf16(y), backend="torch")
     ko = fun(to_bf16(x), to_bf16(y), backend="keops")
     return ref, ko
+
 
 # -----------------------------------------------------------------------------
 # Parameter grids – moderate sizes
@@ -98,6 +112,7 @@ SHAPE_IDS = [f"M{m}_N{n}_D{d}" for (m, n, d) in SHAPES]
 
 # Scaling factors (keep within representable range)
 SCALES = {"unit": 1.0, "tiny": 1e-2, "huge": 1e2}
+
 
 # -----------------------------------------------------------------------------
 # Forward tests
@@ -113,7 +128,7 @@ def test_forward(fun, M: int, N: int, D: int, scale_key: str):
     # ------------------------------------------------------------------
     # Adaptive tolerances: bf16 has ε ≈ 2**-7 ≃ 7.8e-3.
     # ------------------------------------------------------------------
-    bf16_eps = 2 ** -7  # ≈7.8e-3
+    bf16_eps = 2**-7  # ≈7.8e-3
     terms_sqrt = (M * D) ** 0.5
 
     rtol = max(default_rtol, 2.0 * bf16_eps * terms_sqrt)
@@ -122,10 +137,12 @@ def test_forward(fun, M: int, N: int, D: int, scale_key: str):
     ref, ko = reference_and_keops(fun, x, y)
     assert_close(ref, ko, rtol=rtol, atol=atol)
 
+
 # -----------------------------------------------------------------------------
 # Backward tests on a subset of shapes
 # -----------------------------------------------------------------------------
 BACKWARD_SHAPES = [(5, 5, 4), (25, 7, 1)]
+
 
 @pytest.mark.skipif(not torch.cuda.is_available(), reason="Requires GPU")
 @pytest.mark.parametrize("fun", ALL_FUNS)
@@ -135,9 +152,10 @@ def test_backward(fun, M: int, N: int, D: int):
     y = rand_tensor((1, N, D))
     ref, ko = reference_and_keops(fun, x, y)
     grad = torch.randn_like(ref)
-    g_ref, = torch.autograd.grad(ref, x, grad_outputs=grad)
-    g_ko, = torch.autograd.grad(ko, x, grad_outputs=grad)
+    (g_ref,) = torch.autograd.grad(ref, x, grad_outputs=grad)
+    (g_ko,) = torch.autograd.grad(ko, x, grad_outputs=grad)
     assert_close(g_ref, g_ko, rtol=5e-2, atol=5e-2)
+
 
 # -----------------------------------------------------------------------------
 # Gradcheck – double precision, tiny shape
@@ -147,25 +165,28 @@ def test_backward(fun, M: int, N: int, D: int):
 def test_gradcheck(fun):
     x = torch.randn(3, 1, 2, dtype=torch.float64, device=device, requires_grad=True)
     y = torch.randn(1, 4, 2, dtype=torch.float64, device=device)
-    torch.autograd.gradcheck(lambda u: fun(u, y, backend="keops"), (x,), eps=1e-6, atol=1e-3, rtol=1e-3)
+    torch.autograd.gradcheck(
+        lambda u: fun(u, y, backend="keops"), (x,), eps=1e-6, atol=1e-3, rtol=1e-3
+    )
+
 
 # -----------------------------------------------------------------------------
-# Small-shape tests 
+# Small-shape tests
 # -----------------------------------------------------------------------------
 
 SMALL_SHAPES = [(1, 1, 1), (2, 3, 2), (3, 4, 3), (10, 10, 4)]
 SMALL_IDS = [f"M{m}_N{n}_D{d}" for (m, n, d) in SMALL_SHAPES]
 
+
 @pytest.mark.skipif(not torch.cuda.is_available(), reason="Requires GPU")
 @pytest.mark.parametrize("M,N,D", SMALL_SHAPES, ids=SMALL_IDS)
 def test_small_sum(M: int, N: int, D: int):
-    """Quick sanity check on small random shapes.
-    
-    """
+    """Quick sanity check on small random shapes."""
     x = rand_tensor((M, 1, D)).requires_grad_(True)
     y = rand_tensor((1, N, D))
     ref, ko = reference_and_keops(k_sum, x, y)
     assert_close(ref, ko)
+
 
 # -----------------------------------------------------------------------------
 # TF32 interaction test
