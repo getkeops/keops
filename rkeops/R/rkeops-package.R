@@ -11,13 +11,13 @@
 #' standard R functions that can be used in any R (>=3) codes.
 #' 
 #' @author 
-#' - [Benjamin Charlier](http://imag.umontpellier.fr/~charlier/)
+#' - [Benjamin Charlier](https://miat.inrae.fr/bcharlier/)
 #' - Amelie Vernay
 #' - Chloe Serre-Combe
 #' - [Ghislain Durif](https://gdurif.perso.math.cnrs.fr/)
 #' - [Jean Feydy](https://www.jeanfeydy.com)
-#' - [Joan Alexis Glaunès](http://helios.mi.parisdescartes.fr/~glaunes/)
-#' - François-David Collin
+#' - [Joan Alexis Glaunès](https://helios2.mi.parisdescartes.fr/~glaunes/)
+#' - [François-David Collin](https://fradav.perso.math.cnrs.fr/)
 #' 
 #' @details
 #' The KeOps library provides seamless kernel operations on GPU, with 
