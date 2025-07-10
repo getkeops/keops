@@ -154,9 +154,11 @@ remotes::install_github("getkeops/keops", subdir = "rkeops")
 ```{r}
 # load rkeops
 library(rkeops)
+# check rkeops setup
+check_rkeops()
 ```
 
-**Important:** for more details (especially in case of problems.), see the specific **"Using RKeOps" [article](https://www.kernel-operations.io/rkeops/articles/using_rkeops.html)** or the corresponding vignette:
+**Important:** for more details (especially in case of problems), see the specific **"Using RKeOps" [article](https://www.kernel-operations.io/rkeops/articles/using_rkeops.html)** or the corresponding vignette:
 ```{r}
 vignette("using_rkeops", package = "rkeops")
 ```

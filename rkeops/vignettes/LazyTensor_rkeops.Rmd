@@ -31,6 +31,8 @@ knitr::opts_chunk$set(
 ```{r}
 # load rkeops
 library(rkeops)
+# check rkeops setup
+check_rkeops()
 ```
 
 

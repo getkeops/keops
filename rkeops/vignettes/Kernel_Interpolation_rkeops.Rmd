@@ -64,7 +64,7 @@ tryCatch({
 ```
 
 ```{r}
-# check rkeops install
+# check rkeops setup
 check_rkeops()
 
 # use 64bit floating operation precision

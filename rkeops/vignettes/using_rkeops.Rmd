@@ -86,18 +86,19 @@ remotes::install_github("getkeops/keops", subdir = "rkeops")
 
 # How to use RKeOps
 
-Load RKeOps in R:
+RKeOps allows to define and compile new operators that run computations on GPU or on CPU with the exact same code.
+
+## Loading
+
+Load RKeOps in R and verify that it is working:
 ```{r setup}
 # load rkeops
 library(rkeops)
-```
-
-You can verify that every thing is ok:
-```{r check}
+# check rkeops setup
 check_rkeops()
 ```
 
-RKeOps allows to define and compile new operators that run computations on GPU.
+**Note:** in case, the previous call does not return `TRUE`, you may need to force `reticulate` initialization by calling `reticulate::py_config()`.
 
 ## LazyTensors
 
