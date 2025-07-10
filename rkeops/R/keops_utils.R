@@ -38,6 +38,7 @@
 #' @importFrom checkmate assert_flag assert_string
 #' @importFrom stringr str_c str_detect str_match str_replace_all str_split
 #' str_extract_all str_locate_all str_sub str_sub<-
+#' @importFrom utils tail
 #' 
 #' @author Ghislain Durif
 get_pykeops_formula <- function(
