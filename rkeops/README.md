@@ -25,12 +25,12 @@ Please contact us for any **bug report**, **question** or **feature
 request** by filing a report on our [GitHub issue
 tracker](https://github.com/getkeops/keops/issues)!
 
-**Core library - KeOps, PyKeOps:**
+**Core library - KeOps, PyKeOps, KeOpsLab:**
 
 - [Benjamin Charlier](https://miat.inrae.fr/bcharlier/), from the
   University of Montpellier.
 - [Jean Feydy](https://www.jeanfeydy.com), from Inria.
-- [Joan Alexis Glaunès](http://helios.mi.parisdescartes.fr/~glaunes/),
+- [Joan Alexis Glaunès](https://helios2.mi.parisdescartes.fr/~glaunes/),
   from the University of Paris.
 
 **R bindings - RKeOps:**
@@ -41,7 +41,7 @@ tracker](https://github.com/getkeops/keops/issues)!
 
 **Contributors:**
 
-- [François-David Collin](https://github.com/fradav), from the
+- [François-David Collin](https://fradav.perso.math.cnrs.fr/), from the
   University of Montpellier: Tensordot operation, CI setup.
 - [Tanguy Lefort](https://github.com/tanglef), from the University of
   Montpellier: conjugate gradient solver.
@@ -49,8 +49,8 @@ tracker](https://github.com/getkeops/keops/issues)!
   setup.
 - [Benoît Martin](https://github.com/benoitmartin88), from the Aramis
   Inria team: multi-GPU support.
-- [Francis Williams](https://www.fwilliams.info), from New York
-  University: maths operations.
+- [Francis Williams](https://fwilliams.info/), from New York University:
+  maths operations.
 - [Kshiteej Kalambarkar](https://github.com/kshitij12345), from
   Quansight: maths operations.
 - [D. J. Sutherland](https://djsutherland.ml), from the TTI-Chicago: bug
@@ -201,15 +201,12 @@ remotes::install_github("getkeops/keops", subdir = "rkeops")
 ``` r
 # load rkeops
 library(rkeops)
-# create a dedicated Python environment with reticulate (!!to be done only once)
-reticulate::virtualenv_create("rkeops")
-# activate the dedicated Python environment
-reticulate::use_virtualenv(virtualenv = "rkeops", required = TRUE)
-# install rkeops requirements (!!to be done only once)
-install_rkeops()
+# check rkeops setup
+check_rkeops()
 ```
 
-For more details, see the specific **“Using RKeOps”
+**Important:** for more details (especially in case of problems), see
+the specific **“Using RKeOps”
 [article](https://www.kernel-operations.io/rkeops/articles/using_rkeops.html)**
 or the corresponding vignette:
 
