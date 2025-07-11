@@ -7,7 +7,7 @@ if os.name != "nt":
 else:
     from .cuda_windows import CUDAConfigWin as CUDAConfig
 
-#TODO openmp and c++ compiler detection for windows
+# TODO openmp and c++ compiler detection for windows
 from .openmp import OpenMPConfig
 from .Platform import DetectPlatform
 
