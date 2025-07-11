@@ -23,6 +23,13 @@ class VectorizedScalarOp(Operation):
     def Op(self, out, table, *args):
         # Atomic evaluation of the operation : it consists in a simple
         # for loop around the call to the correponding scalar operation
+
+        # DEBUG: emit diagnostics if any arg is None
+        if any(a is None for a in args):
+            import sys, inspect
+            print("[DEBUG VectorizedScalarOp] None arg detected in", type(self).__name__, file=sys.stderr)
+            print("[DEBUG VectorizedScalarOp] Args:", args, file=sys.stderr)
+            print("[DEBUG VectorizedScalarOp] Caller stack:", [frame.function for frame in inspect.stack()[:4]], file=sys.stderr)
         return VectApply(self.ScalarOp, out, *args)
 
     def ScalarOp(self, out, *args):

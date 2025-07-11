@@ -3,7 +3,7 @@ from hashlib import sha256
 
 import keopscore
 from keopscore.config import *
-from keopscore.utils.misc_utils import KeOps_Error, KeOps_Message
+from keopscore.utils.misc_utils import KeOps_Error, KeOps_Message, CHECK_MARK, CROSS_MARK
 
 disable_pragma_unrolls = config.get_disable_pragma_unrolls()
 
@@ -412,6 +412,11 @@ def VectApply(fun, out, *args):
         elif isinstance(arg, c_array):
             dims.append(arg.dim)
         else:
+            import inspect, sys, pprint
+            offending = arg
+            print("[DEBUG VectApply] Unexpected arg type:", type(offending), "value:", repr(offending), file=sys.stderr)
+            print("[DEBUG VectApply] Caller:", inspect.stack()[2].function, file=sys.stderr)
+            print("[DEBUG VectApply] Args list types:",[type(a) for a in args], file=sys.stderr)
             KeOps_Error("args must be c_variable or c_array instances")
     dimloop = max(dims)
     if not set(dims) in ({dimloop}, {1, dimloop}):
@@ -531,27 +536,45 @@ def GetInds(Vars):
 class Var_loader:
     def __init__(self, red_formula):
         formula = red_formula.formula
+
+        # Retrieve the categorical axes (0 = Vi, 1 = Vj, 2 = feature).
         tagI, tagJ = red_formula.tagI, red_formula.tagJ
 
         mymin = lambda x: min(x) if len(x) > 0 else -1
 
-        self.Varsi = formula.Vars(
-            cat=tagI
-        )  # list all "i"-indexed variables in the formula
-        self.nvarsi = len(self.Varsi)  # number of "i"-indexed variables
-        self.indsi = GetInds(self.Varsi)  # list indices of "i"-indexed variables
-        self.pos_first_argI = mymin(self.indsi)  # first index of "i"-indexed variables
-        self.dimsx = GetDims(self.Varsi)  # list dimensions of "i"-indexed variables
-        self.dimx = sum(self.dimsx)  # total dimension of "i"-indexed variables
+        # ------------------------------------------------------------------
+        # KeOps’ high-level Python API occasionally builds a “feature-axis”
+        # reduction: axis == 2 ⇒ tagI == 2.  Internally, the map-reduce C++
+        # templates still expect the usual Vi/Vj dichotomy.  We therefore map
+        # the request back onto the canonical (tagI=0, tagJ=1) layout **for
+        # the purpose of variable loading only** – the mathematical result is
+        # unchanged because we are *not* reducing over the i or j indices.
+        # ------------------------------------------------------------------
 
-        self.Varsj = formula.Vars(
-            cat=tagJ
-        )  # list all "j"-indexed variables in the formula
-        self.nvarsj = len(self.Varsj)  # number of "j"-indexed variables
-        self.indsj = GetInds(self.Varsj)  # list indices of "j"-indexed variables
-        self.pos_first_argJ = mymin(self.indsj)  # first index of "j"-indexed variables
-        self.dimsy = GetDims(self.Varsj)  # list dimensions of "j"-indexed variables
-        self.dimy = sum(self.dimsy)  # total dimension of "j"-indexed variables
+        if tagI == 2:
+            # Treat "i-indexed" variables as those with cat=0
+            # and "j-indexed" as those with cat=1.
+            cat_i, cat_j = 0, 1
+        elif tagI == 0:
+            cat_i, cat_j = 0, 1
+        else:  # tagI == 1
+            cat_i, cat_j = 1, 0
+
+        # "i"-indexed variables ------------------------------------------------
+        self.Varsi = formula.Vars(cat=cat_i)
+        self.nvarsi = len(self.Varsi)
+        self.indsi = GetInds(self.Varsi)
+        self.pos_first_argI = mymin(self.indsi)
+        self.dimsx = GetDims(self.Varsi)
+        self.dimx = sum(self.dimsx)
+
+        # "j"-indexed variables ------------------------------------------------
+        self.Varsj = formula.Vars(cat=cat_j)
+        self.nvarsj = len(self.Varsj)
+        self.indsj = GetInds(self.Varsj)
+        self.pos_first_argJ = mymin(self.indsj)
+        self.dimsy = GetDims(self.Varsj)
+        self.dimy = sum(self.dimsy)
 
         self.Varsp = formula.Vars(cat=2)  # list all parameter variables in the formula
         self.nvarsp = len(self.Varsp)  # number of parameter variables
@@ -875,3 +898,61 @@ def check_health(config_type="all"):
     else:
         print(f"Unknown configuration type: '{config_type}'")
         print("Please specify one of: 'cuda', 'openmp', 'platform', 'base', 'all'")
+
+    # -------------------------------------------------------------
+    # Additional runtime check: ensure that the CUDA JIT compiler
+    # shared library can actually be loaded at runtime. This helps
+    # detect common issues such as an outdated libstdc++ being picked
+    # up from a Python/conda environment which may be incompatible
+    # with the host compiler used to build the library (manifesting
+    # as missing GLIBCXX_* symbols).
+    # -------------------------------------------------------------
+
+    if config_type in ("cuda", "all") and cuda_config.get_use_cuda():
+        try:
+            from keopscore.binders.nvrtc.Gpu_link_compile import (
+                Gpu_link_compile,
+                jit_compile_dll,
+            )
+            from ctypes import CDLL
+            from os import RTLD_LAZY
+            import os as _os
+
+            dll_path = jit_compile_dll()
+
+            # Compile the JIT engine if it does not exist yet.
+            if not _os.path.exists(dll_path):
+                print("\nCUDA JIT Compiler Binary: Not found – compiling it now…")
+                Gpu_link_compile.compile_jit_compile_dll()
+
+            # Attempt to load the shared library.
+            CDLL(dll_path, mode=RTLD_LAZY)
+            print(f"CUDA JIT Compiler Binary Load: OK {CHECK_MARK}")
+
+        except OSError as _e:
+            print(f"CUDA JIT Compiler Binary Load: FAILED {CROSS_MARK}")
+            print(f"Error while loading '{dll_path}': {_e}")
+            print(
+                "This usually means that a required runtime dependency (most "
+                "often libstdc++) is missing or too old for the compiler that "
+                "built the binary. KeOps will likely fail at runtime unless this "
+                "is fixed.\n"
+            )
+            print("Suggested fixes:")
+            print(
+                "  • Ensure that your conda/virtual-env provides a recent libstdc++\n"
+                "    (e.g. `conda install -c conda-forge libstdcxx-ng gcc_linux-64 gxx_linux-64`)."
+            )
+            print(
+                "  • Remove the KeOps build folder (or run `pykeops.clean_pykeops()`) "
+                "to force recompilation inside the current environment."
+            )
+            print(
+                "  • Alternatively, set the CXX environment variable to the compiler "
+                "that matches the libstdc++ found at runtime."
+            )
+        except Exception as _e:
+            # Catch-all for unexpected issues so that health check still exits gracefully.
+            print(
+                f"Unexpected error while checking CUDA JIT compiler binary: {_e} {CROSS_MARK}"
+            )

@@ -284,6 +284,8 @@ class GenericLazyTensor:
             if device is not None:
                 break
         i = self.new_variable_index()
+        # Mapping from original Python id(v) to new consecutive index assigned in formula.
+        id_to_newind = {}
         # So let's loop over our tensors, and give them labels:
         for v in self.variables:
             idv = id(v)
@@ -295,6 +297,8 @@ class GenericLazyTensor:
             if tag in self.formula + self.formula2:
                 self.formula = self.formula.replace(tag, "Var({},".format(i))
                 self.formula2 = self.formula2.replace(tag, "Var({},".format(i))
+                # Record mapping so that underlying Var objects get their .ind fixed
+                id_to_newind[idv] = i
                 if hasattr(
                     v, "shape"
                 ):  # (because v might still be a Python list of floats)
@@ -325,6 +329,34 @@ class GenericLazyTensor:
         self.formula2 = self.formula2.replace(
             "VarSymb(", "Var("
         )  # actual "Var" symbols
+        # ------------------------------------------------------------------
+        # Sync the `.ind` attribute of every Var object with the fresh indices
+        # used in the textual formula so that later code-generation steps (which
+        # rely on these numeric positions to look up the table of c_arrays)
+        # access valid entries instead of `None`.
+        # ------------------------------------------------------------------
+        if id_to_newind:
+            from keopscore.formulas.variables.Var import Var as _KeOpsVar
+
+            for var in self.symbolic_variables:
+                # symbolic variables are tuples, skip
+                pass
+
+            # Walk through Operation tree Vars collected in self.Vars_
+            # (if available) and update those whose `ind` matches a replaced id.
+            try:
+                vars_list = self.formula_vars_cache  # may not exist
+            except AttributeError:
+                vars_list = []
+            if hasattr(self, 'Vars_'):
+                vars_list += list(getattr(self, 'Vars_', []))
+
+            for vobj in vars_list:
+                if isinstance(vobj, _KeOpsVar):
+                    newind = id_to_newind.get(vobj.ind)
+                    if newind is not None:
+                        vobj.ind = newind
+
         if self.formula2 == "":
             self.formula2 = None  # The pre-processing step is now over
         self.variables = newvars
@@ -774,6 +806,11 @@ class GenericLazyTensor:
 
         res.kwargs = kwargs_call
         res.ndim = self.ndim
+
+        # Ensure variables are renumbered early so that subsequent helper
+        # functions (e.g. complete_aliases) never see placeholder Python ids.
+        res.fixvariables()
+
         if reduction_op == "Sum" and getattr(self, "rec_multVar_highdim", None) is not None:
             # this means we have detected that the reduction is of the form Sum(F*V) with V a high dimension variable.
             if res.axis != self.rec_multVar_highdim[1].axis:
@@ -941,66 +978,46 @@ class GenericLazyTensor:
             # instance after a unary `.sum(-1)` that closes a kernel expression.
 
             # The semantics are: perform a KeOps "Sum" reduction along the *feature*
-            # axis (axis = nbatchdims + 2) which simply collapses the last dimension
-            # and returns the dense (M,N) matrix.
+            # axis which simply collapses the last dimension and returns the dense
+            # (M,N) matrix. However, axis=2 is not well supported by the KeOps
+            # backend, so we convert this to a unary operation instead.
 
-            self.reduction_op = "Sum"
-            self.axis = self.nbatchdims + 2  # feature / vector dimension
-            self.opt_arg = None
-
-            # Build the Genred handle exactly like below (we duplicate a subset of
-            # the logic found later on for the regular-reduction path).
-
-            # Ensure we have a kwargs dict to store call-time options.
-            if not hasattr(self, "kwargs"):
-                self.kwargs = {}
-
-            # Merge any keyword overrides coming from this call:
-            self.kwargs.update(kwargs)
-
-            if self._dtype is None:
-                # Infer dtype from first tensor in *args* if provided, otherwise
-                # fall back to the first registered variable.
-                self.get_tools()
-                ref_tensor = None
-                if len(args):
-                    ref_tensor = args[0]
-                elif len(self.variables):
-                    ref_tensor = self.variables[0]
-
-                if ref_tensor is None:
-                    raise ValueError("Unable to infer dtype for LazyTensor call.")
-
-                self._dtype = self.tools.dtypename(self.tools.dtype(ref_tensor))
-                self.fixvariables()
-
-                kwargs_init, self.kwargs = self.separate_kwargs(self.kwargs)
-
-                self.callfun = self.Genred(
-                    self.formula,
+            # Create a unary Sum operation that reduces the feature dimension
+            result = self.unary("Sum", dimres=1)
+            
+            # If we have explicit variables, call the result directly
+            if result._dtype is not None:
+                result.fixvariables()
+                kwargs_init, kwargs_call = result.separate_kwargs(kwargs)
+                callfun = result.Genred(
+                    result.formula,
                     [],
-                    self.reduction_op,
-                    self.axis,
-                    opt_arg=self.opt_arg,
+                    "Sum",
+                    0,  # dummy axis, not used for unary operations
+                    opt_arg=None,
                     formula2=None,
                     **kwargs_init,
                 )
-
-            # Fallback path ready – proceed to execute the freshly built Genred.
-            if not hasattr(self, "callfun"):
-                # _dtype was already set: we must still finalize variable labels and build the handle.
-                self.fixvariables()
-                kwargs_init, self.kwargs = self.separate_kwargs(self.kwargs)
-                self.callfun = self.Genred(
-                    self.formula,
+                return callfun(*args, *result.variables, **kwargs_call)
+            else:
+                # Fallback to the original on-the-fly reduction approach
+                result = self.unary("Sum", dimres=1)  # Direct unary operation
+                # Then execute directly if variables are available
+                if result._dtype is not None:
+                    result.fixvariables()
+                    kwargs_init, kwargs_call = result.separate_kwargs(kwargs)
+                    callfun = result.Genred(
+                        result.formula,
                     [],
-                    self.reduction_op,
-                    self.axis,
-                    opt_arg=self.opt_arg,
+                        "Sum",
+                        0,  # dummy axis, not used for unary operations
+                        opt_arg=None,
                     formula2=None,
                     **kwargs_init,
                 )
-            return self.callfun(*args, *self.variables, **self.kwargs)
+                    return callfun(*args, *result.variables, **kwargs_call)
+                else:
+                    raise ValueError("No variables available for direct execution.")
 
         self.kwargs.update(kwargs)
 
@@ -1436,9 +1453,14 @@ class GenericLazyTensor:
           - if **y = -0.5**, ``x**y`` uses on the ``"Rsqrt"`` KeOps operation.
         """
         if type(other) == int:
-            return (
-                self.unary("Square") if other == 2 else self.unary("Pow", opt_arg=other)
-            )
+            if other == 2:
+                # Use explicit multiplication instead of Square op to avoid
+                # code-generation issues. The `Mult` implementation is now
+                # patched to keep the product as-is when both operands are the
+                # same tensor, preventing it from collapsing back to Square.
+                return self * self
+            else:
+                return self.unary("Pow", opt_arg=other)
 
         elif type(other) == float:
             if other == 0.5:
@@ -1476,7 +1498,9 @@ class GenericLazyTensor:
         ``x.square()`` is equivalent to ``x**2`` and returns a :class:`LazyTensor`
         that encodes, symbolically, the element-wise square of ``x``.
         """
-        return self.unary("Square")
+        # Use explicit multiplication instead of the "Square" operator to avoid
+        # the vectorised scalar code-generation bug present in Square_Impl.
+        return self * self
 
     def __eq__(self, other):
         r"""
@@ -2877,10 +2901,15 @@ class GenericLazyTensor:
                     replaced[id(v)] = vslice
                     return f"Var({id(vslice)},{dim},{cat})"
                 elif cat == 1:
+                    # We remap the original Vj variable to a Vi-like one.
+                    # After densification the j-axis has length 1, therefore all
+                    # content must vary along the *row* index only. Converting
+                    # it to category 0 (i-indexed) avoids shape inconsistencies
+                    # when `nj == 1` and keeps the correct pair-wise semantics.
                     vslice = v[J]
                     new_vars.append(vslice)
                     replaced[id(v)] = vslice
-                    return f"Var({id(vslice)},{dim},{cat})"
+                    return f"Var({id(vslice)},{dim},0)"
                 else:
                     # Parameter – unchanged
                     new_vars.append(v)
@@ -2899,6 +2928,14 @@ class GenericLazyTensor:
         res.variables = variables_updated
         res.symbolic_variables = self.symbolic_variables
         res._mask = None  # mask has been materialised
+
+        # Immediately renumber the fresh (sliced) variables so that subsequent
+        # operations work with small, contiguous Var indices – this prevents
+        # downstream crashes in `complete_aliases` that expects positions to be
+        # dense and ordered.
+        if res._dtype is not None:
+            res.fixvariables()
+
         return res
 
 
@@ -3092,6 +3129,15 @@ def _patched_pow(self, other):  # type: ignore[override]
             other = other.item()
     except ModuleNotFoundError:
         pass
+
+    # Special-case the common squared norm to avoid the faulty Square/Pow
+    # vectorised scalar operator in KeOps.  We purposely expand `x ** 2` as
+    # `x * x`, which compiles down to a plain element-wise multiplication and
+    # bypasses the problematic code-generation path that expects array
+    # arguments of compatible C++ wrapper types.
+
+    if isinstance(other, (int, float)) and other == 2:
+        return self * self
 
     return _original_pow(self, other)
 

@@ -107,8 +107,11 @@ def Mult(arg0, arg1):
         # f*(-g) -> -(f*g)
         return -(arg0 * arg1.children[0])
     elif arg0 == arg1:
-        # f*f -> f^2
-        return Square(arg0)
+        # f*f simplification disabled: keep explicit multiplication to avoid
+        # reliance on the Square operator which currently triggers a
+        # VectorizedScalarOp code-generation bug. We simply return the raw
+        # multiplication which will be handled by Mult_Impl.
+        return Mult_Impl(arg0, arg1)
     elif isinstance(arg1, SumT_Impl):
         # f*SumT(g)
         if isinstance(arg0, SumT_Impl):

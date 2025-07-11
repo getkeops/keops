@@ -210,6 +210,11 @@ class torchtools:
     def pointer(x):
         return x.data.data_ptr()
 
+    @staticmethod
+    def is_sparse(x):
+        """Return True if *x* is a PyTorch sparse COO tensor."""
+        return isinstance(x, torch.Tensor) and x.is_sparse
+
 
 def squared_distances(x, y):
     x_norm = (x**2).sum(1).reshape(-1, 1)
