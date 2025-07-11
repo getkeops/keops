@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pybind11
 
-from .cuda_detection import detect_cuda_toolkit
+from .cuda_detection import detect_cuda_toolkit, cuda_available
 from .utils import find_package_location
 
 include_dirs = {}
@@ -45,18 +45,18 @@ else:
 
 
 # Cuda
-cuda_config = detect_cuda_toolkit()
+if cuda_available:
+    cuda_config = detect_cuda_toolkit()
+    for key in ["cuda", "nvrtc", "cudart"]:
 
-for key in ["cuda", "nvrtc", "cudart"]:
+        if f"dll_{key}" in cuda_config:
+            dlls[key] = cuda_config[f"dll_{key}"]
 
-    if f"dll_{key}" in cuda_config:
-        dlls[key] = cuda_config[f"dll_{key}"]
+        if key in cuda_config["lib_names"]:
+            lib_names[key] = cuda_config["lib_names"][key]
 
-    if key in cuda_config["lib_names"]:
-        lib_names[key] = cuda_config["lib_names"][key]
+    if "include_dir" in cuda_config:
+        include_dirs["cuda"] = cuda_config["include_dir"]
 
-if "include_dir" in cuda_config:
-    include_dirs["cuda"] = cuda_config["include_dir"]
-
-if "lib_dirs" in cuda_config:
-    lib_dirs["cuda"] = cuda_config["lib_dirs"]
+    if "lib_dirs" in cuda_config:
+        lib_dirs["cuda"] = cuda_config["lib_dirs"]
