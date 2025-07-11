@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 import shutil
 import sysconfig
@@ -6,14 +8,15 @@ from pathlib import Path
 
 from .globals import tmp_dir
 
+path_type = str | os.PathLike
 _empty_list = []
 
 
 def compile(
-    source_file: os.PathLike,
+    source_file: path_type,
     project_name: str | None = None,
-    includes: list[os.PathLike] | None = _empty_list,
-    link_dirs: list[os.PathLike] | None = _empty_list,
+    includes: list[path_type] | None = _empty_list,
+    link_dirs: list[path_type] | None = _empty_list,
     links: list[str] | None = _empty_list,
     macros: list[str] | None = _empty_list,
     suffix: str = ".dll",
