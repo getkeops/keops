@@ -10,6 +10,7 @@ from .globals import tmp_dir
 
 _empty_list = []
 
+
 def compile(
     source_file: os.PathLike,
     project_name: str | None = None,

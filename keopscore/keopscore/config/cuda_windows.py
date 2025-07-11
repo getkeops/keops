@@ -54,7 +54,6 @@ class CUDAConfigWin(CUDAConfig):
         self._use_cuda = cuda_detection.cuda_available
 
         if not self._use_cuda:
-            print("fzefgrrtg")
             self.cuda_message = "CUDA libraries not detected; Switching to CPU only."
             KeOps_Warning(self.cuda_message)
 

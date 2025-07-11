@@ -66,7 +66,7 @@ class LoadKeOps_nvrtc_class(LoadKeOps):
             self.params.dimsp,
             self.ranges_ptr_new,
             self.outshape,
-            self.out_ptr if os.name != "nt" else (self.out_ptr, ),
+            self.out_ptr if os.name != "nt" else (self.out_ptr,),
             self.args_ptr_new,
             self.argshapes_new,
         )
