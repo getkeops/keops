@@ -88,7 +88,7 @@ class LinkCompile:
             f.write(self.code.replace("signed long int", "int"))
         else:
             f.write(self.code)
-            
+
         f.close()
 
     def generate_code(self):

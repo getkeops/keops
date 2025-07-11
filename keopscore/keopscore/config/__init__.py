@@ -1,6 +1,7 @@
 # Import the configuration classes
 from .base_config import Config
 import os
+
 if os.name != "nt":
     from .cuda import CUDAConfig
 else:

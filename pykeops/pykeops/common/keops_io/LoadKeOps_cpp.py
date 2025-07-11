@@ -12,7 +12,6 @@ from keopscore.utils.misc_utils import KeOps_OS_Run
 from pykeops.config import pykeops_cpp_name, python_includes
 
 
-
 class LoadKeOps_cpp_class(LoadKeOps):
     def __init__(self, *args, fast_init=False):
         super().__init__(*args, fast_init=fast_init)
@@ -191,7 +190,7 @@ PYBIND11_MODULE(pykeops_cpp_{self.params.tag}, m) {{
     m.def("launch_pykeops_cpu", &launch_pykeops_{self.params.tag}_cpu < {cpp_dtype[self.params.dtype]} >, "Entry point to keops.");
 }}                     
             """
-        
+
         else:
             return f"""
 #include "{self.params.source_name}"
@@ -302,8 +301,9 @@ PYBIND11_MODULE(pykeops_cpp_{self.params.tag}, m) {{
     m.doc() = "pyKeOps: KeOps for pytorch through pybind11 (pytorch flavour).";
     m.def("launch_pykeops_cpu", &launch_pykeops_{self.params.tag}_cpu < {cpp_dtype[self.params.dtype]} >, "Entry point to keops.");
 }}                     
-            """.replace("long", "int64_t")
-
+            """.replace(
+                "long", "int64_t"
+            )
 
 
 LoadKeOps_cpp = Cache_partial(

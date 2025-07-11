@@ -29,7 +29,6 @@ from .cuda import CUDAConfig
 from ..windows_compilations import cuda_detection
 
 
-
 detection = cuda_detection.detect_cuda_toolkit()
 # cuda_lib = detection['lib_dirs']
 # cuda_include = detection['include_dir']
@@ -53,7 +52,7 @@ class CUDAConfigWin(CUDAConfig):
         self._use_cuda = cuda_detection.cuda_available
         if not self._cuda_libraries_available():
             self._use_cuda = False
-        
+
         self.get_cuda_version()
         self.get_cuda_include_path()
         self.get_gpu_props()
@@ -71,8 +70,7 @@ class CUDAConfigWin(CUDAConfig):
             This is also where we handle one single warning if needed.
         """
 
-        return 'dll_nvrtc' in detection and 'dll_cuda' in detection
-    
+        return "dll_nvrtc" in detection and "dll_cuda" in detection
 
     def get_cuda_version(self, out_type="single_value"):
 
@@ -81,7 +79,7 @@ class CUDAConfigWin(CUDAConfig):
             return None
         try:
 
-            libcudart = ctypes.CDLL(detection['dll_cudart'])
+            libcudart = ctypes.CDLL(detection["dll_cudart"])
             cuda_version = ctypes.c_int()
             libcudart.cudaRuntimeGetVersion(ctypes.byref(cuda_version))
             cuda_version_value = int(cuda_version.value)
@@ -101,8 +99,7 @@ class CUDAConfigWin(CUDAConfig):
             KeOps_Warning(f"Could not determine CUDA version: {e}")
             self.cuda_version = None
             return None
-        
-    
+
     def get_gpu_props(self):
         """
         Getting GPU properties and related attributes.
@@ -114,7 +111,7 @@ class CUDAConfigWin(CUDAConfig):
             return (self.n_gpus, self.gpu_compile_flags)
 
         # Attempt to load the CUDA driver library
-        libcuda_path = detection['dll_cuda']
+        libcuda_path = detection["dll_cuda"]
 
         # We have a handle, let's proceed
         libcuda = ctypes.CDLL(libcuda_path)

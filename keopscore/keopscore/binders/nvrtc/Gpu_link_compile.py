@@ -34,10 +34,7 @@ jit_compile_src = os.path.join(
 
 def jit_compile_dll():
     if os.name == "nt":
-        return os.path.join(
-            build_folder,
-            "nvrtc_jit.dll"
-        )
+        return os.path.join(build_folder, "nvrtc_jit.dll")
     else:
         return os.path.join(
             build_folder,
