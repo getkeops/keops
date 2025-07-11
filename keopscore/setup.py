@@ -59,6 +59,7 @@ setup(
         "keopscore.mapreduce.cpu",
         "keopscore.mapreduce.gpu",
         "keopscore.utils",
+        "keopscore.windows_compilations",
     ],
     package_data={
         "keopscore": [
