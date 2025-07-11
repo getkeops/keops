@@ -50,11 +50,11 @@ class CUDAConfigWin(CUDAConfig):
     def set_use_cuda(self):
         """Determine and set whether to use CUDA."""
         self._use_cuda = cuda_detection.cuda_available
-        
+
         if not self._use_cuda:
             self.cuda_message = "CUDA libraries not detected; Switching to CPU only."
             KeOps_Warning(self.cuda_message)
-        
+
         # Check if both cuda and nvrtc libraries are available
         if not self._cuda_libraries_available():
             self._use_cuda = False

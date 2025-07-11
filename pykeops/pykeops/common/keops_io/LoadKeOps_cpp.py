@@ -11,7 +11,7 @@ from pykeops.common.utils import pyKeOps_Message
 from keopscore.utils.misc_utils import KeOps_OS_Run
 from pykeops.config import pykeops_cpp_name, python_includes
 
-#TODO limit code duplication for get_pybind11_code()
+# TODO limit code duplication for get_pybind11_code()
 
 
 class LoadKeOps_cpp_class(LoadKeOps):

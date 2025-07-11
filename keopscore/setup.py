@@ -11,12 +11,14 @@ here = path.abspath(path.dirname(__file__))
 with open(os.path.join(here, "keopscore", "keops_version"), encoding="utf-8") as v:
     current_version = v.read().rstrip()
 
-#TODO fix this (issues with symlinks on windows ? -> moving to pyproject.toml ?)
+# TODO fix this (issues with symlinks on windows ? -> moving to pyproject.toml ?)
 if os.name == "nt":
     with open(os.path.join(here, "..", "keops_version"), encoding="utf-8") as v:
         current_version = v.read().rstrip()
     # copy the content to keopscore/keops_version
-    with open(os.path.join(here, "keopscore", "keops_version"), "w", encoding="utf-8") as v:
+    with open(
+        os.path.join(here, "keopscore", "keops_version"), "w", encoding="utf-8"
+    ) as v:
         v.write(current_version)
 
 # Get the long description from the README file

@@ -4,6 +4,7 @@ from pathlib import Path
 
 cuda_available = "CUDA_PATH" in os.environ
 
+
 def detect_cuda_toolkit():
 
     output = {}
