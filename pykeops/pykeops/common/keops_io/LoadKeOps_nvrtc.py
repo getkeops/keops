@@ -26,6 +26,7 @@ class LoadKeOps_nvrtc_class(LoadKeOps):
         pykeops_nvrtc = importlib.import_module("pykeops_nvrtc")
 
         if self.params.c_dtype == "float":
+            breakpoint()
             self.launch_keops = pykeops_nvrtc.KeOps_module_float(
                 self.params.device_id_request,
                 self.params.nargs,
@@ -85,7 +86,12 @@ def compile_jit_binary():
         dllname=pykeops.config.pykeops_nvrtc_name(type="target"),
     )
     pyKeOps_Message("Compiling nvrtc binder for python ... ", flush=True, end="")
-    KeOps_OS_Run(compile_command)
+    if os.name =="nt":
+        from keopscore.windows_compilations import compile_pykeops_nvrtc
+        compile_pykeops_nvrtc(build_folder=get_build_folder())
+    
+    else:
+        KeOps_OS_Run(compile_command)
     pyKeOps_Message("OK", use_tag=False, flush=True)
 
 

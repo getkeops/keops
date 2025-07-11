@@ -84,7 +84,11 @@ class LinkCompile:
     def write_code(self):
         # write the generated code in the source file ; this is used as a subfunction of compile_code
         f = open(self.gencode_file, "w")
-        f.write(self.code)
+        if os.name == "nt":
+            f.write(self.code.replace("signed long int", "int"))
+        else:
+            f.write(self.code)
+            
         f.close()
 
     def generate_code(self):
