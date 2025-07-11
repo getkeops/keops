@@ -2,14 +2,13 @@ import os
 from ctypes.util import find_library
 from pathlib import Path
 
-cuda_available = find_library("nvcuda") is not None
-
+cuda_available = "CUDA_PATH" in os.environ
 
 def detect_cuda_toolkit():
 
-    if os.environ["CUDA_PATH"]:
+    output = {}
 
-        output = {}
+    if cuda_available:
 
         cuda_path = Path(
             os.environ["CUDA_PATH"]
