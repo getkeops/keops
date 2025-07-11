@@ -9,10 +9,10 @@ from .detection import (
 from .utils import find_package_location
 
 
-def compile_pykeops_nvrtc(build_folder):
+def compile_nvrtc_jit(build_folder):
 
-    pykeops_dir = Path(find_package_location("pykeops")).parent
-    source_file = pykeops_dir / "common" / "keops_io" / "pykeops_nvrtc.cpp"
+    keops_dir = Path(find_package_location("keopscore")).parent
+    source_file = keops_dir / "binders" / "nvrtc" / "nvrtc_jit_win.cpp"
 
     macros = [
         "-DMAXIDGPU=0",
@@ -25,11 +25,12 @@ def compile_pykeops_nvrtc(build_folder):
 
     compile(
         source_file=source_file,
+        project_name="nvrtc_jit",
         macros=macros,
-        includes=[include_dirs[key] for key in ["python", "pybind11", "keops", "cuda"]],
-        link_dirs=[lib_dirs[key] for key in ["python", "cuda"]],
-        links=[lib_names[key] for key in ["cuda", "nvrtc", "cudart", "python"]],
-        suffix=".pyd",
+        includes=[include_dirs[key] for key in ["keops", "cuda"]],
+        link_dirs=[lib_dirs[key] for key in ["cuda"]],
+        links=[lib_names[key] for key in ["cuda", "nvrtc", "cudart"]],
+        suffix=".dll",
         output_dir=build_folder,
         print_cmakelists=False,
         show_cmake_commands_output=False,
