@@ -12,6 +12,14 @@ here = path.abspath(path.dirname(__file__))
 with open(os.path.join(here, "pykeops", "keops_version"), encoding="utf-8") as v:
     current_version = v.read().rstrip()
 
+#TODO fix this (issues with symlinks on windows ? -> moving to pyproject.toml ?)
+if os.name == "nt":
+    with open(os.path.join(here, "..", "keops_version"), encoding="utf-8") as v:
+        current_version = v.read().rstrip()
+    # copy the content to pykeops/keops_version
+    with open(os.path.join(here, "pykeops", "keops_version"), "w", encoding="utf-8") as v:
+        v.write(current_version)
+
 # Get the long description from the README file
 with open(path.join(here, "pykeops", "readme.md"), encoding="utf-8") as f:
     long_description = f.read()
@@ -62,6 +70,7 @@ setup(
             "licence.txt",
             "keops_version",
             "common/keops_io/pykeops_nvrtc.cpp",
+            "common/keops_io/pykeops_nvrtc_win.cpp",
         ],
     },
     install_requires=["numpy", "pybind11", "keopscore"],
