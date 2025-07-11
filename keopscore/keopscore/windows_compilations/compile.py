@@ -6,15 +6,14 @@ from pathlib import Path
 
 from .globals import tmp_dir
 
-path_type = str | os.PathLike | bytes
 _empty_list = []
 
 
 def compile(
-    source_file: path_type,
+    source_file: os.PathLike,
     project_name: str | None = None,
-    includes: list[path_type] | None = _empty_list,
-    link_dirs: list[path_type] | None = _empty_list,
+    includes: list[os.PathLike] | None = _empty_list,
+    link_dirs: list[os.PathLike] | None = _empty_list,
     links: list[str] | None = _empty_list,
     macros: list[str] | None = _empty_list,
     suffix: str = ".dll",
