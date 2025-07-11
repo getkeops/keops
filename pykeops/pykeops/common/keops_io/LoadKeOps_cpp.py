@@ -162,7 +162,7 @@ int launch_pykeops_{self.params.tag}_cpu(signed long int dimY, signed long int n
     }}
 
 
-    return launch_keops_{self.params.tag}_cpu< TYPE >(dimY,
+    return launch_keops_cpu_{self.params.tag} < TYPE >(dimY,
                                                       nx,
                                                       ny,
                                                       tagI,
