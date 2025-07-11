@@ -17,6 +17,7 @@
 #' @author Ghislain Durif
 #' 
 #' @importFrom checkmate assert_flag
+#' @noRd
 check_os <- function(startup = FALSE) {
     assert_flag(startup)
     if(.Platform$OS.type != "unix") {
@@ -51,6 +52,7 @@ check_os <- function(startup = FALSE) {
 #' @importFrom checkmate assert_choice assert_flag test_null
 #' 
 #' @author Ghislain Durif
+#' @noRd
 check_pypkg <- function(package, verbose = TRUE) {
     # check input
     assert_choice(package, c("keopscore", "pykeops"))
@@ -94,10 +96,7 @@ check_pypkg <- function(package, verbose = TRUE) {
 #' 
 #' @author Ghislain Durif
 #' 
-#' @examples
-#' \dontrun{
-#' check_pykeops()
-#' }
+#' @noRd
 check_pykeops <- function(verbose = TRUE) {
     return(check_pypkg("pykeops", verbose))
 }
@@ -116,10 +115,7 @@ check_pykeops <- function(verbose = TRUE) {
 #' 
 #' @author Ghislain Durif
 #' 
-#' @examples
-#' \dontrun{
-#' check_keopscore()
-#' }
+#' @noRd
 check_keopscore <- function(verbose = TRUE) {
     return(check_pypkg("keopscore", verbose))
 }
@@ -149,9 +145,7 @@ check_keopscore <- function(verbose = TRUE) {
 #' @export
 #'
 #' @examples
-#' \dontrun{
 #' check_rkeops()
-#' }
 check_rkeops <- function(verbose = TRUE) {
     
     # init

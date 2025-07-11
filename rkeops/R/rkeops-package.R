@@ -30,8 +30,7 @@
 #' when the full kernel matrix does not fit into the GPU memory.
 #' 
 #' For more information, please read the vignettes 
-#' (`browseVignettes("rkeops")`) and visit 
-#' <https://www.kernel-operations.io/>.
+#' (`browseVignettes("rkeops")`) and visit <https://www.kernel-operations.io/>.
 #' 
 #' @references
 #' \insertRef{JMLR:v22:20-275}{rkeops}

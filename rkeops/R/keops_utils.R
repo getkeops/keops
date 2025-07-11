@@ -41,6 +41,7 @@
 #' @importFrom utils tail
 #' 
 #' @author Ghislain Durif
+#' @noRd
 get_pykeops_formula <- function(
         formula, grad = FALSE, var_to_diff = NULL, input_grad = NULL) {
     

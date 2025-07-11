@@ -1,5 +1,4 @@
 #' Define a list of options for `rkeops` package
-#' @keywords internal
 #' 
 #' @description
 #' `rkeops` operators requires specific options to manage their compilation 
@@ -69,6 +68,10 @@
 #' @importFrom tibble lst
 #' @importFrom checkmate assert_choice assert_directory assert_flag 
 #' assert_integerish qassert
+#' @examples
+#' def_rkeops_options()
+#' 
+#' @export
 def_rkeops_options <- function(
     backend = "CPU", device_id = -1, precision = "float32",
     verbosity = TRUE, debug = FALSE,
@@ -247,6 +250,10 @@ get_rkeops_options <- function(option = NULL) {
 #' @examples
 #' set_rkeops_options()
 #' set_rkeops_options(list(verbosity = 0))
+#' \dontshow{
+#' # set options back to default
+#' set_rkeops_options()
+#' }
 #' 
 #' @export
 set_rkeops_options <- function(input = NULL) {
@@ -321,8 +328,10 @@ set_rkeops_options <- function(input = NULL) {
 #' @importFrom checkmate qassert
 #' 
 #' @examples
-#' \dontrun{
 #' rkeops_use_gpu()
+#' \dontshow{
+#' # set options back to default
+#' set_rkeops_options()
 #' }
 #' @export
 rkeops_use_gpu <- function(device = -1) {
@@ -366,8 +375,10 @@ rkeops_use_gpu <- function(device = -1) {
 #' @importFrom checkmate assert_count test_null
 #' 
 #' @examples
-#' \dontrun{
 #' rkeops_use_cpu()
+#' \dontshow{
+#' # set options back to default
+#' set_rkeops_options()
 #' }
 #' @export
 rkeops_use_cpu <- function(ncore = NULL) {
@@ -411,8 +422,10 @@ rkeops_use_cpu <- function(ncore = NULL) {
 #' @seealso [rkeops::rkeops_use_float64()], [rkeops::set_rkeops_options()]
 #' 
 #' @examples
-#' \dontrun{
 #' rkeops_use_float32()
+#' \dontshow{
+#' # set options back to default
+#' set_rkeops_options()
 #' }
 #' @export
 rkeops_use_float32 <- function() {
@@ -442,8 +455,10 @@ rkeops_use_float32 <- function() {
 #' @seealso [rkeops::rkeops_use_float32()], [rkeops::set_rkeops_options()]
 #' 
 #' @examples
-#' \dontrun{
 #' rkeops_use_float64()
+#' \dontshow{
+#' # set options back to default
+#' set_rkeops_options()
 #' }
 #' @export
 rkeops_use_float64 <- function() {
@@ -462,8 +477,10 @@ rkeops_use_float64 <- function() {
 #' @seealso [rkeops::rkeops_disable_verbosity()], [rkeops::set_rkeops_options()]
 #' 
 #' @examples
-#' \dontrun{
 #' rkeops_enable_verbosity()
+#' \dontshow{
+#' # set options back to default
+#' set_rkeops_options()
 #' }
 #' @export
 rkeops_enable_verbosity <- function() {
@@ -482,8 +499,10 @@ rkeops_enable_verbosity <- function() {
 #' @seealso [rkeops::rkeops_enable_verbosity()], [rkeops::set_rkeops_options()]
 #' 
 #' @examples
-#' \dontrun{
 #' rkeops_disable_verbosity()
+#' \dontshow{
+#' # set options back to default
+#' set_rkeops_options()
 #' }
 #' @export
 rkeops_disable_verbosity <- function() {
@@ -526,9 +545,7 @@ rkeops_disable_verbosity <- function() {
 #' [rkeops::clean_rkeops()]
 #' 
 #' @examples
-#' \dontrun{
 #' get_rkeops_cache_dir()
-#' }
 #' @export
 get_rkeops_cache_dir <- function() {
     return(get_rkeops_options("cache_dir"))
@@ -560,7 +577,11 @@ get_rkeops_cache_dir <- function() {
 #' **Note:** see [rkeops::default_rkeops_cache_dir()] for more details about
 #' the default rkeops cache directory.
 #' 
-#' @inheritParams def_rkeops_options
+#' @param cache_dir string, path to cache directory where rkeops operator
+#' compilation byproducts will be stored to be re-used for further use (and 
+#' avoid unnecessary recompilation). Default is `NULL` and default build
+#' directory (see [rkeops::default_rkeops_cache_dir()] is used. Otherwise
+#' `cache_dir` should be an existing writable directory on the system.
 #' @param verbose logical, enables verbosity or not. Default is `TRUE`.
 #' @return None
 #' 
@@ -574,9 +595,8 @@ get_rkeops_cache_dir <- function() {
 #' [rkeops::clean_rkeops()]
 #' 
 #' @examples
-#' \dontrun{
-#' set_rkeops_build_dir()
-#' }
+#' set_rkeops_cache_dir()
+#' 
 #' @export
 set_rkeops_cache_dir <- function(cache_dir = NULL, verbose = TRUE) {
     # check input
@@ -616,7 +636,6 @@ set_rkeops_cache_dir <- function(cache_dir = NULL, verbose = TRUE) {
 }
 
 #' Default cache directory for RKeOps
-#' @keywords internal
 #' 
 #' @description
 #' Default value for the path to the cache folder where rkeops operator 
@@ -652,6 +671,9 @@ set_rkeops_cache_dir <- function(cache_dir = NULL, verbose = TRUE) {
 #' @importFrom checkmate assert_flag
 #'
 #' @return string, path to default rkeops cache directory.
+#' @examples
+#' default_rkeops_cache_dir(create = FALSE)
+#' @export
 default_rkeops_cache_dir <- function(create = TRUE) {
     
     assert_flag(create)

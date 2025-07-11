@@ -17,6 +17,7 @@
 #' @importFrom tibble lst
 #' 
 #' @author Ghislain Durif
+#' @noRd
 get_gradient_formula <- function(formula, args, var, args_info) {
     # check input
     assert_string(formula)
@@ -137,9 +138,14 @@ get_gradient_formula <- function(formula, args, var, args_info) {
 #' @seealso [rkeops::keops_kernel()]
 #' 
 #' @examples
-#' \dontrun{
+#' \donttest{
+#' \dontshow{
+#' # Setup for example runs (not necessary for standard use)
+#' reticulate::py_available(initialize = TRUE)
 #' set_rkeops_options()
-#' 
+#' # For build on CRAN, use CPU computing with 2 cores max
+#' rkeops_use_cpu(ncore = 2)
+#' }
 #' # defining an operator (reduction on squared distance)
 #' formula <- "Sum_Reduction(SqNorm2(x-y), 0)"
 #' args <- c("x=Vi(0,3)", "y=Vj(1,3)")
@@ -175,6 +181,10 @@ get_gradient_formula <- function(formula, args, var, args_info) {
 #' # computation
 #' input <- list(x, y, eta)
 #' res <- op(input)
+#' \dontshow{
+#' # clean-up (primary for CRAN build)
+#' clean_rkeops()
+#' }
 #' }
 #' @export
 keops_grad <- function(operator, var) {

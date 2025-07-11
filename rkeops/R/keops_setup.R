@@ -25,6 +25,7 @@
 #' @importFrom fs dir_create
 #' @importFrom reticulate py_config
 #' @importFrom stringr str_c str_length
+#' @noRd
 def_pykeops_build_dir <- function() {
     
     # system info
@@ -73,10 +74,7 @@ def_pykeops_build_dir <- function() {
 #' 
 #' @seealso [rkeops::setup_pykeops()]
 #' 
-#' @examples
-#' \dontrun{
-#' set_pykeops_verbosity()
-#' }
+#' @noRd
 set_pykeops_verbosity <- function() {
     # current verbosity level
     verbosity <- get_rkeops_options("verbosity")
@@ -112,10 +110,7 @@ set_pykeops_verbosity <- function() {
 #' 
 #' @seealso [rkeops::def_pykeops_build_dir()], [rkeops::setup_pykeops()]
 #' 
-#' @examples
-#' \dontrun{
-#' set_pykeops_build_dir()
-#' }
+#' @noRd
 set_pykeops_build_dir <- function() {
     # current cache dir
     cache_dir <- get_rkeops_cache_dir()
@@ -154,10 +149,7 @@ set_pykeops_build_dir <- function() {
 #' 
 #' @seealso [rkeops::set_pykeops_verbosity()], [rkeops::set_pykeops_build_dir()]
 #' 
-#' @examples
-#' \dontrun{
-#' setup_pykeops()
-#' }
+#' @noRd
 setup_pykeops <- function() {
     set_pykeops_verbosity()
     set_pykeops_build_dir()

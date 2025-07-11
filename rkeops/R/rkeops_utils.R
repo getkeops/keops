@@ -36,9 +36,8 @@
 #' @importFrom checkmate assert_flag
 #' 
 #' @examples
-#' \dontrun{
 #' stat_rkeops_cache_dir()
-#' }
+#' 
 #' @export
 stat_rkeops_cache_dir <- function(verbose = TRUE, startup = FALSE) {
     assert_flag(verbose)
@@ -102,9 +101,8 @@ stat_rkeops_cache_dir <- function(verbose = TRUE, startup = FALSE) {
 #' @importFrom fs dir_exists dir_ls file_delete
 #' 
 #' @examples
-#' \dontrun{
 #' clean_rkeops()
-#' }
+#' 
 #' @export
 clean_rkeops <- function(verbose = TRUE, all = TRUE, remove_cache_dir = FALSE) {
     # check input
@@ -132,12 +130,20 @@ clean_rkeops <- function(verbose = TRUE, all = TRUE, remove_cache_dir = FALSE) {
     # verbosity
     msg <- NULL
     if(all) {
-        msg <- str_c(
-            "rkeops cache directory '", cache_dir, "' has been cleaned ", 
-            "and deleted.\n",
-            "You should restard your R session and reload rkeops after ", 
-            "cleaning."
-        )
+        if(remove_cache_dir) {
+            msg <- str_c(
+                "rkeops cache directory '", cache_dir, "' has been cleaned ", 
+                "and deleted.\n",
+                "You should restard your R session and reload rkeops after ", 
+                "cleaning."
+            )
+        } else {
+            msg <- str_c(
+                "rkeops cache directory '", cache_dir, "' has been cleaned.\n",
+                "You should restard your R session and reload rkeops after ", 
+                "cleaning."
+            )
+        }
     } else {
         msg <- str_c(
             "rkeops cache directory '", cache_dir, 

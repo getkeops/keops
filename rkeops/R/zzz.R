@@ -18,6 +18,7 @@
 #' @return the `pykeops` Python module
 #' @usage NULL
 #' @format An object of class `python.builtin.module`
+#' @noRd
 pykeops <- NULL
 
 .onLoad <- function(libname, pkgname) {

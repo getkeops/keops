@@ -1,5 +1,7 @@
 #' Setup Python requirements for RKeOps
 #' 
+#' @keywords internal
+#' 
 #' @author Ghislain Durif
 #' 
 #' @description
@@ -23,6 +25,7 @@
 #' codes to use the RKeOps package.
 #' 
 #' @importFrom reticulate py_require
+#' @noRd
 setup_pyreq <- function() {
     reticulate::py_require(
         packages = "pykeops", 
