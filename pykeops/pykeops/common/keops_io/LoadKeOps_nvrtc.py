@@ -26,7 +26,6 @@ class LoadKeOps_nvrtc_class(LoadKeOps):
         pykeops_nvrtc = importlib.import_module("pykeops_nvrtc")
 
         if self.params.c_dtype == "float":
-            breakpoint()
             self.launch_keops = pykeops_nvrtc.KeOps_module_float(
                 self.params.device_id_request,
                 self.params.nargs,

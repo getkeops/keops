@@ -80,7 +80,6 @@ class Gpu_link_compile(LinkCompile):
         self.write_code()
         # we execute the main dll, passing the code as argument, and the name of the low level code file to save the assembly instructions
 
-        breakpoint()
         if os.name != "nt":
             res = self.my_c_dll.Compile(
                 create_string_buffer(self.low_level_code_file),
