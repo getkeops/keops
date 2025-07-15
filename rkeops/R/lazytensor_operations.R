@@ -960,7 +960,7 @@ rsqrt.LazyTensor <- function(x) {
 #' @examples
 #' # R base operation
 #' x <- matrix(runif(10 * 5), 10, 5)   # arbitrary R matrix, 10 rows, 5 columns
-#' x <- matrix(runif(5 * 3), 5, 3)     # arbitrary R matrix, 5 rows, 3 columns
+#' y <- matrix(runif(5 * 3), 5, 3)     # arbitrary R matrix, 5 rows, 3 columns
 #' x %*% y                             # product matrix, 10 rows, 3 columns
 #' 
 #' \donttest{
@@ -1891,8 +1891,8 @@ xlogx.default <- function(x) {
 #' @seealso [rkeops::xlogx.default()], [rkeops::xlogx.LazyTensor()]
 #' @examples
 #' # Numerical input
-#' xlog(4)
-#' xlog(1:10)
+#' xlogx(4)
+#' xlogx(1:10)
 #' # LazyTensor symbolic element-wise `x*log(x)`
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
@@ -2035,7 +2035,7 @@ step.default <- function(object, ...) {
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
-#' Step_x <- step.LazyTensor(x_i)      # symbolic matrix, 150 rows and 3 columns
+#' Step_x <- step(x_i)                 # symbolic matrix, 150 rows and 3 columns
 #' @export
 step <- function(object, ...){
     UseMethod("step", object)
@@ -2058,7 +2058,7 @@ step <- function(object, ...){
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
-#' Step_x <- step.LazyTensor(x_i)      # symbolic matrix, 150 rows and 3 columns
+#' Step_x <- step(x_i)                 # symbolic matrix, 150 rows and 3 columns
 #' @export
 step.LazyTensor <- function(object, ...) {
     return(unaryop.LazyTensor(object, "Step"))
@@ -2514,10 +2514,13 @@ normalize <- function(x) {
 #' @seealso [rkeops::sqnorm2()]
 #' @examples
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
+#' y <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
+#' y_j <- LazyTensor(y, index = 'j')   # creating LazyTensor from matrix y, 
+#'                                     # indexed by 'j'
 #'                                     
-#' SqD_x <- sqdist(x_i)                # symbolic matrix, 150 rows and 3 columns
+#' SqD_x <- sqdist(x_i, y_j)           # symbolic matrix, 150 rows and 3 columns
 #' @export
 sqdist <- function(x, y) {
     return(
@@ -3257,6 +3260,10 @@ elemT <- function(x, m, n) {
 #' # [3,]    3    7    4    5
 #' # [4,]    1    3    3    0
 #' # [5,]    5    4    9    4
+#' g <- matrix(
+#'     c(1, 8, 1, 3, 2, 1, 2, 7, 3, 7, 4, 5, 1, 3, 3, 0, 5, 4, 9, 4),
+#'     nrow = 5, ncol = 4, byrow = TRUE
+#' )
 #' 
 #' # Convert it to LazyTensor:
 #' g_i <- LazyTensor(g, index = 'i')
@@ -3357,6 +3364,7 @@ extract <- function(x, m, d) {
 #' # [1,]    1    4
 #' # [2,]    2    5
 #' # [3,]    3    6
+#' g <- matrix(1:6, nrow = 3, ncol = 2)
 #' 
 #' # Convert it to LazyTensor:
 #' g_i <- LazyTensor(g, index = 'i') # indexed by 'i' (for example)
@@ -4805,6 +4813,7 @@ Kmin_argKmin_reduction <- function(x, K, index) {
 #' indexed by `"i"` or `"j"`.
 #' @param weight an optional object (`LazyTensor` or `ComplexLazyTensor`) that 
 #' specifies scalar or vector-valued weights. `NULL` by default and not used.
+#' **Not supported at the moment**.
 #' @return a matrix corresponding to the Log-Sum-Exp reduction.
 #' @examples
 #' \donttest{
@@ -4822,12 +4831,16 @@ Kmin_argKmin_reduction <- function(x, K, index) {
 #' w <- matrix(runif(100 * 3), 100, 3) # weight LazyTensor
 #' w_j <- LazyTensor(w, index = 'j')
 #' 
-#' S_ij = sum((x_i - y_j)^2)                                           
-#' logsumexp_xw <- logsumexp(S_ij, 'i', w_j) # logsumexp reduction 
-#'                                           # over the 'i' indices
+#' S_ij = sum((x_i - y_j)^2)
 #'                                          
-#' logsumexp_x <- logsumexp(S_ij, 'i')      # logsumexp reduction without
-#'                                          # weight over the 'i' indices
+#' logsumexp_x <- logsumexp(S_ij, 'i')      # logsumexp reduction
+#'                                          # over the 'i' indices
+#' 
+#' \dontrun{
+#' # note: expected error, not supported at the moment
+#' logsumexp_xw <- logsumexp(S_ij, 'i', w_j) # logsumexp reduction with weights
+#'                                           # over the 'i' indices
+#' }
 #' \dontshow{
 #' # clean-up (for CRAN build)
 #' clean_rkeops()
@@ -4842,7 +4855,7 @@ logsumexp <- function(x, index, weight = NULL) {
     else if(check_index(index) && !is.null(weight)) {
         #res <- reduction.LazyTensor(x, "Max_SumShiftExpWeight", 
         #                           index, opt_arg = weight)
-        #res <- reduction.LazyTensor(x, "LogSumExp", 
+        # res <- reduction.LazyTensor(x, "LogSumExp",
         #                           index, opt_arg = weight)
         stop(paste("`logsumexp` reduction is not yet supported with weights.",
                    "\nThis should be fixed in a future release.", sep = ""))
@@ -4874,12 +4887,16 @@ logsumexp <- function(x, index, weight = NULL) {
 #' w <- matrix(runif(150 * 3), 150, 3) # weight LazyTensor
 #' w_j <- LazyTensor(y, index = 'j')
 #' 
-#' S_ij = sum( (x_i - y_j)^2 )                                           
-#' logsumexp_xw <- logsumexp_reduction(S_ij, 'i', w_j) # logsumexp reduction 
-#'                                                     # over the 'i' indices
+#' S_ij = sum( (x_i - y_j)^2 )
 #'                                          
 #' logsumexp_x <- logsumexp_reduction(S_ij, 'i')  # logsumexp reduction without
 #'                                                # weight over the 'i' indices
+#' 
+#' \dontrun{
+#' # note: expected error, not supported at the moment
+#' logsumexp_xw <- logsumexp_reduction(S_ij, 'i', w_j) # logsumexp reduction 
+#'                                                     # over the 'i' indices
+#' }
 #' \dontshow{
 #' # clean-up (for CRAN build)
 #' clean_rkeops()
@@ -4969,7 +4986,7 @@ sumsoftmaxweight <- function(x, index, weight) {
 #' y_j <- LazyTensor(y, index = 'j')
 #' 
 #' V_ij <- x_i - y_j   # weight matrix
-#' S_ij = sum(V-ij^2)     
+#' S_ij = sum(V_ij^2)     
 #' 
 #' # sumsoftmaxweight reduction over the 'i' indices
 #' ssmaxw_red <- sumsoftmaxweight_reduction(S_ij, 'i', V_ij) 
@@ -5008,8 +5025,8 @@ sumsoftmaxweight_reduction <- function(x, index, weight) {
 #' (like "Sum" or "Max").
 #' @param var An `integer` number indicating regarding to which 
 #' variable/parameter (given by name or by position index starting at 0) the 
-#' gradient of the formula should be computed or a one of the `LazyTensor` 
-#' contained in `f`.
+#' gradient of the formula should be computed or the variable containing
+#' one of the `LazyTensor` contained in `f`.
 #' @param index A `character` that should be either **i** or **j** to specify 
 #' whether if the reduction is indexed by **i** (rows), or **j** (columns). 
 #' When the first `f` variable is indexed by **i** (resp. **j**), index cannot 
@@ -5037,7 +5054,7 @@ sumsoftmaxweight_reduction <- function(x, index, weight) {
 #'                                         # indexed by 'i' (like x_i)
 #' 
 #' # gradient with the formula from position
-#' grad_xy <- grad(sqnorm2(x_i-y_j), eta_i, "Sum", var = y_j$formula, "j")  
+#' grad_xy <- grad(sqnorm2(x_i-y_j), eta_i, "Sum", var = y_j, "j")  
 #' 
 #' # gradient with the formula from index
 #' grad_xy <- grad(sqnorm2(x_i-y_j), eta_i, "Sum", var = 0, "j")     
