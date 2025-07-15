@@ -340,9 +340,9 @@ Pm <- function(x, is_complex = FALSE){
 #' 
 #' # example with not NA dim_res:
 #' ## set dim_res to 1 because the "Norm2" operation results on a (symbolic) scalar
-#' una3_x <- unaryop.LazyTensor(x, "Norm2",
-#'                              res_type = "LazyTensor",
-#'                              dim_res = 1)
+#' una3_x <- unaryop.LazyTensor(
+#'     x_i, "Norm2", res_type = "LazyTensor", dim_res = 1
+#' )
 #' @export
 unaryop.LazyTensor <- function(x, opstr, opt_arg = NA, opt_arg2 = NA,
                                res_type = NA, dim_res = NA) {
@@ -850,7 +850,7 @@ is.LazyParameter <- function(x) {
 #' is.ComplexLazyParameter(scal_LT) # returns FALSE
 #' is.ComplexLazyParameter(cplx_LT) # returns TRUE
 #' is.ComplexLazyParameter(v_LT) # returns FALSE
-#' is.ComplexLazyParameter(x_i) # returns FALSE
+#' is.ComplexLazyParameter(z_i) # returns FALSE
 #' @export
 is.ComplexLazyParameter <- function(x) {
     if(!is.LazyTensor(x)) {
