@@ -52,7 +52,6 @@
 #' @seealso [rkeops::+.default()], [rkeops::+.LazyTensor()],
 #' [rkeops::+.ComplexLazyTensor()]
 #' @examples
-#' \dontrun{
 #' # R base operation
 #' +5
 #' 1 + 3
@@ -64,7 +63,6 @@
 #' y_j <- LazyTensor(y, index = 'j')   # creating LazyTensor from matrix y,
 #'                                     # indexed by 'j'
 #' Sum_xy <- x_i + y_j                 # symbolic matrix, 150 rows and 3 columns
-#' }
 #' @export
 "+" <- function(x, y = NULL) {
     if(!is.null(y) && !is.ComplexLazyTensor(x) && is.LazyTensor(y))
@@ -96,7 +94,6 @@
 #' @return An object of class `LazyTensor`.
 #' @seealso [rkeops::+()]
 #' @examples
-#' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' y <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
@@ -104,7 +101,6 @@
 #' y_j <- LazyTensor(y, index = 'j')   # creating LazyTensor from matrix y, 
 #'                                     # indexed by 'j'
 #' Sum_xy <- x_i + y_j                 # symbolic matrix, 150 rows and 3 columns
-#' }
 #' @export
 "+.LazyTensor" <- function(x, y = NULL) {
     
@@ -199,7 +195,6 @@
 #' @seealso [rkeops::-.default()], [rkeops::-.LazyTensor()], 
 #' [rkeops::-.ComplexLazyTensor()]
 #' @examples
-#' \dontrun{
 #' # R base operation
 #' +5
 #' 1 + 3
@@ -212,7 +207,6 @@
 #'                                     # indexed by 'j'
 #' Sub_xy <- x_i - y_j                 # symbolic matrix
 #' Minus_x <- -x_i                     # symbolic matrix
-#' }
 #' @export
 "-" <- function(x, y = NULL) { 
     if(!is.null(y) && (!is.ComplexLazyTensor(x) && is.LazyTensor(y)))
@@ -248,7 +242,6 @@
 #' @return An object of class `LazyTensor`.
 #' @seealso [rkeops::-()]
 #' @examples
-#' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' y <- matrix(runif(250 * 3), 250, 3) # arbitrary R matrix, 250 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
@@ -257,7 +250,6 @@
 #'                                     # indexed by 'j'
 #' Sub_xy <- x_i - y_j                 # symbolic matrix
 #' Minus_x <- -x_i                     # symbolic matrix
-#' }
 #' @export
 "-.LazyTensor" <- function(x, y = NULL) {
     
@@ -334,7 +326,6 @@
 #' @seealso [rkeops::*.default()], [rkeops::*.LazyTensor()], 
 #' [rkeops::*.ComplexLazyTensor()]
 #' @examples
-#' \dontrun{
 #' # R base operation
 #' +5
 #' 1 + 3
@@ -346,7 +337,6 @@
 #' y_j <- LazyTensor(y, index = 'j')   # creating LazyTensor from matrix y, 
 #'                                     # indexed by 'j'
 #' x_times_y <- x_i * y_j              # symbolic matrix
-#' }
 #' @export
 "*" <- function(x, y) { 
     if(!is.ComplexLazyTensor(x) && is.LazyTensor(y))
@@ -373,7 +363,6 @@
 #' @return An object of class `LazyTensor`.
 #' @seealso [rkeops::*()]
 #' @examples
-#' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' y <- matrix(runif(250 * 3), 250, 3) # arbitrary R matrix, 250 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
@@ -381,7 +370,6 @@
 #' y_j <- LazyTensor(y, index = 'j')   # creating LazyTensor from matrix y, 
 #'                                     # indexed by 'j'
 #' x_times_y <- x_i * y_j              # symbolic matrix
-#' }
 #' @export
 "*.LazyTensor" <- function(x, y) {
     res <- binaryop.LazyTensor(x, y, "Mult", dim_check_type = "sameor1")
@@ -455,7 +443,6 @@
 #' @seealso [rkeops::/.default()], [rkeops::/.LazyTensor()], 
 #' [rkeops::/.ComplexLazyTensor()]
 #' @examples
-#' \dontrun{
 #' # R base operation
 #' +5
 #' 1 + 3
@@ -467,7 +454,6 @@
 #' y_j <- LazyTensor(y, index = 'j')   # creating LazyTensor from matrix y,
 #'                                     # indexed by 'j'
 #' x_div_y <- x_i / y_j                # symbolic matrix
-#' }
 #' @export
 "/" <- function(x, y) { 
     if(!is.ComplexLazyTensor(x) && is.LazyTensor(y))
@@ -494,7 +480,6 @@
 #' @return An object of class `LazyTensor`.
 #' @seealso [rkeops::/()]
 #' @examples
-#' \dontrun{
 #' # LazyTensor symbolic division
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' y <- matrix(runif(250 * 3), 250, 3) # arbitrary R matrix, 250 rows, 3 columns
@@ -503,7 +488,6 @@
 #' y_j <- LazyTensor(y, index = 'j')   # creating LazyTensor from matrix y,
 #'                                     # indexed by 'j'
 #' x_div_y <- x_i / y_j                # symbolic matrix
-#' }
 #' @export
 "/.LazyTensor" <- function(x, y) {
     res <- binaryop.LazyTensor(x, y, "Divide", dim_check_type = "sameor1")
@@ -578,7 +562,6 @@ square.default <- function(x) {
 #' [rkeops::square.LazyTensor()]
 #' @seealso [rkeops::square.default()], [rkeops::square.LazyTensor()]
 #' @examples
-#' \dontrun{
 #' # Numerical input
 #' square(4)
 #' square(1:4)
@@ -587,7 +570,6 @@ square.default <- function(x) {
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
 #' Square_x <- square(x_i)             # symbolic matrix, 150 rows and 3 columns
-#' }
 #' @export
 square <- function(x) {
     UseMethod("square", x)
@@ -604,12 +586,10 @@ square <- function(x) {
 #' @return An object of class `LazyTensor`.
 #' @seealso [rkeops::square()]
 #' @examples
-#' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
 #' Square_x <- square(x_i)             # symbolic matrix, 150 rows and 3 columns
-#' }
 #' @export
 square.LazyTensor <- function(x) {
     return(unaryop.LazyTensor(x, "Square"))
@@ -649,7 +629,6 @@ sqrt.default <- function(x) {
 #' @return See value of [rkeops::sqrt.default()] or [rkeops::sqrt.LazyTensor()].
 #' @seealso [rkeops::sqrt.default()], [rkeops::sqrt.LazyTensor()]
 #' @examples
-#' \dontrun{
 #' # R base operation
 #' sqrt(4)
 #' sqrt(c(1,4,9,16))
@@ -658,7 +637,6 @@ sqrt.default <- function(x) {
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
 #' Sqrt_x <- sqrt(x_i)                 # symbolic matrix, 150 rows and 3 columns
-#' }
 #' @export
 sqrt <- function(x) { 
     UseMethod("sqrt", x)
@@ -676,12 +654,10 @@ sqrt <- function(x) {
 #' @return An object of class `LazyTensor`.
 #' @seealso [rkeops::sqrt()]
 #' @examples
-#' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
 #' Sqrt_x <- sqrt(x_i)                 # symbolic matrix, 150 rows and 3 columns
-#' }
 #' @export
 sqrt.LazyTensor <- function(x) {
     return(unaryop.LazyTensor(x, "Sqrt"))
@@ -723,7 +699,6 @@ rsqrt.default <- function(x) {
 #' [rkeops::rsqrt.LazyTensor()].
 #' @seealso [rkeops::rsqrt.default()], [rkeops::rsqrt.LazyTensor()]
 #' @examples
-#' \dontrun{
 #' # Numerical input
 #' rsqrt(4)
 #' rsqrt(c(1,4,9,16))
@@ -732,7 +707,6 @@ rsqrt.default <- function(x) {
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
 #' Rsqrt_x <- rsqrt(x_i)               # symbolic matrix, 150 rows and 3 columns
-#' }
 #' @export
 rsqrt <- function(x) {
     UseMethod("rsqrt", x)
@@ -751,12 +725,10 @@ rsqrt <- function(x) {
 #' @return An object of class `LazyTensor`.
 #' @seealso [rkeops::rsqrt()]
 #' @examples
-#' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
 #' Rsqrt_x <- rsqrt(x_i)               # symbolic matrix, 150 rows and 3 columns
-#' }
 #' @export
 rsqrt.LazyTensor <- function(x) {
     res <- unaryop.LazyTensor(x, "Rsqrt")
@@ -789,7 +761,6 @@ rsqrt.LazyTensor <- function(x) {
 #' @return See value of [rkeops::^.default()] or [rkeops::^.LazyTensor()].
 #' @seealso [rkeops::^.default()], [rkeops::^.LazyTensor()]
 #' @examples
-#' \dontrun{
 #' # R base operation
 #' 3^2
 #' (1:10)^3
@@ -803,7 +774,6 @@ rsqrt.LazyTensor <- function(x) {
 #' y_j <- LazyTensor(y, index = 'j')   # creating LazyTensor from matrix y, 
 #'                                     # indexed by 'j'
 #' x_pow_y <- x_i^y_j                  # symbolic matrix
-#' }
 #' @export
 "^" <- function(x, y) { 
     if(!is.LazyTensor(x))
@@ -832,7 +802,6 @@ rsqrt.LazyTensor <- function(x) {
 #' or a scalar value.
 #' @return An object of class `LazyTensor`.
 #' @examples
-#' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' y <- matrix(runif(250 * 3), 250, 3) # arbitrary R matrix, 250 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
@@ -840,7 +809,6 @@ rsqrt.LazyTensor <- function(x) {
 #' y_j <- LazyTensor(y, index = 'j')   # creating LazyTensor from matrix y, 
 #'                                     # indexed by 'j'
 #' x_pow_y <- x_i^y_j                  # symbolic matrix
-#' }
 #' @export
 "^.LazyTensor" <- function(x, y) {   
     if(is.numeric(y) && length(y) == 1) {
@@ -903,7 +871,6 @@ rsqrt.LazyTensor <- function(x) {
 #' @return See value of [rkeops::|.default()] or [rkeops::|.LazyTensor()].
 #' @seealso [rkeops::|.default()], [rkeops::|.LazyTensor()]
 #' @examples
-#' \dontrun{
 #' # R base element-wise logical or operation
 #' TRUE | FALSE
 #' x <- 1:10
@@ -917,7 +884,6 @@ rsqrt.LazyTensor <- function(x) {
 #'                                     # indexed by 'j'
 #' 
 #' x_sp_y <- x_i | y_j                 # symbolic matrix
-#' }
 #' @export
 "|" <- function(x, y) { 
     if(!is.LazyTensor(x))
@@ -945,7 +911,6 @@ rsqrt.LazyTensor <- function(x) {
 #' or a scalar value.
 #' @return An object of class `LazyTensor`.
 #' @examples
-#' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' y <- matrix(runif(250 * 3), 250, 3) # arbitrary R matrix, 250 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
@@ -953,7 +918,6 @@ rsqrt.LazyTensor <- function(x) {
 #' y_j <- LazyTensor(y, index = 'j')   # creating LazyTensor from matrix y, 
 #'                                     # indexed by 'j'
 #' x_sp_y <- x_i | y_j                 # symbolic matrix
-#' }
 #' @export
 "|.LazyTensor" <- function(x, y) {
     res <- binaryop.LazyTensor(x, y, "|", is_operator = TRUE,
@@ -994,12 +958,19 @@ rsqrt.LazyTensor <- function(x) {
 #' @return See value of [rkeops::%*%.default()] or [rkeops::%*%.LazyTensor()].
 #' @seealso [rkeops::%*%.default()], [rkeops::%*%.LazyTensor()]
 #' @examples
-#' \dontrun{
 #' # R base operation
 #' x <- matrix(runif(10 * 5), 10, 5)   # arbitrary R matrix, 10 rows, 5 columns
 #' x <- matrix(runif(5 * 3), 5, 3)     # arbitrary R matrix, 5 rows, 3 columns
 #' x %*% y                             # product matrix, 10 rows, 3 columns
 #' 
+#' \donttest{
+#' \dontshow{
+#' # Setup for example runs (not necessary for standard use)
+#' reticulate::py_available(initialize = TRUE)
+#' set_rkeops_options()
+#' # For build on CRAN, use CPU computing with 2 cores max
+#' rkeops_use_cpu(ncore = 2)
+#' }
 #' # LazyTensor matrix multiplication
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' y <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
@@ -1008,6 +979,10 @@ rsqrt.LazyTensor <- function(x) {
 #' y_j <- LazyTensor(y, index = 'j')   # creating LazyTensor from matrix y, 
 #'                                     # indexed by 'j'
 #' x_mult_y <- x_i %*% y_j             # FIXME
+#' \dontshow{
+#' # clean-up (primary for CRAN build)
+#' clean_rkeops()
+#' }
 #' }
 #' @export
 "%*%" <- function(x, y) { 
@@ -1029,7 +1004,14 @@ rsqrt.LazyTensor <- function(x) {
 #' @param x,y a `LazyTensor`, a `ComplexLazyTensor`.
 #' @return A matrix.
 #' @examples
-#' \dontrun{
+#' \donttest{
+#' \dontshow{
+#' # Setup for example runs (not necessary for standard use)
+#' reticulate::py_available(initialize = TRUE)
+#' set_rkeops_options()
+#' # For build on CRAN, use CPU computing with 2 cores max
+#' rkeops_use_cpu(ncore = 2)
+#' }
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' y <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
@@ -1037,6 +1019,10 @@ rsqrt.LazyTensor <- function(x) {
 #' y_j <- LazyTensor(y, index = 'j')   # creating LazyTensor from matrix y, 
 #'                                     # indexed by 'j'
 #' x_mult_y <- x_i %*% y_j             # FIXME
+#' \dontshow{
+#' # clean-up (primary for CRAN build)
+#' clean_rkeops()
+#' }
 #' }
 #' @export
 "%*%.LazyTensor" <- function(x, y) {
@@ -1076,7 +1062,6 @@ exp.default <- function(x) {
 #' [rkeops::exp.LazyTensor()].
 #' @seealso [rkeops::exp.default()], [rkeops::exp.LazyTensor()]
 #' @examples
-#' \dontrun{
 #' # R base operation
 #' exp(0)
 #' exp(1:10)
@@ -1085,7 +1070,6 @@ exp.default <- function(x) {
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
 #' Exp_x <- exp(x_i)                   # symbolic matrix, 150 rows and 3 columns
-#' }
 #' @export
 exp <- function(x) {
     UseMethod("exp")
@@ -1109,7 +1093,6 @@ exp <- function(x) {
 #' input.
 #' @seealso [rkeops::exp()]
 #' @examples
-#' \dontrun{
 #' # basic example
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
@@ -1120,7 +1103,6 @@ exp <- function(x) {
 #' z <- matrix(1i^ (-6:5), nrow = 4)        # create a complex 4x3 matrix
 #' z_i <- LazyTensor(z, index = 'i', is_complex = TRUE) # create a ComplexLazyTensor
 #' Exp_z_i <- exp(z_i)                                  # symbolic matrix
-#' }
 #' @export
 exp.LazyTensor <- function(x) {
     return(unaryop.LazyTensor(x, "Exp"))
@@ -1162,7 +1144,6 @@ log.default <- function(x, base = exp(1)) {
 #' [rkeops::log.LazyTensor()].
 #' @seealso [rkeops::log.default()], [rkeops::log.LazyTensor()]
 #' @examples
-#' \dontrun{
 #' # R base operation
 #' log(1)
 #' log(1:10)
@@ -1171,7 +1152,6 @@ log.default <- function(x, base = exp(1)) {
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
 #' Log_x <- log(x_i)                   # symbolic matrix, 150 rows and 3 columns
-#' }
 #' @export
 log <- function(x, base = exp(1)) {
     UseMethod("log")
@@ -1194,12 +1174,10 @@ log <- function(x, base = exp(1)) {
 #' @return An object of class `LazyTensor`.
 #' @seealso [rkeops::log()]
 #' @examples
-#' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
 #' Log_x <- log(x_i)                   # symbolic matrix, 150 rows and 3 columns
-#' }
 #' @export
 log.LazyTensor <- function(x, base = exp(1)) {
     return(unaryop.LazyTensor(x, "Log"))
@@ -1244,7 +1222,6 @@ inv.default <- function(x) {
 #' [rkeops::inv.LazyTensor()].
 #' @seealso [rkeops::inv.default()], [rkeops::inv.LazyTensor()]
 #' @examples
-#' \dontrun{
 #' # Numerical input
 #' inv(4)
 #' inv(1:10)
@@ -1253,7 +1230,6 @@ inv.default <- function(x) {
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
 #' Inv_x <- inv(x_i)                   # symbolic matrix, 150 rows and 3 columns
-#' }
 #' @export
 inv <- function(x) {
     UseMethod("inv")
@@ -1271,12 +1247,10 @@ inv <- function(x) {
 #' @return An object of class `LazyTensor`.
 #' @seealso [rkeops::inv()]
 #' @examples
-#' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
 #' Inv_x <- inv(x_i)                   # symbolic matrix, 150 rows and 3 columns
-#' }
 #' @export
 inv.LazyTensor <- function(x) {
     res <- unaryop.LazyTensor(x, "Inv")
@@ -1314,7 +1288,6 @@ cos.default <- function(x) {
 #' [rkeops::cos.LazyTensor()].
 #' @seealso [rkeops::cos.default()], [rkeops::cos.LazyTensor()]
 #' @examples
-#' \dontrun{
 #' # R base operation
 #' cos(0)
 #' cos(pi)
@@ -1323,7 +1296,6 @@ cos.default <- function(x) {
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
 #' Cos_x <- cos(x_i)                   # symbolic matrix, 150 rows and 3 columns
-#' }
 #' @export
 cos <- function(x) {
     UseMethod("cos")
@@ -1340,12 +1312,10 @@ cos <- function(x) {
 #' @return An object of class `LazyTensor`.
 #' @seealso [rkeops::cos()]
 #' @examples
-#' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
 #' Cos_x <- cos(x_i)                   # symbolic matrix, 150 rows and 3 columns
-#' }
 #' @export
 cos.LazyTensor <- function(x) {
     return(unaryop.LazyTensor(x, "Cos"))
@@ -1375,7 +1345,6 @@ sin.default <- function(x) {
 #' [rkeops::sin.LazyTensor()].
 #' @seealso [rkeops::sin.default()], [rkeops::sin.LazyTensor()]
 #' @examples
-#' \dontrun{
 #' # R base operation
 #' sin(0)
 #' sin(pi)
@@ -1384,7 +1353,6 @@ sin.default <- function(x) {
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
 #' Sin_x <- sin(x_i)                   # symbolic matrix, 150 rows and 3 columns
-#' }
 #' @export
 sin <- function(x) {
     UseMethod("sin")
@@ -1401,12 +1369,10 @@ sin <- function(x) {
 #' @return An object of class `LazyTensor`.
 #' @seealso [rkeops::sin()]
 #' @examples
-#' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
 #' Sin_x <- sin(x_i)                   # symbolic matrix, 150 rows and 3 columns
-#' }
 #' @export
 sin.LazyTensor  <- function(x){
     return(unaryop.LazyTensor(x, "Sin"))
@@ -1436,7 +1402,6 @@ acos.default <- function(x) {
 #' [rkeops::acos.LazyTensor()].
 #' @seealso [rkeops::acos.default()], [rkeops::acos.LazyTensor()]
 #' @examples
-#' \dontrun{
 #' # R base operation
 #' acos(0)
 #' acos(-1)
@@ -1445,7 +1410,6 @@ acos.default <- function(x) {
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
 #' Acos_x <- acos(x_i)                 # symbolic matrix, 150 rows and 3 columns
-#' }
 #' @export
 acos <- function(x) {
     UseMethod("acos")
@@ -1462,12 +1426,10 @@ acos <- function(x) {
 #' @return An object of class `LazyTensor`.
 #' @seealso [rkeops::acos()]
 #' @examples
-#' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
 #' Acos_x <- acos(x_i)                 # symbolic matrix, 150 rows and 3 columns
-#' }
 #' @export
 acos.LazyTensor <- function(x) {
     res <- unaryop.LazyTensor(x, "Acos")
@@ -1498,7 +1460,6 @@ asin.default <- function(x) {
 #' [rkeops::asin.LazyTensor()].
 #' @seealso [rkeops::asin.default()], [rkeops::asin.LazyTensor()]
 #' @examples
-#' \dontrun{
 #' # R base operation
 #' asin(0)
 #' asin(-1)
@@ -1507,7 +1468,6 @@ asin.default <- function(x) {
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
 #' Asin_x <- asin(x_i)                 # symbolic matrix, 150 rows and 3 columns
-#' }
 #' @export
 asin <- function(x) {
     UseMethod("asin")
@@ -1524,12 +1484,10 @@ asin <- function(x) {
 #' @return An object of class `LazyTensor`.
 #' @seealso [rkeops::asin()]
 #' @examples
-#' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
 #' Asin_x <- asin(x_i)                 # symbolic matrix, 150 rows and 3 columns
-#' }
 #' @export
 asin.LazyTensor <- function(x) {
     res <- unaryop.LazyTensor(x, "Asin")
@@ -1560,7 +1518,6 @@ atan.default <- function(x) {
 #' [rkeops::atan.LazyTensor()].
 #' @seealso [rkeops::atan.default()], [rkeops::atan.LazyTensor()]
 #' @examples
-#' \dontrun{
 #' # R base operation
 #' atan(0)
 #' atan(-1)
@@ -1569,7 +1526,6 @@ atan.default <- function(x) {
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
 #' Atan_x <- atan(x_i)                 # symbolic matrix, 150 rows and 3 columns
-#' }
 #' @export
 atan <- function(x) {
     UseMethod("atan")
@@ -1586,12 +1542,10 @@ atan <- function(x) {
 #' @return An object of class `LazyTensor`.
 #' @seealso [rkeops::atan()]
 #' @examples
-#' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
 #' Atan_x <- atan(x_i)                 # symbolic matrix, 150 rows and 3 columns
-#' }
 #' @export
 atan.LazyTensor <- function(x) {
     res <- unaryop.LazyTensor(x, "Atan")
@@ -1627,7 +1581,6 @@ atan2.default <- function(x, y) {
 #' [rkeops::atan2.LazyTensor()].
 #' @seealso [rkeops::atan2.default()], [rkeops::atan2.LazyTensor()]
 #' @examples
-#' \dontrun{
 #' # R base operation
 #' atan2(0, 1)
 #' atan2(1, 0)
@@ -1639,7 +1592,6 @@ atan2.default <- function(x, y) {
 #' y_j <- LazyTensor(y, index = 'j')   # creating LazyTensor from matrix y, 
 #'                                     # indexed by 'j'
 #' Atan2_xy <- atan2(x_i, y_j)         # symbolic matrix
-#' }
 #' @export
 atan2 <- function(x, y) {
     if(!is.LazyTensor(x) && !is.ComplexLazyTensor(x)) 
@@ -1665,7 +1617,6 @@ atan2 <- function(x, y) {
 #' @return An object of class `LazyTensor`.
 #' @seealso [rkeops::atan2()]
 #' @examples
-#' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' y <- matrix(runif(250 * 3), 250, 3) # arbitrary R matrix, 250 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
@@ -1673,7 +1624,6 @@ atan2 <- function(x, y) {
 #' y_j <- LazyTensor(y, index = 'j')   # creating LazyTensor from matrix y, 
 #'                                     # indexed by 'j'
 #' Atan2_xy <- atan2(x_i, y_j)         # symbolic matrix
-#' }
 #' @export
 atan2.LazyTensor <- function(x, y) {
     return(binaryop.LazyTensor(x, y, "Atan2", dim_check_type = "same"))
@@ -1707,7 +1657,6 @@ abs.default <- function(x) {
 #' @seealso [rkeops::abs.default()], [rkeops::abs.LazyTensor()], 
 #' [rkeops::Mod.default()], [rkeops::Mod.LazyTensor()]
 #' @examples
-#' \dontrun{
 #' # R base operation
 #' abs(5)
 #' abs(-5)
@@ -1717,7 +1666,6 @@ abs.default <- function(x) {
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
 #' Abs_x <- abs(x_i)                   # symbolic matrix, 150 rows and 3 columns
-#' }
 #' @export
 abs <- function(x) {
     UseMethod("abs")
@@ -1740,13 +1688,11 @@ abs <- function(x) {
 #' @return An object of class `LazyTensor`.
 #' @seealso [rkeops::abs()], [rkeops::Mod()]
 #' @examples
-#' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
 #'                                     
 #' Abs_x <- abs(x_i)                   # symbolic matrix, 150 rows and 3 columns
-#' }
 #' @export
 abs.LazyTensor <- function(x) {
     return(unaryop.LazyTensor(x, "Abs"))
@@ -1796,7 +1742,6 @@ sign.default <- function(x) {
 #' @return See value of [rkeops::sign.default()] or [rkeops::sign.LazyTensor()].
 #' @seealso [rkeops::sign.default()], [rkeops::sign.LazyTensor()]
 #' @examples
-#' \dontrun{
 #' # R base operation
 #' sign(5)
 #' sign(-5)
@@ -1806,7 +1751,6 @@ sign.default <- function(x) {
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
 #' Sign_x <- sign(x_i)                 # symbolic matrix, 150 rows and 3 columns
-#' }
 #' @export
 sign <- function(x) {
     UseMethod("sign")
@@ -1829,12 +1773,10 @@ sign <- function(x) {
 #' @return An object of class `LazyTensor`.
 #' @seealso [rkeops::sign()]
 #' @examples
-#' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
 #' Sign_x <- sign(x_i)                 # symbolic matrix, 150 rows and 3 columns
-#' }
 #' @export
 sign.LazyTensor <- function(x) {
     return(unaryop.LazyTensor(x, "Sign"))
@@ -1869,7 +1811,6 @@ round.default <- function(x, digits = 0) {
 #' @return See value of [rkeops::round.default()] or [rkeops::round.LazyTensor()].
 #' @seealso [rkeops::round.default()], [rkeops::round.LazyTensor()]
 #' @examples
-#' \dontrun{
 #' # R base operation
 #' round(5)
 #' round(runif(10), 4)
@@ -1878,7 +1819,6 @@ round.default <- function(x, digits = 0) {
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
 #' Round_x <- round(x_i, 2)            # symbolic matrix
-#' }
 #' @export
 round <- function(x, digits = 0) {
     UseMethod("round", x)
@@ -1898,12 +1838,10 @@ round <- function(x, digits = 0) {
 #' @return An object of class `LazyTensor`.
 #' @seealso [rkeops::round()]
 #' @examples
-#' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
 #' Round_x <- round(x_i, 2)            # symbolic matrix
-#' }
 #' @export
 round.LazyTensor <- function(x, digits = 0) {
     if(is.numeric(digits) && length(digits) == 1)
@@ -1952,7 +1890,6 @@ xlogx.default <- function(x) {
 #' [rkeops::xlogx.LazyTensor()]
 #' @seealso [rkeops::xlogx.default()], [rkeops::xlogx.LazyTensor()]
 #' @examples
-#' \dontrun{
 #' # Numerical input
 #' xlog(4)
 #' xlog(1:10)
@@ -1961,7 +1898,6 @@ xlogx.default <- function(x) {
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
 #' xlog_x <- xlogx(x_i)                # symbolic matrix, 150 rows and 3 columns
-#' }
 #' @export
 xlogx <- function(x) {
     UseMethod("xlogx", x)
@@ -1980,12 +1916,10 @@ xlogx <- function(x) {
 #' @return An object of class `LazyTensor`.
 #' @seealso [rkeops::xlogx()]
 #' @examples
-#' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
 #' xlog_x <- xlogx(x_i)                # symbolic matrix, 150 rows and 3 columnsjs
-#' }
 #' @export
 xlogx.LazyTensor <- function(x) {
     return(unaryop.LazyTensor(x, "XLogX"))
@@ -2030,7 +1964,6 @@ sinxdivx.default <- function(x) {
 #' [rkeops::sinxdivx.LazyTensor()]
 #' @seealso [rkeops::sinxdivx.default()], [rkeops::sinxdivx.LazyTensor()]
 #' @examples
-#' \dontrun{
 #' # Numerical input
 #' sinxdivx(4)
 #' sinxdivx(1:10)
@@ -2039,7 +1972,6 @@ sinxdivx.default <- function(x) {
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
 #' sindiv_x <- sinxdivx(x_i)           # symbolic matrix, 150 rows and 3 columns
-#' }
 #' @export
 sinxdivx <- function(x) {
     UseMethod("sinxdivx", x)
@@ -2058,12 +1990,10 @@ sinxdivx <- function(x) {
 #' @return An object of class `LazyTensor`.
 #' @seealso [rkeops::sinxdivx()]
 #' @examples
-#' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
 #' sindiv_x <- sinxdivx(x_i)           # symbolic matrix, 150 rows and 3 columns
-#' }
 #' @export
 sinxdivx.LazyTensor <- function(x) {
     return(unaryop.LazyTensor(x, "SinXDivX"))
@@ -2100,14 +2030,12 @@ step.default <- function(object, ...) {
 #' @return See value of [rkeops::step.default()] or [rkeops::step.LazyTensor()].
 #' @seealso [rkeops::step.default()], [rkeops::step.LazyTensor()]
 #' @examples
-#' \dontrun{
 #' # R base operation: see `?step.default`
 #' # LazyTensor symbolic element-wise sign
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
 #' Step_x <- step.LazyTensor(x_i)      # symbolic matrix, 150 rows and 3 columns
-#' }
 #' @export
 step <- function(object, ...){
     UseMethod("step", object)
@@ -2127,12 +2055,10 @@ step <- function(object, ...){
 #' @return An object of class `LazyTensor`.
 #' @seealso [rkeops::step()]
 #' @examples
-#' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
 #' Step_x <- step.LazyTensor(x_i)      # symbolic matrix, 150 rows and 3 columns
-#' }
 #' @export
 step.LazyTensor <- function(object, ...) {
     return(unaryop.LazyTensor(object, "Step"))
@@ -2179,7 +2105,6 @@ relu.default <- function(x) {
 #' @references
 #' \insertRef{fukushima_cognitron_1975}{rkeops}
 #' @examples
-#' \dontrun{
 #' # Numerical input
 #' relu(4)
 #' relu(-10:10)
@@ -2188,7 +2113,6 @@ relu.default <- function(x) {
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
 #' ReLU_x <- relu(x_i)                 # symbolic matrix, 150 rows and 3 columns
-#' }
 #' @export
 relu <- function(x) {
     UseMethod("relu", x)
@@ -2211,12 +2135,10 @@ relu <- function(x) {
 #' @references
 #' \insertRef{fukushima_cognitron_1975}{rkeops}
 #' @examples
-#' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
 #' ReLU_x <- relu(x_i)                 # symbolic matrix, 150 rows and 3 columns
-#' }
 #' @export
 relu.LazyTensor <- function(x) {
     return(unaryop.LazyTensor(x, "ReLU"))
@@ -2240,7 +2162,6 @@ relu.LazyTensor <- function(x) {
 #' @param x,a,b A `LazyTensor`, a vector of numeric values, or a scalar value.
 #' @return An object of class `LazyTensor`.
 #' @examples
-#' \dontrun{
 #' # basic example
 #' D <- 3
 #' M <- 100
@@ -2255,7 +2176,6 @@ relu.LazyTensor <- function(x) {
 #' 
 #' # call clamp function
 #' clp <- clamp(x_i, y_j, z_i)
-#' }
 #' @export
 clamp <- function(x, a, b) {
     if((is.ComplexLazyTensor(x) || is.ComplexLazyTensor(a)) 
@@ -2288,7 +2208,6 @@ clamp <- function(x, a, b) {
 #' @param z An `integer`.
 #' @return An object of class `LazyTensor`.
 #' @examples
-#' \dontrun{
 #' # basic example
 #' D <- 3
 #' M <- 100
@@ -2297,7 +2216,6 @@ clamp <- function(x, a, b) {
 #' 
 #' # call clampint function
 #' clp_int <- clamp(x_i, 7, 2)
-#' }
 #' @export
 clampint <- function(x, y, z) {
     if(is.ComplexLazyTensor(x)) {
@@ -2346,7 +2264,6 @@ ifelse.default <- function(test, yes, no) {
 #' [rkeops::ifelse.LazyTensor()]
 #' @seealso [rkeops::ifelse.default()], [rkeops::ifelse.LazyTensor()]
 #' @examples
-#' \dontrun{
 #' # R base operation
 #' x <- c(6:-4)
 #' sqrt(ifelse(x >= 0, x, NA))
@@ -2363,7 +2280,6 @@ ifelse.default <- function(test, yes, no) {
 #' z_i <- LazyTensor(z, index = 'i')
 #' 
 #' if_else_xyz <- ifelse(x_i, y_j, z_i)
-#' }
 #' @export
 ifelse <- function(test, yes, no) {
     UseMethod("ifelse", test)
@@ -2387,7 +2303,6 @@ ifelse <- function(test, yes, no) {
 #' or a scalar value.
 #' @return An object of class `LazyTensor`.
 #' @examples
-#' \dontrun{
 #' # basic example
 #' D <- 3
 #' M <- 100
@@ -2402,7 +2317,6 @@ ifelse <- function(test, yes, no) {
 #' 
 #' # call ifelse function
 #' if_else_xyz <- ifelse(x_i, y_j, z_i)
-#' }
 #' @export
 ifelse.LazyTensor <- function(test, yes, no) {
     if((is.ComplexLazyTensor(test) || is.ComplexLazyTensor(yes)) 
@@ -2433,7 +2347,6 @@ ifelse.LazyTensor <- function(test, yes, no) {
 #' (if existing).
 #' @seealso [rkeops::mod.LazyTensor()]
 #' @examples
-#' \dontrun{
 #' # basic example
 #' D <- 3
 #' M <- 100
@@ -2451,7 +2364,6 @@ ifelse.LazyTensor <- function(test, yes, no) {
 #' 
 #' # works also with LazyTensors with same inner dimension or dimension 1
 #' mod_xyz <- mod(x_i, y_j, z_i)
-#' }
 #' @export
 mod <- function(x, ...) {
     UseMethod("mod", x)
@@ -2482,7 +2394,6 @@ mod <- function(x, ...) {
 #' corresponding generic function.
 #' @return An object of class `LazyTensor`.
 #' @examples
-#' \dontrun{
 #' # basic example
 #' D <- 3
 #' M <- 100
@@ -2500,7 +2411,6 @@ mod <- function(x, ...) {
 #' 
 #' # works also with LazyTensors with same inner dimension or dimension 1
 #' mod_xyz <- mod(x_i, y_j, z_i)
-#' }
 #' @export
 mod.LazyTensor <- function(x, a, b = 0, ...) {
     return(ternaryop.LazyTensor(x, a, b, "Mod"))
@@ -2522,16 +2432,15 @@ mod.LazyTensor <- function(x, a, b = 0, ...) {
 #' @return An object of class `LazyTensor`.
 #' @seealso [rkeops::|.LazyTensor()]
 #' @examples
-#' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
 #' SqN_x <- sqnorm2(x_i)               # symbolic matrix, 150 rows, 1 columns
-#' }
 #' @export
 sqnorm2 <- function(x) {
     return(
-        unaryop.LazyTensor(x, "SqNorm2", res_type = "LazyTensor", dim_res = 1))
+        unaryop.LazyTensor(x, "SqNorm2", res_type = "LazyTensor", dim_res = 1)
+    )
 }
 
 
@@ -2548,16 +2457,15 @@ sqnorm2 <- function(x) {
 #' @return An object of class `LazyTensor`.
 #' @seealso [rkeops::|.LazyTensor()], [rkeops::sqrt()]
 #' @examples
-#' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
 #' N_x <- norm2(x_i)                   # symbolic matrix, 150 rows and 3 columns
-#' }
 #' @export
 norm2 <- function(x) {
     return(
-        unaryop.LazyTensor(x, "Norm2", res_type = "LazyTensor", dim_res = 1))
+        unaryop.LazyTensor(x, "Norm2", res_type = "LazyTensor", dim_res = 1)
+    )
 }
 
 
@@ -2575,12 +2483,10 @@ norm2 <- function(x) {
 #' @return An object of class `LazyTensor`.
 #' @seealso [rkeops::sqnorm2()], [rkeops::rsqrt()]
 #' @examples
-#' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
 #' N_x <- norm2(x_i)                   # symbolic matrix, 150 rows and 3 columns
-#' }
 #' @export
 normalize <- function(x) {
     return(unaryop.LazyTensor(x, "Normalize"))
@@ -2607,17 +2513,18 @@ normalize <- function(x) {
 #' @return An object of class `LazyTensor`.
 #' @seealso [rkeops::sqnorm2()]
 #' @examples
-#' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
 #'                                     
 #' SqD_x <- sqdist(x_i)                # symbolic matrix, 150 rows and 3 columns
-#' }
 #' @export
 sqdist <- function(x, y) {
-    return(binaryop.LazyTensor(x, y, "SqDist", res_type = "LazyTensor", 
-                               dim_res = 1))
+    return(
+        binaryop.LazyTensor(
+            x, y, "SqDist", res_type = "LazyTensor", dim_res = 1
+        )
+    )
 }
 
 
@@ -2643,7 +2550,6 @@ sqdist <- function(x, y) {
 #' @return An object of class `LazyTensor`.
 #' @seealso [rkeops::sqnorm2()], [rkeops::weightedsqdist()]
 #' @examples
-#' \dontrun{
 #' x <- matrix(runif(100 * 3), 100, 3) # arbitrary R matrix, 100 rows, 3 columns
 #' s <- matrix(runif(100 * 3), 100, 3) # arbitrary R matrix, 100 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
@@ -2651,13 +2557,14 @@ sqdist <- function(x, y) {
 #' s_j <- LazyTensor(s, index = 'j')   # creating LazyTensor from matrix s, 
 #'                                     # indexed by 'j'
 #' wsqn_xy <- weightedsqnorm(x_i, s_j) # symbolic matrix, 100 rows,1 columns
-#' }
 #' @export
 weightedsqnorm <- function(x, s) {
-    return(binaryop.LazyTensor(s, x, "WeightedSqNorm",
-                               dim_check_type = NA,
-                               res_type = "LazyTensor",
-                               dim_res = 1))
+    return(
+        binaryop.LazyTensor(
+            s, x, "WeightedSqNorm", dim_check_type = NA,
+            res_type = "LazyTensor", dim_res = 1
+        )
+    )
 }
 
 
@@ -2685,7 +2592,6 @@ weightedsqnorm <- function(x, s) {
 #' @return An object of class `LazyTensor`.
 #' @seealso [rkeops::weightedsqnorm()], [rkeops::sqdist()]
 #' @examples
-#' \dontrun{
 #' x <- matrix(runif(100 * 3), 100, 3) # arbitrary R matrix, 100 rows, 3 columns
 #' y <- matrix(runif(100 * 3), 100, 3) # arbitrary R matrix, 100 rows, 3 columns
 #' s <- matrix(runif(100 * 3), 100, 3) # arbitrary R matrix, 100 rows, 3 columns
@@ -2698,7 +2604,6 @@ weightedsqnorm <- function(x, s) {
 #'                                     # indexed by 'i'
 #' 
 #' wsqd_xy <- weightedsqdist(x_i, y_j, s_i)    # symbolic matrix
-#' }
 #' @export
 weightedsqdist <- function(x, y, s) {
     return(weightedsqnorm(x - y, s))
@@ -2737,7 +2642,6 @@ Re.default <- function(z) {
 #' @seealso [rkeops::Re.default()], [rkeops::Re.LazyTensor()], 
 #' [rkeops::Im()], [rkeops::Arg()], [rkeops::Mod()], [rkeops::Conj()]
 #' @examples
-#' \dontrun{
 #' # R base operation
 #' Re(1)
 #' Re(1+1i)
@@ -2745,7 +2649,6 @@ Re.default <- function(z) {
 #' z <- matrix(2 + 1i^ (-6:5), nrow = 4)        # complex matrix
 #' z_i <- LazyTensor(z, "i", is_complex = TRUE) # creating ComplexLazyTensor
 #' Re_z <- Re(z_i)                              # symbolic matrix
-#' }
 #' @export
 Re <- function(z) {
     UseMethod("Re", z)
@@ -2768,11 +2671,9 @@ Re <- function(z) {
 #' @return An object of class `ComplexLazyTensor`.
 #' @seealso [rkeops::Re()]
 #' @examples
-#' \dontrun{
 #' z <- matrix(2 + 1i^ (-6:5), nrow = 4)        # complex matrix
 #' z_i <- LazyTensor(z, "i", is_complex = TRUE) # creating ComplexLazyTensor
 #' Re_z <- Re(z_i)                              # symbolic matrix
-#' }
 #' @export
 Re.LazyTensor <- function(z) {
     msg <- paste(
@@ -2816,7 +2717,6 @@ Im.default <- function(z) {
 #' @seealso [rkeops::Im.default()], [rkeops::Im.LazyTensor()], 
 #' [rkeops::Re()], [rkeops::Arg()], [rkeops::Mod()], [rkeops::Conj()]
 #' @examples
-#' \dontrun{
 #' # R base operation
 #' Im(1)
 #' Im(1+1i)
@@ -2824,7 +2724,6 @@ Im.default <- function(z) {
 #' z <- matrix(2 + 1i^ (-6:5), nrow = 4)         # complex matrix
 #' z_i <- LazyTensor(z, "i", is_complex = TRUE)  # creating ComplexLazyTensor
 #' Im_z <- Im(z_i)                               # symbolic matrix
-#' }
 #' @export
 Im <- function(z) {
     UseMethod("Im", z)
@@ -2847,11 +2746,9 @@ Im <- function(z) {
 #' @return An object of class `ComplexLazyTensor`.
 #' @seealso [rkeops::Im()]
 #' @examples
-#' \dontrun{
 #' z <- matrix(2 + 1i^ (-6:5), nrow = 4)        # complex matrix
 #' z_i <- LazyTensor(z, "i", is_complex = TRUE) # creating ComplexLazyTensor
 #' Im_z <- Im(z_i)                              # symbolic matrix
-#' }
 #' @export
 Im.LazyTensor <- function(z) {
     msg <- paste(
@@ -2895,7 +2792,6 @@ Arg.default <- function(z) {
 #' @seealso [rkeops::Arg.default()], [rkeops::Arg.LazyTensor()], 
 #' [rkeops::Re()], [rkeops::Im()], [rkeops::Mod()], [rkeops::Conj()]
 #' @examples
-#' \dontrun{
 #' # R base operation
 #' Arg(1)
 #' Arg(1+1i)
@@ -2903,7 +2799,6 @@ Arg.default <- function(z) {
 #' z <- matrix(2 + 1i^ (-6:5), nrow = 4)         # complex matrix
 #' z_i <- LazyTensor(z, "i", is_complex = TRUE)  # creating ComplexLazyTensor
 #' Arg_z <- Arg(z_i)                             # symbolic matrix
-#' }
 #' @export
 Arg <- function(z) {
     UseMethod("Arg", z)
@@ -2926,11 +2821,9 @@ Arg <- function(z) {
 #' @return An object of class `ComplexLazyTensor`.
 #' @seealso [rkeops::Arg()]
 #' @examples
-#' \dontrun{
 #' z <- matrix(2 + 1i^ (-6:5), nrow = 4)        # complex matrix
 #' z_i <- LazyTensor(z, "i", is_complex = TRUE) # creating ComplexLazyTensor
 #' Arg_z <- Arg(z_i)                            # symbolic matrix
-#' }
 #' @export
 Arg.LazyTensor <- function(z) {
     msg <- paste(
@@ -2966,12 +2859,10 @@ Arg.ComplexLazyTensor <- function(z) {
 #' @param x a `LazyTensor`.
 #' @return An object of class `ComplexLazyTensor`.
 #' @examples
-#' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, "i")           # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
 #' z <- real2complex(x_i)              # ComplexLazyTensor object
-#' }
 #' @export
 real2complex <- function(x) {
     UseMethod("real2complex", x)
@@ -2985,7 +2876,8 @@ real2complex <- function(x) {
 real2complex.LazyTensor <- function(x) {
     cplx_warning()
     return(
-        unaryop.LazyTensor(x, "Real2Complex", res_type = "ComplexLazyTensor"))
+        unaryop.LazyTensor(x, "Real2Complex", res_type = "ComplexLazyTensor")
+    )
 }
 
 #' Element-wise "real to complex" operation
@@ -3014,12 +2906,10 @@ real2complex.ComplexLazyTensor <- function(x) {
 #' @param x a `LazyTensor`.
 #' @return An object of class `ComplexLazyTensor`.
 #' @examples
-#' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, "i")           # creating LazyTensor from matrix x,
 #'                                     # indexed by 'i'
 #' z <- imag2complex(x_i)              # ComplexLazyTensor object
-#' }
 #' @export
 imag2complex <- function(x) {
     UseMethod("imag2complex", x)
@@ -3031,7 +2921,8 @@ imag2complex <- function(x) {
 #' @export
 imag2complex.LazyTensor <- function(x) {
     return(
-        unaryop.LazyTensor(x, "Imag2Complex", res_type = "ComplexLazyTensor"))
+        unaryop.LazyTensor(x, "Imag2Complex", res_type = "ComplexLazyTensor")
+    )
 }
 
 #' Element-wise "imag 2 complex" operation
@@ -3059,12 +2950,10 @@ imag2complex.ComplexLazyTensor <- function(x) {
 #' @param x A `LazyTensor`.
 #' @return An object of class "ComplexLazyTensor".
 #' @examples
-#' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, "i")           # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
 #' z <- exp1j(x_i)                     # ComplexLazyTensor object
-#' }
 #' @export
 exp1j <- function(x) {
     UseMethod("exp1j", x)
@@ -3076,7 +2965,8 @@ exp1j <- function(x) {
 #' @export
 exp1j.LazyTensor <- function(x) {
     return(
-        unaryop.LazyTensor(x, "ComplexExp1j", res_type = "ComplexLazyTensor"))
+        unaryop.LazyTensor(x, "ComplexExp1j", res_type = "ComplexLazyTensor")
+    )
 }
 
 #' Element-wise "complex exponential of 1j x" operation
@@ -3112,7 +3002,6 @@ Conj.default <- function(z) {
 #' @seealso [rkeops::Conj.default()], [rkeops::Conj.LazyTensor()], 
 #' [rkeops::Re()], [rkeops::Im()], [rkeops::Arg()], [rkeops::Mod()]
 #' @examples
-#' \dontrun{
 #' # R base operation
 #' Conj(1)
 #' Conj(1+1i)
@@ -3120,7 +3009,6 @@ Conj.default <- function(z) {
 #' z <- matrix(1i^ (-6:5), nrow = 4)                     # complex 4x3 matrix
 #' z_i <- LazyTensor(z, index = 'i', is_complex = TRUE)  # ComplexLazyTensor
 #' Conj_z_i <- Conj(z_i)                                 # symbolic matrix
-#' }
 #' @export
 Conj <- function(z) { 
     UseMethod("Conj", z)
@@ -3143,11 +3031,9 @@ Conj <- function(z) {
 #' @return An object of class `ComplexLazyTensor`.
 #' @seealso [rkeops::Conj()]
 #' @examples
-#' \dontrun{
 #' z <- matrix(1i^ (-6:5), nrow = 4)                     # complex 4x3 matrix
 #' z_i <- LazyTensor(z, index = 'i', is_complex = TRUE)  # ComplexLazyTensor
 #' Conj_z_i <- Conj(z_i)                                 # symbolic matrix
-#' }
 #' @export
 Conj.LazyTensor <- function(z) {
     msg <- paste(
@@ -3193,7 +3079,6 @@ Mod.default <- function(z) {
 #' @seealso [rkeops::Mod.default()], [rkeops::Mod.LazyTensor()], 
 #' [rkeops::Re()], [rkeops::Im()], [rkeops::Arg()], [rkeops::Conj()]
 #' @examples
-#' \dontrun{
 #' # R base operation
 #' Mod(1)
 #' Mod(1+1i)
@@ -3201,7 +3086,6 @@ Mod.default <- function(z) {
 #' z <- matrix(1i^ (-6:5), nrow = 4)                     # complex 4x3 matrix
 #' z_i <- LazyTensor(z, index = 'i', is_complex = TRUE)  # ComplexLazyTensor
 #' Mod_z_i <- Mod(z_i)                                   # symbolic matrix
-#' }
 #' @export
 Mod <- function(z) { 
     UseMethod("Mod", z)
@@ -3226,11 +3110,9 @@ Mod <- function(z) {
 #' @return An object of class `ComplexLazyTensor`.
 #' @seealso [rkeops::Mod()]
 #' @examples
-#' \dontrun{
 #' z <- matrix(1i^ (-6:5), nrow = 4)                     # complex 4x3 matrix
 #' z_i <- LazyTensor(z, index = 'i', is_complex = TRUE)  # ComplexLazyTensor
 #' Mod_z_i <- Mod(z_i)                                   # symbolic matrix
-#' }
 #' @export
 Mod.LazyTensor <- function(z) {
     msg <- paste(
@@ -3270,13 +3152,11 @@ Mod.ComplexLazyTensor <- function(z) {
 #' the element of `x` that will be extracted.
 #' @return a `LazyTensor` or a `ComplexLazyTensor`.
 #' @examples
-#' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # LazyTensor from matrix x, indexed by 'i'
 #' m <- 2
 #' 
 #' elem_x <- elem(x_i, m)  # symbolic `m+1`-th element of `x_i`.
-#' }
 #' @export
 elem <- function(x, m) {
     if(!is.int(m)) {
@@ -3315,7 +3195,6 @@ elem <- function(x, m) {
 #' @param n an `integer` corresponding to the length of the vector of zeros.
 #' @return a `LazyTensor` or a `ComplexLazyTensor`.
 #' @examples
-#' \dontrun{
 #' # basic example
 #' x <- 3.14              # arbitrary value
 #' Pm_x <- LazyTensor(x)  # creating scalar parameter LazyTensor from x
@@ -3324,7 +3203,6 @@ elem <- function(x, m) {
 #' n <- 3
 #' 
 #' elemT_x <- elemT(Pm_x, m, n)  # symbolic vector
-#' }
 #' @export
 elemT <- function(x, m, n) {
     if(!is.LazyParameter(x) && !is.ComplexLazyParameter(x)) {
@@ -3369,7 +3247,6 @@ elemT <- function(x, m, n) {
 #' of consecutive elements from `x` that will be extracted.
 #' @return a `LazyTensor`.
 #' @examples
-#' \dontrun{
 #' # Two very rudimentary examples
 #' # -----------------------------
 #' 
@@ -3418,7 +3295,6 @@ elemT <- function(x, m, n) {
 #' d <- 2
 #' 
 #' extract_x <- extract(x_i, m, d) # symbolic matrix
-#' }
 #' @export
 extract <- function(x, m, d) {
     # type check
@@ -3438,9 +3314,11 @@ extract <- function(x, m, d) {
                   D, "-m] where `m` is the starting index.", sep = "")
         )
     }
-    return(unaryop.LazyTensor(x, "Extract",
-                              opt_arg = m, opt_arg2 = d,
-                              dim_res = d))
+    return(
+        unaryop.LazyTensor(
+            x, "Extract", opt_arg = m, opt_arg2 = d, dim_res = d
+        )
+    )
 }
 
 
@@ -3471,7 +3349,6 @@ extract <- function(x, m, d) {
 #' @param d an `integer` corresponding to the output inner dimension.
 #' @return A `LazyTensor`.
 #' @examples
-#' \dontrun{
 #' # I - Three very rudimentary examples
 #' # -----------------------------------
 #' 
@@ -3530,7 +3407,6 @@ extract <- function(x, m, d) {
 #' d <- 7
 #' 
 #' extractT_x <- extractT(x_i, m, d)   # symbolic matrix
-#' }
 #' @export
 extractT <- function(x, m, d) {
     # type checking
@@ -3576,20 +3452,20 @@ extractT <- function(x, m, d) {
 #' @return a `LazyTensor` or a `ComplexLazyTensor` that encodes, symbolically,
 #' the concatenation of `x` and `y` along their inner dimension.
 #' @examples
-#' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' y <- matrix(runif(250 * 3), 250, 3) # arbitrary R matrix, 250 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # LazyTensor from matrix x, indexed by 'i'
 #' y_j <- LazyTensor(y, index = 'j')   # LazyTensor from matrix x, indexed by 'j'
 #' 
 #' concat_xy <- concat(x_i, y_j)
-#' }
 #' @export
 concat <- function(x, y) {
     dim_res <- get_inner_dim(x) + get_inner_dim(y)
-    return(binaryop.LazyTensor(x, y, "Concat",
-                               dim_check_type = NA,
-                               dim_res = dim_res))
+    return(
+        binaryop.LazyTensor(
+            x, y, "Concat", dim_check_type = NA, dim_res = dim_res
+        )
+    )
 }
 
 
@@ -3606,13 +3482,11 @@ concat <- function(x, y) {
 #' @param D an `integer` corresponding to the output dimension.
 #' @return a `LazyTensor`.
 #' @examples
-#' \dontrun{
 #' A <- 7
 #' A_LT <- LazyTensor(A) # LazyTensor from scalar A
 #' D <- 7
 #' 
 #' onehot_x <- one_hot(A_LT, D) # symbolic vector of length D
-#' }
 #' @export
 one_hot <- function(x, D) {
     if((!is.LazyTensor(x)) || (is.ComplexLazyTensor(x))) {
@@ -3652,14 +3526,12 @@ one_hot <- function(x, D) {
 #' @param v a `LazyTensor` or a `ComplexLazyTensor` encoding a parameter vector.
 #' @return a `LazyTensor` or a `ComplexLazyTensor`. 
 #' @examples
-#' \dontrun{
 #' m <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' v <- c(1,2,3)                       # arbitrary R vector of length 3
 #' m_i <- LazyTensor(m, index = 'i')   # LazyTensor from matrix m, indexed by 'i'
 #' Pm_v <- LazyTensor(v)               # parameter vector LazyTensor from v
 #' 
 #' mv_mult <- matvecmult(m_i, Pm_v)    # symbolic matrix
-#' }
 #' @export
 matvecmult <- function(m, v) {
     if(!is.LazyMatrix(m)) {
@@ -3702,14 +3574,12 @@ matvecmult <- function(m, v) {
 #' @param m a `LazyTensor` or a `ComplexLazyTensor` encoding a matrix.
 #' @return a `LazyTensor` or a `ComplexLazyTensor`.
 #' @examples
-#' \dontrun{
 #' v <- c(1,2,3)                        # arbitrary R vector of length 3
 #' m <- matrix(runif(150 * 3), 150, 3)  # arbitrary R matrix, 150 rows, 3 columns
 #' Pm_v <- LazyTensor(v)                # parameter vector LazyTensor from v
 #' m_i <- LazyTensor(m, index = 'i')    # LazyTensor from matrix m, indexed by 'i'
 #' 
 #' vm_mult <- vecmatmult(Pm_v, m_i)     # symbolic matrix
-#' }
 #' @export
 vecmatmult <- function(v, m) {
     if(!is.LazyVector(v)) {
@@ -3750,15 +3620,12 @@ vecmatmult <- function(v, m) {
 #' @param y a `LazyTensor` or a `ComplexLazyTensor`. 
 #' @return a `LazyTensor` or a `ComplexLazyTensor`.
 #' @examples
-#' \dontrun{
 #' x <- matrix(c(1, 2, 3), 2, 3)       # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # LazyTensor from matrix x, indexed by 'i'
 #' y <- matrix(c(1, 1, 1), 2, 3)       # arbitrary R matrix, 200 rows, 3 columns
 #' y_i <- LazyTensor(y, index = 'i')   # LazyTensor from matrix y, indexed by 'i'
 #' 
-#' tp_xy <- tensorprod(x_i, y_i) # symbolic (4, 9) matrix. 
-#' 
-#' }
+#' tp_xy <- tensorprod(x_i, y_i) # symbolic (4, 9) matrix.
 #' @export
 tensorprod <- function(x, y) {
     dim_res <- x$dimres * y$dimres
@@ -3789,12 +3656,23 @@ tensorprod <- function(x, y) {
 #' if not used (default).
 #' @return an array storing the result of the specified reduction.
 #' @examples
-#' \dontrun{
+#' \donttest{
+#' \dontshow{
+#' # Setup for example runs (not necessary for standard use)
+#' reticulate::py_available(initialize = TRUE)
+#' set_rkeops_options()
+#' # For build on CRAN, use CPU computing with 2 cores max
+#' rkeops_use_cpu(ncore = 2)
+#' }
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
 #' 
 #' red_x <- reduction.LazyTensor(x_i, "Sum", "i")
+#' \dontshow{
+#' # clean-up (primary for CRAN build)
+#' clean_rkeops()
+#' }
 #' }
 #' @export
 reduction.LazyTensor <- function(x, opstr, index, opt_arg = NULL) {
@@ -3850,10 +3728,17 @@ sum.default <- function(...) {
 #' [rkeops::sum.LazyTensor()].
 #' @return Sum of input.
 #' @examples
-#' \dontrun{
 #' # R base operation
 #' sum(1:10)
 #' sum(c(NA, 1, 2), na.rm = TRUE)
+#' \donttest{
+#' \dontshow{
+#' # Setup for example runs (not necessary for standard use)
+#' reticulate::py_available(initialize = TRUE)
+#' set_rkeops_options()
+#' # For build on CRAN, use CPU computing with 2 cores max
+#' rkeops_use_cpu(ncore = 2)
+#' }
 #' # LazyTensor operation
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
@@ -3861,6 +3746,10 @@ sum.default <- function(...) {
 #' 
 #' sum_x <- sum(x_i)                   # LazyTensor object
 #' sum_red_x <- sum(x_i, "i")          # sum reduction indexed by 'i'
+#' \dontshow{
+#' # clean-up (primary for CRAN build)
+#' clean_rkeops()
+#' }
 #' }
 #' @export
 sum <- function(x, ...) {
@@ -3892,15 +3781,25 @@ sum <- function(x, ...) {
 #' the specified sum reduction otherwise.
 #' @seealso [rkeops::sum_reduction()]
 #' @examples
-#' \dontrun{
+#' \donttest{
+#' \dontshow{
+#' # Setup for example runs (not necessary for standard use)
+#' reticulate::py_available(initialize = TRUE)
+#' set_rkeops_options()
+#' # For build on CRAN, use CPU computing with 2 cores max
+#' rkeops_use_cpu(ncore = 2)
+#' }
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
 #' 
 #' sum_x <- sum(x_i)                   # LazyTensor object
 #' sum_red_x <- sum(x_i, "i")          # sum reduction indexed by 'i'
+#' \dontshow{
+#' # clean-up (primary for CRAN build)
+#' clean_rkeops()
 #' }
-#' 
+#' }
 #' @export
 sum.LazyTensor <- function(x, index = NA, ...) {
     
@@ -3931,12 +3830,23 @@ sum.LazyTensor <- function(x, index = NA, ...) {
 #' @details **Note**: `index` input argument cannot be `NA` for the 
 #' `sum_reduction()` function.
 #' @examples
-#' \dontrun{
+#' \donttest{
+#' \dontshow{
+#' # Setup for example runs (not necessary for standard use)
+#' reticulate::py_available(initialize = TRUE)
+#' set_rkeops_options()
+#' # For build on CRAN, use CPU computing with 2 cores max
+#' rkeops_use_cpu(ncore = 2)
+#' } 
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
 #' 
 #' sum_reduction(x_i, "i")
+#' \dontshow{
+#' # clean-up (primary for CRAN build)
+#' clean_rkeops()
+#' }
 #' }
 #' @export
 sum_reduction <- function(x, index) {
@@ -3978,10 +3888,17 @@ min.default <- function(...) {
 #' [rkeops::min.LazyTensor()].
 #' @return Minimum of input.
 #' @examples
-#' \dontrun{
 #' # R base operation
 #' min(1:10)
 #' min(c(NA, 1, 2), na.rm = TRUE)
+#' \donttest{
+#' \dontshow{
+#' # Setup for example runs (not necessary for standard use)
+#' reticulate::py_available(initialize = TRUE)
+#' set_rkeops_options()
+#' # For build on CRAN, use CPU computing with 2 cores max
+#' rkeops_use_cpu(ncore = 2)
+#' }
 #' # LazyTensor operation
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
@@ -3989,6 +3906,10 @@ min.default <- function(...) {
 #' 
 #' min_x <- min(x_i)                   # LazyTensor object
 #' min_red_x <- min(x_i, "i")          # min reduction indexed by 'i'
+#' \dontshow{
+#' # clean-up (primary for CRAN build)
+#' clean_rkeops()
+#' }
 #' }
 #' @export
 min <- function(x, ...) {
@@ -4020,13 +3941,24 @@ min <- function(x, ...) {
 #' @return a `LazyTensor` if `index = NA` or an array storing the result of 
 #' the specified min reduction otherwise.
 #' @examples
-#' \dontrun{
+#' \donttest{
+#' \dontshow{
+#' # Setup for example runs (not necessary for standard use)
+#' reticulate::py_available(initialize = TRUE)
+#' set_rkeops_options()
+#' # For build on CRAN, use CPU computing with 2 cores max
+#' rkeops_use_cpu(ncore = 2)
+#' }
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
 #' 
 #' min_x <- min(x_i)                   # LazyTensor object
 #' min_red_x <- min(x_i, "i")          # min reduction indexed by 'i'
+#' \dontshow{
+#' # clean-up (primary for CRAN build)
+#' clean_rkeops()
+#' }
 #' }
 #' @export
 min.LazyTensor <- function(x, index = NA, ...) {
@@ -4049,12 +3981,22 @@ min.LazyTensor <- function(x, index = NA, ...) {
 #' @details **Note**: `index` input argument cannot be `NA` for the 
 #' `min_reduction()` function.
 #' @examples
-#' \dontrun{
+#' \dontshow{
+#' # Setup for example runs (not necessary for standard use)
+#' reticulate::py_available(initialize = TRUE)
+#' set_rkeops_options()
+#' # For build on CRAN, use CPU computing with 2 cores max
+#' rkeops_use_cpu(ncore = 2)
+#' }
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
 #' 
 #' min_reduction(x_i, "i")
+#' \dontshow{
+#' # clean-up (primary for CRAN build)
+#' clean_rkeops()
+#' }
 #' }
 #' @export
 min_reduction <- function(x, index) {
@@ -4095,13 +4037,24 @@ min_reduction <- function(x, index) {
 #' the specified argmin reduction otherwise.
 #' @seealso [rkeops::argmin_reduction()]
 #' @examples
-#' \dontrun{
+#' \donttest{
+#' \dontshow{
+#' # Setup for example runs (not necessary for standard use)
+#' reticulate::py_available(initialize = TRUE)
+#' set_rkeops_options()
+#' # For build on CRAN, use CPU computing with 2 cores max
+#' rkeops_use_cpu(ncore = 2)
+#' }
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
 #' 
 #' argmin_xi <- argmin(x_i, "i")  # argmin reduction indexed by 'i'
 #' argmin_x <- argmin(x_i)        # symbolic matrix
+#' \dontshow{
+#' # clean-up (primary for CRAN build)
+#' clean_rkeops()
+#' }
 #' }
 #' @export
 argmin <- function(x, index = NA) {
@@ -4124,12 +4077,23 @@ argmin <- function(x, index = NA) {
 #' @details **Note**: `index`  input argument cannot be `NA` for the 
 #' `argmin_reduction()` function.
 #' @examples
-#' \dontrun{
+#' \donttest{
+#' \dontshow{
+#' # Setup for example runs (not necessary for standard use)
+#' reticulate::py_available(initialize = TRUE)
+#' set_rkeops_options()
+#' # For build on CRAN, use CPU computing with 2 cores max
+#' rkeops_use_cpu(ncore = 2)
+#' }
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
 #' 
 #' argmin_red <- argmin(x_i, "i")      # argmin reduction indexed by 'i'
+#' \dontshow{
+#' # clean-up (primary for CRAN build)
+#' clean_rkeops()
+#' }
 #' }
 #' @export
 argmin_reduction <- function(x, index) {
@@ -4164,12 +4128,23 @@ argmin_reduction <- function(x, index) {
 #' @return an array storing the result of the specified Min-ArgMin 
 #' reduction otherwise.
 #' @examples
-#' \dontrun{
+#' \donttest{
+#' \dontshow{
+#' # Setup for example runs (not necessary for standard use)
+#' reticulate::py_available(initialize = TRUE)
+#' set_rkeops_options()
+#' # For build on CRAN, use CPU computing with 2 cores max
+#' rkeops_use_cpu(ncore = 2)
+#' }
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
 #' 
 #' min_argmin_xi <- min_argmin(x_i, "i")  # min argmin reduction indexed by 'i'
+#' \dontshow{
+#' # clean-up (primary for CRAN build)
+#' clean_rkeops()
+#' }
 #' }
 #' @export
 min_argmin <- function(x, index) {
@@ -4187,12 +4162,23 @@ min_argmin <- function(x, index) {
 #' @name min_argmin
 #' @aliases min_argmin_reduction
 #' @examples
-#' \dontrun{
+#' \donttest{
+#' \dontshow{
+#' # Setup for example runs (not necessary for standard use)
+#' reticulate::py_available(initialize = TRUE)
+#' set_rkeops_options()
+#' # For build on CRAN, use CPU computing with 2 cores max
+#' rkeops_use_cpu(ncore = 2)
+#' }
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
 #' 
 #' min_argmin_red <- min_argmin_reduction(x_i, "i") # min reduction indexed by 'i'
+#' \dontshow{
+#' # clean-up (primary for CRAN build)
+#' clean_rkeops()
+#' }
 #' }
 #' @export
 min_argmin_reduction <- function(x, index) {
@@ -4231,10 +4217,17 @@ max.default <- function(...) {
 #' [rkeops::max.LazyTensor()].
 #' @return Maximum of input.
 #' @examples
-#' \dontrun{
 #' # R base operation
 #' max(1:10)
 #' max(c(NA, 1, 2), na.rm = TRUE)
+#' \donttest{
+#' \dontshow{
+#' # Setup for example runs (not necessary for standard use)
+#' reticulate::py_available(initialize = TRUE)
+#' set_rkeops_options()
+#' # For build on CRAN, use CPU computing with 2 cores max
+#' rkeops_use_cpu(ncore = 2)
+#' }
 #' # LazyTensor operation
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
@@ -4242,6 +4235,10 @@ max.default <- function(...) {
 #' 
 #' max_x <- max(x_i)                   # LazyTensor object
 #' max_red_x <- max(x_i, "i")          # max reduction indexed by 'i'
+#' \dontshow{
+#' # clean-up (primary for CRAN build)
+#' clean_rkeops()
+#' }
 #' }
 #' @export
 max <- function(x, ...) {
@@ -4279,13 +4276,24 @@ max <- function(x, ...) {
 #' the specified max reduction otherwise.
 #' @seealso [rkeops::max_reduction()]
 #' @examples
-#' \dontrun{
+#' \donttest{
+#' \dontshow{
+#' # Setup for example runs (not necessary for standard use)
+#' reticulate::py_available(initialize = TRUE)
+#' set_rkeops_options()
+#' # For build on CRAN, use CPU computing with 2 cores max
+#' rkeops_use_cpu(ncore = 2)
+#' }
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
 #' 
 #' max_x <- max(x_i)                   # LazyTensor object
 #' max_red_x <- max(x_i, "i")          # max reduction indexed by 'i'
+#' \dontshow{
+#' # clean-up (primary for CRAN build)
+#' clean_rkeops()
+#' }
 #' }
 #' @export
 max.LazyTensor <- function(x, index = NA, ...) {
@@ -4308,12 +4316,23 @@ max.LazyTensor <- function(x, index = NA, ...) {
 #' @details **Note**: `index` input argument cannot be `NA` for the 
 #' `max_reduction()` function.
 #' @examples
-#' \dontrun{
+#' \donttest{
+#' \dontshow{
+#' # Setup for example runs (not necessary for standard use)
+#' reticulate::py_available(initialize = TRUE)
+#' set_rkeops_options()
+#' # For build on CRAN, use CPU computing with 2 cores max
+#' rkeops_use_cpu(ncore = 2)
+#' }
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
 #' 
 #' max_reduction(x_i, "i")
+#' \dontshow{
+#' # clean-up (primary for CRAN build)
+#' clean_rkeops()
+#' }
 #' }
 #' @export
 max_reduction <- function(x, index) {
@@ -4352,13 +4371,24 @@ max_reduction <- function(x, index) {
 #' the specified argmax reduction otherwise.
 #' @seealso [rkeops::argmax_reduction()]
 #' @examples
-#' \dontrun{
+#' \donttest{
+#' \dontshow{
+#' # Setup for example runs (not necessary for standard use)
+#' reticulate::py_available(initialize = TRUE)
+#' set_rkeops_options()
+#' # For build on CRAN, use CPU computing with 2 cores max
+#' rkeops_use_cpu(ncore = 2)
+#' }
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
 #' 
 #' argmax_xi <- argmax(x_i, "i")  # argmax reduction indexed by 'i'
 #' argmax_x <- argmax(x_i)        # symbolic matrix
+#' \dontshow{
+#' # clean-up (primary for CRAN build)
+#' clean_rkeops()
+#' }
 #' }
 #' @export
 argmax <- function(x, index = NA) {
@@ -4382,12 +4412,23 @@ argmax <- function(x, index = NA) {
 #' @details **Note**: `index` input argument cannot be `NA` for the 
 #' `argmax_reduction()` function.
 #' @examples
-#' \dontrun{
+#' \donttest{
+#' \dontshow{
+#' # Setup for example runs (not necessary for standard use)
+#' reticulate::py_available(initialize = TRUE)
+#' set_rkeops_options()
+#' # For build on CRAN, use CPU computing with 2 cores max
+#' rkeops_use_cpu(ncore = 2)
+#' }
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
 #' 
 #' argmax_red <- argmax_reduction(x_i, "i")  # argmax reduction indexed by 'i'
+#' \dontshow{
+#' # clean-up (primary for CRAN build)
+#' clean_rkeops()
+#' }
 #' }
 #' @export
 argmax_reduction <- function(x, index) {
@@ -4422,12 +4463,23 @@ argmax_reduction <- function(x, index) {
 #' @return an array storing the result of the specified Max-ArgMax 
 #' reduction otherwise.
 #' @examples
-#' \dontrun{
+#' \donttest{
+#' \dontshow{
+#' # Setup for example runs (not necessary for standard use)
+#' reticulate::py_available(initialize = TRUE)
+#' set_rkeops_options()
+#' # For build on CRAN, use CPU computing with 2 cores max
+#' rkeops_use_cpu(ncore = 2)
+#' }
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
 #' 
 #' max_argmax_x <- max_argmax(x_i, "i")  # max argmax reduction indexed by 'i'
+#' \dontshow{
+#' # clean-up (primary for CRAN build)
+#' clean_rkeops()
+#' }
 #' }
 #' @export
 max_argmax <- function(x, index) {
@@ -4445,13 +4497,24 @@ max_argmax <- function(x, index) {
 #' @name max_argmax
 #' @aliases max_argmax_reduction
 #' @examples
-#' \dontrun{
+#' \donttest{
+#' \dontshow{
+#' # Setup for example runs (not necessary for standard use)
+#' reticulate::py_available(initialize = TRUE)
+#' set_rkeops_options()
+#' # For build on CRAN, use CPU computing with 2 cores max
+#' rkeops_use_cpu(ncore = 2)
+#' }
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
 #' 
 #' max_argmax_red <- max_argmax_reduction(x_i, "i")  # max argmax reduction 
 #'                                                   # indexed by 'i'
+#' \dontshow{
+#' # clean-up (primary for CRAN build)
+#' clean_rkeops()
+#' }
 #' }
 #' @export
 max_argmax_reduction <- function(x, index) {
@@ -4487,11 +4550,22 @@ max_argmax_reduction <- function(x, index) {
 #' required.
 #' @return A matrix corresponding to the Kmin reduction.
 #' @examples
-#' \dontrun{
+#' \donttest{
+#' \dontshow{
+#' # Setup for example runs (not necessary for standard use)
+#' reticulate::py_available(initialize = TRUE)
+#' set_rkeops_options()
+#' # For build on CRAN, use CPU computing with 2 cores max
+#' rkeops_use_cpu(ncore = 2)
+#' }
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # LazyTensor from matrix x, indexed by 'i'
 #' K <- 2
 #' kmin_x <- Kmin(x_i, K, "i")         # Kmin reduction, over the 'i' indices
+#' \dontshow{
+#' # clean-up (primary for CRAN build)
+#' clean_rkeops()
+#' }
 #' }
 #' @export
 Kmin <- function(x, K, index) {
@@ -4510,11 +4584,22 @@ Kmin <- function(x, K, index) {
 #' @name Kmin
 #' @aliases Kmin_reduction
 #' @examples
-#' \dontrun{
+#' \donttest{
+#' \dontshow{
+#' # Setup for example runs (not necessary for standard use)
+#' reticulate::py_available(initialize = TRUE)
+#' set_rkeops_options()
+#' # For build on CRAN, use CPU computing with 2 cores max
+#' rkeops_use_cpu(ncore = 2)
+#' }
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # LazyTensor from matrix x, indexed by 'i'
 #' K <- 2
 #' kmin_red_x <- Kmin_reduction(x_i, K, "i")   # Kmin reduction, indexed by 'i'
+#' \dontshow{
+#' # clean-up (primary for CRAN build)
+#' clean_rkeops()
+#' }
 #' }
 #' @export
 Kmin_reduction <- function(x, K, index) {
@@ -4548,7 +4633,14 @@ Kmin_reduction <- function(x, K, index) {
 #' required.
 #' @return A matrix corresponding to the argKmin reduction.
 #' @examples
-#' \dontrun{
+#' \donttest{
+#' \dontshow{
+#' # Setup for example runs (not necessary for standard use)
+#' reticulate::py_available(initialize = TRUE)
+#' set_rkeops_options()
+#' # For build on CRAN, use CPU computing with 2 cores max
+#' rkeops_use_cpu(ncore = 2)
+#' }
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
@@ -4556,6 +4648,10 @@ Kmin_reduction <- function(x, K, index) {
 #' argkmin_x <- argKmin(x_i, K, "i")   # argKmin reduction 
 #'                                     # indexed by 'i'
 #' 
+#' \dontshow{
+#' # clean-up (primary for CRAN build)
+#' clean_rkeops()
+#' }
 #' }
 #' @export
 argKmin <- function(x, K, index) {
@@ -4574,13 +4670,24 @@ argKmin <- function(x, K, index) {
 #' @name argKmin
 #' @aliases argKmin_reduction
 #' @examples
-#' \dontrun{
+#' \donttest{
+#' \dontshow{
+#' # Setup for example runs (not necessary for standard use)
+#' reticulate::py_available(initialize = TRUE)
+#' set_rkeops_options()
+#' # For build on CRAN, use CPU computing with 2 cores max
+#' rkeops_use_cpu(ncore = 2)
+#' }
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
 #' K <- 2
 #' argkmin_red_x <- argKmin_reduction(x_i, K, "i")  # argKmin reduction 
 #'                                                  # indexed by 'i'
+#' \dontshow{
+#' # clean-up (primary for CRAN build)
+#' clean_rkeops()
+#' }
 #' }
 #' @export
 argKmin_reduction <- function(x, K, index) {
@@ -4612,7 +4719,14 @@ argKmin_reduction <- function(x, K, index) {
 #' required.
 #' @return A matrix corresponding to the Kmin-argKmin reduction.
 #' @examples
-#' \dontrun{
+#' \donttest{
+#' \dontshow{
+#' # Setup for example runs (not necessary for standard use)
+#' reticulate::py_available(initialize = TRUE)
+#' set_rkeops_options()
+#' # For build on CRAN, use CPU computing with 2 cores max
+#' rkeops_use_cpu(ncore = 2)
+#' }
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
@@ -4620,6 +4734,10 @@ argKmin_reduction <- function(x, K, index) {
 #' k_argk_x <- Kmin_argKmin(x_i, K, "i")  # Kmin-argKmin reduction 
 #'                                        # indexed by 'i'
 #' 
+#' \dontshow{
+#' # clean-up (primary for CRAN build)
+#' clean_rkeops()
+#' }
 #' }
 #' @export
 Kmin_argKmin <- function(x, K, index) {
@@ -4638,7 +4756,14 @@ Kmin_argKmin <- function(x, K, index) {
 #' @name Kmin_argKmin
 #' @aliases Kmin_argKmin_reduction
 #' @examples
-#' \dontrun{
+#' \donttest{
+#' \dontshow{
+#' # Setup for example runs (not necessary for standard use)
+#' reticulate::py_available(initialize = TRUE)
+#' set_rkeops_options()
+#' # For build on CRAN, use CPU computing with 2 cores max
+#' rkeops_use_cpu(ncore = 2)
+#' }
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
@@ -4646,6 +4771,10 @@ Kmin_argKmin <- function(x, K, index) {
 #' K <- 2
 #' k_argk_x <- Kmin_argKmin_reduction(x_i, K, "i")  # Kmin-argKmin reduction 
 #'                                                  # over the "i" indices
+#' \dontshow{
+#' # clean-up (primary for CRAN build)
+#' clean_rkeops()
+#' }
 #' }
 #' @export
 Kmin_argKmin_reduction <- function(x, K, index) {
@@ -4677,7 +4806,14 @@ Kmin_argKmin_reduction <- function(x, K, index) {
 #' specifies scalar or vector-valued weights. `NULL` by default and not used.
 #' @return a matrix corresponding to the Log-Sum-Exp reduction.
 #' @examples
-#' \dontrun{
+#' \donttest{
+#' \dontshow{
+#' # Setup for example runs (not necessary for standard use)
+#' reticulate::py_available(initialize = TRUE)
+#' set_rkeops_options()
+#' # For build on CRAN, use CPU computing with 2 cores max
+#' rkeops_use_cpu(ncore = 2)
+#' }
 #' x <- matrix(runif(150 * 3), 150, 3) 
 #' x_i <- LazyTensor(x, index = 'i') 
 #' y <- matrix(runif(100 * 3), 100, 3)
@@ -4691,6 +4827,10 @@ Kmin_argKmin_reduction <- function(x, K, index) {
 #'                                          
 #' logsumexp_x <- logsumexp(S_ij, 'i')      # logsumexp reduction without
 #'                                          # weight over the 'i' indices
+#' \dontshow{
+#' # clean-up (primary for CRAN build)
+#' clean_rkeops()
+#' }
 #' }
 #' @export
 logsumexp <- function(x, index, weight = NULL) {
@@ -4718,7 +4858,14 @@ logsumexp <- function(x, index, weight = NULL) {
 #' @name logsumexp
 #' @aliases logsumexp_reduction
 #' @examples
-#' \dontrun{
+#' \donttest{
+#' \dontshow{
+#' # Setup for example runs (not necessary for standard use)
+#' reticulate::py_available(initialize = TRUE)
+#' set_rkeops_options()
+#' # For build on CRAN, use CPU computing with 2 cores max
+#' rkeops_use_cpu(ncore = 2)
+#' }
 #' x <- matrix(runif(150 * 3), 150, 3) 
 #' x_i <- LazyTensor(x, index = 'i') 
 #' y <- matrix(runif(100 * 3), 100, 3)
@@ -4732,6 +4879,10 @@ logsumexp <- function(x, index, weight = NULL) {
 #'                                          
 #' logsumexp_x <- logsumexp_reduction(S_ij, 'i')  # logsumexp reduction without
 #'                                                # weight over the 'i' indices
+#' \dontshow{
+#' # clean-up (primary for CRAN build)
+#' clean_rkeops()
+#' }
 #' }
 #' @export
 logsumexp_reduction <- function(x, index, weight = NULL) {
@@ -4761,7 +4912,14 @@ logsumexp_reduction <- function(x, index, weight = NULL) {
 #' specifies scalar or vector-valued weights.
 #' @return a matrix corresponding to the Sum of weighted Soft-Max reduction.
 #' @examples
-#' \dontrun{
+#' \donttest{
+#' \dontshow{
+#' # Setup for example runs (not necessary for standard use)
+#' reticulate::py_available(initialize = TRUE)
+#' set_rkeops_options()
+#' # For build on CRAN, use CPU computing with 2 cores max
+#' rkeops_use_cpu(ncore = 2)
+#' }
 #' x <- matrix(runif(150 * 3), 150, 3) 
 #' x_i <- LazyTensor(x, index = 'i') 
 #' y <- matrix(runif(100 * 3), 100, 3)
@@ -4772,6 +4930,10 @@ logsumexp_reduction <- function(x, index, weight = NULL) {
 #' 
 #' ssmaxweight <- sumsoftmaxweight(S_ij, 'i', V_ij) # sumsoftmaxweight reduction
 #'                                                  # over the 'i' indices
+#' \dontshow{
+#' # clean-up (primary for CRAN build)
+#' clean_rkeops()
+#' }
 #' }
 #' @export
 sumsoftmaxweight <- function(x, index, weight) {
@@ -4792,7 +4954,14 @@ sumsoftmaxweight <- function(x, index, weight) {
 #' @name sumsoftmaxweight
 #' @aliases sumsoftmaxweight_reduction
 #' @examples
-#' \dontrun{
+#' \donttest{
+#' \dontshow{
+#' # Setup for example runs (not necessary for standard use)
+#' reticulate::py_available(initialize = TRUE)
+#' set_rkeops_options()
+#' # For build on CRAN, use CPU computing with 2 cores max
+#' rkeops_use_cpu(ncore = 2)
+#' }
 #' x <- matrix(runif(150 * 3), 150, 3) 
 #' x_i <- LazyTensor(x, index = 'i') 
 #' y <- matrix(runif(100 * 3), 100, 3)
@@ -4803,7 +4972,10 @@ sumsoftmaxweight <- function(x, index, weight) {
 #' 
 #' # sumsoftmaxweight reduction over the 'i' indices
 #' ssmaxw_red <- sumsoftmaxweight_reduction(S_ij, 'i', V_ij) 
-#' 
+#' \dontshow{
+#' # clean-up (primary for CRAN build)
+#' clean_rkeops()
+#' }
 #' }
 #' @export
 sumsoftmaxweight_reduction <- function(x, index, weight) {
@@ -4843,7 +5015,14 @@ sumsoftmaxweight_reduction <- function(x, index, weight) {
 #' be **i** (resp. **j**). 
 #' @return A `matrix`.
 #' @examples
-#' \dontrun{
+#' \donttest{
+#' \dontshow{
+#' # Setup for example runs (not necessary for standard use)
+#' reticulate::py_available(initialize = TRUE)
+#' set_rkeops_options()
+#' # For build on CRAN, use CPU computing with 2 cores max
+#' rkeops_use_cpu(ncore = 2)
+#' }
 #' nx <- 100
 #' ny <- 150
 #' x <- matrix(runif(nx*3), nrow=nx, ncol=3)     # matrix 100 x 3
@@ -4861,6 +5040,10 @@ sumsoftmaxweight_reduction <- function(x, index, weight) {
 #' 
 #' # gradient with the formula from index
 #' grad_xy <- grad(sqnorm2(x_i-y_j), eta_i, "Sum", var = 0, "j")     
+#' \dontshow{
+#' # clean-up (primary for CRAN build)
+#' clean_rkeops()
+#' }
 #' }
 #' @export
 grad <- function(f, gradin, opstr, var, index) {
