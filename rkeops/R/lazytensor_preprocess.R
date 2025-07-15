@@ -58,7 +58,14 @@
 #' (`is_complex = FALSE`).
 #' @return An object of class "LazyTensor" or "ComplexLazyTensor".
 #' @examples
-#' \dontrun{
+#' \donttest{
+#' \dontshow{
+#' # Setup for example runs (not necessary for standard use)
+#' reticulate::py_available(initialize = TRUE)
+#' set_rkeops_options()
+#' # For build on CRAN, use CPU computing with 2 cores max
+#' rkeops_use_cpu(ncore = 2)
+#' }
 #' # Data
 #' nx <- 100
 #' ny <- 150
@@ -89,7 +96,10 @@
 #' z <- matrix(1i^ (-6:5), nrow = 4)                     # create a complex 4x3 matrix
 #' z_i <- LazyTensor(z, index = 'i', is_complex = TRUE)  # create a ComplexLazyTensor, 
 #'                                                       # indexed by 'i'
-#'
+#' \dontshow{
+#' # clean-up (primary for CRAN build)
+#' clean_rkeops()
+#' }
 #' }
 #' @importFrom data.table address
 #' @export
@@ -224,11 +234,9 @@ LazyTensor <- function(x, index = NA, is_complex = FALSE) {
 #' @return An object of class "LazyTensor" indexed by "i". See `?LazyTensor` for 
 #' more details.
 #' @examples
-#' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3)
 #' Vi_x <- Vi(x) # symbolic object representing an arbitrary row of x, 
 #'               # indexed by the letter "i"
-#' }
 #' @export
 Vi <- function(x, is_complex = FALSE){
     if(!is.matrix(x))
@@ -253,11 +261,9 @@ Vi <- function(x, is_complex = FALSE){
 #' (`is_complex = FALSE`).
 #' @return An object of class "LazyTensor" indexed by "j".
 #' @examples
-#' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3)
 #' Vj_x <- Vj(x) # symbolic object representing an arbitrary row of x, 
 #'               # indexed by the letter "j"
-#' }
 #' @export
 Vj <- function(x, is_complex = FALSE){
     if(!is.matrix(x))
@@ -283,10 +289,8 @@ Vj <- function(x, is_complex = FALSE){
 #' @return An object of class "LazyTensor" in parameter category. 
 #' See `?LazyTensor` for more details.
 #' @examples
-#' \dontrun{
 #' x <- 4
 #' Pm_x <- Pm(x)
-#' }
 #' @export
 Pm <- function(x, is_complex = FALSE){
     if(is.LazyTensor(x)) {
@@ -327,7 +331,6 @@ Pm <- function(x, is_complex = FALSE){
 #' inner dimension of the input `LazyTensor`.
 #' @return An object of class "LazyTensor" or "ComplexLazyTensor".
 #' @examples
-#' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
@@ -340,7 +343,6 @@ Pm <- function(x, is_complex = FALSE){
 #' una3_x <- unaryop.LazyTensor(x, "Norm2",
 #'                              res_type = "LazyTensor",
 #'                              dim_res = 1)
-#' }
 #' @export
 unaryop.LazyTensor <- function(x, opstr, opt_arg = NA, opt_arg2 = NA,
                                res_type = NA, dim_res = NA) {
@@ -434,14 +436,12 @@ unaryop.LazyTensor <- function(x, opstr, opt_arg = NA, opt_arg2 = NA,
 #' encoding the binary operation on input LazyTensors.
 #' @return An object of class "LazyTensor".
 #' @examples
-#' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' y <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # LazyTensor from matrix x, indexed by 'i'
 #' y_j <- LazyTensor(y, index = 'j')   # LazyTensor from matrix y, indexed by 'j'
 #' # symbolic matrix:
 #' bin_xy <- binaryop.LazyTensor(x_i, y_j, "+", is_operator = TRUE)
-#' }
 #' @export
 binaryop.LazyTensor <- function(x, y, opstr, is_operator = FALSE,
                                 dim_check_type = "sameor1", res_type = NA,
@@ -601,7 +601,6 @@ binaryop.LazyTensor <- function(x, y, opstr, is_operator = FALSE,
 #' maximum between the inner dimensions of the three input `LazyTensor`s.
 #' @return An object of class "LazyTensor".
 #' @examples
-#' \dontrun{
 #' # basic example
 #' D <- 3
 #' M <- 100
@@ -616,7 +615,6 @@ binaryop.LazyTensor <- function(x, y, opstr, is_operator = FALSE,
 #' 
 #' # symbolic matrix:
 #' tern_xyz <- ternaryop.LazyTensor(x_i, y_j, z_i, "IfElse")
-#' }
 #' @export
 ternaryop.LazyTensor <- function(x, y, z, opstr, dim_check_type = "sameor1",
                                  dim_res = NA) {
@@ -735,7 +733,6 @@ ternaryop.LazyTensor <- function(x, y, z, opstr, dim_check_type = "sameor1",
 #' @param x An object that we want to know if it is a `LazyTensor`.
 #' @return A boolean, TRUE or FALSE.
 #' @examples
-#' \dontrun{
 #' # basic example
 #' D <- 3
 #' M <- 100
@@ -747,7 +744,6 @@ ternaryop.LazyTensor <- function(x, y, z, opstr, dim_check_type = "sameor1",
 #' # call is.LazyTensor
 #' is.LazyTensor(x_i) # returns TRUE
 #' is.LazyTensor(x)   # returns FALSE
-#' }
 #' @export
 is.LazyTensor <- function(x){
     return("LazyTensor" %in% class(x))
@@ -763,7 +759,6 @@ is.LazyTensor <- function(x){
 #' @param x An object that we want to know if it is a `ComplexLazyTensor`.
 #' @return A boolean, TRUE or FALSE.
 #' @examples
-#' \dontrun{
 #' # basic example
 #' D <- 3
 #' M <- 100
@@ -777,7 +772,6 @@ is.LazyTensor <- function(x){
 #' # call is.ComplexLazyTensor
 #' is.ComplexLazyTensor(z_i) # returns TRUE
 #' is.ComplexLazyTensor(x_i) # returns FALSE
-#' }
 #' @export
 is.ComplexLazyTensor <- function(x){
     return("ComplexLazyTensor" %in% class(x))
@@ -796,7 +790,6 @@ is.ComplexLazyTensor <- function(x){
 #' `LazyParameter`.
 #' @return A boolean, TRUE or FALSE.
 #' @examples
-#' \dontrun{
 #' # basic example
 #' scal <- 3.14
 #' cplx <- 2 + 3i
@@ -814,7 +807,6 @@ is.ComplexLazyTensor <- function(x){
 #' is.LazyParameter(cplx_LT) # returns FALSE
 #' is.LazyParameter(v_LT) # returns FALSE
 #' is.LazyParameter(x_i) # returns FALSE
-#' }
 #' @export
 is.LazyParameter <- function(x) {
     if(!is.LazyTensor(x)) {
@@ -842,7 +834,6 @@ is.LazyParameter <- function(x) {
 #' it is a `ComplexLazyParameter`.
 #' @return A boolean, TRUE or FALSE.
 #' @examples
-#' \dontrun{
 #' # basic example
 #' scal <- 3.14
 #' cplx <- 2 + 3i
@@ -860,7 +851,6 @@ is.LazyParameter <- function(x) {
 #' is.ComplexLazyParameter(cplx_LT) # returns TRUE
 #' is.ComplexLazyParameter(v_LT) # returns FALSE
 #' is.ComplexLazyParameter(x_i) # returns FALSE
-#' }
 #' @export
 is.ComplexLazyParameter <- function(x) {
     if(!is.LazyTensor(x)) {
@@ -884,7 +874,6 @@ is.ComplexLazyParameter <- function(x) {
 #' @param x A `LazyTensor` object that we want to know if it is a `LazyVector`.
 #' @return A boolean, TRUE or FALSE.
 #' @examples
-#' \dontrun{
 #' # basic example
 #' scal <- 3.14
 #' cplx <- 2 + 3i
@@ -902,7 +891,6 @@ is.ComplexLazyParameter <- function(x) {
 #' is.LazyVector(cplx_LT) # returns TRUE
 #' is.LazyVector(v_LT) # returns TRUE
 #' is.LazyVector(x_i) # returns FALSE
-#' }
 #' @export
 is.LazyVector <- function(x) {
     if(!is.LazyTensor(x)) {
@@ -922,7 +910,6 @@ is.LazyVector <- function(x) {
 #' @param x A `LazyTensor` object that we want to know if it is a `LazyMatrix`.
 #' @return A boolean, TRUE or FALSE.
 #' @examples
-#' \dontrun{
 #' # basic example
 #' scal <- 3.14
 #' cplx <- 2 + 3i
@@ -940,7 +927,6 @@ is.LazyVector <- function(x) {
 #' is.LazyMatrix(cplx_LT) # returns FALSE
 #' is.LazyMatrix(v_LT) # returns FALSE
 #' is.LazyMatrix(x_i) # returns TRUE
-#' }
 #' @export
 is.LazyMatrix <- function(x) {
     if(!is.LazyTensor(x)) {
@@ -959,7 +945,6 @@ is.LazyMatrix <- function(x) {
 #' @param x An object that we want to know if it is an `integer`.
 #' @return A boolean, TRUE or FALSE.
 #' @examples
-#' \dontrun{
 #' # basic example
 #' A <- 3
 #' B <- 3.4
@@ -968,7 +953,6 @@ is.LazyMatrix <- function(x) {
 #' is.int(A)  # returns TRUE
 #' is.int(B)  # returns FALSE
 #' is.int(C)  # returns FALSE
-#' }
 #' @export
 is.int <- function(x) {
     res <- (is.numeric(x) && length(x) == 1) && ((as.integer(x) - x) == 0)
@@ -1006,6 +990,7 @@ is.int <- function(x) {
 #' get_inner_dim(x_i) # returns 3
 #' get_inner_dim(Pm_s) # returns 1
 #' }
+#' @noRd
 get_inner_dim <- function(x) {
     # Grab `x` inner dimension.
     # `x` must be a LazyTensor or a ComplexLazyTensor.
@@ -1055,6 +1040,7 @@ get_inner_dim <- function(x) {
 #' to specify the desired type of inner dimension verification 
 #' (see @details section).
 #' @return A boolean TRUE or FALSE.
+#' @noRd
 check_inner_dim <- function(x, y, z = NA, check_type = "sameor1") {
     # Inputs must be LazyTensors or ComplexLazyTensors.
     if(!is.LazyTensor(x) || !is.LazyTensor(y)) {
@@ -1113,6 +1099,7 @@ check_inner_dim <- function(x, y, z = NA, check_type = "sameor1") {
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param  index to check.
 #' @return A boolean TRUE or FALSE.
+#' @noRd
 check_index <- function(index){
     res <- is.character(index) && (index %in% c("i", "j"))
     return(res)
@@ -1127,6 +1114,7 @@ check_index <- function(index){
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param index A `character` that should be either `i` or `j`.
 #' @return An `integer`.
+#' @noRd
 index_to_int <- function(index) {
     if(!check_index(index)) {
         stop(paste0("`index` input argument should be a character,",
@@ -1160,6 +1148,7 @@ index_to_int <- function(index) {
 #' arg <- x_i$args[1]                  # argument of the form "A0x.*=Vi(3)"
 #' id <- identifier(arg)               # extracts "A0x.*"
 #' }
+#' @noRd
 identifier <- function(arg){
     if(!is.character(arg)) {
         stop("`arg` input argument should be a character string.")
@@ -1196,6 +1185,7 @@ identifier <- function(arg){
 #' b$formula            # returns "V0+V1"
 #' b$args               # returns a vector containing "V0=Vi(3)" and "V1=Vj(3)"
 #' }
+#' @noRd
 fix_variables <- function(x, is_opt = FALSE) {
     if(!is.LazyTensor(x)) {
         stop("`x` input must be a LazyTensor or a ComplexLazyTensor.")
@@ -1255,6 +1245,7 @@ fix_variables <- function(x, is_opt = FALSE) {
 #' @param with_weight A `boolean` which is `TRUE` when there is an optional 
 #' argument corresponding to a weight argument.
 #' @return A text `string`.
+#' @noRd
 fix_op_reduction <- function(reduction_op, with_weight = FALSE) {
     
     lifecycle::deprecate_warn(
@@ -1313,6 +1304,7 @@ fix_op_reduction <- function(reduction_op, with_weight = FALSE) {
 #' 
 #' op <- preprocess_reduction(x_i, "Sum", "i")
 #' }
+#' @noRd
 preprocess_reduction <- function(x, opstr, index, opt_arg = NULL) {
     
     # init
@@ -1375,7 +1367,8 @@ preprocess_reduction <- function(x, opstr, index, opt_arg = NULL) {
 #' a `ComplexLazyTensor`.
 #' 
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @return A warning message.
+#' @return No return value, raise a warning if requested.
+#' @noRd
 cplx_warning <- function(warn = TRUE) {
     if(warn) {
         msg <- paste(
