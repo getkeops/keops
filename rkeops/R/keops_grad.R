@@ -140,7 +140,7 @@ get_gradient_formula <- function(formula, args, var, args_info) {
 #' @examples
 #' \donttest{
 #' \dontshow{
-#' # Setup for example runs (not necessary for standard use)
+#' # Specific setup for example runs (not necessary for standard use)
 #' reticulate::py_available(initialize = TRUE)
 #' set_rkeops_options()
 #' # For build on CRAN, use CPU computing with 2 cores max
@@ -182,7 +182,7 @@ get_gradient_formula <- function(formula, args, var, args_info) {
 #' input <- list(x, y, eta)
 #' res <- op(input)
 #' \dontshow{
-#' # clean-up (primary for CRAN build)
+#' # clean-up (for CRAN build)
 #' clean_rkeops()
 #' }
 #' }

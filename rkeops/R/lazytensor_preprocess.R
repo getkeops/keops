@@ -60,7 +60,7 @@
 #' @examples
 #' \donttest{
 #' \dontshow{
-#' # Setup for example runs (not necessary for standard use)
+#' # Specific setup for example runs (not necessary for standard use)
 #' reticulate::py_available(initialize = TRUE)
 #' set_rkeops_options()
 #' # For build on CRAN, use CPU computing with 2 cores max
@@ -97,7 +97,7 @@
 #' z_i <- LazyTensor(z, index = 'i', is_complex = TRUE)  # create a ComplexLazyTensor, 
 #'                                                       # indexed by 'i'
 #' \dontshow{
-#' # clean-up (primary for CRAN build)
+#' # clean-up (for CRAN build)
 #' clean_rkeops()
 #' }
 #' }

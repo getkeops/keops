@@ -965,7 +965,7 @@ rsqrt.LazyTensor <- function(x) {
 #' 
 #' \donttest{
 #' \dontshow{
-#' # Setup for example runs (not necessary for standard use)
+#' # Specific setup for example runs (not necessary for standard use)
 #' reticulate::py_available(initialize = TRUE)
 #' set_rkeops_options()
 #' # For build on CRAN, use CPU computing with 2 cores max
@@ -980,7 +980,7 @@ rsqrt.LazyTensor <- function(x) {
 #'                                     # indexed by 'j'
 #' x_mult_y <- x_i %*% y_j             # FIXME
 #' \dontshow{
-#' # clean-up (primary for CRAN build)
+#' # clean-up (for CRAN build)
 #' clean_rkeops()
 #' }
 #' }
@@ -1006,7 +1006,7 @@ rsqrt.LazyTensor <- function(x) {
 #' @examples
 #' \donttest{
 #' \dontshow{
-#' # Setup for example runs (not necessary for standard use)
+#' # Specific setup for example runs (not necessary for standard use)
 #' reticulate::py_available(initialize = TRUE)
 #' set_rkeops_options()
 #' # For build on CRAN, use CPU computing with 2 cores max
@@ -1020,7 +1020,7 @@ rsqrt.LazyTensor <- function(x) {
 #'                                     # indexed by 'j'
 #' x_mult_y <- x_i %*% y_j             # FIXME
 #' \dontshow{
-#' # clean-up (primary for CRAN build)
+#' # clean-up (for CRAN build)
 #' clean_rkeops()
 #' }
 #' }
@@ -3658,7 +3658,7 @@ tensorprod <- function(x, y) {
 #' @examples
 #' \donttest{
 #' \dontshow{
-#' # Setup for example runs (not necessary for standard use)
+#' # Specific setup for example runs (not necessary for standard use)
 #' reticulate::py_available(initialize = TRUE)
 #' set_rkeops_options()
 #' # For build on CRAN, use CPU computing with 2 cores max
@@ -3670,7 +3670,7 @@ tensorprod <- function(x, y) {
 #' 
 #' red_x <- reduction.LazyTensor(x_i, "Sum", "i")
 #' \dontshow{
-#' # clean-up (primary for CRAN build)
+#' # clean-up (for CRAN build)
 #' clean_rkeops()
 #' }
 #' }
@@ -3733,7 +3733,7 @@ sum.default <- function(...) {
 #' sum(c(NA, 1, 2), na.rm = TRUE)
 #' \donttest{
 #' \dontshow{
-#' # Setup for example runs (not necessary for standard use)
+#' # Specific setup for example runs (not necessary for standard use)
 #' reticulate::py_available(initialize = TRUE)
 #' set_rkeops_options()
 #' # For build on CRAN, use CPU computing with 2 cores max
@@ -3747,7 +3747,7 @@ sum.default <- function(...) {
 #' sum_x <- sum(x_i)                   # LazyTensor object
 #' sum_red_x <- sum(x_i, "i")          # sum reduction indexed by 'i'
 #' \dontshow{
-#' # clean-up (primary for CRAN build)
+#' # clean-up (for CRAN build)
 #' clean_rkeops()
 #' }
 #' }
@@ -3783,7 +3783,7 @@ sum <- function(x, ...) {
 #' @examples
 #' \donttest{
 #' \dontshow{
-#' # Setup for example runs (not necessary for standard use)
+#' # Specific setup for example runs (not necessary for standard use)
 #' reticulate::py_available(initialize = TRUE)
 #' set_rkeops_options()
 #' # For build on CRAN, use CPU computing with 2 cores max
@@ -3796,7 +3796,7 @@ sum <- function(x, ...) {
 #' sum_x <- sum(x_i)                   # LazyTensor object
 #' sum_red_x <- sum(x_i, "i")          # sum reduction indexed by 'i'
 #' \dontshow{
-#' # clean-up (primary for CRAN build)
+#' # clean-up (for CRAN build)
 #' clean_rkeops()
 #' }
 #' }
@@ -3832,7 +3832,7 @@ sum.LazyTensor <- function(x, index = NA, ...) {
 #' @examples
 #' \donttest{
 #' \dontshow{
-#' # Setup for example runs (not necessary for standard use)
+#' # Specific setup for example runs (not necessary for standard use)
 #' reticulate::py_available(initialize = TRUE)
 #' set_rkeops_options()
 #' # For build on CRAN, use CPU computing with 2 cores max
@@ -3844,7 +3844,7 @@ sum.LazyTensor <- function(x, index = NA, ...) {
 #' 
 #' sum_reduction(x_i, "i")
 #' \dontshow{
-#' # clean-up (primary for CRAN build)
+#' # clean-up (for CRAN build)
 #' clean_rkeops()
 #' }
 #' }
@@ -3893,7 +3893,7 @@ min.default <- function(...) {
 #' min(c(NA, 1, 2), na.rm = TRUE)
 #' \donttest{
 #' \dontshow{
-#' # Setup for example runs (not necessary for standard use)
+#' # Specific setup for example runs (not necessary for standard use)
 #' reticulate::py_available(initialize = TRUE)
 #' set_rkeops_options()
 #' # For build on CRAN, use CPU computing with 2 cores max
@@ -3907,7 +3907,7 @@ min.default <- function(...) {
 #' min_x <- min(x_i)                   # LazyTensor object
 #' min_red_x <- min(x_i, "i")          # min reduction indexed by 'i'
 #' \dontshow{
-#' # clean-up (primary for CRAN build)
+#' # clean-up (for CRAN build)
 #' clean_rkeops()
 #' }
 #' }
@@ -3943,7 +3943,7 @@ min <- function(x, ...) {
 #' @examples
 #' \donttest{
 #' \dontshow{
-#' # Setup for example runs (not necessary for standard use)
+#' # Specific setup for example runs (not necessary for standard use)
 #' reticulate::py_available(initialize = TRUE)
 #' set_rkeops_options()
 #' # For build on CRAN, use CPU computing with 2 cores max
@@ -3956,7 +3956,7 @@ min <- function(x, ...) {
 #' min_x <- min(x_i)                   # LazyTensor object
 #' min_red_x <- min(x_i, "i")          # min reduction indexed by 'i'
 #' \dontshow{
-#' # clean-up (primary for CRAN build)
+#' # clean-up (for CRAN build)
 #' clean_rkeops()
 #' }
 #' }
@@ -3982,7 +3982,7 @@ min.LazyTensor <- function(x, index = NA, ...) {
 #' `min_reduction()` function.
 #' @examples
 #' \dontshow{
-#' # Setup for example runs (not necessary for standard use)
+#' # Specific setup for example runs (not necessary for standard use)
 #' reticulate::py_available(initialize = TRUE)
 #' set_rkeops_options()
 #' # For build on CRAN, use CPU computing with 2 cores max
@@ -3994,7 +3994,7 @@ min.LazyTensor <- function(x, index = NA, ...) {
 #' 
 #' min_reduction(x_i, "i")
 #' \dontshow{
-#' # clean-up (primary for CRAN build)
+#' # clean-up (for CRAN build)
 #' clean_rkeops()
 #' }
 #' }
@@ -4039,7 +4039,7 @@ min_reduction <- function(x, index) {
 #' @examples
 #' \donttest{
 #' \dontshow{
-#' # Setup for example runs (not necessary for standard use)
+#' # Specific setup for example runs (not necessary for standard use)
 #' reticulate::py_available(initialize = TRUE)
 #' set_rkeops_options()
 #' # For build on CRAN, use CPU computing with 2 cores max
@@ -4052,7 +4052,7 @@ min_reduction <- function(x, index) {
 #' argmin_xi <- argmin(x_i, "i")  # argmin reduction indexed by 'i'
 #' argmin_x <- argmin(x_i)        # symbolic matrix
 #' \dontshow{
-#' # clean-up (primary for CRAN build)
+#' # clean-up (for CRAN build)
 #' clean_rkeops()
 #' }
 #' }
@@ -4079,7 +4079,7 @@ argmin <- function(x, index = NA) {
 #' @examples
 #' \donttest{
 #' \dontshow{
-#' # Setup for example runs (not necessary for standard use)
+#' # Specific setup for example runs (not necessary for standard use)
 #' reticulate::py_available(initialize = TRUE)
 #' set_rkeops_options()
 #' # For build on CRAN, use CPU computing with 2 cores max
@@ -4091,7 +4091,7 @@ argmin <- function(x, index = NA) {
 #' 
 #' argmin_red <- argmin(x_i, "i")      # argmin reduction indexed by 'i'
 #' \dontshow{
-#' # clean-up (primary for CRAN build)
+#' # clean-up (for CRAN build)
 #' clean_rkeops()
 #' }
 #' }
@@ -4130,7 +4130,7 @@ argmin_reduction <- function(x, index) {
 #' @examples
 #' \donttest{
 #' \dontshow{
-#' # Setup for example runs (not necessary for standard use)
+#' # Specific setup for example runs (not necessary for standard use)
 #' reticulate::py_available(initialize = TRUE)
 #' set_rkeops_options()
 #' # For build on CRAN, use CPU computing with 2 cores max
@@ -4142,7 +4142,7 @@ argmin_reduction <- function(x, index) {
 #' 
 #' min_argmin_xi <- min_argmin(x_i, "i")  # min argmin reduction indexed by 'i'
 #' \dontshow{
-#' # clean-up (primary for CRAN build)
+#' # clean-up (for CRAN build)
 #' clean_rkeops()
 #' }
 #' }
@@ -4164,7 +4164,7 @@ min_argmin <- function(x, index) {
 #' @examples
 #' \donttest{
 #' \dontshow{
-#' # Setup for example runs (not necessary for standard use)
+#' # Specific setup for example runs (not necessary for standard use)
 #' reticulate::py_available(initialize = TRUE)
 #' set_rkeops_options()
 #' # For build on CRAN, use CPU computing with 2 cores max
@@ -4176,7 +4176,7 @@ min_argmin <- function(x, index) {
 #' 
 #' min_argmin_red <- min_argmin_reduction(x_i, "i") # min reduction indexed by 'i'
 #' \dontshow{
-#' # clean-up (primary for CRAN build)
+#' # clean-up (for CRAN build)
 #' clean_rkeops()
 #' }
 #' }
@@ -4222,7 +4222,7 @@ max.default <- function(...) {
 #' max(c(NA, 1, 2), na.rm = TRUE)
 #' \donttest{
 #' \dontshow{
-#' # Setup for example runs (not necessary for standard use)
+#' # Specific setup for example runs (not necessary for standard use)
 #' reticulate::py_available(initialize = TRUE)
 #' set_rkeops_options()
 #' # For build on CRAN, use CPU computing with 2 cores max
@@ -4236,7 +4236,7 @@ max.default <- function(...) {
 #' max_x <- max(x_i)                   # LazyTensor object
 #' max_red_x <- max(x_i, "i")          # max reduction indexed by 'i'
 #' \dontshow{
-#' # clean-up (primary for CRAN build)
+#' # clean-up (for CRAN build)
 #' clean_rkeops()
 #' }
 #' }
@@ -4278,7 +4278,7 @@ max <- function(x, ...) {
 #' @examples
 #' \donttest{
 #' \dontshow{
-#' # Setup for example runs (not necessary for standard use)
+#' # Specific setup for example runs (not necessary for standard use)
 #' reticulate::py_available(initialize = TRUE)
 #' set_rkeops_options()
 #' # For build on CRAN, use CPU computing with 2 cores max
@@ -4291,7 +4291,7 @@ max <- function(x, ...) {
 #' max_x <- max(x_i)                   # LazyTensor object
 #' max_red_x <- max(x_i, "i")          # max reduction indexed by 'i'
 #' \dontshow{
-#' # clean-up (primary for CRAN build)
+#' # clean-up (for CRAN build)
 #' clean_rkeops()
 #' }
 #' }
@@ -4318,7 +4318,7 @@ max.LazyTensor <- function(x, index = NA, ...) {
 #' @examples
 #' \donttest{
 #' \dontshow{
-#' # Setup for example runs (not necessary for standard use)
+#' # Specific setup for example runs (not necessary for standard use)
 #' reticulate::py_available(initialize = TRUE)
 #' set_rkeops_options()
 #' # For build on CRAN, use CPU computing with 2 cores max
@@ -4330,7 +4330,7 @@ max.LazyTensor <- function(x, index = NA, ...) {
 #' 
 #' max_reduction(x_i, "i")
 #' \dontshow{
-#' # clean-up (primary for CRAN build)
+#' # clean-up (for CRAN build)
 #' clean_rkeops()
 #' }
 #' }
@@ -4373,7 +4373,7 @@ max_reduction <- function(x, index) {
 #' @examples
 #' \donttest{
 #' \dontshow{
-#' # Setup for example runs (not necessary for standard use)
+#' # Specific setup for example runs (not necessary for standard use)
 #' reticulate::py_available(initialize = TRUE)
 #' set_rkeops_options()
 #' # For build on CRAN, use CPU computing with 2 cores max
@@ -4386,7 +4386,7 @@ max_reduction <- function(x, index) {
 #' argmax_xi <- argmax(x_i, "i")  # argmax reduction indexed by 'i'
 #' argmax_x <- argmax(x_i)        # symbolic matrix
 #' \dontshow{
-#' # clean-up (primary for CRAN build)
+#' # clean-up (for CRAN build)
 #' clean_rkeops()
 #' }
 #' }
@@ -4414,7 +4414,7 @@ argmax <- function(x, index = NA) {
 #' @examples
 #' \donttest{
 #' \dontshow{
-#' # Setup for example runs (not necessary for standard use)
+#' # Specific setup for example runs (not necessary for standard use)
 #' reticulate::py_available(initialize = TRUE)
 #' set_rkeops_options()
 #' # For build on CRAN, use CPU computing with 2 cores max
@@ -4426,7 +4426,7 @@ argmax <- function(x, index = NA) {
 #' 
 #' argmax_red <- argmax_reduction(x_i, "i")  # argmax reduction indexed by 'i'
 #' \dontshow{
-#' # clean-up (primary for CRAN build)
+#' # clean-up (for CRAN build)
 #' clean_rkeops()
 #' }
 #' }
@@ -4465,7 +4465,7 @@ argmax_reduction <- function(x, index) {
 #' @examples
 #' \donttest{
 #' \dontshow{
-#' # Setup for example runs (not necessary for standard use)
+#' # Specific setup for example runs (not necessary for standard use)
 #' reticulate::py_available(initialize = TRUE)
 #' set_rkeops_options()
 #' # For build on CRAN, use CPU computing with 2 cores max
@@ -4477,7 +4477,7 @@ argmax_reduction <- function(x, index) {
 #' 
 #' max_argmax_x <- max_argmax(x_i, "i")  # max argmax reduction indexed by 'i'
 #' \dontshow{
-#' # clean-up (primary for CRAN build)
+#' # clean-up (for CRAN build)
 #' clean_rkeops()
 #' }
 #' }
@@ -4499,7 +4499,7 @@ max_argmax <- function(x, index) {
 #' @examples
 #' \donttest{
 #' \dontshow{
-#' # Setup for example runs (not necessary for standard use)
+#' # Specific setup for example runs (not necessary for standard use)
 #' reticulate::py_available(initialize = TRUE)
 #' set_rkeops_options()
 #' # For build on CRAN, use CPU computing with 2 cores max
@@ -4512,7 +4512,7 @@ max_argmax <- function(x, index) {
 #' max_argmax_red <- max_argmax_reduction(x_i, "i")  # max argmax reduction 
 #'                                                   # indexed by 'i'
 #' \dontshow{
-#' # clean-up (primary for CRAN build)
+#' # clean-up (for CRAN build)
 #' clean_rkeops()
 #' }
 #' }
@@ -4552,7 +4552,7 @@ max_argmax_reduction <- function(x, index) {
 #' @examples
 #' \donttest{
 #' \dontshow{
-#' # Setup for example runs (not necessary for standard use)
+#' # Specific setup for example runs (not necessary for standard use)
 #' reticulate::py_available(initialize = TRUE)
 #' set_rkeops_options()
 #' # For build on CRAN, use CPU computing with 2 cores max
@@ -4563,7 +4563,7 @@ max_argmax_reduction <- function(x, index) {
 #' K <- 2
 #' kmin_x <- Kmin(x_i, K, "i")         # Kmin reduction, over the 'i' indices
 #' \dontshow{
-#' # clean-up (primary for CRAN build)
+#' # clean-up (for CRAN build)
 #' clean_rkeops()
 #' }
 #' }
@@ -4586,7 +4586,7 @@ Kmin <- function(x, K, index) {
 #' @examples
 #' \donttest{
 #' \dontshow{
-#' # Setup for example runs (not necessary for standard use)
+#' # Specific setup for example runs (not necessary for standard use)
 #' reticulate::py_available(initialize = TRUE)
 #' set_rkeops_options()
 #' # For build on CRAN, use CPU computing with 2 cores max
@@ -4597,7 +4597,7 @@ Kmin <- function(x, K, index) {
 #' K <- 2
 #' kmin_red_x <- Kmin_reduction(x_i, K, "i")   # Kmin reduction, indexed by 'i'
 #' \dontshow{
-#' # clean-up (primary for CRAN build)
+#' # clean-up (for CRAN build)
 #' clean_rkeops()
 #' }
 #' }
@@ -4635,7 +4635,7 @@ Kmin_reduction <- function(x, K, index) {
 #' @examples
 #' \donttest{
 #' \dontshow{
-#' # Setup for example runs (not necessary for standard use)
+#' # Specific setup for example runs (not necessary for standard use)
 #' reticulate::py_available(initialize = TRUE)
 #' set_rkeops_options()
 #' # For build on CRAN, use CPU computing with 2 cores max
@@ -4649,7 +4649,7 @@ Kmin_reduction <- function(x, K, index) {
 #'                                     # indexed by 'i'
 #' 
 #' \dontshow{
-#' # clean-up (primary for CRAN build)
+#' # clean-up (for CRAN build)
 #' clean_rkeops()
 #' }
 #' }
@@ -4672,7 +4672,7 @@ argKmin <- function(x, K, index) {
 #' @examples
 #' \donttest{
 #' \dontshow{
-#' # Setup for example runs (not necessary for standard use)
+#' # Specific setup for example runs (not necessary for standard use)
 #' reticulate::py_available(initialize = TRUE)
 #' set_rkeops_options()
 #' # For build on CRAN, use CPU computing with 2 cores max
@@ -4685,7 +4685,7 @@ argKmin <- function(x, K, index) {
 #' argkmin_red_x <- argKmin_reduction(x_i, K, "i")  # argKmin reduction 
 #'                                                  # indexed by 'i'
 #' \dontshow{
-#' # clean-up (primary for CRAN build)
+#' # clean-up (for CRAN build)
 #' clean_rkeops()
 #' }
 #' }
@@ -4721,7 +4721,7 @@ argKmin_reduction <- function(x, K, index) {
 #' @examples
 #' \donttest{
 #' \dontshow{
-#' # Setup for example runs (not necessary for standard use)
+#' # Specific setup for example runs (not necessary for standard use)
 #' reticulate::py_available(initialize = TRUE)
 #' set_rkeops_options()
 #' # For build on CRAN, use CPU computing with 2 cores max
@@ -4735,7 +4735,7 @@ argKmin_reduction <- function(x, K, index) {
 #'                                        # indexed by 'i'
 #' 
 #' \dontshow{
-#' # clean-up (primary for CRAN build)
+#' # clean-up (for CRAN build)
 #' clean_rkeops()
 #' }
 #' }
@@ -4758,7 +4758,7 @@ Kmin_argKmin <- function(x, K, index) {
 #' @examples
 #' \donttest{
 #' \dontshow{
-#' # Setup for example runs (not necessary for standard use)
+#' # Specific setup for example runs (not necessary for standard use)
 #' reticulate::py_available(initialize = TRUE)
 #' set_rkeops_options()
 #' # For build on CRAN, use CPU computing with 2 cores max
@@ -4772,7 +4772,7 @@ Kmin_argKmin <- function(x, K, index) {
 #' k_argk_x <- Kmin_argKmin_reduction(x_i, K, "i")  # Kmin-argKmin reduction 
 #'                                                  # over the "i" indices
 #' \dontshow{
-#' # clean-up (primary for CRAN build)
+#' # clean-up (for CRAN build)
 #' clean_rkeops()
 #' }
 #' }
@@ -4808,7 +4808,7 @@ Kmin_argKmin_reduction <- function(x, K, index) {
 #' @examples
 #' \donttest{
 #' \dontshow{
-#' # Setup for example runs (not necessary for standard use)
+#' # Specific setup for example runs (not necessary for standard use)
 #' reticulate::py_available(initialize = TRUE)
 #' set_rkeops_options()
 #' # For build on CRAN, use CPU computing with 2 cores max
@@ -4828,7 +4828,7 @@ Kmin_argKmin_reduction <- function(x, K, index) {
 #' logsumexp_x <- logsumexp(S_ij, 'i')      # logsumexp reduction without
 #'                                          # weight over the 'i' indices
 #' \dontshow{
-#' # clean-up (primary for CRAN build)
+#' # clean-up (for CRAN build)
 #' clean_rkeops()
 #' }
 #' }
@@ -4860,7 +4860,7 @@ logsumexp <- function(x, index, weight = NULL) {
 #' @examples
 #' \donttest{
 #' \dontshow{
-#' # Setup for example runs (not necessary for standard use)
+#' # Specific setup for example runs (not necessary for standard use)
 #' reticulate::py_available(initialize = TRUE)
 #' set_rkeops_options()
 #' # For build on CRAN, use CPU computing with 2 cores max
@@ -4880,7 +4880,7 @@ logsumexp <- function(x, index, weight = NULL) {
 #' logsumexp_x <- logsumexp_reduction(S_ij, 'i')  # logsumexp reduction without
 #'                                                # weight over the 'i' indices
 #' \dontshow{
-#' # clean-up (primary for CRAN build)
+#' # clean-up (for CRAN build)
 #' clean_rkeops()
 #' }
 #' }
@@ -4914,7 +4914,7 @@ logsumexp_reduction <- function(x, index, weight = NULL) {
 #' @examples
 #' \donttest{
 #' \dontshow{
-#' # Setup for example runs (not necessary for standard use)
+#' # Specific setup for example runs (not necessary for standard use)
 #' reticulate::py_available(initialize = TRUE)
 #' set_rkeops_options()
 #' # For build on CRAN, use CPU computing with 2 cores max
@@ -4931,7 +4931,7 @@ logsumexp_reduction <- function(x, index, weight = NULL) {
 #' ssmaxweight <- sumsoftmaxweight(S_ij, 'i', V_ij) # sumsoftmaxweight reduction
 #'                                                  # over the 'i' indices
 #' \dontshow{
-#' # clean-up (primary for CRAN build)
+#' # clean-up (for CRAN build)
 #' clean_rkeops()
 #' }
 #' }
@@ -4956,7 +4956,7 @@ sumsoftmaxweight <- function(x, index, weight) {
 #' @examples
 #' \donttest{
 #' \dontshow{
-#' # Setup for example runs (not necessary for standard use)
+#' # Specific setup for example runs (not necessary for standard use)
 #' reticulate::py_available(initialize = TRUE)
 #' set_rkeops_options()
 #' # For build on CRAN, use CPU computing with 2 cores max
@@ -4973,7 +4973,7 @@ sumsoftmaxweight <- function(x, index, weight) {
 #' # sumsoftmaxweight reduction over the 'i' indices
 #' ssmaxw_red <- sumsoftmaxweight_reduction(S_ij, 'i', V_ij) 
 #' \dontshow{
-#' # clean-up (primary for CRAN build)
+#' # clean-up (for CRAN build)
 #' clean_rkeops()
 #' }
 #' }
@@ -5017,7 +5017,7 @@ sumsoftmaxweight_reduction <- function(x, index, weight) {
 #' @examples
 #' \donttest{
 #' \dontshow{
-#' # Setup for example runs (not necessary for standard use)
+#' # Specific setup for example runs (not necessary for standard use)
 #' reticulate::py_available(initialize = TRUE)
 #' set_rkeops_options()
 #' # For build on CRAN, use CPU computing with 2 cores max
@@ -5041,7 +5041,7 @@ sumsoftmaxweight_reduction <- function(x, index, weight) {
 #' # gradient with the formula from index
 #' grad_xy <- grad(sqnorm2(x_i-y_j), eta_i, "Sum", var = 0, "j")     
 #' \dontshow{
-#' # clean-up (primary for CRAN build)
+#' # clean-up (for CRAN build)
 #' clean_rkeops()
 #' }
 #' }

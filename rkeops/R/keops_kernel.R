@@ -74,7 +74,7 @@
 #' @examples
 #' \donttest{
 #' \dontshow{
-#' # Setup for example runs (not necessary for standard use)
+#' # Specific setup for example runs (not necessary for standard use)
 #' reticulate::py_available(initialize = TRUE)
 #' set_rkeops_options()
 #' # For build on CRAN, use CPU computing with 2 cores max
@@ -143,7 +143,7 @@
 #' # compute the result
 #' res <- op(list(X, Y, beta, sigma))
 #' \dontshow{
-#' # clean-up (primary for CRAN build)
+#' # clean-up (for CRAN build)
 #' clean_rkeops()
 #' }
 #' }
