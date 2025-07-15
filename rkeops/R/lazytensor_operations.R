@@ -3981,6 +3981,7 @@ min.LazyTensor <- function(x, index = NA, ...) {
 #' @details **Note**: `index` input argument cannot be `NA` for the 
 #' `min_reduction()` function.
 #' @examples
+#' \donttest{
 #' \dontshow{
 #' # Specific setup for example runs (not necessary for standard use)
 #' reticulate::py_available(initialize = TRUE)
