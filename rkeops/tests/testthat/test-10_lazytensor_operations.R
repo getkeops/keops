@@ -3715,7 +3715,7 @@ test_that("logsumexp", {
     V_ij <- x_i - y_j
     S_ij <- sum(V_ij^2)
     
-    expect_error(logsumexp(sum(V_ij), 'i', w_j))
+    expect_error(logsumexp(S_ij, 'i', w_j))
     
     res <- logsumexp(S_ij, 'i')
     expect_false(is.LazyTensor(res))
