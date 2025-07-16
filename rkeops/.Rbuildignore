@@ -16,3 +16,4 @@ TODOs.md
 ^_pkgdown\.yml$
 ^docs$
 ^pkgdown$
+^Rplots\.pdf$
