@@ -145,7 +145,9 @@ check_keopscore <- function(verbose = TRUE) {
 #' @export
 #'
 #' @examples
+#' \donttest{
 #' check_rkeops()
+#' }
 check_rkeops <- function(verbose = TRUE) {
     
     # init
