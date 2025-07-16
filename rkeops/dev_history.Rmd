@@ -120,6 +120,7 @@ usethis::use_package("ggplot2", type = "Suggests")
 usethis::use_package("dplyr", type = "Suggests")
 usethis::use_package("pracma", type = "Suggests")
 usethis::use_package("plotly", type = "Suggests")
+usethis::use_package("remotes", type = "Suggests")
 usethis::use_package("reshape", type = "Suggests")
 ```
 
@@ -152,6 +153,11 @@ covr::zero_coverage(cov)
 ```{r dev-check-doc}
 # check the package doc
 devtools::check_man(pkg_dir)
+```
+
+```{r dev-examples}
+# Run examples 
+devtools::run_examples(pkg_dir, fresh = TRUE, run_donttest = TRUE)
 ```
 
 ```{r dev-check}
