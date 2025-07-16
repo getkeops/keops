@@ -36,3 +36,6 @@ a_j <- sum(K_ij, index = "i") # actual R matrix (in fact a row vector of
                               # containing the column sums of K_ij
                               # (i.e. the sums over the "i" index, for each 
                               # "j" index)
+
+# clean
+clean_rkeops(remove_cache_dir = TRUE)
