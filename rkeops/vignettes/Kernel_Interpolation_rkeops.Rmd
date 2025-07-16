@@ -27,7 +27,7 @@ knitr::opts_chunk$set(
 ```
 
 ```{r requirement, include=FALSE}
-required <- c("ggplot2", "dplyr", "pracma", "plotly", "reshape")
+required <- c("ggplot2", "dplyr", "pracma", "plotly", "reshape", "withr")
 sapply(
     required,
     function(pkg) {
