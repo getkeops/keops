@@ -2,7 +2,9 @@ skip_if_no_python()
 skip_if_no_keopscore()
 skip_if_no_pykeops()
 
-set_rkeops_options(list(cache_dir = testing_cache_dir))
+previous_cache_dir <- get_rkeops_cache_dir()
+set_rkeops_cache_dir(testing_cache_dir)
+withr::defer(set_rkeops_cache_dir(previous_cache_dir))
 
 # TEST ARITHMETIC OPERATIONS ===================================================
 
