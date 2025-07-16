@@ -98,7 +98,7 @@
 #'                                                       # indexed by 'i'
 #' \dontshow{
 #' # clean-up (for CRAN build)
-#' clean_rkeops()
+#' clean_rkeops(remove_cache_dir = TRUE)
 #' }
 #' }
 #' @importFrom data.table address

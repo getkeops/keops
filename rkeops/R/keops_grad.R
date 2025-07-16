@@ -183,7 +183,7 @@ get_gradient_formula <- function(formula, args, var, args_info) {
 #' res <- op(input)
 #' \dontshow{
 #' # clean-up (for CRAN build)
-#' clean_rkeops()
+#' clean_rkeops(remove_cache_dir = TRUE)
 #' }
 #' }
 #' @export

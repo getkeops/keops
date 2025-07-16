@@ -101,7 +101,7 @@ stat_rkeops_cache_dir <- function(verbose = TRUE, startup = FALSE) {
 #' @importFrom fs dir_exists dir_ls file_delete
 #' 
 #' @examples
-#' clean_rkeops()
+#' clean_rkeops(remove_cache_dir = TRUE)
 #' 
 #' @export
 clean_rkeops <- function(verbose = TRUE, all = TRUE, remove_cache_dir = FALSE) {

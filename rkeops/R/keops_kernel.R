@@ -144,7 +144,7 @@
 #' res <- op(list(X, Y, beta, sigma))
 #' \dontshow{
 #' # clean-up (for CRAN build)
-#' clean_rkeops()
+#' clean_rkeops(remove_cache_dir = TRUE)
 #' }
 #' }
 #' @export

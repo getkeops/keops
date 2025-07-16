@@ -982,7 +982,7 @@ rsqrt.LazyTensor <- function(x) {
 #' x_mult_y <- x_i %*% y_j             # FIXME
 #' \dontshow{
 #' # clean-up (for CRAN build)
-#' clean_rkeops()
+#' clean_rkeops(remove_cache_dir = TRUE)
 #' }
 #' }
 #' @export
@@ -1022,7 +1022,7 @@ rsqrt.LazyTensor <- function(x) {
 #' x_mult_y <- x_i %*% y_j             # FIXME
 #' \dontshow{
 #' # clean-up (for CRAN build)
-#' clean_rkeops()
+#' clean_rkeops(remove_cache_dir = TRUE)
 #' }
 #' }
 #' @export
@@ -3683,7 +3683,7 @@ tensorprod <- function(x, y) {
 #' red_x <- reduction.LazyTensor(x_i, "Sum", "i")
 #' \dontshow{
 #' # clean-up (for CRAN build)
-#' clean_rkeops()
+#' clean_rkeops(remove_cache_dir = TRUE)
 #' }
 #' }
 #' @export
@@ -3760,7 +3760,7 @@ sum.default <- function(...) {
 #' sum_red_x <- sum(x_i, "i")          # sum reduction indexed by 'i'
 #' \dontshow{
 #' # clean-up (for CRAN build)
-#' clean_rkeops()
+#' clean_rkeops(remove_cache_dir = TRUE)
 #' }
 #' }
 #' @export
@@ -3809,7 +3809,7 @@ sum <- function(x, ...) {
 #' sum_red_x <- sum(x_i, "i")          # sum reduction indexed by 'i'
 #' \dontshow{
 #' # clean-up (for CRAN build)
-#' clean_rkeops()
+#' clean_rkeops(remove_cache_dir = TRUE)
 #' }
 #' }
 #' @export
@@ -3857,7 +3857,7 @@ sum.LazyTensor <- function(x, index = NA, ...) {
 #' sum_reduction(x_i, "i")
 #' \dontshow{
 #' # clean-up (for CRAN build)
-#' clean_rkeops()
+#' clean_rkeops(remove_cache_dir = TRUE)
 #' }
 #' }
 #' @export
@@ -3920,7 +3920,7 @@ min.default <- function(...) {
 #' min_red_x <- min(x_i, "i")          # min reduction indexed by 'i'
 #' \dontshow{
 #' # clean-up (for CRAN build)
-#' clean_rkeops()
+#' clean_rkeops(remove_cache_dir = TRUE)
 #' }
 #' }
 #' @export
@@ -3969,7 +3969,7 @@ min <- function(x, ...) {
 #' min_red_x <- min(x_i, "i")          # min reduction indexed by 'i'
 #' \dontshow{
 #' # clean-up (for CRAN build)
-#' clean_rkeops()
+#' clean_rkeops(remove_cache_dir = TRUE)
 #' }
 #' }
 #' @export
@@ -4008,7 +4008,7 @@ min.LazyTensor <- function(x, index = NA, ...) {
 #' min_reduction(x_i, "i")
 #' \dontshow{
 #' # clean-up (for CRAN build)
-#' clean_rkeops()
+#' clean_rkeops(remove_cache_dir = TRUE)
 #' }
 #' }
 #' @export
@@ -4066,7 +4066,7 @@ min_reduction <- function(x, index) {
 #' argmin_x <- argmin(x_i)        # symbolic matrix
 #' \dontshow{
 #' # clean-up (for CRAN build)
-#' clean_rkeops()
+#' clean_rkeops(remove_cache_dir = TRUE)
 #' }
 #' }
 #' @export
@@ -4105,7 +4105,7 @@ argmin <- function(x, index = NA) {
 #' argmin_red <- argmin(x_i, "i")      # argmin reduction indexed by 'i'
 #' \dontshow{
 #' # clean-up (for CRAN build)
-#' clean_rkeops()
+#' clean_rkeops(remove_cache_dir = TRUE)
 #' }
 #' }
 #' @export
@@ -4156,7 +4156,7 @@ argmin_reduction <- function(x, index) {
 #' min_argmin_xi <- min_argmin(x_i, "i")  # min argmin reduction indexed by 'i'
 #' \dontshow{
 #' # clean-up (for CRAN build)
-#' clean_rkeops()
+#' clean_rkeops(remove_cache_dir = TRUE)
 #' }
 #' }
 #' @export
@@ -4190,7 +4190,7 @@ min_argmin <- function(x, index) {
 #' min_argmin_red <- min_argmin_reduction(x_i, "i") # min reduction indexed by 'i'
 #' \dontshow{
 #' # clean-up (for CRAN build)
-#' clean_rkeops()
+#' clean_rkeops(remove_cache_dir = TRUE)
 #' }
 #' }
 #' @export
@@ -4250,7 +4250,7 @@ max.default <- function(...) {
 #' max_red_x <- max(x_i, "i")          # max reduction indexed by 'i'
 #' \dontshow{
 #' # clean-up (for CRAN build)
-#' clean_rkeops()
+#' clean_rkeops(remove_cache_dir = TRUE)
 #' }
 #' }
 #' @export
@@ -4305,7 +4305,7 @@ max <- function(x, ...) {
 #' max_red_x <- max(x_i, "i")          # max reduction indexed by 'i'
 #' \dontshow{
 #' # clean-up (for CRAN build)
-#' clean_rkeops()
+#' clean_rkeops(remove_cache_dir = TRUE)
 #' }
 #' }
 #' @export
@@ -4344,7 +4344,7 @@ max.LazyTensor <- function(x, index = NA, ...) {
 #' max_reduction(x_i, "i")
 #' \dontshow{
 #' # clean-up (for CRAN build)
-#' clean_rkeops()
+#' clean_rkeops(remove_cache_dir = TRUE)
 #' }
 #' }
 #' @export
@@ -4400,7 +4400,7 @@ max_reduction <- function(x, index) {
 #' argmax_x <- argmax(x_i)        # symbolic matrix
 #' \dontshow{
 #' # clean-up (for CRAN build)
-#' clean_rkeops()
+#' clean_rkeops(remove_cache_dir = TRUE)
 #' }
 #' }
 #' @export
@@ -4440,7 +4440,7 @@ argmax <- function(x, index = NA) {
 #' argmax_red <- argmax_reduction(x_i, "i")  # argmax reduction indexed by 'i'
 #' \dontshow{
 #' # clean-up (for CRAN build)
-#' clean_rkeops()
+#' clean_rkeops(remove_cache_dir = TRUE)
 #' }
 #' }
 #' @export
@@ -4491,7 +4491,7 @@ argmax_reduction <- function(x, index) {
 #' max_argmax_x <- max_argmax(x_i, "i")  # max argmax reduction indexed by 'i'
 #' \dontshow{
 #' # clean-up (for CRAN build)
-#' clean_rkeops()
+#' clean_rkeops(remove_cache_dir = TRUE)
 #' }
 #' }
 #' @export
@@ -4526,7 +4526,7 @@ max_argmax <- function(x, index) {
 #'                                                   # indexed by 'i'
 #' \dontshow{
 #' # clean-up (for CRAN build)
-#' clean_rkeops()
+#' clean_rkeops(remove_cache_dir = TRUE)
 #' }
 #' }
 #' @export
@@ -4577,7 +4577,7 @@ max_argmax_reduction <- function(x, index) {
 #' kmin_x <- Kmin(x_i, K, "i")         # Kmin reduction, over the 'i' indices
 #' \dontshow{
 #' # clean-up (for CRAN build)
-#' clean_rkeops()
+#' clean_rkeops(remove_cache_dir = TRUE)
 #' }
 #' }
 #' @export
@@ -4611,7 +4611,7 @@ Kmin <- function(x, K, index) {
 #' kmin_red_x <- Kmin_reduction(x_i, K, "i")   # Kmin reduction, indexed by 'i'
 #' \dontshow{
 #' # clean-up (for CRAN build)
-#' clean_rkeops()
+#' clean_rkeops(remove_cache_dir = TRUE)
 #' }
 #' }
 #' @export
@@ -4663,7 +4663,7 @@ Kmin_reduction <- function(x, K, index) {
 #' 
 #' \dontshow{
 #' # clean-up (for CRAN build)
-#' clean_rkeops()
+#' clean_rkeops(remove_cache_dir = TRUE)
 #' }
 #' }
 #' @export
@@ -4699,7 +4699,7 @@ argKmin <- function(x, K, index) {
 #'                                                  # indexed by 'i'
 #' \dontshow{
 #' # clean-up (for CRAN build)
-#' clean_rkeops()
+#' clean_rkeops(remove_cache_dir = TRUE)
 #' }
 #' }
 #' @export
@@ -4749,7 +4749,7 @@ argKmin_reduction <- function(x, K, index) {
 #' 
 #' \dontshow{
 #' # clean-up (for CRAN build)
-#' clean_rkeops()
+#' clean_rkeops(remove_cache_dir = TRUE)
 #' }
 #' }
 #' @export
@@ -4786,7 +4786,7 @@ Kmin_argKmin <- function(x, K, index) {
 #'                                                  # over the "i" indices
 #' \dontshow{
 #' # clean-up (for CRAN build)
-#' clean_rkeops()
+#' clean_rkeops(remove_cache_dir = TRUE)
 #' }
 #' }
 #' @export
@@ -4847,7 +4847,7 @@ Kmin_argKmin_reduction <- function(x, K, index) {
 #' }
 #' \dontshow{
 #' # clean-up (for CRAN build)
-#' clean_rkeops()
+#' clean_rkeops(remove_cache_dir = TRUE)
 #' }
 #' }
 #' @export
@@ -4903,7 +4903,7 @@ logsumexp <- function(x, index, weight = NULL) {
 #' }
 #' \dontshow{
 #' # clean-up (for CRAN build)
-#' clean_rkeops()
+#' clean_rkeops(remove_cache_dir = TRUE)
 #' }
 #' }
 #' @export
@@ -4954,7 +4954,7 @@ logsumexp_reduction <- function(x, index, weight = NULL) {
 #'                                                  # over the 'i' indices
 #' \dontshow{
 #' # clean-up (for CRAN build)
-#' clean_rkeops()
+#' clean_rkeops(remove_cache_dir = TRUE)
 #' }
 #' }
 #' @export
@@ -4996,7 +4996,7 @@ sumsoftmaxweight <- function(x, index, weight) {
 #' ssmaxw_red <- sumsoftmaxweight_reduction(S_ij, 'i', V_ij) 
 #' \dontshow{
 #' # clean-up (for CRAN build)
-#' clean_rkeops()
+#' clean_rkeops(remove_cache_dir = TRUE)
 #' }
 #' }
 #' @export
@@ -5064,7 +5064,7 @@ sumsoftmaxweight_reduction <- function(x, index, weight) {
 #' grad_xy <- grad(sqnorm2(x_i-y_j), eta_i, "Sum", var = 0, "j")     
 #' \dontshow{
 #' # clean-up (for CRAN build)
-#' clean_rkeops()
+#' clean_rkeops(remove_cache_dir = TRUE)
 #' }
 #' }
 #' @export
