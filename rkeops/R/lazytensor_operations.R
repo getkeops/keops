@@ -609,6 +609,7 @@ square.LazyTensor <- function(x) {
 #' @inherit base::sqrt examples
 #' @seealso [base::sqrt()]
 #' @author R core team and contributors
+#' @return See 'Details' section.
 #' @export
 sqrt.default <- function(x) {
     return(base::sqrt(x))
@@ -1718,6 +1719,7 @@ abs.ComplexLazyTensor <- function(x) {
 #' @inherit base::sign examples
 #' @seealso [base::sign()]
 #' @author R core team and contributors
+#' @return See 'Details' section.
 #' @export
 sign.default <- function(x) {
     return(base::sign(x))
@@ -1793,6 +1795,7 @@ sign.LazyTensor <- function(x) {
 #' @inherit base::round examples
 #' @seealso [base::round()]
 #' @author R core team and contributors
+#' @return See 'Details' section.
 #' @export
 round.default <- function(x, digits = 0) {
     return(base::round(x, digits))
@@ -2628,6 +2631,7 @@ weightedsqdist <- function(x, y, s) {
 #' @inherit base::Re examples
 #' @seealso [base::Re()]
 #' @author R core team and contributors
+#' @return See 'Details' section.
 #' @export
 Re.default <- function(z) {
     return(base::Re(z))
