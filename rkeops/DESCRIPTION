@@ -1,7 +1,7 @@
 Package: rkeops
 Title: Kernel Operations on GPU or CPU, with Autodiff, without Memory
     Overflows
-Version: 2.2.3
+Version: 2.3.0
 Authors@R: c(
     person("Ghislain", "Durif", , "gd.dev@libertymail.net", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0003-2567-1401", website = "<https://gdurif.perso.math.cnrs.fr/>")),
@@ -59,7 +59,7 @@ VignetteBuilder:
 RdMacros: 
     Rdpack
 Config/testthat/edition: 3
-Date/Publication: 2024/04/16
+Date/Publication: 2025/07/16
 Encoding: UTF-8
 OS_type: unix
 Roxygen: list(markdown = TRUE)
