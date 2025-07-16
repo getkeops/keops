@@ -20,7 +20,6 @@ If \code{x} is a scalar\code{integer}, \code{is.int(x)} returns TRUE,
 else, returns FALSE.
 }
 \examples{
-\dontrun{
 # basic example
 A <- 3
 B <- 3.4
@@ -29,7 +28,6 @@ C <- rep(3, 10)
 is.int(A)  # returns TRUE
 is.int(B)  # returns FALSE
 is.int(C)  # returns FALSE
-}
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay

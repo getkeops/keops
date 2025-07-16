@@ -43,9 +43,8 @@ to (fully or partially) delete its content.
 the default rkeops cache directory.
 }
 \examples{
-\dontrun{
-set_rkeops_build_dir()
-}
+set_rkeops_cache_dir()
+
 }
 \seealso{
 \code{\link[=get_rkeops_cache_dir]{get_rkeops_cache_dir()}}, \code{\link[=stat_rkeops_cache_dir]{stat_rkeops_cache_dir()}},

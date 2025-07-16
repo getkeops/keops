@@ -24,7 +24,6 @@ If \code{x} is a \code{LazyTensor}, see \code{\link[=rsqrt.LazyTensor]{rsqrt.Laz
 see \code{\link[=rsqrt.default]{rsqrt.default()}}.
 }
 \examples{
-\dontrun{
 # Numerical input
 rsqrt(4)
 rsqrt(c(1,4,9,16))
@@ -33,7 +32,6 @@ x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
                                     # indexed by 'i'
 Rsqrt_x <- rsqrt(x_i)               # symbolic matrix, 150 rows and 3 columns
-}
 }
 \seealso{
 \code{\link[=rsqrt.default]{rsqrt.default()}}, \code{\link[=rsqrt.LazyTensor]{rsqrt.LazyTensor()}}

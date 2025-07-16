@@ -23,7 +23,6 @@ If \code{x} is a \code{LazyTensor}, see \code{\link[=acos.LazyTensor]{acos.LazyT
 see \code{\link[=acos.default]{acos.default()}}.
 }
 \examples{
-\dontrun{
 # R base operation
 acos(0)
 acos(-1)
@@ -32,7 +31,6 @@ x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
                                     # indexed by 'i'
 Acos_x <- acos(x_i)                 # symbolic matrix, 150 rows and 3 columns
-}
 }
 \seealso{
 \code{\link[=acos.default]{acos.default()}}, \code{\link[=acos.LazyTensor]{acos.LazyTensor()}}

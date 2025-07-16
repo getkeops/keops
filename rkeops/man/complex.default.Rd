@@ -23,6 +23,9 @@
 \item{z}{an object of mode \code{complex}, or one of a class for which
     a methods has been defined.}
 }
+\value{
+See 'Details' section.
+}
 \description{
 Basic functions which support complex arithmetic in \R, in addition to
   the arithmetic operators \code{+}, \code{-}, \code{*}, \code{/}, and \code{^}.

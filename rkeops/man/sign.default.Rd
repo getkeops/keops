@@ -9,6 +9,9 @@
 \arguments{
 \item{x}{a numeric vector}
 }
+\value{
+See 'Details' section.
+}
 \description{
 \code{sign} returns a vector with the signs of the corresponding
   elements of \code{x} (the sign of a real number is 1, 0, or \eqn{-1}

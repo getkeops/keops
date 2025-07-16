@@ -29,8 +29,10 @@ the number of cores used by \code{rkeops} user-defined operators, you can used
 the input parameter \code{ncore}.
 }
 \examples{
-\dontrun{
 rkeops_use_cpu()
+\dontshow{
+# set options back to default
+set_rkeops_options()
 }
 }
 \seealso{

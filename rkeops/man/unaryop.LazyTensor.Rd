@@ -39,7 +39,6 @@ An object of class "LazyTensor" or "ComplexLazyTensor".
 Symbolically applies \code{opstr} operation to \code{x}.
 }
 \examples{
-\dontrun{
 x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
                                     # indexed by 'i'
@@ -49,10 +48,9 @@ una2_x <- unaryop.LazyTensor(x_i, "Pow", opt_arg = 3)  # symbolic matrix
 
 # example with not NA dim_res:
 ## set dim_res to 1 because the "Norm2" operation results on a (symbolic) scalar
-una3_x <- unaryop.LazyTensor(x, "Norm2",
-                             res_type = "LazyTensor",
-                             dim_res = 1)
-}
+una3_x <- unaryop.LazyTensor(
+    x_i, "Norm2", res_type = "LazyTensor", dim_res = 1
+)
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay

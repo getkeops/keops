@@ -26,7 +26,7 @@ Under the hood, several verifications are made:
 }
 }
 \examples{
-\dontrun{
+\donttest{
 check_rkeops()
 }
 }

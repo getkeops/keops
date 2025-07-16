@@ -25,7 +25,6 @@ else see \code{\link[=sinxdivx.default]{sinxdivx.default()}}.
 \strong{Note}: by convention \code{sinxdivx(0)} returns \code{1}.
 }
 \examples{
-\dontrun{
 # Numerical input
 sinxdivx(4)
 sinxdivx(1:10)
@@ -34,7 +33,6 @@ x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
                                     # indexed by 'i'
 sindiv_x <- sinxdivx(x_i)           # symbolic matrix, 150 rows and 3 columns
-}
 }
 \seealso{
 \code{\link[=sinxdivx.default]{sinxdivx.default()}}, \code{\link[=sinxdivx.LazyTensor]{sinxdivx.LazyTensor()}}

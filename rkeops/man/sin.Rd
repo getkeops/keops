@@ -23,7 +23,6 @@ If \code{x} is a \code{LazyTensor}, see \code{\link[=sin.LazyTensor]{sin.LazyTen
 see \code{\link[=sin.default]{sin.default()}}.
 }
 \examples{
-\dontrun{
 # R base operation
 sin(0)
 sin(pi)
@@ -32,7 +31,6 @@ x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
                                     # indexed by 'i'
 Sin_x <- sin(x_i)                   # symbolic matrix, 150 rows and 3 columns
-}
 }
 \seealso{
 \code{\link[=sin.default]{sin.default()}}, \code{\link[=sin.LazyTensor]{sin.LazyTensor()}}

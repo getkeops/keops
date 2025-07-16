@@ -27,8 +27,10 @@ output are converted to 32bit float before computation and back to
 64bit float after computation.
 }
 \examples{
-\dontrun{
 rkeops_use_float32()
+\dontshow{
+# set options back to default
+set_rkeops_options()
 }
 }
 \seealso{

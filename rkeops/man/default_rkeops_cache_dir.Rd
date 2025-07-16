@@ -41,4 +41,6 @@ You can use \code{\link[=stat_rkeops_cache_dir]{stat_rkeops_cache_dir()}} to ver
 directory disk usage, and you can use \code{\link[=clean_rkeops]{clean_rkeops()}}
 to (fully or partially) delete its content.
 }
-\keyword{internal}
+\examples{
+default_rkeops_cache_dir(create = FALSE)
+}

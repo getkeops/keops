@@ -54,9 +54,14 @@ as the variable chosen to differentiate the formula and of dimension \code{1}
 so that the final computation give the corresponding gradient.
 }
 \examples{
-\dontrun{
+\donttest{
+\dontshow{
+# Specific setup for example runs (not necessary for standard use)
+reticulate::py_available(initialize = TRUE)
 set_rkeops_options()
-
+# For build on CRAN, use CPU computing with 2 cores max
+rkeops_use_cpu(ncore = 2)
+}
 # defining an operator (reduction on squared distance)
 formula <- "Sum_Reduction(SqNorm2(x-y), 0)"
 args <- c("x=Vi(0,3)", "y=Vj(1,3)")
@@ -92,6 +97,10 @@ eta <- matrix(1, nrow=nx, ncol=1)             # matrix 100 x 1
 # computation
 input <- list(x, y, eta)
 res <- op(input)
+\dontshow{
+# clean-up (for CRAN build)
+clean_rkeops(remove_cache_dir = TRUE)
+}
 }
 }
 \seealso{

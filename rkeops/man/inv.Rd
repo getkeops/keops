@@ -23,7 +23,6 @@ If \code{x} is a \code{LazyTensor}, see \code{\link[=inv.LazyTensor]{inv.LazyTen
 see \code{\link[=inv.default]{inv.default()}}.
 }
 \examples{
-\dontrun{
 # Numerical input
 inv(4)
 inv(1:10)
@@ -32,7 +31,6 @@ x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
                                     # indexed by 'i'
 Inv_x <- inv(x_i)                   # symbolic matrix, 150 rows and 3 columns
-}
 }
 \seealso{
 \code{\link[=inv.default]{inv.default()}}, \code{\link[=inv.LazyTensor]{inv.LazyTensor()}}

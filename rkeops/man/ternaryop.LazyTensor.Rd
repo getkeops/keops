@@ -39,7 +39,6 @@ An object of class "LazyTensor".
 Symbolically applies \code{opstr} operation to \code{x}, \code{y} and \code{z}.
 }
 \examples{
-\dontrun{
 # basic example
 D <- 3
 M <- 100
@@ -54,7 +53,6 @@ z_i <- LazyTensor(z, index = 'i')
 
 # symbolic matrix:
 tern_xyz <- ternaryop.LazyTensor(x_i, y_j, z_i, "IfElse")
-}
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay

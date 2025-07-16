@@ -27,7 +27,6 @@ a vector or a scalar, it is first converted to \code{LazyTensor}).
 \strong{Note}: \code{x} and \code{y} input arguments should have the same inner dimension.
 }
 \examples{
-\dontrun{
 x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 y <- matrix(runif(250 * 3), 250, 3) # arbitrary R matrix, 250 rows, 3 columns
 x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
@@ -35,7 +34,6 @@ x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x,
 y_j <- LazyTensor(y, index = 'j')   # creating LazyTensor from matrix y, 
                                     # indexed by 'j'
 x_sp_y <- x_i | y_j                 # symbolic matrix
-}
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay

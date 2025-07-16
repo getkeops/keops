@@ -23,12 +23,10 @@ encodes, symbolically, the element-wise inverse square root of \code{x}, i.e.
 \eqn{1/\sqrt{x}}.
 }
 \examples{
-\dontrun{
 x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
                                     # indexed by 'i'
 Rsqrt_x <- rsqrt(x_i)               # symbolic matrix, 150 rows and 3 columns
-}
 }
 \seealso{
 \code{\link[=rsqrt]{rsqrt()}}

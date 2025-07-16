@@ -27,7 +27,6 @@ If \code{x} is a \code{LazyTensor}, see \code{\link[=log.LazyTensor]{log.LazyTen
 see \code{\link[=log.default]{log.default()}}.
 }
 \examples{
-\dontrun{
 # R base operation
 log(1)
 log(1:10)
@@ -36,7 +35,6 @@ x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
                                     # indexed by 'i'
 Log_x <- log(x_i)                   # symbolic matrix, 150 rows and 3 columns
-}
 }
 \seealso{
 \code{\link[=log.default]{log.default()}}, \code{\link[=log.LazyTensor]{log.LazyTensor()}}

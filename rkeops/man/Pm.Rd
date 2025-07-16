@@ -25,10 +25,8 @@ Equivalent to \code{LazyTensor(x)}.
 See \code{?LazyTensor} for more details.
 }
 \examples{
-\dontrun{
 x <- 4
 Pm_x <- Pm(x)
-}
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay

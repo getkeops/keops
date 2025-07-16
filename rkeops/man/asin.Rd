@@ -23,7 +23,6 @@ If \code{x} is a \code{LazyTensor}, see \code{\link[=asin.LazyTensor]{asin.LazyT
 see \code{\link[=asin.default]{asin.default()}}.
 }
 \examples{
-\dontrun{
 # R base operation
 asin(0)
 asin(-1)
@@ -32,7 +31,6 @@ x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
                                     # indexed by 'i'
 Asin_x <- asin(x_i)                 # symbolic matrix, 150 rows and 3 columns
-}
 }
 \seealso{
 \code{\link[=asin.default]{asin.default()}}, \code{\link[=asin.LazyTensor]{asin.LazyTensor()}}

@@ -24,8 +24,10 @@ accuracy of your computation and validity of your results
 in certain applications.
 }
 \examples{
-\dontrun{
 rkeops_use_float64()
+\dontshow{
+# set options back to default
+set_rkeops_options()
 }
 }
 \seealso{

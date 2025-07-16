@@ -25,16 +25,14 @@ else see \code{\link[=xlogx.default]{xlogx.default()}}.
 \strong{Note}: by convention \code{xlogx(0)} returns \code{0}.
 }
 \examples{
-\dontrun{
 # Numerical input
-xlog(4)
-xlog(1:10)
+xlogx(4)
+xlogx(1:10)
 # LazyTensor symbolic element-wise `x*log(x)`
 x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
                                     # indexed by 'i'
 xlog_x <- xlogx(x_i)                # symbolic matrix, 150 rows and 3 columns
-}
 }
 \seealso{
 \code{\link[=xlogx.default]{xlogx.default()}}, \code{\link[=xlogx.LazyTensor]{xlogx.LazyTensor()}}

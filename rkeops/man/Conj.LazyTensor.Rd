@@ -29,11 +29,9 @@ conjugate of \code{z}.
 a \code{ComplexLazyTensor}.
 }
 \examples{
-\dontrun{
 z <- matrix(1i^ (-6:5), nrow = 4)                     # complex 4x3 matrix
 z_i <- LazyTensor(z, index = 'i', is_complex = TRUE)  # ComplexLazyTensor
 Conj_z_i <- Conj(z_i)                                 # symbolic matrix
-}
 }
 \seealso{
 \code{\link[=Conj]{Conj()}}

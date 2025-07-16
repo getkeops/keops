@@ -55,6 +55,10 @@ recompilation).
 \examples{
 set_rkeops_options()
 set_rkeops_options(list(verbosity = 0))
+\dontshow{
+# set options back to default
+set_rkeops_options()
+}
 
 }
 \seealso{

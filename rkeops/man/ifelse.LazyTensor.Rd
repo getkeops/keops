@@ -28,7 +28,6 @@ Broadcasting rules apply.
 inner dimension as \code{test}.
 }
 \examples{
-\dontrun{
 # basic example
 D <- 3
 M <- 100
@@ -43,7 +42,6 @@ z_i <- LazyTensor(z, index = 'i')
 
 # call ifelse function
 if_else_xyz <- ifelse(x_i, y_j, z_i)
-}
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay

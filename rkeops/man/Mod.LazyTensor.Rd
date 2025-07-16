@@ -31,11 +31,9 @@ a \code{ComplexLazyTensor}.
 \strong{Warning}: Do not confuse with \code{\link[=mod]{mod()}}.
 }
 \examples{
-\dontrun{
 z <- matrix(1i^ (-6:5), nrow = 4)                     # complex 4x3 matrix
 z_i <- LazyTensor(z, index = 'i', is_complex = TRUE)  # ComplexLazyTensor
 Mod_z_i <- Mod(z_i)                                   # symbolic matrix
-}
 }
 \seealso{
 \code{\link[=Mod]{Mod()}}

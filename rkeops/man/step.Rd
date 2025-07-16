@@ -26,14 +26,12 @@ If \code{x} is a \code{LazyTensor}, see \code{\link[=step.LazyTensor]{step.LazyT
 see \code{\link[=step.default]{step.default()}}.
 }
 \examples{
-\dontrun{
 # R base operation: see `?step.default`
 # LazyTensor symbolic element-wise sign
 x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
                                     # indexed by 'i'
-Step_x <- step.LazyTensor(x_i)      # symbolic matrix, 150 rows and 3 columns
-}
+Step_x <- step(x_i)                 # symbolic matrix, 150 rows and 3 columns
 }
 \seealso{
 \code{\link[=step.default]{step.default()}}, \code{\link[=step.LazyTensor]{step.LazyTensor()}}

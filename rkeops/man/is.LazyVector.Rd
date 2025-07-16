@@ -21,7 +21,6 @@ If \code{x} is a vector parameter \code{LazyTensor},
 \code{is.LazyVector(x)} returns TRUE, else, returns FALSE.
 }
 \examples{
-\dontrun{
 # basic example
 scal <- 3.14
 cplx <- 2 + 3i
@@ -39,7 +38,6 @@ is.LazyVector(scal_LT) # returns TRUE
 is.LazyVector(cplx_LT) # returns TRUE
 is.LazyVector(v_LT) # returns TRUE
 is.LazyVector(x_i) # returns FALSE
-}
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay

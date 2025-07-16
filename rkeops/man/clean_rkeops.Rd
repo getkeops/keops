@@ -42,9 +42,8 @@ directory.
 Python setup, but \code{clean_rkeops(all = FALSE)} will not.
 }
 \examples{
-\dontrun{
-clean_rkeops()
-}
+clean_rkeops(remove_cache_dir = TRUE)
+
 }
 \seealso{
 \code{\link[=get_rkeops_cache_dir]{get_rkeops_cache_dir()}}, \code{\link[=stat_rkeops_cache_dir]{stat_rkeops_cache_dir()}}

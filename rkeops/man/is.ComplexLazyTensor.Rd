@@ -20,7 +20,6 @@ If \code{x} is a \code{ComplexLazyTensor}, \code{is.ComplexLazyTensor(x)}
 returns TRUE, else, returns FALSE.
 }
 \examples{
-\dontrun{
 # basic example
 D <- 3
 M <- 100
@@ -34,7 +33,6 @@ z_i <- LazyTensor(z, index = 'i', is_complex = TRUE) # ComplexLazyTensor
 # call is.ComplexLazyTensor
 is.ComplexLazyTensor(z_i) # returns TRUE
 is.ComplexLazyTensor(x_i) # returns FALSE
-}
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay

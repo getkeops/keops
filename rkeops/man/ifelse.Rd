@@ -23,7 +23,6 @@ If \code{test} is a \code{LazyTensor}, see \code{\link[=ifelse.LazyTensor]{ifels
 see \code{\link[=ifelse.default]{ifelse.default()}}.
 }
 \examples{
-\dontrun{
 # R base operation
 x <- c(6:-4)
 sqrt(ifelse(x >= 0, x, NA))
@@ -40,7 +39,6 @@ y_j <- LazyTensor(y, index = 'j')
 z_i <- LazyTensor(z, index = 'i')
 
 if_else_xyz <- ifelse(x_i, y_j, z_i)
-}
 }
 \seealso{
 \code{\link[=ifelse.default]{ifelse.default()}}, \code{\link[=ifelse.LazyTensor]{ifelse.LazyTensor()}}

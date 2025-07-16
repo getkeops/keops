@@ -23,12 +23,10 @@ encodes, symbolically, the element-wise \code{sin(x)/x} values for \code{x}.
 \strong{Note}: by convention \code{sinxdivx(0)} returns \code{1}.
 }
 \examples{
-\dontrun{
 x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
                                     # indexed by 'i'
 sindiv_x <- sinxdivx(x_i)           # symbolic matrix, 150 rows and 3 columns
-}
 }
 \seealso{
 \code{\link[=sinxdivx]{sinxdivx()}}

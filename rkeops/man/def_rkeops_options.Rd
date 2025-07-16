@@ -80,6 +80,10 @@ the cache directory where rkeops operator compilation byproducts will
 be stored to be re-used for further use (and avoid unnecessary
 recompilation).
 }
+\examples{
+def_rkeops_options()
+
+}
 \seealso{
 \code{\link[=rkeops_use_float32]{rkeops_use_float32()}}, \code{\link[=rkeops_use_float64]{rkeops_use_float64()}},
 \code{\link[=rkeops_use_cpu]{rkeops_use_cpu()}}, \code{\link[=rkeops_use_gpu]{rkeops_use_gpu()}},
@@ -89,4 +93,3 @@ recompilation).
 \author{
 Ghislain Durif
 }
-\keyword{internal}

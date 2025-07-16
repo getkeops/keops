@@ -24,7 +24,6 @@ see \code{\link[=Mod.default]{Mod.default()}}.
 \strong{Warning}: Do not confuse with \code{\link[=mod]{mod()}}.
 }
 \examples{
-\dontrun{
 # R base operation
 Mod(1)
 Mod(1+1i)
@@ -32,7 +31,6 @@ Mod(1+1i)
 z <- matrix(1i^ (-6:5), nrow = 4)                     # complex 4x3 matrix
 z_i <- LazyTensor(z, index = 'i', is_complex = TRUE)  # ComplexLazyTensor
 Mod_z_i <- Mod(z_i)                                   # symbolic matrix
-}
 }
 \seealso{
 \code{\link[=Mod.default]{Mod.default()}}, \code{\link[=Mod.LazyTensor]{Mod.LazyTensor()}},

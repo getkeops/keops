@@ -34,7 +34,6 @@ value.
 be in \verb{[0, n)}.
 }
 \examples{
-\dontrun{
 # basic example
 x <- 3.14              # arbitrary value
 Pm_x <- LazyTensor(x)  # creating scalar parameter LazyTensor from x
@@ -43,7 +42,6 @@ m <- 2
 n <- 3
 
 elemT_x <- elemT(Pm_x, m, n)  # symbolic vector
-}
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay

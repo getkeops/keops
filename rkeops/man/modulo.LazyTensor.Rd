@@ -36,7 +36,6 @@ inner dimension as \code{x}.
 \strong{Warning}: Do not confuse with \code{\link[=Mod]{Mod()}}.
 }
 \examples{
-\dontrun{
 # basic example
 D <- 3
 M <- 100
@@ -54,7 +53,6 @@ mod_x72 <- mod(x_i, 7, 2)
 
 # works also with LazyTensors with same inner dimension or dimension 1
 mod_xyz <- mod(x_i, y_j, z_i)
-}
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay

@@ -71,7 +71,14 @@ Run \code{browseVignettes("rkeops")} to access the vignettes and see how to use
 \code{LazyTensors}.
 }
 \examples{
-\dontrun{
+\donttest{
+\dontshow{
+# Specific setup for example runs (not necessary for standard use)
+reticulate::py_available(initialize = TRUE)
+set_rkeops_options()
+# For build on CRAN, use CPU computing with 2 cores max
+rkeops_use_cpu(ncore = 2)
+}
 # Data
 nx <- 100
 ny <- 150
@@ -102,7 +109,10 @@ res <- sum(K_ij, index = "i") # actual R matrix (in fact a row vector of
 z <- matrix(1i^ (-6:5), nrow = 4)                     # create a complex 4x3 matrix
 z_i <- LazyTensor(z, index = 'i', is_complex = TRUE)  # create a ComplexLazyTensor, 
                                                       # indexed by 'i'
-
+\dontshow{
+# clean-up (for CRAN build)
+clean_rkeops(remove_cache_dir = TRUE)
+}
 }
 }
 \author{

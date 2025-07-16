@@ -23,13 +23,11 @@ If \code{x} is a scalar value encoded as a \code{LazyTensor},
 where round(\code{x})-th coordinate is equal to 1, and the other ones to 0.
 }
 \examples{
-\dontrun{
 A <- 7
 A_LT <- LazyTensor(A) # LazyTensor from scalar A
 D <- 7
 
 onehot_x <- one_hot(A_LT, D) # symbolic vector of length D
-}
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay

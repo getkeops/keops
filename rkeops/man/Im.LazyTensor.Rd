@@ -29,11 +29,9 @@ part of complex \code{z}.
 a \code{ComplexLazyTensor}.
 }
 \examples{
-\dontrun{
 z <- matrix(2 + 1i^ (-6:5), nrow = 4)        # complex matrix
 z_i <- LazyTensor(z, "i", is_complex = TRUE) # creating ComplexLazyTensor
 Im_z <- Im(z_i)                              # symbolic matrix
-}
 }
 \seealso{
 \code{\link[=Im]{Im()}}
