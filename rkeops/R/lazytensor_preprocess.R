@@ -975,7 +975,6 @@ is.int <- function(x) {
 #' @param x A `LazyTensor`.
 #' @return An integer corresponding to the inner dimension of `x`.
 #' @examples
-#' \dontrun{
 #' # basic example
 #' D <- 3
 #' M <- 100
@@ -989,7 +988,6 @@ is.int <- function(x) {
 #' # call get_inner_dim
 #' get_inner_dim(x_i) # returns 3
 #' get_inner_dim(Pm_s) # returns 1
-#' }
 #' @noRd
 get_inner_dim <- function(x) {
     # Grab `x` inner dimension.
@@ -1141,13 +1139,11 @@ index_to_int <- function(index) {
 #' a `LazyTensor`.
 #' @return A `string`.
 #' @examples
-#' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
 #' arg <- x_i$args[1]                  # argument of the form "A0x.*=Vi(3)"
 #' id <- identifier(arg)               # extracts "A0x.*"
-#' }
 #' @noRd
 identifier <- function(arg){
     if(!is.character(arg)) {
@@ -1169,7 +1165,6 @@ identifier <- function(arg){
 #' @param x  A `LazyTensor` or a `ComplexLazyTensor`.
 #' @return A `LazyTensor` or a `ComplexLazyTensor`.
 #' @examples
-#' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' y <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
@@ -1184,7 +1179,6 @@ identifier <- function(arg){
 #'                      # of the form "V0" and "V1"
 #' b$formula            # returns "V0+V1"
 #' b$args               # returns a vector containing "V0=Vi(3)" and "V1=Vj(3)"
-#' }
 #' @noRd
 fix_variables <- function(x, is_opt = FALSE) {
     if(!is.LazyTensor(x)) {
@@ -1297,13 +1291,11 @@ fix_op_reduction <- function(reduction_op, with_weight = FALSE) {
 #' @return A `function`.
 #' @seealso [rkeops::reduction.LazyTensor()]
 #' @examples
-#' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
 #' 
 #' op <- preprocess_reduction(x_i, "Sum", "i")
-#' }
 #' @noRd
 preprocess_reduction <- function(x, opstr, index, opt_arg = NULL) {
     
