@@ -30,10 +30,16 @@ test_that("random_varname", {
 test_that("stat_dir", {
     # empty dir
     withr::with_tempdir({
-        checkmate::expect_string(
-            stat_dir(getwd()), pattern = "[0-9]+(.[0-9])*[KMG]?")
+        res <- stat_dir(getwd())
+        checkmate::expect_string(res, pattern = "[0-9]+(.[0-9])*[KMG]?")
+        expect_equal(res, "0")
     })
     # current dir
     checkmate::expect_string(
-        stat_dir(getwd()), pattern = "[0-9]+(.[0-9])*[KMG]?")
+        stat_dir(getwd()),
+        pattern = "[0-9]+(.[0-9])*[KMG]?"
+    )
+    # non existing directory
+    expect_warning({res <- stat_dir("/not/existing/dir", warn = TRUE)})
+    expect_equal(res, "0")
 })
