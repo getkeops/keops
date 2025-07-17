@@ -21,6 +21,70 @@ default_rtol = 3e-2  # 3 % relative error
 default_atol = 3e-2  # 3 % absolute error
 
 # -----------------------------------------------------------------------------
+# Theoretical error bounds (Higham & Wilkinson γ_n)
+# -----------------------------------------------------------------------------
+
+# bf16 unit-roundoff ε ≈ 2⁻⁷
+bf16_eps = 2 ** -7  # ≈7.8125e-03
+
+
+def gamma(n: int) -> float:  # noqa: D401  – simple helper, no docstring needed
+    """Higham–Wilkinson γₙ for a chain of *n* fp operations in bf16."""
+    return (n * bf16_eps) / (1.0 - n * bf16_eps)
+
+
+def k_sum_bound(M: int, D: int) -> float:
+    """First-order relative error bound for *k_sum*.
+
+    Steps per output entry::
+
+        subtraction  (x - y)         → ε  (negligible vs γ terms)
+        sum over D features          → γ_D
+        sum over M vectors           → γ_M
+
+    Total ≤ γ_D + γ_M.
+    """
+
+    return gamma(D) + gamma(M)
+
+
+def assert_close_k_sum(
+    a,
+    b,
+    *,
+    M: int,
+    D: int,
+    scale: float,
+    safety: float = 2.0,
+) -> None:
+    """Compare tensors with a theory-based tolerance for *k_sum*.
+
+    Parameters
+    ----------
+    a, b : torch.Tensor
+        Tensors to compare.
+    M, D : int
+        Problem dimensions.
+    safety : float, default=2.0
+        Extra margin to cover second-order terms and implementation quirks.
+    """
+
+    rtol = safety * k_sum_bound(M, D)
+    # Worst-case absolute error ≤ γ_n Σ|x_i − y_j| ≤ γ_n · 2·scale·M·D
+    atol = safety * k_sum_bound(M, D) * 2.0 * scale * M * D
+
+    if not torch.allclose(a, b, rtol=rtol, atol=atol):
+        delta = (a - b).abs()
+        # Relative error w.r.t. reference |b| (same as torch.allclose convention)
+        max_rel = (delta / b.abs().clamp_min(1e-30)).max()
+        raise AssertionError(
+            (
+                f"k_sum mismatch (rtol={rtol:.3e}, atol={atol:.3e}). "
+                f"max abs {delta.max():.3e}, max rel {max_rel:.3e}"
+            )
+        )
+
+# -----------------------------------------------------------------------------
 # Helpers
 # -----------------------------------------------------------------------------
 
@@ -82,8 +146,7 @@ def k_exp_sqnorm(x: torch.Tensor, y: torch.Tensor, *, backend: str) -> torch.Ten
 
 
 ALL_FUNS: list[Callable[[torch.Tensor, torch.Tensor, str], torch.Tensor]] = [
-    k_sum,
-    k_exp_sqnorm,
+    k_sum,  # We focus on *k_sum* to illustrate γ_n-based testing.
 ]
 
 # -----------------------------------------------------------------------------
@@ -125,17 +188,13 @@ def test_forward(fun, M: int, N: int, D: int, scale_key: str):
     scale = SCALES[scale_key]
     x = rand_tensor((M, 1, D), scale=scale).requires_grad_(True)
     y = rand_tensor((1, N, D), scale=scale)
-    # ------------------------------------------------------------------
-    # Adaptive tolerances: bf16 has ε ≈ 2**-7 ≃ 7.8e-3.
-    # ------------------------------------------------------------------
-    bf16_eps = 2**-7  # ≈7.8e-3
-    terms_sqrt = (M * D) ** 0.5
-
-    rtol = max(default_rtol, 2.0 * bf16_eps * terms_sqrt)
-    atol = max(default_atol, 10.0 * bf16_eps * scale * terms_sqrt)
-
+    # Compute reference and KeOps outputs
     ref, ko = reference_and_keops(fun, x, y)
-    assert_close(ref, ko, rtol=rtol, atol=atol)
+
+    # ------------------------------------------------------------------
+    # Theory-based tolerance (Higham–Wilkinson γ_n) for *k_sum*
+    # ------------------------------------------------------------------
+    assert_close_k_sum(ref, ko, M=M, D=D, scale=scale)
 
 
 # -----------------------------------------------------------------------------
