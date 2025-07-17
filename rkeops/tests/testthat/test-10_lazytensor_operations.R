@@ -2,9 +2,18 @@ skip_if_no_python()
 skip_if_no_keopscore()
 skip_if_no_pykeops()
 
-previous_cache_dir <- get_rkeops_cache_dir()
-set_rkeops_cache_dir(testing_cache_dir)
-withr::defer(set_rkeops_cache_dir(previous_cache_dir))
+# clean running env
+withr::with_options(list(rkeops = NULL), {
+
+# dedicated cache directory for tests
+set_rkeops_options(list(cache_dir = testing_cache_dir))
+
+# setup computing resources (or skip if limited resources)
+if(Sys.getenv("RUN_LONG_TEST") == "1") {
+    if(Sys.getenv("TEST_GPU") == "1") rkeops_use_gpu()
+} else {
+    skip("Long tests: not running (e.g. during a package check)")
+}
 
 # TEST ARITHMETIC OPERATIONS ===================================================
 
@@ -3984,3 +3993,5 @@ test_that("grad", {
     )
     
 })
+
+}) # withr::with_options
