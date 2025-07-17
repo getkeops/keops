@@ -1,7 +1,7 @@
 \.gitkeep
 \.gitignore
 ^prebuild\.R$
-^recipe\.md$
+^README_dev\.md$
 ^benchmarks$
 ^ci$
 ^dev$

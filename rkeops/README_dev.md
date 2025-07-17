@@ -5,6 +5,10 @@ You can either use Rstudio machinery with the [attached](#rstudio) Rstudio
 project file, or use R commands and follow the recipe described 
 [below](#r-command-tools).
 
+## Development pipeline
+
+Refer to [`dev_history.Rmd`](dev_history.Rmd) for information and details about RKeOps pipeline development.
+
 ## Set up environment
 
 ### Set up a CRAN repository
@@ -31,10 +35,6 @@ apt-get install build-essential libcurl4-gnutls-dev libxml2-dev libssl-dev
 install.packages("devtools")
 ```
 
-## Development pipeline
-
-Refer to [`dev_history.Rmd`](dev_history.Rmd) for information and details about RKeOps pipeline development.
-
 ## Continuous Integration (CI)
 
 See the [dedicated file](./ci/README.md) for more details.
@@ -46,6 +46,15 @@ should be defined with the value `1` before running the CI scripts, i.e.
 ```bash
 export TEST_GPU=1
 ```
+To run all tests (including all computation tests), the environment variable
+`RUN_LONG_TEST` should be defined with the value `1` before running the
+CI scripts, i.e.
+```bash
+export RUN_LONG_TEST=1
+```
+
+**Note**: some tests are skipped by default to avoid consumming too much
+resources during package checks on CRAN.
 
 ## Documentation and webpage generation
 
@@ -92,6 +101,8 @@ devtools::load_all(pkg_dir)
 devtools::document(pkg_dir, roclets = c('rd', 'collate', 'namespace', 'vignette'))
 ```
 
+**Note:** internal functions have a `@noRd` tag in their documentation chunk to avoid generating man pages.
+
 ### Package build and check
 
 ```R
@@ -126,4 +137,5 @@ For submission on CRAN, visit <https://cran.r-project.org/submit.html>.
 ### Vignette creation
 
 You can compile vignettes (in `rkeops/vignettes`) directly in Rstudio or 
-in R command line with the package knitr.
+in R command line with the package knitr (c.f.
+[`dev_history.Rmd`](dev_history.Rmd)).
