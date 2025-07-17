@@ -169,15 +169,33 @@ confirm_choice <- function(
 #' 
 #' @param path character string, path to directory for which the disk
 #' usage will be computed.
+#' @param warn bollean flag to enable/disable warning verbosity.
 #'
 #' @return character string, a disk usage in (G/M/K)bytes.
 #' 
 #' @importFrom fs dir_info as_fs_bytes
+#' @importFrom checkmate assert_string assert_flag test_directory
+#' @importFrom stringr str_c str_glue
 #' @noRd
-stat_dir <- function(path) {
-    dir_size <- as.character(fs::as_fs_bytes(sum(as.numeric(
-        fs::dir_info(path, recurse = TRUE)$size
-    ))))
+stat_dir <- function(path, warn = FALSE) {
+    # check input
+    assert_string(path)
+    assert_flag(warn)
+    # default results (if directory does not exist)
+    dir_size <- "0"
+    # check if directory exists
+    if(!test_directory(path)) {
+        if(warn) {
+            msg <- str_glue(str_c(
+                "`{path}` directory does not exists."
+            ))
+            warning(msg)
+        }
+    } else {
+        dir_size <- as.character(fs::as_fs_bytes(sum(as.numeric(
+            fs::dir_info(path, recurse = TRUE)$size
+        ))))
+    }
     return(dir_size)
 }
 

@@ -43,7 +43,7 @@ stat_rkeops_cache_dir <- function(verbose = TRUE, startup = FALSE) {
     assert_flag(verbose)
     assert_flag(startup)
     cache_dir <- get_rkeops_cache_dir()
-    dir_du <- stat_dir(cache_dir)
+    dir_du <- stat_dir(cache_dir, warn = FALSE)
     if(verbose) {
         msg <- str_c(
             str_c("- rkeops cache directory:", cache_dir, sep = " "),
@@ -96,7 +96,7 @@ stat_rkeops_cache_dir <- function(verbose = TRUE, startup = FALSE) {
 #' 
 #' @return None
 #' 
-#' @importFrom stringr str_c
+#' @importFrom stringr str_c str_glue
 #' @importFrom checkmate assert_flag
 #' @importFrom fs dir_exists dir_ls file_delete
 #' 
@@ -131,25 +131,22 @@ clean_rkeops <- function(verbose = TRUE, all = TRUE, remove_cache_dir = FALSE) {
     msg <- NULL
     if(all) {
         if(remove_cache_dir) {
-            msg <- str_c(
-                "rkeops cache directory '", cache_dir, "' has been cleaned ", 
-                "and deleted.\n",
-                "You should restard your R session and reload rkeops after ", 
-                "cleaning."
-            )
+            msg <- str_glue(str_c(
+                "rkeops cache directory `{cache_dir}` has been cleaned", 
+                "and deleted.",
+                sep = " "
+            ))
         } else {
-            msg <- str_c(
-                "rkeops cache directory '", cache_dir, "' has been cleaned.\n",
-                "You should restard your R session and reload rkeops after ", 
-                "cleaning."
+            msg <- str_glue(
+                "rkeops cache directory `{cache_dir}` has been cleaned."
             )
         }
     } else {
-        msg <- str_c(
-            "rkeops cache directory '", cache_dir, 
-            "' has been partially cleaned ", 
-            "(only out-dated contents have been removed)."
-        )
+        msg <- str_glue(str_c(
+            "rkeops cache directory `{cache_dir}` has been partially cleaned", 
+            "(only out-dated contents have been removed).",
+            sep = " "
+        ))
     }
         
     if(verbose) msg_warn_error(msg, type = "msg", startup = FALSE)

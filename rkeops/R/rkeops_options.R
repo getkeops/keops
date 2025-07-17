@@ -56,6 +56,7 @@
 #' associated with a LazyTensor reductions, instead of doing the actual 
 #' computation. Default is `FALSE`, should be set to `TRUE` for debugging 
 #' purpose only.
+#' @param warn boolean flag to enable/disable warnings in function call.
 #' 
 #' @return a list (of class `rkeops_options`) with the following containing 
 #' named values corresponding to the function input parameters.
@@ -66,8 +67,9 @@
 #' [rkeops::get_rkeops_cache_dir()], [rkeops::set_rkeops_cache_dir()].
 #' 
 #' @importFrom tibble lst
-#' @importFrom checkmate assert_choice assert_directory assert_flag 
+#' @importFrom checkmate assert_choice test_directory assert_flag 
 #' assert_integerish qassert
+#' @importFrom stringr str_glue str_c
 #' @examples
 #' def_rkeops_options()
 #' 
@@ -76,7 +78,8 @@ def_rkeops_options <- function(
     backend = "CPU", device_id = -1, precision = "float32",
     verbosity = TRUE, debug = FALSE,
     cache_dir = NULL,
-    formula_only = FALSE
+    formula_only = FALSE,
+    warn = TRUE
 ) {
     # check input
     assert_choice(backend, c("CPU", "GPU"))
@@ -86,16 +89,23 @@ def_rkeops_options <- function(
     qassert(debug, c("B1", "X[0,1]"))
     assert_string(cache_dir, null.ok = TRUE)
     assert_flag(formula_only)
+    assert_flag(warn)
     # cast input
     device_id <- as.integer(device_id)
     verbosity <- as.integer(verbosity)
     debug <- as.integer(debug)
-    # build dir
+    # cache dir
     if(is.null(cache_dir)) {
         cache_dir <- default_rkeops_cache_dir()
-    } else {
-        assert_directory(cache_dir, "rw")
+    } else if(!test_directory(cache_dir, "rw")) {
+        msg <- str_glue(str_c(
+            "Input directory `{cache_dir}` for cache directory",
+            "does not exist and will be created at computing time.",
+            sep = " "
+        ))
+        if(warn) warning(msg)
     }
+    
     # output
     out <- lst(
         backend, device_id, precision, verbosity, debug, cache_dir, 
@@ -191,7 +201,7 @@ get_rkeops_options <- function(option = NULL) {
     return(out)
 }
 
-#' Get or set the current `rkeops` options in `R` global options scope
+#' Set the current `rkeops` options in `R` global options scope
 #' 
 #' @description
 #' `rkeops` operators requires specific options to manage their compilation 
@@ -281,7 +291,8 @@ set_rkeops_options <- function(input = NULL) {
             input <- c(
                 input, 
                 current_rkeops_options[
-                    setdiff(names(current_rkeops_options), names(input))]
+                    setdiff(names(current_rkeops_options), names(input))
+                ]
             )
         }
         
@@ -589,20 +600,33 @@ get_rkeops_cache_dir <- function() {
 #' 
 #' @importFrom tibble lst
 #' @importFrom checkmate assert_directory assert_flag
-#' @importFrom stringr str_c
+#' @importFrom stringr str_c str_glue
 #' 
 #' @seealso [rkeops::get_rkeops_cache_dir()], [rkeops::stat_rkeops_cache_dir()],
 #' [rkeops::clean_rkeops()]
 #' 
 #' @examples
+#' # use default cache directory
 #' set_rkeops_cache_dir()
+#' \dontrun{
+#' # edit path at your convenience
+#' set_rkeops_cache_dir("/path/to/a/specific/directory")
+#' }
 #' 
 #' @export
 set_rkeops_cache_dir <- function(cache_dir = NULL, verbose = TRUE) {
     # check input
     checkmate::assert_string(cache_dir, null.ok = TRUE)
-    if(!is.null(cache_dir)) checkmate::assert_directory(cache_dir)
     checkmate::assert_flag(verbose)
+    # check cache dir
+    if(!is.null(cache_dir) && !test_directory(cache_dir, "rw")) {
+        msg <- str_glue(str_c(
+            "Input directory `{cache_dir}` for cache directory",
+            "does not exist and will created at computing time.",
+            sep = " "
+        ))
+        if(verbose) warning(msg)
+    }
     # inform the user about the previous cache dir
     if(verbose) {
         cache_dir_du <- stat_rkeops_cache_dir(verbose = FALSE)
