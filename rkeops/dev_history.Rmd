@@ -137,11 +137,19 @@ devtools::build_vignettes(pkg_dir)
 pkgdown::build_site(pkg = pkg_dir)
 ```
 
-### Test and check
+### Test and checkS
+
+```{r dev-req}
+library(tictoc)
+```
 
 ```{r dev-test}
 # run the unit tests
+Sys.setenv(TEST_GPU = 1)
+Sys.setenv(RUN_LONG_TEST = 1)
+tic("Unit tests run")
 devtools::test(pkg_dir)
+toc()
 ```
 
 ```{r dev-cov}
@@ -152,15 +160,23 @@ covr::zero_coverage(cov)
 
 ```{r dev-check-doc}
 # check the package doc
+tic("Man page check")
 devtools::check_man(pkg_dir)
+toc()
 ```
 
 ```{r dev-examples}
-# Run examples 
+# Run examples
+tic("Example run")
 devtools::run_examples(pkg_dir, fresh = TRUE, run_donttest = TRUE)
+toc()
 ```
 
 ```{r dev-check}
 # fully check the package
+Sys.setenv(TEST_GPU = 0)
+Sys.setenv(RUN_LONG_TEST = 0)
+tic("Package check")
 devtools::check(pkg_dir)
+toc()
 ```
