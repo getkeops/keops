@@ -16,7 +16,9 @@ def test_slice_value_parity(M, N, D):
     x = torch.randn(M, D, requires_grad=True)
     y = torch.randn(N, D, requires_grad=True)
 
-    K_full = gaussian_sum(x, y)
+    # Reference computation using pure PyTorch (no KeOps involved):
+    # squared Euclidean distance matrix between all x_i and y_j
+    K_full = ((x[:, None, :] - y[None, :, :]) ** 2).sum(-1)
 
     sli = slice(2, 8)
     slj = slice(3, 14, 1)
