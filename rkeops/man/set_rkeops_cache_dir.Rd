@@ -43,7 +43,12 @@ to (fully or partially) delete its content.
 the default rkeops cache directory.
 }
 \examples{
+# use default cache directory
 set_rkeops_cache_dir()
+\dontrun{
+# edit path at your convenience
+set_rkeops_cache_dir("/path/to/a/specific/directory")
+}
 
 }
 \seealso{
