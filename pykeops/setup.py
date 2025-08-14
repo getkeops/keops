@@ -55,6 +55,7 @@ setup(
         "pykeops.torch.cluster",
         "pykeops.torch.generic",
         "pykeops.torch.lazytensor",
+        "pykeops._test_install",
     ],
     package_data={
         "pykeops": [
