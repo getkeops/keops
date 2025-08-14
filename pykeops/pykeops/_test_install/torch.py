@@ -11,6 +11,7 @@ def test_torch_bindings():
     """
 
     import torch
+
     x = torch.arange(1, 10, dtype=torch.float32).view(-1, 3)
     y = torch.arange(3, 9, dtype=torch.float32).view(-1, 3)
 
