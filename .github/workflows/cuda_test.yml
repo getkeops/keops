@@ -13,3 +13,8 @@ jobs:
       - name: Test with pytest
         run: |
           sh ./pytest.sh
+      - name: Test rkeops
+        run: |
+          cd rkeops/ci
+          export TEST_GPU=1
+          sh ./run_ci.sh
