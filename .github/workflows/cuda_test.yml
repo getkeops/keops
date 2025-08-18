@@ -20,4 +20,4 @@ jobs:
           pwd
           ls
           export TEST_GPU=1
-          sh ./run_ci.sh
+          bash ./run_ci.sh
