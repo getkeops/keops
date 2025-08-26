@@ -116,7 +116,9 @@ ENV MPLBACKEND=tkagg
 # Full CUDA installation, with the headers, from cuda-forge:
 FROM conda AS cuda 
 ARG CUDA_VERSION 
-RUN /opt/conda/bin/conda install cuda=${CUDA_VERSION} -c conda-forge && \
+RUN /opt/conda/bin/conda install -n base conda-libmamba-solver && \
+    /opt/conda/bin/conda config --set solver libmamba && \
+    /opt/conda/bin/conda install cuda=${CUDA_VERSION} -c conda-forge && \
     /opt/conda/bin/conda clean -ya
 
 
