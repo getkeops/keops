@@ -108,7 +108,7 @@ RUN curl -fsSL -v -o ~/miniconda.sh -O  https://repo.anaconda.com/miniconda/Mini
         ipykernel && \
     /opt/conda/bin/conda clean -ya
 # rpy2 on conda is not supported anymore. We install it with pip:
-RUN /opt/conda/bin/pip install rpy2=${RPY2_VERSION}
+RUN /opt/conda/bin/pip install rpy2==${RPY2_VERSION}
 # Switch default matplotlib backend to avoid issues with Qt:
 ENV MPLBACKEND=tkagg
 
