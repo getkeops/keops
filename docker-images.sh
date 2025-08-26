@@ -11,7 +11,7 @@
 # to clear the docker cache and make sure that the config works
 # with the current version of e.g. the Ubuntu repositories.
 
-# Up to date as of Monday, April 17th, 2025:
+# Up to date as of Tuesday, August 26th, 2025:
 BASE_IMAGE=ubuntu:24.04
 PYTHON_VERSION=3.13
 NUMPY_VERSION=2.3.2
