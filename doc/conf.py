@@ -152,7 +152,9 @@ root_doc = "index"
 # General information about the project.
 project = "KeOps"
 
-copyright = f"2018-{time.strftime("%Y")}, Benjamin Charlier, Jean Feydy, Joan A. Glaunès"
+copyright = (
+    f"2018-{time.strftime("%Y")}, Benjamin Charlier, Jean Feydy, Joan A. Glaunès"
+)
 author = "Benjamin Charlier, Jean Feydy, Joan A. Glaunès."
 
 # The version info for the project you're documenting, acts as replacement for
