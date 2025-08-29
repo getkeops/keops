@@ -1,3 +1,7 @@
+"""
+TODO maybe dead branch becuase it doesn't work and it mih-ght easier to start from the branch sliced_tensor
+and add the possibility to do indexing or masking over each dimension and not only slicing.
+"""
 import torch
 import pytest
 from pykeops.torch import LazyTensor
