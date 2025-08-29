@@ -1,3 +1,10 @@
+
+"""
+TODO. This file could be run by the CI, or we could use the more complete *_extensive script, and delete this one.
+Additionnally, we should add bfloat16 to the plot_accuracy tutorial.
+"""
+
+
 import pytest
 import torch
 from pykeops.torch import LazyTensor
