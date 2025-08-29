@@ -3,7 +3,7 @@ on:
   pull_request:
     branches: [ main ]
   push:
-    branches: [ ci/gha-migration ]
+    branches: [ main, ci/**, chore/**, fix/** ]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -16,35 +16,45 @@ jobs:
       fail-fast: false
       matrix:
         python-version: ["3.10", "3.11", "3.12"]
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python (pip cache without TOML)
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
           cache: pip
+          # No *.toml here on purpose
           cache-dependency-path: |
-            pyproject.toml
-            setup.cfg
             setup.py
+            setup.cfg
             requirements*.txt
+
       - name: System deps
-        run: sudo apt-get update && sudo apt-get install -y build-essential
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential
+
       - name: Install deps (CPU-only torch)
         run: |
           python -m pip install -U pip wheel setuptools pytest
           python -m pip install --extra-index-url https://download.pytorch.org/whl/cpu torch
           python -m pip install -e .
           python -m pip install pykeops
+
       - name: Restore KeOps binary cache
         uses: actions/cache@v4
         with:
           path: |
             ~/.cache/keops
             ~/.keops/build
-          key: keops-${{ runner.os }}-py${{ matrix.python-version }}-${{ hashFiles('pyproject.toml', 'setup.cfg', 'setup.py') }}
+          key: keops-${{ runner.os }}-py${{ matrix.python-version }}-${{ hashFiles('setup.py', 'setup.cfg', 'requirements*.txt') }}
           restore-keys: |
             keops-${{ runner.os }}-py${{ matrix.python-version }}-
-      - name: Pre-compile KeOps
+
+      - name: Pre-compile KeOps (populate cache)
         run: |
           python - << 'PY'
           import pykeops
@@ -53,6 +63,7 @@ jobs:
           try: pykeops.test_torch_bindings()
           except Exception as e: print("Torch bindings test failed:", e)
           PY
+
       - name: Run tests
         env:
           PYKEOPS_VERBOSE: "0"
