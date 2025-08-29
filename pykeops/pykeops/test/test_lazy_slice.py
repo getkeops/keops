@@ -6,7 +6,7 @@ from pykeops.torch import LazyTensor
 def gaussian_sum(x, y):
     xi = LazyTensor(x[:, None, :])  # Vi(D)
     yj = LazyTensor(y[None, :, :])  # Vj(D)
-    K = ((xi - yj) ** 2).sum(-1)
+    K = (-((xi - yj) ** 2).sum(-1)).exp()
     return K
 
 
@@ -18,14 +18,12 @@ def test_slice_value_parity(M, N, D):
 
     # Reference computation using pure PyTorch (no KeOps involved):
     # squared Euclidean distance matrix between all x_i and y_j
-    K_full = ((x[:, None, :] - y[None, :, :]) ** 2).sum(-1)
+    K_full = (-((x[:, None, :] - y[None, :, :]) ** 2).sum(-1)).exp()
 
-    sli = slice(2, 8)
-    slj = slice(3, 14, 1)
-    K_slice_ref = K_full[sli, slj]
+    K_slice_ref = K_full[2:8, 3:14]
 
     K_symbolic = gaussian_sum(x, y)
-    K_slice_sym = K_symbolic[sli, slj]
+    K_slice_sym = K_symbolic[2:8, 3:14]
 
     # Evaluate both reference and symbolic slices through explicit reductions
     out_ref = K_slice_ref.sum(axis=1).sum(axis=0)
@@ -47,11 +45,8 @@ def test_slice_gradcheck(M, N, D):
     x = torch.randn(M, D, dtype=torch.double, requires_grad=True)
     y = torch.randn(N, D, dtype=torch.double, requires_grad=True)
 
-    sli = slice(1, 5)
-    slj = slice(2, 6)
-
     def func(x_, y_):
-        K = gaussian_sum(x_, y_)[sli, slj]
+        K = gaussian_sum(x_, y_)[1:5, 2:6]
         # Use a numerically-stable kernel to avoid huge gradients, very important !!
         return (-K).exp().sum(axis=1).sum(axis=0)
 
