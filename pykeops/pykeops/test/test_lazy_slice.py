@@ -1,3 +1,9 @@
+"""
+TODO this works, but we could add the possibility to slice 3 axis at the same time and not just two:
+i.e. currently only slice of the form K[...,2:5,3:9,:] or K[...,:,:,3:5] is allowed, but
+K[...,2:5,3:9,3:5] should also be allowed and very simple to code.
+"""
+
 import pytest
 import torch
 from pykeops.torch import LazyTensor
