@@ -94,6 +94,9 @@ setup(
             "windows_compilations/templates/CMakeLists.txt",
         ],
     },
-    install_requires=[],
+    install_requires=[
+        "cuda-pathfinder",
+        "cmake"
+    ],
     extras_require={},
 )

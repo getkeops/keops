@@ -2,8 +2,9 @@ import os
 from ctypes.util import find_library
 from pathlib import Path
 
-cuda_available = "CUDA_PATH" in os.environ
+from cuda import pathfinder
 
+cuda_available = "CUDA_PATH" in os.environ
 
 def detect_cuda_toolkit():
 
@@ -14,12 +15,13 @@ def detect_cuda_toolkit():
         cuda_path = Path(
             os.environ["CUDA_PATH"]
         )  # base path for cuda installation (including bin, lib, include, etc.)
-        cuda_bin = Path(cuda_path, "bin")  # where the dlls are located
 
-        if find_library("nvcuda") is not None:
+        if find_library("nvcuda") is not None: # NVCUDA is the main CUDA driver library
             output["dll_cuda"] = find_library("nvcuda")
 
-        for file in cuda_bin.iterdir():
+        cuda_dlls_dir = Path(pathfinder.load_nvidia_dynamic_lib("cudart").abs_path).parent
+
+        for file in cuda_dlls_dir.iterdir():
 
             if file.name.startswith("cudart") and file.name.endswith(".dll"):
                 output["dll_cudart"] = str(file)

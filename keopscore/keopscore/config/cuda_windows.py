@@ -201,7 +201,7 @@ class CUDAConfigWin(CUDAConfig):
                 return (self.n_gpus, self.gpu_compile_flags)
             SharedMemPerBlock[d] = output.value
 
-        # Build compile flags string
+        # Build compile flags string #TODO auto detection for macros is here
         self.gpu_compile_flags = f"-DMAXIDGPU={self.n_gpus - 1} "
         for d in range(self.n_gpus):
             self.gpu_compile_flags += (
