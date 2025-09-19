@@ -15,12 +15,12 @@ def compile_pykeops_nvrtc(build_folder):
     source_file = pykeops_dir / "common" / "keops_io" / "pykeops_nvrtc_win.cpp"
 
     macros = [
-        "-DMAXIDGPU=0", #TODO should be detected
-        "-DMAXTHREADSPERBLOCK0=1024", #TODO should be detected
-        "-DSHAREDMEMPERBLOCK0=49152", #TODO should be detected
-        "-DnvrtcGetTARGET=nvrtcGetCUBIN", #TODO should be detected
-        "-DnvrtcGetTARGETSize=nvrtcGetCUBINSize", #TODO should be detected
-        '-DARCHTAG="sm"', #TODO should be detected
+        "-DMAXIDGPU=0",  # TODO should be detected
+        "-DMAXTHREADSPERBLOCK0=1024",  # TODO should be detected
+        "-DSHAREDMEMPERBLOCK0=49152",  # TODO should be detected
+        "-DnvrtcGetTARGET=nvrtcGetCUBIN",  # TODO should be detected
+        "-DnvrtcGetTARGETSize=nvrtcGetCUBINSize",  # TODO should be detected
+        '-DARCHTAG="sm"',  # TODO should be detected
     ]
 
     compile(

@@ -6,6 +6,7 @@ from cuda import pathfinder
 
 cuda_available = "CUDA_PATH" in os.environ
 
+
 def detect_cuda_toolkit():
 
     output = {}
@@ -16,10 +17,12 @@ def detect_cuda_toolkit():
             os.environ["CUDA_PATH"]
         )  # base path for cuda installation (including bin, lib, include, etc.)
 
-        if find_library("nvcuda") is not None: # NVCUDA is the main CUDA driver library
+        if find_library("nvcuda") is not None:  # NVCUDA is the main CUDA driver library
             output["dll_cuda"] = find_library("nvcuda")
 
-        cuda_dlls_dir = Path(pathfinder.load_nvidia_dynamic_lib("cudart").abs_path).parent
+        cuda_dlls_dir = Path(
+            pathfinder.load_nvidia_dynamic_lib("cudart").abs_path
+        ).parent
 
         for file in cuda_dlls_dir.iterdir():
 
