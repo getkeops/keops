@@ -40,8 +40,8 @@ def detect_cuda_toolkit():
         # Detect relevant DLLs: cudart and nvrtc-builtins
         #################################################
 
-        # Check both bin and bin/x86 directories for relevant DLLs
-        bin_dirs = [Path(cuda_path, "bin"), Path(cuda_path, "bin", "x86")]
+        # Check both bin and bin/x64 directories for relevant DLLs
+        bin_dirs = [Path(cuda_path, "bin"), Path(cuda_path, "bin", "x64")]
 
         for bin_dir in bin_dirs:
             if bin_dir.is_dir():
