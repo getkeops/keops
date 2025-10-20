@@ -1,6 +1,5 @@
 import ctypes
 from ctypes.util import find_library
-import tempfile
 
 
 from keopscore.utils.misc_utils import (
@@ -8,6 +7,7 @@ from keopscore.utils.misc_utils import (
     KeOps_Warning,
     find_library_abspath,
     KeOps_OS_Run,
+    get_include_file_abspath,
 )
 
 import keopscore
@@ -81,7 +81,7 @@ def get_cuda_include_path():
 
     # last try, testing if by any chance the header is already in the default
     # include path of gcc
-    path_cudah = get_include_file_abspath("cuda.h")
+    path_cudah = get_include_file_abspath("cuda.h", config.cxx_compiler())
     if path_cudah:
         path = os.path.dirname(path_cudah)
     if os.path.isfile(join(path, "nvrtc.h")):
@@ -98,20 +98,6 @@ def get_cuda_include_path():
       os.environ['CUDA_PATH'] = '/vol/cuda/10.2.89-cudnn7.6.4.38'
     """
     )
-
-
-def get_include_file_abspath(filename):
-    tmp_file = tempfile.NamedTemporaryFile(dir=config.get_build_folder()).name
-    KeOps_OS_Run(
-        f'echo "#include <{filename}>" | {config.cxx_compiler()} -M -E -x c++ - | head -n 2 > {tmp_file}'
-    )
-    strings = open(tmp_file).read().split()
-    abspath = None
-    for s in strings:
-        if filename in s:
-            abspath = s
-    os.remove(tmp_file)
-    return abspath
 
 
 def orig_cuda_include_fp16_path():

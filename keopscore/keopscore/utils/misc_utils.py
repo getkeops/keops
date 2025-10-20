@@ -5,6 +5,7 @@
 import keopscore
 from os.path import join
 import re
+import platform
 
 
 def KeOps_Print(message, force_print=False, **kwargs):
@@ -35,7 +36,7 @@ def KeOps_Error(message, show_line_number=True):
     raise ValueError(message)
 
 
-def KeOps_OS_Run(command):
+def KeOps_OS_Run(command, print_warning=True):
     import sys
 
     python_version = sys.version_info
@@ -43,20 +44,41 @@ def KeOps_OS_Run(command):
         import subprocess
 
         out = subprocess.run(command, shell=True, capture_output=True)
-        if out.stderr != b"":
+        if out.stderr != b"" and print_warning:
             KeOps_Warning("There were warnings or errors :", newline=True)
             KeOps_Print(out.stderr.decode("utf-8"))
     elif python_version >= (3, 5):
         import subprocess
 
-        subprocess.run(
+        out = subprocess.run(
             command,
             shell=True,
         )
     else:
-        import os
+        KeOps_Error("Python version >= 3.5 required.", newline=True)
+    return out
 
-        os.system(command)
+
+def get_include_file_abspath(filename, compiler):
+    out = KeOps_OS_Run(
+        f'echo "#include <{filename}>" | {compiler} -M -E -x c++ - | head -n 2'
+    )
+    strings = out.stdout.decode("utf8").split()
+    abspath = None
+    for s in strings:
+        if filename in s:
+            abspath = s
+    return abspath
+
+
+def get_brew_prefix():
+    """Get Homebrew prefix path using KeOps_OS_Run"""
+    if platform.system() != "Darwin":
+        return None
+    out = KeOps_OS_Run(f"brew --prefix", print_warning=False)
+    if out.stderr != b"":
+        return None
+    return out.stdout.decode("utf-8").strip()
 
 
 def find_library_abspath(lib):

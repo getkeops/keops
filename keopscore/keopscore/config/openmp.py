@@ -5,8 +5,7 @@ import subprocess
 import platform
 from ctypes.util import find_library
 
-from keopscore.utils.misc_utils import KeOps_Warning
-from keopscore.utils.misc_utils import KeOps_OS_Run
+from keopscore.utils.misc_utils import KeOps_Warning, KeOps_OS_Run, get_brew_prefix
 from keopscore.utils.misc_utils import CHECK_MARK, CROSS_MARK
 
 
@@ -84,32 +83,6 @@ class OpenMPConfig:
             os.remove(test_file)
             return False
 
-    def get_brew_prefix(self):
-        """Get Homebrew prefix path using KeOps_OS_Run"""
-        if platform.system() != "Darwin":
-            return None
-
-        # Redirect brew --prefix to a temporary file
-        tmp_file = "/tmp/brew_prefix.txt"
-
-        # brew --prefix > /tmp/brew_prefix.txt
-        # We use shell redirection so the output ends up in the file
-        KeOps_OS_Run(f"brew --prefix > {tmp_file}")
-
-        # Now read the file if it was created
-        if os.path.exists(tmp_file):
-            with open(tmp_file, "r") as f:
-                prefix = f.read().strip()
-
-            # Optional: Clean up
-            os.remove(tmp_file)
-
-            # Return the prefix if it's non-empty
-            return prefix if prefix else None
-
-        # If file doesn't exist or is empty, return None
-        return None
-
     def check_openmp_libraries(self):
         if self.os.startswith("Linux"):
             openmp_lib = find_library("gomp")
@@ -121,10 +94,13 @@ class OpenMPConfig:
                 return True
         # Specific check for M1/M2/M3 apple Silicon chips
         elif self.os.startswith("Darwin") and platform.machine() in ["arm64", "arm64e"]:
-            brew_prefix = self.get_brew_prefix()
-            openmp_path = f"{brew_prefix}/opt/libomp/lib/libomp.dylib"
-            openmp_lib = openmp_path if os.path.exists(openmp_path) else None
-            if not openmp_lib:
+            brew_prefix = get_brew_prefix()
+            if brew_prefix is not None:
+                openmp_path = f"{brew_prefix}/opt/libomp/lib/libomp.dylib"
+                openmp_lib = openmp_path if os.path.exists(openmp_path) else None
+            else:
+                openmp_lib = None
+            if openmp_lib is None:
                 KeOps_Warning(
                     "OpenMP library not found, it must be downloaded through Homebrew for apple Silicon chips"
                 )
