@@ -64,7 +64,7 @@ PROJDIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 PYTHON="python3"
 
 # python environment for test
-TEST_VENV=${PROJDIR}/.test_venv
+TEST_VENV=${PROJDIR}/.test_venv_pytest
 
 # python test requirements (names of packages to be installed with pip)
 TEST_REQ="pip"
