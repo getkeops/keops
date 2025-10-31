@@ -16,8 +16,8 @@ task:
 
   script:
     - brew install libomp
-    - brew install python@3.12
-    - $(brew --prefix python@3.12)/bin/python3.12 -m venv .test_venv
+    - brew install python@3.11
+    - $(brew --prefix python@3.11)/bin/python3.11 -m venv .test_venv
     - source .test_venv/bin/activate
     - pip install --upgrade pip
     - sh ./pytest.sh
