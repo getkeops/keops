@@ -33,7 +33,7 @@ for k, backend in enumerate(["torch", "keops"]):
     out_g.append(torch.autograd.grad((out[k] ** 2).sum(), [x])[0])
 
 
-class TestCase:
+class TestCase_lazytensor_clamp:
     def test_lazytensor_clamp_fw(self):
         assert torch.allclose(out[0], out[1])
 

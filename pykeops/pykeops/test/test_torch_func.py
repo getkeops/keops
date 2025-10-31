@@ -34,7 +34,7 @@ def fn_keops(x_i, y_j, b_j, p):
     return ((K_ij * b_j).sum(2)).norm()
 
 
-class TestCase:
+class TestCase_torch_func:
     def test_torch_func_vmap(self):
         res1 = torch.func.vmap(fn_torch)(x_i, y_j, b_j, p)
         res2 = torch.func.vmap(fn_keops)(x_i, y_j, b_j, p)

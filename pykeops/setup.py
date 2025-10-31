@@ -85,6 +85,6 @@ setup(
             "jaxlib",
             "jax",
         ],
-        "test:": ["pytest", "numpy", "torch"],
+        "test:": ["pytest", "pytest-xdist", "numpy", "torch"],
     },
 )

@@ -117,7 +117,7 @@ rmdir tmp
 
 logging "-- Running keopscore tests..."
 
-pytest -v keopscore/keopscore/test/
+pytest -n auto -v keopscore/keopscore/test/
 
 ################################################################################
 # Running pykeops tests                                                        #
@@ -125,4 +125,4 @@ pytest -v keopscore/keopscore/test/
 
 logging "-- Running pykeops tests..."
 
-pytest -v pykeops/pykeops/test/
+pytest -n auto -v pykeops/pykeops/test/

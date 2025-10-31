@@ -16,7 +16,7 @@ def fn(x_i, x_j, y_j, use_keops=True):
     return (K_ij * y_j).sum(1)
 
 
-class TestCase:
+class TestCase_vmap:
     def test_vmap_0(self):
         x_i = torch.randn(5, 10, 1, 2, requires_grad=test_grad, dtype=torch.float64)
         x_j = torch.randn(5, 1, 20, 2, dtype=torch.float64)

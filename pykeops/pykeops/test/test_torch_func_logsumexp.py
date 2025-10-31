@@ -25,7 +25,7 @@ def fn_keops(x_i, y_j, b_j):
     return D2_ij.logsumexp(axis=2, other=b_j).norm()
 
 
-class TestCase:
+class TestCase_torch_func_logsumexp:
     def test_torch_func_vmap(self):
         res1 = torch.func.vmap(fn_torch)(x_i, y_j, b_j)
         res2 = torch.func.vmap(fn_keops)(x_i, y_j, b_j)

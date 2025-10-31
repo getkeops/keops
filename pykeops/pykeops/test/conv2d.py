@@ -45,7 +45,7 @@ for k, backend in enumerate(backends):
     out_g2.append(torch.autograd.grad((out_g[k] ** 2).sum(), [b])[0])
 
 
-class TestCase:
+class TestCase_conv2d:
     def test_conv2d_fw(self):
         assert torch.allclose(out[0], out[1])
 

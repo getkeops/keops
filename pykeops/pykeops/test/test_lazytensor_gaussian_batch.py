@@ -38,7 +38,7 @@ for k, backend in enumerate(backends):
     out_g.append(torch.autograd.grad((out[k] ** 2).sum(), [b])[0])
 
 
-class TestCase:
+class TestCase_lazytensor_gaussian_batch:
     def test_lazytensor_gaussian_batch_fw(self):
         # print(out[0]- out[1])
         assert torch.allclose(out[0], out[1], atol=1e-6)

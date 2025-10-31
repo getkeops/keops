@@ -26,7 +26,7 @@ def fun(x, y, backend):
     return Kxy.sum(dim=0)
 
 
-class TestCase:
+class TestCase_float16:
     out = []
 
     @pytest.mark.skipif(not torch.cuda.is_available(), reason="Requires a GPU")

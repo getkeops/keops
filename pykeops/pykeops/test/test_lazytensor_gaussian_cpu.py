@@ -46,7 +46,7 @@ for k, backend in enumerate(backends):
     out_g2.append(torch.autograd.grad((out_g[k] ** 2).sum(), [b])[0])
 
 
-class TestClass:
+class TestClass_lazytensor_gaussian_cpu:
     def test_lazytensor_gaussian_cpu(self):
         assert torch.allclose(out[0], out[1])
 

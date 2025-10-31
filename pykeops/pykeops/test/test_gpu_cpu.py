@@ -37,7 +37,7 @@ for backend in ["torch", "keops_cpu"]:
     out.append(fun(x, y, b, backend).squeeze())
 
 
-class TestCase:
+class TestCase_gpu_cpu:
     def test_torch_keops_cpu(self):
         assert torch.allclose(out[0], out[1])
 
