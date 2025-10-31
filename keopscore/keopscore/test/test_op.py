@@ -1,5 +1,6 @@
 import types
 from importlib import import_module
+import sys
 
 import numpy as np
 import pytest
@@ -10,6 +11,8 @@ import keopscore
 import keopscore.formulas
 from keopscore.utils.misc_utils import KeOps_Error
 from pykeops.torch import Genred
+
+import multiprocessing as mp
 
 # fix seed for reproducibility
 seed = 0
@@ -47,12 +50,12 @@ def perform_test(op_str, tol=1e-4, dtype="float32", verbose=True):
             else:
                 if verbose:
                     print("no test available for " + op_str)
-                return None
+                return None, None
             dims = [3] * nargs
     else:
         if verbose:
             print("no test available for " + op_str)
-        return None
+        return None, None
 
     #####################################################################
     # Declare random inputs:
@@ -135,7 +138,7 @@ def perform_test(op_str, tol=1e-4, dtype="float32", verbose=True):
 
     torch_op = keops_op_class.torch_op()
     if torch_op is None:
-        return None
+        return None, None
 
     if verbose:
         print("Comparing with PyTorch implementation ")
@@ -150,37 +153,38 @@ def perform_test(op_str, tol=1e-4, dtype="float32", verbose=True):
     # The equivalent code with a "vanilla" pytorch implementation
 
     c_torch = torch_op(*torch_args, *params).sum(dim=1)
-    # err_op = torch.norm(c - c_torch).item() / torch.norm(c_torch).item()
-    err_op = torch.allclose(c, c_torch, atol=tol, rtol=tol)
+    err_op = torch.norm(c - c_torch).item() / torch.norm(c_torch).item()
+    allclose_op = torch.allclose(c, c_torch, atol=tol, rtol=tol)
     if verbose:
         print("relative error for operation :", err_op)
 
     if keops_op_class.disable_testgrad:
-        return [err_op]
+        return [err_op], [allclose_op]
 
     if not hasattr(keops_op_class, "no_torch_grad") or not keops_op_class.no_torch_grad:
         g_torch = grad(c_torch, args, e)
 
         err_gr = [None] * nargs
+        allclose_gr = [None] * nargs
         for k in range(nargs):
             app_str = f"number {k}" if len(args) > 1 else ""
             if verbose:
                 print(g_torch[k][:10], g[k][:10])
-            # err_gr[k] = (torch.norm(g[k] - g_torch[k]) / torch.norm(g_torch[k])).item()
-            err_gr[k] = torch.allclose(g[k], g_torch[k], atol=tol, rtol=tol)
+            err_gr[k] = (torch.norm(g[k] - g_torch[k]) / torch.norm(g_torch[k])).item()
+            allclose_gr[k] = torch.allclose(g[k], g_torch[k], atol=tol, rtol=tol)
             if verbose:
                 print(f"relative error for gradient {app_str}:", err_gr[k])
     else:
         if verbose:
             print("No gradient for torch")
-        return [err_op]
-    return [err_op] + err_gr
+        return [err_op], [allclose_op]
+    return [err_op] + err_gr, [allclose_op] + allclose_gr
 
 
 @pytest.mark.parametrize("test_input", keopscore.formulas.maths.__all__)
 def test_formula_maths(test_input, verbose=False):
     # Call cuda kernel
-    res = perform_test(test_input, verbose=verbose)
+    res, _ = perform_test(test_input, verbose=verbose)
 
     if res is not None:
         assert res
@@ -189,4 +193,15 @@ def test_formula_maths(test_input, verbose=False):
 
 
 if __name__ == "__main__":
-    test_formula_maths("WeightedSqNorm", verbose=True)
+    if len(sys.argv) == 1:
+        ops = ["Exp"]
+    elif len(sys.argv) == 2 and sys.argv[1] == "--all":
+        ops = keopscore.formulas.maths.__all__
+    else:
+        ops = sys.argv[1:]
+    for op in ops:
+        print(f"\n----- Testing operation {op} -----")
+        p = mp.get_context("spawn").Process(target=test_formula_maths, args=(op, True))
+        p.start()
+        p.join()
+        print("\n\n")
