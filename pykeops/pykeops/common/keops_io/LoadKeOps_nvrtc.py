@@ -66,7 +66,7 @@ class LoadKeOps_nvrtc_class(LoadKeOps):
             self.params.dimsp,
             self.ranges_ptr_new,
             self.outshape,
-            self.out_ptr,
+            self.out_ptr if os.name != "nt" else (self.out_ptr,),
             self.args_ptr_new,
             self.argshapes_new,
         )
@@ -85,7 +85,13 @@ def compile_jit_binary():
         dllname=pykeops.config.pykeops_nvrtc_name(type="target"),
     )
     pyKeOps_Message("Compiling nvrtc binder for python ... ", flush=True, end="")
-    KeOps_OS_Run(compile_command)
+    if os.name == "nt":
+        from keopscore.windows_compilations import compile_pykeops_nvrtc
+
+        compile_pykeops_nvrtc(build_folder=get_build_folder())
+
+    else:
+        KeOps_OS_Run(compile_command)
     pyKeOps_Message("OK", use_tag=False, flush=True)
 
 

@@ -1,6 +1,13 @@
 # Import the configuration classes
 from .base_config import Config
-from .cuda import CUDAConfig
+import os
+
+if os.name != "nt":
+    from .cuda import CUDAConfig
+else:
+    from .cuda_windows import CUDAConfigWin as CUDAConfig
+
+# TODO openmp and c++ compiler detection for windows
 from .openmp import OpenMPConfig
 from .Platform import DetectPlatform
 

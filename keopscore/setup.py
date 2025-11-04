@@ -11,6 +11,16 @@ here = path.abspath(path.dirname(__file__))
 with open(os.path.join(here, "keopscore", "keops_version"), encoding="utf-8") as v:
     current_version = v.read().rstrip()
 
+# TODO fix this (issues with symlinks on windows ? -> moving to pyproject.toml ?)
+if os.name == "nt":
+    with open(os.path.join(here, "..", "keops_version"), encoding="utf-8") as v:
+        current_version = v.read().rstrip()
+    # copy the content to keopscore/keops_version
+    with open(
+        os.path.join(here, "keopscore", "keops_version"), "w", encoding="utf-8"
+    ) as v:
+        v.write(current_version)
+
 # Get the long description from the README file
 with open(path.join(here, "keopscore", "readme.md"), encoding="utf-8") as f:
     long_description = f.read()
@@ -59,6 +69,7 @@ setup(
         "keopscore.mapreduce.cpu",
         "keopscore.mapreduce.gpu",
         "keopscore.utils",
+        "keopscore.windows_compilations",
     ],
     package_data={
         "keopscore": [
@@ -73,8 +84,16 @@ setup(
             "include/Ranges.h",
             "include/Sizes.h",
             "include/utils_pe.h",
+            "binders/nvrtc/keops_nvrtc_win.cpp",
+            "binders/nvrtc/nvrtc_jit_win.cpp",
+            "include/CudaSizes_win.h",
+            "include/ranges_utils_win.h",
+            "include/Ranges_win.h",
+            "include/Sizes_win.h",
+            "include/utils_pe_win.h",
+            "windows_compilations/templates/CMakeLists.txt",
         ],
     },
-    install_requires=[],
+    install_requires=["cmake"],
     extras_require={},
 )

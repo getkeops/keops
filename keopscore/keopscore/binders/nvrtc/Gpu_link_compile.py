@@ -1,6 +1,5 @@
 import os
 from ctypes import create_string_buffer, CDLL, c_int
-from os import RTLD_LAZY
 import sysconfig
 from os.path import join
 
@@ -34,10 +33,13 @@ jit_compile_src = os.path.join(
 
 
 def jit_compile_dll():
-    return os.path.join(
-        build_folder,
-        "nvrtc_jit" + sysconfig.get_config_var("SHLIB_SUFFIX"),
-    )
+    if os.name == "nt":
+        return os.path.join(build_folder, "nvrtc_jit.dll")
+    else:
+        return os.path.join(
+            build_folder,
+            "nvrtc_jit" + sysconfig.get_config_var("SHLIB_SUFFIX"),
+        )
 
 
 class Gpu_link_compile(LinkCompile):
@@ -61,7 +63,10 @@ class Gpu_link_compile(LinkCompile):
             self.low_level_code_prefix + self.gencode_filename,
         ).encode("utf-8")
 
-        self.my_c_dll = CDLL(jit_compile_dll(), mode=RTLD_LAZY)
+        if os.name != "nt":
+            self.my_c_dll = CDLL(jit_compile_dll(), mode=os.RTLD_LAZY)
+        else:
+            self.my_c_dll = CDLL(jit_compile_dll())
         # actual dll to be called is the jit binary, TODO: check if this is relevent
         self.true_dllname = jit_binary
         # file to check for existence to detect compilation is needed
@@ -75,16 +80,27 @@ class Gpu_link_compile(LinkCompile):
         self.write_code()
         # we execute the main dll, passing the code as argument, and the name of the low level code file to save the assembly instructions
 
-        res = self.my_c_dll.Compile(
-            create_string_buffer(self.low_level_code_file),
-            create_string_buffer(self.code.encode("utf-8")),
-            c_int(self.use_half),
-            c_int(self.use_fast_math),
-            c_int(self.device_id),
-            create_string_buffer(
-                (custom_cuda_include_fp16_path() + os.path.sep).encode("utf-8")
-            ),
-        )
+        if os.name != "nt":
+            res = self.my_c_dll.Compile(
+                create_string_buffer(self.low_level_code_file),
+                create_string_buffer(self.code.encode("utf-8")),
+                c_int(self.use_half),
+                c_int(self.use_fast_math),
+                c_int(self.device_id),
+                create_string_buffer(
+                    (custom_cuda_include_fp16_path() + os.path.sep).encode("utf-8")
+                ),
+            )
+        else:
+            res = self.my_c_dll.Compile(
+                create_string_buffer(self.low_level_code_file),
+                create_string_buffer(self.code.encode("utf-8")),
+                c_int(self.use_half),
+                c_int(self.device_id),
+                create_string_buffer(
+                    (custom_cuda_include_fp16_path() + os.path.sep).encode("utf-8")
+                ),
+            )
         if res != 0:
             KeOps_Error(
                 f"Error when compiling formula (error in nvrtcCompileProgram, nvrtcResult={res})"
@@ -116,8 +132,14 @@ class Gpu_link_compile(LinkCompile):
     @staticmethod
     def compile_jit_compile_dll():
         KeOps_Message("Compiling cuda jit compiler engine ... ", flush=True, end="")
-        command = Gpu_link_compile.get_compile_command(
-            sourcename=jit_compile_src, dllname=jit_compile_dll()
-        )
-        KeOps_OS_Run(command)
+        if os.name == "nt":
+            from ...windows_compilations import compile_nvrtc_jit
+
+            compile_nvrtc_jit(build_folder=build_folder)
+        else:
+            command = Gpu_link_compile.get_compile_command(
+                sourcename=jit_compile_src, dllname=jit_compile_dll()
+            )
+            KeOps_OS_Run(command)
+
         KeOps_Message("OK", use_tag=False, flush=True)

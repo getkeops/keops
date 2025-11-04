@@ -1,5 +1,6 @@
 #include <cuda.h>
 #include <numeric>
+#include <vector>
 
 #define NVRTC_SAFE_CALL(x)                                                     \
   do {                                                                         \
@@ -68,7 +69,8 @@ void load_args_FromHost(CUdeviceptr &p_data, TYPE *out, TYPE *&out_d, int nargs,
                         TYPE **arg, TYPE **&arg_d,
                         const std::vector<std::vector<signed long int>> &argshape,
                         signed long int sizeout) {
-  signed long int sizes[nargs];
+
+  std::vector<signed long int> sizes(nargs);
   signed long int totsize = sizeout;
   for (int k = 0; k < nargs; k++) {
     sizes[k] = std::accumulate(argshape[k].begin(), argshape[k].end(), 1,
@@ -83,7 +85,7 @@ void load_args_FromHost(CUdeviceptr &p_data, TYPE *out, TYPE *&out_d, int nargs,
   TYPE *dataloc = (TYPE *)(arg_d + nargs);
 
   // host array of pointers to device data
-  TYPE *ph[nargs];
+  std::vector<TYPE *> ph(nargs);
 
   out_d = dataloc;
   dataloc += sizeout;
@@ -95,5 +97,5 @@ void load_args_FromHost(CUdeviceptr &p_data, TYPE *out, TYPE *&out_d, int nargs,
   }
 
   // copy array of pointers
-  CUDA_SAFE_CALL(cuMemcpyHtoD((CUdeviceptr)arg_d, ph, nargs * sizeof(TYPE *)));
+  CUDA_SAFE_CALL(cuMemcpyHtoD((CUdeviceptr)arg_d, ph.data(), nargs * sizeof(TYPE *)));
 }
