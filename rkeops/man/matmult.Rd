@@ -22,12 +22,19 @@ If \code{x} or \code{y} is a \code{LazyTensor}, see \code{\link[=\%*\%.LazyTenso
 \code{\link[=\%*\%.default]{\%*\%.default()}}.
 }
 \examples{
-\dontrun{
 # R base operation
 x <- matrix(runif(10 * 5), 10, 5)   # arbitrary R matrix, 10 rows, 5 columns
-x <- matrix(runif(5 * 3), 5, 3)     # arbitrary R matrix, 5 rows, 3 columns
+y <- matrix(runif(5 * 3), 5, 3)     # arbitrary R matrix, 5 rows, 3 columns
 x \%*\% y                             # product matrix, 10 rows, 3 columns
 
+\donttest{
+\dontshow{
+# Specific setup for example runs (not necessary for standard use)
+reticulate::py_available(initialize = TRUE)
+set_rkeops_options()
+# For build on CRAN, use CPU computing with 2 cores max
+rkeops_use_cpu(ncore = 2)
+}
 # LazyTensor matrix multiplication
 x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 y <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
@@ -36,6 +43,10 @@ x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x,
 y_j <- LazyTensor(y, index = 'j')   # creating LazyTensor from matrix y, 
                                     # indexed by 'j'
 x_mult_y <- x_i \%*\% y_j             # FIXME
+\dontshow{
+# clean-up (for CRAN build)
+clean_rkeops(remove_cache_dir = TRUE)
+}
 }
 }
 \seealso{

@@ -2,7 +2,18 @@ skip_if_no_python()
 skip_if_no_keopscore()
 skip_if_no_pykeops()
 
+# clean running env
+withr::with_options(list(rkeops = NULL), {
+
+# dedicated cache directory for tests
 set_rkeops_options(list(cache_dir = testing_cache_dir))
+
+# setup computing resources (or skip if limited resources)
+if(Sys.getenv("RUN_LONG_TEST") == "1") {
+    if(Sys.getenv("TEST_GPU") == "1") rkeops_use_gpu()
+} else {
+    skip("Long tests: not running (e.g. during a package check)")
+}
 
 # TEST LAZYTENSOR CONFIGURATION ================================================
 
@@ -973,15 +984,15 @@ test_that("fix_variables", {
     expect_equal(fix_variables(l)$formula,
                  "IntCst(314)")
     expect_equal(fix_variables(l + l*l)$formula,
-                 "IntCst(314)+IntCst(314)*IntCst(314)")
+                 "Add(IntCst(314),Mult(IntCst(314),IntCst(314)))")
     expect_equal(fix_variables(x_i)$formula,
                  "V0")
     expect_equal(fix_expr1$formula,
-                 "V0+V1+V0+V2")
+                 "Add(Add(Add(V0,V1),V0),V2)")
     expect_equal(fix_expr2$formula,
-                 "Exp(Powf(SqDist(V0,V1),IntCst(314)))-V0*V2")
+                 "Subtract(Exp(Powf(SqDist(V0,V1),IntCst(314))),Mult(V0,V2))")
     expect_equal(fix_expr3$formula,
-                 "Norm2(V0)+(V1|V2)*IntCst(314)")
+                 "Add(Norm2(V0),Mult((V1|V2),IntCst(314)))")
     expect_equal(fix_expr4$formula,
                  "Clamp(V0,V1,V2)")
     
@@ -995,9 +1006,11 @@ test_that("fix_variables", {
     expect_equal(fix_expr3$args[3], "V2=Vi(3)")
     
     # errors
-    expect_error(fix_variables(x),
-                 "`x` input must be a LazyTensor or a ComplexLazyTensor.",
-                 fixed = TRUE)
+    expect_error(
+        fix_variables(x),
+        "`x` input must be a LazyTensor or a ComplexLazyTensor.",
+        fixed = TRUE
+    )
 })
 
 
@@ -1095,3 +1108,5 @@ test_that("cplx_warning", {
     
     cplx_warning(FALSE) # should not produce warning
 })
+
+}) # withr::with_options

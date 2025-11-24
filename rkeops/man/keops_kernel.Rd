@@ -78,16 +78,23 @@ It is possible to compute partial derivatives of user defined operators
 with the function \code{\link[=keops_grad]{keops_grad()}}.
 }
 \examples{
-\dontrun{
+\donttest{
+\dontshow{
+# Specific setup for example runs (not necessary for standard use)
+reticulate::py_available(initialize = TRUE)
 set_rkeops_options()
-
+# For build on CRAN, use CPU computing with 2 cores max
+rkeops_use_cpu(ncore = 2)
+}
 ## Example 1
 # Defining a function that computes for each j the sum over i
 # of the scalar products between `x_i` and `y_j` (both 3d vectors), 
 # i.e. the sum over the rows of the result of the matrix product `X * t(Y)`
 # where `x_i` and `y_j` are the respective rows of the matrices `X` and `Y`.
 op <- keops_kernel(
-    formula = "Sum_Reduction((x|y), 1)", args = c("x=Vi(3)", "y=Vj(3)"))
+    formula = "Sum_Reduction((x|y), 1)",
+    args = c("x=Vi(3)", "y=Vj(3)")
+)
 # data
 nx <- 10
 ny <- 15
@@ -118,11 +125,12 @@ res <- op(list(X,Y), inner_dim="row")
 
 ## Example 2
 # Defining a function that computes the convolution with a Gaussian kernel 
-# i.e. the sum over i of `e^(lambda * ||x_i - y_j||^2) * beta_j` where `x_i`, 
-# `y_j` and `beta_j` are 3d vectors, and `lambda` is a scalar parameter.
-op = keops_kernel(
-    formula = "Sum_Reduction(Exp(lambda*SqNorm2(x-y))*beta, 1)",
-    args = c("x=Vi(3)", "y=Vj(3)", "beta=Vj(3)", "lambda=Pm(1)"))
+# i.e. the sum over i of `e^(sigma * ||x_i - y_j||^2) * beta_j` where `x_i`, 
+# `y_j` and `beta_j` are 3d vectors, and `sigma` is a scalar parameter.
+op <- keops_kernel(
+    formula = "Sum_Reduction(Exp(sigma*SqNorm2(x-y))*beta, 1)",
+    args = c("x=Vi(3)", "y=Vj(3)", "beta=Vj(3)", "sigma=Pm(1)")
+)
 
 # data
 nx <- 10
@@ -136,10 +144,14 @@ beta <- matrix(runif(ny*3), nrow=ny, ncol=3)
 # !! important !! y and beta should have the same dimension
 
 # parameter
-lambda <- 0.25
+sigma <- 0.25
 
 # compute the result
-res <- op(list(X, Y, beta, lambda))
+res <- op(list(X, Y, beta, sigma))
+\dontshow{
+# clean-up (for CRAN build)
+clean_rkeops(remove_cache_dir = TRUE)
+}
 }
 }
 \seealso{

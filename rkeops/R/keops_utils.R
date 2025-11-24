@@ -38,8 +38,10 @@
 #' @importFrom checkmate assert_flag assert_string
 #' @importFrom stringr str_c str_detect str_match str_replace_all str_split
 #' str_extract_all str_locate_all str_sub str_sub<-
+#' @importFrom utils tail
 #' 
 #' @author Ghislain Durif
+#' @noRd
 get_pykeops_formula <- function(
         formula, grad = FALSE, var_to_diff = NULL, input_grad = NULL) {
     
@@ -66,14 +68,19 @@ get_pykeops_formula <- function(
     extract_coma_parenthesis <- unlist(str_extract_all(
         tmp_form, "[\\(\\)\\,]"))
     ## cumulative count of parenthesis and commas
-    count_parenthesis <- cumsum(sapply(extract_coma_parenthesis, function(item) {
-        return(switch(
-            item,
-            "(" = 1,
-            ")" = -1,
-            "," = 0
-        ))
-    }))
+    count_parenthesis <- cumsum(sapply(
+        extract_coma_parenthesis,
+        function(item) {
+            return(switch(
+                item,
+                "(" = 1,
+                ")" = -1,
+                "," = 0
+            ))
+        }
+    ))
+    if(tail(count_parenthesis, 1) != 0)
+        stop("Non matching parenthesis opening/closing in formula.")
     ## get position of coma in tmp_form
     coma_position <- str_locate_all(tmp_form, "\\,")[[1]]
     coma_position <- as.data.frame(as.matrix(coma_position))
@@ -119,10 +126,10 @@ get_pykeops_formula <- function(
     reduction_args <- unlist(strsplit(tmp_form, ","))
     
     # number of reduction arguments
-    nargs <- length(reduction_args)
+    n_args <- length(reduction_args)
     
     # reduction axis
-    axis <- as.integer(reduction_args[nargs])
+    axis <- as.integer(reduction_args[n_args])
     
     # reduction optional arguments
     opt_arg <- NULL
@@ -132,12 +139,12 @@ get_pykeops_formula <- function(
         weighted_reduction <- TRUE
         # weighted reduction argument: operand, weight, index
         # optional reduction arguments
-        if(nargs > 2) {
-            opt_arg <- str_replace_all(reduction_args[nargs-1], "\\$", ",")
+        if(n_args > 2) {
+            opt_arg <- str_replace_all(reduction_args[n_args-1], "\\$", ",")
         }
     } else {
         # optional reduction arguments
-        if(nargs > 2) opt_arg <- as.integer(reduction_args[nargs - 1])
+        if(n_args > 2) opt_arg <- as.integer(reduction_args[n_args - 1])
     }
     
     # formula inside reduction

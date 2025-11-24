@@ -22,7 +22,6 @@ If \code{z} is a \code{LazyTensor}, see \code{\link[=Conj.LazyTensor]{Conj.LazyT
 see \code{\link[=Conj.default]{Conj.default()}}.
 }
 \examples{
-\dontrun{
 # R base operation
 Conj(1)
 Conj(1+1i)
@@ -30,7 +29,6 @@ Conj(1+1i)
 z <- matrix(1i^ (-6:5), nrow = 4)                     # complex 4x3 matrix
 z_i <- LazyTensor(z, index = 'i', is_complex = TRUE)  # ComplexLazyTensor
 Conj_z_i <- Conj(z_i)                                 # symbolic matrix
-}
 }
 \seealso{
 \code{\link[=Conj.default]{Conj.default()}}, \code{\link[=Conj.LazyTensor]{Conj.LazyTensor()}},

@@ -21,12 +21,10 @@ Symbolic squared Euclidean norm operation for \code{LazyTensor} objects.
 the squared Euclidean norm of \code{x}, same as \code{(x|x)}.
 }
 \examples{
-\dontrun{
 x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
                                     # indexed by 'i'
 SqN_x <- sqnorm2(x_i)               # symbolic matrix, 150 rows, 1 columns
-}
 }
 \seealso{
 \code{\link[=|.LazyTensor]{|.LazyTensor()}}

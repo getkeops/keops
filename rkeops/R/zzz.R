@@ -18,6 +18,7 @@
 #' @return the `pykeops` Python module
 #' @usage NULL
 #' @format An object of class `python.builtin.module`
+#' @noRd
 pykeops <- NULL
 
 .onLoad <- function(libname, pkgname) {
@@ -25,6 +26,8 @@ pykeops <- NULL
     check_os(startup = TRUE)
     # set up rkeops global options
     set_rkeops_options()
+    # setup Python requirements
+    setup_pyreq()
     # disable pykeops import verbosity
     Sys.setenv("PYKEOPS_VERBOSE" = "0")
     if(reticulate::py_available()) 

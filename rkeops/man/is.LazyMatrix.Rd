@@ -21,7 +21,6 @@ If \code{x} is a matrix \code{LazyTensor},
 \code{is.LazyMatrix(x)} returns TRUE, else, returns FALSE.
 }
 \examples{
-\dontrun{
 # basic example
 scal <- 3.14
 cplx <- 2 + 3i
@@ -39,7 +38,6 @@ is.LazyMatrix(scal_LT) # returns FALSE
 is.LazyMatrix(cplx_LT) # returns FALSE
 is.LazyMatrix(v_LT) # returns FALSE
 is.LazyMatrix(x_i) # returns TRUE
-}
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay

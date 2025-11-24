@@ -24,7 +24,6 @@ single complex value, \code{is.ComplexLazyParameter(x)}
 returns TRUE, else, returns FALSE.
 }
 \examples{
-\dontrun{
 # basic example
 scal <- 3.14
 cplx <- 2 + 3i
@@ -41,8 +40,7 @@ z_i <- LazyTensor(z, index = 'i')
 is.ComplexLazyParameter(scal_LT) # returns FALSE
 is.ComplexLazyParameter(cplx_LT) # returns TRUE
 is.ComplexLazyParameter(v_LT) # returns FALSE
-is.ComplexLazyParameter(x_i) # returns FALSE
-}
+is.ComplexLazyParameter(z_i) # returns FALSE
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay

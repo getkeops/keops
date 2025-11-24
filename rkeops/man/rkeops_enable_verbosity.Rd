@@ -13,8 +13,10 @@ None
 Enable verbosity during operator compilation process.
 }
 \examples{
-\dontrun{
 rkeops_enable_verbosity()
+\dontshow{
+# set options back to default
+set_rkeops_options()
 }
 }
 \seealso{

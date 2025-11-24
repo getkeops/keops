@@ -23,7 +23,6 @@ If \code{x} is a \code{LazyTensor}, see \code{\link[=square.LazyTensor]{square.L
 see \code{\link[=square.default]{square.default()}}.
 }
 \examples{
-\dontrun{
 # Numerical input
 square(4)
 square(1:4)
@@ -32,7 +31,6 @@ x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
                                     # indexed by 'i'
 Square_x <- square(x_i)             # symbolic matrix, 150 rows and 3 columns
-}
 }
 \seealso{
 \code{\link[=square.default]{square.default()}}, \code{\link[=square.LazyTensor]{square.LazyTensor()}}

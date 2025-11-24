@@ -27,7 +27,6 @@ implementing the subtraction, or a unary operator, e.g. \code{- x}, implementing
 the "minus sign", both for \code{LazyTensor} objects or other types.
 }
 \examples{
-\dontrun{
 # R base operation
 +5
 1 + 3
@@ -40,7 +39,6 @@ y_j <- LazyTensor(y, index = 'j')   # creating LazyTensor from matrix y,
                                     # indexed by 'j'
 Sub_xy <- x_i - y_j                 # symbolic matrix
 Minus_x <- -x_i                     # symbolic matrix
-}
 }
 \seealso{
 \code{\link[=-.default]{-.default()}}, \code{\link[=-.LazyTensor]{-.LazyTensor()}},

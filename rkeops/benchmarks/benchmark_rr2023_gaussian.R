@@ -101,7 +101,7 @@ bench_gaussian <- function(N, D, n_rep = 10) {
         )
     write.table(
         res, file = paste0("res_benchmark_gaussian_N_", as.integer(N), ".csv"), 
-        \row.names = FALSE, col.names = TRUE)
+        row.names = FALSE, col.names = TRUE)
     
     return(res)
 }

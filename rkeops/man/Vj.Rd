@@ -24,11 +24,9 @@ Equivalent to \code{LazyTensor(x, index = "j")}.
 See \code{?LazyTensor} for more details.
 }
 \examples{
-\dontrun{
 x <- matrix(runif(150 * 3), 150, 3)
 Vj_x <- Vj(x) # symbolic object representing an arbitrary row of x, 
               # indexed by the letter "j"
-}
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay

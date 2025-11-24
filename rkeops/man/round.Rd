@@ -24,7 +24,6 @@ If \code{x} is a \code{LazyTensor}, see \code{\link[=round.LazyTensor]{round.Laz
 see \code{\link[=round.default]{round.default()}}.
 }
 \examples{
-\dontrun{
 # R base operation
 round(5)
 round(runif(10), 4)
@@ -33,7 +32,6 @@ x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
                                     # indexed by 'i'
 Round_x <- round(x_i, 2)            # symbolic matrix
-}
 }
 \seealso{
 \code{\link[=round.default]{round.default()}}, \code{\link[=round.LazyTensor]{round.LazyTensor()}}

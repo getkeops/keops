@@ -30,7 +30,6 @@ or \code{x + y}.
 }
 }
 \examples{
-\dontrun{
 # R base operation
 +5
 1 + 3
@@ -42,7 +41,6 @@ x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x,
 y_j <- LazyTensor(y, index = 'j')   # creating LazyTensor from matrix y,
                                     # indexed by 'j'
 Sum_xy <- x_i + y_j                 # symbolic matrix, 150 rows and 3 columns
-}
 }
 \seealso{
 \code{\link[=+.default]{+.default()}}, \code{\link[=+.LazyTensor]{+.LazyTensor()}},

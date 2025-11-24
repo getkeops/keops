@@ -55,14 +55,12 @@ An object of class "LazyTensor".
 Symbolically applies \code{opstr} operation to \code{x} and \code{y}.
 }
 \examples{
-\dontrun{
 x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 y <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 x_i <- LazyTensor(x, index = 'i')   # LazyTensor from matrix x, indexed by 'i'
 y_j <- LazyTensor(y, index = 'j')   # LazyTensor from matrix y, indexed by 'j'
 # symbolic matrix:
 bin_xy <- binaryop.LazyTensor(x_i, y_j, "+", is_operator = TRUE)
-}
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay

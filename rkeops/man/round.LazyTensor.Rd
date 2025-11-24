@@ -25,12 +25,10 @@ that encodes, symbolically, the element-wise rounding of \code{x} to \code{digit
 decimal places.
 }
 \examples{
-\dontrun{
 x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
                                     # indexed by 'i'
 Round_x <- round(x_i, 2)            # symbolic matrix
-}
 }
 \seealso{
 \code{\link[=round]{round()}}

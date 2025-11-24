@@ -1,7 +1,7 @@
 \.gitkeep
 \.gitignore
 ^prebuild\.R$
-^recipe\.md$
+^README_dev\.md$
 ^benchmarks$
 ^ci$
 ^dev$
@@ -16,3 +16,4 @@ TODOs.md
 ^_pkgdown\.yml$
 ^docs$
 ^pkgdown$
+^Rplots\.pdf$

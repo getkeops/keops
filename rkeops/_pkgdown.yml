@@ -15,8 +15,6 @@ home:
 navbar:
   type: default
   left:
-  - text: Intro
-    href: articles/introduction_to_rkeops.html
   - text: Getting started
     href: articles/using_rkeops.html
   - text: Reference

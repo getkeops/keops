@@ -54,6 +54,7 @@ test_that("setup_pykeops", {
         setup_pykeops()
         expect_equal(def_pykeops_build_dir(), pykeops$get_build_folder())
         expect_equal(
-            as.logical(get_rkeops_options("verbosity")), pykeops$verbose)
+            as.logical(get_rkeops_options("verbosity")), pykeops$verbose
+        )
     })
 })

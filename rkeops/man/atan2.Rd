@@ -28,7 +28,6 @@ between the x-axis and the vector from the origin to (x, y), i.e.,
 for positive arguments \code{atan2(y, x) == atan(y/x)}.
 }
 \examples{
-\dontrun{
 # R base operation
 atan2(0, 1)
 atan2(1, 0)
@@ -40,7 +39,6 @@ x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x,
 y_j <- LazyTensor(y, index = 'j')   # creating LazyTensor from matrix y, 
                                     # indexed by 'j'
 Atan2_xy <- atan2(x_i, y_j)         # symbolic matrix
-}
 }
 \seealso{
 \code{\link[=atan2.default]{atan2.default()}}, \code{\link[=atan2.LazyTensor]{atan2.LazyTensor()}}

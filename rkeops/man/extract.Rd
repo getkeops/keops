@@ -34,7 +34,6 @@ in \verb{[0, n-m]}.
 use of \code{extract()}.
 }
 \examples{
-\dontrun{
 # Two very rudimentary examples
 # -----------------------------
 
@@ -45,6 +44,10 @@ use of \code{extract()}.
 # [3,]    3    7    4    5
 # [4,]    1    3    3    0
 # [5,]    5    4    9    4
+g <- matrix(
+    c(1, 8, 1, 3, 2, 1, 2, 7, 3, 7, 4, 5, 1, 3, 3, 0, 5, 4, 9, 4),
+    nrow = 5, ncol = 4, byrow = TRUE
+)
 
 # Convert it to LazyTensor:
 g_i <- LazyTensor(g, index = 'i')
@@ -83,7 +86,6 @@ m <- 2
 d <- 2
 
 extract_x <- extract(x_i, m, d) # symbolic matrix
-}
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay

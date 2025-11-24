@@ -13,6 +13,9 @@
 \arguments{
 \item{x}{a numeric or \code{\link[base]{complex}} vector or array.}
 }
+\value{
+See 'Details' section.
+}
 \description{
 \code{abs(x)} computes the absolute value of x, \code{sqrt(x)} computes the
   (principal) square root of x, \eqn{\sqrt{x}}.% Details for complex x are below

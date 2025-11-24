@@ -23,12 +23,10 @@ encodes, symbolically, the element-wise \code{x*log(x)} values for \code{x}.
 \strong{Note}: by convention \code{xlogx(0)} returns \code{0}.
 }
 \examples{
-\dontrun{
 x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
                                     # indexed by 'i'
 xlog_x <- xlogx(x_i)                # symbolic matrix, 150 rows and 3 columnsjs
-}
 }
 \seealso{
 \code{\link[=xlogx]{xlogx()}}

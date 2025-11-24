@@ -22,7 +22,6 @@ If \code{z} is a \code{LazyTensor}, see \code{\link[=Arg.LazyTensor]{Arg.LazyTen
 see \code{\link[=Arg.default]{Arg.default()}}.
 }
 \examples{
-\dontrun{
 # R base operation
 Arg(1)
 Arg(1+1i)
@@ -30,7 +29,6 @@ Arg(1+1i)
 z <- matrix(2 + 1i^ (-6:5), nrow = 4)         # complex matrix
 z_i <- LazyTensor(z, "i", is_complex = TRUE)  # creating ComplexLazyTensor
 Arg_z <- Arg(z_i)                             # symbolic matrix
-}
 }
 \seealso{
 \code{\link[=Arg.default]{Arg.default()}}, \code{\link[=Arg.LazyTensor]{Arg.LazyTensor()}},

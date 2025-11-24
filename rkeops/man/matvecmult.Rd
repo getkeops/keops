@@ -25,14 +25,12 @@ of matrix \code{m} and vector \code{v}.
 of dimension 1.
 }
 \examples{
-\dontrun{
 m <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 v <- c(1,2,3)                       # arbitrary R vector of length 3
 m_i <- LazyTensor(m, index = 'i')   # LazyTensor from matrix m, indexed by 'i'
 Pm_v <- LazyTensor(v)               # parameter vector LazyTensor from v
 
 mv_mult <- matvecmult(m_i, Pm_v)    # symbolic matrix
-}
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay

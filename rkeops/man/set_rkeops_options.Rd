@@ -2,7 +2,7 @@
 % Please edit documentation in R/rkeops_options.R
 \name{set_rkeops_options}
 \alias{set_rkeops_options}
-\title{Get or set the current \code{rkeops} options in \code{R} global options scope}
+\title{Set the current \code{rkeops} options in \code{R} global options scope}
 \usage{
 set_rkeops_options(input = NULL)
 }
@@ -55,6 +55,10 @@ recompilation).
 \examples{
 set_rkeops_options()
 set_rkeops_options(list(verbosity = 0))
+\dontshow{
+# set options back to default
+set_rkeops_options()
+}
 
 }
 \seealso{

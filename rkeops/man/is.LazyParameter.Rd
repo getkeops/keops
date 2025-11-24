@@ -23,7 +23,6 @@ If \code{x} is a fixed scalar parameter \code{LazyTensor},
 \code{is.LazyParameter(x)} returns TRUE, else, returns FALSE.
 }
 \examples{
-\dontrun{
 # basic example
 scal <- 3.14
 cplx <- 2 + 3i
@@ -41,7 +40,6 @@ is.LazyParameter(scal_LT) # returns TRUE
 is.LazyParameter(cplx_LT) # returns FALSE
 is.LazyParameter(v_LT) # returns FALSE
 is.LazyParameter(x_i) # returns FALSE
-}
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay

@@ -25,11 +25,9 @@ Equivalent to \code{LazyTensor(x, index = "i")}.
 See \code{?LazyTensor} for more details.
 }
 \examples{
-\dontrun{
 x <- matrix(runif(150 * 3), 150, 3)
 Vi_x <- Vi(x) # symbolic object representing an arbitrary row of x, 
               # indexed by the letter "i"
-}
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay

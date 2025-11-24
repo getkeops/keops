@@ -25,12 +25,10 @@ The ReLU function \insertCite{fukushima_cognitron_1975}{rkeops} is defined
 as follows: \code{relu(x)} returns \code{0} if \code{x < 0}, \code{x} if \code{x >= 0}.
 }
 \examples{
-\dontrun{
 x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
                                     # indexed by 'i'
 ReLU_x <- relu(x_i)                 # symbolic matrix, 150 rows and 3 columns
-}
 }
 \references{
 \insertRef{fukushima_cognitron_1975}{rkeops}

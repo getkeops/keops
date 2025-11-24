@@ -7,6 +7,7 @@
 #' @return a character string containing the OS name.
 #' @importFrom stringr str_c str_extract
 #' @author Ghislain Durif
+#' @noRd
 get_os <- function() {
     # get OS id given by R
     os_id <- str_extract(string = R.version$os, 
@@ -51,6 +52,7 @@ get_os <- function() {
 #' @author Ghislain Durif
 #' 
 #' @importFrom checkmate assert_choice assert_string assert_flag
+#' @noRd
 msg_warn_error <- function(msg, type, startup = FALSE) {
     assert_string(msg)
     assert_choice(type, c("msg", "warn", "error"))
@@ -80,6 +82,7 @@ msg_warn_error <- function(msg, type, startup = FALSE) {
 #' 
 #' @importFrom checkmate assert_string assert_count
 #' @importFrom stringi stri_rand_strings
+#' @noRd
 random_varname <- function(prefix = "", len = 5) {
     checkmate::assert_string(prefix)
     checkmate::assert_count(len)
@@ -114,6 +117,7 @@ random_varname <- function(prefix = "", len = 5) {
 #' 
 #' @importFrom checkmate assert_count assert_string assert_flag
 #' @importFrom stringr str_c str_length str_to_lower str_trim
+#' @noRd
 confirm_choice <- function(
         question = "Are you sure?", default_answer = TRUE, 
         timeout = 20, max_tries = 10) {
@@ -165,14 +169,33 @@ confirm_choice <- function(
 #' 
 #' @param path character string, path to directory for which the disk
 #' usage will be computed.
+#' @param warn bollean flag to enable/disable warning verbosity.
 #'
 #' @return character string, a disk usage in (G/M/K)bytes.
 #' 
 #' @importFrom fs dir_info as_fs_bytes
-stat_dir <- function(path) {
-    dir_size <- as.character(fs::as_fs_bytes(sum(as.numeric(
-        fs::dir_info(path, recurse = TRUE)$size
-    ))))
+#' @importFrom checkmate assert_string assert_flag test_directory
+#' @importFrom stringr str_c str_glue
+#' @noRd
+stat_dir <- function(path, warn = FALSE) {
+    # check input
+    assert_string(path)
+    assert_flag(warn)
+    # default results (if directory does not exist)
+    dir_size <- "0"
+    # check if directory exists
+    if(!test_directory(path)) {
+        if(warn) {
+            msg <- str_glue(str_c(
+                "`{path}` directory does not exists."
+            ))
+            warning(msg)
+        }
+    } else {
+        dir_size <- as.character(fs::as_fs_bytes(sum(as.numeric(
+            fs::dir_info(path, recurse = TRUE)$size
+        ))))
+    }
     return(dir_size)
 }
 

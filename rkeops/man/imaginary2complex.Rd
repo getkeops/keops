@@ -31,12 +31,10 @@ of \code{x} (i.e. with additional zero real part: \code{0 + x*i}).
 a \code{ComplexLazyTensor}.
 }
 \examples{
-\dontrun{
 x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 x_i <- LazyTensor(x, "i")           # creating LazyTensor from matrix x,
                                     # indexed by 'i'
 z <- imag2complex(x_i)              # ComplexLazyTensor object
-}
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay

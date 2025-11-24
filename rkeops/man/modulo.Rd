@@ -27,7 +27,6 @@ see the corresponding \code{mod} function (if existing) help page.
 \strong{Warning}: Do not confuse with \code{\link[=Mod]{Mod()}}.
 }
 \examples{
-\dontrun{
 # basic example
 D <- 3
 M <- 100
@@ -45,7 +44,6 @@ mod_x72 <- mod(x_i, 7, 2)
 
 # works also with LazyTensors with same inner dimension or dimension 1
 mod_xyz <- mod(x_i, y_j, z_i)
-}
 }
 \seealso{
 \code{\link[=mod.LazyTensor]{mod.LazyTensor()}}

@@ -19,8 +19,8 @@ the number of rows of the first \code{x} variable (in \code{x$data}).}
 
 \item{var}{An \code{integer} number indicating regarding to which
 variable/parameter (given by name or by position index starting at 0) the
-gradient of the formula should be computed or a one of the \code{LazyTensor}
-contained in \code{f}.}
+gradient of the formula should be computed or the variable containing
+one of the \code{LazyTensor} contained in \code{f}.}
 
 \item{index}{A \code{character} that should be either \strong{i} or \strong{j} to specify
 whether if the reduction is indexed by \strong{i} (rows), or \strong{j} (columns).
@@ -43,7 +43,14 @@ dimension corresponds to columns, i.e. \code{index = 'j'} or rows, i.e.
 \code{index = 'i'}.
 }
 \examples{
-\dontrun{
+\donttest{
+\dontshow{
+# Specific setup for example runs (not necessary for standard use)
+reticulate::py_available(initialize = TRUE)
+set_rkeops_options()
+# For build on CRAN, use CPU computing with 2 cores max
+rkeops_use_cpu(ncore = 2)
+}
 nx <- 100
 ny <- 150
 x <- matrix(runif(nx*3), nrow=nx, ncol=3)     # matrix 100 x 3
@@ -57,10 +64,14 @@ eta_i <- LazyTensor(eta, index = 'i')   # LazyTensor from matrix eta,
                                         # indexed by 'i' (like x_i)
 
 # gradient with the formula from position
-grad_xy <- grad(sqnorm2(x_i-y_j), eta_i, "Sum", var = y_j$formula, "j")  
+grad_xy <- grad(sqnorm2(x_i-y_j), eta_i, "Sum", var = y_j, "j")  
 
 # gradient with the formula from index
 grad_xy <- grad(sqnorm2(x_i-y_j), eta_i, "Sum", var = 0, "j")     
+\dontshow{
+# clean-up (for CRAN build)
+clean_rkeops(remove_cache_dir = TRUE)
+}
 }
 }
 \author{

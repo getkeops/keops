@@ -25,7 +25,6 @@ see \code{\link[=abs.default]{abs.default()}}.
 corresponds to the complex modulus \code{abs(z) = Mod(z)}.
 }
 \examples{
-\dontrun{
 # R base operation
 abs(5)
 abs(-5)
@@ -35,7 +34,6 @@ x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
                                     # indexed by 'i'
 Abs_x <- abs(x_i)                   # symbolic matrix, 150 rows and 3 columns
-}
 }
 \seealso{
 \code{\link[=abs.default]{abs.default()}}, \code{\link[=abs.LazyTensor]{abs.LazyTensor()}},

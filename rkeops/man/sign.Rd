@@ -29,7 +29,6 @@ The sign function is defined as follows:
 \end{array}\right.}
 }
 \examples{
-\dontrun{
 # R base operation
 sign(5)
 sign(-5)
@@ -39,7 +38,6 @@ x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
                                     # indexed by 'i'
 Sign_x <- sign(x_i)                 # symbolic matrix, 150 rows and 3 columns
-}
 }
 \seealso{
 \code{\link[=sign.default]{sign.default()}}, \code{\link[=sign.LazyTensor]{sign.LazyTensor()}}

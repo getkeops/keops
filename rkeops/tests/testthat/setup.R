@@ -6,6 +6,7 @@ skip_if_not_installed("fs")
 library(checkmate)
 library(withr)
 library(fs)
+library(stringr)
 
 # helper function to skip tests if Python is not available on the system
 skip_if_no_python <- function() {

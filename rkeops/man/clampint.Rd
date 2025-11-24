@@ -27,7 +27,6 @@ integers. See \code{\link[=clamp]{clamp()}} for more details.
 Broadcasting rules apply.
 }
 \examples{
-\dontrun{
 # basic example
 D <- 3
 M <- 100
@@ -36,7 +35,6 @@ x_i <- LazyTensor(x, index = 'i')
 
 # call clampint function
 clp_int <- clamp(x_i, 7, 2)
-}
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay

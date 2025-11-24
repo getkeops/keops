@@ -30,12 +30,10 @@ the multiplication of \verb{1j} with \code{x}.
 a \code{ComplexLazyTensor}.
 }
 \examples{
-\dontrun{
 x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 x_i <- LazyTensor(x, "i")           # creating LazyTensor from matrix x, 
                                     # indexed by 'i'
 z <- exp1j(x_i)                     # ComplexLazyTensor object
-}
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay

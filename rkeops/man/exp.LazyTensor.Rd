@@ -31,7 +31,6 @@ encodes, symbolically, the element-wise complex exponential of \code{x}
 }
 }
 \examples{
-\dontrun{
 # basic example
 x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
@@ -42,7 +41,6 @@ Exp_x <- exp(x_i)                   # symbolic matrix, 150 rows and 3 columns
 z <- matrix(1i^ (-6:5), nrow = 4)        # create a complex 4x3 matrix
 z_i <- LazyTensor(z, index = 'i', is_complex = TRUE) # create a ComplexLazyTensor
 Exp_z_i <- exp(z_i)                                  # symbolic matrix
-}
 }
 \seealso{
 \code{\link[=exp]{exp()}}

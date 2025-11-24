@@ -42,7 +42,14 @@ details about this function in the \emph{"RKeOps LazyTensor"} vignette, at
 section \emph{"Reductions"}.
 }
 \examples{
-\dontrun{
+\donttest{
+\dontshow{
+# Specific setup for example runs (not necessary for standard use)
+reticulate::py_available(initialize = TRUE)
+set_rkeops_options()
+# For build on CRAN, use CPU computing with 2 cores max
+rkeops_use_cpu(ncore = 2)
+}
 x <- matrix(runif(150 * 3), 150, 3) 
 x_i <- LazyTensor(x, index = 'i') 
 y <- matrix(runif(100 * 3), 100, 3)
@@ -53,19 +60,33 @@ S_ij = sum(V_ij^2)
 
 ssmaxweight <- sumsoftmaxweight(S_ij, 'i', V_ij) # sumsoftmaxweight reduction
                                                  # over the 'i' indices
+\dontshow{
+# clean-up (for CRAN build)
+clean_rkeops(remove_cache_dir = TRUE)
 }
-\dontrun{
+}
+\donttest{
+\dontshow{
+# Specific setup for example runs (not necessary for standard use)
+reticulate::py_available(initialize = TRUE)
+set_rkeops_options()
+# For build on CRAN, use CPU computing with 2 cores max
+rkeops_use_cpu(ncore = 2)
+}
 x <- matrix(runif(150 * 3), 150, 3) 
 x_i <- LazyTensor(x, index = 'i') 
 y <- matrix(runif(100 * 3), 100, 3)
 y_j <- LazyTensor(y, index = 'j')
 
 V_ij <- x_i - y_j   # weight matrix
-S_ij = sum(V-ij^2)     
+S_ij = sum(V_ij^2)     
 
 # sumsoftmaxweight reduction over the 'i' indices
 ssmaxw_red <- sumsoftmaxweight_reduction(S_ij, 'i', V_ij) 
-
+\dontshow{
+# clean-up (for CRAN build)
+clean_rkeops(remove_cache_dir = TRUE)
+}
 }
 }
 \author{

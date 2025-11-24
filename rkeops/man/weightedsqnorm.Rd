@@ -31,7 +31,6 @@ details about this function in the \emph{"RKeOps LazyTensor"} vignette, at
 section \emph{"Simple vector operations"}.
 }
 \examples{
-\dontrun{
 x <- matrix(runif(100 * 3), 100, 3) # arbitrary R matrix, 100 rows, 3 columns
 s <- matrix(runif(100 * 3), 100, 3) # arbitrary R matrix, 100 rows, 3 columns
 x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
@@ -39,7 +38,6 @@ x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x,
 s_j <- LazyTensor(s, index = 'j')   # creating LazyTensor from matrix s, 
                                     # indexed by 'j'
 wsqn_xy <- weightedsqnorm(x_i, s_j) # symbolic matrix, 100 rows,1 columns
-}
 }
 \seealso{
 \code{\link[=sqnorm2]{sqnorm2()}}, \code{\link[=weightedsqdist]{weightedsqdist()}}

@@ -7,13 +7,13 @@
 #' understood by the C++ code.
 #' 
 #' @details
-#' Mathematical formula: `sum_i e^(lambda*||x_i - y_j||^2)` where `x_i`, `y_j` 
-#' are 3d vectors, and `lambda` is a scaler parameter.
+#' Mathematical formula: `sum_i e^(sigma*||x_i - y_j||^2)` where `x_i`, `y_j` 
+#' are 3d vectors, and `sigma` is a scaler parameter.
 #' 
 #' Corresponding KeOps formula and input parameters:
 #' ```
-#' formula = "Sum_Reduction(Exp(lambda * SqNorm2(x-y)), 0)"
-#' args = c("x=Vi(3)", "y=Vj(3)", "lambda=Pm(1)")
+#' formula = "Sum_Reduction(Exp(sigma * SqNorm2(x-y)), 0)"
+#' args = c("x=Vi(3)", "y=Vj(3)", "sigma=Pm(1)")
 #' ```
 #' 
 #' Input arguments can be of different types: 
@@ -35,9 +35,9 @@
 #' variable or none, if not specify the natural order in the vector `args` is 
 #' used.
 #' 
-#' For the formula `"Sum_Reduction(Exp(lambda * SqNorm2(x-y)), 0)"`, both
-#' `args = c("x=Vi(3)", "y=Vj(3)", "lambda=Pm(1)")` and 
-#' `args <- c("x=Vi(0,3)", "y=Vj(1,3)", "beta=Vj(2,3)", "lambda=Pm(3,1)")` are
+#' For the formula `"Sum_Reduction(Exp(sigma * SqNorm2(x-y)), 0)"`, both
+#' `args = c("x=Vi(3)", "y=Vj(3)", "sigma=Pm(1)")` and 
+#' `args <- c("x=Vi(0,3)", "y=Vj(1,3)", "beta=Vj(2,3)", "sigma=Pm(3,1)")` are
 #' equivalent. When specifying the `pos` parameter, the natural order in the 
 #' vector `args` may not correspond to the order of the formula input arguments.
 #' 
@@ -65,6 +65,7 @@
 #' str_replace_all fixed
 #' 
 #' @importFrom checkmate assert_character assert_string
+#' @noRd
 parse_args <- function(formula, args) {
     
     # check input type
@@ -205,6 +206,7 @@ parse_args <- function(formula, args) {
 #' @return a boolean value indicating if extra args were found in the formula.
 #' 
 #' @importFrom stringr str_match_all str_replace
+#' @noRd
 parse_extra_args <- function(formula) {
     
     ## remove space

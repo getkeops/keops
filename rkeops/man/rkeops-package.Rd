@@ -23,8 +23,7 @@ the computation of Kernel dot products and the associated gradients, even
 when the full kernel matrix does not fit into the GPU memory.
 
 For more information, please read the vignettes
-(\code{browseVignettes("rkeops")}) and visit
-\url{https://www.kernel-operations.io/}.
+(\code{browseVignettes("rkeops")}) and visit \url{https://www.kernel-operations.io/}.
 }
 \references{
 \insertRef{JMLR:v22:20-275}{rkeops}
@@ -40,12 +39,12 @@ Useful links:
 }
 \author{
 \itemize{
-\item \href{http://imag.umontpellier.fr/~charlier/}{Benjamin Charlier}
+\item \href{https://miat.inrae.fr/bcharlier/}{Benjamin Charlier}
 \item Amelie Vernay
 \item Chloe Serre-Combe
 \item \href{https://gdurif.perso.math.cnrs.fr/}{Ghislain Durif}
 \item \href{https://www.jeanfeydy.com}{Jean Feydy}
-\item \href{http://helios.mi.parisdescartes.fr/~glaunes/}{Joan Alexis Glaunès}
-\item François-David Collin
+\item \href{https://helios2.mi.parisdescartes.fr/~glaunes/}{Joan Alexis Glaunès}
+\item \href{https://fradav.perso.math.cnrs.fr/}{François-David Collin}
 }
 }

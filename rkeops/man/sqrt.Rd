@@ -25,7 +25,6 @@ see \code{\link[=sqrt.default]{sqrt.default()}}.
 corresponds to the complex modulus \code{sqrt(z) = z^0.5}.
 }
 \examples{
-\dontrun{
 # R base operation
 sqrt(4)
 sqrt(c(1,4,9,16))
@@ -34,7 +33,6 @@ x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
                                     # indexed by 'i'
 Sqrt_x <- sqrt(x_i)                 # symbolic matrix, 150 rows and 3 columns
-}
 }
 \seealso{
 \code{\link[=sqrt.default]{sqrt.default()}}, \code{\link[=sqrt.LazyTensor]{sqrt.LazyTensor()}}

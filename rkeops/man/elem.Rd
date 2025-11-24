@@ -27,13 +27,11 @@ standard R notation.
 be in \verb{[0, n)}, where \code{n} is the inner dimension of \code{x}.
 }
 \examples{
-\dontrun{
 x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 x_i <- LazyTensor(x, index = 'i')   # LazyTensor from matrix x, indexed by 'i'
 m <- 2
 
 elem_x <- elem(x_i, m)  # symbolic `m+1`-th element of `x_i`.
-}
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay

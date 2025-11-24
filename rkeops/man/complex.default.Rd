@@ -23,6 +23,9 @@
 \item{z}{an object of mode \code{complex}, or one of a class for which
     a methods has been defined.}
 }
+\value{
+See 'Details' section.
+}
 \description{
 Basic functions which support complex arithmetic in \R, in addition to
   the arithmetic operators \code{+}, \code{-}, \code{*}, \code{/}, and \code{^}.
@@ -111,7 +114,7 @@ NAs <- vapply(list(NA, NA_integer_, NA_real_, NA_character_, NA_complex_),
 stopifnot(is.na(NAs), is.na(Re(NAs))) # has always been true
 showC <- function(z) noquote(paste0("(", Re(z), ",", Im(z), ")"))
 showC(NAs)
-Im(NAs) # [0 0 0 NA NA]  \\ in R <= 4.3.x was [NA NA 0 NA NA]
+Im(NAs) # [0 0 0 NA NA]  \\\\ in R <= 4.3.x was [NA NA 0 NA NA]
 stopifnot(Im(NAs)[1:3] == 0)
 
 

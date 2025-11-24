@@ -23,7 +23,6 @@ If \code{x} or \code{y} is a \code{LazyTensor}, see \code{\link[=|.LazyTensor]{|
 \code{\link[=|.default]{|.default()}}.
 }
 \examples{
-\dontrun{
 # R base element-wise logical or operation
 TRUE | FALSE
 x <- 1:10
@@ -37,7 +36,6 @@ y_j <- LazyTensor(y, index = 'j')   # creating LazyTensor from matrix y,
                                     # indexed by 'j'
 
 x_sp_y <- x_i | y_j                 # symbolic matrix
-}
 }
 \seealso{
 \code{\link[=|.default]{|.default()}}, \code{\link[=|.LazyTensor]{|.LazyTensor()}}

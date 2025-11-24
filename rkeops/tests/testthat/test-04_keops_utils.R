@@ -1,5 +1,8 @@
 test_that("get_pykeops_formula", {
     
+    formula <- "Sum_Reduction((x|y, 1)"
+    expect_error(res <- get_pykeops_formula(formula))
+    
     formula <- "Sum_Reduction(Exp(-s * SqNorm2(x - y)) * b, 1)"
     res <- get_pykeops_formula(formula)
     expect_equal(

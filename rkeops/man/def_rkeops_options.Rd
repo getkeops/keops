@@ -11,7 +11,8 @@ def_rkeops_options(
   verbosity = TRUE,
   debug = FALSE,
   cache_dir = NULL,
-  formula_only = FALSE
+  formula_only = FALSE,
+  warn = TRUE
 )
 }
 \arguments{
@@ -43,6 +44,8 @@ directory (see \code{\link[=default_rkeops_cache_dir]{default_rkeops_cache_dir()
 associated with a LazyTensor reductions, instead of doing the actual
 computation. Default is \code{FALSE}, should be set to \code{TRUE} for debugging
 purpose only.}
+
+\item{warn}{boolean flag to enable/disable warnings in function call.}
 }
 \value{
 a list (of class \code{rkeops_options}) with the following containing
@@ -80,6 +83,10 @@ the cache directory where rkeops operator compilation byproducts will
 be stored to be re-used for further use (and avoid unnecessary
 recompilation).
 }
+\examples{
+def_rkeops_options()
+
+}
 \seealso{
 \code{\link[=rkeops_use_float32]{rkeops_use_float32()}}, \code{\link[=rkeops_use_float64]{rkeops_use_float64()}},
 \code{\link[=rkeops_use_cpu]{rkeops_use_cpu()}}, \code{\link[=rkeops_use_gpu]{rkeops_use_gpu()}},
@@ -89,4 +96,3 @@ recompilation).
 \author{
 Ghislain Durif
 }
-\keyword{internal}

@@ -24,10 +24,17 @@ If \code{x} is a \code{LazyTensor}, see \code{\link[=max.LazyTensor]{max.LazyTen
 \code{\link[=max.default]{max.default()}}.
 }
 \examples{
-\dontrun{
 # R base operation
 max(1:10)
 max(c(NA, 1, 2), na.rm = TRUE)
+\donttest{
+\dontshow{
+# Specific setup for example runs (not necessary for standard use)
+reticulate::py_available(initialize = TRUE)
+set_rkeops_options()
+# For build on CRAN, use CPU computing with 2 cores max
+rkeops_use_cpu(ncore = 2)
+}
 # LazyTensor operation
 x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
@@ -35,6 +42,10 @@ x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x,
 
 max_x <- max(x_i)                   # LazyTensor object
 max_red_x <- max(x_i, "i")          # max reduction indexed by 'i'
+\dontshow{
+# clean-up (for CRAN build)
+clean_rkeops(remove_cache_dir = TRUE)
+}
 }
 }
 \author{

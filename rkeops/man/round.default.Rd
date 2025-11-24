@@ -14,6 +14,9 @@
     (\code{round}) or significant digits (\code{signif}) to be used.
     For \code{round}, negative values are allowed (see \sQuote{Details}).}
 }
+\value{
+See 'Details' section.
+}
 \description{
 \code{ceiling} takes a single numeric argument \code{x} and returns a
   numeric vector containing the smallest integers not less than the

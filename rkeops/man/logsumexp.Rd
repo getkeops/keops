@@ -17,7 +17,8 @@ should be either \code{"i"} or \code{"j"} to specify whether if the reduction is
 indexed by \code{"i"} or \code{"j"}.}
 
 \item{weight}{an optional object (\code{LazyTensor} or \code{ComplexLazyTensor}) that
-specifies scalar or vector-valued weights. \code{NULL} by default and not used.}
+specifies scalar or vector-valued weights. \code{NULL} by default and not used.
+\strong{Not supported at the moment}.}
 }
 \value{
 a matrix corresponding to the Log-Sum-Exp reduction.
@@ -40,7 +41,14 @@ details about this function in the \emph{"RKeOps LazyTensor"} vignette, at
 section \emph{"Reductions"}.
 }
 \examples{
-\dontrun{
+\donttest{
+\dontshow{
+# Specific setup for example runs (not necessary for standard use)
+reticulate::py_available(initialize = TRUE)
+set_rkeops_options()
+# For build on CRAN, use CPU computing with 2 cores max
+rkeops_use_cpu(ncore = 2)
+}
 x <- matrix(runif(150 * 3), 150, 3) 
 x_i <- LazyTensor(x, index = 'i') 
 y <- matrix(runif(100 * 3), 100, 3)
@@ -48,14 +56,29 @@ y_j <- LazyTensor(y, index = 'j')
 w <- matrix(runif(100 * 3), 100, 3) # weight LazyTensor
 w_j <- LazyTensor(w, index = 'j')
 
-S_ij = sum((x_i - y_j)^2)                                           
-logsumexp_xw <- logsumexp(S_ij, 'i', w_j) # logsumexp reduction 
-                                          # over the 'i' indices
+S_ij = sum((x_i - y_j)^2)
                                          
-logsumexp_x <- logsumexp(S_ij, 'i')      # logsumexp reduction without
-                                         # weight over the 'i' indices
-}
+logsumexp_x <- logsumexp(S_ij, 'i')      # logsumexp reduction
+                                         # over the 'i' indices
+
 \dontrun{
+# note: expected error, not supported at the moment
+logsumexp_xw <- logsumexp(S_ij, 'i', w_j) # logsumexp reduction with weights
+                                          # over the 'i' indices
+}
+\dontshow{
+# clean-up (for CRAN build)
+clean_rkeops(remove_cache_dir = TRUE)
+}
+}
+\donttest{
+\dontshow{
+# Specific setup for example runs (not necessary for standard use)
+reticulate::py_available(initialize = TRUE)
+set_rkeops_options()
+# For build on CRAN, use CPU computing with 2 cores max
+rkeops_use_cpu(ncore = 2)
+}
 x <- matrix(runif(150 * 3), 150, 3) 
 x_i <- LazyTensor(x, index = 'i') 
 y <- matrix(runif(100 * 3), 100, 3)
@@ -63,12 +86,20 @@ y_j <- LazyTensor(y, index = 'j')
 w <- matrix(runif(150 * 3), 150, 3) # weight LazyTensor
 w_j <- LazyTensor(y, index = 'j')
 
-S_ij = sum( (x_i - y_j)^2 )                                           
-logsumexp_xw <- logsumexp_reduction(S_ij, 'i', w_j) # logsumexp reduction 
-                                                    # over the 'i' indices
+S_ij = sum( (x_i - y_j)^2 )
                                          
 logsumexp_x <- logsumexp_reduction(S_ij, 'i')  # logsumexp reduction without
                                                # weight over the 'i' indices
+
+\dontrun{
+# note: expected error, not supported at the moment
+logsumexp_xw <- logsumexp_reduction(S_ij, 'i', w_j) # logsumexp reduction 
+                                                    # over the 'i' indices
+}
+\dontshow{
+# clean-up (for CRAN build)
+clean_rkeops(remove_cache_dir = TRUE)
+}
 }
 }
 \author{

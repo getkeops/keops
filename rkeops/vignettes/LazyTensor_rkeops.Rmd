@@ -31,12 +31,8 @@ knitr::opts_chunk$set(
 ```{r}
 # load rkeops
 library(rkeops)
-# create a dedicated Python environment with reticulate (!!to be done only once)
-reticulate::virtualenv_create("rkeops")
-# activate the dedicated Python environment
-reticulate::use_virtualenv(virtualenv = "rkeops", required = TRUE)
-# install rkeops requirements (!!to be done only once)
-install_rkeops()
+# check rkeops setup
+check_rkeops()
 ```
 
 
@@ -142,7 +138,7 @@ Pm_v_z <- LazyTensor(v_z, is_complex = TRUE)
 Pm_v_z$data
 ## [[1]]
 ##     [,1] [,2] [,3] [,4] [,5] [,6]
-## [1,]    4    5    2    3    7    1
+## [1,]   4    5    2    3    7    1
 ```
 
 Of course if you create a vector or a matrix of real values, and
@@ -350,9 +346,9 @@ The operations `sum()`, `min()`, `argmin()`, `max()` and `argmax()` can be calle
 
 Here, `x` is a `LazyTensor` of inner dimension $D$ and outer dimension $M$, indexed by $i \in \{1, \ldots ,M\}$, and `y` is a `LazyTensor` of inner dimension $D$ and outer dimension $N$, indexed by $j \in \{1, \ldots ,N\}$.
 
-| operation | meaning                                                                                             | mathematical expression                         |
-|:----------|:----------------------------------------------------------------------------------------------------|:------------------------------------------------|
-|`x %*% y`  | sum reduction of the product `x` * `y` indexed by `j`.<br> Same as `sum_reduction(x * y, "j")` | $\sum_j x_{ik} y_{jk}, ~ k \in \{1, \ldots, N\}$ |
+| operation | meaning                                                                                             | mathematical expression                          |
+|:----------|:----------------------------------------------------------------------------------------------------|:-------------------------------------------------|
+|`x %*% y`  | sum reduction of the product `x` * `y` indexed by `j`.<br> Same as `sum_reduction(x * y, "j")`      | $\sum_j x_{ik} y_{jk}, ~ k \in \{1, \ldots, N\}$ |
 
 
 ## Advices and random notes

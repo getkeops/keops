@@ -17,6 +17,7 @@
 #' @author Ghislain Durif
 #' 
 #' @importFrom checkmate assert_flag
+#' @noRd
 check_os <- function(startup = FALSE) {
     assert_flag(startup)
     if(.Platform$OS.type != "unix") {
@@ -51,6 +52,7 @@ check_os <- function(startup = FALSE) {
 #' @importFrom checkmate assert_choice assert_flag test_null
 #' 
 #' @author Ghislain Durif
+#' @noRd
 check_pypkg <- function(package, verbose = TRUE) {
     # check input
     assert_choice(package, c("keopscore", "pykeops"))
@@ -94,10 +96,7 @@ check_pypkg <- function(package, verbose = TRUE) {
 #' 
 #' @author Ghislain Durif
 #' 
-#' @examples
-#' \dontrun{
-#' check_pykeops()
-#' }
+#' @noRd
 check_pykeops <- function(verbose = TRUE) {
     return(check_pypkg("pykeops", verbose))
 }
@@ -116,10 +115,7 @@ check_pykeops <- function(verbose = TRUE) {
 #' 
 #' @author Ghislain Durif
 #' 
-#' @examples
-#' \dontrun{
-#' check_keopscore()
-#' }
+#' @noRd
 check_keopscore <- function(verbose = TRUE) {
     return(check_pypkg("keopscore", verbose))
 }
@@ -149,10 +145,11 @@ check_keopscore <- function(verbose = TRUE) {
 #' @export
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' check_rkeops()
 #' }
 check_rkeops <- function(verbose = TRUE) {
+    
     # init
     check0 <- FALSE
     check1 <- FALSE
@@ -171,16 +168,23 @@ check_rkeops <- function(verbose = TRUE) {
         if(check2) {
             
             setup_pykeops()
+            msg1 <- NULL
+            msg2 <- NULL
             out <- tryCatch({
-                msg <- py_capture_output({
-                    pykeops$show_cuda_status()
+                msg1 <- py_capture_output({
+                    pykeops$config$cuda_config$print_use_cuda()
                 })
-                py_capture_output({
+                msg2 <- py_capture_output({
                     pykeops$test_numpy_bindings()
                 })
             }, error = function(e) e)
             
-            if(verbose && (str_length(msg) > 0)) warning(msg)
+            if(verbose) {
+                if(!is.null(msg1) && (str_length(msg1) > 0))
+                    message(msg1)
+                if(!is.null(msg2) && (str_length(msg2) > 0))
+                    message(msg2)
+            }
             
             check3 <- !any(class(out) == "error")
         }

@@ -26,7 +26,6 @@ Broadcasting rules apply.
 inner dimension as \code{x}.
 }
 \examples{
-\dontrun{
 # basic example
 D <- 3
 M <- 100
@@ -41,7 +40,6 @@ z_i <- LazyTensor(z, index = 'i')
 
 # call clamp function
 clp <- clamp(x_i, y_j, z_i)
-}
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay

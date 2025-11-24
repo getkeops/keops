@@ -21,7 +21,6 @@ If \code{z} is a \code{ComplexLazyTensor}, see
 \code{\link[=Re.LazyTensor]{Re.LazyTensor()}}, else see \code{\link[=Re.default]{Re.default()}}.
 }
 \examples{
-\dontrun{
 # R base operation
 Re(1)
 Re(1+1i)
@@ -29,7 +28,6 @@ Re(1+1i)
 z <- matrix(2 + 1i^ (-6:5), nrow = 4)        # complex matrix
 z_i <- LazyTensor(z, "i", is_complex = TRUE) # creating ComplexLazyTensor
 Re_z <- Re(z_i)                              # symbolic matrix
-}
 }
 \seealso{
 \code{\link[=Re.default]{Re.default()}}, \code{\link[=Re.LazyTensor]{Re.LazyTensor()}},

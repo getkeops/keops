@@ -3,13 +3,19 @@ test_that("keops_kernel", {
     skip_if_no_keopscore()
     skip_if_no_pykeops()
     
+    # clean running env
     withr::with_options(list(rkeops = NULL), {
+        # dedicated cache directory for tests
         set_rkeops_options(list(cache_dir = testing_cache_dir))
     
-        ## computation on GPU ?
-        if(Sys.getenv("TEST_GPU") == "1") rkeops_use_gpu()
+        # setup computing resources (or skip if limited resources)
+        if(Sys.getenv("RUN_LONG_TEST") == "1") {
+            if(Sys.getenv("TEST_GPU") == "1") rkeops_use_gpu()
+        } else {
+            skip("Long tests: not running (e.g. during a package check)")
+        }
         
-        ## use float64 precision in test (to match R precision)
+        # use float64 precision in test (to match R precision)
         rkeops_use_float64()
         
         ## bad formula

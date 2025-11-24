@@ -23,7 +23,6 @@ If \code{x} is a \code{LazyTensor}, see \code{\link[=cos.LazyTensor]{cos.LazyTen
 see \code{\link[=cos.default]{cos.default()}}.
 }
 \examples{
-\dontrun{
 # R base operation
 cos(0)
 cos(pi)
@@ -32,7 +31,6 @@ x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
                                     # indexed by 'i'
 Cos_x <- cos(x_i)                   # symbolic matrix, 150 rows and 3 columns
-}
 }
 \seealso{
 \code{\link[=cos.default]{cos.default()}}, \code{\link[=cos.LazyTensor]{cos.LazyTensor()}}

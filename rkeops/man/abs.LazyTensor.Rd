@@ -29,13 +29,11 @@ encodes, symbolically, the complex absolute value or modulus of \code{x}, i.e.
 \code{abs(x) = Mod(x)}.
 }
 \examples{
-\dontrun{
 x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
 x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
                                     # indexed by 'i'
                                     
 Abs_x <- abs(x_i)                   # symbolic matrix, 150 rows and 3 columns
-}
 }
 \seealso{
 \code{\link[=abs]{abs()}}, \code{\link[=Mod]{Mod()}}

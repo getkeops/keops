@@ -38,7 +38,6 @@ operation works the same way as in the case of a vector of values.
 use of \code{extractT()}.
 }
 \examples{
-\dontrun{
 # I - Three very rudimentary examples
 # -----------------------------------
 
@@ -47,6 +46,7 @@ use of \code{extractT()}.
 # [1,]    1    4
 # [2,]    2    5
 # [3,]    3    6
+g <- matrix(1:6, nrow = 3, ncol = 2)
 
 # Convert it to LazyTensor:
 g_i <- LazyTensor(g, index = 'i') # indexed by 'i' (for example)
@@ -97,7 +97,6 @@ m <- 2
 d <- 7
 
 extractT_x <- extractT(x_i, m, d)   # symbolic matrix
-}
 }
 \author{
 Chloe Serre-Combe, Amelie Vernay

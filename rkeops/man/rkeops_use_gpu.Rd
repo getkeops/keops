@@ -35,8 +35,10 @@ computations on GPU.
 To disable GPU computing, run \code{\link[=rkeops_use_cpu]{rkeops_use_cpu()}}.
 }
 \examples{
-\dontrun{
 rkeops_use_gpu()
+\dontshow{
+# set options back to default
+set_rkeops_options()
 }
 }
 \seealso{
