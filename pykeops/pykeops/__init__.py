@@ -98,10 +98,10 @@ def get_build_folder():
 
 
 if numpy_found:
-    from .numpy.test_install import test_numpy_bindings
+    from ._test_install.numpy import test_numpy_bindings
 
 if torch_found:
-    from .torch.test_install import test_torch_bindings
+    from ._test_install.torch import test_torch_bindings
 
 # next line is to ensure that cache file for formulas is loaded at import
 from .common import keops_io

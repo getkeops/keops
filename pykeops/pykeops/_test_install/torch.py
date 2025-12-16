@@ -1,5 +1,3 @@
-import torch
-
 from pykeops.common.utils import pyKeOps_Message
 
 formula = "SqNorm2(x - y)"
@@ -11,6 +9,9 @@ def test_torch_bindings():
     """
     This function try to compile a simple keops formula using the pytorch binder.
     """
+
+    import torch
+
     x = torch.arange(1, 10, dtype=torch.float32).view(-1, 3)
     y = torch.arange(3, 9, dtype=torch.float32).view(-1, 3)
 
