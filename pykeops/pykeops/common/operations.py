@@ -87,14 +87,14 @@ def postprocess(out, binding, reduction_op, nout, opt_arg, dtype):
     return out
 
 
-def ConjugateGradientSolver(binding, linop, b, eps=1e-6):
+def ConjugateGradientSolver(binding, linop, b, x0, eps=1e-6):
     # Conjugate gradient algorithm to solve linear system of the form
     # Ma=b where linop is a linear operation corresponding
     # to a symmetric and positive definite matrix
     tools = get_tools(binding)
-    delta = tools.size(b) * eps**2
-    a = 0
-    r = tools.copy(b)
+    delta = tools.size(b) * eps**2 # FIXME: See scipy cg implementation
+    a = 0 if x0 is None else tools.copy(x0)
+    r = tools.copy(b) if x0 is None else b - linop(x0)
     nr2 = (r**2).sum()
     if nr2 < delta:
         return 0 * r
@@ -105,7 +105,7 @@ def ConjugateGradientSolver(binding, linop, b, eps=1e-6):
         alp = nr2 / (p * Mp).sum()
         a += alp * p
         r -= alp * Mp
-        nr2new = (r**2).sum()
+        nr2new = (r ** 2).sum()
         if nr2new < delta:
             break
         p = r + (nr2new / nr2) * p
@@ -115,18 +115,18 @@ def ConjugateGradientSolver(binding, linop, b, eps=1e-6):
 
 
 def KernelLinearSolver(
-    binding, K, x, b, alpha=0, eps=1e-6, precond=False, precondKernel=None
+    binding, K, x, b, x0=None, alpha=0, eps=1e-6, precond=False, precondKernel=None
 ):
     tools = get_tools(binding)
     dtype = tools.dtype(x)
 
-    def PreconditionedConjugateGradientSolver(linop, b, invprecondop, eps=1e-6):
+    def PreconditionedConjugateGradientSolver(linop, b, invprecondop, x0, eps=1e-6):
         # Preconditioned conjugate gradient algorithm to solve linear system of the form
         # Ma=b where linop is a linear operation corresponding
         # to a symmetric and positive definite matrix
         # invprecondop is linear operation corresponding to the inverse of the preconditioner matrix
-        a = 0
-        r = tools.copy(b)
+        a = 0 if x0 is None else tools.copy(x0)
+        r = tools.copy(b) if x0 is None else b - linop(x0)
         z = invprecondop(r)
         p = tools.copy(z)
         rz = (r * z).sum()
@@ -228,6 +228,6 @@ def KernelLinearSolver(
         invprecondop = NystromInversePreconditioner(K, precondKernel, x, alpha)
         a = PreconditionedConjugateGradientSolver(KernelLinOp, b, invprecondop, eps)
     else:
-        a = ConjugateGradientSolver(binding, KernelLinOp, b, eps=eps)
+        a = ConjugateGradientSolver(binding, KernelLinOp, b, x0, eps=eps)
 
     return a
