@@ -179,9 +179,9 @@ class GenericLazyTensor:
             )
 
         if typex == self.tools.arraytype and len(x.shape) == 0:
-            x = x.view(1)
+            x = x.reshape(1)
         elif typex in self.tools.float_types:
-            x = self.tools.arraytype([x]).view(1)
+            x = self.tools.arraytype([x]).reshape(1)
 
         if typex == self.tools.arraytype:
             if len(x.shape) >= 3:  # Infer axis from the input shape
