@@ -5,7 +5,7 @@ import sys
 import shutil
 from pathlib import Path
 import keopscore
-from keopscore.utils.misc_utils import KeOps_Warning, KeOps_OS_Run
+from keopscore.utils.misc_utils import KeOps_Warning, KeOps_OS_Run, get_brew_prefix
 from keopscore.utils.misc_utils import CHECK_MARK, CROSS_MARK
 
 
@@ -219,48 +219,13 @@ class Config:
         """Print the compile options."""
         print(f"Compile Options: {self.compile_options}")
 
-    def get_brew_prefix(self):
-        """Get Homebrew prefix path using KeOps_OS_Run"""
-        if platform.system() != "Darwin":
-            return None
-
-        # Redirect brew --prefix to a temporary file
-        tmp_file = "/tmp/brew_prefix.txt"
-
-        # brew --prefix > /tmp/brew_prefix.txt
-        # We use shell redirection so the output ends up in the file
-        KeOps_OS_Run(f"brew --prefix > {tmp_file}")
-
-        # Now read the file if it was created
-        if os.path.exists(tmp_file):
-            with open(tmp_file, "r") as f:
-                prefix = f.read().strip()
-
-            # Optional: Clean up
-            os.remove(tmp_file)
-
-            # Return the prefix if it's non-empty
-            return prefix if prefix else None
-
-        # If file doesn't exist or is empty, return None
-        return None
-
     def get_use_Apple_clang(self):
         """Detect if using Apple Clang."""
         is_apple_clang = False
         if platform.system() == "Darwin":
-            tmp_file = "/tmp/compiler_version.txt"
-            # Run "c++ --version" and write output to /tmp/compiler_version.txt
-            KeOps_OS_Run(f"c++ --version > {tmp_file}")
-
-            # Now read the file
-            if os.path.exists(tmp_file):
-                with open(tmp_file, "r") as f:
-                    compiler_info = f.read()
-                os.remove(tmp_file)
-
-                # Check if 'Apple clang' appears in the output
-                is_apple_clang = "Apple clang" in compiler_info
+            compiler_info = KeOps_OS_Run(f"c++ --version").stdout.decode("utf-8")
+            # Check if 'Apple clang' appears in the output
+            is_apple_clang = "Apple clang" in compiler_info
         return is_apple_clang
 
     def set_cpp_flags(self):
@@ -272,10 +237,11 @@ class Config:
         # Add OpenMP flags based on compiler
         if self.get_use_Apple_clang():
             # For Apple Clang, you need to specify OpenMP library location
-            brew_prefix = self.get_brew_prefix()
-            self.cpp_flags += f" -Xpreprocessor -fopenmp"
-            self.cpp_flags += f" -I{brew_prefix}/opt/libomp/include"
-            self.cpp_flags += f" -L{brew_prefix}/opt/libomp/lib"
+            brew_prefix = get_brew_prefix()
+            if brew_prefix is not None:
+                self.cpp_flags += f" -Xpreprocessor -fopenmp"
+                self.cpp_flags += f" -I{brew_prefix}/opt/libomp/include"
+                self.cpp_flags += f" -L{brew_prefix}/opt/libomp/lib"
         else:
             # For GCC and other compilers
             self.cpp_flags += " -fopenmp"

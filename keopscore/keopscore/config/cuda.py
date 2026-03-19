@@ -16,13 +16,12 @@ from pathlib import Path
 import shutil
 from os.path import join
 import platform
-import tempfile
 import subprocess
 import sys
 import keopscore
 from keopscore.utils.misc_utils import KeOps_Warning
 from keopscore.utils.misc_utils import KeOps_OS_Run
-from keopscore.utils.misc_utils import CHECK_MARK, CROSS_MARK
+from keopscore.utils.misc_utils import CHECK_MARK, CROSS_MARK, get_include_file_abspath
 
 
 class CUDAConfig:
@@ -341,17 +340,7 @@ class CUDAConfig:
         return self.cuda_include_path
 
     def get_include_file_abspath(self, filename):
-        tmp_file = tempfile.NamedTemporaryFile(dir=self.get_build_folder()).name
-        KeOps_OS_Run(
-            f'echo "#include <{filename}>" | {self.cxx_compiler} -M -E -x c++ - | head -n 2 > {tmp_file}'
-        )
-        strings = open(tmp_file).read().split()
-        abspath = None
-        for s in strings:
-            if filename in s:
-                abspath = s
-        os.remove(tmp_file)
-        return abspath
+        return get_include_file_abspath(filename, self.cxx_compiler)
 
     def set_nvrtc_flags(self):
         """Set the NVRTC flags for CUDA compilation."""
