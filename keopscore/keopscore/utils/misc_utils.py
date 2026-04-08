@@ -8,9 +8,9 @@ import re
 import platform
 
 
-def KeOps_Print(message, force_print=False, **kwargs):
+def KeOps_Print(*messages, force_print=False, **kwargs):
     if keopscore.verbose or force_print:
-        print(message, **kwargs)
+        print(*messages, **kwargs)
 
 
 def KeOps_Message(message, use_tag=True, **kwargs):
