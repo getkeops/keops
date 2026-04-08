@@ -78,7 +78,7 @@ class KernelSolveAutograd(torch.autograd.Function):
                 res += params.alpha * var
             return res
 
-        result = ConjugateGradientSolver("torch", linop, varinv.data, params.eps)
+        result = ConjugateGradientSolver("torch", linop, varinv.data, eps=params.eps)
 
         # relying on the 'ctx.saved_variables' attribute is necessary  if you want to be able to differentiate the output
         #  of the backward once again. It helps pytorch to keep track of 'who is who'.

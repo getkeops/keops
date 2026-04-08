@@ -104,6 +104,7 @@ class PytorchUnitTestCase(unittest.TestCase):
     def test_torchtools_function_binding(self):
         ############################################################
         from pykeops.torch.utils import torchtools
+        import torch
 
         tools = torchtools()
         x = self.xc.detach()

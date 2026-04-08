@@ -87,16 +87,18 @@ def postprocess(out, binding, reduction_op, nout, opt_arg, dtype):
     return out
 
 
-def ConjugateGradientSolver(binding, linop, b, x0, eps=1e-6):
+def ConjugateGradientSolver(binding, linop, b, x0=None, eps=1e-6):
     # Conjugate gradient algorithm to solve linear system of the form
     # Ma=b where linop is a linear operation corresponding
     # to a symmetric and positive definite matrix
+    # Follow the scipy conjugate gradient implementation
     tools = get_tools(binding)
-    delta = tools.size(b) * eps**2 # FIXME: See scipy cg implementation
+    atol, _ = _get_atol_rtol(tools.norm(b), eps)
+
     a = 0 if x0 is None else tools.copy(x0)
     r = tools.copy(b) if x0 is None else b - linop(x0)
     nr2 = (r**2).sum()
-    if nr2 < delta:
+    if nr2 < atol * atol:
         return 0 * r
     p = tools.copy(r)
     k = 0
@@ -105,13 +107,22 @@ def ConjugateGradientSolver(binding, linop, b, x0, eps=1e-6):
         alp = nr2 / (p * Mp).sum()
         a += alp * p
         r -= alp * Mp
-        nr2new = (r ** 2).sum()
-        if nr2new < delta:
+        nr2new = (r**2).sum()
+        if nr2new < atol * atol:
             break
         p = r + (nr2new / nr2) * p
         nr2 = nr2new
         k += 1
     return a
+
+
+def _get_atol_rtol(b_norm, atol=0.0, rtol=1e-5):
+    """
+    A helper function to handle tolerance normalization. See scipy.linalg.cg.
+    """
+    atol = max(float(atol), float(rtol) * float(b_norm))
+
+    return atol, rtol
 
 
 def KernelLinearSolver(
@@ -120,11 +131,16 @@ def KernelLinearSolver(
     tools = get_tools(binding)
     dtype = tools.dtype(x)
 
-    def PreconditionedConjugateGradientSolver(linop, b, invprecondop, x0, eps=1e-6):
+    def PreconditionedConjugateGradientSolver(
+        linop, b, invprecondop, x0=None, eps=1e-6
+    ):
         # Preconditioned conjugate gradient algorithm to solve linear system of the form
         # Ma=b where linop is a linear operation corresponding
         # to a symmetric and positive definite matrix
         # invprecondop is linear operation corresponding to the inverse of the preconditioner matrix
+
+        atol, _ = _get_atol_rtol(tools.norm(b), eps)
+
         a = 0 if x0 is None else tools.copy(x0)
         r = tools.copy(b) if x0 is None else b - linop(x0)
         z = invprecondop(r)
@@ -135,7 +151,7 @@ def KernelLinearSolver(
             alp = rz / (p * linop(p)).sum()
             a += alp * p
             r -= alp * linop(p)
-            if (r**2).sum() < eps**2:
+            if (r**2).sum() < atol * atol:
                 break
             z = invprecondop(r)
             rznew = (r * z).sum()
@@ -226,8 +242,10 @@ def KernelLinearSolver(
 
     if precond:
         invprecondop = NystromInversePreconditioner(K, precondKernel, x, alpha)
-        a = PreconditionedConjugateGradientSolver(KernelLinOp, b, invprecondop, eps)
+        a = PreconditionedConjugateGradientSolver(
+            KernelLinOp, b, invprecondop, x0=x0, eps=eps
+        )
     else:
-        a = ConjugateGradientSolver(binding, KernelLinOp, b, x0, eps=eps)
+        a = ConjugateGradientSolver(binding, KernelLinOp, b, x0=x0, eps=eps)
 
     return a
