@@ -18,12 +18,12 @@ else:
 
 
 class torchtools:
-    copy = torch.clone
-    exp = torch.exp
-    log = torch.log
-    norm = torch.norm
+    copy = staticmethod(torch.clone)
+    exp = staticmethod(torch.exp)
+    log = staticmethod(torch.log)
+    norm = staticmethod(torch.norm)
 
-    swap_axes = torch_swap_axes
+    swap_axes = staticmethod(torch_swap_axes)
 
     Genred = Genred
     KernelSolve = KernelSolve

@@ -101,6 +101,19 @@ class PytorchUnitTestCase(unittest.TestCase):
         pass
 
     ############################################################
+    def test_torchtools_function_binding(self):
+        ############################################################
+        from pykeops.torch.utils import torchtools
+
+        tools = torchtools()
+        x = self.xc.detach()
+
+        self.assertTrue(torch.equal(tools.copy(x), x))
+        self.assertTrue(torch.allclose(tools.exp(x), torch.exp(x)))
+        self.assertTrue(torch.allclose(tools.log(x + 1), torch.log(x + 1)))
+        self.assertTrue(torch.allclose(tools.norm(x), torch.norm(x)))
+
+    ############################################################
     def test_generic_syntax_float(self):
         ############################################################
         from pykeops.torch import Genred

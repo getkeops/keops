@@ -6,13 +6,13 @@ import pykeops.config
 
 
 class numpytools:
-    norm = np.linalg.norm
-    arraysum = np.sum
-    exp = np.exp
-    log = np.log
+    norm = staticmethod(np.linalg.norm)
+    arraysum = staticmethod(np.sum)
+    exp = staticmethod(np.exp)
+    log = staticmethod(np.log)
     Genred = Genred
     KernelSolve = KernelSolve
-    swap_axes = np_swap_axes
+    swap_axes = staticmethod(np_swap_axes)
     arraytype = np.ndarray
     float_types = [float, np.float16, np.float32, np.float64]
 

@@ -55,6 +55,20 @@ class NumpyUnitTestCase(unittest.TestCase):
     type_to_test = ["float32", "float64"]
 
     ############################################################
+    def test_numpytools_function_binding(self):
+        ############################################################
+        from pykeops.numpy.utils import numpytools
+
+        tools = numpytools()
+        x = self.x.astype(self.type_to_test[0])
+
+        self.assertTrue(np.array_equal(tools.copy(x), x))
+        self.assertTrue(np.allclose(tools.exp(x), np.exp(x)))
+        self.assertTrue(np.allclose(tools.log(x + 1), np.log(x + 1)))
+        self.assertTrue(np.allclose(tools.norm(x), np.linalg.norm(x)))
+        self.assertTrue(np.allclose(tools.arraysum(x, axis=0), np.sum(x, axis=0)))
+
+    ############################################################
     def test_generic_syntax_sum(self):
         ############################################################
         from pykeops.numpy import Genred
