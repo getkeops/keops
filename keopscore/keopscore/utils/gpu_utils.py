@@ -88,16 +88,14 @@ def get_cuda_include_path():
         return path
 
     # finally nothing found, so we display a warning asking the user to do something
-    KeOps_Warning(
-        """
+    KeOps_Warning("""
     The location of Cuda header files cuda.h and nvrtc.h could not be detected on your system.
     You must determine their location and then define the environment variable CUDA_PATH,
     either before launching Python or using os.environ before importing keops. For example
     if these files are in /vol/cuda/10.2.89-cudnn7.6.4.38/include you can do :
       import os
       os.environ['CUDA_PATH'] = '/vol/cuda/10.2.89-cudnn7.6.4.38'
-    """
-    )
+    """)
 
 
 def orig_cuda_include_fp16_path():
@@ -191,13 +189,11 @@ def get_gpu_props():
     def safe_call(d, result):
         test = result == CUDA_SUCCESS
         if not test:
-            KeOps_Warning(
-                f"""
+            KeOps_Warning(f"""
                     cuda was detected, driver API has been initialized, 
                     but there was an error for detecting properties of GPU device nr {d}. 
                     Switching to cpu only.
-                """
-            )
+                """)
         return test
 
     test = True
