@@ -4,7 +4,6 @@ from keopscore.formulas.maths.Mult import Mult_Impl
 from keopscore.formulas.variables.IntCst import IntCst_Impl, IntCst
 from keopscore.formulas.variables.RatCst import RatCst_Impl, RatCst
 
-
 ##########################
 ######    Minus      #####
 ##########################

@@ -15,7 +15,6 @@ from keopscore.formulas.variables.Zero import Zero
 from keopscore.formulas.maths.Scalprod import Scalprod_Impl
 from keopscore.formulas.Operation import Broadcast
 
-
 # /////////////////////////////////////////////////////////////
 # ///      LINEAR OPERATORS       ////
 # /////////////////////////////////////////////////////////////

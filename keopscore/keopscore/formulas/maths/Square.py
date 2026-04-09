@@ -2,7 +2,6 @@ from keopscore.formulas.VectorizedScalarOp import VectorizedScalarOp
 
 from keopscore.formulas.variables.Zero import Zero
 
-
 ##########################
 ######    Square     #####
 ##########################

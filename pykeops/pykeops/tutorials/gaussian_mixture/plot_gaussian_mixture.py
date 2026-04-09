@@ -23,7 +23,6 @@ from torch.nn.functional import softmax, log_softmax
 
 from pykeops.torch import Vi, Vj, LazyTensor
 
-
 ####################################################################
 # Define our dataset: a collection of points :math:`(x_i)_{i\in[1,N]}` which describe a
 # spiral in the unit square.
@@ -114,7 +113,7 @@ class GaussianMixture(Module):
 
     def update_covariances(self):
         """Computes the full covariance matrices from the model's parameters."""
-        (M, D, _) = self.A.shape
+        M, D, _ = self.A.shape
         self.params["gamma"] = (torch.matmul(self.A, self.A.transpose(1, 2))).view(
             M, D * D
         ) / 2

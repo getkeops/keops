@@ -12,7 +12,6 @@ import torch
 import numpy as np
 from time import time
 
-
 nits = 100
 Ns, D = [10000, 100000, 1000000], 3
 

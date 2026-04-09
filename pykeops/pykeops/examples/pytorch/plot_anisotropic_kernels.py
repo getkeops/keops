@@ -20,7 +20,6 @@ import matplotlib.cm as cm
 import torch
 from pykeops.torch import Vi, Vj, Pm, LazyTensor
 
-
 ##############################################
 # Dataset:
 

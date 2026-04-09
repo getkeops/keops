@@ -27,7 +27,6 @@ from pykeops.numpy.utils import np_kernel
 from pykeops.torch.utils import torch_kernel
 from pykeops.torch import Vi, Vj, Pm
 
-
 ######################################################################
 # Benchmark specifications:
 #

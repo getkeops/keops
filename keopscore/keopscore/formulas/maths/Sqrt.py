@@ -3,7 +3,6 @@ from keopscore.formulas.maths.IntInv import IntInv
 from keopscore.formulas.maths.Rsqrt import Rsqrt
 from keopscore.utils.math_functions import keops_sqrt
 
-
 ##########################
 ######    Sqrt       #####
 ##########################

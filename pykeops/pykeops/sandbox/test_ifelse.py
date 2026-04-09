@@ -2,7 +2,6 @@ import torch
 import pykeops
 from pykeops.torch import LazyTensor
 
-
 ttypes = (
     (torch.cuda.FloatTensor,) if torch.cuda.is_available() else (torch.FloatTensor,)
 )

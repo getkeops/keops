@@ -7,7 +7,6 @@ from keopscore.formulas.variables.IntCst import IntCst, IntCst_Impl
 from keopscore.formulas.variables.RatCst import RatCst, RatCst_Impl
 from keopscore.formulas.variables.Zero import Zero
 
-
 ##########################
 ######    Add        #####
 ##########################

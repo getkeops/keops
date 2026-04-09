@@ -1,7 +1,6 @@
 from keopscore.formulas.VectorizedScalarOp import VectorizedScalarOp
 from keopscore.utils.math_functions import keops_atan2
 
-
 # //////////////////////////////////////////////////////////////
 # ////                 ATAN2 :  Atan2< F, G >               ////
 # //////////////////////////////////////////////////////////////

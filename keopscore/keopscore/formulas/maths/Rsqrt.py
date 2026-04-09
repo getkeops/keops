@@ -1,7 +1,6 @@
 from keopscore.formulas.VectorizedScalarOp import VectorizedScalarOp
 from keopscore.formulas.maths.IntInv import IntInv
 
-
 ##########################
 ######    Rsqrt      #####
 ##########################

@@ -28,7 +28,6 @@ from pykeops.numpy.utils import grad_np_kernel, chain_rules
 from pykeops.torch.utils import torch_kernel
 from pykeops.torch import Vi, Vj, Pm
 
-
 ######################################################################
 # Benchmark specifications:
 #

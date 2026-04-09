@@ -3,7 +3,6 @@ import torch
 from pykeops.torch import Genred, KernelSolve
 from pykeops.torch.cluster import swap_axes as torch_swap_axes
 
-
 # from pykeops.torch.generic.generic_red import GenredLowlevel
 
 
