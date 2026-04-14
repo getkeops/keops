@@ -48,7 +48,7 @@ cl = x[:, 1] + 0.1 * torch.randn(N).type(dtype) < fth(x[:, 0])
 
 M = 1000 if use_cuda else 100
 tmp = torch.linspace(0, 1, M).type(dtype)
-g2, g1 = torch.meshgrid(tmp, tmp)
+g2, g1 = torch.meshgrid(tmp, tmp, indexing="ij")
 g = torch.cat((g1.contiguous().view(-1, 1), g2.contiguous().view(-1, 1)), dim=1)
 
 

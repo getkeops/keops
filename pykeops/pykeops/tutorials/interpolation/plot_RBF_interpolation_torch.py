@@ -168,7 +168,7 @@ print(f"Conjugate gradient infos: {cv_info}\n\n")
 
 # Extrapolate on a uniform sample:
 X = Y = torch.linspace(0, 1, 101).type(dtype)
-X, Y = torch.meshgrid(X, Y)
+X, Y = torch.meshgrid(X, Y, indexing="ij")
 t = torch.stack((X.contiguous().view(-1), Y.contiguous().view(-1)), dim=1)
 
 K_tx = laplacian_kernel(t, x)
