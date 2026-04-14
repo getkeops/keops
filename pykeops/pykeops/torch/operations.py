@@ -1,6 +1,6 @@
-import torch
 import copy
 
+import torch
 from pykeops.common.get_options import get_tag_backend
 from pykeops.common.keops_io import keops_binder
 from pykeops.common.operations import ConjugateGradientSolver
@@ -11,13 +11,12 @@ from pykeops.common.parse_type import (
     get_optional_flags,
 )
 from pykeops.common.utils import axis2cat
+from pykeops.common.utils import pyKeOps_Warning
 from pykeops.torch.generic.generic_red import (
     GenredAutograd_fun,
     Genred_parameters,
     set_device,
 )
-from pykeops import default_device_id
-from pykeops.common.utils import pyKeOps_Warning
 
 
 class KernelSolveAutograd(torch.autograd.Function):
@@ -78,7 +77,15 @@ class KernelSolveAutograd(torch.autograd.Function):
                 res += params.alpha * var
             return res
 
-        result = ConjugateGradientSolver("torch", linop, varinv.data, eps=params.eps)
+        result = ConjugateGradientSolver(
+            "torch",
+            linop,
+            varinv.data,
+            eps=params.eps,
+            x0=params.x0,
+            maxiter=params.maxiter,
+            cv_info=params.cv_info,
+        )
 
         # relying on the 'ctx.saved_variables' attribute is necessary  if you want to be able to differentiate the output
         #  of the backward once again. It helps pytorch to keep track of 'who is who'.
@@ -236,6 +243,7 @@ class KernelSolve:
                 that should be computed and reduced.
                 The correct syntax is described in the :doc:`documentation <../../Genred>`,
                 using appropriate :doc:`mathematical operations <../../../api/math-operations>`.
+
             aliases (list of strings): A list of identifiers of the form ``"AL = TYPE(DIM)"``
                 that specify the categories and dimensions of the input variables. Here:
 
@@ -250,16 +258,13 @@ class KernelSolve:
 
                 As described below, :meth:`__call__` will expect input Tensors whose
                 shape are compatible with **aliases**.
+
             varinvalias (string): The alphanumerical **alias** of the variable with
                 respect to which we shall perform our conjugate gradient descent.
                 **formula** is supposed to be linear with respect to **varinvalias**,
                 but may be more sophisticated than a mere ``"K(x,y) * {varinvalias}"``.
 
         Keyword Args:
-            alpha (float, default = 1e-10): Non-negative
-                **ridge regularization** parameter, added to the diagonal
-                of the Kernel matrix :math:`K_{xx}`.
-
             axis (int, default = 0): Specifies the dimension of the kernel matrix :math:`K_{x_ix_j}` that is reduced by our routine.
                 The supported values are:
 
@@ -332,7 +337,16 @@ class KernelSolve:
         self.axis = axis
 
     def __call__(
-        self, *args, backend="auto", device_id=-1, alpha=1e-10, eps=1e-6, ranges=None
+        self,
+        *args,
+        backend="auto",
+        device_id=-1,
+        ranges=None,
+        alpha=1e-10,
+        eps=1e-6,
+        x0=None,
+        maxiter=None,
+        cv_info=False,
     ):
         r"""
         Apply the routine on arbitrary torch Tensors.
@@ -373,6 +387,15 @@ class KernelSolve:
                 If **None** (default), we simply use a **dense Kernel matrix**
                 as we loop over all indices :math:`i\in[0,M)` and :math:`j\in[0,N)`.
 
+            alpha (float, default = 1e-10): Non-negative floating-point
+                **ridge regularization** parameter, added to the diagonal
+                of the Kernel matrix :math:`K_{xx}`.
+
+            eps (float, default = 1e-6): Stopping criterion for the conjugate gradient algorithm.
+
+            x0 (2d Tensor, default = None): Initial guess for the solution of the linear system.
+                should be of the same shape as b.
+
         Returns:
             (M,D) or (N,D) Tensor:
 
@@ -389,18 +412,25 @@ class KernelSolve:
         nx, ny = get_sizes(self.aliases, *args)
 
         params = Genred_parameters()
+
         params.formula = self.formula
         params.aliases = self.aliases
         params.varinvpos = self.varinvpos
-        params.alpha = alpha
         params.backend = backend
         params.dtype = dtype
+
         params.device_id_request = device_id
-        params.eps = eps
         params.ranges = ranges
         params.optional_flags = self.optional_flags
         params.rec_multVar_highdim = self.rec_multVar_highdim
         params.nx = nx
         params.ny = ny
+
+        # parameter of the Conjugate Gradient
+        params.alpha = alpha
+        params.eps = eps
+        params.x0 = x0
+        params.cv_info = cv_info
+        params.maxiter = maxiter
 
         return KernelSolveAutograd.apply(params, *args)

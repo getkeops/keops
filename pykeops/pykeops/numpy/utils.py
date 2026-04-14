@@ -1,8 +1,7 @@
 import numpy as np
-
+import pykeops.config
 from pykeops.numpy import Genred, KernelSolve
 from pykeops.numpy.cluster import swap_axes as np_swap_axes
-import pykeops.config
 
 
 class numpytools:
@@ -108,6 +107,10 @@ class numpytools:
         return np.zeros(shape).astype(dtype)
 
     @staticmethod
+    def zeros_like(x):
+        return np.zeros_like(x)
+
+    @staticmethod
     def empty(shape, dtype, device=None, requires_grad=None):
         return np.empty(shape, dtype=dtype)
 
@@ -134,6 +137,10 @@ class numpytools:
     @staticmethod
     def device_dict(x):
         return dict(cat="cpu")
+
+    @staticmethod
+    def sqrt(x):
+        return np.sqrt(x)
 
 
 def squared_distances(x, y):

@@ -1,11 +1,10 @@
 import numpy as np
-
+from pykeops import default_device_id
 from pykeops.common.get_options import get_tag_backend
 from pykeops.common.keops_io import keops_binder
 from pykeops.common.operations import ConjugateGradientSolver
 from pykeops.common.parse_type import get_sizes, complete_aliases, get_optional_flags
 from pykeops.common.utils import axis2cat
-from pykeops import default_device_id
 from pykeops.common.utils import pyKeOps_Warning
 
 
@@ -177,7 +176,16 @@ class KernelSolve:
         self.optional_flags = optional_flags
 
     def __call__(
-        self, *args, backend="auto", device_id=-1, alpha=1e-10, eps=1e-6, ranges=None
+        self,
+        *args,
+        backend="auto",
+        device_id=-1,
+        ranges=None,
+        alpha=1e-10,
+        eps=1e-6,
+        x0=None,
+        maxiter=None,
+        cv_info=False
     ):
         r"""
         To apply the routine on arbitrary NumPy arrays.
@@ -272,4 +280,6 @@ class KernelSolve:
                 res += alpha * var
             return res
 
-        return ConjugateGradientSolver("numpy", linop, varinv, eps=eps)
+        return ConjugateGradientSolver(
+            "numpy", linop, varinv, x0=x0, eps=eps, cv_info=cv_info
+        )

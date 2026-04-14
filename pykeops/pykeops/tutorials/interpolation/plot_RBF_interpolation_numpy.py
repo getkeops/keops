@@ -29,11 +29,11 @@ problems with a **linear memory footprint**.
 
 import time
 
-import numpy as np
 from matplotlib import pyplot as plt
 
-from pykeops.numpy import LazyTensor
+import numpy as np
 import pykeops.config
+from pykeops.numpy import LazyTensor
 
 #######################################################################
 # Generate some data:
@@ -79,15 +79,14 @@ alpha = 1.0  # Ridge regularization
 start = time.time()
 
 K_xx = gaussian_kernel(x, x)
-a = K_xx.solve(b, alpha=alpha)
+a, cv_info = K_xx.solve(b, alpha=alpha, cv_info=True)
 
 end = time.time()
 
 print(
-    "Time to perform an RBF interpolation with {:,} samples in 1D: {:.5f}s".format(
-        N, end - start
-    )
+    f"Time to perform an RBF interpolation with {N:,} samples in 1D: {end - start:.5f}s"
 )
+print(f"Conjugate gradient infos: {cv_info}\n\n")
 
 #######################################################################
 # Display the (fitted) model on the unit interval:
@@ -146,20 +145,19 @@ def laplacian_kernel(x, y, sigma=0.1):
 # between a perfect fit (**alpha** = 0) and a
 # smooth interpolation (**alpha** = :math:`+\infty`):
 
-alpha = 10  # Ridge regularization
+alpha = 5  # Ridge regularization
 
 start = time.time()
 
 K_xx = laplacian_kernel(x, x)
-a = K_xx.solve(b, alpha=alpha)
+a, cv_info = K_xx.solve(b, alpha=alpha, cv_info=True)
 
 end = time.time()
 
 print(
-    "Time to perform an RBF interpolation with {:,} samples in 2D: {:.5f}s".format(
-        N, end - start
-    )
+    f"Time to perform an RBF interpolation with {N:,} samples in 2D: {end - start:.5f}s"
 )
+print(f"Conjugate gradient infos: {cv_info}\n\n")
 
 ########################################################################
 # Display the (fitted) model on the unit square:

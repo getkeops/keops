@@ -154,6 +154,10 @@ class torchtools:
         )
 
     @staticmethod
+    def zeros_like(x):
+        return torch.zeros_like(x)
+
+    @staticmethod
     def empty(
         shape,
         dtype,
@@ -208,6 +212,10 @@ class torchtools:
     @staticmethod
     def pointer(x):
         return x.data.data_ptr()
+
+    @staticmethod
+    def sqrt(x):
+        return torch.sqrt(x)
 
 
 def squared_distances(x, y):
