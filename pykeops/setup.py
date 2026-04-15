@@ -1,7 +1,7 @@
 #  Always prefer setuptools over distutils
 # To use a consistent encoding
-from codecs import open
 import os
+from codecs import open
 from os import path
 
 from setuptools import setup
@@ -28,18 +28,21 @@ setup(
         "Bug Reports": "https://github.com/getkeops/keops/issues",
         "Source": "https://github.com/getkeops/keops",
     },
-    author="B. Charlier, J. Feydy, J. Glaunes",
-    author_email="benjamin.charlier@umontpellier.fr, jean.feydy@gmail.com, alexis.glaunes@parisdescartes.fr",
+    author="B. Charlier, J. Feydy, J. Glaunès",
+    author_email="benjamin.charlier@inrae.fr, jean.feydy@inria.com, alexis.glaunes@parisdescartes.fr",
     python_requires=">=3.8",
     classifiers=[
+        "Topic :: Scientific/Engineering",
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
-        "Topic :: Scientific/Engineering",
-        "License :: OSI Approved :: MIT License",
+        "Intended Audience :: Science/Research",
         "Operating System :: POSIX :: Linux",
         "Operating System :: MacOS :: MacOS X",
+        "Programming Language :: C",
         "Programming Language :: C++",
         "Programming Language :: Python :: 3 :: Only",
+        "Environment :: GPU :: NVIDIA CUDA",
+        "License :: OSI Approved :: MIT License",
     ],
     keywords="kernels gpu autodiff",
     packages=[
@@ -70,20 +73,22 @@ setup(
             "sphinx",
             "sphinx-gallery",
             "recommonmark",
+            "myst-parser",
             "sphinxcontrib-httpdomain",
             "sphinx_rtd_theme",
             "sphinx-prompt",
-            "breathe",
             "matplotlib",
             "imageio",
             "torch",
             "gpytorch",
             "scikit-learn",
             "multiprocess",
-            "faiss",
             "h5py",
             "jaxlib",
             "jax",
+            "plotly",
+            "si_prefix",
+            "pandas",
         ],
         "test:": ["pytest", "numpy", "torch"],
     },
