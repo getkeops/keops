@@ -108,6 +108,7 @@ sphinx_gallery_conf = {
     # Add patterns
     # 'filename_pattern': r'../pykeops/pykeops/tutorials/*',
     "ignore_pattern": r"__init__\.py|benchmark_utils\.py|dataset_utils\.py",
+    "parallel": int(os.environ.get("SPHINX_GALLERY_JOBS", "1")),
 }
 
 # Generate the API documentation when building
