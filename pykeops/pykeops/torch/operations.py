@@ -84,11 +84,12 @@ class KernelSolveAutograd(torch.autograd.Function):
             eps=params.eps,
             x0=params.x0,
             maxiter=params.maxiter,
-            cv_info=params.cv_info,
+            verbose=params.verbose,
         )
 
         # relying on the 'ctx.saved_variables' attribute is necessary  if you want to be able to differentiate the output
         #  of the backward once again. It helps pytorch to keep track of 'who is who'.
+        # Here we do not save the extra info dict if it is in the output
         ctx.save_for_backward(*args, result)
 
         return result
@@ -96,7 +97,6 @@ class KernelSolveAutograd(torch.autograd.Function):
     @staticmethod
     def backward(ctx, G):
         params = ctx.params
-        device_id = ctx.params
         myconv = ctx.myconv
 
         args = ctx.saved_tensors[:-1]  # Unwrap the saved variables
@@ -346,7 +346,7 @@ class KernelSolve:
         eps=1e-6,
         x0=None,
         maxiter=None,
-        cv_info=False,
+        verbose=False,
     ):
         r"""
         Apply the routine on arbitrary torch Tensors.
@@ -396,6 +396,15 @@ class KernelSolve:
             x0 (2d Tensor, default = None): Initial guess for the solution of the linear system.
                 should be of the same shape as b.
 
+            maxiter (int, default = None): Maximum number of conjugate
+                gradient iterations. If ``None``, uses the default from
+                :func:`pykeops.common.operations.ConjugateGradientSolver`.
+
+            verbose (bool, default = False): If ``True``, prints the
+                conjugate gradient convergence information dictionary
+                produced by
+                :func:`pykeops.common.operations.ConjugateGradientSolver`.
+
         Returns:
             (M,D) or (N,D) Tensor:
 
@@ -430,7 +439,7 @@ class KernelSolve:
         params.alpha = alpha
         params.eps = eps
         params.x0 = x0
-        params.cv_info = cv_info
         params.maxiter = maxiter
+        params.verbose = verbose
 
         return KernelSolveAutograd.apply(params, *args)

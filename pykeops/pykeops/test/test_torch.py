@@ -1,5 +1,7 @@
 import os.path
 import sys
+from contextlib import redirect_stdout
+import io
 
 sys.path.append(
     os.path.join(
@@ -15,17 +17,13 @@ sys.path.append(
 )
 
 import unittest
-import itertools
 import numpy as np
 
 import pykeops
 import pykeops.config
 from pykeops.numpy.utils import (
     squared_distances,
-    np_kernel,
     log_np_kernel,
-    grad_np_kernel,
-    differences,
     log_sum_exp,
 )
 
@@ -426,6 +424,34 @@ class PytorchUnitTestCase(unittest.TestCase):
                 u.cpu().data.numpy().ravel(), u_.cpu().data.numpy().ravel(), atol=1e-4
             )
         )
+
+    ############################################################
+    def test_cg_solver_stops_immediately_when_x0_is_good(self):
+        ############################################################
+
+        import torch
+        from pykeops.torch import LazyTensor
+
+        alpha = 2.0
+
+        x_i = LazyTensor(self.xc[:, None, :])
+        x_j = LazyTensor(self.xc[None, :, :])
+        K_xx = (((x_i - x_j).abs()).sum(-1)).exp()
+
+        b = K_xx @ self.fc + alpha * self.fc
+
+        x = K_xx.solve(b, alpha=alpha, x0=self.fc, eps=1e-12)
+        self.assertTrue(torch.allclose(self.fc, x))
+
+        stream = io.StringIO()
+        with redirect_stdout(stream):
+            x = K_xx.solve(b, alpha=alpha, x0=self.fc, eps=1e-12, verbose=True)
+
+        self.assertTrue(torch.allclose(self.fc, x))
+        output = stream.getvalue()
+        self.assertIn("'status': 'Converged'", output)
+        self.assertIn("'niter': 0", output)
+        self.assertIn("'x0_provided': True", output)
 
     ############################################################
     def test_softmax(self):

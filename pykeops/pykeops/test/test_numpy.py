@@ -1,5 +1,7 @@
 import os.path
 import sys
+from contextlib import redirect_stdout
+import io
 
 sys.path.append(
     os.path.join(
@@ -21,12 +23,8 @@ import numpy as np
 import pykeops
 import pykeops.config
 from pykeops.numpy.utils import (
-    np_kernel,
-    grad_np_kernel,
-    differences,
     squared_distances,
     log_sum_exp,
-    np_kernel_sphere,
 )
 
 
@@ -67,6 +65,51 @@ class NumpyUnitTestCase(unittest.TestCase):
         self.assertTrue(np.allclose(tools.log(x + 1), np.log(x + 1)))
         self.assertTrue(np.allclose(tools.norm(x), np.linalg.norm(x)))
         self.assertTrue(np.allclose(tools.arraysum(x, axis=0), np.sum(x, axis=0)))
+
+    ############################################################
+    def test_cg_solver_stops_immediately_when_x0_is_good(self):
+        ############################################################
+
+        from pykeops.numpy import LazyTensor
+
+        alpha = 2.0
+
+        x_i = LazyTensor(self.x[:, None, :])
+        x_j = LazyTensor(self.x[None, :, :])
+        K_xx = (((x_i - x_j).abs()).sum(-1)).exp()
+
+        b = K_xx @ self.f + alpha * self.f
+
+        x = K_xx.solve(b, alpha=alpha, x0=self.f, eps=1e-12)
+        self.assertTrue(np.allclose(self.f, x))
+
+        _, info = K_xx.solve(b, alpha=alpha, x0=self.f, eps=1e-12)
+        self.assertEqual(info["status"], "Converged")
+        self.assertEqual(info["niter"], 0)
+        self.assertLessEqual(info["residual_norm"], info["atol"])
+
+    ############################################################
+    def test_cg_solver_verbose_prints_info(self):
+        ############################################################
+
+        from pykeops.numpy import LazyTensor
+
+        alpha = 2.0
+
+        x_i = LazyTensor(self.x[:, None, :])
+        x_j = LazyTensor(self.x[None, :, :])
+        K_xx = (((x_i - x_j).abs()).sum(-1)).exp()
+
+        b = K_xx @ self.f + alpha * self.f
+
+        stream = io.StringIO()
+        with redirect_stdout(stream):
+            x = K_xx.solve(b, alpha=alpha, x0=self.f, eps=1e-12, verbose=True)
+
+        self.assertTrue(np.allclose(self.f, x))
+        output = stream.getvalue()
+        self.assertIn("'status': 'Converged'", output)
+        self.assertIn("'x0_provided': True", output)
 
     ############################################################
     def test_generic_syntax_sum(self):

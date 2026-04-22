@@ -88,7 +88,7 @@ def postprocess(out, binding, reduction_op, nout, opt_arg, dtype):
 
 
 def ConjugateGradientSolver(
-    binding, linop, b, x0=None, eps=1e-6, maxiter=None, cv_info=False
+    binding, linop, b, x0=None, eps=1e-6, maxiter=None, verbose=False
 ):
     """
     Conjugate gradient algorithm to solve a linear system of the form
@@ -122,63 +122,63 @@ def ConjugateGradientSolver(
             Maximum number of conjugate gradient iterations. Defaults to
             ``10 * b.shape[0]``.
 
-        cv_info : bool, optional
-            If ``False`` (default), return only the estimated solution ``x``.
-            If ``True``, return a tuple ``(x, info)`` where ``info`` is a
-            dictionary containing convergence diagnostics
+        verbose : bool, optional
+            If ``True``, print the convergence information dictionary before
+            returning. Defaults to ``False``. It contains the convergence
+            information  with the following keys:
+
+                - ``"status"``: ``"Converged"`` or ``"Maximum iterations reached"``.
+                - ``"niter"``: number of iterations performed.
+                - ``"residual_norm"``: final residual norm ``||r||``.
+                - ``"relative_residual_norm"``: final residual norm divided by
+                ``||b||``.
+                - ``"atol"``: absolute tolerance used internally for stopping.
+                - ``"maxiter"``: effective maximum number of iterations.
+                - ``"x0_provided"``: whether a non-``None`` initial guess was given.
+                - ``"dtype"``: data type of the solution ``x``.
+
     Returns
     -------
     x : tensor
         Approximate solution returned by the conjugate gradient iterations.
 
-    info : dict, optional
-        Returned only when ``cv_info=True``. Contains the convergence
-        information  with the following
-            keys:
-
-            - ``"status"``: ``"Converged"`` or ``"Maximum iterations reached"``.
-            - ``"niter"``: number of iterations performed.
-            - ``"residual_norm"``: final residual norm ``||r||``.
-            - ``"relative_residual_norm"``: final residual norm divided by
-              ``||b||``.
-            - ``"atol"``: absolute tolerance used internally for stopping.
-            - ``"maxiter"``: effective maximum number of iterations.
-            - ``"x0_provided"``: whether a non-``None`` initial guess was given.
-            - ``"dtype"``: data type of the solution ``x``.
+    
     """
 
     tools = get_tools(binding)
 
     # stopping criterion
     atol, _ = _get_atol_rtol(tools.norm(b), eps)
-    maxiter = maxiter if maxiter is not None else 10 * b.shape[0]
+    maxiter = 10 * b.shape[0] if (maxiter is None) else maxiter
 
-    x = 0 if x0 is None else tools.copy(x0)
-    r = tools.copy(b) if x0 is None else b - linop(x0)
+    x = tools.zeros_like(b) if (x0 is None) else tools.copy(x0)
+    r = tools.copy(b) if (x0 is None) else b - linop(x0)
     nr2 = (r**2).sum()
-    if nr2 < atol * atol:
-        return tools.zeros_like(x)
+    nr2new = nr2
 
-    p = tools.copy(r)
+    if nr2 <= atol * atol:
+        it = -1
+    else:
+        p = tools.copy(r)
 
-    for it in range(maxiter):
-        Mp = linop(p)
-        alp = nr2 / (p * Mp).sum()
-        x += alp * p
-        r -= alp * Mp
-        nr2new = (r**2).sum()
-        if nr2new < atol * atol:
-            break
-        p = r + (nr2new / nr2) * p
-        nr2 = nr2new
+        for it in range(maxiter):
+            Mp = linop(p)
+            alp = nr2 / (p * Mp).sum()
+            x += alp * p
+            r -= alp * Mp
+            nr2new = (r**2).sum()
+            if nr2new < atol * atol:
+                break
+            p = r + (nr2new / nr2) * p
+            nr2 = nr2new
 
-    else:  # for loop exhausted
-        # Return incomplete progress
-        it = -maxiter - 1
+        else:  # for loop exhausted
+            # Return incomplete progress
+            it = -maxiter - 1
 
-    if cv_info:
+    if verbose:
         nr = tools.sqrt(nr2new)
-        return x, {
+        info = {
             "status": ("Converged" if nr <= atol else "Maximum iterations reached"),
             "niter": it + 1,
             "dtype": tools.dtypename(x.dtype),
@@ -188,9 +188,11 @@ def ConjugateGradientSolver(
             "maxiter": maxiter,
             "x0_provided": x0 is not None,
         }
-    else:
-        return x
+        
+        print(f"[KeOps CG]: {info}")
 
+    return x
+    
 
 def _get_atol_rtol(b_norm, atol=0.0, rtol=1e-5):
     """
@@ -206,13 +208,13 @@ def KernelLinearSolver(
     K,
     x,
     b,
-    x0=None,
     alpha=0,
     eps=1e-6,
+    x0=None,
     maxiter=None,
     precond=False,
     precondKernel=None,
-    cv_info=False,
+    verbose=False,
 ):
     tools = get_tools(binding)
     dtype = tools.dtype(x)
@@ -333,7 +335,13 @@ def KernelLinearSolver(
         )
     else:
         a = ConjugateGradientSolver(
-            binding, KernelLinOp, b, eps=eps, maxiter=maxiter, x0=x0, cv_info=cv_info
+            binding,
+            KernelLinOp,
+            b,
+            eps=eps,
+            x0=x0,
+            maxiter=maxiter,
+            verbose=verbose,
         )
 
     return a

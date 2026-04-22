@@ -79,14 +79,13 @@ alpha = 1.0  # Ridge regularization
 start = time.time()
 
 K_xx = gaussian_kernel(x, x)
-a, cv_info = K_xx.solve(b, alpha=alpha, cv_info=True)
+a = K_xx.solve(b, alpha=alpha, verbose=True)
 
 end = time.time()
 
 print(
     f"Time to perform an RBF interpolation with {N:,} samples in 1D: {end - start:.5f}s"
 )
-print(f"Conjugate gradient infos: {cv_info}\n\n")
 
 #######################################################################
 # Display the (fitted) model on the unit interval:
@@ -150,14 +149,13 @@ alpha = 5  # Ridge regularization
 start = time.time()
 
 K_xx = laplacian_kernel(x, x)
-a, cv_info = K_xx.solve(b, alpha=alpha, cv_info=True)
+a = K_xx.solve(b, alpha=alpha, verbose=True)
 
 end = time.time()
 
 print(
     f"Time to perform an RBF interpolation with {N:,} samples in 2D: {end - start:.5f}s"
 )
-print(f"Conjugate gradient infos: {cv_info}\n\n")
 
 ########################################################################
 # Display the (fitted) model on the unit square:

@@ -185,7 +185,7 @@ class KernelSolve:
         eps=1e-6,
         x0=None,
         maxiter=None,
-        cv_info=False
+        verbose=False,
     ):
         r"""
         To apply the routine on arbitrary NumPy arrays.
@@ -211,6 +211,21 @@ class KernelSolve:
             alpha (float, default = 1e-10): Non-negative
                 **ridge regularization** parameter, added to the diagonal
                 of the Kernel matrix :math:`K_{xx}`.
+
+            eps (float, default = 1e-6): Stopping criterion for the
+                conjugate gradient algorithm.
+
+            x0 (2d array, default = None): Initial guess for the solution of
+                the linear system. Should be of the same shape as ``b``.
+
+            maxiter (int, default = None): Maximum number of conjugate
+                gradient iterations. If ``None``, uses the default from
+                :func:`pykeops.common.operations.ConjugateGradientSolver`.
+
+            verbose (bool, default = False): If ``True``, prints the
+                conjugate gradient convergence information dictionary
+                produced by
+                :func:`pykeops.common.operations.ConjugateGradientSolver`.
 
             backend (string): Specifies the map-reduce scheme,
                 as detailed in the documentation
@@ -281,5 +296,11 @@ class KernelSolve:
             return res
 
         return ConjugateGradientSolver(
-            "numpy", linop, varinv, x0=x0, eps=eps, cv_info=cv_info
+            "numpy",
+            linop,
+            varinv,
+            eps=eps,
+            x0=x0,
+            maxiter=maxiter,
+            verbose=verbose,
         )

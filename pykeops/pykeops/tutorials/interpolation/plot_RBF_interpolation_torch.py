@@ -29,9 +29,8 @@ problems with a **linear memory footprint**.
 
 import time
 
-from matplotlib import pyplot as plt
-
 import torch
+from matplotlib import pyplot as plt
 from pykeops.torch import LazyTensor
 
 ###############################################################################################
@@ -47,10 +46,10 @@ x = torch.rand(N, 1).type(dtype)
 
 # Some random-ish 1D signal:
 b = (
-    x
-    + 0.5 * (6 * x).sin()
-    + 0.1 * (20 * x).sin()
-    + 0.05 * torch.randn(N, 1).type(dtype)
+        x
+        + 0.5 * (6 * x).sin()
+        + 0.1 * (20 * x).sin()
+        + 0.05 * torch.randn(N, 1).type(dtype)
 )
 
 
@@ -66,7 +65,7 @@ def gaussian_kernel(x, y, sigma=0.1):
     x_i = LazyTensor(x[:, None, :])  # (M, 1, 1)
     y_j = LazyTensor(y[None, :, :])  # (1, N, 1)
     D_ij = ((x_i - y_j) ** 2).sum(-1)  # (M, N) symbolic matrix of squared distances
-    return (-D_ij / (2 * sigma**2)).exp()  # (M, N) symbolic Gaussian kernel matrix
+    return (-D_ij / (2 * sigma ** 2)).exp()  # (M, N) symbolic Gaussian kernel matrix
 
 
 #######################################################################
@@ -80,14 +79,13 @@ alpha = 1.0  # Ridge regularization
 start = time.time()
 
 K_xx = gaussian_kernel(x, x)
-a, cv_info = K_xx.solve(b, alpha=alpha, cv_info=True)
+a = K_xx.solve(b, alpha=alpha, verbose=True)
 
 end = time.time()
 
 print(
     f"Time to perform an RBF interpolation with {N:,} samples in 1D: {end - start:.5f}s"
 )
-print(f"Conjugate gradient infos: {cv_info}\n\n")
 
 ###############################################################################################
 # Display the (fitted) model on the unit interval:
@@ -119,9 +117,9 @@ x = torch.rand(N, 2).type(dtype)
 
 # Some random-ish 2D signal:
 b = ((x - 0.5) ** 2).sum(1, keepdim=True)
-b[b > 0.4**2] = 0
-b[b < 0.3**2] = 0
-b[b >= 0.3**2] = 1
+b[b > 0.4 ** 2] = 0
+b[b < 0.3 ** 2] = 0
+b[b >= 0.3 ** 2] = 1
 b = b + 0.05 * torch.randn(N, 1).type(dtype)
 
 # Add 25% of outliers:
@@ -152,15 +150,13 @@ alpha = 5  # Ridge regularization
 start = time.time()
 
 K_xx = laplacian_kernel(x, x)
-a, cv_info = K_xx.solve(b, alpha=alpha, cv_info=True)
+a = K_xx.solve(b, alpha=alpha, verbose=True)
 
 end = time.time()
 
 print(
     f"Time to perform an RBF interpolation with {N:,} samples in 2D: {end - start:.5f}s"
 )
-print(f"Conjugate gradient infos: {cv_info}\n\n")
-
 
 ###############################################################################################
 # Display the (fitted) model on the unit square:
