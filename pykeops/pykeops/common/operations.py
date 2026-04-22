@@ -1,5 +1,6 @@
 import numpy as np
 
+from keopscore.utils.misc_utils import KeOps_Print, KeOps_Warning
 from pykeops.common.utils import get_tools
 
 
@@ -130,8 +131,7 @@ def ConjugateGradientSolver(
                 - ``"status"``: ``"Converged"`` or ``"Maximum iterations reached"``.
                 - ``"niter"``: number of iterations performed.
                 - ``"residual_norm"``: final residual norm ``||r||``.
-                - ``"relative_residual_norm"``: final residual norm divided by
-                ``||b||``.
+                - ``"relative_residual_norm"``: final residual norm divided by ``||b||``.
                 - ``"atol"``: absolute tolerance used internally for stopping.
                 - ``"maxiter"``: effective maximum number of iterations.
                 - ``"x0_provided"``: whether a non-``None`` initial guess was given.
@@ -142,7 +142,7 @@ def ConjugateGradientSolver(
     x : tensor
         Approximate solution returned by the conjugate gradient iterations.
 
-    
+
     """
 
     tools = get_tools(binding)
@@ -174,6 +174,7 @@ def ConjugateGradientSolver(
 
         else:  # for loop exhausted
             # Return incomplete progress
+            KeOps_Warning("[KeOps CG]: Maximum iterations reached. Check convergence...")
             it = -maxiter - 1
 
     if verbose:
@@ -189,10 +190,10 @@ def ConjugateGradientSolver(
             "x0_provided": x0 is not None,
         }
         
-        print(f"[KeOps CG]: {info}")
+        KeOps_Print(f"[KeOps CG]: {info}")
 
     return x
-    
+
 
 def _get_atol_rtol(b_norm, atol=0.0, rtol=1e-5):
     """
