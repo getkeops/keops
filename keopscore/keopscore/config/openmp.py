@@ -1,56 +1,174 @@
 import os
-import shutil
-import tempfile
 import subprocess
-import platform
-from ctypes.util import find_library
+import tempfile
 
-from keopscore.utils.misc_utils import KeOps_Warning, KeOps_OS_Run, get_brew_prefix
-from keopscore.utils.misc_utils import CHECK_MARK, CROSS_MARK
+from keopscore.config.CppConfig import CppConfig
+from keopscore.config._shared import (
+    _find_library_by_names,
+    _first_existing_dir_with_files,
+    _first_existing_file,
+    _ordered_search_roots,
+    _path_candidates,
+    print_envs,
+    enabled_dict,
+    not_found_str,
+)
+from keopscore.utils.misc_utils import KeOps_Warning, get_brew_prefix
 
 
-class OpenMPConfig:
+class OpenMPConfig(CppConfig):
     """
     Class for OpenMP detection and configuration.
     """
 
+    _use_OpenMP = None
+    _openmp_lib_name = None
+    _openmp_lib_include_dir = None
+    _openmp_header_name = "omp.h"
+    openmp_env_vars = (
+        "OMP_PATH",
+        "LIBOMP_PATH",
+        "OpenMP_ROOT",
+        "OpenMP_ROOT_DIR",
+    )
+
+    openmp_dir_prefixes = (
+        get_brew_prefix(),
+        os.path.join(os.path.sep, "usr", "local", "opt", "libomp"),
+        os.path.join(os.path.sep, "opt", "local"),
+    )
+
     def __init__(self):
-        self._use_OpenMP = None
-        self.openmp_lib_path = None
-        self.os = platform.system()
-        self.set_cxx_compiler()
+        super().__init__()
+        self.set_openmplib_path()
         self.set_use_OpenMP()
 
-    def set_cxx_compiler(self):
-        """Set the C++ compiler."""
-        env_cxx = os.getenv("CXX")
-        if env_cxx and shutil.which(env_cxx):
-            self.cxx_compiler = env_cxx
-        elif shutil.which("g++"):
-            self.cxx_compiler = "g++"
+    # OpenMP library path
+    def set_openmplib_path(self):
+        """try to locate OpenMP libraries"""
+        openmp_install = self.find_openmp_install()
+        openmp_lib = openmp_install["library"]
+        if openmp_lib:
+            self._openmp_lib_include_dir = openmp_install["include_dir"]
+            self._openmp_lib_lib_dir = os.path.dirname(openmp_lib)
+            self._openmp_lib_name = openmp_lib
         else:
-            self.cxx_compiler = None
             KeOps_Warning(
-                "No C++ compiler found. You need to either define the CXX environment variable pointing to a valid compiler, or ensure that 'g++' is installed and in your PATH."
+                "OpenMP runtime library not found. "
+                "Set OMP_PATH, LIBOMP_PATH, or OpenMP_ROOT if it is installed in a non-standard location."
             )
 
+    def print_openmplib_path(self):
+        if self.get_openmp_lib_name() and self.get_openmp_lib_dir():
+            full_path = os.path.join(
+                self.get_openmp_lib_dir(), self.get_openmp_lib_name()
+            )
+        elif self.get_openmp_lib_name():
+            full_path = self.get_openmp_lib_name()
+        else:
+            full_path = None
+
+        print(f"OpenMP Library Path: {full_path or not_found_str}")
+
+    def find_openmp_install(self):
+        """
+        Locate OpenMP runtime files without assuming a specific package manager.
+
+        Returns a dict with optional ``library`` and ``include_dir`` entries.
+        """
+        result = {"library": None, "include_dir": None}
+
+        # First try to find OpenMP library using standard names via ctypes.
+        result["library"] = _find_library_by_names(("gomp", "omp"))
+        p = subprocess.run(
+            [
+                self.get_cxx_compiler(),
+                f"-print-file-name=include/{self._openmp_header_name}",
+            ],
+            capture_output=True,
+            text=True,
+        ).stdout.strip()
+        result["include_dir"] = p if os.path.isabs(p) and os.path.exists(p) else None
+
+        # If that fails, search for OpenMP headers and libraries in common locations.
+        if not result["library"]:
+            candidate_roots = _ordered_search_roots(
+                env_vars=self.openmp_env_vars,
+                conda_root="CONDA_PREFIX",
+                system_roots=self.openmp_dir_prefixes,
+            )
+
+            result["library"] = _first_existing_file(
+                _path_candidates(
+                    candidate_roots,
+                    (
+                        "lib/libomp.dylib",
+                        "lib/libgomp.dylib",
+                        "lib/libomp.so",
+                        "opt/libomp/lib/libomp.dylib",
+                    ),
+                )
+            )
+
+            # Finally, search for OpenMP headers in common locations.
+            result["include_dir"] = _first_existing_dir_with_files(
+                _path_candidates(candidate_roots, ("include", "opt/libomp/include")),
+                (self._openmp_header_name,),
+            )
+
+        return result
+
+    # OpenMP library name and directory getters/setters
+    def set_openmp_lib_name(self):
+        """Set the OpenMP library name (e.g., libomp.so or libgomp.dylib)."""
+        # This is set in set_openmplib_path if the library is found, otherwise it remains None.
+        pass
+
+    def get_openmp_lib_name(self):
+        """Get the OpenMP library name (e.g., libomp.so or libgomp.dylib)."""
+        return self._openmp_lib_name
+
+    def set_openmp_lib_dir(self):
+        """Set the OpenMP library directory (containing .so or .dylib files)."""
+        # This is set in set_openmplib_path if the library is found, otherwise it remains None.
+        pass
+
+    def get_openmp_lib_dir(self):
+        """Get the OpenMP library directory (containing .so or .dylib files)."""
+        return self._openmp_lib_lib_dir
+
+    # OpenMP header path
+    def set_openmp_lib_include_dir(self):
+        """Set the OpenMP include directory (containing headers)."""
+        # This is set in set_openmplib_path if the library is found, otherwise it remains None.
+        pass
+
+    def get_openmp_include_dir(self):
+        """Get the OpenMP include directory (containing headers)."""
+        return self._openmp_lib_include_dir
+
+    def print_openmp_include_dir(self):
+        if self.get_openmp_include_dir():
+            print(f"OpenMP Header Path: {self.get_openmp_include_dir()}")
+
+    # OpenMP use detection
     def set_use_OpenMP(self):
         """Determine and set whether to use OpenMP."""
         compiler_supports_openmp = self.check_compiler_for_openmp()
-        openmp_libs_available = self.check_openmp_libraries()
-        self._use_OpenMP = compiler_supports_openmp or openmp_libs_available
-        if not self._use_OpenMP:
-            KeOps_Warning("OpenMP support is not available. Disabling OpenMP.")
+        self._use_OpenMP = compiler_supports_openmp and (
+            self.get_openmp_lib_name() is not None
+        )
 
     def get_use_OpenMP(self):
         return self._use_OpenMP
 
     def print_use_OpenMP(self):
-        status = "Enabled ✅" if self._use_OpenMP else "Disabled ❌"
-        print(f"OpenMP Support: {status}")
+        print(f"OpenMP Support: {enabled_dict[self.get_use_OpenMP() or False]}")
 
     def check_compiler_for_openmp(self):
-        if not self.cxx_compiler:
+        """Attempt to compile a simple OpenMP program to check if the compiler supports OpenMP."""
+
+        if not self.get_cxx_compiler():
             KeOps_Warning("No C++ compiler available to check for OpenMP support.")
             return False
 
@@ -67,12 +185,14 @@ class OpenMPConfig:
             test_file = f.name
 
         compile_command = [
-            self.cxx_compiler,
+            self.get_cxx_compiler(),
             test_file,
             "-fopenmp",
-            "-o",
-            test_file + ".out",
         ]
+        if self.get_openmp_lib_dir():
+            compile_command.append(f"-L{self.get_openmp_lib_dir()}")
+        compile_command.extend(["-o", f"{test_file}.out"])
+
         try:
             # Warning : subprocess is used below to compile the test program (using subprocess.check_output to capture stderr)
             subprocess.check_output(compile_command, stderr=subprocess.STDOUT)
@@ -83,74 +203,26 @@ class OpenMPConfig:
             os.remove(test_file)
             return False
 
-    def check_openmp_libraries(self):
-        if self.os.startswith("Linux"):
-            openmp_lib = find_library("gomp")
-            if not openmp_lib:
-                KeOps_Warning("OpenMP library 'libgomp' not found.")
-                return False
-            else:
-                self.openmp_lib_path = openmp_lib
-                return True
-        # Specific check for M1/M2/M3 apple Silicon chips
-        elif self.os.startswith("Darwin") and platform.machine() in ["arm64", "arm64e"]:
-            brew_prefix = get_brew_prefix()
-            if brew_prefix is not None:
-                openmp_path = f"{brew_prefix}/opt/libomp/lib/libomp.dylib"
-                openmp_lib = openmp_path if os.path.exists(openmp_path) else None
-            else:
-                openmp_lib = None
-            if openmp_lib is None:
-                KeOps_Warning(
-                    "OpenMP library not found, it must be downloaded through Homebrew for apple Silicon chips"
-                )
-                return False
-            else:
-                self.openmp_lib_path = openmp_lib
-                return True
-        elif self.os.startswith("Darwin"):
-            openmp_lib = find_library("omp")
-            if not openmp_lib:
-                KeOps_Warning("OpenMP library 'libomp' not found.")
-                return False
-            else:
-                self.openmp_lib_path = openmp_lib
-                return True
-        else:
-            self.openmp_lib_path = None
-            return False
-
-    def print_all(self):
+    # OpenMP configuration printing
+    def print_openmp(self):
         """
         Print all OpenMP-related configuration and system health status.
         """
-        # OpenMP Support
-        openmp_status = CHECK_MARK if self.get_use_OpenMP() else CROSS_MARK
-        print(f"\nOpenMP Support")
-        print("-" * 60)
+
+        print("=" * 60)
+        print(f"OpenMP Configuration")
+        print("=" * 60)
+
         self.print_use_OpenMP()
-        if self.get_use_OpenMP():
-            openmp_lib_path = self.openmp_lib_path or "Not Found"
-            print(f"OpenMP Library Path: {openmp_lib_path}")
-            # Compiler path
-            compiler_path = (
-                shutil.which(self.cxx_compiler) if self.cxx_compiler else None
-            )
-            print(f"C++ Compiler: {self.cxx_compiler}")
-            if not compiler_path:
-                print(
-                    f"Compiler '{self.cxx_compiler}' not found on the system.{CROSS_MARK}"
-                )
-        else:
-            print(f"OpenMP support is disabled or not available.{CROSS_MARK}")
+        self.print_openmplib_path()
+        self.print_openmp_include_dir()
+
         # Print relevant environment variables.
-        print("\nRelevant Environment Variables:")
-        env_vars = [
-            "OMP_PATH",
-        ]
-        for var in env_vars:
-            value = os.environ.get(var, None)
-            if value:
-                print(f"{var} = {value}")
-            else:
-                print(f"{var} is not set")
+        print_envs(self.openmp_env_vars)
+
+
+if __name__ == "__main__":
+    openmp_config = OpenMPConfig()
+    openmp_config.print_platform()
+    openmp_config.print_cpp()
+    openmp_config.print_openmp()
