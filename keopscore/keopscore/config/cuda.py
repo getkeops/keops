@@ -1,30 +1,31 @@
-import os
 import ctypes
-from ctypes.util import find_library
+import os
 from ctypes import (
+    DEFAULT_MODE,
     c_int,
-    c_void_p,
-    c_char_p,
     CDLL,
     byref,
-    cast,
-    POINTER,
-    Structure,
     RTLD_GLOBAL,
 )
-from pathlib import Path
-import shutil
-from os.path import join
-import platform
-import subprocess
-import sys
-import keopscore
+
+from keopscore.config.CppConfig import CppConfig
+from keopscore.config._shared import (
+    _find_library_by_names,
+    _first_existing_dir_with_files,
+    _first_matching_file,
+    _ordered_search_roots,
+    _path_candidates,
+    print_envs,
+    not_found_str,
+)
+from keopscore.utils.misc_utils import (
+    CHECK_MARK,
+    CROSS_MARK,
+)
 from keopscore.utils.misc_utils import KeOps_Warning
-from keopscore.utils.misc_utils import KeOps_OS_Run
-from keopscore.utils.misc_utils import CHECK_MARK, CROSS_MARK, get_include_file_abspath
 
 
-class CUDAConfig:
+class CUDAConfig(CppConfig):
     """
     Class for CUDA detection and configuration.
     """
@@ -34,115 +35,252 @@ class CUDAConfig:
     CU_DEVICE_ATTRIBUTE_MAX_THREADS_PER_BLOCK = 1
     CU_DEVICE_ATTRIBUTE_MAX_SHARED_MEMORY_PER_BLOCK = 8
 
-    # Cuda attributes
-    libcuda_folder = None
-    libnvrtc_folder = None
-    cuda_include_path = None
-    nvrtc_flags = None
-    cuda_version = None
+    # Cuda detection variables
+    _use_cuda = None
+    _specific_gpus = None
+
+    _cuda_include_path = None
+    _nvrtc_flags = None
+    _cuda_version = None
     n_gpus = 0
-    gpu_compile_flags = ""
+    _gpu_compile_flags = ""
     cuda_message = ""
-    specific_gpus = None
     cuda_block_size = None
+    cuda_install_info = None
+
+    # ------------------------ #
+    #     Search location      #
+    # ------------------------ #
+
+    cuda_env_vars = [
+        "CUDA_VISIBLE_DEVICES",
+        "CUDA_PATH",
+        "CUDA_HOME",
+        "CUDA_ROOT",
+        "CUDA_TOOLKIT_ROOT_DIR",
+    ]
+
+    pip_suffixes = (
+        "nvidia/cuda_runtime",
+        "nvidia/cuda_nvrtc",
+    )
+
+    system_suffixes = (
+        os.path.join(os.path.sep, "usr", "local", "cuda"),
+        os.path.join(os.path.sep, "usr", "local"),
+        os.path.join(os.path.sep, "opt", "cuda"),
+        os.path.join(os.path.sep, "usr"),
+        os.path.join(os.path.sep, "lib"),
+    )
+
+    library_suffixes = (
+            "lib64",
+            "lib",
+            "lib/x86_64-linux-gnu/",
+        )
+    
+    include_suffixes = (
+            "include",
+            "targets/x86_64-linux/include",
+            "targets/sbsa-linux/include",
+            "targets/aarch64-linux/include",
+        )
+
+    # ------------------------- #
+    #     Library info dicts    #
+    # ------------------------- #
+
+    _libcuda_info = {
+        "name": "cuda",
+        "lib_file_name_candidate": ["libcuda.so.*", "libcuda.dylib", "cuda.lib"],
+        "header_file_name": "cuda.h",
+        "library": None,  # to be filled later
+        "include_dir": None,  # to be filled later
+    }
+    _libnvrtc_info = {
+        "name": "nvrtc",
+        "lib_file_name_candidate": ["libnvrtc.so.*", "libnvrtc.dylib", "nvrtc.lib"],
+        "header_file_name": "nvrtc.h",
+        "library": None,  # to be filled later
+        "include_dir": None,  # to be filled later
+    }
+    _cudart_info = {
+        "name": "cudart",
+        "lib_file_name_candidate": ["libcudart.so.*", "libcudart.dylib", "cudart.lib"],
+        "header_file_name": None,
+        "library": None,  # to be filled later
+        "include_dir": None,  # not needed
+    }
 
     def __init__(self):
-        self.set_keops_cache_folder()
-        self.set_default_build_folder_name()
+
         self.set_specific_gpus()
-        self.set_build_folder()
-        self.set_cxx_compiler()
+
+        super().__init__()
+
         self.set_use_cuda()
+
         # If cuda is enabled, then we finalize the rest of the config
-        if self._use_cuda:
-            self.set_libcuda_folder()
-            self.set_libnvrtc_folder()
+        if self.get_use_cuda():
+            self.get_cuda_version()
+            self.get_cuda_include_path()
             self.set_nvrtc_flags()
             self.set_cuda_block_size()
 
-    def _try_load_library(self, lib_name):
+    def find_cuda_install(self, lib_dict_info, warn=None):
         """
-        Attempt to locate and load libraties.
+        Locate a cuda and headers using an explicit ordered search.
+
+        Arguments:
+            lib_dict_info (dict): A dictionary containing at least the keys 'name', 'lib_file_name_candidate', and 'header_file_name' for the library to find. This allows the function to be used for finding libcuda, libcudart, or nvrtc by passing the appropriate info dict.
+
+        Returns:
+            result (dict): a copy of lib_dict_info completed with the ``library``  and ``include_dir`` keys containing the absolute paths to the library file and include directory, or None if not found.
+        """
+        result = (
+            lib_dict_info.copy()
+        )  # Start with the provided info, which may contain names and file patterns
+
+        candidate_roots = _ordered_search_roots(
+            env_vars=self.cuda_env_vars,
+            pip_suffixes=self.pip_suffixes,
+            conda_root="CONDA_PREFIX",
+            system_roots=self.system_suffixes,
+        )
+
+        # ------------------------ #
+        # Search for library file  #
+        # ------------------------ #
+
+        # First try to find the library file using the candidate roots and library suffixes
+        candidate_library_dirs = _path_candidates(candidate_roots, self.library_suffixes)
+        result["library"] = _first_matching_file(
+            candidate_library_dirs, result["lib_file_name_candidate"]
+        )
+        if result["library"] is None:
+            result["library"] = _find_library_by_names((result["name"],))
+
+        if result["library"] is None and warn:
+            KeOps_Warning(f"lib{result['name']} not found.")
+
+        # ------------------------ #
+        # Search for header files  #
+        # ------------------------ #
+
+        result["include_dir"] = _first_existing_dir_with_files(
+            _path_candidates(candidate_roots, self.include_suffixes),
+            (result["header_file_name"],),
+        )
+
+        if (
+            result["include_dir"] is None
+            and warn
+            and result["header_file_name"] is not None
+        ):
+            KeOps_Warning(f"{result['name']} header files not found.")
+
+        return result
+
+    def _try_load_library(self, lib_full_path_path, mode=DEFAULT_MODE):
+        """
+        Attempt to load a shared library.
         Returns:
             success (bool): True if the library was found and loaded.
-            abspath (str): Absolute path to the loaded library if success==True, else "".
             error_msg (str): Contains error details if success==False, else "".
         """
-        # Find library
-        found_path = find_library(lib_name)
-        if not found_path:
-            return (False, "", f"Library '{lib_name}' not found on this system.")
-
-        # Try to load it
+        if not lib_full_path_path:
+            return False, "Library path not found"
         try:
-            lib_handle = CDLL(found_path, mode=RTLD_GLOBAL)
+            CDLL(lib_full_path_path, mode=mode)
         except OSError as e:
-            return (False, "", f"Failed to load library '{lib_name}': {e}")
+            return (
+                False,
+                f"Failed to load library '{os.path.basename(lib_full_path_path)}': {e}",
+            )
 
-        class LINKMAP(Structure):
-            _fields_ = [("l_addr", c_void_p), ("l_name", c_char_p)]
+        return True, ""
 
+    def _try_find_cuda_version(self, libcudart_full_path_path):
+        """
+        Attempt to find the CUDA version by loading the CUDA runtime library and querying its version.
+        Returns:
+            success (bool): True if the version was successfully determined, False otherwise.
+            error_msg (str): Contains error details if success==False, else "".
+
+        """
         try:
-            # Attempt to load libdl to use dlinfo
-            libdl_path = find_library("dl")
-            if not libdl_path:
-                # If we can't find libdl, we can't do dlinfo; fallback
-                return (True, found_path, "")
+            libcudart = ctypes.CDLL(libcudart_full_path_path)
+            cuda_version = ctypes.c_int()
+            libcudart.cudaRuntimeGetVersion(ctypes.byref(cuda_version))
+            self._cuda_version = int(cuda_version.value)
+            return True, ""
 
-            libdl = CDLL(libdl_path)
-            dlinfo = libdl.dlinfo
-            dlinfo.argtypes = (c_void_p, c_int, c_void_p)
-            dlinfo.restype = c_int
-
-            lmptr = c_void_p()
-            # RTLD_DI_LINKMAP = 2
-            result = dlinfo(lib_handle._handle, 2, byref(lmptr))
-            if result != 0:
-                # dlinfo call failed, fallback
-                return (True, found_path, "")
-
-            abspath_bytes = cast(lmptr, POINTER(LINKMAP)).contents.l_name
-            abspath_str = abspath_bytes.decode("utf-8")
-            if abspath_str:
-                return (True, abspath_str, "")
-            else:
-                return (True, found_path, "")
-        except Exception as err:
-            # If anything goes wrong, fallback to found_path
-            return (True, found_path, "")
+        except OSError as e:
+            self._cuda_version = None
+            return (
+                False,
+                f"Failed to load '{os.path.basename(libcudart_full_path_path)}': {e}",
+            )
 
     def _cuda_libraries_available(self):
         """
-        Check if both cuda and nvrtc libraries are available.
+        Check if libcuda (driver); libcudart (cudatoolkit) and nvrtc (cudatoolkit) libraries are available.
+        This is where ```_cuda_include_path``` is set.
+
         Returns:
-            True if both cuda and nvrtc are loadable, False otherwise.
+            True if all three are loadable, False otherwise.
             This is also where we handle one single warning if needed.
         """
 
-        # This step loads "libcuda.so (driver) and libnvrtc (cuda tool kit) **Globaly** to
-        # make cuda avalaible to keops shared objects
-        success_cuda, cuda_path, err_cuda = self._try_load_library("cuda")
-        success_nvrtc, nvrtc_path, err_nvrtc = self._try_load_library("nvrtc")
-
-        if not success_cuda or not success_nvrtc:
-            self.cuda_message = "CUDA libraries not found or could not be loaded; Switching to CPU only."
-            KeOps_Warning(self.cuda_message)
-
+        # Libcuda (driver) loaded globally so they are available to KeOps shared objects.
+        self._libcuda_info = self.find_cuda_install(self._libcuda_info, warn=True)
+        success_cuda = False
+        err_cuda = "libcuda not found"
+        if self._libcuda_info["library"] is not None:
+            success_cuda, err_cuda = self._try_load_library(
+                self._libcuda_info["library"], mode=RTLD_GLOBAL
+            )
+        if not success_cuda:
+            KeOps_Warning(f"{err_cuda}. Switching to CPU only.")
             return False
 
-        # If both succeeded, store their folder paths
-        self.libcuda_folder = os.path.dirname(cuda_path)
-        self.libnvrtc_folder = os.path.dirname(nvrtc_path)
+        # libnvrtc as well, since it's required for the runtime compilation of CUDA code.
+        self._libnvrtc_info = self.find_cuda_install(self._libnvrtc_info, warn=True)
+        success_nvrtc = False
+        err_nvrtc = "libnvrtc not found"
+        if self._libnvrtc_info["library"] is not None:
+            success_nvrtc, err_nvrtc = self._try_load_library(
+                self._libnvrtc_info["library"], mode=RTLD_GLOBAL
+            )
+        if not success_nvrtc:
+            KeOps_Warning(f"{err_nvrtc}. Switching to CPU only.")
+            return False
+
+        # Populate the cuda_install_info which is needed for include path and cuda version detection
+        self._cuda_include_path = list(set([
+            self._libnvrtc_info["include_dir"],
+            self._libcuda_info["include_dir"],
+        ]))
+
+        # Finally check cudart
+        self._cudart_info = self.find_cuda_install(self._cudart_info, warn=False)
+        success_cudart = False
+        err_cudart = "libcudart not found"
+        if self._cudart_info["library"] is not None:
+            success_cudart, err_cudart = self._try_find_cuda_version(
+                self._cudart_info["library"]
+            )
+        if not success_cudart:
+            KeOps_Warning(f"{err_cudart}. Switching to CPU only.")
+            return False
+
         return True
 
+    # CUDA Support
     def set_use_cuda(self):
         """Determine and set whether to use CUDA."""
-        self._use_cuda = True
-        if not self._cuda_libraries_available():
-            self._use_cuda = False
+        self._use_cuda = self._cuda_libraries_available()
 
-        self.get_cuda_version()
-        self.get_cuda_include_path()
         self.get_gpu_props()
         if self.n_gpus == 0 and self._use_cuda:
             self._use_cuda = False
@@ -153,9 +291,10 @@ class CUDAConfig:
         return self._use_cuda
 
     def print_use_cuda(self):
-        status = "Enabled ✅" if self._use_cuda else "Disabled ❌"
+        status = f"Enabled {CHECK_MARK}" if self._use_cuda else f"Disabled {CROSS_MARK}"
         print(f"CUDA Support: {status}")
 
+    # CUDA Block Size
     def set_cuda_block_size(self, cuda_block_size=192):
         """Sets default cuda block size."""
         self.cuda_block_size = cuda_block_size
@@ -166,205 +305,133 @@ class CUDAConfig:
     def print_cuda_block_size(self):
         print(f"CUDA Block Size: {self.cuda_block_size}")
 
+    # Specific GPUs
     def set_specific_gpus(self):
         """Set specific GPUs from CUDA_VISIBLE_DEVICES."""
-        self.specific_gpus = os.getenv("CUDA_VISIBLE_DEVICES")
-        if self.specific_gpus:
+        if os.getenv("CUDA_VISIBLE_DEVICES"):
+            self._specific_gpus = os.getenv("CUDA_VISIBLE_DEVICES")
             # Modify the build folder name to include GPU specifics
-            gpu_suffix = self.specific_gpus.replace(",", "_")
-            self.default_build_folder_name += f"_CUDA_VISIBLE_DEVICES_{gpu_suffix}"
+            gpu_suffix = self._specific_gpus.replace(",", "_")
+            self.set_default_build_folder_name(
+                appended_name=f"CUDA_VISIBLE_DEVICES_{gpu_suffix}"
+            )
 
     def get_specific_gpus(self):
         """Get the specific GPUs."""
-        return self.specific_gpus
+        return self._specific_gpus
 
     def print_specific_gpus(self):
         """Print the specific GPUs."""
-        if self.specific_gpus:
-            print(f"Specific GPUs (CUDA_VISIBLE_DEVICES): {self.specific_gpus}")
-        else:
-            print("Specific GPUs (CUDA_VISIBLE_DEVICES): Not Set")
-
-    def set_cxx_compiler(self):
-        """Set the C++ compiler."""
-        env_cxx = os.getenv("CXX")
-        if env_cxx and shutil.which(env_cxx):
-            self.cxx_compiler = env_cxx
-        elif shutil.which("g++"):
-            self.cxx_compiler = "g++"
-        else:
-            self.cxx_compiler = None
-            KeOps_Warning(
-                "No C++ compiler found. You need to either define the CXX environment variable pointing to a valid compiler, or ensure that 'g++' is installed and in your PATH."
-            )
-
-    def set_keops_cache_folder(self):
-        """Set the KeOps cache folder."""
-        self.keops_cache_folder = os.getenv("KEOPS_CACHE_FOLDER")
-        if self.keops_cache_folder is None:
-            self.keops_cache_folder = join(
-                os.path.expanduser("~"), ".cache", f"keops{keopscore.__version__}"
-            )
-        # Ensure the cache folder exists
-        os.makedirs(self.keops_cache_folder, exist_ok=True)
-
-    def set_default_build_folder_name(self):
-        """Set the default build folder name."""
-        uname = platform.uname()
-        self.default_build_folder_name = (
-            "_".join(uname[:3]) + f"_p{sys.version.split(' ')[0]}"
+        print(
+            f"Specific GPUs (CUDA_VISIBLE_DEVICES): {self.get_specific_gpus() or "Not set"}"
         )
 
-    def set_build_folder(self):
-        self.build_folder = join(
-            self.keops_cache_folder, self.default_build_folder_name
-        )
-
-    def get_build_folder(self):
-        return self.build_folder
-
+    # Libcuda folder
     def set_libcuda_folder(self):
         """
-        Return nothing if not using cuda
-        self.libcuda_folder is already set in _cuda_libraries_available.
+        Is set in _cuda_libraries_available.
         """
-        if not self._use_cuda:
-            return
+        pass
 
     def get_libcuda_folder(self):
-        return self.libcuda_folder
+        return self._libcuda_info["library"] and os.path.dirname(
+            self._libcuda_info["library"]
+        )
 
+    def print_libcuda_folder(self):
+        print(f"Libcuda Folder: {self.get_libcuda_folder() or not_found_str}")
+
+    # Libnvrtc folder
     def set_libnvrtc_folder(self):
         """
         Return nothing if not using cuda
         self.libnvrtc_folder is already set in _cuda_libraries_available.
         """
-        if not self._use_cuda:
-            return
+        pass
 
     def get_libnvrtc_folder(self):
-        return self.libnvrtc_folder
+        return self._libnvrtc_info["library"] and os.path.dirname(
+            self._libnvrtc_info["library"]
+        )
+
+    def print_libnvrtc_folder(self):
+        print(f"Libnvrtc Folder: {self.get_libnvrtc_folder() or not_found_str}")
+
+    # CUDA Version
+    def set_cuda_version(self, warn=True):
+        """Set the CUDA version by querying the CUDA runtime library."""
+        self._cuda_version = self.find_cuda_version(warn=warn)
 
     def get_cuda_version(self, out_type="single_value"):
-        if not self._use_cuda:
-            self.cuda_version = None
-            return None
-        try:
-            libcudart_path = find_library("cudart")
-            if not libcudart_path:
-                self.cuda_version = None
-                return None
 
-            libcudart = ctypes.CDLL(libcudart_path)
-            cuda_version = ctypes.c_int()
-            libcudart.cudaRuntimeGetVersion(ctypes.byref(cuda_version))
-            cuda_version_value = int(cuda_version.value)
+        major = self._cuda_version // 1000
+        minor = (self._cuda_version % 1000) // 10
 
-            if out_type == "single_value":
-                self.cuda_version = cuda_version_value
-                return cuda_version_value
+        if out_type == "major,minor":
+            return major, minor
+        elif out_type == "string":
+            return f"{major}.{minor}"
+        else:
+            return self._cuda_version
 
-            major = cuda_version_value // 1000
-            minor = (cuda_version_value % 1000) // 10
+    def print_cuda_version(self):
+        str = f"CUDA Version: {self.get_cuda_version(out_type="string") if self.get_cuda_version() else not_found_str}"
+        print(str)
 
-            if out_type == "major,minor":
-                return major, minor
-            elif out_type == "string":
-                return f"{major}.{minor}"
-        except Exception as e:
-            KeOps_Warning(f"Could not determine CUDA version: {e}")
-            self.cuda_version = None
-            return None
+    # CUDA Include Path
+    def set_cuda_include_path(self):
+        """Set the CUDA include path by searching for cuda.h and nvrtc.h."""
+        # This is done in find_cuda_install since it relies on the cuda installation info which is only available after checking library availability.
+        pass
 
     def get_cuda_include_path(self):
         """
-        Attempt to find CUDA headers (cuda.h, nvrtc.h) in standard
-        places or environment variables.
+        Attempt to find CUDA headers (cuda.h, nvrtc.h) using an explicit
+        ordered search over environment variables and standard locations.
         """
         if not self._use_cuda:
-            self.cuda_include_path = None
             return None
 
-        # Check the CUDA_PATH and CUDA_HOME environment variables
-        for env_var in ["CUDA_PATH", "CUDA_HOME"]:
-            path = os.getenv(env_var)
-            if path:
-                include_path = Path(path) / "include"
-                if (include_path / "cuda.h").is_file() and (
-                    include_path / "nvrtc.h"
-                ).is_file():
-                    self.cuda_include_path = str(include_path)
-                    return self.cuda_include_path
+        return self._cuda_include_path
 
-        # Check if CUDA is installed via conda
-        conda_prefix = os.getenv("CONDA_PREFIX")
-        if conda_prefix:
-            include_path = Path(conda_prefix) / "include"
-            if (include_path / "cuda.h").is_file() and (
-                include_path / "nvrtc.h"
-            ).is_file():
-                self.cuda_include_path = str(include_path)
-                return self.cuda_include_path
-
-        # Check standard locations
-        cuda_version_str = self.get_cuda_version(out_type="string")
-        possible_paths = [
-            Path("/usr/local/cuda"),
-            Path(f"/usr/local/cuda-{cuda_version_str}") if cuda_version_str else None,
-            Path("/opt/cuda"),
-        ]
-        # Filter out Nones (if cuda_version_str is None)
-        possible_paths = [p for p in possible_paths if p is not None]
-
-        for base_path in possible_paths:
-            include_path = base_path / "include"
-            if (include_path / "cuda.h").is_file() and (
-                include_path / "nvrtc.h"
-            ).is_file():
-                self.cuda_include_path = str(include_path)
-                return self.cuda_include_path
-
-        # If not found in any known location, try the compiler approach:
-        cuda_h_path = self.get_include_file_abspath("cuda.h")
-        nvrtc_h_path = self.get_include_file_abspath("nvrtc.h")
-        if cuda_h_path and nvrtc_h_path:
-            if os.path.dirname(cuda_h_path) == os.path.dirname(nvrtc_h_path):
-                self.cuda_include_path = os.path.dirname(cuda_h_path)
-                return self.cuda_include_path
-
-        # If still not found, issue a warning
-        KeOps_Warning(
-            "CUDA include path not found. Please set the CUDA_PATH or CUDA_HOME environment variable."
-        )
-        self.cuda_include_path = None
-        return self.cuda_include_path
-
-    def get_include_file_abspath(self, filename):
-        return get_include_file_abspath(filename, self.cxx_compiler)
-
+    def print_cuda_include_path(self):
+        print(f"CUDA Include Path: {":".join(self.get_cuda_include_path()) or not_found_str}")
+        
+    # NVRTC Flags
     def set_nvrtc_flags(self):
         """Set the NVRTC flags for CUDA compilation."""
+        # TODO: redondant with CppConfig compile options, should be refactored to avoid duplication
         # Ensure that compile_options is set (inherited from ConfigNew)
         compile_options = " -shared -fPIC -O3 -std=c++11"
 
-        # Ensure that libcuda_folder and libnvrtc_folder are set
-        libcuda_folder = self.libcuda_folder
-        libnvrtc_folder = self.libnvrtc_folder
-
         # Set the NVRTC flags
-        self.nvrtc_flags = (
+        self._nvrtc_flags = (
             compile_options
-            + f" -fpermissive -L{libcuda_folder} -L{libnvrtc_folder} -lcuda -lnvrtc"
+            + f" -fpermissive -L{self.get_libcuda_folder()} -L{self.get_libnvrtc_folder()} -lcuda -lnvrtc"
         )
 
     def get_nvrtc_flags(self):
         """Get the NVRTC flags for CUDA compilation."""
-        return self.nvrtc_flags
+        return self._nvrtc_flags
 
     def print_nvrtc_flags(self):
         """Print the NVRTC flags for CUDA compilation."""
-        print(f"NVRTC Flags: {self.nvrtc_flags}")
+        print(f"NVRTC Flags: {self.get_nvrtc_flags()}")
 
+    # GPU compile flags
+    def set_gpu_compile_flags(self):
+        """Set GPU compile flags based on detected GPU properties."""
+        # This is done in get_gpu_props since it relies on the GPU properties which are only available after checking CUDA availability.
+        pass
+    
+    def get_gpu_compile_flags(self):
+        """Get GPU compile flags based on detected GPU properties."""
+        return self._gpu_compile_flags
+    
+    def print_gpu_compile_flags(self):
+        print(f"GPU Compile Flags: {self.get_gpu_compile_flags() or not_found_str}")
+
+    # GPU Properties
     def get_gpu_props(self):
         """
         Getting GPU properties and related attributes.
@@ -372,11 +439,15 @@ class CUDAConfig:
         if not self._use_cuda:
             # Already determined that CUDA is unavailable
             self.n_gpus = 0
-            self.gpu_compile_flags = ""
-            return (self.n_gpus, self.gpu_compile_flags)
+            self._gpu_compile_flags = ""
+            return (self.n_gpus, self._gpu_compile_flags)
 
         # Attempt to load the CUDA driver library
-        success, libcuda_path, err_msg = self._try_load_library("cuda")
+        libcuda_path = self._libcuda_info["library"] if self._libcuda_info else None
+        success, err_msg = self._try_load_library(
+            libcuda_path,
+            mode=RTLD_GLOBAL,
+        )
         if not success:
             # Something is off at driver level => revert to CPU
             KeOps_Warning(
@@ -385,9 +456,9 @@ class CUDAConfig:
                 + " Switching to CPU only."
             )
             self.n_gpus = 0
-            self.gpu_compile_flags = ""
+            self._gpu_compile_flags = ""
             self._use_cuda = False
-            return (self.n_gpus, self.gpu_compile_flags)
+            return (self.n_gpus, self._gpu_compile_flags)
 
         # We have a handle, let's proceed
         libcuda = ctypes.CDLL(libcuda_path)
@@ -397,9 +468,9 @@ class CUDAConfig:
                 "CUDA was detected, but driver API could not be initialized. Switching to CPU only."
             )
             self.n_gpus = 0
-            self.gpu_compile_flags = ""
+            self._gpu_compile_flags = ""
             self._use_cuda = False
-            return (self.n_gpus, self.gpu_compile_flags)
+            return (self.n_gpus, self._gpu_compile_flags)
 
         # Get GPU count
         nGpus = ctypes.c_int()
@@ -410,14 +481,14 @@ class CUDAConfig:
                 "Switching to CPU only."
             )
             self.n_gpus = 0
-            self.gpu_compile_flags = ""
+            self._gpu_compile_flags = ""
             self._use_cuda = False
-            return (self.n_gpus, self.gpu_compile_flags)
+            return (self.n_gpus, self._gpu_compile_flags)
 
         self.n_gpus = nGpus.value
         if self.n_gpus == 0:
-            self.gpu_compile_flags = ""
-            return (self.n_gpus, self.gpu_compile_flags)
+            self._gpu_compile_flags = ""
+            return (self.n_gpus, self._gpu_compile_flags)
 
         # Query each GPU for properties
         MaxThreadsPerBlock = [0] * self.n_gpus
@@ -436,9 +507,9 @@ class CUDAConfig:
             device = ctypes.c_int()
             if not safe_call(d, libcuda.cuDeviceGet(ctypes.byref(device), d)):
                 self.n_gpus = 0
-                self.gpu_compile_flags = ""
+                self._gpu_compile_flags = ""
                 self._use_cuda = False
-                return (self.n_gpus, self.gpu_compile_flags)
+                return (self.n_gpus, self._gpu_compile_flags)
 
             output = ctypes.c_int()
             if not safe_call(
@@ -450,9 +521,9 @@ class CUDAConfig:
                 ),
             ):
                 self.n_gpus = 0
-                self.gpu_compile_flags = ""
+                self._gpu_compile_flags = ""
                 self._use_cuda = False
-                return (self.n_gpus, self.gpu_compile_flags)
+                return (self.n_gpus, self._gpu_compile_flags)
             MaxThreadsPerBlock[d] = output.value
 
             if not safe_call(
@@ -464,55 +535,45 @@ class CUDAConfig:
                 ),
             ):
                 self.n_gpus = 0
-                self.gpu_compile_flags = ""
+                self._gpu_compile_flags = ""
                 self._use_cuda = False
-                return (self.n_gpus, self.gpu_compile_flags)
+                return (self.n_gpus, self._gpu_compile_flags)
             SharedMemPerBlock[d] = output.value
 
         # Build compile flags string
-        self.gpu_compile_flags = f"-DMAXIDGPU={self.n_gpus - 1} "
+        self._gpu_compile_flags = f"-DMAXIDGPU={self.n_gpus - 1} "
         for d in range(self.n_gpus):
-            self.gpu_compile_flags += (
+            self._gpu_compile_flags += (
                 f"-DMAXTHREADSPERBLOCK{d}={MaxThreadsPerBlock[d]} "
             )
-            self.gpu_compile_flags += f"-DSHAREDMEMPERBLOCK{d}={SharedMemPerBlock[d]} "
+            self._gpu_compile_flags += f"-DSHAREDMEMPERBLOCK{d}={SharedMemPerBlock[d]} "
 
-        return self.n_gpus, self.gpu_compile_flags
+        return self.n_gpus, self._gpu_compile_flags
 
-    def print_all(self):
-        """
-        Print all CUDA-related configuration and system health status.
-        """
+    def print_cuda(self):
+        """Print all CUDA-related configuration"""
 
         # CUDA Support
-        cuda_status = CHECK_MARK if self.get_use_cuda() else CROSS_MARK
-        print(f"\nCUDA Support")
-        print("-" * 60)
+        print("=" * 60)
+        print(f"CUDA Support")
+        print("=" * 60)
+
         self.print_use_cuda()
         if self.get_use_cuda():
-            print(f"Libcuda Path: {self.libcuda_folder}")
-            print(f"Libnvrtc Path: {self.libnvrtc_folder}")
-            print(f"CUDA Version: {self.cuda_version}")
             print(f"Number of GPUs: {self.n_gpus}")
-            print(f"GPU Compile Flags: {self.gpu_compile_flags}")
-            # CUDA Include Path
-            cuda_include_path = self.cuda_include_path
-            print(f"CUDA Include Path: {cuda_include_path or 'Not Found'}")
+            self.print_cuda_version()
+            self.print_libcuda_folder()
+            self.print_libnvrtc_folder()
+            self.print_cuda_include_path()
+            self.print_nvrtc_flags()
+            self.print_gpu_compile_flags()
 
         # Print relevant environment variables.
-        print("\nRelevant Environment Variables:")
-        env_vars = [
-            "CUDA_VISIBLE_DEVICES",
-            "CUDA_PATH",
-        ]
-        for var in env_vars:
-            value = os.environ.get(var, None)
-            if value:
-                print(f"{var} = {value}")
-            else:
-                print(f"{var} is not set")
+        print_envs(self.cuda_env_vars)
 
 
 if __name__ == "__main__":
-    cudastuff = CUDAConfig()
-    cudastuff.print_all()
+    cuda_config = CUDAConfig()
+    cuda_config.print_platform()
+    cuda_config.print_cpp()
+    cuda_config.print_cuda()
