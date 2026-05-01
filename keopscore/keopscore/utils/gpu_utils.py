@@ -16,20 +16,20 @@ def orig_cuda_include_fp16_path():
     # First try to find the library file using the cuda includes
     cuda_include_path = keopscore.config.cuda.get_cuda_include_path()
     cuda_fp16_h_abspath = _first_matching_file(
-            cuda_include_path,
-            "cuda_fp16.h",
-        )
-    cuda_fp16_hpp_abspath =_first_matching_file(
-            cuda_include_path,
-            "cuda_fp16.hpp",
-        )
+        cuda_include_path,
+        "cuda_fp16.h",
+    )
+    cuda_fp16_hpp_abspath = _first_matching_file(
+        cuda_include_path,
+        "cuda_fp16.hpp",
+    )
 
     if cuda_fp16_h_abspath and cuda_fp16_hpp_abspath:
         return os.path.dirname(cuda_fp16_h_abspath)
 
     # Second try with compiler
-    cuda_fp16_h_abspath =  get_include_file_abspath("cuda_fp16.h")
-    cuda_fp16_hpp_abspath =  get_include_file_abspath("cuda_fp16.hpp")
+    cuda_fp16_h_abspath = get_include_file_abspath("cuda_fp16.h")
+    cuda_fp16_hpp_abspath = get_include_file_abspath("cuda_fp16.hpp")
     if cuda_fp16_h_abspath and cuda_fp16_hpp_abspath:
         path = os.path.dirname(cuda_fp16_h_abspath)
         if path != os.path.dirname(cuda_fp16_hpp_abspath):
@@ -57,4 +57,3 @@ def custom_cuda_include_fp16_path():
     if not os.path.isfile(fp16_header_path):
         pack_header(fp16_header, orig_cuda_include_fp16_path(), build_folder)
     return build_folder
-

@@ -9,7 +9,9 @@ from keopscore.utils.messages import KeOps_Print, KeOps_Warning
 def KeOps_OS_Run(command, print_warning=True):
     out = subprocess.run(command, shell=True, capture_output=True)
     if out.stderr != b"" and print_warning:
-        KeOps_Warning("There were warnings or errors while executing: " + command, newline=True)
+        KeOps_Warning(
+            "There were warnings or errors while executing: " + command, newline=True
+        )
         KeOps_Print(out.stderr.decode("utf-8"))
     return out
 

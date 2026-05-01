@@ -78,7 +78,7 @@ class Operation(Tree):
             KeOps_Print("table=", table)
             for v in table:
                 KeOps_Print(f"dim of {v} : ", v.dim)
-        if  keopscore.config.debug.get_debug_ops_at_exec():
+        if keopscore.config.debug.get_debug_ops_at_exec():
             string += f'printf("\\n\\nComputing {self.__repr__()} :\\n");\n'
         args = []
         # Evaluation of the child operations
@@ -104,12 +104,12 @@ class Operation(Tree):
         string += self.Op(out, table, *args)
 
         # some debugging helper :
-        if  keopscore.config.debug.get_debug_ops_at_exec():
+        if keopscore.config.debug.get_debug_ops_at_exec():
             for arg in args:
                 string += arg.c_print
             string += out.c_print
             string += f'printf("\\n\\n");\n'
-        if  keopscore.config.debug.get_debug_ops():
+        if keopscore.config.debug.get_debug_ops():
             KeOps_Print(f"Finished building code block for {self.__repr__()}")
 
         string += f"\n\n// Finished code block for {self.__repr__()}.\n}}\n\n"

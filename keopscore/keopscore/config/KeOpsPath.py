@@ -15,13 +15,11 @@ class KeOpsPathConfig:
     _default_build_folder_name = None
     _default_build_path = None
     _build_folder = None
-    
+
     _jit_binary = None
     _include_options = ""
 
-    path_env_vars = (
-        "KEOPS_CACHE_FOLDER",
-    )
+    path_env_vars = ("KEOPS_CACHE_FOLDER",)
 
     def __init__(self, platform, cuda):
 
@@ -107,7 +105,9 @@ class KeOpsPathConfig:
         - reset_all: If True, reset all cached formulas and recompile necessary components.
         """
         # If path is not given, we either read the save file or use the default build path
-        save_file = os.path.join(self.get_keops_cache_folder(), "build_folder_location.txt")
+        save_file = os.path.join(
+            self.get_keops_cache_folder(), "build_folder_location.txt"
+        )
         if not path:
             if read_save_file and os.path.isfile(save_file):
                 with open(save_file, "r") as f:
@@ -155,7 +155,9 @@ class KeOpsPathConfig:
     def set_default_build_path(self):
         """Set the default build path."""
         self._default_build_path = ensure_directory(
-            os.path.join(self.get_keops_cache_folder(), self.get_default_build_folder_name()),
+            os.path.join(
+                self.get_keops_cache_folder(), self.get_default_build_folder_name()
+            ),
             add_to_syspath=True,
         )
         # Initialize _build_path : TODO : check ?/
@@ -181,7 +183,7 @@ class KeOpsPathConfig:
     def print_jit_binary(self):
         """Print the path to the JIT binary."""
         print(f"JIT Binary Path: {self.get_jit_binary() or not_found_str}")
-    
+
     # include options management
     def set_include_options(self):
         """Set the include options for compilation."""

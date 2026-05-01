@@ -112,7 +112,7 @@ def get_keops_dll_impl(
 
     rf = map_reduce_obj.red_formula
 
-    if  keopscore.config.debug.get_debug_ops():
+    if keopscore.config.debug.get_debug_ops():
         KeOps_Print("In get_keops_dll, formula is :", rf)
         KeOps_Print("formula.__repr__() is : ", rf.__repr__())
         rf.make_dot()

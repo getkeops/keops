@@ -4,6 +4,7 @@ from time import time
 from keopscore.formulas import *
 
 import keopscore
+
 keopscore.config.debug.set_debug_ops(True)
 
 

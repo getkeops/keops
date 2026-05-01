@@ -18,4 +18,4 @@ if keopscore.config.cuda.get_use_cuda():
         Gpu_link_compile.compile_jit_compile_dll()
 
 # expose to the user
-set_build_folder =  keopscore.config.path.set_different_build_folder
+set_build_folder = keopscore.config.path.set_different_build_folder

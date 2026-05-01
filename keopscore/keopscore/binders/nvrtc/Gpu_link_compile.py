@@ -8,7 +8,6 @@ from keopscore.utils.gpu_utils import custom_cuda_include_fp16_path
 from keopscore.utils.messages import KeOps_Error, KeOps_Message
 from keopscore.utils.system_utils import KeOps_OS_Run
 
-
 jit_source_file = os.path.join(
     keopscore.config.path.get_base_dir_path(), "binders", "nvrtc", "keops_nvrtc.cpp"
 )
@@ -27,11 +26,15 @@ def jit_compile_dll():
 
 class Gpu_link_compile(LinkCompile):
     source_code_extension = "cu"
-    low_level_code_prefix = "cubin_" if keopscore.config.cuda.get_cuda_version() >= 11010 else "ptx_"
+    low_level_code_prefix = (
+        "cubin_" if keopscore.config.cuda.get_cuda_version() >= 11010 else "ptx_"
+    )
 
     def __init__(self):
         # checking that the system has a Gpu :
-        if not (keopscore.config.cuda.get_use_cuda() and keopscore.config.cuda.get_n_gpus()):
+        if not (
+            keopscore.config.cuda.get_use_cuda() and keopscore.config.cuda.get_n_gpus()
+        ):
             KeOps_Error(
                 "Trying to compile cuda code... but we detected that the system has no properly configured cuda lib."
             )
@@ -79,7 +82,9 @@ class Gpu_link_compile(LinkCompile):
 
     @staticmethod
     def get_compile_command(
-        sourcename=jit_source_file, dllname=keopscore.config.path.get_jit_binary(), extra_flags=""
+        sourcename=jit_source_file,
+        dllname=keopscore.config.path.get_jit_binary(),
+        extra_flags="",
     ):
         # This is about the main KeOps binary (dll) that will be used to JIT compile all formulas.
         # If the dll is not present, it compiles it from source, except if check_compile is False.

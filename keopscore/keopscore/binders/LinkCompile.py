@@ -9,6 +9,7 @@ cpp_flag += keopscore.config.cxx.get_linking_options()
 cpp_flag += keopscore.config.cuda.get_nvrtc_flags()
 cpp_flag += keopscore.config.cuda.get_include_options()
 
+
 class LinkCompile:
     """
     Base class for compiling the map_reduce schemes and providing the dll to KeOps bindings.

@@ -130,7 +130,9 @@ class PlatformConfig:
             return
 
         out = KeOps_OS_Run(f"brew --prefix", print_warning=False)
-        self._brew_prefix = out.stdout.decode("utf-8").strip()  if out.stderr != b"" else None
+        self._brew_prefix = (
+            out.stdout.decode("utf-8").strip() if out.stderr != b"" else None
+        )
 
     def get_brew_prefix(self):
         """Get Homebrew prefix path using KeOps_OS_Run"""

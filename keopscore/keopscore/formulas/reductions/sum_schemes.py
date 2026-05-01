@@ -91,11 +91,13 @@ class kahan_scheme(Sum_Scheme):
     def accumulate_result(self, acc, fout, j, hack=False):
         return self.red_formula.KahanScheme(acc, fout, self.tmp_acc)
 
+
 _SUM_SCHEME_CLASSES = {
     "direct_sum": direct_sum,
     "block_sum": block_sum,
     "kahan_scheme": kahan_scheme,
 }
+
 
 def make_sum_scheme(sum_scheme_string, red_formula, dtype, dimred=None):
     sum_scheme_class = _SUM_SCHEME_CLASSES.get(sum_scheme_string, None)

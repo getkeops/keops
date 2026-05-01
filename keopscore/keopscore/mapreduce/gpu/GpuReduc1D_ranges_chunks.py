@@ -196,7 +196,9 @@ class GpuReduc1D_ranges_chunks(MapReduce, Gpu_link_compile):
         self.chk = Chunk_Mode_Constants(self.red_formula)
         self.dimy = self.chk.dimy
         self.blocksize_chunks = min(
-            cuda.get_cuda_block_size(), 1024, 49152 // max(1, self.dimy * sizeof(self.dtype))
+            cuda.get_cuda_block_size(),
+            1024,
+            49152 // max(1, self.dimy * sizeof(self.dtype)),
         )
 
     def get_code(self):

@@ -39,6 +39,7 @@ if pykeopsconfig.cuda.get_use_cuda():
 
         compile_jit_binary()
 
+
 def clean_pykeops(recompile_jit_binaries=True):
     r"""
     This function cleans the KeOps cache and recompiles the JIT binaries if necessary.

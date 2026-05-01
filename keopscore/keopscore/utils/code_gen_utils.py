@@ -822,4 +822,3 @@ def varseq_to_array(vars, vars_ptr_name):
         string += f"""  {vars_ptr_name}[{i}] = {vars[i].id};
                    """
     return string
-

@@ -26,7 +26,9 @@ def pykeops_nvrtc_name(type="src"):
     extension = ".cpp" if type == "src" else sysconfig.get_config_var("EXT_SUFFIX")
     return os.path.join(
         (
-            os.path.join(os.path.dirname(os.path.realpath(__file__)), "common", "keops_io")
+            os.path.join(
+                os.path.dirname(os.path.realpath(__file__)), "common", "keops_io"
+            )
             if type == "src"
             else get_build_folder()
         ),

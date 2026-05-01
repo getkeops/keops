@@ -82,7 +82,7 @@ class NumpyUnitTestCase(unittest.TestCase):
 
         x = K_xx.solve(b, alpha=alpha, x0=self.f, eps=1e-12)
         self.assertTrue(np.allclose(self.f, x))
-        
+
         stream = io.StringIO()
         with redirect_stdout(stream):
             x = K_xx.solve(b, alpha=alpha, x0=self.f, eps=1e-12, verbose=True)
@@ -92,7 +92,6 @@ class NumpyUnitTestCase(unittest.TestCase):
         self.assertIn("'status': 'Converged'", output)
         self.assertIn("'niter': 0", output)
         self.assertIn("'x0_provided': True", output)
-
 
     ############################################################
     def test_cg_solver_verbose_prints_info(self):

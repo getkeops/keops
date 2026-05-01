@@ -150,7 +150,7 @@ class CudaConfig:
 
         result["library"] = _first_matching_file(
             _path_candidates(candidate_roots, self.library_suffixes),
-            result["lib_basename_candidate"]
+            result["lib_basename_candidate"],
         )
         if result["library"] is None:
             result["library"] = _find_library_by_names((result["name"],))
@@ -167,11 +167,7 @@ class CudaConfig:
             (result["header_basename"],),
         )
 
-        if (
-            result["header"] is None
-            and warn
-            and result["header_basename"] is not None
-        ):
+        if result["header"] is None and warn and result["header_basename"] is not None:
             KeOps_Warning(f"{result['name']} header files not found.")
 
         return result
@@ -199,18 +195,20 @@ class CudaConfig:
                 False,
                 "libcuda was detected, but driver API could not be initialized. Rebooting the system may help. Switching to CPU only.",
             )
-        
+
         # If we successfully loaded libcuda and initialized it, store the handle in the config for potential future use
         self._libcuda_info["ctype_handle"] = libcuda
 
         nGpus = ctypes.c_int()
-        if libcuda.cuDeviceGetCount(ctypes.byref(nGpus)) != self.CUDA_SUCCESS or nGpus.value == 0:
+        if (
+            libcuda.cuDeviceGetCount(ctypes.byref(nGpus)) != self.CUDA_SUCCESS
+            or nGpus.value == 0
+        ):
             return (
                 False,
                 "libcuda was detected and driver API was initialized, but no working GPU found. Switching to CPU only.",
             )
 
-        
         self._MaxThreadsPerBlock = [0] * nGpus.value
         self._SharedMemPerBlock = [0] * nGpus.value
 
@@ -225,9 +223,9 @@ class CudaConfig:
                     + err_msg
                     + " Switching to CPU only.",
                 )
-            
+
         self._n_gpus = nGpus.value
-        
+
         return True, ""
 
     def _find_and_load_libnvrtc(self):
@@ -247,10 +245,10 @@ class CudaConfig:
                 False,
                 f"Failed to load library '{os.path.basename(libnvrtc_path)}': {e}",
             )
-        
+
         # If we successfully loaded libnvrtc, store the handle in the config
         self._libnvrtc_info["ctype_handle"] = libnvrtc_handle
-        
+
         return True, ""
 
     def _find_and_load_cudart(self):
@@ -269,7 +267,7 @@ class CudaConfig:
                 False,
                 "libcudart not found. Make sure the CUDA toolkit is installed and accessible. Switching to CPU only.",
             )
-        
+
         try:
             libcudart_handle = ctypes.CDLL(libcudart_path)
         except OSError as e:
@@ -277,18 +275,21 @@ class CudaConfig:
                 False,
                 f"Failed to load '{os.path.basename(libcudart_path)}': {e}",
             )
-        
+
         cuda_version = ctypes.c_int()
-        if libcudart_handle.cudaRuntimeGetVersion(ctypes.byref(cuda_version)) != self.CUDA_SUCCESS:
+        if (
+            libcudart_handle.cudaRuntimeGetVersion(ctypes.byref(cuda_version))
+            != self.CUDA_SUCCESS
+        ):
             return (
                 False,
                 "libcudart was found and loaded, but failed to get CUDA runtime version. Switching to CPU only.",
             )
-        
+
         # If we successfully loaded libcudart, store the handle in the config
         self._cudart_info["ctype_handle"] = libcudart_handle
         self._cuda_version = int(cuda_version.value)
-        
+
         return True, ""
 
     def _cuda_libraries_available(self):
@@ -348,7 +349,7 @@ class CudaConfig:
         """Set specific GPUs from CUDA_VISIBLE_DEVICES."""
         if os.getenv("CUDA_VISIBLE_DEVICES"):
             self._specific_gpus = os.getenv("CUDA_VISIBLE_DEVICES").replace(",", "_")
-            
+
     def get_specific_gpus(self):
         """Get the specific GPUs."""
         return self._specific_gpus
@@ -361,7 +362,7 @@ class CudaConfig:
     def get_n_gpus(self):
         """Get the number of GPUs detected."""
         return self._n_gpus
-    
+
     def print_n_gpus(self):
         """Print the number of GPUs detected."""
         print(f"Number of GPUs Detected: {self.get_n_gpus()}")
@@ -482,10 +483,14 @@ class CudaConfig:
         return self._preprocessing_options
 
     def print_preprocessing_options(self):
-        print(f"GPU Preprocessing Options: {self.get_preprocessing_options() or not_found_str}")
+        print(
+            f"GPU Preprocessing Options: {self.get_preprocessing_options() or not_found_str}"
+        )
 
-    def set_include_options(self):        
-        self._include_options += "".join(f" -I{p}" for p in list(set(self.get_cuda_include_path())))
+    def set_include_options(self):
+        self._include_options += "".join(
+            f" -I{p}" for p in list(set(self.get_cuda_include_path()))
+        )
 
     def get_include_options(self):
         return self._include_options

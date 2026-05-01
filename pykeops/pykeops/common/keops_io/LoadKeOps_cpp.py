@@ -183,7 +183,7 @@ PYBIND11_MODULE(pykeops_cpp_{self.params.tag}, m) {{
 LoadKeOps_cpp = Cache_partial(
     LoadKeOps_cpp_class,
     use_cache_file=True,
-    save_folder=pykeopsconfig.path.get_build_folder()
+    save_folder=pykeopsconfig.path.get_build_folder(),
 )
 
 cpp_dtype = {

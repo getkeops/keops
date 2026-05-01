@@ -17,7 +17,7 @@ _exports = [
     GpuReduc1D_ranges,
     GpuReduc1D_ranges_chunks,
     GpuReduc1D_ranges_finalchunks,
-    GpuReduc2D
+    GpuReduc2D,
 ]
 
 __all__ = [cls.__name__ for cls in _exports]

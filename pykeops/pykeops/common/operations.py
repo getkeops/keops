@@ -174,7 +174,9 @@ def ConjugateGradientSolver(
 
         else:  # for loop exhausted
             # Return incomplete progress
-            KeOps_Warning("[KeOps CG]: Maximum iterations reached. Check convergence...")
+            KeOps_Warning(
+                "[KeOps CG]: Maximum iterations reached. Check convergence..."
+            )
             it = -maxiter - 1
 
     if verbose:
@@ -189,7 +191,7 @@ def ConjugateGradientSolver(
             "maxiter": maxiter,
             "x0_provided": x0 is not None,
         }
-        
+
         KeOps_Print(f"[KeOps CG]: {info}")
 
     return x

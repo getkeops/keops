@@ -121,7 +121,9 @@ class GpuReduc1D_finalchunks(MapReduce, Gpu_link_compile):
 
         self.dimy = max(dimfinalchunk, dimy)
         blocksize_chunks = min(
-            cuda.get_cuda_block_size(), 1024, 49152 // max(1, self.dimy * sizeof(self.dtype))
+            cuda.get_cuda_block_size(),
+            1024,
+            49152 // max(1, self.dimy * sizeof(self.dtype)),
         )
 
         if not isinstance(sum_scheme, block_sum):

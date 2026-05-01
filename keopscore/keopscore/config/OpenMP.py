@@ -9,7 +9,10 @@ from keopscore.utils.path_utils import (
     _ordered_search_roots,
     _path_candidates,
 )
-from keopscore.utils.system_utils import _find_library_by_names, get_include_file_abspath
+from keopscore.utils.system_utils import (
+    _find_library_by_names,
+    get_include_file_abspath,
+)
 
 
 class OpenMPConfig:
@@ -42,9 +45,9 @@ class OpenMPConfig:
     ]
 
     openmp_basename_candidate = (
-                        "libomp.dylib",
-                        "libgomp.dylib",
-                        "libomp.so",
+        "libomp.dylib",
+        "libgomp.dylib",
+        "libomp.so",
     )
 
     openmp_library_suffixes = (
@@ -63,7 +66,13 @@ class OpenMPConfig:
         self.platform = platform
         self.cxx_compiler = cxx_compiler
 
-        self.openmp_system_suffixes += [self.platform.get_brew_prefix(),] if self.platform.get_brew_prefix() else []
+        self.openmp_system_suffixes += (
+            [
+                self.platform.get_brew_prefix(),
+            ]
+            if self.platform.get_brew_prefix()
+            else []
+        )
         self.set_openmplib_path()
 
         self.set_compile_options()
@@ -109,7 +118,9 @@ class OpenMPConfig:
 
         # First try to find OpenMP library using standard names via ctypes.
         result["library"] = _find_library_by_names(("gomp", "omp"))
-        result["header"] = get_include_file_abspath(self._openmp_header_basename, self.cxx_compiler.get_cxx_compiler())
+        result["header"] = get_include_file_abspath(
+            self._openmp_header_basename, self.cxx_compiler.get_cxx_compiler()
+        )
 
         # If that fails, search for OpenMP headers and libraries in common locations.
         if not result["library"]:
@@ -231,14 +242,14 @@ class OpenMPConfig:
 
     # C++ Compiler Include Options
     def set_include_options(self):
-        self._include_options = f'-I{self.get_openmp_include_dir()}'
+        self._include_options = f"-I{self.get_openmp_include_dir()}"
 
     def get_include_options(self):
         return self._include_options
 
     # C++ linking Options
     def set_linking_options(self):
-        self._linking_options += f'-L{self.get_openmp_lib_dir()}'
+        self._linking_options += f"-L{self.get_openmp_lib_dir()}"
 
     def get_linking_options(self):
         return self._linking_options

@@ -9,6 +9,7 @@ dimfinalchunk = 64
 
 enable_chunk = True
 
+
 def get_enable_chunk():
     global enable_chunk
     return enable_chunk
@@ -32,7 +33,6 @@ def set_enable_finalchunk(val):
         enable_final_chunk = True
     elif val == 0:
         enable_final_chunk = False
-
 
 
 def get_dimfinalchunk():
