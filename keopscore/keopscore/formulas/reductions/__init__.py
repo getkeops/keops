@@ -14,7 +14,7 @@ from .Min_ArgMin_Reduction import Min_ArgMin_Reduction
 from .Min_Reduction import Min_Reduction
 from .Sum_Reduction import Sum_Reduction
 from .Zero_Reduction import Zero_Reduction
-from .sum_schemes import block_sum, kahan_scheme, direct_sum
+from .sum_schemes import block_sum, kahan_scheme, direct_sum, make_sum_scheme
 
 _exports = [
     Reduction,
@@ -33,7 +33,8 @@ _exports = [
     Zero_Reduction,
     block_sum,
     kahan_scheme,
-    direct_sum
+    direct_sum,
+    make_sum_scheme,
 ]
 
 

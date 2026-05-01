@@ -1,7 +1,7 @@
 from keopscore.binders.nvrtc.Gpu_link_compile import Gpu_link_compile
 from keopscore.config import cuda
 from keopscore.config.chunks import dimchunk
-from keopscore.formulas.reductions.sum_schemes import block_sum, kahan_scheme, direct_sum
+from keopscore.formulas.reductions import make_sum_scheme
 from keopscore.mapreduce.Chunk_Mode_Constants import Chunk_Mode_Constants
 from keopscore.mapreduce.MapReduce import MapReduce
 from keopscore.mapreduce.gpu.GpuAssignZero import GpuAssignZero
@@ -247,7 +247,9 @@ class GpuReduc1D_ranges_chunks(MapReduce, Gpu_link_compile):
         chk = self.chk
         param_loc = c_array(dtype, chk.dimp, "param_loc")
         acc = c_array(dtypeacc, chk.dimred, "acc")
-        sum_scheme = eval(self.sum_scheme_string)(red_formula, dtype, dimred=chk.dimred)
+        sum_scheme = make_sum_scheme(
+            self.sum_scheme_string, red_formula, dtype, dimred=chk.dimred
+        )
         xi = c_array(dtype, chk.dimx, "xi")
         fout_chunk = c_array(
             dtype, self.blocksize_chunks * chk.dimout_chunk, "fout_chunk"
