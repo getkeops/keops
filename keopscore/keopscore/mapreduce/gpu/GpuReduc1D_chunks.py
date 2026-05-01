@@ -13,6 +13,8 @@ from keopscore.utils.code_gen_utils import (
     table,
     table4,
     use_pragma_unroll,
+    c_variable,
+    c_array,
 )
 
 

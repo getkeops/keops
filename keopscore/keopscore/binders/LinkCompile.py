@@ -33,7 +33,7 @@ class LinkCompile:
             self.use_half,
             self.use_fast_math,
             self.device_id,
-            cpp_flag, # TODO: check that get_envs is sufficient...
+            cpp_flag,
         )
 
         # info_file is the name of the file that will contain some meta-information required by the bindings, e.g. 7b9a611f7e.nfo

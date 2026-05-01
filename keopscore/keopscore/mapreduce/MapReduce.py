@@ -1,4 +1,4 @@
-from keopscore.formulas.reductions import *
+from keopscore.formulas.reductions import block_sum, kahan_scheme, direct_sum
 from keopscore.formulas.GetReduction import GetReduction
 from keopscore.utils.code_gen_utils import (
     Var_loader,

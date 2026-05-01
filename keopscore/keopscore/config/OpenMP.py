@@ -21,9 +21,9 @@ class OpenMPConfig:
     _openmp_lib_name = None
     _openmp_lib_include_dir = None
 
-    _openmp_compile_options = ""
-    _openmp_include_options = ""
-    _openmp_linking_options = ""
+    _compile_options = ""
+    _include_options = ""
+    _linking_options = ""
 
     _openmp_header_basename = "omp.h"
 
@@ -66,16 +66,11 @@ class OpenMPConfig:
         self.openmp_system_suffixes += [self.platform.get_brew_prefix(),] if self.platform.get_brew_prefix() else []
         self.set_openmplib_path()
 
-        self.set_openmp_compile_options()
-        self.set_openmp_include_options()
-        self.set_openmp_linking_options()
+        self.set_compile_options()
+        self.set_include_options()
+        self.set_linking_options()
 
         self.set_use_OpenMP()
-
-        if self.get_use_OpenMP():
-            self.cxx_compiler.add_to_compile_option(self.get_openmp_compile_options())
-            self.cxx_compiler.add_to_include_options(self.get_openmp_include_options())
-            self.cxx_compiler.add_to_linking_options(self.get_openmp_linking_options())
 
     # OpenMP library path
     def set_openmplib_path(self):
@@ -206,11 +201,11 @@ class OpenMPConfig:
         compile_command = [
             self.cxx_compiler.get_cxx_compiler(),
             test_file,
-            self.get_openmp_include_options(),
-            self.get_openmp_compile_options(),
+            self.get_include_options(),
+            self.get_compile_options(),
         ]
-        if self.get_openmp_linking_options():
-            compile_command.append(self.get_openmp_linking_options())
+        if self.get_linking_options():
+            compile_command.append(self.get_linking_options())
         compile_command.extend(["-o", f"{test_file}.out"])
 
         try:
@@ -224,29 +219,29 @@ class OpenMPConfig:
             return False
 
     # C++ Compiler Options
-    def set_openmp_compile_options(self):
+    def set_compile_options(self):
         # Add special fix for openMP prgama and Apple Clang. Order matters.
         if self.cxx_compiler.get_use_Apple_clang() and self.platform.get_brew_prefix():
-            self._openmp_compile_options += "-Xpreprocessor "
+            self._compile_options += "-Xpreprocessor "
 
-        self._openmp_compile_options += "-fopenmp"
+        self._compile_options += "-fopenmp"
 
-    def get_openmp_compile_options(self):
-        return self._openmp_compile_options
+    def get_compile_options(self):
+        return self._compile_options
 
     # C++ Compiler Include Options
-    def set_openmp_include_options(self):
-        self._openmp_include_options = f'-I{self.get_openmp_include_dir()}'
+    def set_include_options(self):
+        self._include_options = f'-I{self.get_openmp_include_dir()}'
 
-    def get_openmp_include_options(self):
-        return self._openmp_include_options
+    def get_include_options(self):
+        return self._include_options
 
     # C++ linking Options
-    def set_openmp_linking_options(self):
-        self._openmp_linking_options += f'-L{self.get_openmp_lib_dir()}'
+    def set_linking_options(self):
+        self._linking_options += f'-L{self.get_openmp_lib_dir()}'
 
-    def get_openmp_linking_options(self):
-        return self._openmp_linking_options
+    def get_linking_options(self):
+        return self._linking_options
 
     # OpenMP configuration printing
     def print_all(self):

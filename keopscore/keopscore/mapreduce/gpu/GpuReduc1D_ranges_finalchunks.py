@@ -2,11 +2,7 @@ from keopscore.binders.nvrtc.Gpu_link_compile import Gpu_link_compile
 from keopscore.config import cuda
 from keopscore.config.chunks import dimfinalchunk
 from keopscore.formulas.reductions.Sum_Reduction import Sum_Reduction
-from keopscore.formulas.reductions.sum_schemes import (
-    block_sum,
-    kahan_scheme,
-    direct_sum,
-)
+from keopscore.formulas.reductions.sum_schemes import block_sum
 from keopscore.mapreduce.MapReduce import MapReduce
 from keopscore.mapreduce.gpu.GpuAssignZero import GpuAssignZero
 from keopscore.utils.code_gen_utils import (
@@ -17,6 +13,9 @@ from keopscore.utils.code_gen_utils import (
     pointer,
     Var_loader,
     use_pragma_unroll,
+    c_array,
+    c_zero_float,
+    c_variable,
 )
 from keopscore.utils.messages import KeOps_Error
 

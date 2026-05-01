@@ -25,7 +25,7 @@ class LoadKeOps_cpp_class(LoadKeOps):
             f = open(srcname, "w")
             f.write(self.get_pybind11_code())
             f.close()
-            compile_command = f"{pykeopsconfig.cxx.get_cxx_compiler()} {pykeopsconfig.cxx.get_compile_options()} {pykeopsconfig.cxx.get_include_options()} {pykeopsconfig.path.get_include_options()} {pykeopsconfig.python_includes} {srcname} {pykeopsconfig.cxx.get_linking_options()} -o {dllname}"
+            compile_command = f"{pykeopsconfig.cxx.get_cxx_compiler()} {pykeopsconfig.cxx.get_compile_options()} {pykeopsconfig.openmp.get_compile_options()} {pykeopsconfig.openmp.get_include_options()} {pykeopsconfig.path.get_include_options()} {pykeopsconfig.python_includes} {srcname} {pykeopsconfig.cxx.get_linking_options()} {pykeopsconfig.openmp.get_linking_options()} -o {dllname}"
             pyKeOps_Message(
                 "Compiling pykeops cpp " + self.params.tag + " module ... ",
                 flush=True,
