@@ -8,7 +8,7 @@ from torch.autograd import grad
 
 import keopscore
 import keopscore.formulas
-from keopscore.utils.misc_utils import KeOps_Error
+from keopscore.utils.messages import KeOps_Error
 from pykeops.torch import Genred
 
 # fix seed for reproducibility

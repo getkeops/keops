@@ -1,6 +1,6 @@
 from keopscore.utils.code_gen_utils import VectApply
 from keopscore.formulas.Operation import Operation
-from keopscore.utils.misc_utils import KeOps_Error
+from keopscore.utils.messages import KeOps_Error
 
 
 class VectorizedScalarOp(Operation):

@@ -1,9 +1,10 @@
-from keopscore import cuda_block_size
-from keopscore.config.chunks import dimchunk
 from keopscore.binders.nvrtc.Gpu_link_compile import Gpu_link_compile
+from keopscore.config import cuda
+from keopscore.config.chunks import dimchunk
 from keopscore.formulas.reductions.sum_schemes import *
-from keopscore.mapreduce.gpu.GpuAssignZero import GpuAssignZero
+from keopscore.mapreduce.Chunk_Mode_Constants import Chunk_Mode_Constants
 from keopscore.mapreduce.MapReduce import MapReduce
+from keopscore.mapreduce.gpu.GpuAssignZero import GpuAssignZero
 from keopscore.utils.code_gen_utils import (
     load_vars,
     load_vars_chunks,
@@ -15,7 +16,6 @@ from keopscore.utils.code_gen_utils import (
     Var_loader,
     use_pragma_unroll,
 )
-from keopscore.mapreduce.Chunk_Mode_Constants import Chunk_Mode_Constants
 
 
 def do_chunk_sub_ranges(
@@ -194,7 +194,7 @@ class GpuReduc1D_ranges_chunks(MapReduce, Gpu_link_compile):
         self.chk = Chunk_Mode_Constants(self.red_formula)
         self.dimy = self.chk.dimy
         self.blocksize_chunks = min(
-            cuda_block_size, 1024, 49152 // max(1, self.dimy * sizeof(self.dtype))
+            cuda.get_cuda_block_size(), 1024, 49152 // max(1, self.dimy * sizeof(self.dtype))
         )
 
     def get_code(self):

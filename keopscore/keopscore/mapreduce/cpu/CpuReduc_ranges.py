@@ -1,4 +1,4 @@
-import keopscore
+import keopscore.config
 from keopscore.binders.cpp.Cpu_link_compile import Cpu_link_compile
 
 from keopscore.mapreduce.cpu.CpuAssignZero import CpuAssignZero
@@ -8,8 +8,6 @@ from keopscore.utils.code_gen_utils import (
     c_array,
     c_include,
 )
-import keopscore
-from keopscore.config import *
 
 
 class CpuReduc_ranges(MapReduce, Cpu_link_compile):
@@ -65,9 +63,9 @@ class CpuReduc_ranges(MapReduce, Cpu_link_compile):
         jmstarty = c_variable("int", "j-start_y")
 
         headers = ["cmath", "stdlib.h"]
-        if keopscore.openmp_config.get_use_OpenMP:
+        if keopscore.config.openmp.get_use_OpenMP():
             headers.append("omp.h")
-        if keopscore.debug_ops_at_exec:
+        if keopscore.config.debug.get_debug_ops_at_exec():
             headers.append("iostream")
         self.headers += c_include(*headers)
 

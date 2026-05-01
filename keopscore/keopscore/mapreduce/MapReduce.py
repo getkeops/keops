@@ -1,6 +1,13 @@
 from keopscore.formulas.reductions import *
 from keopscore.formulas.GetReduction import GetReduction
-from keopscore.utils.code_gen_utils import Var_loader, new_c_varname, pointer, c_include
+from keopscore.utils.code_gen_utils import (
+    Var_loader,
+    new_c_varname,
+    pointer,
+    c_include,
+    c_variable,
+    c_array,
+)
 
 
 class MapReduce:

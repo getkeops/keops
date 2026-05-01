@@ -10,7 +10,7 @@ from keopscore.utils.code_gen_utils import (
     c_for_loop,
 )
 from keopscore.utils.math_functions import keops_exp
-from keopscore.utils.misc_utils import KeOps_Error
+from keopscore.utils.messages import KeOps_Error
 
 
 class Max_SumShiftExpWeight_Reduction(Reduction):
@@ -120,4 +120,5 @@ class Max_SumShiftExpWeight_Reduction(Reduction):
         )
 
 
-Max_SumShiftExp_Reduction = Max_SumShiftExpWeight_Reduction
+def Max_SumShiftExp_Reduction(*args, **kwargs):
+    return Max_SumShiftExpWeight_Reduction(*args, **kwargs)

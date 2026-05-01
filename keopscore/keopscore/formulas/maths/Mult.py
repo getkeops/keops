@@ -8,7 +8,7 @@ from keopscore.utils.math_functions import keops_mul
 from keopscore.formulas.variables.IntCst import IntCst_Impl, IntCst
 from keopscore.formulas.variables.RatCst import RatCst_Impl, RatCst
 from keopscore.formulas.maths.SumT import SumT, SumT_Impl
-from keopscore.utils.misc_utils import KeOps_Error
+from keopscore.utils.messages import KeOps_Error
 
 ##########################
 ######    Mult       #####

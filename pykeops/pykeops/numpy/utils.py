@@ -1,5 +1,5 @@
 import numpy as np
-import pykeops.config
+import pykeops.config as pykeopsconfig
 from pykeops.numpy import Genred, KernelSolve
 from pykeops.numpy.cluster import swap_axes as np_swap_axes
 
@@ -236,7 +236,7 @@ def WarmUpGpu():
     from pykeops.common.utils import pyKeOps_Message
 
     pyKeOps_Message("Warming up the Gpu (numpy bindings) !!!")
-    if pykeops.config.gpu_available:
+    if pykeopsconfig.gpu_available:
         formula = "Exp(-oos2*SqDist(x,y))*b"
         aliases = [
             "x = Vi(1)",  # First arg   : i-variable, of size 1

@@ -3,7 +3,7 @@ from keopscore.utils.code_gen_utils import (
     new_c_varname,
     c_variable,
 )
-from keopscore.utils.misc_utils import KeOps_Error
+from keopscore.utils.messages import KeOps_Error
 
 import keopscore
 from keopscore.config import *

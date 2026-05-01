@@ -1,10 +1,8 @@
-import keopscore
+import keopscore.config
 from keopscore.binders.cpp.Cpu_link_compile import Cpu_link_compile
 from keopscore.mapreduce.cpu.CpuAssignZero import CpuAssignZero
 from keopscore.mapreduce.MapReduce import MapReduce
 from keopscore.utils.code_gen_utils import c_include
-import keopscore
-from keopscore.config import *
 
 
 class CpuReduc(MapReduce, Cpu_link_compile):
@@ -34,9 +32,9 @@ class CpuReduc(MapReduce, Cpu_link_compile):
         sum_scheme = self.sum_scheme
 
         headers = ["cmath", "stdlib.h"]
-        if keopscore.openmp_config.get_use_OpenMP():
+        if keopscore.config.openmp.get_use_OpenMP():
             headers.append("omp.h")
-        if keopscore.debug_ops_at_exec:
+        if keopscore.config.debug.get_debug_ops_at_exec():
             headers.append("iostream")
         self.headers += c_include(*headers)
 

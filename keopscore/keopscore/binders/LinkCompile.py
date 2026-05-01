@@ -1,11 +1,13 @@
 import os
-from keopscore.config import config
+
+import keopscore.config
 from keopscore.utils.code_gen_utils import get_hash_name
-from keopscore.utils.misc_utils import KeOps_Error, KeOps_Message
+from keopscore.utils.messages import KeOps_Error, KeOps_Message
 
-cpp_flags = config.get_cpp_flags()
-get_build_folder = config.get_build_folder
-
+cpp_flag = keopscore.config.cxx.get_compile_options()
+cpp_flag += keopscore.config.cxx.get_linking_options()
+cpp_flag += keopscore.config.cuda.get_nvrtc_flags()
+cpp_flag += keopscore.config.cuda.get_include_options()
 
 class LinkCompile:
     """
@@ -31,17 +33,17 @@ class LinkCompile:
             self.use_half,
             self.use_fast_math,
             self.device_id,
-            cpp_flags,
+            cpp_flag, # TODO: check that get_envs is sufficient...
         )
 
         # info_file is the name of the file that will contain some meta-information required by the bindings, e.g. 7b9a611f7e.nfo
         self.info_file = os.path.join(
-            get_build_folder(), self.gencode_filename + ".nfo"
+            keopscore.config.path.get_build_folder(), self.gencode_filename + ".nfo"
         )
 
         # gencode_file is the name of the source file to be created and then compiled, e.g. 7b9a611f7e.cpp or 7b9a611f7e.cu
         self.gencode_file = os.path.join(
-            get_build_folder(),
+            keopscore.config.path.get_build_folder(),
             self.gencode_filename + "." + self.source_code_extension,
         )
 

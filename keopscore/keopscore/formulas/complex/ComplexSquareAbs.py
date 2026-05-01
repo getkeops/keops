@@ -3,7 +3,7 @@ from keopscore.utils.code_gen_utils import c_for_loop
 from keopscore.formulas.complex.ComplexReal import ComplexReal
 from keopscore.formulas.complex.ComplexMult import ComplexMult
 from keopscore.formulas.complex.Conj import Conj
-from keopscore.utils.misc_utils import KeOps_Error
+from keopscore.utils.messages import KeOps_Error
 
 # /////////////////////////////////////////////////////////////////////////
 # ////      ComplexSquareAbs                           ////

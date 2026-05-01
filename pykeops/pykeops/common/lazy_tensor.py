@@ -5,7 +5,7 @@ import math
 
 import numpy as np
 
-from keopscore.utils.misc_utils import KeOps_Error
+from keopscore.utils.messages import KeOps_Error
 from pykeops.common.utils import check_broadcasting
 
 

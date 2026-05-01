@@ -1,6 +1,6 @@
 import pykeops.config as pykeopsconfig
 
-if pykeopsconfig.pykeops_cuda.get_use_cuda():
+if pykeopsconfig.cuda.get_use_cuda():
     from . import LoadKeOps_nvrtc, LoadKeOps_cpp
 
     keops_binder = {

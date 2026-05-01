@@ -12,7 +12,7 @@ from keopscore.utils.code_gen_utils import (
     use_pragma_unroll,
     c_zero_float,
 )
-from keopscore.utils.misc_utils import KeOps_Error
+from keopscore.utils.messages import KeOps_Error
 
 
 class GpuReduc2D(MapReduce, Gpu_link_compile):

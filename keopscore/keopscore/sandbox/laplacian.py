@@ -3,8 +3,8 @@ import torch
 from time import time
 from keopscore.formulas import *
 
-# import keopscore
-# keopscore.debug_ops = True
+import keopscore
+keopscore.config.debug.set_debug_ops(True)
 
 
 def GaussLapKernel(sigma, D):

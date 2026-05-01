@@ -5,7 +5,7 @@ from keopscore.utils.code_gen_utils import (
     VectApply,
 )
 from keopscore.utils.math_functions import keops_fma
-from keopscore.utils.misc_utils import KeOps_Error
+from keopscore.utils.messages import KeOps_Error
 
 ##########################
 #####    Scalprod     ####

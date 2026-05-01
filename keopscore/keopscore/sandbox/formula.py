@@ -1,10 +1,9 @@
 # testing some formulas with keopscore
 
+import keopscore.config
 from keopscore.formulas import *
 
-import keopscore
-
-keopscore.auto_factorize = True
+keopscore.config.auto_factorize = True
 
 print("********************************")
 print("test 1")

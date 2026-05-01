@@ -1,4 +1,4 @@
-from keopscore.utils.misc_utils import KeOps_Print
+from keopscore.utils.messages import KeOps_Print
 
 
 class Tree:

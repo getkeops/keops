@@ -1,6 +1,6 @@
 from keopscore.formulas.Operation import Operation
 from keopscore.utils.code_gen_utils import c_zero_float, VectCopy
-from keopscore.utils.misc_utils import KeOps_Error
+from keopscore.utils.messages import KeOps_Error
 
 # //////////////////////////////////////////////////////////////
 # ////     VECTOR "INJECTION" : ExtractT<F,START,DIM>       ////

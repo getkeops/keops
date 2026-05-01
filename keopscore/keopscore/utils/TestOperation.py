@@ -5,7 +5,7 @@ from torch.autograd import grad
 from pykeops.torch import Genred
 from keopscore.formulas import *
 import types
-from keopscore.utils.misc_utils import KeOps_Print
+from keopscore.utils.messages import KeOps_Print
 
 
 def TestOperation(op_str, tol=1e-4, dtype="float32", test_grad=True):

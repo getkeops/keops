@@ -1,10 +1,14 @@
-from keopscore import cuda_block_size
-from keopscore.config.chunks import dimfinalchunk
 from keopscore.binders.nvrtc.Gpu_link_compile import Gpu_link_compile
+from keopscore.config import cuda
+from keopscore.config.chunks import dimfinalchunk
 from keopscore.formulas.reductions.Sum_Reduction import Sum_Reduction
-from keopscore.formulas.reductions.sum_schemes import *
-from keopscore.mapreduce.gpu.GpuAssignZero import GpuAssignZero
+from keopscore.formulas.reductions.sum_schemes import (
+    block_sum,
+    kahan_scheme,
+    direct_sum,
+)
 from keopscore.mapreduce.MapReduce import MapReduce
+from keopscore.mapreduce.gpu.GpuAssignZero import GpuAssignZero
 from keopscore.utils.code_gen_utils import (
     load_vars,
     load_vars_chunks,
@@ -14,7 +18,7 @@ from keopscore.utils.code_gen_utils import (
     Var_loader,
     use_pragma_unroll,
 )
-from keopscore.utils.misc_utils import KeOps_Error
+from keopscore.utils.messages import KeOps_Error
 
 
 def do_finalchunk_sub_ranges(
@@ -141,7 +145,7 @@ class GpuReduc1D_ranges_finalchunks(MapReduce, Gpu_link_compile):
 
         self.dimy = max(dimfinalchunk, dimy)
         blocksize_chunks = min(
-            cuda_block_size, 1024, 49152 // max(1, self.dimy * sizeof(self.dtype))
+            cuda.get_cuda_block_size(), 1024, 49152 // max(1, self.dimy * sizeof(self.dtype))
         )
 
         if not isinstance(sum_scheme, block_sum):

@@ -5,7 +5,7 @@ from keopscore.formulas.complex.Real2Complex import Real2Complex
 from keopscore.formulas.complex.Imag2Complex import Imag2Complex
 from keopscore.formulas.maths.Cos import Cos
 from keopscore.formulas.maths.Sin import Sin
-from keopscore.utils.misc_utils import KeOps_Error
+from keopscore.utils.messages import KeOps_Error
 
 # /////////////////////////////////////////////////////////////////////////
 # ////      ComplexExp1j                           ////

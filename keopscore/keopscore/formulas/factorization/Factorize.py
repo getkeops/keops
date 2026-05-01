@@ -4,7 +4,7 @@ from keopscore.utils.code_gen_utils import new_c_varname, c_array
 from keopscore.formulas.Operation import Operation
 import keopscore
 from keopscore.utils.code_gen_utils import GetInds
-from keopscore.utils.misc_utils import KeOps_Print
+from keopscore.utils.messages import KeOps_Print
 
 
 class Factorize_Impl(Operation):
@@ -32,14 +32,14 @@ class Factorize_Impl(Operation):
         from keopscore.formulas.variables.Var import Var
 
         string = f"\n{{\n// Starting code block for {self.__repr__()}.\n\n"
-        if keopscore.debug_ops:
+        if keopscore.config.debug.get_debug_ops():
             KeOps_Print(f"Building code block for {self.__repr__()}")
             KeOps_Print("out=", out)
             KeOps_Print("dim of out : ", out.dim)
             KeOps_Print("table=", table)
             for v in table:
                 KeOps_Print(f"dim of {v} : ", v.dim)
-        if keopscore.debug_ops_at_exec:
+        if keopscore.config.debug.get_debug_ops_at_exec():
             string += f'printf("\\n\\nComputing {self.__repr__()} :\\n");\n'
 
         f, g = self.children
@@ -68,7 +68,7 @@ class Factorize_Impl(Operation):
         # Evaluation of f
         string += newf(out, table)
 
-        if keopscore.debug_ops:
+        if keopscore.config.debug.get_debug_ops():
             KeOps_Print(f"Finished building code block for {self.__repr__()}")
 
         string += f"\n\n// Finished code block for {self.__repr__()}.\n}}\n\n"

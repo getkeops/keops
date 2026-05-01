@@ -6,7 +6,7 @@ from keopscore.formulas.maths.Square import Square
 from keopscore.formulas.variables.Zero import Zero
 from keopscore.formulas.variables.IntCst import IntCst, IntCst_Impl
 from keopscore.formulas.variables.RatCst import RatCst, RatCst_Impl
-from keopscore.utils.misc_utils import KeOps_Error
+from keopscore.utils.messages import KeOps_Error
 
 ##########################
 ######    Divide     #####

@@ -1,5 +1,4 @@
-from keopscore.utils.gpu_utils import get_gpu_props
-
+import pykeops.config  as pykeopsconfig
 
 def get_gpu_number():
-    return get_gpu_props()[0]
+    return pykeopsconfig.cuda.get_n_gpus()

@@ -3,13 +3,11 @@ import sysconfig
 
 import pykeops.config as pykeopsconfig
 
-get_build_folder = pykeopsconfig.pykeops_base.get_build_folder
-
 from keopscore.utils.Cache import Cache_partial
+from keopscore.utils.system_utils import KeOps_OS_Run
+
 from pykeops.common.keops_io.LoadKeOps import LoadKeOps
 from pykeops.common.utils import pyKeOps_Message
-from keopscore.utils.misc_utils import KeOps_OS_Run
-from pykeops.config import pykeops_cpp_name, python_includes
 
 
 class LoadKeOps_cpp_class(LoadKeOps):
@@ -17,9 +15,9 @@ class LoadKeOps_cpp_class(LoadKeOps):
         super().__init__(*args, fast_init=fast_init)
 
     def init_phase1(self):
-        srcname = pykeops_cpp_name(tag=self.params.tag, extension=".cpp")
+        srcname = pykeopsconfig.pykeops_cpp_name(tag=self.params.tag, extension=".cpp")
 
-        dllname = pykeops_cpp_name(
+        dllname = pykeopsconfig.pykeops_cpp_name(
             tag=self.params.tag, extension=sysconfig.get_config_var("EXT_SUFFIX")
         )
 
@@ -27,7 +25,7 @@ class LoadKeOps_cpp_class(LoadKeOps):
             f = open(srcname, "w")
             f.write(self.get_pybind11_code())
             f.close()
-            compile_command = f"{pykeopsconfig.pykeops_base.get_cxx_compiler()} {pykeopsconfig.pykeops_base.get_cpp_flags()} {python_includes} {srcname} -o {dllname}"
+            compile_command = f"{pykeopsconfig.cxx.get_cxx_compiler()} {pykeopsconfig.cxx.get_compile_options()} {pykeopsconfig.cxx.get_include_options()} {pykeopsconfig.path.get_include_options()} {pykeopsconfig.python_includes} {srcname} {pykeopsconfig.cxx.get_linking_options()} -o {dllname}"
             pyKeOps_Message(
                 "Compiling pykeops cpp " + self.params.tag + " module ... ",
                 flush=True,
@@ -40,7 +38,7 @@ class LoadKeOps_cpp_class(LoadKeOps):
         import importlib
 
         mylib = importlib.import_module(
-            os.path.basename(pykeops_cpp_name(tag=self.params.tag))
+            os.path.basename(pykeopsconfig.pykeops_cpp_name(tag=self.params.tag))
         )
 
         self.launch_keops_cpu = mylib.launch_pykeops_cpu
@@ -183,7 +181,9 @@ PYBIND11_MODULE(pykeops_cpp_{self.params.tag}, m) {{
 
 
 LoadKeOps_cpp = Cache_partial(
-    LoadKeOps_cpp_class, use_cache_file=True, save_folder=get_build_folder()
+    LoadKeOps_cpp_class,
+    use_cache_file=True,
+    save_folder=pykeopsconfig.path.get_build_folder()
 )
 
 cpp_dtype = {

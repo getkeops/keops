@@ -122,7 +122,7 @@ def code_softdtw(dtype, out, inputs, n, m, gamma, mode="x,y"):
 ####################################################################
 
 from keopscore.formulas.Operation import Operation
-from keopscore.utils.misc_utils import KeOps_Error
+from keopscore.utils.messages import KeOps_Error
 from keopscore.utils.code_gen_utils import (
     c_variable,
     pointer,
@@ -166,7 +166,7 @@ builtins.SoftDTW_L2 = SoftDTW_L2
 
 from keopscore.formulas.Operation import Operation
 from keopscore.formulas.variables.Zero import Zero
-from keopscore.utils.misc_utils import KeOps_Error
+from keopscore.utils.messages import KeOps_Error
 from keopscore.utils.code_gen_utils import (
     c_variable,
     pointer,

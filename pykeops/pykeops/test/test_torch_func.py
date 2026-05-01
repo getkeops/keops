@@ -1,11 +1,10 @@
+import keopscore
 import torch
 from pykeops.torch import LazyTensor
 
-import keopscore
-
 torch.manual_seed(0)
 
-keopscore.auto_factorize = False
+keopscore.config.auto_factorize = False
 
 B1, B2, M, N, D = 5, 4, 10, 20, 2
 

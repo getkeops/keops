@@ -52,11 +52,8 @@ It can be used as a Python function or as a standalone Python script (in which c
 import inspect
 import sys
 
-import keopscore
-from keopscore.config import *
-
+import keopscore.config
 import keopscore.mapreduce
-from keopscore import cuda_block_size
 from keopscore.config.chunks import (
     get_enable_chunk,
     set_enable_chunk,
@@ -69,7 +66,7 @@ from keopscore.formulas import Zero_Reduction, Sum_Reduction
 from keopscore.formulas.GetReduction import GetReduction
 from keopscore.formulas.variables.Zero import Zero
 from keopscore.utils.Cache import Cache
-from keopscore.utils.misc_utils import KeOps_Error, KeOps_Print
+from keopscore.utils.messages import KeOps_Error, KeOps_Print
 
 # Get every classes in mapreduce
 map_reduce = dict(inspect.getmembers(keopscore.mapreduce, inspect.isclass))
@@ -87,7 +84,7 @@ def get_keops_dll_impl(
     # detecting the need for special chunked computation modes :
     use_chunk_mode = 0
     if "Gpu" in map_reduce_id:
-        if not cuda_config.get_use_cuda():
+        if not keopscore.config.cuda.get_use_cuda():
             KeOps_Error(
                 "You selected a Gpu reduce scheme but KeOps is in Cpu only mode."
             )
@@ -115,7 +112,7 @@ def get_keops_dll_impl(
 
     rf = map_reduce_obj.red_formula
 
-    if keopscore.debug_ops:
+    if  keopscore.config.debug.get_debug_ops():
         KeOps_Print("In get_keops_dll, formula is :", rf)
         KeOps_Print("formula.__repr__() is : ", rf.__repr__())
         rf.make_dot()
@@ -144,7 +141,7 @@ def get_keops_dll_impl(
         tagZero,
         res["use_half"],
         res["use_fast_math"],
-        cuda_block_size,
+        keopscore.config.cuda.get_cuda_block_size(),
         use_chunk_mode,
         tag1D2D,
         res["dimred"],
@@ -162,7 +159,7 @@ def get_keops_dll_impl(
 get_keops_dll = Cache(
     get_keops_dll_impl,
     use_cache_file=True,
-    save_folder=config.get_build_folder(),
+    save_folder=keopscore.config.path.get_build_folder(),
 )
 
 

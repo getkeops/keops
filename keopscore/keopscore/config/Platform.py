@@ -2,13 +2,15 @@ import os
 import platform
 import sys
 
-from keopscore.config._shared import print_envs
+from ._shared import print_envs
+from keopscore.utils.system_utils import KeOps_OS_Run
 
 
-class Platform:
+class PlatformConfig:
     """
     Class for detecting the operating system, Python version, and environment type.
     """
+
     _os = None
     _platform = None
     _machine = None
@@ -16,14 +18,16 @@ class Platform:
     _python_version = None
     _python_executable = None
     _env_type = None
+    _brew_prefix = None
+
     platform_envs = [
-            "PYTHONPATH",
-            "PATH",
-            "VIRTUAL_ENV",
-            "CONDA_DEFAULT_ENV",
-            "CONDA_PREFIX",
-            ]
-    
+        "PYTHONPATH",
+        "PATH",
+        "VIRTUAL_ENV",
+        "CONDA_DEFAULT_ENV",
+        "CONDA_PREFIX",
+    ]
+
     def __init__(self):
         self.set_os()
         self.set_platform()
@@ -56,33 +60,33 @@ class Platform:
                     return f"{platform.system()} {name} {version}"
             except FileNotFoundError:
                 return "Linux (distribution info not found)"
-            
+
         return platform.system() + " " + platform.version()
 
     # Platform detection (Darwin, Windows, Linux, etc.)
     def set_platform(self):
         self._platform = platform.system()
-    
+
     def get_platform(self):
         return self._platform
 
     # Machine architecture detection (x86_64, arm64, etc.)
     def set_machine(self):
         self._machine = platform.machine()
-    
+
     def get_machine(self):
         return self._machine
-    
+
     def print_machine(self):
         print(f"Machine Architecture: {self.get_machine()}")
 
     # uname detection
     def set_uname(self):
         self._uname = platform.uname()
-    
+
     def get_uname(self):
         return self._uname
-    
+
     # Python Version Detection
     def set_python_version(self):
         """Set the Python version."""
@@ -98,13 +102,13 @@ class Platform:
     def set_python_executable(self):
         """Set the Python executable path."""
         self._python_executable = sys.executable
-    
+
     def get_python_executable(self):
         return self._python_executable
-    
+
     def print_python_executable(self):
         print(f"Python Executable: {self.get_python_executable()}")
-    
+
     # Environment Type Detection
     def set_env_type(self):
         """Set the environment type (conda, virtualenv, or system)."""
@@ -115,9 +119,22 @@ class Platform:
 
     def print_env_type(self):
         print(f"Environment Type: {self.get_env_type()} {sys.prefix}", end="")
-        if self.get_env_type() != 'system':
-            print(f' (base at {sys.base_prefix})', end="")
+        if self.get_env_type() != "system":
+            print(f" (base at {sys.base_prefix})", end="")
         print()
+
+    # Brew package system
+    def set_brew_prefix(self):
+        """Get Homebrew prefix path using KeOps_OS_Run"""
+        if self.get_platform() != "Darwin":
+            return
+
+        out = KeOps_OS_Run(f"brew --prefix", print_warning=False)
+        self._brew_prefix = out.stdout.decode("utf-8").strip()  if out.stderr != b"" else None
+
+    def get_brew_prefix(self):
+        """Get Homebrew prefix path using KeOps_OS_Run"""
+        return self._brew_prefix
 
     @staticmethod
     def detect_env_type():
@@ -129,9 +146,9 @@ class Platform:
         ):
             return "virtualenv"
         return "system"
-    
+
     # Comprehensive Platform Information
-    def print_platform(self):
+    def print_all(self):
         """
         Print all platform-related information.
         """
@@ -147,8 +164,8 @@ class Platform:
 
         # Print relevant environment variables.
         print_envs(self.platform_envs)
-        
+
 
 if __name__ == "__main__":
-    platform_info = Platform()
-    platform_info.print_platform()
+    platform_info = PlatformConfig()
+    platform_info.print_all()
