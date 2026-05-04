@@ -100,7 +100,7 @@ class Gpu_link_compile(LinkCompile):
             else '\\"compute\\"'
         )
         target_type_define = f"-DnvrtcGetTARGET={nvrtcGetTARGET} -DnvrtcGetTARGETSize={nvrtcGetTARGETSize} -DARCHTAG={arch_tag}"
-        return f"{keopscore.config.cxx.get_cxx_compiler()} {keopscore.config.cuda.get_preprocessing_options()}  {target_type_define} {keopscore.config.cxx.get_compile_options()} {keopscore.config.cuda.get_nvrtc_flags()} {keopscore.config.cuda.get_include_options()} {keopscore.config.path.get_include_options()} {extra_flags} {sourcename} {keopscore.config.cxx.get_linking_options()} -o {dllname}"
+        return f"{keopscore.config.cxx.get_cxx_compiler()} {keopscore.config.cuda.get_preprocessing_options()}  {target_type_define} {keopscore.config.cxx.get_compile_options()} {keopscore.config.cuda.get_include_options()} {keopscore.config.path.get_include_options()} {extra_flags} {sourcename} {keopscore.config.cxx.get_linking_options()} {keopscore.config.cuda.get_linking_options()} -o {dllname}"
 
     @staticmethod
     def compile_jit_compile_dll():

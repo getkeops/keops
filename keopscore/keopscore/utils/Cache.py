@@ -11,9 +11,9 @@ env_param = (
     + keopscore.config.cxx.get_linking_options()
     + " auto_factorize="
     + str(keopscore.config.auto_factorize)
-    + keopscore.config.cuda.get_include_options()
     + keopscore.config.cuda.get_preprocessing_options()
-    + keopscore.config.cuda.get_nvrtc_flags()
+    + keopscore.config.cuda.get_include_options()
+    + keopscore.config.cuda.get_linking_options()
 )
 
 

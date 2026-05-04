@@ -25,17 +25,16 @@ class CudaConfig:
     # Cuda detection variables
     _use_cuda = None
     _specific_gpus = None
-
-    _cuda_include_path = None
-    _nvrtc_flags = None
-    _cuda_version = None
-
     _n_gpus = 0
     _MaxThreadsPerBlock = []
     _SharedMemPerBlock = []
 
+    _cuda_version = None
+    _cuda_include_path = None
+
     _preprocessing_options = ""
     _include_options = ""
+    _linking_options = None
     _cuda_block_size = None
 
     # ------------------------ #
@@ -117,7 +116,7 @@ class CudaConfig:
         if self.get_use_cuda():
             self.set_cuda_version()
             self.set_cuda_include_path()
-            self.set_nvrtc_flags()
+            self.set_linking_options()
             self.set_cuda_block_size()
             self.set_preprocessing_options()
             self.set_include_options()
@@ -448,18 +447,18 @@ class CudaConfig:
         )
 
     # NVRTC Flags
-    def set_nvrtc_flags(self):
-        """Set the NVRTC flags for CUDA compilation."""
+    def set_linking_options(self):
+        """Set the Linking option for nvrt/cuda entry point compilation."""
 
-        self._nvrtc_flags = f" -fpermissive -L{self.get_libcuda_folder()} -L{self.get_libnvrtc_folder()} -lcuda -lnvrtc"
+        self._linking_options = f"-L{self.get_libcuda_folder()} -L{self.get_libnvrtc_folder()} -lcuda -lnvrtc"
 
-    def get_nvrtc_flags(self):
-        """Get the NVRTC flags for CUDA compilation."""
-        return self._nvrtc_flags
+    def get_linking_options(self):
+        """Get the Linking option for nvrt/cuda entry point compilation."""
+        return self._linking_options
 
-    def print_nvrtc_flags(self):
-        """Print the NVRTC flags for CUDA compilation."""
-        print(f"NVRTC Flags: {self.get_nvrtc_flags()}")
+    def print_linking_options(self):
+        """Print the Linking option for nvrt/cuda entry point compilation."""
+        print(f"Linking Options: {self.get_linking_options()}")
 
     # GPU compile flags
     def set_preprocessing_options(self):
@@ -571,10 +570,10 @@ class CudaConfig:
             self.print_libcuda_folder()
             self.print_libnvrtc_folder()
             self.print_cuda_include_path()
-            self.print_nvrtc_flags()
 
             self.print_preprocessing_options()
             self.print_include_options()
+            self.print_linking_options()
 
         # Print relevant environment variables.
         print_envs(self.cuda_env_vars)

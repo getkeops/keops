@@ -6,8 +6,8 @@ from keopscore.utils.messages import KeOps_Error, KeOps_Message
 
 cpp_flag = keopscore.config.cxx.get_compile_options()
 cpp_flag += keopscore.config.cxx.get_linking_options()
-cpp_flag += keopscore.config.cuda.get_nvrtc_flags()
 cpp_flag += keopscore.config.cuda.get_include_options()
+cpp_flag += keopscore.config.cuda.get_linking_options()
 
 
 class LinkCompile:

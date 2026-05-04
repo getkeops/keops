@@ -122,7 +122,7 @@ class CxxCompilerConfig:
         self._compile_options = self.get_cxx_env_flags()
 
         # compilation / behavior
-        self.add_to_compile_option("-std=c++11 -O3 -flto=auto")
+        self.add_to_compile_option("-std=c++11 -O3 -flto=auto -fpermissive")
         # code model
         self.add_to_compile_option("-fPIC")
 
