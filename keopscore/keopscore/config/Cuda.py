@@ -24,18 +24,18 @@ class CudaConfig:
 
     # Cuda detection variables
     _use_cuda = None
-    _specific_gpus = None
-    _n_gpus = 0
-    _MaxThreadsPerBlock = []
-    _SharedMemPerBlock = []
-
     _cuda_version = None
     _cuda_include_path = None
+
+    _visible_devices = None
+    _n_visible_devices = 0
+    _MaxThreadsPerBlock = []
+    _SharedMemPerBlock = []
+    _cuda_block_size = None
 
     _preprocessing_options = ""
     _include_options = ""
     _linking_options = None
-    _cuda_block_size = None
 
     # ------------------------ #
     #     Search location      #
@@ -106,7 +106,7 @@ class CudaConfig:
 
     def __init__(self):
 
-        self.set_specific_gpus()
+        self.set_visible_devices()
 
         super().__init__()
 
@@ -224,7 +224,7 @@ class CudaConfig:
                     + " Switching to CPU only.",
                 )
 
-        self._n_gpus = nGpus.value
+        self._n_visible_devices = nGpus.value
 
         return True, ""
 
@@ -344,28 +344,28 @@ class CudaConfig:
     def print_cuda_block_size(self):
         print(f"CUDA Block Size: {self.get_cuda_block_size()}")
 
-    # Specific GPUs
-    def set_specific_gpus(self):
+    # Visibles GPUs devices
+    def set_visible_devices(self):
         """Set specific GPUs from CUDA_VISIBLE_DEVICES."""
         if os.getenv("CUDA_VISIBLE_DEVICES"):
-            self._specific_gpus = os.getenv("CUDA_VISIBLE_DEVICES").replace(",", "_")
+            self._visible_devices = os.getenv("CUDA_VISIBLE_DEVICES").replace(",", "_")
 
-    def get_specific_gpus(self):
+    def get_visible_devices(self):
         """Get the specific GPUs."""
-        return self._specific_gpus
+        return self._visible_devices
 
     # Number of GPUs
-    def set_n_gpus(self):
+    def set_n_visible_devices(self):
         """Set the number of GPUs detected. This is done in _find_and_load_libcuda."""
         pass
 
-    def get_n_gpus(self):
+    def get_n_visible_devices(self):
         """Get the number of GPUs detected."""
-        return self._n_gpus
+        return self._n_visible_devices
 
-    def print_n_gpus(self):
+    def print_n_visible_devices(self):
         """Print the number of GPUs detected."""
-        print(f"Number of GPUs Detected: {self.get_n_gpus()}")
+        print(f"Number of GPUs Detected: {self.get_n_visible_devices()}")
 
     # Libcuda folder
     def set_libcuda_folder(self):
@@ -446,28 +446,28 @@ class CudaConfig:
             f"CUDA Include Path: {":".join(self.get_cuda_include_path()) or not_found_str}"
         )
 
-    # NVRTC Flags
-    def set_linking_options(self):
-        """Set the Linking option for nvrt/cuda entry point compilation."""
+    # NVRTC include options
+    def set_include_options(self):
+        self._include_options += "".join(
+            f" -I{p}" for p in list(set(self.get_cuda_include_path()))
+        )
 
-        self._linking_options = f"-L{self.get_libcuda_folder()} -L{self.get_libnvrtc_folder()} -lcuda -lnvrtc"
+    def get_include_options(self):
+        return self._include_options
 
-    def get_linking_options(self):
-        """Get the Linking option for nvrt/cuda entry point compilation."""
-        return self._linking_options
+    def print_include_options(self):
+        print(f"GPU Include Options: {self.get_include_options() or not_found_str}")
 
-    def print_linking_options(self):
-        """Print the Linking option for nvrt/cuda entry point compilation."""
-        print(f"Linking Options: {self.get_linking_options()}")
-
-    # GPU compile flags
+    # NVRTC preprocessins options
     def set_preprocessing_options(self):
         """Set GPU preprocessing compile flags based on detected GPU properties."""
-        if self.get_n_gpus() == 0:
+        if self.get_n_visible_devices() == 0:
             return
 
-        self.add_to_preprocessing_options(f"-DMAXIDGPU={self.get_n_gpus() - 1}")
-        for d in range(self.get_n_gpus()):
+        self.add_to_preprocessing_options(
+            f"-DMAXIDGPU={self.get_n_visible_devices() - 1}"
+        )
+        for d in range(self.get_n_visible_devices()):
             self.add_to_preprocessing_options(
                 f"-DMAXTHREADSPERBLOCK{d}={self.get_MaxThreadsPerBlock()[d]}"
             )
@@ -487,16 +487,19 @@ class CudaConfig:
             f"GPU Preprocessing Options: {self.get_preprocessing_options() or not_found_str}"
         )
 
-    def set_include_options(self):
-        self._include_options += "".join(
-            f" -I{p}" for p in list(set(self.get_cuda_include_path()))
-        )
+    # NVRTC linking options
+    def set_linking_options(self):
+        """Set the Linking option for nvrt/cuda entry point compilation."""
 
-    def get_include_options(self):
-        return self._include_options
+        self._linking_options = f"-L{self.get_libcuda_folder()} -L{self.get_libnvrtc_folder()} -lcuda -lnvrtc"
 
-    def print_include_options(self):
-        print(f"GPU Include Options: {self.get_include_options() or not_found_str}")
+    def get_linking_options(self):
+        """Get the Linking option for nvrt/cuda entry point compilation."""
+        return self._linking_options
+
+    def print_linking_options(self):
+        """Print the Linking option for nvrt/cuda entry point compilation."""
+        print(f"Linking Options: {self.get_linking_options()}")
 
     # Helper functions for CUDA attribute detection
     def _get_device_attributes(self, libcuda, device_index):
@@ -565,7 +568,7 @@ class CudaConfig:
 
         self.print_use_cuda()
         if self.get_use_cuda():
-            self.print_n_gpus()
+            self.print_n_visible_devices()
             self.print_cuda_version()
             self.print_libcuda_folder()
             self.print_libnvrtc_folder()

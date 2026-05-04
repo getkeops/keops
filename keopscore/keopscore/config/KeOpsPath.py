@@ -78,9 +78,9 @@ class KeOpsPathConfig:
         ]
         if self.cuda.get_use_cuda():
             name_parts.append(f"CUDA{self.cuda.get_cuda_version()}")
-            specific_gpus = self.cuda.get_specific_gpus()
-            if specific_gpus:
-                name_parts.append(f"VISIBLE_DEVICES{specific_gpus}")
+            visible_devices = self.cuda.get_visible_devices()
+            if visible_devices:
+                name_parts.append(f"VISIBLE_DEVICES{visible_devices}")
 
         self._default_build_folder_name = "_".join(name_parts)
 

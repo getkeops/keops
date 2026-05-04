@@ -33,7 +33,8 @@ class Gpu_link_compile(LinkCompile):
     def __init__(self):
         # checking that the system has a Gpu :
         if not (
-            keopscore.config.cuda.get_use_cuda() and keopscore.config.cuda.get_n_gpus()
+            keopscore.config.cuda.get_use_cuda()
+            and keopscore.config.cuda.get_n_visible_devices()
         ):
             KeOps_Error(
                 "Trying to compile cuda code... but we detected that the system has no properly configured cuda lib."
