@@ -50,10 +50,16 @@ def find_library_abspath(lib):
     if res is None:
         return ""
 
+    if os.path.isabs(res):
+        return res
+
     lib = CDLL(res)
     libdl = CDLL(find_library("dl"))
 
-    dlinfo = libdl.dlinfo
+    try:
+        dlinfo = libdl.dlinfo
+    except AttributeError:
+        return ""
     dlinfo.argtypes = c_void_p, c_int, c_void_p
     dlinfo.restype = c_int
 
