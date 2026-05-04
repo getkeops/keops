@@ -25,12 +25,12 @@ class CudaConfig:
     # Cuda detection variables
     _use_cuda = False
     _cuda_version = -1
-    _cuda_include_path = ""
+    _cuda_include_path = [""]  # str or list of str
 
     _visible_devices = ""
     _n_visible_devices = -1
-    _MaxThreadsPerBlock = []
-    _SharedMemPerBlock = []
+    _MaxThreadsPerBlock = []  # list of int
+    _SharedMemPerBlock = []  # list of int
     _cuda_block_size = -1
 
     _preprocessing_options = ""
@@ -83,23 +83,23 @@ class CudaConfig:
         "name": "cuda",
         "lib_basename_candidate": ["libcuda.so.*", "libcuda.dylib", "cuda.lib"],
         "header_basename": "cuda.h",
-        "library": None,  # to be filled later
-        "header": None,  # to be filled later
+        "library": "",  # to be filled later
+        "header": "",  # to be filled later
         "ctype_handle": None,  # to be filled later
     }
     _libnvrtc_info = {
         "name": "nvrtc",
         "lib_basename_candidate": ["libnvrtc.so.*", "libnvrtc.dylib", "nvrtc.lib"],
         "header_basename": "nvrtc.h",
-        "library": None,  # to be filled later
-        "header": None,  # to be filled later
+        "library": "",  # to be filled later
+        "header": "",  # to be filled later
         "ctype_handle": None,  # to be filled later
     }
     _cudart_info = {
         "name": "cudart",
         "lib_basename_candidate": ["libcudart.so.*", "libcudart.dylib", "cudart.lib"],
-        "header_basename": None,
-        "library": None,  # to be filled later
+        "header_basename": None,  # not needed
+        "library": "",  # to be filled later
         "header": None,  # not needed
         "ctype_handle": None,  # to be filled later
     }
@@ -121,7 +121,7 @@ class CudaConfig:
             self.set_preprocessing_options()
             self.set_include_options()
 
-    def find_install_path(self, lib_dict_info, warn=None):
+    def find_install_path(self, lib_dict_info):
         """
         Locate a cuda and headers using an explicit ordered search.
 
@@ -131,9 +131,8 @@ class CudaConfig:
         Returns:
             result (dict): a copy of lib_dict_info completed with the ``library``  and ``header`` keys containing the absolute paths to the library file and include directory, or None if not found.
         """
-        result = (
-            lib_dict_info.copy()
-        )  # Start with the provided info, which may contain names and file patterns
+        # Start with the provided info, which may contain names and file patterns
+        result = lib_dict_info.copy()
 
         candidate_roots = _ordered_search_roots(
             env_vars=self.cuda_env_vars,
@@ -155,9 +154,6 @@ class CudaConfig:
         if result["library"] is None:
             result["library"] = _find_library_by_names((result["name"],))
 
-        if result["library"] is None and warn:
-            KeOps_Warning(f"lib{result['name']} not found.")
-
         # ------------------------ #
         # Search for header files  #
         # ------------------------ #
@@ -167,14 +163,11 @@ class CudaConfig:
             (result["header_basename"],),
         )
 
-        if result["header"] is None and warn and result["header_basename"] is not None:
-            KeOps_Warning(f"{result['name']} header files not found.")
-
         return result
 
     def _find_and_load_libcuda(self):
         """Locate, load, and initialize the CUDA driver library."""
-        self._libcuda_info = self.find_install_path(self._libcuda_info, warn=True)
+        self._libcuda_info = self.find_install_path(self._libcuda_info)
         libcuda_path = self._libcuda_info["library"]
         if not libcuda_path:
             return (
@@ -230,7 +223,7 @@ class CudaConfig:
 
     def _find_and_load_libnvrtc(self):
         """Locate and load the NVRTC runtime compilation library."""
-        self._libnvrtc_info = self.find_install_path(self._libnvrtc_info, warn=True)
+        self._libnvrtc_info = self.find_install_path(self._libnvrtc_info)
         libnvrtc_path = self._libnvrtc_info["library"]
         if not libnvrtc_path:
             return (
@@ -260,7 +253,7 @@ class CudaConfig:
 
         """
 
-        self._cudart_info = self.find_install_path(self._cudart_info, warn=False)
+        self._cudart_info = self.find_install_path(self._cudart_info)
         libcudart_path = self._cudart_info["library"]
         if not libcudart_path:
             return (
@@ -379,8 +372,18 @@ class CudaConfig:
             self._libcuda_info["library"]
         )
 
-    def print_libcuda_folder(self):
-        print(f"Libcuda Folder: {self.get_libcuda_folder() or not_found_str}")
+    # Libcuda path
+    def set_libcuda_path(self):
+        """
+        Is set in _cuda_libraries_available.
+        """
+        pass
+
+    def get_libcuda_path(self):
+        return self._libcuda_info["library"]
+
+    def print_libcuda_path(self):
+        print(f"Libcuda Path: {self.get_libcuda_path() or not_found_str}")
 
     # Libnvrtc folder
     def set_libnvrtc_folder(self):
@@ -395,11 +398,36 @@ class CudaConfig:
             self._libnvrtc_info["library"]
         )
 
-    def print_libnvrtc_folder(self):
-        print(f"Libnvrtc Folder: {self.get_libnvrtc_folder() or not_found_str}")
+    # Libnvrtc path
+    def set_libnvrtc_path(self):
+        """
+        Return nothing if not using cuda
+        self.libnvrtc_path is already set in _cuda_libraries_available.
+        """
+        pass
+
+    def get_libnvrtc_path(self):
+        return self._libnvrtc_info["library"]
+
+    def print_libnvrtc_path(self):
+        print(f"Libnvrtc Path: {self.get_libnvrtc_path() or not_found_str}")
+
+    # Libcudart path
+    def set_libcudart_path(self):
+        """
+        Return nothing if not using cuda
+        self.libcudart_path is already set in _cuda_libraries_available.
+        """
+        pass
+
+    def get_libcudart_path(self):
+        return self._cudart_info["library"]
+
+    def print_libcudart_path(self):
+        print(f"Libcudart Path: {self.get_libcudart_path() or not_found_str}")
 
     # CUDA Version
-    def set_cuda_version(self, warn=True):
+    def set_cuda_version(self):
         """Set the CUDA version by querying the CUDA runtime library. Done in _find_and_load_cudart."""
         pass
 
@@ -569,8 +597,9 @@ class CudaConfig:
         if self.get_use_cuda():
             self.print_n_visible_devices()
             self.print_cuda_version()
-            self.print_libcuda_folder()
-            self.print_libnvrtc_folder()
+            self.print_libcuda_path()
+            self.print_libnvrtc_path()
+            self.print_libcudart_path()
             self.print_cuda_include_path()
 
             self.print_preprocessing_options()
@@ -592,8 +621,8 @@ if __name__ == "__main__":
     cxx_compiler_info = CxxCompilerConfig(platform_info)
     cxx_compiler_info.print_all()
 
-    openmp_info = OpenMPConfig(platform_info, cxx_compiler_info)
-    openmp_info.print_all()
+    # openmp_info = OpenMPConfig(platform_info, cxx_compiler_info)
+    # openmp_info.print_all()
 
     cuda_info = CudaConfig()
     cuda_info.print_all()
