@@ -20,7 +20,7 @@ class OpenMPConfig:
     Class for OpenMP detection and configuration.
     """
 
-    _use_omp = False
+    _use_OpenMP = False
 
     _libomp_folder = ""
     _libomp_include_path = ""
@@ -92,7 +92,7 @@ class OpenMPConfig:
             self.set_linking_options()
 
         # Chech if the compiler support omp
-        self.set_use_omp()
+        self.set_use_OpenMP()
 
     def find_install_path(self, lib_dict_info):
         result = lib_dict_info.copy()
@@ -140,14 +140,15 @@ class OpenMPConfig:
         return True
 
     # OpenMP support
-    def set_use_omp(self):
-        self._use_omp = self._omp_is_available() and self.check_compiler_for_openmp()
+    def set_use_OpenMP(self):
+        self._use_OpenMP = self._omp_is_available() and self.check_compiler_for_openmp()
 
-    def get_use_omp(self):
-        return self._use_omp
+    def get_use_OpenMP(self):
+        """Boolean to determine if OpenMP is available *and* can be used through cxx compiler"""
+        return self._use_OpenMP
 
-    def print_use_omp(self):
-        print(f"OpenMP Support: {enabled_dict[self.get_use_omp() or False]}")
+    def print_use_OpenMP(self):
+        print(f"OpenMP Support: {enabled_dict[self.get_use_OpenMP() or False]}")
 
     # OpenMP library path
     def get_libomp_path(self):
@@ -171,11 +172,7 @@ class OpenMPConfig:
     # OpenMP header path
     def set_libomp_include_path(self):
         """Set the OpenMP include directory (containing headers)."""
-        self._libomp_include_path = (
-            os.path.dirname(self._omp_info["header"])
-            if self._omp_info["header"]
-            else ""
-        )
+        self._libomp_include_path = self._omp_info["header"]
 
     def get_libomp_include_path(self):
         """Get the OpenMP include directory (containing headers)."""
@@ -242,6 +239,9 @@ class OpenMPConfig:
     def get_compile_options(self):
         return self._compile_options
 
+    def print_compile_options(self):
+        print(f"Compile Options: {self.get_compile_options()}")
+
     # C++ Compiler Include Options
     def set_include_options(self):
         self._include_options = f"-I{self.get_openmp_include_dir()}"
@@ -249,12 +249,18 @@ class OpenMPConfig:
     def get_include_options(self):
         return self._include_options
 
+    def print_include_options(self):
+        print(f"Include Options: {self.get_include_options()}")
+
     # C++ linking Options
     def set_linking_options(self):
         self._linking_options += f"-L{self.get_libomp_folder()}"
 
     def get_linking_options(self):
         return self._linking_options
+
+    def print_linking_options(self):
+        print(f"Linking Options: {self.get_linking_options()}")
 
     # OpenMP configuration printing
     def print_all(self):
@@ -266,9 +272,14 @@ class OpenMPConfig:
         print(f"OpenMP Configuration")
         print("=" * 60)
 
-        self.print_use_omp()
+        self.print_use_OpenMP()
         self.print_libomp_path()
         self.print_libomp_include_path()
+
+        if self.get_use_OpenMP():
+            self.print_compile_options()
+            self.print_include_options()
+            self.print_linking_options()
 
         # Print relevant environment variables.
         print_envs(self.openmp_env_vars)
