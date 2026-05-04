@@ -120,6 +120,7 @@ class CudaConfig:
             self.set_nvrtc_flags()
             self.set_cuda_block_size()
             self.set_preprocessing_options()
+            self.set_include_options()
 
     def find_install_path(self, lib_dict_info, warn=None):
         """
