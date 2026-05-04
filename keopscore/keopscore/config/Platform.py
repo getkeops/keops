@@ -36,6 +36,7 @@ class PlatformConfig:
         self.set_python_version()
         self.set_python_executable()
         self.set_env_type()
+        self.set_brew_prefix()
 
     # OS Detection (Distribution Name and Version)
     def set_os(self):

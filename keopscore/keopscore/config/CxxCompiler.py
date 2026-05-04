@@ -27,6 +27,7 @@ class CxxCompilerConfig:
         self.platform = platform
 
         self.set_cxx_compiler()
+        self.set_use_Apple_clang()
         self.set_cxx_env_flags()
         self.set_compile_options()
         self.set_linking_options()

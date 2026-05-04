@@ -142,6 +142,10 @@ class OpenMPConfig:
     # OpenMP support
     def set_use_OpenMP(self):
         self._use_OpenMP = self._omp_is_available() and self.check_compiler_for_openmp()
+        if not self._use_OpenMP:
+            self._compile_options = ""
+            self._include_options = ""
+            self._linking_options = ""
 
     def get_use_OpenMP(self):
         """Boolean to determine if OpenMP is available *and* can be used through cxx compiler"""
