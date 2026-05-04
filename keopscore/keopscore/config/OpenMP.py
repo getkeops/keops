@@ -20,9 +20,9 @@ class OpenMPConfig:
     Class for OpenMP detection and configuration.
     """
 
-    _use_OpenMP = None
-    _openmp_lib_name = None
-    _openmp_lib_include_dir = None
+    _use_OpenMP = False
+    _openmp_lib_name = ""
+    _openmp_lib_include_dir = ""
 
     _compile_options = ""
     _include_options = ""

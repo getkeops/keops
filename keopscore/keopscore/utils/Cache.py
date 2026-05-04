@@ -9,8 +9,7 @@ import keopscore.config
 env_param = (
     lambda: keopscore.config.cxx.get_compile_options()
     + keopscore.config.cxx.get_linking_options()
-    + " auto_factorize="
-    + str(keopscore.config.auto_factorize)
+    + f" auto_factorize={keopscore.config.auto_factorize}"
     + keopscore.config.cuda.get_preprocessing_options()
     + keopscore.config.cuda.get_include_options()
     + keopscore.config.cuda.get_linking_options()

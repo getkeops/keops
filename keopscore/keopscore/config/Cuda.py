@@ -23,19 +23,19 @@ class CudaConfig:
     CUDA_BLOCK_SIZE = 192
 
     # Cuda detection variables
-    _use_cuda = None
-    _cuda_version = None
-    _cuda_include_path = None
+    _use_cuda = False
+    _cuda_version = -1
+    _cuda_include_path = ""
 
-    _visible_devices = None
-    _n_visible_devices = 0
+    _visible_devices = ""
+    _n_visible_devices = -1
     _MaxThreadsPerBlock = []
     _SharedMemPerBlock = []
-    _cuda_block_size = None
+    _cuda_block_size = -1
 
     _preprocessing_options = ""
     _include_options = ""
-    _linking_options = None
+    _linking_options = ""
 
     # ------------------------ #
     #     Search location      #
@@ -416,7 +416,7 @@ class CudaConfig:
             return self._cuda_version
 
     def print_cuda_version(self):
-        str = f"CUDA Version: {self.get_cuda_version(out_type="string") if self.get_cuda_version() else not_found_str}"
+        str = f"CUDA Version: {self.get_cuda_version(out_type='string') if self.get_cuda_version() else not_found_str}"
         print(str)
 
     # CUDA Include Path
@@ -443,7 +443,7 @@ class CudaConfig:
 
     def print_cuda_include_path(self):
         print(
-            f"CUDA Include Path: {":".join(self.get_cuda_include_path()) or not_found_str}"
+            f"CUDA Include Path: {':'.join(self.get_cuda_include_path()) or not_found_str}"
         )
 
     # NVRTC include options
@@ -464,9 +464,8 @@ class CudaConfig:
         if self.get_n_visible_devices() == 0:
             return
 
-        self.add_to_preprocessing_options(
-            f"-DMAXIDGPU={self.get_n_visible_devices() - 1}"
-        )
+        self._preprocessing_options = f"-DMAXIDGPU={self.get_n_visible_devices() - 1}"
+        
         for d in range(self.get_n_visible_devices()):
             self.add_to_preprocessing_options(
                 f"-DMAXTHREADSPERBLOCK{d}={self.get_MaxThreadsPerBlock()[d]}"

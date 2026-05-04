@@ -11,12 +11,12 @@ class CxxCompilerConfig:
     Common platform and C++ compiler configuration.
     """
 
-    _cxx_compiler = None
-    _cxx_env_flags = None
+    _cxx_compiler = ""
+    _cxx_env_flags = ""
     _compile_options = ""
     _linking_options = ""
 
-    _disable_pragma_unrolls = None
+    _disable_pragma_unrolls = True
     _use_Apple_clang = False
 
     cxx_envs = ["CXX", "CXXFLAGS"]

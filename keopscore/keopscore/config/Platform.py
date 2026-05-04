@@ -11,14 +11,14 @@ class PlatformConfig:
     Class for detecting the operating system, Python version, and environment type.
     """
 
-    _os = None
-    _platform = None
-    _machine = None
-    _uname = None
-    _python_version = None
-    _python_executable = None
-    _env_type = None
-    _brew_prefix = None
+    _os = ""
+    _platform = ""
+    _machine = ""
+    _uname = ""
+    _python_version = ""
+    _python_executable = ""
+    _env_type = ""
+    _brew_prefix = ""
 
     platform_envs = [
         "PYTHONPATH",

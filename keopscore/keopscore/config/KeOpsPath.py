@@ -10,13 +10,13 @@ class KeOpsPathConfig:
     Class to manage the path to the KeOps library.
     """
 
-    _base_dir_path = None
-    _keops_cache_folder = None
-    _default_build_folder_name = None
-    _default_build_path = None
-    _build_folder = None
+    _base_dir_path = ""
+    _keops_cache_folder = ""
+    _default_build_folder_name = ""
+    _default_build_path = ""
+    _build_folder = ""
 
-    _jit_binary = None
+    _jit_binary = ""
     _include_options = ""
 
     path_env_vars = ("KEOPS_CACHE_FOLDER",)
