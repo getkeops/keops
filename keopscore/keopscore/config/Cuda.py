@@ -465,7 +465,7 @@ class CudaConfig:
             return
 
         self._preprocessing_options = f"-DMAXIDGPU={self.get_n_visible_devices() - 1}"
-        
+
         for d in range(self.get_n_visible_devices()):
             self.add_to_preprocessing_options(
                 f"-DMAXTHREADSPERBLOCK{d}={self.get_MaxThreadsPerBlock()[d]}"
