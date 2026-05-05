@@ -8,6 +8,7 @@ from .Debug import DebugConfig
 from .KeOpsPath import KeOpsPathConfig
 from .OpenMP import OpenMPConfig
 from .Platform import PlatformConfig
+from .chunks import ChunksConfig
 from keopscore.utils.messages import KeOps_Message
 
 # Instantiate the configurations once at import time to preserve the existing API.
@@ -17,6 +18,7 @@ cxx = CxxCompilerConfig(platform)
 openmp = OpenMPConfig(platform, cxx)
 cuda = CudaConfig()
 path = KeOpsPathConfig(platform, cuda)
+chunks = ChunksConfig()
 
 # flag for automatic factorization : apply automatic factorization for all formulas before reduction.
 auto_factorize = False

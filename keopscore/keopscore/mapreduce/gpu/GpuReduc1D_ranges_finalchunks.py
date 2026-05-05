@@ -1,6 +1,6 @@
+from keopscore.config import cuda, chunks
+
 from keopscore.binders.nvrtc.Gpu_link_compile import Gpu_link_compile
-from keopscore.config import cuda
-from keopscore.config.chunks import dimfinalchunk
 from keopscore.formulas.reductions.Sum_Reduction import Sum_Reduction
 from keopscore.formulas.reductions.sum_schemes import block_sum
 from keopscore.mapreduce.MapReduce import MapReduce
@@ -41,11 +41,11 @@ def do_finalchunk_sub_ranges(
     out,
 ):
     dimout = varfinal.dim
-    yjloc = c_variable(pointer(dtype), f"({yj.id} + threadIdx.x * {dimfinalchunk})")
+    yjloc = c_variable(pointer(dtype), f"({yj.id} + threadIdx.x * {chunks.get_dimfinalchunk()})")
     indsj_global = Var_loader(fun_global).indsj
     load_chunks_routine_j = load_vars_chunks(
         [varfinal.ind],
-        dimfinalchunk,
+        chunks.get_dimfinalchunk(),
         dimfinalchunk_curr,
         varfinal.dim,
         yjloc,
@@ -56,7 +56,7 @@ def do_finalchunk_sub_ranges(
     load_chunks_routine_j_ranges = load_vars_chunks_offsets(
         [varfinal.ind],
         indsj_global,
-        dimfinalchunk,
+        chunks.get_dimfinalchunk(),
         dimfinalchunk_curr,
         varfinal.dim,
         yjloc,
@@ -76,7 +76,7 @@ def do_finalchunk_sub_ranges(
                     }}
                 }}
                 __syncthreads();
-                for (signed long int jrel = 0; (jrel < blockDim.x) && (jrel < {end_y.id} - {jstart.id}); jrel++, yjrel += {dimfinalchunk}) {{          
+                for (signed long int jrel = 0; (jrel < blockDim.x) && (jrel < {end_y.id} - {jstart.id}); jrel++, yjrel += {chunks.get_dimfinalchunk()}) {{          
                     if ({i.id} < {end_x.id}) {{ // we compute only if needed
                         {use_pragma_unroll()}
                         for (signed long int k=0; k<{dimfinalchunk_curr}; k++) {{
@@ -88,7 +88,7 @@ def do_finalchunk_sub_ranges(
                 if ({i.id} < {end_x.id}) {{
                     {use_pragma_unroll()}
                     for (signed long int k=0; k<{dimfinalchunk_curr}; k++)
-                        {out.id}[i*{dimout}+{chunk.id}*{dimfinalchunk}+k] += {acc.id}[k];
+                        {out.id}[i*{dimout}+{chunk.id}*{chunks.get_dimfinalchunk()}+k] += {acc.id}[k];
                 }}
                 __syncthreads();
             """
@@ -124,8 +124,8 @@ class GpuReduc1D_ranges_finalchunks(MapReduce, Gpu_link_compile):
         )
         formula = fun_internal.formula
         varfinal = self.red_formula.formula.children[1 - ind_fun_internal]
-        nchunks = 1 + (varfinal.dim - 1) // dimfinalchunk
-        dimlastfinalchunk = varfinal.dim - (nchunks - 1) * dimfinalchunk
+        nchunks = 1 + (varfinal.dim - 1) // chunks.get_dimfinalchunk()
+        dimlastfinalchunk = varfinal.dim - (nchunks - 1) * chunks.get_dimfinalchunk()
         varloader = Var_loader(fun_internal)
         dimsx = varloader.dimsx
         dimsy = varloader.dimsy
@@ -142,7 +142,7 @@ class GpuReduc1D_ranges_finalchunks(MapReduce, Gpu_link_compile):
             KeOps_Error("dimfout should be 1")
         sum_scheme = self.sum_scheme
 
-        self.dimy = max(dimfinalchunk, dimy)
+        self.dimy = max(chunks.get_dimfinalchunk(), dimy)
         blocksize_chunks = min(
             cuda.get_cuda_block_size(),
             1024,
@@ -154,7 +154,7 @@ class GpuReduc1D_ranges_finalchunks(MapReduce, Gpu_link_compile):
         param_loc = c_array(dtype, dimp, "param_loc")
         fout = c_array(dtype, dimfout * blocksize_chunks, "fout")
         xi = c_array(dtype, dimx, "xi")
-        acc = c_array(dtypeacc, dimfinalchunk, "acc")
+        acc = c_array(dtypeacc, chunks.get_dimfinalchunk(), "acc")
         yjloc = c_array(dtype, dimy, f"(yj + threadIdx.x * {dimy})")
         foutjrel = c_array(dtype, dimfout, f"({fout.id}+jrel*{dimfout})")
         yjrel = c_array(dtype, dimy, "yjrel")
@@ -204,7 +204,7 @@ class GpuReduc1D_ranges_finalchunks(MapReduce, Gpu_link_compile):
             dtype,
             fun_global,
             varfinal,
-            dimfinalchunk,
+            chunks.get_dimfinalchunk(),
             acc,
             i,
             j,

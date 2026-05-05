@@ -52,16 +52,8 @@ It can be used as a Python function or as a standalone Python script (in which c
 import inspect
 import sys
 
-import keopscore.config
 import keopscore.mapreduce
-from keopscore.config.chunks import (
-    get_enable_chunk,
-    set_enable_chunk,
-    dimchunk,
-    set_enable_finalchunk,
-    use_final_chunks,
-    set_mult_var_highdim,
-)
+from keopscore.config import path, cuda, debug, chunks
 from keopscore.formulas import Zero_Reduction, Sum_Reduction
 from keopscore.formulas.GetReduction import GetReduction
 from keopscore.formulas.variables.Zero import Zero
@@ -84,19 +76,19 @@ def get_keops_dll_impl(
     # detecting the need for special chunked computation modes :
     use_chunk_mode = 0
     if "Gpu" in map_reduce_id:
-        if not keopscore.config.cuda.get_use_cuda():
+        if not cuda.get_use_cuda():
             KeOps_Error(
                 "You selected a Gpu reduce scheme but KeOps is in Cpu only mode."
             )
-        set_enable_chunk(enable_chunks)
-        set_enable_finalchunk(enable_finalchunks)
-        set_mult_var_highdim(mul_var_highdim)
+        chunks.set_enable_chunks(enable_chunks)
+        chunks.set_enable_finalchunk(enable_finalchunks)
+        chunks.set_mult_var_highdim(mul_var_highdim)
         red_formula = GetReduction(red_formula_string, aliases)
-        if use_final_chunks(red_formula) and map_reduce_id != "GpuReduc2D":
+        if chunks.use_final_chunks(red_formula) and map_reduce_id != "GpuReduc2D":
             use_chunk_mode = 2
             map_reduce_id += "_finalchunks"
-        elif get_enable_chunk() and map_reduce_id != "GpuReduc2D":
-            if len(red_formula.formula.chunked_formulas(dimchunk)) == 1:
+        elif chunks.get_enable_chunks() and map_reduce_id != "GpuReduc2D":
+            if len(red_formula.formula.chunked_formulas(chunks.get_dimchunk())) == 1:
                 from keopscore.mapreduce.Chunk_Mode_Constants import (
                     Chunk_Mode_Constants,
                 )
@@ -112,7 +104,7 @@ def get_keops_dll_impl(
 
     rf = map_reduce_obj.red_formula
 
-    if keopscore.config.debug.get_debug_ops():
+    if debug.get_debug_ops():
         KeOps_Print("In get_keops_dll, formula is :", rf)
         KeOps_Print("formula.__repr__() is : ", rf.__repr__())
         rf.make_dot()
@@ -141,7 +133,7 @@ def get_keops_dll_impl(
         tagZero,
         res["use_half"],
         res["use_fast_math"],
-        keopscore.config.cuda.get_cuda_block_size(),
+        cuda.get_cuda_block_size(),
         use_chunk_mode,
         tag1D2D,
         res["dimred"],
@@ -159,7 +151,7 @@ def get_keops_dll_impl(
 get_keops_dll = Cache(
     get_keops_dll_impl,
     use_cache_file=True,
-    save_folder=keopscore.config.path.get_build_folder(),
+    save_folder=path.get_build_folder(),
 )
 
 

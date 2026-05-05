@@ -1,6 +1,6 @@
+from keopscore.config import cuda, chunks
+
 from keopscore.binders.nvrtc.Gpu_link_compile import Gpu_link_compile
-from keopscore.config import cuda
-from keopscore.config.chunks import dimchunk
 from keopscore.formulas.reductions import make_sum_scheme
 from keopscore.mapreduce.Chunk_Mode_Constants import Chunk_Mode_Constants
 from keopscore.mapreduce.MapReduce import MapReduce
@@ -63,7 +63,7 @@ def do_chunk_sub_ranges(
 
     load_chunks_routine_i = load_vars_chunks(
         indsi_chunked,
-        dimchunk,
+        chunks.get_dimchunk(),
         dimchunk_curr,
         chk.dim_org,
         xiloc,
@@ -81,7 +81,7 @@ def do_chunk_sub_ranges(
     load_chunks_routine_i_batches = load_vars_chunks_offsets(
         indsi_chunked,
         indsi_global,
-        dimchunk,
+        chunks.get_dimchunk(),
         dimchunk_curr,
         chk.dim_org,
         xiloc,
@@ -93,7 +93,7 @@ def do_chunk_sub_ranges(
 
     load_chunks_routine_j = load_vars_chunks(
         indsj_chunked,
-        dimchunk,
+        chunks.get_dimchunk(),
         dimchunk_curr,
         chk.dim_org,
         yjloc,
@@ -105,7 +105,7 @@ def do_chunk_sub_ranges(
     load_chunks_routine_j_batches = load_vars_chunks_offsets(
         indsj_chunked,
         indsj_global,
-        dimchunk,
+        chunks.get_dimchunk(),
         dimchunk_curr,
         chk.dim_org,
         yjloc,
@@ -117,7 +117,7 @@ def do_chunk_sub_ranges(
 
     load_chunks_routine_p = load_vars_chunks(
         indsp_chunked,
-        dimchunk,
+        chunks.get_dimchunk(),
         dimchunk_curr,
         chk.dim_org,
         param_loc,
@@ -128,7 +128,7 @@ def do_chunk_sub_ranges(
     load_chunks_routine_p_batches = load_vars_chunks_offsets(
         indsp_chunked,
         indsp_global,
-        dimchunk,
+        chunks.get_dimchunk(),
         dimchunk_curr,
         chk.dim_org,
         param_loc,
@@ -281,7 +281,7 @@ class GpuReduc1D_ranges_chunks(MapReduce, Gpu_link_compile):
             dtype,
             red_formula,
             chk.fun_chunked,
-            dimchunk,
+            chunks.get_dimchunk(),
             chk.dimsx,
             chk.dimsy,
             chk.dimsp,

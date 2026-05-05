@@ -1,7 +1,7 @@
 from hashlib import sha256
 
 import keopscore.config
-from keopscore.utils.messages import KeOps_Error, KeOps_Message
+from keopscore.utils.messages import KeOps_Error
 
 
 def get_hash_name(*args):
