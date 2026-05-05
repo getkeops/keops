@@ -96,3 +96,11 @@ def _first_matching_file(directories, patterns):
             continue
 
     return None
+
+
+def ensure_directory(path, add_to_syspath=False):
+    """Create a directory and optionally register it in sys.path."""
+    os.makedirs(path, exist_ok=True)
+    if add_to_syspath and path not in sys.path:
+        sys.path.append(path)
+    return path

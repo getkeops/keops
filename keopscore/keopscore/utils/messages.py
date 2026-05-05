@@ -2,6 +2,14 @@ import os
 import sys
 
 
+
+CROSS_MARK = "❌"
+CHECK_MARK = "✅"
+
+not_found_str = f"Not Found. {CROSS_MARK}"
+enabled_dict = {True: f"Enabled {CHECK_MARK}", False: f"Disabled {CROSS_MARK}"}
+
+
 def _keops_verbose():
     config = sys.modules.get("keopscore.config")
     debug = getattr(config, "debug", None)
@@ -38,3 +46,20 @@ def KeOps_Error(message, show_line_number=True):
         frameinfo = getframeinfo(currentframe().f_back)
         message += f" (error at line {frameinfo.lineno} in file {frameinfo.filename})"
     raise ValueError(message)
+
+
+def print_envs(env_vars):
+    """Print the values of specified environment variables."""
+
+    if not env_vars:
+        return
+
+    print("\nRelevant Environment Variables")
+    print("-" * 60)
+    for var in env_vars:
+        value = os.environ.get(var)
+        if value:
+            print(f"{var} = {value}")
+        else:
+            print(f"{var} is not set")
+

@@ -2,7 +2,7 @@ import os
 import platform
 import sys
 
-from ._shared import print_envs
+from ..utils.messages import print_envs
 from keopscore.utils.system_utils import KeOps_OS_Run
 
 

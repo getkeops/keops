@@ -1,7 +1,8 @@
 import ctypes
 import os
 
-from keopscore.config._shared import print_envs, not_found_str, enabled_dict
+from keopscore.utils.messages import print_envs
+from keopscore.utils.messages import enabled_dict, not_found_str
 from keopscore.utils.messages import KeOps_Warning
 from keopscore.utils.path_utils import (
     _first_matching_file,

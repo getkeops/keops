@@ -1,7 +1,8 @@
 import os
 import shutil
 
-from keopscore.config._shared import print_envs, not_found_str
+from keopscore.utils.messages import print_envs
+from keopscore.utils.messages import not_found_str
 from keopscore.utils.messages import KeOps_Error
 from keopscore.utils.system_utils import KeOps_OS_Run
 

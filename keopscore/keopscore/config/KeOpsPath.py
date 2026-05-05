@@ -2,7 +2,8 @@ import os
 import sys
 
 import keopscore
-from keopscore.config._shared import not_found_str, ensure_directory, print_envs
+from keopscore.utils.path_utils import ensure_directory
+from keopscore.utils.messages import not_found_str, print_envs
 
 
 class KeOpsPathConfig:
