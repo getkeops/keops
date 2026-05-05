@@ -23,12 +23,13 @@ def test_torch_bindings():
     except Exception as e:
         pyKeOps_Message(f"Error during computation: {e}", use_tag=False)
         return False
-    
-    if torch.allclose(
-        keops_res, torch.tensor(expected_res, dtype=torch.float32)
-    ):
+
+    if torch.allclose(keops_res, torch.tensor(expected_res, dtype=torch.float32)):
         pyKeOps_Message("pyKeOps with torch bindings is working!", use_tag=False)
         return True
     else:
-        pyKeOps_Message(f"outputs wrong values: expected {expected_res} but get {keops_res}", use_tag=False)
+        pyKeOps_Message(
+            f"outputs wrong values: expected {expected_res} but get {keops_res}",
+            use_tag=False,
+        )
         return False

@@ -3,7 +3,6 @@ import os
 import sys
 import sysconfig
 
-
 # Instantiating the keopscore.config main classes for pykeops
 import keopscore.config
 
@@ -33,6 +32,7 @@ class _VerboseConfig:
 
 _verbose_state = _VerboseConfig(1)
 
+
 def set_verbose(val):
     val = int(val)
     if val not in (0, 1, 2):
@@ -42,6 +42,7 @@ def set_verbose(val):
     os.environ["KEOPS_VERBOSE"] = str(val)
     debug.set_verbose(val)
     return _verbose_state.level
+
 
 def init_verbose():
     env_val = os.getenv("PYKEOPS_VERBOSE")
@@ -60,26 +61,17 @@ def read_version(version_file):
     with open(version_file, encoding="utf-8") as v:
         return v.read().rstrip()
 
-_version = read_version(os.path.join(os.path.abspath(os.path.dirname(__file__)), "keops_version"))
+
+_version = read_version(
+    os.path.join(os.path.abspath(os.path.dirname(__file__)), "keops_version")
+)
+
 
 def get_version():
-    assert _version == keopscore.__version__, f"Version mismatch between pykeops and keopscore: {_version} vs {keopscore.__version__}"
+    assert (
+        _version == keopscore.__version__
+    ), f"Version mismatch between pykeops and keopscore: {_version} vs {keopscore.__version__}"
     return _version
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 def pykeops_nvrtc_name(type="src"):

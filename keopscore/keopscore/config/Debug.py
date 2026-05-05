@@ -19,7 +19,9 @@ class DebugConfig:
             if val in (0, 1, 2):
                 self._verbose = val
             else:
-                KeOps_Warning(f"Invalid KEOPS_VERBOSE value: {env_val}. Verbose level must be 0, 1 or 2. Defaulting to 1.")
+                KeOps_Warning(
+                    f"Invalid KEOPS_VERBOSE value: {env_val}. Verbose level must be 0, 1 or 2. Defaulting to 1."
+                )
                 self._verbose = 1
 
     def set_debug_ops(self, debug_ops):
@@ -41,6 +43,7 @@ class DebugConfig:
         if val in (0, 1, 2):
             self._verbose = val
         else:
-            KeOps_Warning(f"Invalid verbose value: {val}. Verbose level must be 0, 1 or 2. Keeping previous value: {self._verbose}.")
+            KeOps_Warning(
+                f"Invalid verbose value: {val}. Verbose level must be 0, 1 or 2. Keeping previous value: {self._verbose}."
+            )
             return
-        

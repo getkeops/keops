@@ -35,7 +35,9 @@ def do_finalchunk_sub(
     out,
 ):
     dimout = varfinal.dim
-    yjloc = c_variable(pointer(dtype), f"({yj.id} + threadIdx.x * {chunks.get_dimfinalchunk()})")
+    yjloc = c_variable(
+        pointer(dtype), f"({yj.id} + threadIdx.x * {chunks.get_dimfinalchunk()})"
+    )
     load_chunks_routine_j = load_vars_chunks(
         [varfinal.ind],
         chunks.get_dimfinalchunk(),

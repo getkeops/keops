@@ -1,8 +1,6 @@
 import os
 import sys
 
-
-
 CROSS_MARK = "❌"
 CHECK_MARK = "✅"
 
@@ -64,4 +62,3 @@ def print_envs(env_vars):
             print(f"{var} = {value}")
         else:
             print(f"{var} is not set")
-

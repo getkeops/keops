@@ -102,7 +102,7 @@ class LinkCompile:
                 "Generating code for " + self.red_formula.__str__() + " ... ",
                 flush=True,
                 end="",
-                level=2
+                level=2,
             )
             self.generate_code()
             self.save_info()

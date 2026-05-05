@@ -22,10 +22,16 @@ def test_numpy_bindings():
         keops_res = my_conv(x, y).flatten()
     except Exception as e:
         raise ValueError(f"Error during computation: {e}", use_tag=False)
-    
+
     if np.allclose(keops_res, expected_res):
-        pyKeOps_Message("pyKeOps with torch bindings is working!", use_tag=False, level=1)
+        pyKeOps_Message(
+            "pyKeOps with torch bindings is working!", use_tag=False, level=1
+        )
         return True
     else:
-        pyKeOps_Message(f"outputs wrong values: expected {expected_res} but get {keops_res}", use_tag=False, level=1)
+        pyKeOps_Message(
+            f"outputs wrong values: expected {expected_res} but get {keops_res}",
+            use_tag=False,
+            level=1,
+        )
         return False

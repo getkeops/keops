@@ -41,7 +41,9 @@ def do_finalchunk_sub_ranges(
     out,
 ):
     dimout = varfinal.dim
-    yjloc = c_variable(pointer(dtype), f"({yj.id} + threadIdx.x * {chunks.get_dimfinalchunk()})")
+    yjloc = c_variable(
+        pointer(dtype), f"({yj.id} + threadIdx.x * {chunks.get_dimfinalchunk()})"
+    )
     indsj_global = Var_loader(fun_global).indsj
     load_chunks_routine_j = load_vars_chunks(
         [varfinal.ind],

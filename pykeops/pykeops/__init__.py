@@ -5,7 +5,6 @@ import keopscore
 
 from . import config as pykeopsconfig
 
-
 ###########################################################
 # PykeOps version
 
@@ -15,9 +14,12 @@ __version__ = pykeopsconfig.get_version()
 # Verbosity level (we must do this before importing keopscore)
 
 verbose = pykeopsconfig.init_verbose()
+
+
 def set_verbose(val):
     pykeopsconfig.set_verbose(val)
     sys.modules[__name__].verbose = pykeopsconfig.get_verbose()
+
 
 ###########################################################
 # Utils
