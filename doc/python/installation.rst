@@ -331,4 +331,6 @@ Alternatively, you can disable verbose compilation from your python script using
 .. code-block:: python
 
   import pykeops
-  pykeops.set_verbose(False)
+  pykeops.set_verbose(0)  # no output
+  pykeops.set_verbose(1)  # default verbosity level
+  pykeops.set_verbose(2)  # maximum verbosity level

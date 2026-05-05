@@ -102,10 +102,11 @@ class LinkCompile:
                 "Generating code for " + self.red_formula.__str__() + " ... ",
                 flush=True,
                 end="",
+                level=2
             )
             self.generate_code()
             self.save_info()
-            KeOps_Message("OK", use_tag=False, flush=True)
+            KeOps_Message("OK", use_tag=False, flush=True, level=2)
         else:
             self.read_info()
         return dict(

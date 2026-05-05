@@ -1,32 +1,23 @@
+import sys
 import os
 
 import keopscore
 
-##############################################################
-# Verbosity level (we must do this before importing keopscore)
-verbose = True
-if os.getenv("PYKEOPS_VERBOSE") == "0":
-    verbose = False
-    os.environ["KEOPS_VERBOSE"] = "0"
-
-
 from . import config as pykeopsconfig
 
 
-def set_verbose(val):
-    global verbose
-    verbose = val
-    keopscore.config.debug.set_verbose(val)
-
-
 ###########################################################
-# Set version
+# PykeOps version
 
-with open(
-    os.path.join(os.path.abspath(os.path.dirname(__file__)), "keops_version"),
-    encoding="utf-8",
-) as v:
-    __version__ = v.read().rstrip()
+__version__ = pykeopsconfig.get_version()
+
+##############################################################
+# Verbosity level (we must do this before importing keopscore)
+
+verbose = pykeopsconfig.init_verbose()
+def set_verbose(val):
+    pykeopsconfig.set_verbose(val)
+    sys.modules[__name__].verbose = pykeopsconfig.get_verbose()
 
 ###########################################################
 # Utils

@@ -1,5 +1,7 @@
 import os
 
+from keopscore.utils.messages import KeOps_Warning
+
 
 class DebugConfig:
 
@@ -8,11 +10,17 @@ class DebugConfig:
     # adds C++ code for printing all input and output values for all atomic operations during computations
     _debug_ops_at_exec = False
 
-    # Verbosity level (default is False unless KEOPS_VERBOSE define and not 0)
-    _verbose = os.getenv("KEOPS_VERBOSE") != "0"
-
     def __init__(self):
-        pass
+        env_val = os.getenv("KEOPS_VERBOSE")
+        if env_val is None:
+            self._verbose = 1
+        else:
+            val = int(env_val)
+            if val in (0, 1, 2):
+                self._verbose = val
+            else:
+                KeOps_Warning(f"Invalid KEOPS_VERBOSE value: {env_val}. Verbose level must be 0, 1 or 2. Defaulting to 1.")
+                self._verbose = 1
 
     def set_debug_ops(self, debug_ops):
         self._debug_ops = debug_ops
@@ -29,5 +37,10 @@ class DebugConfig:
     def get_verbose(self):
         return self._verbose
 
-    def set_verbose(self, verbose):
-        self._verbose = verbose
+    def set_verbose(self, val):
+        if val in (0, 1, 2):
+            self._verbose = val
+        else:
+            KeOps_Warning(f"Invalid verbose value: {val}. Verbose level must be 0, 1 or 2. Keeping previous value: {self._verbose}.")
+            return
+        

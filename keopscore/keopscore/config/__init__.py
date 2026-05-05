@@ -8,7 +8,7 @@ from .Debug import DebugConfig
 from .KeOpsPath import KeOpsPathConfig
 from .OpenMP import OpenMPConfig
 from .Platform import PlatformConfig
-from .chunks import ChunksConfig
+from .Chunks import ChunksConfig
 from keopscore.utils.messages import KeOps_Message
 
 # Instantiate the configurations once at import time to preserve the existing API.

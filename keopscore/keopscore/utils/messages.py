@@ -15,27 +15,29 @@ def _keops_verbose():
     debug = getattr(config, "debug", None)
     if debug is not None:
         return debug.get_verbose()
+    else:
+        message = "[KeOps] Warning : Could not access to verbosity level. Defaulting to verbose level 1."
+        print(message)
 
-    keopscore = sys.modules.get("keopscore")
-    return getattr(keopscore, "verbose", os.getenv("KEOPS_VERBOSE") != "0")
+    return 1  # default verbose level if config or debug is not available
 
 
-def KeOps_Print(*messages, force_print=False, **kwargs):
-    if _keops_verbose() or force_print:
+def KeOps_Print(*messages, force_print=False, level=1, **kwargs):
+    if _keops_verbose() >= level or force_print:
         print(*messages, **kwargs)
 
 
-def KeOps_Message(message, use_tag=True, **kwargs):
-    if _keops_verbose():
+def KeOps_Message(message, use_tag=True, level=1, **kwargs):
+    if _keops_verbose() >= level:
         tag = "[KeOps] " if use_tag else ""
         message = tag + message
         print(message, **kwargs)
 
 
-def KeOps_Warning(message, newline=False):
-    if _keops_verbose():
+def KeOps_Warning(message, newline=False, level=1, **kwargs):
+    if _keops_verbose() >= level:
         message = ("\n" if newline else "") + "[KeOps] Warning : " + message
-        print(message)
+        print(message, **kwargs)
 
 
 def KeOps_Error(message, show_line_number=True):

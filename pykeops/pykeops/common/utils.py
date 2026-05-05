@@ -95,19 +95,19 @@ def check_broadcasting(dims_1, dims_2):
     return max_tuple(padded_dims_1, padded_dims_2)
 
 
-def pyKeOps_Print(message, **kwargs):
-    if pykeops.verbose:
+def pyKeOps_Print(message, level=1, **kwargs):
+    if pykeops.verbose >= level:
         print(message, **kwargs)
 
 
-def pyKeOps_Message(message, use_tag=True, **kwargs):
-    if pykeops.verbose:
+def pyKeOps_Message(message, use_tag=True, level=1, **kwargs):
+    if pykeops.verbose >= level:
         tag = "[pyKeOps] " if use_tag else ""
         message = tag + message
         print(message, **kwargs)
 
 
-def pyKeOps_Warning(message):
-    if pykeops.verbose:
+def pyKeOps_Warning(message, level=1, **kwargs):
+    if pykeops.verbose >= level:
         message = "[pyKeOps] Warning : " + message
-        print(message)
+        print(message, **kwargs)
