@@ -24,6 +24,8 @@ try:
 
     HAS_TORCH = True
 
+    torch.manual_seed(42)
+
     use_cuda = torch.cuda.is_available()
     if use_cuda:
         device = "cuda"
@@ -41,35 +43,36 @@ from pykeops.test import assert_torch_allclose
 
 @unittest.skipUnless(HAS_TORCH, "torch not available")
 class PytorchUnitTestCase(unittest.TestCase):
-    A = int(5)  # Batchdim 1
-    B = int(3)  # Batchdim 2
-    M = int(10)
-    N = int(6)
-    D = int(3)
-    E = int(3)
-    nbatchdims = int(2)
 
-    def SetUp(self):
+    def setUp(self):
+        self.A = int(5)  # Batchdim 1
+        self.B = int(3)  # Batchdim 2
+        self.M = int(10)
+        self.N = int(6)
+        self.D = int(3)
+        self.E = int(3)
+        self.nbatchdims = int(2)
+
         self.x64 = torch.rand(
-            (M, D), dtype=torch.float64, device=device, requires_grad=True
+            (self.M, self.D), dtype=torch.float64, device=device, requires_grad=True
         )
         self.a64 = torch.rand(
-            (M, E), dtype=torch.float64, device=device, requires_grad=False
+            (self.M, self.E), dtype=torch.float64, device=device, requires_grad=False
         )
         self.e64 = torch.rand(
-            (M, E), dtype=torch.float64, device=device, requires_grad=False
+            (self.M, self.E), dtype=torch.float64, device=device, requires_grad=False
         )
         self.f64 = torch.rand(
-            (M, 1), dtype=torch.float64, device=device, requires_grad=True
+            (self.M, 1), dtype=torch.float64, device=device, requires_grad=True
         )
         self.y64 = torch.rand(
-            (N, D), dtype=torch.float64, device=device, requires_grad=False
+            (self.N, self.D), dtype=torch.float64, device=device, requires_grad=False
         )
         self.b64 = torch.rand(
-            (N, E), dtype=torch.float64, device=device, requires_grad=False
+            (self.N, self.E), dtype=torch.float64, device=device, requires_grad=False
         )
         self.g64 = torch.rand(
-            (N, 1), dtype=torch.float64, device=device, requires_grad=True
+            (self.N, 1), dtype=torch.float64, device=device, requires_grad=True
         )
         self.p64 = torch.rand(
             2, dtype=torch.float64, device=device, requires_grad=False
@@ -79,34 +82,43 @@ class PytorchUnitTestCase(unittest.TestCase):
         self.alpha64 = torch.tensor([0.1], dtype=torch.float64, device=device)
 
         self.X64 = torch.rand(
-            (A, B, M, D), dtype=torch.float64, device=device, requires_grad=True
+            (self.A, self.B, self.M, self.D),
+            dtype=torch.float64,
+            device=device,
+            requires_grad=True,
         )
         self.L64 = torch.rand(
-            (A, 1, M, 1), dtype=torch.float64, device=device, requires_grad=False
+            (self.A, 1, self.M, 1),
+            dtype=torch.float64,
+            device=device,
+            requires_grad=False,
         )
         self.Y64 = torch.rand(
-            (1, B, N, D), dtype=torch.float64, device=device, requires_grad=True
+            (1, self.B, self.N, self.D),
+            dtype=torch.float64,
+            device=device,
+            requires_grad=True,
         )
         self.S64 = 1 + torch.rand(
-            (A, B, 1), dtype=torch.float64, device=device, requires_grad=True
+            (self.A, self.B, 1), dtype=torch.float64, device=device, requires_grad=True
         )
 
-        self.x32 = x64.to(torch.float32).clone().requires_grad_(True)
-        self.a32 = a64.to(torch.float32).clone().requires_grad_(False)
-        self.e32 = e64.to(torch.float32).clone().requires_grad_(False)
-        self.f32 = f64.to(torch.float32).clone().requires_grad_(True)
-        self.y32 = y64.to(torch.float32).clone().requires_grad_(False)
-        self.b32 = b64.to(torch.float32).clone().requires_grad_(False)
-        self.g32 = g64.to(torch.float32).clone().requires_grad_(True)
-        self.p32 = p64.to(torch.float32).clone().requires_grad_(False)
+        self.x32 = self.x64.to(torch.float32).clone().requires_grad_(True)
+        self.a32 = self.a64.to(torch.float32).clone().requires_grad_(False)
+        self.e32 = self.e64.to(torch.float32).clone().requires_grad_(False)
+        self.f32 = self.f64.to(torch.float32).clone().requires_grad_(True)
+        self.y32 = self.y64.to(torch.float32).clone().requires_grad_(False)
+        self.b32 = self.b64.to(torch.float32).clone().requires_grad_(False)
+        self.g32 = self.g64.to(torch.float32).clone().requires_grad_(True)
+        self.p32 = self.p64.to(torch.float32).clone().requires_grad_(False)
 
-        self.sigma32 = sigma64.to(torch.float32).clone().requires_grad_(False)
-        self.alpha32 = alpha64.to(torch.float32).clone().requires_grad_(False)
+        self.sigma32 = self.sigma64.to(torch.float32).clone().requires_grad_(False)
+        self.alpha32 = self.alpha64.to(torch.float32).clone().requires_grad_(False)
 
-        self.X32 = X64.to(torch.float32).clone().requires_grad_(True)
-        self.L32 = L64.to(torch.float32).clone().requires_grad_(False)
-        self.Y32 = Y64.to(torch.float32).clone().requires_grad_(True)
-        self.S32 = S64.to(torch.float32).clone().requires_grad_(True)
+        self.X32 = self.X64.to(torch.float32).clone().requires_grad_(True)
+        self.L32 = self.L64.to(torch.float32).clone().requires_grad_(False)
+        self.Y32 = self.Y64.to(torch.float32).clone().requires_grad_(True)
+        self.S32 = self.S64.to(torch.float32).clone().requires_grad_(True)
 
     ############################################################
     def test_torchtools_function_binding(self):

@@ -28,9 +28,12 @@ from pykeops.numpy.utils import (
     log_sum_exp,
 )
 
+np.random.seed(42)
+
 
 class NumpyUnitTestCase(unittest.TestCase):
-    def SetUp(self):
+
+    def setUp(self):
         self.A = int(4)  # Batchdim 1
         self.B = int(6)  # Batchdim 2
         self.M = int(10)
@@ -39,18 +42,18 @@ class NumpyUnitTestCase(unittest.TestCase):
         self.E = int(3)
         self.nbatchdims = int(2)
 
-        self.x = np.random.rand(M, D)
-        self.a = np.random.rand(M, E)
-        self.f = np.random.rand(M, 1)
-        self.y = np.random.rand(N, D)
-        self.b = np.random.rand(N, E)
-        self.g = np.random.rand(N, 1)
+        self.x = np.random.rand(self.M, self.D)
+        self.a = np.random.rand(self.M, self.E)
+        self.f = np.random.rand(self.M, 1)
+        self.y = np.random.rand(self.N, self.D)
+        self.b = np.random.rand(self.N, self.E)
+        self.g = np.random.rand(self.N, 1)
         self.sigma = np.array([0.4])
 
-        self.X = np.random.rand(A, 1, M, D)
-        self.L = np.random.rand(1, B, M, 1)
-        self.Y = np.random.rand(1, B, N, D)
-        self.S = np.random.rand(A, B, 1) + 1
+        self.X = np.random.rand(self.A, 1, self.M, self.D)
+        self.L = np.random.rand(1, self.B, self.M, 1)
+        self.Y = np.random.rand(1, self.B, self.N, self.D)
+        self.S = np.random.rand(self.A, self.B, 1) + 1
 
         self.type_to_test = ["float32", "float64"]
 
