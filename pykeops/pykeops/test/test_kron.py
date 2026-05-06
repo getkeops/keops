@@ -33,7 +33,9 @@ def test_kron_lazytensor_np():
     Y = LazyTensor(y[None, :, :])
     gamma_keops_lazytensor_np = (X.keops_kron(Y, dimfa, dimfb)).sum(axis=axis)
 
-    assert_np_allclose(gamma_keops_lazytensor_np, gamma_py, atol=1e-6, label="kron_lazytensor_np")
+    assert_np_allclose(
+        gamma_keops_lazytensor_np, gamma_py, atol=1e-6, label="kron_lazytensor_np"
+    )
 
 
 ############################################################################
@@ -83,8 +85,12 @@ def test_kron_genred():
     myconv2 = Genred(formula2, aliases, reduction_op="Sum", axis=axis)
     gamma_keops_genred_TensorDot = myconv2(x0, y0)
 
-    assert_np_allclose(gamma_keops_genred_Kron, gamma_py2, atol=1e-6, label="kron_genred")
-    assert_np_allclose(gamma_keops_genred_TensorDot, gamma_py2, atol=1e-6, label="tensordot_genred")
+    assert_np_allclose(
+        gamma_keops_genred_Kron, gamma_py2, atol=1e-6, label="kron_genred"
+    )
+    assert_np_allclose(
+        gamma_keops_genred_TensorDot, gamma_py2, atol=1e-6, label="tensordot_genred"
+    )
 
 
 ############################################################################
@@ -127,6 +133,10 @@ def test_kron_genred2():
     myconv2 = Genred(formula2, aliases, reduction_op="Sum", axis=axis)
     gamma_keops_genred_TensorDot2 = myconv2(x2, y2)
 
-    assert_np_allclose(gamma_keops_genred_Kron2, gamma_py3, atol=1e-6, label="kron_genred2")
-    assert_np_allclose(gamma_keops_genred_TensorDot2, gamma_py3, atol=1e-6, label="tensordot_genred2")
+    assert_np_allclose(
+        gamma_keops_genred_Kron2, gamma_py3, atol=1e-6, label="kron_genred2"
+    )
+    assert_np_allclose(
+        gamma_keops_genred_TensorDot2, gamma_py3, atol=1e-6, label="tensordot_genred2"
+    )
     assert_np_allclose(gamma_py4, gamma_py3, atol=1e-6, label="numpy_kron_einsum")

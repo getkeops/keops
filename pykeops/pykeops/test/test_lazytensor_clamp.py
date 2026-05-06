@@ -39,4 +39,6 @@ class TestCase:
         assert_torch_allclose(out[0], out[1], label="clamp_fw")
 
     def test_lazytensor_clamp_bw(self):
-        assert_torch_allclose(out_g[0], out_g[1], atol=0.01, rtol=0.001, label="clamp_bw")
+        assert_torch_allclose(
+            out_g[0], out_g[1], atol=0.01, rtol=0.001, label="clamp_bw"
+        )

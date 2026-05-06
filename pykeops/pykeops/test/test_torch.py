@@ -21,6 +21,7 @@ import unittest
 
 try:
     import torch
+
     HAS_TORCH = True
 
     use_cuda = torch.cuda.is_available()
@@ -47,23 +48,48 @@ class PytorchUnitTestCase(unittest.TestCase):
     D = int(3)
     E = int(3)
     nbatchdims = int(2)
+
     def SetUp(self):
-        self.x64 = torch.rand((M, D), dtype=torch.float64, device=device, requires_grad=True)
-        self.a64 = torch.rand((M, E), dtype=torch.float64, device=device, requires_grad=False)
-        self.e64 = torch.rand((M, E), dtype=torch.float64, device=device, requires_grad=False)
-        self.f64 = torch.rand((M, 1), dtype=torch.float64, device=device, requires_grad=True)
-        self.y64 = torch.rand((N, D), dtype=torch.float64, device=device, requires_grad=False)
-        self.b64 = torch.rand((N, E), dtype=torch.float64, device=device, requires_grad=False)
-        self.g64 = torch.rand((N, 1), dtype=torch.float64, device=device, requires_grad=True)
-        self.p64 = torch.rand(2, dtype=torch.float64, device=device, requires_grad=False)
+        self.x64 = torch.rand(
+            (M, D), dtype=torch.float64, device=device, requires_grad=True
+        )
+        self.a64 = torch.rand(
+            (M, E), dtype=torch.float64, device=device, requires_grad=False
+        )
+        self.e64 = torch.rand(
+            (M, E), dtype=torch.float64, device=device, requires_grad=False
+        )
+        self.f64 = torch.rand(
+            (M, 1), dtype=torch.float64, device=device, requires_grad=True
+        )
+        self.y64 = torch.rand(
+            (N, D), dtype=torch.float64, device=device, requires_grad=False
+        )
+        self.b64 = torch.rand(
+            (N, E), dtype=torch.float64, device=device, requires_grad=False
+        )
+        self.g64 = torch.rand(
+            (N, 1), dtype=torch.float64, device=device, requires_grad=True
+        )
+        self.p64 = torch.rand(
+            2, dtype=torch.float64, device=device, requires_grad=False
+        )
 
         self.sigma64 = torch.tensor([0.4], dtype=torch.float64, device=device)
         self.alpha64 = torch.tensor([0.1], dtype=torch.float64, device=device)
 
-        self.X64 = torch.rand((A, B, M, D), dtype=torch.float64, device=device, requires_grad=True)
-        self.L64 = torch.rand((A, 1, M, 1), dtype=torch.float64, device=device, requires_grad=False)
-        self.Y64 = torch.rand((1, B, N, D), dtype=torch.float64, device=device, requires_grad=True)
-        self.S64 = 1 + torch.rand((A, B, 1), dtype=torch.float64, device=device, requires_grad=True)
+        self.X64 = torch.rand(
+            (A, B, M, D), dtype=torch.float64, device=device, requires_grad=True
+        )
+        self.L64 = torch.rand(
+            (A, 1, M, 1), dtype=torch.float64, device=device, requires_grad=False
+        )
+        self.Y64 = torch.rand(
+            (1, B, N, D), dtype=torch.float64, device=device, requires_grad=True
+        )
+        self.S64 = 1 + torch.rand(
+            (A, B, 1), dtype=torch.float64, device=device, requires_grad=True
+        )
 
         self.x32 = x64.to(torch.float32).clone().requires_grad_(True)
         self.a32 = a64.to(torch.float32).clone().requires_grad_(False)
@@ -81,7 +107,6 @@ class PytorchUnitTestCase(unittest.TestCase):
         self.L32 = L64.to(torch.float32).clone().requires_grad_(False)
         self.Y32 = Y64.to(torch.float32).clone().requires_grad_(True)
         self.S32 = S64.to(torch.float32).clone().requires_grad_(True)
-
 
     ############################################################
     def test_torchtools_function_binding(self):
@@ -122,7 +147,9 @@ class PytorchUnitTestCase(unittest.TestCase):
                     dim=1,
                 ).T
                 # compare output
-                assert_torch_allclose(gamma_keops.to(torch.float64), gamma_ref, atol=1e-6)
+                assert_torch_allclose(
+                    gamma_keops.to(torch.float64), gamma_ref, atol=1e-6
+                )
 
     ############################################################
     def test_generic_syntax_double(self):
@@ -179,10 +206,16 @@ class PytorchUnitTestCase(unittest.TestCase):
                 )
 
                 # Torch reference
-                sqdist = torch.sum((self.x64[:, None, :] - self.y64[None, :, :]) ** 2, dim=2)
+                sqdist = torch.sum(
+                    (self.x64[:, None, :] - self.y64[None, :, :]) ** 2, dim=2
+                )
                 scores = (self.sigma64 - self.g64.T) ** 2 * torch.exp(-sqdist)
                 scores = scores - torch.max(scores, dim=1, keepdim=True).values
-                gamma_ref = torch.exp(scores) @ self.y64 / torch.sum(torch.exp(scores), dim=1, keepdim=True)
+                gamma_ref = (
+                    torch.exp(scores)
+                    @ self.y64
+                    / torch.sum(torch.exp(scores), dim=1, keepdim=True)
+                )
 
                 # compare output
                 assert_torch_allclose(gamma_keops, gamma_ref, atol=1e-6)
@@ -214,9 +247,9 @@ class PytorchUnitTestCase(unittest.TestCase):
 
                 # Torch reference
                 scals = (self.x64 @ self.y64.T) ** 2  # Memory-intensive computation!
-                gamma_ref = self.p64[0] * scals.sum(1).reshape(-1, 1) * self.x64 + self.p64[
-                    1
-                ] * (scals @ self.y64)
+                gamma_ref = self.p64[0] * scals.sum(1).reshape(
+                    -1, 1
+                ) * self.x64 + self.p64[1] * (scals @ self.y64)
 
                 # compare output
                 assert_torch_allclose(gamma_keops, gamma_ref, atol=1e-6)
@@ -253,7 +286,9 @@ class PytorchUnitTestCase(unittest.TestCase):
                 gamma_lazy = gamma_lazy.logsumexp(dim=1, weight=Vj(self.g64.exp()))
 
                 # Torch reference
-                sqdist = torch.sum((self.x64[:, None, :] - self.y64[None, :, :]) ** 2, dim=2)
+                sqdist = torch.sum(
+                    (self.x64[:, None, :] - self.y64[None, :, :]) ** 2, dim=2
+                )
                 inv_s2 = 1 / (self.sigma64**2)
                 if k == "gaussian":
                     log_k = -(inv_s2 * sqdist)
@@ -266,7 +301,9 @@ class PytorchUnitTestCase(unittest.TestCase):
                 gamma_ref = torch.logsumexp(log_k + self.g64.T, dim=1)
 
                 # compare output
-                assert_torch_allclose(gamma_lazy.reshape(-1), gamma_ref.reshape(-1), atol=1e-6)
+                assert_torch_allclose(
+                    gamma_lazy.reshape(-1), gamma_ref.reshape(-1), atol=1e-6
+                )
 
     ############################################################
     def test_logSumExp_gradient_kernels_feature(self):
@@ -302,8 +339,12 @@ class PytorchUnitTestCase(unittest.TestCase):
         ]
 
         # compare output
-        assert_torch_allclose(gamma_keops[0].reshape(-1), gamma_ref[0].reshape(-1), atol=1e-6)
-        assert_torch_allclose(gamma_keops[1].reshape(-1), gamma_ref[1].reshape(-1), atol=1e-6)
+        assert_torch_allclose(
+            gamma_keops[0].reshape(-1), gamma_ref[0].reshape(-1), atol=1e-6
+        )
+        assert_torch_allclose(
+            gamma_keops[1].reshape(-1), gamma_ref[1].reshape(-1), atol=1e-6
+        )
 
     ############################################################
     def test_non_contiguity(self):
@@ -341,7 +382,9 @@ class PytorchUnitTestCase(unittest.TestCase):
 
         # Torch reference
         sqdist = torch.sum((self.x64[:, None, :] - self.y64[None, :, :]) ** 2, dim=2)
-        gamma_ref = torch.sum((self.sigma64 - self.g64.T) ** 2 * torch.exp(-sqdist), dim=1)
+        gamma_ref = torch.sum(
+            (self.sigma64 - self.g64.T) ** 2 * torch.exp(-sqdist), dim=1
+        )
 
         # compare output
         assert_torch_allclose(gamma_keops.reshape(-1), gamma_ref.reshape(-1), atol=1e-6)
@@ -506,7 +549,9 @@ class PytorchUnitTestCase(unittest.TestCase):
 
         for res_keops, res_torch in zip(full_results[0], full_results[1]):
             self.assertTrue(res_keops.shape == res_torch.shape)
-            assert_torch_allclose(res_keops.reshape(-1), res_torch.reshape(-1), atol=1e-3)
+            assert_torch_allclose(
+                res_keops.reshape(-1), res_torch.reshape(-1), atol=1e-3
+            )
 
     ############################################################
     def test_LazyTensor_logsumexp(self):
@@ -550,7 +595,9 @@ class PytorchUnitTestCase(unittest.TestCase):
 
         for res_keops, res_torch in zip(full_results[0], full_results[1]):
             self.assertTrue(res_keops.shape == res_torch.shape)
-            assert_torch_allclose(res_keops.reshape(-1), res_torch.reshape(-1), atol=1e-5)
+            assert_torch_allclose(
+                res_keops.reshape(-1), res_torch.reshape(-1), atol=1e-5
+            )
 
     ############################################################
     # Test min reduction with chunk without batches
@@ -569,7 +616,7 @@ class PytorchUnitTestCase(unittest.TestCase):
         for use_keops in [True, False]:
             results = []
 
-            for x, y in [(X32, Y32), (X64, Y64)]:  
+            for x, y in [(X32, Y32), (X64, Y64)]:
                 x_i = x.unsqueeze(-2)
                 y_j = y.unsqueeze(-3)
 
@@ -590,7 +637,9 @@ class PytorchUnitTestCase(unittest.TestCase):
 
         for res_keops, res_torch in zip(full_results[0], full_results[1]):
             self.assertTrue(res_keops.shape == res_torch.shape)
-            assert_torch_allclose(res_keops.reshape(-1), res_torch.reshape(-1), atol=1e-5)
+            assert_torch_allclose(
+                res_keops.reshape(-1), res_torch.reshape(-1), atol=1e-5
+            )
 
     ############################################################
     def test_LazyTensor_min(self):
@@ -630,7 +679,9 @@ class PytorchUnitTestCase(unittest.TestCase):
 
         for res_keops, res_torch in zip(full_results[0], full_results[1]):
             self.assertTrue(res_keops.shape == res_torch.shape)
-            assert_torch_allclose(res_keops.reshape(-1), res_torch.reshape(-1), atol=1e-5)
+            assert_torch_allclose(
+                res_keops.reshape(-1), res_torch.reshape(-1), atol=1e-5
+            )
 
     ############################################################
     def test_TensorDot_with_permute(self):
@@ -642,7 +693,9 @@ class PytorchUnitTestCase(unittest.TestCase):
             return torch.tensordot(a, b, dims=dims).sum(3).permute(perm)
 
         def invert_permutation_numpy(permutation):
-            return [idx for idx, _ in sorted(enumerate(permutation), key=lambda x: x[1])]
+            return [
+                idx for idx, _ in sorted(enumerate(permutation), key=lambda x: x[1])
+            ]
 
         x = torch.randn(self.M, 2, 3, 2, 2, 4, requires_grad=True, dtype=torch.float64)
         y = torch.randn(
@@ -655,9 +708,7 @@ class PytorchUnitTestCase(unittest.TestCase):
         perm_torch = (0,) + tuple([(i + 1) for i in invert_permutation_numpy(perm)])
         sum_f_torch2 = my_tensordort_perm(x, y, dims=(contfa, contfb), perm=perm_torch)
 
-        f_keops = LazyTensor(
-            x.reshape(self.M, 1, prod(dimfa))
-        ).keops_tensordot(
+        f_keops = LazyTensor(x.reshape(self.M, 1, prod(dimfa))).keops_tensordot(
             LazyTensor(y.reshape(1, self.N, prod(dimfb))),
             dimfa,
             dimfb,

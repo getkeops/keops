@@ -36,7 +36,9 @@ class TestCase:
         res1 = torch.func.grad(fn_torch, (0, 1, 2))(x_i, y_j, b_j)
         res2 = torch.func.grad(fn_keops, (0, 1, 2))(x_i, y_j, b_j)
         for k in range(3):
-            assert_torch_allclose(res1[k], res2[k], atol=1e-5, label=f"torch_func_lse_grad[{k}]")
+            assert_torch_allclose(
+                res1[k], res2[k], atol=1e-5, label=f"torch_func_lse_grad[{k}]"
+            )
 
     def test_torch_func_vjp(self):
         res1 = torch.func.vjp(fn_torch, x_i, y_j, b_j)[1](torch.tensor(1.0))[0]
@@ -52,7 +54,9 @@ class TestCase:
         res1 = torch.func.jacrev(fn_torch, (0, 1, 2))(x_i, y_j, b_j)
         res2 = torch.func.jacrev(fn_keops, (0, 1, 2))(x_i, y_j, b_j)
         for k in range(3):
-            assert_torch_allclose(res1[k], res2[k], atol=1e-5, label=f"torch_func_lse_jacrev[{k}]")
+            assert_torch_allclose(
+                res1[k], res2[k], atol=1e-5, label=f"torch_func_lse_jacrev[{k}]"
+            )
 
     def test_torch_func_jacfwd(self):
         res1 = torch.func.jacfwd(fn_torch)(x_i, y_j, b_j)

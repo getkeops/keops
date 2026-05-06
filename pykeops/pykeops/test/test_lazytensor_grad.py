@@ -49,7 +49,11 @@ class TestClass:
         assert_torch_allclose(out[0], out[1], rtol=0.0001, label="lazytensor_grad_fw")
 
     def test_lazytensor_grad_bw1(self):
-        assert_torch_allclose(out_g[0], out_g[1], rtol=0.0001, label="lazytensor_grad_bw1")
+        assert_torch_allclose(
+            out_g[0], out_g[1], rtol=0.0001, label="lazytensor_grad_bw1"
+        )
 
     def test_lazytensor_grad_bw2(self):
-        assert_torch_allclose(out_g2[0], out_g2[1], rtol=0.001, label="lazytensor_grad_bw2")
+        assert_torch_allclose(
+            out_g2[0], out_g2[1], rtol=0.001, label="lazytensor_grad_bw2"
+        )

@@ -39,13 +39,13 @@ for backend in ["torch", "keops_cpu"]:
 
 class TestCase:
     def test_torch_keops_cpu(self):
-        assert torch.allclose(out[0], out[1]), (
-            f"torch vs keops_cpu mismatch: ||ref-test||_2={torch.norm(out[0] - out[1]).item():.6e} and ||ref||_2={torch.norm(out[0]).item():.6e}"
-        )
+        assert torch.allclose(
+            out[0], out[1]
+        ), f"torch vs keops_cpu mismatch: ||ref-test||_2={torch.norm(out[0] - out[1]).item():.6e} and ||ref||_2={torch.norm(out[0]).item():.6e}"
 
     @pytest.mark.skipif(not torch.cuda.is_available(), reason="Requires a GPU")
     def test_torch_keops_gpu(self):
         out_gpu = fun(x, y, b, ["keops_gpu"]).squeeze()
-        assert torch.allclose(out[0], out_gpu), (
-            f"torch vs keops_gpu mismatch: ||ref-test||_2={torch.norm(out[0] - out_gpu).item():.6e} and ||ref||_2={torch.norm(out[0]).item():.6e}"
-        )
+        assert torch.allclose(
+            out[0], out_gpu
+        ), f"torch vs keops_gpu mismatch: ||ref-test||_2={torch.norm(out[0] - out_gpu).item():.6e} and ||ref||_2={torch.norm(out[0]).item():.6e}"
