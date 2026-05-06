@@ -1,5 +1,6 @@
 from pykeops.numpy import LazyTensor
 import numpy as np
+from pykeops.test import assert_np_allclose
 
 np.random.seed(0)
 a1 = np.random.rand(2, 1000, 5)
@@ -22,4 +23,4 @@ d2 = kernel2 @ c
 
 
 def test_contiguous_numpy():
-    assert np.allclose(d2, d1)
+    assert_np_allclose(d2, d1, label="contiguous_numpy")

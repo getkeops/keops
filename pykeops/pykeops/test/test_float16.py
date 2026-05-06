@@ -2,6 +2,7 @@
 import pytest
 import torch
 from pykeops.torch import LazyTensor
+from pykeops.test import assert_torch_allclose
 
 dtype = torch.float16
 
@@ -34,7 +35,7 @@ class TestCase:
         for backend in ["torch", "keops"]:
             self.out.append(fun(x, y, backend).squeeze())
 
-        assert torch.allclose(self.out[0], self.out[1], atol=0.001, rtol=0.001)
+        assert_torch_allclose(self.out[0], self.out[1], atol=0.001, rtol=0.001, label="float16_fw")
 
     @pytest.mark.skipif(not torch.cuda.is_available(), reason="Requires a GPU")
     def test_float16_bw(self):
@@ -42,4 +43,4 @@ class TestCase:
         for k, backend in enumerate(["torch", "keops"]):
             out_g.append(torch.autograd.grad(self.out[k][0], [x])[0])
 
-        assert torch.allclose(out_g[0], out_g[1])
+        assert_torch_allclose(out_g[0], out_g[1], label="float16_bw")

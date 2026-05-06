@@ -10,7 +10,7 @@ M, N, D = 1000, 1000, 3
 
 test_grad = True
 
-device_id = "cuda:0" if torch.cuda.is_available() else "cpu"
+device_id = "cuda" if torch.cuda.is_available() else "cpu"
 
 do_warmup = True
 

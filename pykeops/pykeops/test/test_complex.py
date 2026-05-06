@@ -3,6 +3,7 @@
 import math
 import torch
 from pykeops.torch import LazyTensor
+from pykeops.test import assert_torch_allclose
 
 dtype = torch.float32
 dtype_c = torch.complex64
@@ -40,7 +41,7 @@ for backend in ["keops", "torch"]:
 
 
 def test_complex_fw():
-    assert torch.allclose(out[0], out[1])
+    assert_torch_allclose(out[0], out[1], label="complex_fw")
 
 
 # out_g = []

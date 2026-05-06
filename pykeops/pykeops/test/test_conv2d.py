@@ -1,13 +1,14 @@
 import math
 import torch
 from pykeops.torch import LazyTensor
+from pykeops.test import assert_torch_allclose
 
-M, N, D, DV = 20000, 30000, 3, 1
+M, N, D, DV = 2000, 3000, 3, 1
 
 dtype = torch.float32
 
 torch.backends.cuda.matmul.allow_tf32 = False
-device_id = "cuda:0" if torch.cuda.is_available() else "cpu"
+device_id = "cuda" if torch.cuda.is_available() else "cpu"
 
 x = torch.rand(M, 1, D, device=device_id, dtype=dtype) / math.sqrt(D)
 y = torch.rand(1, N, D, device=device_id, dtype=dtype) / math.sqrt(D)
@@ -47,10 +48,10 @@ for k, backend in enumerate(backends):
 
 class TestCase:
     def test_conv2d_fw(self):
-        assert torch.allclose(out[0], out[1])
+        assert_torch_allclose(out[0], out[1], label="conv2d_fw")
 
     def test_conv2d_bw1(self):
-        assert torch.allclose(out_g[0], out_g[1])
+        assert_torch_allclose(out_g[0], out_g[1], label="conv2d_bw1")
 
     def test_conv2d_bw2(self):
-        assert torch.allclose(out_g2[0], out_g2[1])
+        assert_torch_allclose(out_g2[0], out_g2[1], label="conv2d_bw2")

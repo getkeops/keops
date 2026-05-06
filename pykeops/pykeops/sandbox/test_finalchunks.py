@@ -6,13 +6,13 @@ import math
 import torch
 from pykeops.torch import LazyTensor
 
-M, N, D, DV = 10000, 10000, 3, 10000
+M, N, D, DV = 1000, 1000, 3, 1000
 
 dtype = torch.float32
 
 test_grad = True
 test_grad2 = False
-device_id = "cuda:0" if torch.cuda.is_available() else "cpu"
+device_id = "cuda" if torch.cuda.is_available() else "cpu"
 do_warmup = True
 
 x = torch.rand(

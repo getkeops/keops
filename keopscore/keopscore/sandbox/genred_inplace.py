@@ -10,7 +10,7 @@ M, N, D, DV = 20, 30, 3, 1
 
 dtype = torch.float64
 
-device_id = "cuda:0" if torch.cuda.is_available() else "cpu"
+device_id = "cuda" if torch.cuda.is_available() else "cpu"
 do_warmup = False
 
 x = torch.rand(M, D, device=device_id, dtype=dtype) / math.sqrt(D)

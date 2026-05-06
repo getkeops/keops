@@ -72,6 +72,7 @@ class LoadKeOps_cpp_class(LoadKeOps):
 #include "{self.params.source_name}"
 
 #include <pybind11/pybind11.h>
+#include <stdexcept>
 namespace py = pybind11;
 
 template < typename TYPE >
@@ -149,6 +150,34 @@ int launch_pykeops_{self.params.tag}_cpu(signed long int dimY, signed long int n
         argshape_v[i] = tmp_v;
     }}
 
+
+    /*------------------------------------*/
+    /*        Shape validation             */
+    /*------------------------------------*/
+    for (int k = 0; k < (int)indsi_v.size(); k++) {{
+        int idx = indsi_v[k];
+        const auto& shape = argshape_v[idx];
+        if ((int)shape.size() < 2)
+            throw std::invalid_argument("[pyKeOps] Error: Vi argument #" + std::to_string(idx) + " requires at least 2 dimensions, got " + std::to_string(shape.size()) + ".");
+        if (shape.back() != dimsx_v[k])
+            throw std::invalid_argument("[pyKeOps] Error: Vi argument #" + std::to_string(idx) + " has trailing dim " + std::to_string(shape.back()) + ", expected " + std::to_string(dimsx_v[k]) + ".");
+    }}
+    for (int k = 0; k < (int)indsj_v.size(); k++) {{
+        int idx = indsj_v[k];
+        const auto& shape = argshape_v[idx];
+        if ((int)shape.size() < 2)
+            throw std::invalid_argument("[pyKeOps] Error: Vj argument #" + std::to_string(idx) + " requires at least 2 dimensions, got " + std::to_string(shape.size()) + ".");
+        if (shape.back() != dimsy_v[k])
+            throw std::invalid_argument("[pyKeOps] Error: Vj argument #" + std::to_string(idx) + " has trailing dim " + std::to_string(shape.back()) + ", expected " + std::to_string(dimsy_v[k]) + ".");
+    }}
+    for (int k = 0; k < (int)indsp_v.size(); k++) {{
+        int idx = indsp_v[k];
+        const auto& shape = argshape_v[idx];
+        if ((int)shape.size() < 1)
+            throw std::invalid_argument("[pyKeOps] Error: Pm argument #" + std::to_string(idx) + " requires at least 1 dimension (got a scalar).");
+        if (shape.back() != dimsp_v[k])
+            throw std::invalid_argument("[pyKeOps] Error: Pm argument #" + std::to_string(idx) + " has trailing dim " + std::to_string(shape.back()) + ", expected " + std::to_string(dimsp_v[k]) + ".");
+    }}
 
     return launch_keops_cpu_{self.params.tag}< TYPE >(dimY,
                                                       nx,

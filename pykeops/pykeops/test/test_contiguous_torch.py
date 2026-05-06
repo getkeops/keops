@@ -1,5 +1,6 @@
 from pykeops.torch import LazyTensor
 import torch
+from pykeops.test import assert_torch_allclose
 
 torch.backends.cuda.matmul.allow_tf32 = False
 torch.manual_seed(0)
@@ -24,4 +25,4 @@ d2 = kernel2 @ c
 
 
 def test_contiguous_torch():
-    assert torch.allclose(d2, d1)
+    assert_torch_allclose(d2, d1, label="contiguous_torch")

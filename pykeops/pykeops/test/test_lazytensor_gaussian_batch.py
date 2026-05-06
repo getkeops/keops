@@ -1,6 +1,7 @@
 import math
 import torch
 from pykeops.torch import LazyTensor
+from pykeops.test import assert_torch_allclose
 
 B1, B2, M, N, D, DV = 3, 4, 20, 25, 3, 2
 
@@ -41,7 +42,7 @@ for k, backend in enumerate(backends):
 class TestCase:
     def test_lazytensor_gaussian_batch_fw(self):
         # print(out[0]- out[1])
-        assert torch.allclose(out[0], out[1], atol=1e-6)
+        assert_torch_allclose(out[0], out[1], atol=1e-6, label="gaussian_batch_fw")
 
     def test_lazytensor_gaussian_batch_bw(self):
-        assert torch.allclose(out_g[0], out_g[1])
+        assert_torch_allclose(out_g[0], out_g[1], label="gaussian_batch_bw")

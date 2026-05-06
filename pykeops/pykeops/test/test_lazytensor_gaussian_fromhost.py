@@ -1,6 +1,7 @@
 import math
 import torch
 from pykeops.torch import LazyTensor
+from pykeops.test import assert_torch_allclose
 
 M, N, D, DV = 2500, 2000, 3, 1
 
@@ -38,4 +39,4 @@ for backend in backends:
 
 
 def test_lazytensor_gaussian_fromhost():
-    assert torch.allclose(out[0], out[1])
+    assert_torch_allclose(out[0], out[1], label="gaussian_fromhost")

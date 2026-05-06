@@ -29,7 +29,7 @@ from pykeops.torch import LazyTensor
 
 use_cuda = torch.cuda.is_available()
 dtype = torch.float32 if use_cuda else torch.float64
-device_id = "cuda:0" if use_cuda else "cpu"
+device_id = "cuda" if use_cuda else "cpu"
 
 ########################################################################
 # Simple implementation of the K-means algorithm:

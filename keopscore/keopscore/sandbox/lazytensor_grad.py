@@ -19,7 +19,7 @@ dtype = torch.float32
 test_grad = True
 test_grad2 = True
 test_grad3 = True
-device_id = "cuda:0" if torch.cuda.is_available() else "cpu"
+device_id = "cuda" if torch.cuda.is_available() else "cpu"
 
 x = torch.rand(M, 1, D, requires_grad=test_grad, device=device_id, dtype=dtype)
 y = torch.rand(1, N, 1, device=device_id, dtype=dtype)

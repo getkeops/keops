@@ -10,7 +10,7 @@ from functools import reduce
 # D is size of each sample
 M, N, D = 1000, 1000, 50
 
-device_id = "cuda:0" if torch.cuda.is_available() else "cpu"
+device_id = "cuda" if torch.cuda.is_available() else "cpu"
 
 do_warmup = True
 

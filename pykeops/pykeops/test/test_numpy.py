@@ -22,6 +22,7 @@ import numpy as np
 
 import pykeops
 import pykeops.config
+from pykeops.test import assert_np_allclose
 from pykeops.numpy.utils import (
     squared_distances,
     log_sum_exp,
@@ -29,28 +30,29 @@ from pykeops.numpy.utils import (
 
 
 class NumpyUnitTestCase(unittest.TestCase):
-    A = int(4)  # Batchdim 1
-    B = int(6)  # Batchdim 2
-    M = int(10)
-    N = int(6)
-    D = int(3)
-    E = int(3)
-    nbatchdims = int(2)
+    def SetUp(self):
+        self.A = int(4)  # Batchdim 1
+        self.B = int(6)  # Batchdim 2
+        self.M = int(10)
+        self.N = int(6)
+        self.D = int(3)
+        self.E = int(3)
+        self.nbatchdims = int(2)
 
-    x = np.random.rand(M, D)
-    a = np.random.rand(M, E)
-    f = np.random.rand(M, 1)
-    y = np.random.rand(N, D)
-    b = np.random.rand(N, E)
-    g = np.random.rand(N, 1)
-    sigma = np.array([0.4])
+        self.x = np.random.rand(M, D)
+        self.a = np.random.rand(M, E)
+        self.f = np.random.rand(M, 1)
+        self.y = np.random.rand(N, D)
+        self.b = np.random.rand(N, E)
+        self.g = np.random.rand(N, 1)
+        self.sigma = np.array([0.4])
 
-    X = np.random.rand(A, 1, M, D)
-    L = np.random.rand(1, B, M, 1)
-    Y = np.random.rand(1, B, N, D)
-    S = np.random.rand(A, B, 1) + 1
+        self.X = np.random.rand(A, 1, M, D)
+        self.L = np.random.rand(1, B, M, 1)
+        self.Y = np.random.rand(1, B, N, D)
+        self.S = np.random.rand(A, B, 1) + 1
 
-    type_to_test = ["float32", "float64"]
+        self.type_to_test = ["float32", "float64"]
 
     ############################################################
     def test_numpytools_function_binding(self):
@@ -61,10 +63,10 @@ class NumpyUnitTestCase(unittest.TestCase):
         x = self.x.astype(self.type_to_test[0])
 
         self.assertTrue(np.array_equal(tools.copy(x), x))
-        self.assertTrue(np.allclose(tools.exp(x), np.exp(x)))
-        self.assertTrue(np.allclose(tools.log(x + 1), np.log(x + 1)))
-        self.assertTrue(np.allclose(tools.norm(x), np.linalg.norm(x)))
-        self.assertTrue(np.allclose(tools.arraysum(x, axis=0), np.sum(x, axis=0)))
+        assert_np_allclose(tools.exp(x), np.exp(x))
+        assert_np_allclose(tools.log(x + 1), np.log(x + 1))
+        assert_np_allclose(tools.norm(x), np.linalg.norm(x))
+        assert_np_allclose(tools.arraysum(x, axis=0), np.sum(x, axis=0))
 
     ############################################################
     def test_cg_solver_stops_immediately_when_x0_is_good(self):
@@ -81,13 +83,13 @@ class NumpyUnitTestCase(unittest.TestCase):
         b = K_xx @ self.f + alpha * self.f
 
         x = K_xx.solve(b, alpha=alpha, x0=self.f, eps=1e-12)
-        self.assertTrue(np.allclose(self.f, x))
+        assert_np_allclose(self.f, x)
 
         stream = io.StringIO()
         with redirect_stdout(stream):
             x = K_xx.solve(b, alpha=alpha, x0=self.f, eps=1e-12, verbose=True)
 
-        self.assertTrue(np.allclose(self.f, x))
+        assert_np_allclose(self.f, x)
         output = stream.getvalue()
         self.assertIn("'status': 'Converged'", output)
         self.assertIn("'niter': 0", output)
@@ -111,7 +113,7 @@ class NumpyUnitTestCase(unittest.TestCase):
         with redirect_stdout(stream):
             x = K_xx.solve(b, alpha=alpha, x0=self.f, eps=1e-12, verbose=True)
 
-        self.assertTrue(np.allclose(self.f, x))
+        assert_np_allclose(self.f, x)
         output = stream.getvalue()
         self.assertIn("'status': 'Converged'", output)
         self.assertIn("'x0_provided': True", output)
@@ -150,7 +152,7 @@ class NumpyUnitTestCase(unittest.TestCase):
                 ).T
 
                 # compare output
-                self.assertTrue(np.allclose(gamma_keops, gamma_py, atol=1e-6))
+                assert_np_allclose(gamma_keops, gamma_py, atol=1e-6)
 
     ############################################################
     def test_generic_syntax_lse(self):
@@ -185,7 +187,7 @@ class NumpyUnitTestCase(unittest.TestCase):
                 )
 
                 # compare output
-                self.assertTrue(np.allclose(gamma_keops.ravel(), gamma_py, atol=1e-6))
+                assert_np_allclose(gamma_keops.ravel(), gamma_py, atol=1e-6)
 
     ############################################################
     def test_generic_syntax_softmax(self):
@@ -231,9 +233,7 @@ class NumpyUnitTestCase(unittest.TestCase):
                 )
 
                 # compare output
-                self.assertTrue(
-                    np.allclose(gamma_keops.ravel(), gamma_py.ravel(), atol=1e-6)
-                )
+                assert_np_allclose(gamma_keops.ravel(), gamma_py.ravel(), atol=1e-6)
 
     ############################################################
     def test_non_contiguity(self):
@@ -261,7 +261,7 @@ class NumpyUnitTestCase(unittest.TestCase):
 
         # check output
         self.assertFalse(yc_tmp.flags.c_contiguous)
-        self.assertTrue(np.allclose(gamma_keops1, gamma_keops2))
+        assert_np_allclose(gamma_keops1, gamma_keops2)
 
     ############################################################
     def test_heterogeneous_var_aliases(self):
@@ -290,7 +290,7 @@ class NumpyUnitTestCase(unittest.TestCase):
         )
 
         # compare output
-        self.assertTrue(np.allclose(gamma_keops.ravel(), gamma_py, atol=1e-6))
+        assert_np_allclose(gamma_keops.ravel(), gamma_py, atol=1e-6)
 
     ############################################################
     def test_formula_simplification(self):
@@ -316,7 +316,7 @@ class NumpyUnitTestCase(unittest.TestCase):
         gamma_py = np.zeros_like(self.x)
 
         # compare output
-        self.assertTrue(np.allclose(gamma_keops, gamma_py, atol=1e-6))
+        assert_np_allclose(gamma_keops, gamma_py, atol=1e-6)
 
     ############################################################
     def test_argkmin(self):
@@ -343,7 +343,7 @@ class NumpyUnitTestCase(unittest.TestCase):
             np.sum((self.x[:, np.newaxis, :] - self.y[np.newaxis, :, :]) ** 2, axis=2),
             axis=1,
         )[:, :3]
-        self.assertTrue(np.allclose(c.ravel(), cnp.ravel()))
+        assert_np_allclose(c.ravel(), cnp.ravel())
 
     ############################################################
     def test_LazyTensor_sum(self):
@@ -388,7 +388,7 @@ class NumpyUnitTestCase(unittest.TestCase):
 
         for res_keops, res_numpy in zip(full_results[0], full_results[1]):
             self.assertTrue(res_keops.shape == res_numpy.shape)
-            self.assertTrue(np.allclose(res_keops, res_numpy, atol=1e-3))
+            assert_np_allclose(res_keops, res_numpy, atol=1e-3)
 
 
 if __name__ == "__main__":

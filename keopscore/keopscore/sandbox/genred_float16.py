@@ -6,17 +6,12 @@ import math
 import torch
 from pykeops.torch import Genred
 
-(
-    M,
-    N,
-) = (
-    5,
-    5,
-)
+M = 5
+N = 5
 
 dtype = torch.float16
 
-device_id = "cuda:0" if torch.cuda.is_available() else "cpu"
+device_id = "cuda" if torch.cuda.is_available() else "cpu"
 
 x = torch.zeros(M, 1, device=device_id, dtype=dtype)
 b = torch.ones(N, 1, device=device_id, dtype=dtype)

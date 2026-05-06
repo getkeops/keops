@@ -34,12 +34,12 @@ def KeOps_Message(message, use_tag=True, level=1, **kwargs):
 
 def KeOps_Warning(message, newline=False, level=1, **kwargs):
     if _keops_verbose() >= level:
-        message = ("\n" if newline else "") + "[KeOps] Warning : " + message
+        message = ("\n" if newline else "") + "[KeOps] Warning: " + message
         print(message, **kwargs)
 
 
 def KeOps_Error(message, show_line_number=True):
-    message = "[KeOps] Error : " + message
+    message = "[KeOps] Error: " + message
     if show_line_number:
         from inspect import currentframe, getframeinfo
 

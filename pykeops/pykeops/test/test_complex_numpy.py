@@ -1,5 +1,6 @@
 import numpy as np
 from pykeops.numpy import LazyTensor, ComplexLazyTensor
+from pykeops.test import assert_np_allclose
 
 M, N, D = 1000, 1000, 3
 
@@ -24,4 +25,4 @@ for backend in ["numpy", "keops"]:
 
 
 def test_complex_numpy():
-    assert np.allclose(out[0], out[1])
+    assert_np_allclose(out[0], out[1], label="complex_numpy")
