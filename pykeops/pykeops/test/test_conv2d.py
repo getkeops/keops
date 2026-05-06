@@ -1,4 +1,5 @@
 import math
+import unittest
 import torch
 from pykeops.torch import LazyTensor
 from pykeops.test import assert_torch_allclose
@@ -7,12 +8,10 @@ M, N, D, DV = 2000, 3000, 3, 1
 
 dtype = torch.float32
 
+torch.manual_seed(42)
+
 torch.backends.cuda.matmul.allow_tf32 = False
 device_id = "cuda" if torch.cuda.is_available() else "cpu"
-
-x = torch.rand(M, 1, D, device=device_id, dtype=dtype) / math.sqrt(D)
-y = torch.rand(1, N, D, device=device_id, dtype=dtype) / math.sqrt(D)
-b = torch.randn(N, DV, requires_grad=True, device=device_id, dtype=dtype)
 
 
 def fun(x, y, b, backend):
@@ -33,25 +32,33 @@ def fun(x, y, b, backend):
 
 backends = ["keops2D", "torch"]
 
-out = []
-for backend in backends:
-    out.append(fun(x, y, b, backend).squeeze())
 
-out_g = []
-for k, backend in enumerate(backends):
-    out_g.append(torch.autograd.grad((out[k] ** 2).sum(), [b], create_graph=True)[0])
+@unittest.skipUnless(torch.cuda.is_available(), "CUDA not available")
+class TestCase(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        x = torch.rand(M, 1, D, device=device_id, dtype=dtype) / math.sqrt(D)
+        y = torch.rand(1, N, D, device=device_id, dtype=dtype) / math.sqrt(D)
+        b = torch.randn(N, DV, requires_grad=True, device=device_id, dtype=dtype)
+        cls.out = []
+        for backend in backends:
+            cls.out.append(fun(x, y, b, backend).squeeze())
 
-out_g2 = []
-for k, backend in enumerate(backends):
-    out_g2.append(torch.autograd.grad((out_g[k] ** 2).sum(), [b])[0])
+        cls.out_g = []
+        for k in range(len(backends)):
+            cls.out_g.append(
+                torch.autograd.grad((cls.out[k] ** 2).sum(), [b], create_graph=True)[0]
+            )
 
+        cls.out_g2 = []
+        for k in range(len(backends)):
+            cls.out_g2.append(torch.autograd.grad((cls.out_g[k] ** 2).sum(), [b])[0])
 
-class TestCase:
     def test_conv2d_fw(self):
-        assert_torch_allclose(out[0], out[1], label="conv2d_fw")
+        assert_torch_allclose(self.out[0], self.out[1], label="conv2d_fw")
 
     def test_conv2d_bw1(self):
-        assert_torch_allclose(out_g[0], out_g[1], label="conv2d_bw1")
+        assert_torch_allclose(self.out_g[0], self.out_g[1], label="conv2d_bw1")
 
     def test_conv2d_bw2(self):
-        assert_torch_allclose(out_g2[0], out_g2[1], label="conv2d_bw2")
+        assert_torch_allclose(self.out_g2[0], self.out_g2[1], label="conv2d_bw2")
