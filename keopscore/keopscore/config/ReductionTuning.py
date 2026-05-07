@@ -1,4 +1,4 @@
-class ChunksConfig:
+class ReductionTuningConfig:
     """
     Configuration and state management for chunked computation schemes.
     Special computation scheme for dim>100
@@ -13,6 +13,9 @@ class ChunksConfig:
     _dimfinalchunk = 64
     _enable_final_chunk = True
     _mult_var_highdim = False
+
+    # Automatic factorization formulas
+    _auto_factorize = False
 
     def __init__(self):
         pass
@@ -72,6 +75,14 @@ class ChunksConfig:
     def get_mult_var_highdim(self):
         """Get the current mult_var_highdim state."""
         return self._mult_var_highdim
+
+    def set_auto_factorize(self, val):
+        """Set automatic factorization state."""
+        self._auto_factorize = bool(val)
+
+    def get_auto_factorize(self):
+        """Get automatic factorization state."""
+        return self._auto_factorize
 
     def use_final_chunks(self, red_formula):
         """Determine if final chunks mode should be used for this formula."""

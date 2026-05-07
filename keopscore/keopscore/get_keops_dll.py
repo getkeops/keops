@@ -53,7 +53,7 @@ import inspect
 import sys
 
 import keopscore.mapreduce
-from keopscore.config import path, cuda, debug, chunks
+from keopscore.config import path, cuda, debug, reduction
 from keopscore.formulas import Zero_Reduction, Sum_Reduction
 from keopscore.formulas.GetReduction import GetReduction
 from keopscore.formulas.variables.Zero import Zero
@@ -80,15 +80,15 @@ def get_keops_dll_impl(
             KeOps_Error(
                 "You selected a Gpu reduce scheme but KeOps is in Cpu only mode."
             )
-        chunks.set_enable_chunks(enable_chunks)
-        chunks.set_enable_finalchunk(enable_finalchunks)
-        chunks.set_mult_var_highdim(mul_var_highdim)
+        reduction.set_enable_chunks(enable_chunks)
+        reduction.set_enable_finalchunk(enable_finalchunks)
+        reduction.set_mult_var_highdim(mul_var_highdim)
         red_formula = GetReduction(red_formula_string, aliases)
-        if chunks.use_final_chunks(red_formula) and map_reduce_id != "GpuReduc2D":
+        if reduction.use_final_chunks(red_formula) and map_reduce_id != "GpuReduc2D":
             use_chunk_mode = 2
             map_reduce_id += "_finalchunks"
-        elif chunks.get_enable_chunks() and map_reduce_id != "GpuReduc2D":
-            if len(red_formula.formula.chunked_formulas(chunks.get_dimchunk())) == 1:
+        elif reduction.get_enable_chunks() and map_reduce_id != "GpuReduc2D":
+            if len(red_formula.formula.chunked_formulas(reduction.get_dimchunk())) == 1:
                 from keopscore.mapreduce.Chunk_Mode_Constants import (
                     Chunk_Mode_Constants,
                 )

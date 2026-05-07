@@ -1,5 +1,5 @@
 from keopscore.binders.nvrtc.Gpu_link_compile import Gpu_link_compile
-from keopscore.config import cuda, chunks
+from keopscore.config import cuda, reduction
 from keopscore.formulas.reductions.Sum_Reduction import Sum_Reduction
 from keopscore.formulas.reductions.sum_schemes import block_sum
 from keopscore.mapreduce.MapReduce import MapReduce
@@ -36,11 +36,11 @@ def do_finalchunk_sub(
 ):
     dimout = varfinal.dim
     yjloc = c_variable(
-        pointer(dtype), f"({yj.id} + threadIdx.x * {chunks.get_dimfinalchunk()})"
+        pointer(dtype), f"({yj.id} + threadIdx.x * {reduction.get_dimfinalchunk()})"
     )
     load_chunks_routine_j = load_vars_chunks(
         [varfinal.ind],
-        chunks.get_dimfinalchunk(),
+        reduction.get_dimfinalchunk(),
         dimfinalchunk_curr,
         varfinal.dim,
         yjloc,
@@ -55,7 +55,7 @@ def do_finalchunk_sub(
                     {load_chunks_routine_j}
                 }}
                 __syncthreads();
-                for (signed long int jrel = 0; (jrel < blockDim.x) && (jrel < {ny.id} - {jstart.id}); jrel++, yjrel += {chunks.get_dimfinalchunk()}) {{          
+                for (signed long int jrel = 0; (jrel < blockDim.x) && (jrel < {ny.id} - {jstart.id}); jrel++, yjrel += {reduction.get_dimfinalchunk()}) {{          
                     if ({i.id} < {nx.id}) {{ // we compute only if needed
                         {use_pragma_unroll()}
                         for (signed long int k=0; k<{dimfinalchunk_curr}; k++) {{
@@ -67,7 +67,7 @@ def do_finalchunk_sub(
                 if ({i.id} < {nx.id}) {{
                     {use_pragma_unroll()}
                     for (signed long int k=0; k<{dimfinalchunk_curr}; k++)
-                        {out.id}[i*{dimout}+{chunk.id}*{chunks.get_dimfinalchunk()}+k] += {acc.id}[k];
+                        {out.id}[i*{dimout}+{chunk.id}*{reduction.get_dimfinalchunk()}+k] += {acc.id}[k];
                 }}
                 __syncthreads();
             """
@@ -102,8 +102,8 @@ class GpuReduc1D_finalchunks(MapReduce, Gpu_link_compile):
         )
         formula = fun_internal.formula
         varfinal = self.red_formula.formula.children[1 - ind_fun_internal]
-        nchunks = 1 + (varfinal.dim - 1) // chunks.get_dimfinalchunk()
-        dimlastfinalchunk = varfinal.dim - (nchunks - 1) * chunks.get_dimfinalchunk()
+        nchunks = 1 + (varfinal.dim - 1) // reduction.get_dimfinalchunk()
+        dimlastfinalchunk = varfinal.dim - (nchunks - 1) * reduction.get_dimfinalchunk()
         varloader = Var_loader(fun_internal)
         dimsx = varloader.dimsx
         dimsy = varloader.dimsy
@@ -120,7 +120,7 @@ class GpuReduc1D_finalchunks(MapReduce, Gpu_link_compile):
             KeOps_Error("dimfout should be 1")
         sum_scheme = self.sum_scheme
 
-        self.dimy = max(chunks.get_dimfinalchunk(), dimy)
+        self.dimy = max(reduction.get_dimfinalchunk(), dimy)
         blocksize_chunks = min(
             cuda.get_cuda_block_size(),
             1024,
@@ -132,7 +132,7 @@ class GpuReduc1D_finalchunks(MapReduce, Gpu_link_compile):
         param_loc = c_array(dtype, dimp, "param_loc")
         fout = c_array(dtype, dimfout * blocksize_chunks, "fout")
         xi = c_array(dtype, dimx, "xi")
-        acc = c_array(dtypeacc, chunks.get_dimfinalchunk(), "acc")
+        acc = c_array(dtypeacc, reduction.get_dimfinalchunk(), "acc")
         yjloc = c_array(dtype, dimy, f"(yj + threadIdx.x * {dimy})")
         foutjrel = c_array(dtype, dimfout, f"({fout.id}+jrel*{dimfout})")
         yjrel = c_array(dtype, dimy, "yjrel")
@@ -143,7 +143,7 @@ class GpuReduc1D_finalchunks(MapReduce, Gpu_link_compile):
         chunk_sub_routine = do_finalchunk_sub(
             dtype,
             varfinal,
-            chunks.get_dimfinalchunk(),
+            reduction.get_dimfinalchunk(),
             acc,
             i,
             j,

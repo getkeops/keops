@@ -3,7 +3,7 @@
 import keopscore.config
 from keopscore.formulas import *
 
-keopscore.config.auto_factorize = True
+keopscore.config.reduction.set_auto_factorize(True)
 
 print("********************************")
 print("test 1")

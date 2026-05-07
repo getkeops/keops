@@ -1,6 +1,6 @@
 from keopscore.formulas.Operation import Operation
 from keopscore.formulas.variables.Var import Var
-from keopscore.config import chunks
+from keopscore.config import reduction
 
 
 class Chunkable_Op(Operation):
@@ -19,12 +19,12 @@ class Chunkable_Op(Operation):
 
     @property
     def use_chunk(self):
-        test = chunks.get_enable_chunks() & all(
+        test = reduction.get_enable_chunks() & all(
             child.is_chunkable for child in self.children
         )
         child = self.children[0]
-        subtest = (child.dim >= chunks.get_dim_treshold_chunk()) | (
-            child.dim in chunks.get_specdims_use_chunk()
+        subtest = (child.dim >= reduction.get_dim_treshold_chunk()) | (
+            child.dim in reduction.get_specdims_use_chunk()
         )
         test &= subtest
         return test
