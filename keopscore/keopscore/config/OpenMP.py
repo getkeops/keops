@@ -1,5 +1,4 @@
 import os
-import subprocess
 import tempfile
 
 from keopscore.utils.messages import print_envs
@@ -13,6 +12,7 @@ from keopscore.utils.path_utils import (
 from keopscore.utils.system_utils import (
     _find_library_by_names,
     get_include_file_abspath,
+    KeOps_OS_Run,
 )
 
 
@@ -210,27 +210,29 @@ class OpenMPConfig:
             f.write(test_program)
             test_file = f.name
 
-        compile_command = [
-            self.cxx.get_cxx_compiler(),
-            test_file,
-            self.get_include_options(),
-            self.get_compile_options(),
-        ]
-        if self.get_linking_options():
-            compile_command.append(self.get_linking_options())
-        compile_command.extend(["-o", f"{test_file}.out"])
+        # Try to compile with compiler's OpenMP options directly
+        compile_command_str = (
+            f"{self.cxx.get_cxx_compiler()} "
+            f"{self.get_compile_options()} "
+            f"{test_file} "
+            f"{self.get_include_options()} "
+            f"{self.get_linking_options()} "
+            f"-o {test_file}.out"
+        )
 
-        try:
-            # Warning : subprocess is used below to compile the test program (using subprocess.check_output to capture stderr)
-            subprocess.check_output(compile_command, stderr=subprocess.STDOUT)
+        out = KeOps_OS_Run(compile_command_str, print_warning=True)
+        if out.returncode == 0:
             os.remove(test_file)
             os.remove(test_file + ".out")
             return True
-        except subprocess.CalledProcessError:
+        else:
             os.remove(test_file)
+            if os.path.exists(test_file + ".out"):
+                os.remove(test_file + ".out")
             KeOps_Warning(
                 f"{self.cxx.get_cxx_compiler()} does not support OpenMP. OpenMP support will be disabled."
             )
+            self.print_all()
             return False
 
     # C++ Compiler Options
