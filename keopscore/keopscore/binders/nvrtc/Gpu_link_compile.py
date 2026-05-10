@@ -108,7 +108,7 @@ class Gpu_link_compile(LinkCompile):
             end="",
             level=2,
         )
-        KeOps_Message(" ... ", flush=True, end="", level=1)
+        KeOps_Message(" ... ", flush=True, end="", use_tag=False, level=1)
         command = Gpu_link_compile.get_compile_command(
             sourcename=jit_compile_src, dllname=jit_compile_dll()
         )

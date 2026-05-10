@@ -91,7 +91,7 @@ def compile_jit_binary():
         end="",
         level=2,
     )
-    pyKeOps_Message(" ... ", flush=True, end="", level=1)
+    pyKeOps_Message(" ... ", flush=True, end="", use_tag=False, level=1)
 
     out = KeOps_OS_Run(compile_command)
     if out.returncode != 0:

@@ -351,9 +351,6 @@ class CudaConfig:
     def set_visible_devices(self):
         """Set specific GPUs from CUDA_VISIBLE_DEVICES."""
         cuda_visible = os.getenv("CUDA_VISIBLE_DEVICES")
-        print(
-            f"CUDA_VISIBLE_DEVICES: {cuda_visible if cuda_visible is not None else not_found_str}"
-        )
 
         if cuda_visible is not None:
             self._visible_devices = (

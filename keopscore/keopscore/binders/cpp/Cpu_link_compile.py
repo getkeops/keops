@@ -70,7 +70,7 @@ class Cpu_link_compile(LinkCompile):
             end="",
             level=2,
         )
-        KeOps_Message(" ... ", flush=True, end="", level=1)
+        KeOps_Message(" ... ", flush=True, end="", use_tag=False, level=1)
 
         out = KeOps_OS_Run(compile_command)
         if out.returncode != 0:
