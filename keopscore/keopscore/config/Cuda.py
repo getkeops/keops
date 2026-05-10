@@ -175,7 +175,7 @@ class CudaConfig:
         if not libcuda_path:
             return (
                 False,
-                "libcuda not found. Make sure the CUDA driver is installed and accessible. Switching to CPU only.",
+                "libcuda not found. Make sure the CUDA driver is installed and accessible.",
             )
 
         try:
@@ -189,7 +189,7 @@ class CudaConfig:
         if libcuda.cuInit(0) != self.CUDA_SUCCESS:
             return (
                 False,
-                "libcuda was detected, but driver API could not be initialized (flushing KeOps caches and/or rebooting the system may help). Switching to CPU only.",
+                "libcuda was detected, but driver API could not be initialized (flushing KeOps caches and/or rebooting the system may help).",
             )
 
         # If we successfully loaded libcuda and initialized it, store the handle in the config for potential future use
@@ -202,7 +202,7 @@ class CudaConfig:
         ):
             return (
                 False,
-                "libcuda was detected and driver API was initialized, but no working GPU found. Switching to CPU only.",
+                "libcuda was detected and driver API was initialized, but no working GPU found.",
             )
 
         self._MaxThreadsPerBlock = [0] * nGpus.value
@@ -216,8 +216,7 @@ class CudaConfig:
                 return (
                     False,
                     f"libcuda was detected and driver API was initialized, but "
-                    + err_msg
-                    + " Switching to CPU only.",
+                    + err_msg,
                 )
 
         self._n_visible_devices = nGpus.value
@@ -231,7 +230,7 @@ class CudaConfig:
         if not libnvrtc_path:
             return (
                 False,
-                "libnvrtc not found. Make sure the CUDA toolkit is installed and accessible. Switching to CPU only.",
+                "libnvrtc not found. Make sure the CUDA toolkit is installed and accessible.",
             )
 
         try:
@@ -261,7 +260,7 @@ class CudaConfig:
         if not libcudart_path:
             return (
                 False,
-                "libcudart not found. Make sure the CUDA toolkit is installed and accessible. Switching to CPU only.",
+                "libcudart not found. Make sure the CUDA toolkit is installed and accessible.",
             )
 
         try:
@@ -279,7 +278,7 @@ class CudaConfig:
         ):
             return (
                 False,
-                "libcudart was found and loaded, but failed to get CUDA runtime version. Switching to CPU only.",
+                "libcudart was found and loaded, but failed to get CUDA runtime version.",
             )
 
         # If we successfully loaded libcudart, store the handle in the config

@@ -101,8 +101,6 @@ def compile_jit_binary():
     else:
         pyKeOps_Message("OK", use_tag=False, flush=True, level=1)
 
-    pyKeOps_Message("OK", use_tag=False, flush=True)
-
 
 LoadKeOps_nvrtc = Cache_partial(
     LoadKeOps_nvrtc_class,

@@ -20,7 +20,7 @@ def get_include_file_abspath(filename, compiler):
     """Return the full path of the header filename using compiler."""
 
     cmd = f'echo "#include <{filename}>" | {compiler} -M -E -x c++ -'
-    out = KeOps_OS_Run(cmd)
+    out = KeOps_OS_Run(cmd, print_warning=False)
 
     text = out.stdout.decode("utf8")
     text = text.replace("\\\n", " ")

@@ -1,7 +1,7 @@
 import os
 import tempfile
 
-from keopscore.utils.messages import print_envs
+from keopscore.utils.messages import KeOps_Message, print_envs
 from keopscore.utils.messages import enabled_dict, not_found_str
 from keopscore.utils.messages import KeOps_Warning
 from keopscore.utils.path_utils import (
@@ -109,25 +109,19 @@ class OpenMPConfig:
             )
 
             ####
-            print("OpenMP library search using standard names:")
-            print(f"  Trying library name: {name}")
-            print(f"  Found library path: {result['library'] or not_found_str}")
-            print(f"  Trying header name: {header_basename}")
-            print(f"  Found header path: {result['header'] or not_found_str}")
-            print()
-            print()
+            KeOps_Message("OpenMP library search using standard names:", level=2)
+            KeOps_Message(f"  Trying library name: {name}", level=2)
+            KeOps_Message(
+                f"  Found library path: {result['library'] or not_found_str}", level=2
+            )
+            KeOps_Message(f"  Trying header name: {header_basename}", level=2)
+            KeOps_Message(
+                f"  Found header path: {result['header'] or not_found_str}", level=2
+            )
+            KeOps_Message()
             ####
 
             if result["library"] and result["header"]:
-                ####
-                print()
-                print()
-                print(
-                    "Successfully found OpenMP library and header using standard names."
-                )
-                print(f"  Library: {result['library']}")
-                print(f"  Header: {result['header']}")
-                ####
                 return result
 
         # If that fails, search for OpenMP headers and libraries in common locations.
@@ -143,14 +137,14 @@ class OpenMPConfig:
         )
 
         ####
-        print()
-        print()
-        print("OpenMP library search in common locations:")
-        print(f"  Candidate roots: {candidate_roots}")
-        print(f"  Library search suffixes: {self.openmp_library_suffixes}")
-        print(f"  Found library path: {result['library'] or not_found_str}")
-        print()
-        print()
+        KeOps_Message("OpenMP library search in common locations:", level=2)
+        KeOps_Message(f"  Candidate roots: {candidate_roots}", level=2)
+        KeOps_Message(
+            f"  Library search suffixes: {self.openmp_library_suffixes}", level=2
+        )
+        KeOps_Message(
+            f"  Found library path: {result['library'] or not_found_str}", level=2
+        )
         ####
 
         # Finally, search for OpenMP headers in common locations.
@@ -160,14 +154,14 @@ class OpenMPConfig:
         )
 
         ####
-        print()
-        print()
-        print("OpenMP header search in common locations:")
-        print(f"  Candidate roots: {candidate_roots}")
-        print(f"  Header search suffixes: {self._openmp_include_sufixes}")
-        print(f"  Found header path: {result['header'] or not_found_str}")
-        print()
-        print()
+        KeOps_Message("OpenMP header search in common locations:", level=2)
+        KeOps_Message(f"  Candidate roots: {candidate_roots}", level=2)
+        KeOps_Message(
+            f"  Header search suffixes: {self._openmp_include_sufixes}", level=2
+        )
+        KeOps_Message(
+            f"  Found header path: {result['header'] or not_found_str}", level=2
+        )
         ####
 
         return result
@@ -277,9 +271,6 @@ class OpenMPConfig:
             KeOps_Warning(
                 f"{self.cxx.get_cxx_compiler()} does not support OpenMP. OpenMP support will be disabled."
             )
-            self.platform.print_all()
-            self.cxx.print_all()
-            self.print_all()
             return False
 
     # C++ Compiler Options
