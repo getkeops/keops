@@ -21,6 +21,7 @@ class Cache:
         self.fun = fun
         self.library = {}
         self.use_cache_file = use_cache_file
+        self.save_folder = save_folder
         if use_cache_file:
             self.cache_file = os.path.join(save_folder, fun.__name__ + "_cache.pkl")
             if os.path.isfile(self.cache_file) and os.path.getsize(self.cache_file) > 0:
@@ -41,6 +42,10 @@ class Cache:
         self.library = {}
         if new_save_folder:
             self.save_folder = new_save_folder
+            if self.use_cache_file:
+                self.cache_file = os.path.join(
+                    self.save_folder, self.fun.__name__ + "_cache.pkl"
+                )
 
     def save_cache(self):
         f = open(self.cache_file, "wb")
@@ -73,6 +78,7 @@ class Cache_partial:
         self.cls = cls
         self.library = {}
         self.use_cache_file = use_cache_file
+        self.save_folder = save_folder
         if self.use_cache_file:
             self.cache_file = os.path.join(save_folder, cls.__name__ + "_cache.pkl")
             if os.path.isfile(self.cache_file):
@@ -86,7 +92,7 @@ class Cache_partial:
             atexit.register(self.save_cache)
 
     def __call__(self, *args):
-        str_id = "".join(list(str(arg) for arg in args)) + str(env_param)
+        str_id = "".join(list(str(arg) for arg in args)) + str(env_param())
         if not str_id in self.library:
             if self.use_cache_file:
                 if str_id in self.library_params:
@@ -106,6 +112,10 @@ class Cache_partial:
             self.library_params = {}
         if new_save_folder:
             self.save_folder = new_save_folder
+            if self.use_cache_file:
+                self.cache_file = os.path.join(
+                    self.save_folder, self.cls.__name__ + "_cache.pkl"
+                )
 
     def save_cache(self):
         f = open(self.cache_file, "wb")

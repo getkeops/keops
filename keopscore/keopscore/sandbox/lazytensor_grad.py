@@ -8,7 +8,7 @@ from pykeops.torch import LazyTensor
 
 import keopscore
 
-keopscore.config.chunks.set_auto_factorize(False)
+keopscore.config.reduction.set_auto_factorize(False)
 
 M, N, D, DV = (
     (100000, 100000, 3, 1) if torch.cuda.is_available() else (10000, 10000, 3, 1)

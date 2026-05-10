@@ -19,9 +19,6 @@ This is the main entry point for all binders. It takes as inputs :
 
 It returns
       - tag : string, hash code used as id for the input formula and parameters
-      - source_file : string, either :
-            - in CPU mode : name of the source file to be compiled
-            - in GPU mode : name of the main dll to be called
       - low_level_code_file : string, either :
             - in CPU mode : the empty string ""
             - in GPU mode : name of the low level code (ptx) or binary file (cubin) to be passed to the main dll.
@@ -127,7 +124,6 @@ def get_keops_dll_impl(
 
     return (
         res["tag"],
-        res["source_file"],
         res["low_level_code_file"],
         res["tagI"],
         tagZero,

@@ -1,4 +1,3 @@
-import os
 import sys
 
 import pykeops.config as pykeopsconfig
@@ -6,6 +5,7 @@ import pykeops.config as pykeopsconfig
 from keopscore.binders.nvrtc.Gpu_link_compile import Gpu_link_compile
 from keopscore.utils.Cache import Cache_partial
 from keopscore.utils.system_utils import KeOps_OS_Run
+from keopscore.utils.messages import KeOps_Error
 
 from pykeops.common.keops_io.LoadKeOps import LoadKeOps
 from pykeops.common.utils import pyKeOps_Message
@@ -85,7 +85,22 @@ def compile_jit_binary():
         dllname=pykeopsconfig.pykeops_nvrtc_name(type="target"),
     )
     pyKeOps_Message("Compiling nvrtc binder for python ... ", flush=True, end="")
-    KeOps_OS_Run(compile_command)
+    pyKeOps_Message(
+        " in cache folder " + pykeopsconfig.path.get_build_folder(),
+        flush=True,
+        end="",
+        level=2,
+    )
+    pyKeOps_Message(" ... ", flush=True, end="", level=1)
+
+    out = KeOps_OS_Run(compile_command)
+    if out.returncode != 0:
+        KeOps_Error(
+            f"Error compiling nvrtc binder {pykeopsconfig.pykeops_nvrtc_name(type='target')} for python. See compiler output above."
+        )
+    else:
+        pyKeOps_Message("OK", use_tag=False, flush=True, level=1)
+
     pyKeOps_Message("OK", use_tag=False, flush=True)
 
 

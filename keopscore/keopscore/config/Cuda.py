@@ -26,6 +26,7 @@ class CudaConfig:
     # Cuda detection variables
     _use_cuda = False
     _cuda_version = -1
+    _ir_type = ""  # "ptx" or "cubin"
     _cuda_include_path = [""]  # str or list of str
 
     _visible_devices = ""
@@ -116,6 +117,7 @@ class CudaConfig:
         # If cuda is enabled, then we finalize the rest of the config
         if self.get_use_cuda():
             self.set_cuda_version()
+            self.set_ir_type()
             self.set_cuda_include_path()
             self.set_linking_options()
             self.set_cuda_block_size()
@@ -187,7 +189,7 @@ class CudaConfig:
         if libcuda.cuInit(0) != self.CUDA_SUCCESS:
             return (
                 False,
-                "libcuda was detected, but driver API could not be initialized. Rebooting the system may help. Switching to CPU only.",
+                "libcuda was detected, but driver API could not be initialized (flushing KeOps caches and/or rebooting the system may help). Switching to CPU only.",
             )
 
         # If we successfully loaded libcuda and initialized it, store the handle in the config for potential future use
@@ -296,6 +298,13 @@ class CudaConfig:
             This is also where we handle one single warning if needed.
         """
 
+        # If CUDA_VISIBLE_DEVICES is explicitly set to empty, no GPU is requested.
+        if os.getenv("CUDA_VISIBLE_DEVICES") == "":
+            KeOps_Warning(
+                "CUDA_VISIBLE_DEVICES is set to empty, no GPU will be used. Switching to CPU only."
+            )
+            return False
+
         # Libcuda (driver) loaded globally so it is available to KeOps shared objects.
         success_cuda, err_cuda = self._find_and_load_libcuda()
         if not success_cuda:
@@ -341,8 +350,16 @@ class CudaConfig:
     # Visibles GPUs devices
     def set_visible_devices(self):
         """Set specific GPUs from CUDA_VISIBLE_DEVICES."""
-        if os.getenv("CUDA_VISIBLE_DEVICES"):
-            self._visible_devices = os.getenv("CUDA_VISIBLE_DEVICES").replace(",", "_")
+        cuda_visible = os.getenv("CUDA_VISIBLE_DEVICES")
+        print(
+            f"CUDA_VISIBLE_DEVICES: {cuda_visible if cuda_visible is not None else not_found_str}"
+        )
+
+        if cuda_visible is not None:
+            self._visible_devices = (
+                cuda_visible.replace(",", "_") if cuda_visible else "empty"
+            )
+            print(f"Parsed visible devices: {self._visible_devices}")
 
     def get_visible_devices(self):
         """Get the specific GPUs."""
@@ -475,6 +492,18 @@ class CudaConfig:
             f"CUDA Include Path: {':'.join(self.get_cuda_include_path()) or not_found_str}"
         )
 
+    # IR type
+
+    def set_ir_type(self):
+        """Set the IR type to be used for nvrtc compilation based on the CUDA version."""
+        if self.get_cuda_version() >= 11010:
+            self._ir_type = "cubin"
+        else:
+            self._ir_type = "ptx"
+
+    def get_ir_type(self):
+        return self._ir_type
+
     # NVRTC include options
     def set_include_options(self):
         self._include_options += "".join(
@@ -502,6 +531,16 @@ class CudaConfig:
             self.add_to_preprocessing_options(
                 f"-DSHAREDMEMPERBLOCK{d}={self.get_SharedMemPerBlock()[d]}"
             )
+
+        target_tag = "CUBIN" if self.get_ir_type == "cubin" else "PTX"
+        nvrtcGetTARGET = "nvrtcGet" + target_tag
+        self.add_to_preprocessing_options(f"-DnvrtcGetTARGET={nvrtcGetTARGET}")
+
+        nvrtcGetTARGETSize = nvrtcGetTARGET + "Size"
+        self.add_to_preprocessing_options(f"-DnvrtcGetTARGETSize={nvrtcGetTARGETSize}")
+
+        arch_tag = '\\"sm\\"' if self.get_ir_type == "cubin" else '\\"compute\\"'
+        self.add_to_preprocessing_options(f"-DARCHTAG={arch_tag}")
 
     def add_to_preprocessing_options(self, flags):
         self._preprocessing_options += " " + flags

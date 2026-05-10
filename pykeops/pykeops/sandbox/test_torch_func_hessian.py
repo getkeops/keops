@@ -2,7 +2,7 @@ import keopscore
 import torch
 from pykeops.torch import LazyTensor
 
-keopscore.config.chunks.set_auto_factorize(False)
+keopscore.config.reduction.set_auto_factorize(False)
 
 
 def fn_torch(x_i):

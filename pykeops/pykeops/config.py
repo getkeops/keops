@@ -1,7 +1,6 @@
 import importlib.util
 import os
 import sys
-import sysconfig
 
 # Instantiating the keopscore.config main classes for pykeops
 import keopscore.config
@@ -23,8 +22,6 @@ torch_found = importlib.util.find_spec("torch") is not None
 
 
 # Verbosity level
-
-
 class _VerboseConfig:
     def __init__(self, level=1):
         self.level = level
@@ -57,14 +54,16 @@ def get_verbose():
 
 
 # version
+
+base_dir_path = os.path.abspath(os.path.dirname(__file__))
+
+
 def read_version(version_file):
     with open(version_file, encoding="utf-8") as v:
         return v.read().rstrip()
 
 
-_version = read_version(
-    os.path.join(os.path.abspath(os.path.dirname(__file__)), "keops_version")
-)
+_version = read_version(os.path.join(base_dir_path, "keops_version"))
 
 
 def get_version():
@@ -74,27 +73,23 @@ def get_version():
     return _version
 
 
+# path
+def get_pykeops_io_folder():
+    return os.path.join(base_dir_path, "common", "keops_io")
+
+
 def pykeops_nvrtc_name(type="src"):
     basename = "pykeops_nvrtc"
-    extension = ".cpp" if type == "src" else sysconfig.get_config_var("EXT_SUFFIX")
-    return os.path.join(
-        (
-            os.path.join(
-                os.path.dirname(os.path.realpath(__file__)), "common", "keops_io"
-            )
-            if type == "src"
-            else get_build_folder()
-        ),
-        basename + extension,
-    )
+    if type == "src":
+        return os.path.join(get_pykeops_io_folder(), "nvrtc", basename + ".cpp")
+    return path.get_python_extension_path(basename)
 
 
-def pykeops_cpp_name(tag="", extension=""):
-    basename = "pykeops_cpp_"
-    return os.path.join(
-        get_build_folder(),
-        basename + tag + extension,
-    )
+def pykeops_cpp_binder_name(type="src"):
+    basename = "pykeops_cpp"
+    if type == "src":
+        return os.path.join(get_pykeops_io_folder(), "cpp", basename + ".cpp")
+    return path.get_python_extension_path(basename)
 
 
 python_includes = "$({python3} -m pybind11 --includes)".format(python3=sys.executable)

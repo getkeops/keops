@@ -1,5 +1,6 @@
 import os
 import sys
+import sysconfig
 
 import keopscore
 from keopscore.utils.path_utils import ensure_directory
@@ -79,9 +80,10 @@ class KeOpsPathConfig:
         ]
         if self.cuda.get_use_cuda():
             name_parts.append(f"CUDA{self.cuda.get_cuda_version()}")
-            visible_devices = self.cuda.get_visible_devices()
-            if visible_devices:
-                name_parts.append(f"VISIBLE_DEVICES{visible_devices}")
+
+        visible_devices = self.cuda.get_visible_devices()
+        if visible_devices:
+            name_parts.append(f"VISIBLE_DEVICES{visible_devices}")
 
         self._default_build_folder_name = "_".join(name_parts)
 
@@ -151,6 +153,19 @@ class KeOpsPathConfig:
 
     def get_build_folder(self):
         return self._build_folder
+
+    def get_build_folder_file(self, filename):
+        return os.path.join(self.get_build_folder(), filename)
+
+    def get_python_extension_path(self, basename):
+        return self.get_build_folder_file(
+            basename + sysconfig.get_config_var("EXT_SUFFIX")
+        )
+
+    def target_needs_update(self, target, source):
+        return not os.path.exists(target) or os.path.getmtime(
+            source
+        ) > os.path.getmtime(target)
 
     # Default Build Path
     def set_default_build_path(self):

@@ -26,9 +26,17 @@ def set_verbose(val):
 
 default_device_id = 0  # default Gpu device number
 
+from .common.keops_io.cpp.LoadKeOps_cpp import (
+    compile_jit_binary as compile_cpp_jit_binary,
+    should_compile_binder as should_compile_cpp_binder,
+)
+
+if should_compile_cpp_binder():
+    compile_cpp_jit_binary()
+
 if pykeopsconfig.cuda.get_use_cuda():
     if not os.path.exists(pykeopsconfig.pykeops_nvrtc_name(type="target")):
-        from .common.keops_io.LoadKeOps_nvrtc import compile_jit_binary
+        from .common.keops_io.nvrtc.LoadKeOps_nvrtc import compile_jit_binary
 
         compile_jit_binary()
 
@@ -46,8 +54,10 @@ def clean_pykeops(recompile_jit_binaries=True):
     keops_binder = pykeops.common.keops_io.keops_binder
     for key in keops_binder:
         keops_binder[key].reset()
-    if recompile_jit_binaries and pykeopsconfig.cuda.get_use_cuda():
-        pykeops.common.keops_io.LoadKeOps_nvrtc.compile_jit_binary()
+    if recompile_jit_binaries:
+        pykeops.common.keops_io.LoadKeOps_cpp.compile_jit_binary()
+        if pykeopsconfig.cuda.get_use_cuda():
+            pykeops.common.keops_io.LoadKeOps_nvrtc.compile_jit_binary()
 
 
 def check_health(infos="all"):
@@ -74,6 +84,8 @@ def set_build_folder(path=None):
     keops_binder = pykeops.common.keops_io.keops_binder
     for key in keops_binder:
         keops_binder[key].reset(new_save_folder=get_build_folder())
+    if should_compile_cpp_binder():
+        pykeops.common.keops_io.LoadKeOps_cpp.compile_jit_binary()
     if pykeopsconfig.cuda.get_use_cuda() and not os.path.exists(
         pykeopsconfig.pykeops_nvrtc_name(type="target")
     ):

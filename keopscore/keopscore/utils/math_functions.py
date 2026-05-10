@@ -160,7 +160,7 @@ keops_mod = math_function(
 )
 keops_round = math_function(
     cpu_code=lambda x, d: (
-        f"round({x})" if eval(d) == 0 else f"(round({x}*{10**eval(d)})/{10**eval(d)})"
+        f"round({x})" if int(d) == 0 else f"(round({x}*{10**int(d)})/{10**int(d)})"
     ),
     gpu_half2_code="NA",
 )

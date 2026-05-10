@@ -5,7 +5,7 @@ from pykeops.test import assert_torch_allclose
 
 torch.manual_seed(0)
 
-keopscore.config.chunks.set_auto_factorize(False)
+keopscore.config.reduction.set_auto_factorize(False)
 
 B1, B2, M, N, D = 5, 4, 10, 20, 2
 

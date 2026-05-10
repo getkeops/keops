@@ -173,6 +173,15 @@ class CxxCompilerConfig:
     def print_linking_options(self):
         print(f"Linking Options: {self.get_linking_options()}")
 
+    def get_dynamic_loader_linking_options(self):
+        """Return extra linker options needed for dlopen/dlsym support."""
+        if self.platform.get_platform() == "Linux":
+            return "-ldl"
+        elif self.platform.get_platform() == "Darwin":
+            # macOS: dlopen/dlsym are in standard C library, no extra flag needed
+            return ""
+        return ""
+
     # C++ Environment Flags. Unused yet...
     def set_cxx_env_flags(self):
         """Recover the C++ environment flags."""

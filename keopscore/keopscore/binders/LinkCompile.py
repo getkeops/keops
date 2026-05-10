@@ -54,23 +54,21 @@ class LinkCompile:
         #                                            dimy (sum of dimensions of j-indexed vectors)
         f = open(self.info_file, "w")
         f.write(
-            f"red_formula={self.red_formula_string}\ndim={self.dim}\ntagI={self.tagI}\ndimy={self.dimy}"
+            f"red_formula={self.red_formula_string}\ndim={self.dim}\ntagI={self.tagI}\ndimy={self.dimy}\n\n"
+            + f"dtype={self.dtype}\nsum_scheme={self.sum_scheme_string} in {self.dtypeacc}\n"
+            + f"tagHostDevice={self.tagHostDevice}\ntagCpuGpu={self.tagCpuGpu}\ntag1D2D={self.tag1D2D}\n\ndevice_id={self.device_id}\n"
         )
         f.close()
 
     def read_info(self):
         # read info_file to retreive dim, tagI, dimy
         f = open(self.info_file, "r")
-        string = f.read()
+        f.readline()  # skip line 0
+        tmp_dim = f.readline().rstrip("\n").split("=")
+        tmp_tag = f.readline().rstrip("\n").split("=")
+        tmp_dimy = f.readline().rstrip("\n").split("=")
         f.close()
-        tmp = string.split("\n")
-        if len(tmp) != 4:
-            KeOps_Error("Incorrect info file")
-        tmp_dim, tmp_tag, tmp_dimy = (
-            tmp[1].split("="),
-            tmp[2].split("="),
-            tmp[3].split("="),
-        )
+
         if (
             len(tmp_dim) != 2
             or tmp_dim[0] != "dim"
@@ -80,9 +78,9 @@ class LinkCompile:
             or tmp_dimy[0] != "dimy"
         ):
             KeOps_Error("Incorrect info file")
-        self.dim = eval(tmp_dim[1])
-        self.tagI = eval(tmp_tag[1])
-        self.dimy = eval(tmp_dimy[1])
+        self.dim = int(tmp_dim[1])
+        self.tagI = int(tmp_tag[1])
+        self.dimy = int(tmp_dimy[1])
 
     def write_code(self):
         # write the generated code in the source file ; this is used as a subfunction of compile_code
@@ -111,7 +109,6 @@ class LinkCompile:
             self.read_info()
         return dict(
             tag=self.gencode_filename,
-            source_file=self.true_dllname,
             low_level_code_file=self.low_level_code_file,
             tagI=self.tagI,
             use_half=self.use_half,
