@@ -26,20 +26,6 @@ def set_verbose(val):
 
 default_device_id = 0  # default Gpu device number
 
-from .common.keops_io.cpp.LoadKeOps_cpp import (
-    compile_jit_binary as compile_cpp_jit_binary,
-    should_compile_binder as should_compile_cpp_binder,
-)
-
-if should_compile_cpp_binder():
-    compile_cpp_jit_binary()
-
-if pykeopsconfig.cuda.get_use_cuda():
-    if not os.path.exists(pykeopsconfig.pykeops_nvrtc_name(type="target")):
-        from .common.keops_io.nvrtc.LoadKeOps_nvrtc import compile_jit_binary
-
-        compile_jit_binary()
-
 
 def clean_pykeops(recompile_jit_binaries=True):
     r"""
@@ -77,19 +63,33 @@ def check_health(infos="all"):
     keopscore.config.check_health(infos=infos)
 
 
-def set_build_folder(path=None):
-    import pykeops
+def set_build_folder(path=None, reset_all=True):
+    from .common.keops_io import keops_binder
+    from .common.keops_io.cpp.LoadKeOps_cpp import (
+        should_compile_binder as should_compile_cpp_binder,
+    )
 
-    keopscore.set_build_folder(path)
-    keops_binder = pykeops.common.keops_io.keops_binder
+    # Set the build folder, reset keopscore cache and recompile JIT binaries if needed
+    keopscore.set_build_folder(path, reset_all=reset_all)
+
+    # Reset the cache of all pykeops binders to ensure they will be reloaded from the new build folder
     for key in keops_binder:
         keops_binder[key].reset(new_save_folder=get_build_folder())
-    if should_compile_cpp_binder():
-        pykeops.common.keops_io.LoadKeOps_cpp.compile_jit_binary()
-    if pykeopsconfig.cuda.get_use_cuda() and not os.path.exists(
-        pykeopsconfig.pykeops_nvrtc_name(type="target")
+
+    # Recompile pykeops binder binaries if needed
+
+    if reset_all or should_compile_cpp_binder():
+        from .common.keops_io.cpp import LoadKeOps_cpp
+
+        LoadKeOps_cpp.compile_jit_binary()
+
+    if reset_all or (
+        pykeopsconfig.cuda.get_use_cuda()
+        and not os.path.exists(pykeopsconfig.pykeops_nvrtc_name(type="target"))
     ):
-        pykeops.common.keops_io.LoadKeOps_nvrtc.compile_jit_binary()
+        from .common.keops_io.nvrtc import LoadKeOps_nvrtc
+
+        LoadKeOps_nvrtc.compile_jit_binary()
 
 
 def get_build_folder():
@@ -99,8 +99,11 @@ def get_build_folder():
 if pykeopsconfig.numpy_found:
     from .numpy.test_install import test_numpy_bindings
 
+
 if pykeopsconfig.torch_found:
     from .torch.test_install import test_torch_bindings
 
-# next line is to ensure that cache file for formulas is loaded at import
-from .common import keops_io
+
+# set the build folder and ensure it is in the python path
+
+set_build_folder(reset_all=False)
