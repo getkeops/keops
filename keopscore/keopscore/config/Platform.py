@@ -138,7 +138,7 @@ class PlatformConfig:
     def get_brew_prefix(self):
         """Get Homebrew prefix path using KeOps_OS_Run"""
         return self._brew_prefix
-    
+
     def print_brew_prefix(self):
         if self.get_platform() == "Darwin":
             brew_prefix = self.get_brew_prefix()

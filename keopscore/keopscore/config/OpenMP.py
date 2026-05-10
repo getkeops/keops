@@ -63,8 +63,8 @@ class OpenMPConfig:
             "libgomp.dylib",
             "libgomp.so*",
             "libm.dylib",
-            "libm.so*"
-            ],
+            "libm.so*",
+        ],
         "header_basename": ["omp.h", "gomp.h"],
         "library": "",  # to be filled later
         "header": "",  # not needed
