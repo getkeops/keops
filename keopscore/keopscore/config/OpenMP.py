@@ -174,7 +174,9 @@ class OpenMPConfig:
 
     def _omp_is_available(self):
         self._omp_info = self.find_install_path(self._omp_info)
-        liomp_path = self._omp_info["library"]
+        liomp_path = os.path.exists(self._omp_info["library"]) and os.path.exists(
+            self._omp_info["header"]
+        )
         if not liomp_path:
             KeOps_Warning(
                 "libomp not found. Set OMP_PATH, LIBOMP_PATH, or OpenMP_ROOT if it is installed in a non-standard location."
@@ -255,6 +257,7 @@ class OpenMPConfig:
         # Try to compile with compiler's OpenMP options directly
         compile_command_str = (
             f"{self.cxx.get_cxx_compiler()} "
+            f"{self.cxx.get_compile_options()} "
             f"{self.get_compile_options()} "
             f"{test_file} "
             f"{self.get_include_options()} "
