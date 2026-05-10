@@ -118,7 +118,6 @@ class OpenMPConfig:
             KeOps_Message(
                 f"  Found header path: {result['header'] or not_found_str}", level=2
             )
-            KeOps_Message()
             ####
 
             if result["library"] and result["header"]:

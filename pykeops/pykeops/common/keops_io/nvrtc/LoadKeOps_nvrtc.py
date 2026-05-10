@@ -84,7 +84,7 @@ def compile_jit_binary():
         sourcename=pykeopsconfig.pykeops_nvrtc_name(type="src"),
         dllname=pykeopsconfig.pykeops_nvrtc_name(type="target"),
     )
-    pyKeOps_Message("Compiling nvrtc binder for python ... ", flush=True, end="")
+    pyKeOps_Message("Compiling nvrtc binder for python", flush=True, end="", level=1)
     pyKeOps_Message(
         " in cache folder " + pykeopsconfig.path.get_build_folder(),
         flush=True,

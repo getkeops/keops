@@ -3,6 +3,7 @@ import sys
 import sysconfig
 
 import keopscore
+from keopscore.utils.gpu_utils import add_crt_symlink_to_cuda_include_path
 from keopscore.utils.path_utils import ensure_directory
 from keopscore.utils.messages import not_found_str, print_envs
 
@@ -178,6 +179,10 @@ class KeOpsPathConfig:
         )
         # Initialize _build_path : TODO : check ?/
         self._build_folder = self._default_build_path
+        #### Add a symlink to the crt folder in keops include path if needed, to handle the case of cuda_fp16.h including crt/host_config.h and crt/device_runtime_api.h without proper reference to their location in the cuda include path (issue in cudatoolkit pip package)
+        add_crt_symlink_to_cuda_include_path(
+            self.cuda.get_cuda_include_path(), self._build_folder
+        )
 
     def get_default_build_path(self):
         """Get the default build path."""
