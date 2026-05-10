@@ -9,7 +9,7 @@ from .KeOpsPath import KeOpsPathConfig
 from .OpenMP import OpenMPConfig
 from .Platform import PlatformConfig
 from .ReductionTuning import ReductionTuningConfig
-from keopscore.utils.messages import KeOps_Message
+from keopscore.utils.messages import KeOps_Error, KeOps_Message
 
 # Instantiate the configurations once at import time to preserve the existing API.
 debug = DebugConfig()
@@ -19,6 +19,16 @@ openmp = OpenMPConfig(platform, cxx)
 cuda = CudaConfig()
 path = KeOpsPathConfig(platform, cuda)
 reduction = ReductionTuningConfig()
+
+
+def keops_jit_compile_name(type="src"):
+    basename = "nvrtc_jit"
+    if type == "src":
+        return os.path.join(
+            path.get_base_dir_path(), "binders", "nvrtc", basename + ".cpp"
+        )
+
+    return path.get_python_extension_path(basename, suffix="SHLIB_SUFFIX")
 
 
 def check_health(infos="all"):
@@ -40,12 +50,20 @@ def check_health(infos="all"):
 
 def clean_keops(recompile_jit_binary=True, verbose=True):
     build_path = path.get_build_folder()
-    use_cuda = cuda.get_use_cuda()
-    jit_binary = path.get_jit_binary() if use_cuda else None
+    default_build_path = path.get_default_build_path()
+
+    if os.path.abspath(build_path) != os.path.abspath(default_build_path):
+        KeOps_Error(
+            f"Your build folder is set to {build_path}, which is not the default build folder. For safety reasons, the clean_keops function will not delete files in this folder. If you want to clean this folder, please do it manually."
+        )
 
     if build_path and os.path.isdir(build_path):
+        jit_binary = keops_jit_compile_name(type="target")
+        # TODO: Add a safety check to prevent accidental deletion of important directories.
         for entry in os.scandir(build_path):
-            if recompile_jit_binary or entry.path != jit_binary:
+            if recompile_jit_binary or os.path.abspath(entry.path) != os.path.abspath(
+                jit_binary
+            ):
                 if entry.is_dir(follow_symlinks=False):
                     shutil.rmtree(entry.path)
                 else:
@@ -54,13 +72,8 @@ def clean_keops(recompile_jit_binary=True, verbose=True):
     if verbose:
         KeOps_Message(f"{build_path} has been cleaned.")
 
-    from keopscore.get_keops_dll import get_keops_dll
-
-    get_keops_dll.reset()
-    if use_cuda and recompile_jit_binary:
-        from keopscore.binders.nvrtc.Gpu_link_compile import Gpu_link_compile
-
-        Gpu_link_compile.compile_jit_compile_dll()
+    # Re-initialize the build folder after cleaning.
+    path.set_build_folder(reset_all=True)
 
 
 __all__ = [

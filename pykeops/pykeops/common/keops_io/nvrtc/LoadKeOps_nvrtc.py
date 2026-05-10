@@ -80,9 +80,9 @@ def compile_jit_binary():
     This function compile the main .so entry point to keops_nvrt binder...
     """
     compile_command = Gpu_link_compile.get_compile_command(
+        pykeopsconfig.pykeops_nvrtc_name(type="src"),
+        pykeopsconfig.pykeops_nvrtc_name(type="target"),
         extra_flags=pykeopsconfig.python_includes,
-        sourcename=pykeopsconfig.pykeops_nvrtc_name(type="src"),
-        dllname=pykeopsconfig.pykeops_nvrtc_name(type="target"),
     )
     pyKeOps_Message("Compiling nvrtc binder for python", flush=True, end="", level=1)
     pyKeOps_Message(

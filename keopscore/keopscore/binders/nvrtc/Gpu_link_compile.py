@@ -1,6 +1,5 @@
 import ctypes
 import os
-import sysconfig
 
 import keopscore.config
 from keopscore.binders.LinkCompile import LinkCompile
@@ -8,23 +7,12 @@ from keopscore.utils.gpu_utils import custom_cuda_include_fp16_path
 from keopscore.utils.messages import KeOps_Error, KeOps_Message
 from keopscore.utils.system_utils import KeOps_OS_Run
 
-jit_source_file = os.path.join(
-    keopscore.config.path.get_base_dir_path(), "binders", "nvrtc", "keops_nvrtc.cpp"
-)
-
-jit_compile_src = os.path.join(
-    keopscore.config.path.get_base_dir_path(), "binders", "nvrtc", "nvrtc_jit.cpp"
-)
-
-
-def jit_compile_dll():
-    return os.path.join(
-        keopscore.config.path.get_build_folder(),
-        "nvrtc_jit" + sysconfig.get_config_var("SHLIB_SUFFIX"),
-    )
-
 
 class Gpu_link_compile(LinkCompile):
+    """
+    This class is used to compile the main dll that will be used to JIT compile the cuda code for each formula.
+    """
+
     source_code_extension = "cu"
 
     def __init__(self):
@@ -46,7 +34,10 @@ class Gpu_link_compile(LinkCompile):
             self.gencode_filename + "_nvrtc." + keopscore.config.cuda.get_ir_type(),
         ).encode("utf-8")
 
-        self.my_c_dll = ctypes.CDLL(jit_compile_dll(), mode=os.RTLD_LAZY)
+        # Load nvrtc_jit dll, that will be used to compile the cuda code in jit mode
+        self.my_c_dll = ctypes.CDLL(
+            keopscore.config.keops_jit_compile_name(type="target"), mode=os.RTLD_LAZY
+        )
 
         # file to check for existence to detect compilation is needed
         self.file_to_check = self.low_level_code_file
@@ -79,8 +70,8 @@ class Gpu_link_compile(LinkCompile):
 
     @staticmethod
     def get_compile_command(
-        sourcename=jit_source_file,
-        dllname=keopscore.config.path.get_jit_binary(),
+        sourcename,
+        dllname,
         extra_flags="",
     ):
         # This is about the main KeOps binary (dll) that will be used to JIT compile all formulas.
@@ -100,7 +91,14 @@ class Gpu_link_compile(LinkCompile):
         )
 
     @staticmethod
-    def compile_jit_compile_dll():
+    def compile_jit_compile_dll(force_recompile=False):
+
+        if (
+            os.path.exists(keopscore.config.keops_jit_compile_name(type="target"))
+            and not force_recompile
+        ):
+            return
+
         KeOps_Message("Compiling cuda jit compiler engine", flush=True, end="", level=1)
         KeOps_Message(
             " in cache folder " + keopscore.config.path.get_build_folder(),
@@ -110,12 +108,13 @@ class Gpu_link_compile(LinkCompile):
         )
         KeOps_Message(" ... ", flush=True, end="", use_tag=False, level=1)
         command = Gpu_link_compile.get_compile_command(
-            sourcename=jit_compile_src, dllname=jit_compile_dll()
+            keopscore.config.keops_jit_compile_name(type="src"),
+            keopscore.config.keops_jit_compile_name(type="target"),
         )
         out = KeOps_OS_Run(command)
         if out.returncode != 0:
             KeOps_Error(
-                f"Error compiling cuda/nvrtc binder {jit_compile_dll()}. See compiler output above."
+                f"Error compiling cuda/nvrtc binder {keopscore.config.keops_jit_compile_name(type="target")}. See compiler output above."
             )
         else:
             KeOps_Message("OK", use_tag=False, flush=True, level=1)

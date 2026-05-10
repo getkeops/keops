@@ -95,6 +95,3 @@ def add_crt_symlink_to_cuda_include_path(cuda_include_path, build_folder):
         )
         if target is not None:
             os.symlink(target, crt_symlink)
-            print(
-                f"Created symlink for {file} in crt folder: {crt_symlink} -> {target}"
-            )
