@@ -57,7 +57,14 @@ class OpenMPConfig:
 
     _omp_info = {
         "name": ["omp", "gomp"],
-        "lib_basename_candidate": ["libomp.*", "libgomp.*", "libm.*"],
+        "lib_basename_candidate": [
+            "libomp.dylib",
+            "libomp.so*",
+            "libgomp.dylib",
+            "libgomp.so*",
+            "libm.dylib",
+            "libm.so*"
+            ],
         "header_basename": ["omp.h", "gomp.h"],
         "library": "",  # to be filled later
         "header": "",  # not needed
@@ -267,6 +274,8 @@ class OpenMPConfig:
             KeOps_Warning(
                 f"{self.cxx.get_cxx_compiler()} does not support OpenMP. OpenMP support will be disabled."
             )
+            self.platform.print_all()
+            self.cxx.print_all()
             self.print_all()
             return False
 

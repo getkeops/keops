@@ -138,6 +138,14 @@ class PlatformConfig:
     def get_brew_prefix(self):
         """Get Homebrew prefix path using KeOps_OS_Run"""
         return self._brew_prefix
+    
+    def print_brew_prefix(self):
+        if self.get_platform() == "Darwin":
+            brew_prefix = self.get_brew_prefix()
+            if brew_prefix:
+                print(f"Homebrew Prefix: {brew_prefix}")
+            else:
+                print("Homebrew not found or not installed.")
 
     @staticmethod
     def detect_env_type():
@@ -164,6 +172,8 @@ class PlatformConfig:
         self.print_python_version()
         self.print_env_type()
         self.print_python_executable()
+
+        self.print_brew_prefix()
 
         # Print relevant environment variables.
         print_envs(self.platform_envs)
