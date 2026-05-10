@@ -39,8 +39,8 @@ class OpenMPConfig:
 
     _openmp_system_suffixes = [
         # self.get_brew_prefix() added later on,
-        os.path.join(os.path.sep, "usr", "local", "opt", "libomp"),
-        os.path.join(os.path.sep, "opt", "local"),
+        os.path.join(os.path.sep, "opt", "homebrew", "opt", "libomp"),
+        os.path.join(os.path.sep, "usr", "local"),
         os.path.join(os.path.sep, "usr"),
     ]
 
@@ -53,12 +53,12 @@ class OpenMPConfig:
     openmp_library_suffixes = (
         "lib",
         "lib64",
-        os.path.join("opt", "libomp", "lib"),
+        os.path.join("libomp", "lib"),
     )
 
     _openmp_include_sufixes = (
         "include",
-        os.path.join("opt", "libomp", "include"),
+        os.path.join("libomp", "include"),
     )
 
     _omp_info = {
