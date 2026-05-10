@@ -37,18 +37,12 @@ class OpenMPConfig:
         "OpenMP_ROOT_DIR",
     )
 
-    _openmp_system_suffixes = [
+    _openmp_system_roots = [
         # self.get_brew_prefix() added later on,
         os.path.join(os.path.sep, "opt", "homebrew", "opt", "libomp"),
         os.path.join(os.path.sep, "usr", "local"),
         os.path.join(os.path.sep, "usr"),
     ]
-
-    openmp_basename_candidate = (
-        "libomp.dylib",
-        "libgomp.dylib",
-        "libomp.so",
-    )
 
     openmp_library_suffixes = (
         "lib",
@@ -63,7 +57,7 @@ class OpenMPConfig:
 
     _omp_info = {
         "name": ["omp", "gomp"],
-        "lib_basename_candidate": ["libomp.*", "libgomp.*", "libm.so*"],
+        "lib_basename_candidate": ["libomp.*", "libgomp.*", "libm.*"],
         "header_basename": ["omp.h", "gomp.h"],
         "library": "",  # to be filled later
         "header": "",  # not needed
@@ -77,7 +71,7 @@ class OpenMPConfig:
 
         # On MacOS: Add brew prefix to OpenMP search paths if it exists
         if self.platform.get_brew_prefix():
-            self._openmp_system_suffixes.insert(
+            self._openmp_system_roots.insert(
                 0,
                 [
                     self.platform.get_brew_prefix(),
@@ -106,27 +100,68 @@ class OpenMPConfig:
             result["header"] = get_include_file_abspath(
                 header_basename, self.cxx.get_cxx_compiler()
             )
+
+            ####
+            print("OpenMP library search using standard names:")
+            print(f"  Trying library name: {name}")
+            print(f"  Found library path: {result['library'] or not_found_str}")
+            print(f"  Trying header name: {header_basename}")
+            print(f"  Found header path: {result['header'] or not_found_str}")
+            print()
+            print()
+            ####
+
             if result["library"] and result["header"]:
+                ####
+                print()
+                print()
+                print(
+                    "Successfully found OpenMP library and header using standard names."
+                )
+                print(f"  Library: {result['library']}")
+                print(f"  Header: {result['header']}")
+                ####
                 return result
 
         # If that fails, search for OpenMP headers and libraries in common locations.
-        if not result["library"]:
-            candidate_roots = _ordered_search_roots(
-                env_vars=self.openmp_env_vars,
-                conda_root="CONDA_PREFIX",
-                system_roots=self._openmp_system_suffixes,
-            )
+        candidate_roots = _ordered_search_roots(
+            env_vars=self.openmp_env_vars,
+            conda_root="CONDA_PREFIX",
+            system_roots=self._openmp_system_roots,
+        )
 
-            result["library"] = _first_matching_file(
-                _path_candidates(candidate_roots, self.openmp_library_suffixes),
-                self.openmp_basename_candidate,
-            )
+        result["library"] = _first_matching_file(
+            _path_candidates(candidate_roots, self.openmp_library_suffixes),
+            lib_dict_info["lib_basename_candidate"],
+        )
 
-            # Finally, search for OpenMP headers in common locations.
-            result["header"] = _first_matching_file(
-                _path_candidates(candidate_roots, self._openmp_include_sufixes),
-                (self._openmp_header_basename,),
-            )
+        ####
+        print()
+        print()
+        print("OpenMP library search in common locations:")
+        print(f"  Candidate roots: {candidate_roots}")
+        print(f"  Library search suffixes: {self.openmp_library_suffixes}")
+        print(f"  Found library path: {result['library'] or not_found_str}")
+        print()
+        print()
+        ####
+
+        # Finally, search for OpenMP headers in common locations.
+        result["header"] = _first_matching_file(
+            _path_candidates(candidate_roots, self._openmp_include_sufixes),
+            lib_dict_info["header_basename"],
+        )
+
+        ####
+        print()
+        print()
+        print("OpenMP header search in common locations:")
+        print(f"  Candidate roots: {candidate_roots}")
+        print(f"  Header search suffixes: {self._openmp_include_sufixes}")
+        print(f"  Found header path: {result['header'] or not_found_str}")
+        print()
+        print()
+        ####
 
         return result
 
@@ -237,8 +272,8 @@ class OpenMPConfig:
 
     # C++ Compiler Options
     def set_compile_options(self):
-        # Add special fix for openMP prgama and Apple Clang. Order matters.
-        if self.cxx.get_use_Apple_clang() and self.platform.get_brew_prefix():
+        # Apple clang does not support -fopenmp directly; -Xpreprocessor is required.
+        if self.cxx.get_use_Apple_clang():
             self._compile_options += "-Xpreprocessor "
 
         self._compile_options += "-fopenmp"
@@ -251,7 +286,11 @@ class OpenMPConfig:
 
     # C++ Compiler Include Options
     def set_include_options(self):
-        self._include_options = f"-I{self.get_openmp_include_dir()}"
+        self._include_options = (
+            f"-I{self.get_openmp_include_dir()}"
+            if self.get_openmp_include_dir()
+            else ""
+        )
 
     def get_include_options(self):
         return self._include_options
@@ -261,7 +300,9 @@ class OpenMPConfig:
 
     # C++ linking Options
     def set_linking_options(self):
-        self._linking_options += f"-L{self.get_libomp_folder()}"
+        self._linking_options += (
+            f"-L{self.get_libomp_folder()}" if self.get_libomp_folder() else ""
+        )
 
     def get_linking_options(self):
         return self._linking_options
