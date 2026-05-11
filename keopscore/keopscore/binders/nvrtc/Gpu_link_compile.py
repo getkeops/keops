@@ -114,7 +114,7 @@ class Gpu_link_compile(LinkCompile):
         out = KeOps_OS_Run(command)
         if out.returncode != 0:
             KeOps_Error(
-                f"Error compiling cuda/nvrtc binder {keopscore.config.keops_jit_compile_name(type="target")}. See compiler output above."
+                f"Error compiling cuda/nvrtc binder {keopscore.config.keops_jit_compile_name(type='target')}. See compiler output above."
             )
         else:
             KeOps_Message("OK", use_tag=False, flush=True, level=1)
