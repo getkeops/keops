@@ -22,7 +22,6 @@ class KeOpsPathConfig:
     _default_build_folder_name = ""
     _default_build_path = ""
 
-    _jit_binary = ""
     _include_options = ""
 
     path_env_vars = ("KEOPS_CACHE_FOLDER",)

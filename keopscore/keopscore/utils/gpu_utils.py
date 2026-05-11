@@ -67,7 +67,7 @@ def add_crt_symlink_to_cuda_include_path(cuda_include_path, build_folder):
     (included before the cuda toolkit) that mimick the correct behavior...
     """
 
-    files_to_check = ["host_config.h"]
+    files_to_check = ["host_defines.h", "host_config.h", "device_functions.h"]
     cuda_include_path = [p for p in list(cuda_include_path) if os.path.isdir(p)]
 
     check = [
@@ -75,6 +75,7 @@ def add_crt_symlink_to_cuda_include_path(cuda_include_path, build_folder):
         for file in files_to_check
     ]
     if all(check):
+        print("crt headers already in cuda include path, no need to create symlink.")
         return False  # no need to create the symlink
 
     crt_folder = os.path.join(build_folder, "crt")
@@ -97,5 +98,6 @@ def add_crt_symlink_to_cuda_include_path(cuda_include_path, build_folder):
         if target is not None:
             os.symlink(target, crt_symlink)
             created = True
+            print(f"Created symlink for {file} in keops include path to handle cudatoolkit pip package: {crt_symlink} -> {target}")
 
     return created
