@@ -67,6 +67,8 @@ setup(
             "readme.md",
             "licence.txt",
             "keops_version",
+            "binders/cpp/keops_cpu_runtime.cpp",
+            "binders/cpp/keops_cpu_runtime.h",
             "binders/nvrtc/keops_nvrtc.cpp",
             "binders/nvrtc/nvrtc_jit.cpp",
             "include/CudaSizes.h",
