@@ -124,15 +124,18 @@ class KeOpsPathConfig:
 
         # Handle CUDA-specific recompilation if CUDA is used
         if self.cuda.get_use_cuda():
-            from keopscore.binders.nvrtc.Gpu_link_compile import Gpu_link_compile
-
-            Gpu_link_compile.compile_jit_compile_dll(force_recompile=reset_all)
             #### Add a symlink to the crt folder in keops include path if needed, to handle
             # cudatoolkit pip package
             if add_crt_symlink_to_cuda_include_path(
                 self.cuda.get_cuda_include_path(), self._build_folder
             ):
                 self.add_to_include_option(f" -I{self._build_folder}")
+            
+            # Recompile the nvrtc binder if needed
+            from keopscore.binders.nvrtc.Gpu_link_compile import Gpu_link_compile
+
+            Gpu_link_compile.compile_jit_compile_dll(force_recompile=reset_all)
+            
 
     def get_build_folder(self):
         return self._build_folder
