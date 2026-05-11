@@ -109,6 +109,7 @@ try:
     set_build_folder(reset_all=False)
 except Exception as e:
     from .common.utils import pyKeOps_Warning
+
     pyKeOps_Warning(
         f"An error occurred while setting up KeOps: {e}. Use pykeops.check_health() to get details on the current configuration.",
         level=1,
