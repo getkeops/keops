@@ -75,11 +75,12 @@ def add_crt_symlink_to_cuda_include_path(cuda_include_path, build_folder):
         for file in files_to_check
     ]
     if all(check):
-        return
+        return False  # no need to create the symlink
 
     crt_folder = os.path.join(build_folder, "crt")
     os.makedirs(crt_folder, exist_ok=True)
 
+    created = False
     for file in files_to_check:
         crt_symlink = os.path.join(crt_folder, file)
         if os.path.exists(crt_symlink):
@@ -95,3 +96,6 @@ def add_crt_symlink_to_cuda_include_path(cuda_include_path, build_folder):
         )
         if target is not None:
             os.symlink(target, crt_symlink)
+            created = True
+
+    return created

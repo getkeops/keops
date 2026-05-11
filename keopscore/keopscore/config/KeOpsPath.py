@@ -130,9 +130,10 @@ class KeOpsPathConfig:
             Gpu_link_compile.compile_jit_compile_dll(force_recompile=reset_all)
             #### Add a symlink to the crt folder in keops include path if needed, to handle
             # cudatoolkit pip package
-            add_crt_symlink_to_cuda_include_path(
+            if add_crt_symlink_to_cuda_include_path(
                 self.cuda.get_cuda_include_path(), self._build_folder
-            )
+            ):
+                self.add_to_include_option(f" -I{self._build_folder}")
 
     def get_build_folder(self):
         return self._build_folder
