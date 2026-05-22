@@ -1,12 +1,10 @@
 import os
 import sys
 import sysconfig
-import warnings
 
 import keopscore
-from keopscore.utils.gpu_utils import add_crt_symlink_to_cuda_include_path
 from keopscore.utils.path_utils import ensure_directory
-from keopscore.utils.messages import KeOps_Warning, not_found_str, print_envs
+from keopscore.utils.messages import not_found_str, print_envs
 
 
 class KeOpsPathConfig:

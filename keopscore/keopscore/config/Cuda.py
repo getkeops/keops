@@ -475,19 +475,15 @@ class CudaConfig:
     # CUDA Include Path
     def set_cuda_include_path(self):
         """Set the CUDA include path by searching for cuda.h and nvrtc.h."""
-        # This is done in find_cuda_install since it relies on the cuda installation info which is only available after checking library availability.
-        if not self.get_use_cuda():
-            self._cuda_include_path = ""
-        else:
-            include_dirs = [
-                os.path.dirname(header)
-                for header in (
-                    self._libnvrtc_info.get("header"),
-                    self._libcuda_info.get("header"),
-                )
-                if header
-            ]
-            self._cuda_include_path = list(set(include_dirs)) if include_dirs else ""
+        include_dirs = [
+            os.path.dirname(header)
+            for header in (
+                self._libnvrtc_info.get("header"),
+                self._libcuda_info.get("header"),
+            )
+            if header
+        ]
+        self._cuda_include_path = list(set(include_dirs)) if include_dirs else ""
 
     def get_cuda_include_path(self):
         """
