@@ -12,16 +12,19 @@
 // ./keopscore/binders/nvrtc/keops_nvrtc.cpp -o
 // keops_nvrtc.cpython-310-x86_64-linux-gnu.so
 
-#include <cuda.h>
+
 #include <fstream>
 #include <iostream>
 #include <numeric>
-#include <nvrtc.h>
 #include <sstream>
 #include <stdarg.h>
 #include <stdio.h>
 #include <vector>
-// #include <ctime>
+
+
+#include <cuda.h>
+#include <nvrtc.h>
+#include <cuda_fp16.h>
 
 #define C_CONTIGUOUS 1
 #define USE_HALF 0
@@ -32,7 +35,6 @@
 #include "include/utils_pe.h"
 
 #include "include/CudaSizes.h"
-#include <cuda_fp16.h>
 
 // ------------------------------------------------------------------------
 // DevicePointer wrapper

@@ -13,16 +13,16 @@
 // /home/bcharlier/projets/keops/keops/keops/binders/nvrtc/keops_nvrtc.cpp -o
 // keops_nvrtc.cpython-310-x86_64-linux-gnu.so
 
-#include <cuda.h>
 #include <fstream>
 #include <iostream>
-#include <nvrtc.h>
 #include <sstream>
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
 #include <vector>
-// #include <ctime>
+
+#include <cuda.h>
+#include <nvrtc.h>
 
 #define C_CONTIGUOUS 1
 #define USE_HALF 0
@@ -33,7 +33,6 @@
 #include "include/utils_pe.h"
 
 #include "include/CudaSizes.h"
-#include <cuda_fp16.h>
 
 extern "C" int Compile(const char *target_file_name, const char *cu_code,
                        int use_half, int use_fast_math, int device_id,

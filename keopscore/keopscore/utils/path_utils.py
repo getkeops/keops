@@ -54,21 +54,55 @@ def _python_package_roots():
 
 
 def _ordered_search_roots(
-    env_vars=(), pip_suffixes=(), conda_root=None, system_roots=()
+    env_vars=(), pip_suffixes=(), conda_root=None, system_roots=(), order=None
 ):
-    """Return roots ordered by explicit env vars, pip, conda, then system paths."""
+    """Return normalized search roots in a caller-defined category order.
+
+    Args:
+        env_vars (tuple[str] | list[str]): Environment variable names whose values
+            should be considered as root directories.
+        pip_suffixes (tuple[str] | list[str]): Relative suffixes appended to Python
+            package roots discovered from the current interpreter.
+        conda_root (str | None): Name of an environment variable that points to a
+            Conda root directory.
+        system_roots (tuple[str] | list[str]): Fallback root directories to append.
+        order (tuple[str] | list[str] | str | None): Ordered categories to apply.
+            Allowed items are ``env_vars``, ``pip_suffixes``, ``conda_root``, and
+            ``system_roots``. A comma-separated string is also accepted.
+
+    Returns:
+        list[pathlib.Path]: Existing candidates, deduplicated in first-seen order.
+    """
+
+    if order is None:
+        order = ("env_vars", "conda_root", "system_roots", "pip_suffixes")
+    else:
+        isinstance(order, str) and (order := tuple(order.split(",")))
+        for item in order:
+            if item not in (
+                "env_vars",
+                "pip_suffixes",
+                "conda_root",
+                "system_roots",
+            ):
+                raise ValueError(f"Invalid order item: {item}")
+
     roots = []
 
-    if env_vars:
-        roots.extend(_env_roots(env_vars))
+    for item in order:
+        if item == "env_vars" and env_vars:
+            roots.extend(_env_roots(env_vars))
 
-    if pip_suffixes:
-        # Pip wheels such as nvidia-cuda-runtime expose libraries under site-packages.
-        roots.extend(_path_candidates(_python_package_roots(), pip_suffixes))
+        if item == "pip_suffixes" and pip_suffixes:
+            # Pip wheels such as nvidia-cuda-runtime expose libraries under site-packages.
+            roots.extend(_path_candidates(_python_package_roots(), pip_suffixes))
 
-    if conda_root:
-        roots.extend(_env_roots((conda_root,)))
-    roots.extend(system_roots)
+        if item == "conda_root" and conda_root:
+            roots.extend(_env_roots((conda_root,)))
+
+        if item == "system_roots" and system_roots:
+            roots.extend(system_roots)
+
     return _unique_paths(roots)
 
 

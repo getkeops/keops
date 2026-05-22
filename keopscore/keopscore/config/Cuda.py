@@ -52,8 +52,9 @@ class CudaConfig:
     ]
 
     pip_suffixes = (
-        "nvidia/cuda_runtime",
-        "nvidia/cuda_nvrtc",
+        os.path.join("nvidia", "cu13"),  # for CUDA 13.X
+        # os.path.join("nvidia", "cuda_runtime"),  # for CUDA 12.X but broken due to missing crt subfolder
+        # os.path.join("nvidia", "cuda_nvrtc")     # for CUDA 12.X but broken due to missing crt subfolder
     )
 
     system_suffixes = (
@@ -177,6 +178,11 @@ class CudaConfig:
                 False,
                 "libcuda not found. Make sure the CUDA driver is installed and accessible.",
             )
+        if not self._libcuda_info.get("header"):
+            return (
+                False,
+                f"{self._libcuda_info['header_basename']} not found. Make sure the CUDA headers are installed and accessible.",
+            )
 
         try:
             libcuda = ctypes.CDLL(libcuda_path, mode=ctypes.RTLD_GLOBAL)
@@ -231,6 +237,11 @@ class CudaConfig:
             return (
                 False,
                 "libnvrtc not found. Make sure the CUDA toolkit is installed and accessible.",
+            )
+        if not self._libnvrtc_info.get("header"):
+            return (
+                False,
+                f"{self._libnvrtc_info['header_basename']} not found. Make sure the CUDA headers are installed and accessible.",
             )
 
         try:
@@ -468,14 +479,15 @@ class CudaConfig:
         if not self.get_use_cuda():
             self._cuda_include_path = ""
         else:
-            self._cuda_include_path = list(
-                set(
-                    [
-                        os.path.dirname(self._libnvrtc_info["header"]),
-                        os.path.dirname(self._libcuda_info["header"]),
-                    ]
+            include_dirs = [
+                os.path.dirname(header)
+                for header in (
+                    self._libnvrtc_info.get("header"),
+                    self._libcuda_info.get("header"),
                 )
-            )
+                if header
+            ]
+            self._cuda_include_path = list(set(include_dirs)) if include_dirs else ""
 
     def get_cuda_include_path(self):
         """
@@ -555,7 +567,14 @@ class CudaConfig:
     def set_linking_options(self):
         """Set the Linking option for nvrt/cuda entry point compilation."""
 
-        self._linking_options = f"-L{self.get_libcuda_folder()} -L{self.get_libnvrtc_folder()} -lcuda -lnvrtc"
+        link_options = []
+        for library_path, fallback_name in (
+            (self.get_libcuda_path(), "cuda"),
+            (self.get_libnvrtc_path(), "nvrtc"),
+        ):
+            link_options.append(library_path if library_path else f"-l{fallback_name}")
+
+        self._linking_options = " ".join(link_options)
 
     def get_linking_options(self):
         """Get the Linking option for nvrt/cuda entry point compilation."""
