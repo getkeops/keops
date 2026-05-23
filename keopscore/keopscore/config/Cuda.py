@@ -564,11 +564,10 @@ class CudaConfig:
         """Set the Linking option for nvrt/cuda entry point compilation."""
 
         link_options = []
-        for library_path, fallback_name in (
-            (self.get_libcuda_path(), "cuda"),
-            (self.get_libnvrtc_path(), "nvrtc"),
-        ):
-            link_options.append(library_path if library_path else f"-l{fallback_name}")
+        for lib_info in [self._libcuda_info, self._libnvrtc_info]:
+            link_options.append(
+                lib_info["library"] if lib_info["library"] else f"-l{lib_info['name']}"
+            )
 
         self._linking_options = " ".join(link_options)
 
@@ -665,7 +664,7 @@ class CudaConfig:
 if __name__ == "__main__":
     from keopscore.config.Platform import PlatformConfig
     from keopscore.config.CxxCompiler import CxxCompilerConfig
-    from keopscore.config.OpenMP import OpenMPConfig
+    # from keopscore.config.OpenMP import OpenMPConfig
 
     platform_info = PlatformConfig()
     platform_info.print_all()

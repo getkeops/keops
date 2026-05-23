@@ -98,28 +98,29 @@ class OpenMPConfig:
         result = lib_dict_info.copy()
 
         # First try to find OpenMP library using standard names via ctypes /cxx compiler.
-        for name, header_basename in zip(
-            lib_dict_info["name"], lib_dict_info["header_basename"]
-        ):
-            result["library"] = _find_library_by_names(name)
-            result["header"] = get_include_file_abspath(
-                header_basename, self.cxx.get_cxx_compiler()
-            )
+        if not self.platform.get_env_type().startswith("conda"):
+            for name, header_basename in zip(
+                lib_dict_info["name"], lib_dict_info["header_basename"]
+            ):
+                result["library"] = _find_library_by_names((name,))
+                result["header"] = get_include_file_abspath(
+                    header_basename, self.cxx.get_cxx_compiler()
+                )
 
-            ####
-            KeOps_Message("OpenMP library search using standard names:", level=2)
-            KeOps_Message(f"  Trying library name: {name}", level=2)
-            KeOps_Message(
-                f"  Found library path: {result['library'] or not_found_str}", level=2
-            )
-            KeOps_Message(f"  Trying header name: {header_basename}", level=2)
-            KeOps_Message(
-                f"  Found header path: {result['header'] or not_found_str}", level=2
-            )
-            ####
+                ####
+                KeOps_Message("OpenMP library search using standard names:", level=2)
+                KeOps_Message(f"  Trying library name: {name}", level=2)
+                KeOps_Message(
+                    f"  Found library path: {result['library'] or not_found_str}", level=2
+                )
+                KeOps_Message(f"  Trying header name: {header_basename}", level=2)
+                KeOps_Message(
+                    f"  Found header path: {result['header'] or not_found_str}", level=2
+                )
+                ####
 
-            if result["library"] and result["header"]:
-                return result
+                if result["library"] and result["header"]:
+                    return result
 
         # If that fails, search for OpenMP headers and libraries in common locations.
         candidate_roots = _ordered_search_roots(
@@ -128,6 +129,7 @@ class OpenMPConfig:
             system_roots=self._openmp_system_roots,
         )
 
+        # libraries
         result["library"] = _first_matching_file(
             _path_candidates(candidate_roots, self.openmp_library_suffixes),
             lib_dict_info["lib_basename_candidate"],
@@ -144,7 +146,7 @@ class OpenMPConfig:
         )
         ####
 
-        # Finally, search for OpenMP headers in common locations.
+        # headers
         result["header"] = _first_matching_file(
             _path_candidates(candidate_roots, self._openmp_include_sufixes),
             lib_dict_info["header_basename"],
@@ -165,8 +167,13 @@ class OpenMPConfig:
 
     def _omp_is_available(self):
         self._omp_info = self.find_install_path(self._omp_info)
-        liomp_path = os.path.exists(self._omp_info["library"]) and os.path.exists(
-            self._omp_info["header"]
+        library_path = self._omp_info.get("library")
+        header_path = self._omp_info.get("header")
+        liomp_path = bool(
+            library_path
+            and header_path
+            and os.path.exists(library_path)
+            and os.path.exists(header_path)
         )
         if not liomp_path:
             KeOps_Warning(
