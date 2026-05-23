@@ -64,14 +64,22 @@ install_editable_package() {
     pip install -e "${package_path}"
 }
 
+run_python_outside_repo() {
+    local python_code="$1"
+    (
+        cd /tmp
+        "${PYTHON_BIN}" -c "${python_code}"
+    )
+}
+
 clean_pykeops_cache() {
     log_verbose "-- Cleaning pykeops..."
-    "${PYTHON_BIN}" -c 'import pykeops; pykeops.clean_pykeops()'
+    run_python_outside_repo 'import pykeops; pykeops.clean_pykeops()'
 }
 
 run_pykeops_health_check() {
     echo "-- Running pykeops.check_health()..."
-    "${PYTHON_BIN}" -c 'import pykeops; pykeops.check_health()'
+    run_python_outside_repo 'import pykeops; pykeops.check_health()'
 }
 
 run_test_suite() {
