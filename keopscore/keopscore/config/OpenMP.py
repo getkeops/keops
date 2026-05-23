@@ -276,9 +276,9 @@ class OpenMPConfig:
     def set_compile_options(self):
         # Apple clang does not support -fopenmp directly; -Xpreprocessor is required.
         if self.cxx.get_use_Apple_clang():
-            self._compile_options += "-Xpreprocessor"
+            self._compile_options += " -Xpreprocessor"
 
-        self._compile_options += "-fopenmp"
+        self._compile_options += " -fopenmp"
 
     def get_compile_options(self):
         return self._compile_options
