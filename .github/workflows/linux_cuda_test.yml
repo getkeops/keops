@@ -1,0 +1,16 @@
+name: Linux CUDA Test
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  tests-linux-cuda:
+    name: Tests (Linux CUDA)
+    runs-on: self-hosted
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run tests
+        run: bash ./pytest.sh
