@@ -65,17 +65,13 @@ install_editable_package() {
 }
 
 clean_pykeops_cache() {
-    local tmp_dir
-
     log_verbose "-- Cleaning pykeops..."
-    tmp_dir="$(mktemp -d)"
+    "${PYTHON_BIN}" -c 'import pykeops; pykeops.clean_pykeops()'
+}
 
-    (
-        cd "${tmp_dir}"
-        "${PYTHON_BIN}" -c 'import pykeops; pykeops.clean_pykeops()'
-    )
-
-    rmdir "${tmp_dir}"
+run_pykeops_health_check() {
+    echo "-- Running pykeops.check_health()..."
+    "${PYTHON_BIN}" -c 'import pykeops; pykeops.check_health()'
 }
 
 run_test_suite() {
@@ -91,6 +87,7 @@ main() {
     prepare_python_environment
     install_editable_package "keopscore" "${SCRIPT_DIR}/keopscore"
     install_editable_package "pykeops" "${SCRIPT_DIR}/pykeops[test]"
+    run_pykeops_health_check
     clean_pykeops_cache
     run_test_suite "keopscore" "keopscore/keopscore/test/"
     run_test_suite "pykeops" "pykeops/pykeops/test/"
