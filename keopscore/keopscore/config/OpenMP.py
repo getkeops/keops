@@ -80,9 +80,7 @@ class OpenMPConfig:
         if self.platform.get_brew_prefix():
             self._openmp_system_roots.insert(
                 0,
-                [
-                    self.platform.get_brew_prefix(),
-                ],
+                self.platform.get_brew_prefix(),
             )
 
         # Detect OpenMP and set related configuration variables
