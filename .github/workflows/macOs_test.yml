@@ -5,16 +5,9 @@ on:
   pull_request:
 
 jobs:
-  tests-macos:
-    name: Tests (macOS ${{ matrix.arch }})
-    strategy:
-      matrix:
-        include:
-          - arch: ARM
-            os: macos-latest
-          - arch: Intel
-            os: macos-26-intel
-    runs-on: ${{ matrix.os }}
+  tests-macos-latest:
+    name: Tests (macOS latest)
+    runs-on: macos-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -23,6 +16,24 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.x"
+
+      - name: Install dependencies
+        run: brew install libomp
+
+      - name: Run tests
+        run: bash ./pytest.sh
+
+  tests-macos-intel:
+    name: Tests (macOS Intel)
+    runs-on: macos-26-intel
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
 
       - name: Install dependencies
         run: brew install libomp
