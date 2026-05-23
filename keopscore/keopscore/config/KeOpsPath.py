@@ -59,8 +59,9 @@ class KeOpsPathConfig:
         if os.getenv("KEOPS_CACHE_FOLDER"):
             cache_folder = os.getenv("KEOPS_CACHE_FOLDER")
         else:  # fallback to default cache folder in user home directory
+            version = getattr(keopscore, "__version__", "")
             cache_folder = os.path.join(
-                os.path.expanduser("~"), ".cache", f"keops{keopscore.__version__}"
+                os.path.expanduser("~"), ".cache", f"keops{version}"
             )
 
         os.makedirs(cache_folder, exist_ok=True)

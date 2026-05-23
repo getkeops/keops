@@ -1,4 +1,5 @@
 import os
+import re
 import shutil
 
 from keopscore.utils.messages import print_envs
@@ -177,15 +178,28 @@ class CxxCompilerConfig:
         """Return extra linker options needed for dlopen/dlsym support."""
         if self.platform.get_platform() == "Linux":
             return "-ldl"
-        elif self.platform.get_platform() == "Darwin":
-            # macOS: dlopen/dlsym are in standard C library, no extra flag needed
-            return ""
+        # macOS: dlopen/dlsym are in standard C library, no extra flag needed
         return ""
 
-    # C++ Environment Flags. Unused yet...
+    # C++ Environment Flags.
     def set_cxx_env_flags(self):
-        """Recover the C++ environment flags."""
-        self._cxx_env_flags = os.getenv("CXXFLAGS") if "CXXFLAGS" in os.environ else ""
+        """Recover CXXFLAGS and sanitize incompatible flags when needed."""
+        cxxflags = os.getenv("CXXFLAGS", "")
+
+        # Apple clang does not support some GCC tuning flags that may leak in
+        # from external environments (e.g. conda, torch build stacks).
+        if (
+            cxxflags
+            and self.platform.get_platform() == "Darwin"
+            and self.get_use_Apple_clang()
+        ):
+            cxxflags = re.sub(
+                r"(?:^|\s)-(?:march|mtune|mfpmath)(?:=\S+|\s+\S+)?",
+                "",
+                cxxflags,
+            ).strip()
+
+        self._cxx_env_flags = cxxflags
 
     def get_cxx_env_flags(self):
         """Get the C++ environment flags."""
