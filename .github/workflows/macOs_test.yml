@@ -6,8 +6,15 @@ on:
 
 jobs:
   tests-macos:
-    name: Tests (macOS CPU)
-    runs-on: macos-15
+    name: Tests (macOS ${{ matrix.arch }})
+    strategy:
+      matrix:
+        include:
+          - arch: ARM
+            os: macos-latest
+          - arch: Intel
+            os: macos-26-intel
+    runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
