@@ -23,7 +23,6 @@ Usage: $0 [option...]
    -l     Fix generated documentation links
    -n     Skip plot generation (make html-noplot)
 EOF
-    exit 1
 }
 
 log_step() {
@@ -35,6 +34,7 @@ parse_options() {
         case "${option}" in
             h)
                 print_help
+                exit 0
                 ;;
             j)
                 if ! [[ "${OPTARG}" =~ ^[1-9][0-9]*$ ]]; then
@@ -68,8 +68,8 @@ prepare_python_environment() {
     # shellcheck disable=SC1091
     source "${DOC_VENV}/bin/activate"
 
-    log_step "---- Python version = $(python -V)"
-    pip install -U "${DOC_REQUIREMENTS[@]}"
+    log_step "---- Python version = $(${PYTHON_BIN} -V)"
+    "${PYTHON_BIN}" -m pip install -U "${DOC_REQUIREMENTS[@]}"
 }
 
 install_editable_package() {
@@ -77,7 +77,7 @@ install_editable_package() {
     local package_path="$2"
 
     log_step "-- Installing ${package_name}..."
-    pip install -e "${package_path}"
+    "${PYTHON_BIN}" -m pip install -e "${package_path}"
 }
 
 build_doc() {

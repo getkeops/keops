@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 ################################################################################
 #  Instructions for Creating a New Release
@@ -6,7 +6,7 @@
 #  0) Generate a Twine API token and configure your `.pypirc` file
 #     Ensure both TestPyPI and PyPI are properly set up.
 #
-#  1) Update the version number in the file: ./keops_version and Changes log: ./CHANGELOG.md 
+#  1) Update the version number in the file: ./keops_version and Changes log: ./CHANGELOG.md
 #
 #  2) Build the packages using the build script:
 #       sh ./pybuild.sh
@@ -20,157 +20,129 @@
 #       twine upload ./build/dist/pykeops-XXXXX.tar.gz --repository testpypi
 #       pip install -i https://test.pypi.org/simple/ pykeops
 #
-#     ⚠️  Note: TestPyPI may have dependency resolution issues.
-#        If problems occur, install pykeops from PyPI, uninstall it,
-#        then reinstall pykeops from TestPyPI.
+#     Note: TestPyPI may have dependency resolution issues.
+#     If problems occur, install pykeops from PyPI, uninstall it,
+#     then reinstall pykeops from TestPyPI.
 #
-#     ⚠️  Note: Do not forget to remove the install from TestPyPI...
+#     Note: Do not forget to remove the install from TestPyPI.
 #
 #  5) Once validated, upload to the official PyPI:
 #       twine upload ./build/dist/keopscore-XXXXX.tar.gz
 #       twine upload ./build/dist/pykeops-XXXXX.tar.gz
 ################################################################################
 
+set -euo pipefail
 
+readonly PYTHON_BIN="python3"
+readonly SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
+readonly BUILD_VENV="${SCRIPT_DIR}/.build_venv"
+readonly BUILD_REQUIREMENTS=(pip build pyclean)
+readonly VERSION="$(<"${SCRIPT_DIR}/keops_version")"
 
-# exit in case of any errors
-set -e
-
-################################################################################
-# help                                                                         #
-################################################################################
-function print_help() {
-    # Display Help
-    echo "Build script for keopscore/pykeops packages."
-    echo
-    echo "Usage: $0 [option...]"
-    echo
-    echo "   -h     Print the help"
-    echo "   -l     Build in local mode (without hard-coded keopscore version requirement in pykeops)"
-    echo "   -v     Verbose mode"
-    echo
-    echo "Note: by default, the keopscore version requirement is hard-coded in pykeops."
-    echo
-    exit 1
-}
-
-################################################################################
-# utils                                                                        #
-################################################################################
-
-# log with verbosity management
-function logging() {
-    if [[ ${PYBUILD_VERBOSE} == 1 ]]; then
-        echo -e $1
-    fi
-}
-
-################################################################################
-# process script options                                                       #
-################################################################################
-
-# default options
 LOCAL_PYBUILD=0
 PYBUILD_VERBOSE=0
 
-# Get the options
-while getopts 'hlv' option; do
-    case $option in
-        h) # display Help
-            print_help
-            ;;
-        l) # local build (no hard-coded keopscore version requirements)
-            LOCAL_PYBUILD=1
-            logging "## local build (keopscore version requirements is NOT hard-coded in pykeops)"
-            ;;
-        v) # enable verbosity
-            PYBUILD_VERBOSE=1
-            logging "## verbose mode"
-            ;;
-        \?) # Invalid option
-            echo "Error: Invalid option"
-            exit 1
-            ;;
-    esac
-done
+print_help() {
+    cat <<EOF
+Build script for keopscore/pykeops packages.
 
-################################################################################
-# script setup                                                                 #
-################################################################################
+Usage: $0 [option...]
 
-# project root directory
-PROJDIR=$(git rev-parse --show-toplevel)
+   -h     Print the help
+   -l     Build in local mode (without hard-coded keopscore version requirement in pykeops)
+   -v     Verbose mode
 
-# python exec
-PYTHON="python3"
+Note: by default, the keopscore version requirement is hard-coded in pykeops.
+EOF
+}
 
-# python environment for build
-BUILD_VENV=${PROJDIR}/.build_venv
-
-# python build requirements (names of packages to be installed with pip)
-BUILD_REQ="pip build pyclean"
-
-# KeOps current version
-VERSION=$(cat ./keops_version)
-
-################################################################################
-# prepare build (and cleanup after)                                            #
-################################################################################
-
-# prepare setup and clean up on exit
-function prepare_setup() {
-    logging "-- Preparing setup..."
-    # hard-code keopscore requirements
-    if [[ ${LOCAL_PYBUILD} == 0 ]]; then
-        cp ${PROJDIR}/pykeops/setup.py ${PROJDIR}/pykeops/setup.py.pybuild.bak
-        sed -i -e "s/\"keopscore\"/\"keopscore==\" + current_version/" ${PROJDIR}/pykeops/setup.py
+log_verbose() {
+    if [[ "${PYBUILD_VERBOSE}" -eq 1 ]]; then
+        printf '%b\n' "$1"
     fi
 }
 
-function cleanup_setup() {
-    logging "-- Cleaning up setup..."
-    cp ${PROJDIR}/pykeops/setup.py.pybuild.bak ${PROJDIR}/pykeops/setup.py
-    rm ${PROJDIR}/pykeops/setup.py.pybuild.bak
+parse_options() {
+    while getopts ":hlv" option; do
+        case "${option}" in
+            h)
+                print_help
+                exit 0
+                ;;
+            l)
+                LOCAL_PYBUILD=1
+                log_verbose "## local build (keopscore version requirement is not hard-coded in pykeops)"
+                ;;
+            v)
+                PYBUILD_VERBOSE=1
+                log_verbose "## verbose mode"
+                ;;
+            \?)
+                echo "Error: Invalid option"
+                exit 1
+                ;;
+        esac
+    done
 }
 
-prepare_setup
-trap cleanup_setup EXIT
+prepare_setup() {
+    local setup_file="${SCRIPT_DIR}/pykeops/setup.py"
+    local backup_file="${setup_file}.pybuild.bak"
 
-################################################################################
-# prepare python environment                                                   #
-################################################################################
+    if [[ "${LOCAL_PYBUILD}" -eq 1 ]]; then
+        return
+    fi
 
-logging "-- Preparing python environment for build..."
+    log_verbose "-- Preparing setup for version ${VERSION}..."
+    cp "${setup_file}" "${backup_file}"
+    sed -i -e 's/"keopscore"/"keopscore==" + current_version/' "${setup_file}"
+}
 
-${PYTHON} -m venv --clear ${BUILD_VENV}
-source ${BUILD_VENV}/bin/activate
+cleanup_setup() {
+    local setup_file="${SCRIPT_DIR}/pykeops/setup.py"
+    local backup_file="${setup_file}.pybuild.bak"
 
-logging "---- Python version = $(python -V)"
+    if [[ ! -f "${backup_file}" ]]; then
+        return
+    fi
 
-pip install -U ${BUILD_REQ}
+    log_verbose "-- Restoring pykeops setup..."
+    mv "${backup_file}" "${setup_file}"
+}
 
-################################################################################
-# clean before build                                                           #
-################################################################################
+prepare_python_environment() {
+    log_verbose "-- Preparing python environment for build..."
+    "${PYTHON_BIN}" -m venv --clear "${BUILD_VENV}"
 
-logging "-- Cleaning Python sources before build..."
+    # shellcheck disable=SC1091
+    source "${BUILD_VENV}/bin/activate"
 
-# remove __pycache__ *.pyc
-pyclean ${PROJDIR}/keopscore
-pyclean ${PROJDIR}/pykeops
+    log_verbose "---- Python version = $(${PYTHON_BIN} -V)"
+    "${PYTHON_BIN}" -m pip install -U "${BUILD_REQUIREMENTS[@]}"
+}
 
-################################################################################
-# build keopscore                                                              #
-################################################################################
+clean_python_sources() {
+    log_verbose "-- Cleaning Python sources before build..."
+    pyclean "${SCRIPT_DIR}/keopscore"
+    pyclean "${SCRIPT_DIR}/pykeops"
+}
 
-logging "-- Building keopscore..."
+build_source_distribution() {
+    local package_name="$1"
+    local package_path="$2"
 
-python -m build --sdist --outdir ${PROJDIR}/build/dist ${PROJDIR}/keopscore
+    log_verbose "-- Building ${package_name}..."
+    "${PYTHON_BIN}" -m build --sdist --outdir "${SCRIPT_DIR}/build/dist" "${package_path}"
+}
 
-################################################################################
-# build pykeops                                                                #
-################################################################################
+main() {
+    parse_options "$@"
+    prepare_setup
+    trap cleanup_setup EXIT
+    prepare_python_environment
+    clean_python_sources
+    build_source_distribution "keopscore" "${SCRIPT_DIR}/keopscore"
+    build_source_distribution "pykeops" "${SCRIPT_DIR}/pykeops"
+}
 
-logging "-- Building pykeops..."
-
-python -m build --sdist --outdir ${PROJDIR}/build/dist ${PROJDIR}/pykeops
+main "$@"

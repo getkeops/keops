@@ -8,6 +8,7 @@ readonly TEST_VENV="${SCRIPT_DIR}/.test_venv_pytest"
 readonly TEST_REQUIREMENTS=(pip)
 
 PYTEST_VERBOSE=0
+PIP_CONSTRAINT_FILE=""
 
 print_help() {
     cat <<EOF
@@ -15,10 +16,11 @@ Test script for keopscore/pykeops packages.
 
 Usage: $0 [option...]
 
-   -h     Print the help
-   -v     Verbose mode
+    -h      Print the help
+    -v      Verbose mode
+    --pip-constraint <file> 
+            Constrain build dependencies using the given constraints file.
 EOF
-    exit 1
 }
 
 log_verbose() {
@@ -28,21 +30,49 @@ log_verbose() {
 }
 
 parse_options() {
-    while getopts ":hv" option; do
-        case "${option}" in
-            h)
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -h)
                 print_help
+                exit 0
                 ;;
-            v)
+            -v)
                 PYTEST_VERBOSE=1
                 log_verbose "## verbose mode"
                 ;;
-            \?)
-                echo "Error: Invalid option"
+            --pip-constraint)
+                shift
+                if [[ $# -eq 0 ]]; then
+                    echo "Error: --pip-constraint requires a file path"
+                    exit 1
+                fi
+                PIP_CONSTRAINT_FILE="$1"
+                ;;
+            --pip-constraint=*)
+                PIP_CONSTRAINT_FILE="${1#*=}"
+                ;;
+            *)
+                echo "Error: Invalid option: $1"
                 exit 1
                 ;;
         esac
+        shift
     done
+
+    if [[ -n "${PIP_CONSTRAINT_FILE}" && ! -f "${PIP_CONSTRAINT_FILE}" ]]; then
+        echo "Error: Constraint file not found: ${PIP_CONSTRAINT_FILE}"
+        exit 1
+    fi
+}
+
+pip_install() {
+    local args=()
+
+    if [[ -n "${PIP_CONSTRAINT_FILE}" ]]; then
+        args+=(--constraint "${PIP_CONSTRAINT_FILE}")
+    fi
+
+    "${PYTHON_BIN}" -m pip install "${args[@]}" "$@"
 }
 
 prepare_python_environment() {
@@ -52,8 +82,8 @@ prepare_python_environment() {
     # shellcheck disable=SC1091
     source "${TEST_VENV}/bin/activate"
 
-    log_verbose "---- Python version = $(python -V)"
-    pip install -U "${TEST_REQUIREMENTS[@]}"
+    log_verbose "---- Python version = $(${PYTHON_BIN} -V)"
+    pip_install -U "${TEST_REQUIREMENTS[@]}"
 }
 
 install_editable_package() {
@@ -61,7 +91,7 @@ install_editable_package() {
     local package_path="$2"
 
     log_verbose "-- Installing ${package_name}..."
-    pip install -e "${package_path}"
+    pip_install -e "${package_path}"
 }
 
 run_python_outside_repo() {
