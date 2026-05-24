@@ -39,8 +39,7 @@ class OpenMPConfig:
 
     _openmp_system_roots = [
         # self.get_brew_prefix() added later on,
-        os.path.join(os.path.sep, "opt", "homebrew", "opt", "libomp"),
-        os.path.join(os.path.sep, "usr", "local", "opt", "libomp"),
+        os.path.join(os.path.sep, "opt", "homebrew"),
         os.path.join(os.path.sep, "usr", "local"),
         os.path.join(os.path.sep, "usr"),
     ]
@@ -48,12 +47,12 @@ class OpenMPConfig:
     openmp_library_suffixes = (
         "lib",
         "lib64",
-        os.path.join("libomp", "lib"),
+        os.path.join("opt", "libomp", "lib"),
     )
 
     _openmp_include_sufixes = (
         "include",
-        os.path.join("libomp", "include"),
+        os.path.join("opt", "libomp", "include"),
     )
 
     _omp_info = {
@@ -112,7 +111,8 @@ class OpenMPConfig:
                 KeOps_Message("OpenMP library search using standard names:", level=2)
                 KeOps_Message(f"  Trying library name: {name}", level=2)
                 KeOps_Message(
-                    f"  Found library path: {result['library'] or not_found_str}", level=2
+                    f"  Found library path: {result['library'] or not_found_str}",
+                    level=2,
                 )
                 KeOps_Message(f"  Trying header name: {header_basename}", level=2)
                 KeOps_Message(

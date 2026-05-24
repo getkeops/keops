@@ -664,6 +664,7 @@ class CudaConfig:
 if __name__ == "__main__":
     from keopscore.config.Platform import PlatformConfig
     from keopscore.config.CxxCompiler import CxxCompilerConfig
+
     # from keopscore.config.OpenMP import OpenMPConfig
 
     platform_info = PlatformConfig()

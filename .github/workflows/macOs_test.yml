@@ -32,6 +32,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Pin NumPy for Intel CI
+        run: |
+          echo "numpy<2" > /tmp/pip-constraints.txt
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -39,10 +43,6 @@ jobs:
 
       - name: Install dependencies
         run: brew install libomp
-
-      - name: Pin NumPy for Intel CI
-        run: |
-          echo "numpy<2" > /tmp/pip-constraints.txt
 
       - name: Run tests
         run: bash ./pytest.sh
