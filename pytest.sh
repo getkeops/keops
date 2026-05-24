@@ -7,7 +7,7 @@ readonly SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" >/dev/null 2>&1
 readonly TEST_VENV="${SCRIPT_DIR}/.test_venv_pytest"
 readonly TEST_REQUIREMENTS=(pip)
 
-PYTEST_VERBOSE=0
+KEOPS_VERBOSE_LEVEL=-1
 PIP_CONSTRAINT_FILE=""
 
 print_help() {
@@ -17,14 +17,15 @@ Test script for keopscore/pykeops packages.
 Usage: $0 [option...]
 
     -h      Print the help
-    -v      Verbose mode
+    -v <0|1|2>
+            Verbosity level forwarded to KEOPS_VERBOSE and PYKEOPS_VERBOSE
     --pip-constraint <file> 
-            Constrain build dependencies using the given constraints file.
+            Constrain pip installs using the given constraints file.
 EOF
 }
 
 log_verbose() {
-    if [[ "${PYTEST_VERBOSE}" -eq 1 ]]; then
+    if [[ "${KEOPS_VERBOSE_LEVEL}" -ge 1 ]]; then
         printf '%b\n' "$1"
     fi
 }
@@ -37,8 +38,16 @@ parse_options() {
                 exit 0
                 ;;
             -v)
-                PYTEST_VERBOSE=1
-                log_verbose "## verbose mode"
+                shift
+                if [[ $# -eq 0 ]]; then
+                    echo "Error: -v requires a level (0, 1 or 2)"
+                    exit 1
+                fi
+                if ! [[ "$1" =~ ^[0-2]$ ]]; then
+                    echo "Error: Invalid -v value: $1 (expected 0, 1 or 2)"
+                    exit 1
+                fi
+                KEOPS_VERBOSE_LEVEL="$1"
                 ;;
             --pip-constraint)
                 shift
@@ -63,6 +72,16 @@ parse_options() {
         echo "Error: Constraint file not found: ${PIP_CONSTRAINT_FILE}"
         exit 1
     fi
+
+    log_verbose "## verbose mode (level=${KEOPS_VERBOSE_LEVEL})"
+}
+
+run_with_keops_verbose() {
+    if [[ "${KEOPS_VERBOSE_LEVEL}" -ne -1 ]]; then
+        KEOPS_VERBOSE="${KEOPS_VERBOSE_LEVEL}" PYKEOPS_VERBOSE="${KEOPS_VERBOSE_LEVEL}" "$@"
+    else
+        "$@"
+    fi
 }
 
 pip_install() {
@@ -72,7 +91,7 @@ pip_install() {
         args+=(--constraint "${PIP_CONSTRAINT_FILE}")
     fi
 
-    "${PYTHON_BIN}" -m pip install "${args[@]}" "$@"
+    run_with_keops_verbose "${PYTHON_BIN}" -m pip install "${args[@]}" "$@"
 }
 
 prepare_python_environment() {
@@ -98,7 +117,7 @@ run_python_outside_repo() {
     local python_code="$1"
     (
         cd /tmp
-        "${PYTHON_BIN}" -c "${python_code}"
+        run_with_keops_verbose "${PYTHON_BIN}" -c "${python_code}"
     )
 }
 
@@ -117,7 +136,7 @@ run_test_suite() {
     local suite_path="$2"
 
     log_verbose "-- Running ${suite_name} tests..."
-    pytest -v "${suite_path}"
+    run_with_keops_verbose pytest -v "${suite_path}"
 }
 
 main() {
