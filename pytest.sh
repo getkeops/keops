@@ -85,13 +85,12 @@ run_with_keops_verbose() {
 }
 
 pip_install() {
-    local args=()
-
     if [[ -n "${PIP_CONSTRAINT_FILE}" ]]; then
-        args+=(--constraint "${PIP_CONSTRAINT_FILE}")
+        run_with_keops_verbose "${PYTHON_BIN}" -m pip install --constraint "${PIP_CONSTRAINT_FILE}" "$@"
+        return
     fi
 
-    run_with_keops_verbose "${PYTHON_BIN}" -m pip install "${args[@]}" "$@"
+    run_with_keops_verbose "${PYTHON_BIN}" -m pip install "$@"
 }
 
 prepare_python_environment() {
