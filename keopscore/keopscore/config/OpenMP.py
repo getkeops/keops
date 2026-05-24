@@ -65,7 +65,7 @@ class OpenMPConfig:
             "libm.dylib",
             "libm.so*",
         ],
-        "header_basename": ["omp.h", "gomp.h"],
+        "header_basename": "omp.h",
         "library": "",  # to be filled later
         "header": "",  # not needed
         "ctype_handle": None,  # to be filled later
@@ -83,44 +83,62 @@ class OpenMPConfig:
                 self.platform.get_brew_prefix(),
             )
 
-        # Detect OpenMP and set related configuration variables
-        if self._omp_is_available():
+        # Detect OpenMP once and set related configuration variables.
+        omp_available = self._omp_is_available()
+        if omp_available:
             self.set_libomp_include_path()
             self.set_libomp_folder()
             self.set_compile_options()
             self.set_include_options()
             self.set_linking_options()
 
-        # Chech if the compiler support omp
-        self.set_use_OpenMP()
+        # Check if the compiler supports OpenMP.
+        self.set_use_OpenMP(omp_available)
 
     def find_install_path(self, lib_dict_info):
         result = lib_dict_info.copy()
 
         # First try to find OpenMP library using standard names via ctypes /cxx compiler.
         if not self.platform.get_env_type().startswith("conda"):
-            for name, header_basename in zip(
-                lib_dict_info["name"], lib_dict_info["header_basename"]
-            ):
-                result["library"] = _find_library_by_names((name,))
-                result["header"] = get_include_file_abspath(
-                    header_basename, self.cxx.get_cxx_compiler()
+            header_path = get_include_file_abspath(
+                lib_dict_info["header_basename"], self.cxx.get_cxx_compiler()
+            )
+
+            ####
+            KeOps_Message("OpenMP header search using standard names:", level=2)
+            KeOps_Message(
+                f"  Trying header name: {lib_dict_info['header_basename']}", level=2
+            )
+            KeOps_Message(
+                f"  Found header path: {header_path or not_found_str}", level=2
+            )
+            ####
+
+            if not header_path:
+                KeOps_Message(
+                    "  Standard-name library probing skipped: omp.h was not found.",
+                    level=2,
                 )
+            else:
+                result["header"] = header_path
+
+            for name in lib_dict_info["name"]:
+                library_path = _find_library_by_names((name,))
 
                 ####
                 KeOps_Message("OpenMP library search using standard names:", level=2)
                 KeOps_Message(f"  Trying library name: {name}", level=2)
                 KeOps_Message(
-                    f"  Found library path: {result['library'] or not_found_str}",
+                    f"  Found library path: {library_path or not_found_str}",
                     level=2,
-                )
-                KeOps_Message(f"  Trying header name: {header_basename}", level=2)
-                KeOps_Message(
-                    f"  Found header path: {result['header'] or not_found_str}", level=2
                 )
                 ####
 
-                if result["library"] and result["header"]:
+                if not library_path:
+                    continue
+
+                if header_path:
+                    result["library"] = library_path
                     return result
 
         # If that fails, search for OpenMP headers and libraries in common locations.
@@ -184,8 +202,10 @@ class OpenMPConfig:
         return True
 
     # OpenMP support
-    def set_use_OpenMP(self):
-        self._use_OpenMP = self._omp_is_available() and self.check_compiler_for_openmp()
+    def set_use_OpenMP(self, omp_available=None):
+        if omp_available is None:
+            omp_available = self._omp_is_available()
+        self._use_OpenMP = omp_available and self.check_compiler_for_openmp()
         if not self._use_OpenMP:
             self._compile_options = ""
             self._include_options = ""
@@ -227,7 +247,7 @@ class OpenMPConfig:
         return self._libomp_include_path
 
     def print_libomp_include_path(self):
-        print(f"OpenMP Include Path: {self.get_libomp_include_path() or not_found_str}")
+        print(f"OpenMP Header Path: {self.get_libomp_include_path() or not_found_str}")
 
     def get_openmp_include_dir(self):
         """Get the OpenMP include directory (containing headers)."""
@@ -285,9 +305,10 @@ class OpenMPConfig:
             self._compile_options += " -Xpreprocessor"
 
         self._compile_options += " -fopenmp"
+        self._compile_options
 
     def get_compile_options(self):
-        return self._compile_options
+        return self._compile_options.strip()
 
     def print_compile_options(self):
         print(f"Compile Options: {self.get_compile_options()}")

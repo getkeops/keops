@@ -408,7 +408,7 @@ class CudaConfig:
         return self._libcuda_info["library"]
 
     def print_libcuda_path(self):
-        print(f"Libcuda Path: {self.get_libcuda_path() or not_found_str}")
+        print(f"Libcuda Path:   {self.get_libcuda_path() or not_found_str}")
 
     # Libnvrtc folder
     def set_libnvrtc_folder(self):
@@ -435,7 +435,7 @@ class CudaConfig:
         return self._libnvrtc_info["library"]
 
     def print_libnvrtc_path(self):
-        print(f"Libnvrtc Path: {self.get_libnvrtc_path() or not_found_str}")
+        print(f"Libnvrtc Path:  {self.get_libnvrtc_path() or not_found_str}")
 
     # Libcudart path
     def set_libcudart_path(self):
@@ -516,10 +516,10 @@ class CudaConfig:
         )
 
     def get_include_options(self):
-        return self._include_options
+        return self._include_options.strip()
 
     def print_include_options(self):
-        print(f"GPU Include Options: {self.get_include_options() or not_found_str}")
+        print(f"CUDA Include Options: {self.get_include_options() or not_found_str}")
 
     # NVRTC preprocessins options
     def set_preprocessing_options(self):
