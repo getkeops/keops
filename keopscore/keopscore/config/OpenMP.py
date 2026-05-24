@@ -40,6 +40,7 @@ class OpenMPConfig:
     _openmp_system_roots = [
         # self.get_brew_prefix() added later on,
         os.path.join(os.path.sep, "opt", "homebrew", "opt", "libomp"),
+        os.path.join(os.path.sep, "usr", "local", "opt", "libomp"),
         os.path.join(os.path.sep, "usr", "local"),
         os.path.join(os.path.sep, "usr"),
     ]

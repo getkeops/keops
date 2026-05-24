@@ -26,6 +26,8 @@ jobs:
   tests-macos-intel:
     name: Tests (macOS Intel)
     runs-on: macos-26-intel
+    env:
+      PIP_CONSTRAINT: /tmp/pip-constraints.txt
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -37,6 +39,10 @@ jobs:
 
       - name: Install dependencies
         run: brew install libomp
+
+      - name: Pin NumPy for Intel CI
+        run: |
+          echo "numpy<2" > /tmp/pip-constraints.txt
 
       - name: Run tests
         run: bash ./pytest.sh
