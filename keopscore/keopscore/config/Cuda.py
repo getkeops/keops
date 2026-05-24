@@ -14,7 +14,15 @@ from keopscore.utils.system_utils import _find_library_by_names
 
 class CudaConfig:
     """
-    Class for CUDA detection and configuration.
+    CUDA detection and configuration.
+
+    The main state is stored in the ``_libcuda_info``, ``_libnvrtc_info`` and
+    ``_cudart_info`` dictionaries. These dictionaries are filled with the paths
+    to the corresponding libraries and headers, when found, and with their
+    ctypes handles when successfully loaded. Detection is performed by
+    ``_cuda_libraries_available``, which is called by ``set_use_cuda``. The
+    remaining configuration, including the CUDA version, include options and
+    preprocessing options, is set from the detection results.
     """
 
     # CUDA constants
