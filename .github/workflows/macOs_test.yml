@@ -27,7 +27,7 @@ jobs:
     name: Tests (macOS Intel)
     runs-on: macos-26-intel
     env:
-      PIP_CONSTRAINT: /tmp/pip-constraints.txt
+      PIP_BUILD_CONSTRAINT: /tmp/pip-constraints.txt
     steps:
       - name: Checkout
         uses: actions/checkout@v4
