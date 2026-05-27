@@ -21,7 +21,7 @@ def test_numpy_bindings():
     try:
         keops_res = my_conv(x, y).flatten()
     except Exception as e:
-        raise ValueError(f"Error during computation: {e}", use_tag=False)
+        pyKeOps_Message(f"Error during computation: {e}", use_tag=False)
 
     if np.allclose(keops_res, expected_res):
         pyKeOps_Message(
