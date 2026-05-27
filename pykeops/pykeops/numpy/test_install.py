@@ -25,7 +25,7 @@ def test_numpy_bindings():
 
     if np.allclose(keops_res, expected_res):
         pyKeOps_Message(
-            "pyKeOps with torch bindings is working!", use_tag=False, level=1
+            "pyKeOps with numpy bindings is working!", use_tag=False, level=1
         )
         return True
     else:
