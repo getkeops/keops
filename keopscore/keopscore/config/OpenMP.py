@@ -322,9 +322,26 @@ class OpenMPConfig:
 
     # C++ linking Options
     def set_linking_options(self):
-        self._linking_options += (
-            f"-L{self.get_libomp_folder()}" if self.get_libomp_folder() else ""
-        )
+        link_flags = []
+        libomp_folder = self.get_libomp_folder()
+        libomp_path = self.get_libomp_path()
+
+        if libomp_folder:
+            link_flags.append(f"-L{libomp_folder}")
+
+        # Force-link OpenMP runtime to avoid unresolved symbols at dlopen time.
+        if libomp_path:
+            lib_basename = os.path.basename(libomp_path)
+            if lib_basename.startswith("lib"):
+                lib_name = lib_basename[3:].split(".")[0]
+                if lib_name:
+                    link_flags.append(f"-l{lib_name}")
+
+        # Ensure runtime loader can find libomp on macOS non-system paths.
+        if self.platform.get_platform() == "Darwin" and libomp_folder:
+            link_flags.append(f"-Wl,-rpath,{libomp_folder}")
+
+        self._linking_options = " ".join(link_flags)
 
     def get_linking_options(self):
         return self._linking_options

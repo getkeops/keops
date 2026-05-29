@@ -5,7 +5,6 @@ import os
 from keopscore.utils.messages import print_envs
 from keopscore.utils.messages import enabled_dict, not_found_str
 from keopscore.utils.messages import KeOps_Error, KeOps_Warning
-from keopscore.utils.file_utils import pack_header
 from keopscore.utils.path_utils import (
     _first_matching_file,
     _ordered_search_roots,
@@ -115,7 +114,6 @@ class CudaConfig:
         "name": "nvrtc",
         "lib_basename_candidate": ["libnvrtc.so.*"],
         "library": "",  # to be filled later
-        "ctype_handle": None,  # to be filled later
     }
     _libnvrtc_builtins_info = {
         "name": "nvrtc-builtins",
@@ -124,7 +122,6 @@ class CudaConfig:
             "libnvrtc-builtins.alt.so*",
         ],
         "library": "",  # to be filled later
-        "ctype_handle": None,  # to be filled later
     }
     _headers_nvrtc_info = {
         "header_basename": "nvrtc.h",
@@ -293,8 +290,8 @@ class CudaConfig:
 
         return True, ""
 
-    def _find_and_load_libnvrtc(self, where_to_search):
-        """Locate and load the NVRTC runtime compilation library."""
+    def _find_libnvrtc(self, where_to_search):
+        """Locate the NVRTC runtime compilation library."""
         self._libnvrtc_info = self.find_library_path(
             self._libnvrtc_info, where_to_search
         )
@@ -305,25 +302,15 @@ class CudaConfig:
                 "libnvrtc not found. Make sure the CUDA toolkit is installed and accessible.",
             )
 
-        try:
-            libnvrtc_handle = ctypes.CDLL(libnvrtc_path, mode=ctypes.RTLD_GLOBAL)
-        except OSError as e:
-            return (
-                False,
-                f"Failed to load library '{os.path.basename(libnvrtc_path)}': {e}",
-            )
-
-        # If we successfully loaded libnvrtc, store the handle in the config
-        self._libnvrtc_info["ctype_handle"] = libnvrtc_handle
-
         return True, ""
 
-    def _find_and_load_libnvrtc_builtins(self, folder_to_search):
+    def _find_libnvrtc_builtins(self, folder_to_search):
         """
-        Preload of NVRTC builtins from the same folder as libnvrtc.
+        Locate NVRTC builtins from the same folder as libnvrtc.
 
         This check is non-blocking: warnings are emitted on failure, and CUDA
-        detection continues.
+        detection continues. We intentionally do not preload this library with
+        ctypes; runtime resolution is handled through linker rpath flags.
         """
 
         self._libnvrtc_builtins_info = self.find_library_path(
@@ -335,17 +322,6 @@ class CudaConfig:
                 True,
                 f"NVRTC builtins library not found in {folder_to_search}. This may cause runtime compilation to fail in environments with multiple CUDA toolkit versions installed.",
             )
-
-        try:
-            handle = ctypes.CDLL(libnvrtc_builtins_path, mode=ctypes.RTLD_GLOBAL)
-        except OSError as err:
-            return (
-                True,
-                f"Failed to load NVRTC builtins library '{os.path.basename(libnvrtc_builtins_path)}': {err}",
-            )
-
-        # If we successfully loaded the library, store the handle in the config for potential future use
-        self._libnvrtc_builtins_info["ctype_handle"] = handle
 
         return True, ""
 
@@ -388,15 +364,15 @@ class CudaConfig:
 
         # libnvrtc as well, since it's required for the runtime compilation of CUDA code.
         # This is usually provided by the CUDA Toolkit (install system-wide or in conda/pip).
-        success_nvrtc, err_nvrtc = self._find_and_load_libnvrtc(where_to_search)
+        success_nvrtc, err_nvrtc = self._find_libnvrtc(where_to_search)
         if not success_nvrtc:
             KeOps_Warning(f"{err_nvrtc}. Switching to CPU only.")
             return False
 
-        # Try load of NVRTC builtins from the same toolkit folder.
-        # This avoids runtime search path ambiguity in environments where
+        # Locate NVRTC builtins in the same toolkit folder.
+        # This helps set runtime search paths in environments where
         # multiple CUDA toolkit versions are installed.
-        _, warning_nvrtc = self._find_and_load_libnvrtc_builtins(
+        _, warning_nvrtc = self._find_libnvrtc_builtins(
             os.path.dirname(self._libnvrtc_info["library"])
         )
         if warning_nvrtc:
@@ -577,27 +553,7 @@ class CudaConfig:
             f"CUDA Include Path: {':'.join(self.get_cuda_include_path()) or not_found_str}"
         )
 
-    def custom_cuda_include_fp16_path(self):
-        """
-        Create (if needed) a packed standalone cuda_fp16.h in the KeOps build
-        folder for NVRTC compilation and return this folder.
-        """
-        import keopscore.config
-
-        build_folder = keopscore.config.path.get_build_folder()
-        fp16_header = "cuda_fp16.h"
-        fp16_header_path = os.path.join(build_folder, fp16_header)
-        if not os.path.isfile(fp16_header_path):
-            pack_header(
-                fp16_header,
-                os.path.dirname(self._headers_fp16_info["header"]),
-                build_folder,
-            )
-
-        return build_folder
-
     # IR type
-
     def set_ir_type(self):
         """Set the IR type to be used for nvrtc compilation based on the CUDA version."""
         if self.get_cuda_version() >= 11010:
@@ -667,6 +623,23 @@ class CudaConfig:
             link_options.append(
                 lib_info["library"] if lib_info["library"] else f"-l{lib_info['name']}"
             )
+
+        # Ensure runtime loader can resolve CUDA toolkit side dependencies
+        # (e.g. nvrtc-builtins) without requiring ctypes preloading.
+        rpath_dirs = []
+        for lib_info in [
+            self._libcuda_info,
+            self._libnvrtc_info,
+            self._libnvrtc_builtins_info,
+        ]:
+            lib_path = lib_info.get("library")
+            if lib_path:
+                lib_dir = os.path.dirname(lib_path)
+                if lib_dir and lib_dir not in rpath_dirs:
+                    rpath_dirs.append(lib_dir)
+
+        for lib_dir in rpath_dirs:
+            link_options.append(f"-Wl,-rpath,{lib_dir}")
 
         self._linking_options = " ".join(link_options)
 
