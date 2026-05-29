@@ -107,6 +107,15 @@ extern "C" int Compile(const char *target_file_name, const char *cu_code,
   }
 
   if (compileResult != NVRTC_SUCCESS) {
+    size_t logSize = 0;
+    nvrtcGetProgramLogSize(prog, &logSize);
+    if (logSize > 1) {
+      std::vector<char> log(logSize);
+      nvrtcGetProgramLog(prog, log.data());
+      std::cerr << "[KeOps] NVRTC compile log:\n" << log.data() << std::endl;
+    }
+    std::cerr << "[KeOps] nvrtcCompileProgram failed: "
+              << nvrtcGetErrorString(compileResult) << std::endl;
     return compileResult;
   }
 

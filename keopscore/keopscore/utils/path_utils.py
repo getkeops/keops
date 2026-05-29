@@ -1,18 +1,18 @@
 import os
-import site
 import sys
-import sysconfig
 from pathlib import Path
 
 
 def _unique_paths(paths):
-    """Return paths in first-seen order with duplicates and None values removed."""
+    """Return existing paths in first-seen order with duplicates and None values removed."""
     unique = []
     seen = set()
     for path in paths:
         if path is None:
             continue
         path = Path(path)
+        if not path.exists() and not path.is_dir():
+            continue
         key = str(path)
         if key not in seen:
             seen.add(key)
@@ -34,56 +34,35 @@ def _path_candidates(roots, suffixes):
     return _unique_paths(candidates)
 
 
-def _python_package_roots():
-    """Return Python package roots where pip-installed wheels may live."""
-    package_roots = []
-    getters = [
-        lambda: getattr(site, "getsitepackages", lambda: [])(),
-        lambda: [site.getusersitepackages()],
-        lambda: [sysconfig.get_path("purelib")],
-        lambda: [sysconfig.get_path("platlib")],
-        lambda: sys.path,
-    ]
-    for getter in getters:
-        try:
-            # Some site helpers are unavailable in embedded or non-standard Python builds.
-            package_roots.extend(getter() or [])
-        except Exception:
-            continue
-    return _unique_paths(package_roots)
-
-
-def _ordered_search_roots(
-    env_vars=(), pip_suffixes=(), conda_root=None, system_roots=(), order=None
-):
+def _ordered_search_roots(env_vars=(), pip=(), conda=None, system=(), order=None):
     """Return normalized search roots in a caller-defined category order.
 
     Args:
         env_vars (tuple[str] | list[str]): Environment variable names whose values
             should be considered as root directories.
-        pip_suffixes (tuple[str] | list[str]): Relative suffixes appended to Python
+        pip (tuple[str] | list[str]): Relative suffixes appended to Python
             package roots discovered from the current interpreter.
-        conda_root (str | None): Name of an environment variable that points to a
+        conda (str | None): Name of an environment variable that points to a
             Conda root directory.
-        system_roots (tuple[str] | list[str]): Fallback root directories to append.
+        system (tuple[str] | list[str]): Fallback root directories to append.
         order (tuple[str] | list[str] | str | None): Ordered categories to apply.
-            Allowed items are ``env_vars``, ``pip_suffixes``, ``conda_root``, and
-            ``system_roots``. A comma-separated string is also accepted.
+            Allowed items are ``env_vars``, ``pip``, ``conda``, and
+            ``system``. A comma-separated string is also accepted.
 
     Returns:
         list[pathlib.Path]: Existing candidates, deduplicated in first-seen order.
     """
 
     if order is None:
-        order = ("env_vars", "conda_root", "system_roots", "pip_suffixes")
+        order = ("env_vars", "conda", "system", "pip")
     else:
         isinstance(order, str) and (order := tuple(order.split(",")))
         for item in order:
             if item not in (
                 "env_vars",
-                "pip_suffixes",
-                "conda_root",
-                "system_roots",
+                "pip",
+                "conda",
+                "system",
             ):
                 raise ValueError(f"Invalid order item: {item}")
 
@@ -93,15 +72,14 @@ def _ordered_search_roots(
         if item == "env_vars" and env_vars:
             roots.extend(_env_roots(env_vars))
 
-        if item == "pip_suffixes" and pip_suffixes:
-            # Pip wheels such as nvidia-cuda-runtime expose libraries under site-packages.
-            roots.extend(_path_candidates(_python_package_roots(), pip_suffixes))
+        if item == "pip" and pip:
+            roots.extend(_unique_paths(pip))
 
-        if item == "conda_root" and conda_root:
-            roots.extend(_env_roots((conda_root,)))
+        if item == "conda" and conda:
+            roots.extend(_env_roots((conda,)))
 
-        if item == "system_roots" and system_roots:
-            roots.extend(system_roots)
+        if item == "system" and system:
+            roots.extend(_unique_paths(system))
 
     return _unique_paths(roots)
 

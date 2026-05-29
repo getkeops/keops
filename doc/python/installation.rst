@@ -87,29 +87,25 @@ Using a Conda/Miniconda/Mamba environment
 
 Conda environments can be a convenient way to get a working configuration
 without the root permissions that may be needed to install system dependencies
-such as the CUDA toolkit. They are not fully isolated from every other
+such as the CUDA toolkit or OpenMP. They are not fully isolated from every other
 installation mechanism, though. If things do not behave as expected, check
 whether older packages are already installed somewhere else on your system.
 
 The dependencies for PyKeOps are listed :ref:`above <part.PyKeOpsRequirements>`,
-but the exact packages needed depend on your system. For instance, as of May
-2026, on Ubuntu 24.04 LTS with an NVIDIA GPU and driver 580 installed, but
-without ``nvidia-cuda-dev`` or ``nvidia-cuda-toolkit`` installed, the following
-commands create a working environment:
+but the exact packages needed depend on your system. For instance, the following
+commands should create a working environment:
 
 .. prompt:: bash $
 
   conda create --name keops_env python=3.14
   conda activate keops_env
 
-  conda install conda-forge::openmp
-  conda install nvidia::cuda-toolkit==12.9.2
+  conda install libgomp
+  conda install nvidia::cuda-toolkit
   pip install pykeops
 
   python -c "import pykeops; pykeops.test_numpy_bindings()"
 
-On Ubuntu 24.04 LTS, pinning ``cuda-toolkit`` to version 12 may be necessary.
-This pin may no longer be needed on later Ubuntu releases.
 
 
 On macOS
@@ -427,16 +423,18 @@ the following order:
 
 4. *`NVIDIA PyPI packages <https://pypi.org/project/cuda-toolkit/>`_*: installed
    with the ``cuda-toolkit[all]`` module from PyPI. Some of these packages are also pulled
-   in by PyTorch, but the solution is still fragile. Indeed, CUDA 12 packages
-   have historically missed the ``crt`` header directory needed by PyKeOps, so
-   they do not work. CUDA 13 packages fix this layout, but may require a recent
-   distribution and can still lead to cryptic runtime errors on Ubuntu 24.04 LTS.
+   in by PyTorch, making this solution fragile as multiple versions of the cuda-toolkit can
+   co-exist in the same virtual environment. For instance, Torch may install
+   CUDA 12 packages while the user manually installs CUDA 13 packages...
 
 
 Using NVIDIA PyPI packages works on Arch Linux. The following command:
 
 .. prompt:: bash $
+  python -m venv keops_venv
+  source keops_venv/bin/activate
 
+  pip install pykeops
   PYKEOPS_VERBOSE=0 python -c "import pykeops; pykeops.config.cuda.print_all()" | head -n 9
 
 yields the detection of a system-wide CUDA installation under ``/opt/cuda``:
@@ -457,8 +455,10 @@ The following commands force KeOps to use the NVIDIA PyPI packages installed in
 the active Python virtual environment:
 
 .. prompt:: bash $
+  python -m venv keops_venv_cuda_pip
+  source keops_venv_cuda_pip/bin/activate
 
-  pip install "cuda-toolkit[all]"
+  pip install pykeops[cu13]
   CUDA_PATH="$VIRTUAL_ENV/lib/python3.14/site-packages/nvidia/cu13" \
     PYKEOPS_VERBOSE=0 python -c "import pykeops; pykeops.config.cuda.print_all()" | head -n 9
 

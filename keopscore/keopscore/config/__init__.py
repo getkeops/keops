@@ -16,7 +16,7 @@ debug = DebugConfig()
 platform = PlatformConfig()
 cxx = CxxCompilerConfig(platform)
 openmp = OpenMPConfig(platform, cxx)
-cuda = CudaConfig()
+cuda = CudaConfig(platform)
 path = KeOpsPathConfig(platform, cuda)
 reduction = ReductionTuningConfig()
 

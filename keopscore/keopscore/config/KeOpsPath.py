@@ -234,7 +234,7 @@ if __name__ == "__main__":
     openmp_info = OpenMPConfig(platform_info, cxx_compiler_info)
     openmp_info.print_all()
 
-    cuda_info = CudaConfig()
+    cuda_info = CudaConfig(platform_info)
     cuda_info.print_all()
 
     keops_info = KeOpsPathConfig(platform_info, cuda_info)

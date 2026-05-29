@@ -1,8 +1,11 @@
 import os
 import platform
+import site
 import sys
+import sysconfig
 
-from ..utils.messages import print_envs
+from keopscore.utils.path_utils import _unique_paths
+from keopscore.utils.messages import not_found_str, print_envs
 from keopscore.utils.system_utils import KeOps_OS_Run
 
 
@@ -17,6 +20,7 @@ class PlatformConfig:
     _uname = ""
     _python_version = ""
     _python_executable = ""
+    _python_package_roots = []
     _env_type = ""
     _brew_prefix = ""
 
@@ -35,6 +39,7 @@ class PlatformConfig:
         self.set_uname()
         self.set_python_version()
         self.set_python_executable()
+        self.set_python_package_roots()
         self.set_env_type()
         self.set_brew_prefix()
 
@@ -110,6 +115,38 @@ class PlatformConfig:
     def print_python_executable(self):
         print(f"Python Executable: {self.get_python_executable()}")
 
+    # Python package roots detection
+    def set_python_package_roots(self):
+        """Set the Python package roots where pip-installed wheels may live."""
+        self._python_package_roots = self.detect_python_package_roots()
+
+    def get_python_package_roots(self):
+        return self._python_package_roots
+
+    def print_python_package_roots(self):
+        roots = self.get_python_package_roots()
+        rendered_roots = ":".join(str(path) for path in roots)
+        print(f"Python Package Roots: {rendered_roots or not_found_str}")
+
+    @staticmethod
+    def detect_python_package_roots():
+        """Return Python package roots where pip-installed wheels may live."""
+        package_roots = []
+        getters = [
+            lambda: getattr(site, "getsitepackages", lambda: [])(),
+            lambda: [site.getusersitepackages()],
+            lambda: [sysconfig.get_path("purelib")],
+            lambda: [sysconfig.get_path("platlib")],
+            lambda: sys.path,
+        ]
+        for getter in getters:
+            try:
+                # Some site helpers are unavailable in embedded or non-standard Python builds.
+                package_roots.extend(getter() or [])
+            except Exception:
+                continue
+        return _unique_paths(package_roots)
+
     # Environment Type Detection
     def set_env_type(self):
         """Set the environment type (conda, virtualenv, or system)."""
@@ -150,7 +187,7 @@ class PlatformConfig:
     @staticmethod
     def detect_env_type():
         """Return whether Python runs in conda, virtualenv, or the system env."""
-        if "CONDA_DEFAULT_ENV" in os.environ:
+        if "CONDA_DEFAULT_ENV" in os.environ and os.environ["CONDA_DEFAULT_ENV"]:
             return f"conda ({os.environ['CONDA_DEFAULT_ENV']})"
         if hasattr(sys, "real_prefix") or (
             hasattr(sys, "base_prefix") and sys.base_prefix != sys.prefix
@@ -172,6 +209,7 @@ class PlatformConfig:
         self.print_python_version()
         self.print_env_type()
         self.print_python_executable()
+        self.print_python_package_roots()
 
         self.print_brew_prefix()
 

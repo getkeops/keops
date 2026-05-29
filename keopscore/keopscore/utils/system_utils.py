@@ -72,6 +72,9 @@ def find_library_abspath(lib):
 
 def _find_library_by_names(library_names):
     """Return the first library path resolved by ctypes for known library names."""
+    if isinstance(library_names, str):
+        library_names = (library_names,)
+
     for library_name in library_names:
         library_path = find_library(library_name)
         if library_path:
