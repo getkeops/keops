@@ -60,17 +60,17 @@ class Gpu_link_compile(LinkCompile):
         self.write_code()
         # we execute the main dll, passing the code as argument, and the name of the low level code file to save the assembly instructions
 
+        cuda_include_paths = "\n".join(
+            path for path in keopscore.config.cuda.get_cuda_include_path() if path
+        )
+
         res = self.my_c_dll.Compile(
             ctypes.create_string_buffer(self.low_level_code_file),
             ctypes.create_string_buffer(self.code.encode("utf-8")),
             ctypes.c_int(self.use_half),
             ctypes.c_int(self.use_fast_math),
             ctypes.c_int(self.device_id),
-            ctypes.create_string_buffer(
-                (
-                    keopscore.config.cuda.custom_cuda_include_fp16_path() + os.path.sep
-                ).encode("utf-8")
-            ),
+            ctypes.create_string_buffer(cuda_include_paths.encode("utf-8")),
         )
         if res != keopscore.config.cuda.CUDA_SUCCESS:
             KeOps_Error(
