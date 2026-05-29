@@ -59,15 +59,23 @@ def find_library_abspath(lib):
     try:
         dlinfo = libdl.dlinfo
     except AttributeError:
-        return ""
-    dlinfo.argtypes = c_void_p, c_int, c_void_p
-    dlinfo.restype = c_int
+        dlinfo = None
 
-    lmptr = c_void_p()
-    dlinfo(lib._handle, 2, byref(lmptr))
+    if dlinfo is not None:
+        try:
+            dlinfo.argtypes = c_void_p, c_int, c_void_p
+            dlinfo.restype = c_int
 
-    abspath = cast(lmptr, POINTER(LINKMAP)).contents.l_name
-    return abspath.decode("utf-8")
+            lmptr = c_void_p()
+            dlinfo(lib._handle, 2, byref(lmptr))
+
+            abspath = cast(lmptr, POINTER(LINKMAP)).contents.l_name
+            if abspath:
+                return abspath.decode("utf-8")
+        except Exception:
+            pass
+
+    return ""
 
 
 def _find_library_by_names(library_names):

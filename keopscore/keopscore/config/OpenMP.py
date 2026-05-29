@@ -62,8 +62,6 @@ class OpenMPConfig:
             "libomp.so*",
             "libgomp.dylib",
             "libgomp.so*",
-            "libm.dylib",
-            "libm.so*",
         ],
         "header_basename": "omp.h",
         "library": "",  # to be filled later
@@ -323,8 +321,9 @@ class OpenMPConfig:
     # C++ linking Options
     def set_linking_options(self):
         link_flags = []
-        libomp_folder = self.get_libomp_folder()
         libomp_path = self.get_libomp_path()
+
+        libomp_folder = libomp_path and os.path.dirname(libomp_path)
 
         if libomp_folder:
             link_flags.append(f"-L{libomp_folder}")
