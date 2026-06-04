@@ -329,7 +329,11 @@ class OpenMPConfig:
             link_flags.append(f"-L{libomp_folder}")
 
         # Ensure runtime loader can find libomp on macOS non-system paths.
-        if self.platform.get_platform() == "Darwin" and libomp_folder and not importlib.util.find_spec("torch"):
+        if (
+            self.platform.get_platform() == "Darwin"
+            and libomp_folder
+            and not importlib.util.find_spec("torch")
+        ):
             # Force-link OpenMP runtime to avoid unresolved symbols at dlopen time.
 
             lib_basename = os.path.basename(libomp_path)
