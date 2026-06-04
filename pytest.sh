@@ -163,7 +163,10 @@ run_pykeops_no_torch_smoke_test() {
         "${no_torch_python}" -m pip install -e "${SCRIPT_DIR}/pykeops"
     fi
 
-    run_python_with_keops_verbose "${no_torch_python}" "${no_torch_smoke_code}"
+    (
+        cd /tmp
+        run_python_with_keops_verbose "${no_torch_python}" "${no_torch_smoke_code}"
+    )
 }
 
 run_test_suite() {
