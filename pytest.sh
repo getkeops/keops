@@ -5,6 +5,7 @@ set -euo pipefail
 readonly PYTHON_BIN="python3"
 readonly SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 readonly TEST_VENV="${SCRIPT_DIR}/.test_venv_pytest"
+readonly NO_TORCH_TEST_VENV="${SCRIPT_DIR}/.test_venv_pytest_no_torch"
 readonly TEST_REQUIREMENTS=(pip)
 
 KEOPS_VERBOSE_LEVEL=-1
@@ -19,7 +20,7 @@ Usage: $0 [option...]
     -h      Print the help
     -v <0|1|2>
             Verbosity level forwarded to KEOPS_VERBOSE and PYKEOPS_VERBOSE
-    --pip-constraint <file> 
+    --pip-constraint <file>
             Constrain pip installs using the given constraints file.
 EOF
 }
@@ -84,6 +85,17 @@ run_with_keops_verbose() {
     fi
 }
 
+run_python_with_keops_verbose() {
+    local python_bin="$1"
+    local python_code="$2"
+
+    if [[ "${KEOPS_VERBOSE_LEVEL}" -ne -1 ]]; then
+        KEOPS_VERBOSE="${KEOPS_VERBOSE_LEVEL}" PYKEOPS_VERBOSE="${KEOPS_VERBOSE_LEVEL}" "${python_bin}" -c "${python_code}"
+    else
+        "${python_bin}" -c "${python_code}"
+    fi
+}
+
 pip_install() {
     if [[ -n "${PIP_CONSTRAINT_FILE}" ]]; then
         run_with_keops_verbose "${PYTHON_BIN}" -m pip install --constraint "${PIP_CONSTRAINT_FILE}" "$@"
@@ -116,7 +128,7 @@ run_python_outside_repo() {
     local python_code="$1"
     (
         cd /tmp
-        run_with_keops_verbose "${PYTHON_BIN}" -c "${python_code}"
+        run_python_with_keops_verbose "${PYTHON_BIN}" "${python_code}"
     )
 }
 
@@ -130,6 +142,30 @@ run_pykeops_health_check() {
     run_python_outside_repo 'import pykeops; pykeops.check_health()'
 }
 
+run_pykeops_no_torch_smoke_test() {
+    local no_torch_python="${NO_TORCH_TEST_VENV}/bin/python"
+    local no_torch_smoke_code="import importlib.util;"
+    no_torch_smoke_code+=" assert importlib.util.find_spec('torch') is None,"
+    no_torch_smoke_code+=" 'torch must not be installed in no-torch smoke env';"
+    no_torch_smoke_code+=" import pykeops; pykeops.check_health();"
+    no_torch_smoke_code+=" assert pykeops.test_numpy_bindings()"
+
+    echo "-- Running pykeops no-torch smoke test..."
+    "${PYTHON_BIN}" -m venv --clear "${NO_TORCH_TEST_VENV}"
+
+    if [[ -n "${PIP_CONSTRAINT_FILE}" ]]; then
+        "${no_torch_python}" -m pip install --constraint "${PIP_CONSTRAINT_FILE}" -U pip
+        "${no_torch_python}" -m pip install --constraint "${PIP_CONSTRAINT_FILE}" -e "${SCRIPT_DIR}/keopscore"
+        "${no_torch_python}" -m pip install --constraint "${PIP_CONSTRAINT_FILE}" -e "${SCRIPT_DIR}/pykeops"
+    else
+        "${no_torch_python}" -m pip install -U pip
+        "${no_torch_python}" -m pip install -e "${SCRIPT_DIR}/keopscore"
+        "${no_torch_python}" -m pip install -e "${SCRIPT_DIR}/pykeops"
+    fi
+
+    run_python_with_keops_verbose "${no_torch_python}" "${no_torch_smoke_code}"
+}
+
 run_test_suite() {
     local suite_name="$1"
     local suite_path="$2"
@@ -140,6 +176,7 @@ run_test_suite() {
 
 main() {
     parse_options "$@"
+    run_pykeops_no_torch_smoke_test
     prepare_python_environment
     install_editable_package "keopscore" "${SCRIPT_DIR}/keopscore"
     install_editable_package "pykeops" "${SCRIPT_DIR}/pykeops[test]"

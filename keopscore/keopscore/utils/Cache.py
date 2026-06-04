@@ -9,6 +9,9 @@ import keopscore.config
 env_param = (
     lambda: keopscore.config.cxx.get_compile_options()
     + keopscore.config.cxx.get_linking_options()
+    + keopscore.config.openmp.get_compile_options()
+    + keopscore.config.openmp.get_include_options()
+    + keopscore.config.openmp.get_linking_options()
     + f" auto_factorize={keopscore.config.reduction.get_auto_factorize()}"
     + keopscore.config.cuda.get_preprocessing_options()
     + keopscore.config.cuda.get_include_options()

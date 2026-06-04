@@ -1,3 +1,4 @@
+import importlib.util
 import os
 import tempfile
 
@@ -50,7 +51,7 @@ class OpenMPConfig:
         os.path.join("opt", "libomp", "lib"),
     )
 
-    _include_sufixes = (
+    _include_suffixes = (
         "include",
         os.path.join("opt", "libomp", "include"),
     )
@@ -160,14 +161,14 @@ class OpenMPConfig:
 
         # headers
         result["header"] = _first_matching_file(
-            _path_candidates(candidate_roots, self._include_sufixes),
+            _path_candidates(candidate_roots, self._include_suffixes),
             lib_dict_info["header_basename"],
         )
 
         ####
         KeOps_Message("OpenMP header search in common locations:", level=2)
         KeOps_Message(f"  Candidate roots: {candidate_roots}", level=2)
-        KeOps_Message(f"  Header search suffixes: {self._include_sufixes}", level=2)
+        KeOps_Message(f"  Header search suffixes: {self._include_suffixes}", level=2)
         KeOps_Message(
             f"  Found header path: {result['header'] or not_found_str}", level=2
         )
@@ -296,7 +297,6 @@ class OpenMPConfig:
             self._compile_options += " -Xpreprocessor"
 
         self._compile_options += " -fopenmp"
-        self._compile_options
 
     def get_compile_options(self):
         return self._compile_options.strip()
@@ -328,22 +328,22 @@ class OpenMPConfig:
         if libomp_folder:
             link_flags.append(f"-L{libomp_folder}")
 
-        # Force-link OpenMP runtime to avoid unresolved symbols at dlopen time.
-        if libomp_path:
+        # Ensure runtime loader can find libomp on macOS non-system paths.
+        if self.platform.get_platform() == "Darwin" and libomp_folder and not importlib.util.find_spec("torch"):
+            # Force-link OpenMP runtime to avoid unresolved symbols at dlopen time.
+
             lib_basename = os.path.basename(libomp_path)
             if lib_basename.startswith("lib"):
                 lib_name = lib_basename[3:].split(".")[0]
                 if lib_name:
                     link_flags.append(f"-l{lib_name}")
 
-        # Ensure runtime loader can find libomp on macOS non-system paths.
-        if self.platform.get_platform() == "Darwin" and libomp_folder:
             link_flags.append(f"-Wl,-rpath,{libomp_folder}")
 
         self._linking_options = " ".join(link_flags)
 
     def get_linking_options(self):
-        return self._linking_options
+        return self._linking_options.rstrip()
 
     def print_linking_options(self):
         print(f"Linking Options: {self.get_linking_options()}")
