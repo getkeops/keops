@@ -85,17 +85,6 @@ run_with_keops_verbose() {
     fi
 }
 
-run_python_with_keops_verbose() {
-    local python_bin="$1"
-    local python_code="$2"
-
-    if [[ "${KEOPS_VERBOSE_LEVEL}" -ne -1 ]]; then
-        KEOPS_VERBOSE="${KEOPS_VERBOSE_LEVEL}" PYKEOPS_VERBOSE="${KEOPS_VERBOSE_LEVEL}" "${python_bin}" -c "${python_code}"
-    else
-        "${python_bin}" -c "${python_code}"
-    fi
-}
-
 pip_install() {
     if [[ -n "${PIP_CONSTRAINT_FILE}" ]]; then
         run_with_keops_verbose "${PYTHON_BIN}" -m pip install --constraint "${PIP_CONSTRAINT_FILE}" "$@"
@@ -106,14 +95,27 @@ pip_install() {
 }
 
 prepare_python_environment() {
+
+    local env_name="$1"
+
     log_verbose "-- Preparing python environment for test..."
-    "${PYTHON_BIN}" -m venv --clear "${TEST_VENV}"
+    "${PYTHON_BIN}" -m venv --clear "${env_name}"
 
     # shellcheck disable=SC1091
-    source "${TEST_VENV}/bin/activate"
+    source "${env_name}/bin/activate"
 
     log_verbose "---- Python version = $(${PYTHON_BIN} -V)"
     pip_install -U "${TEST_REQUIREMENTS[@]}"
+}
+
+deactivate_python_environment() {
+
+    log_verbose "-- Deactivate python environment..."
+
+    # `deactivate` is provided by the activation script; there is no bin/deactivate file.
+    if declare -F deactivate >/dev/null; then
+        deactivate
+    fi
 }
 
 install_editable_package() {
@@ -126,9 +128,10 @@ install_editable_package() {
 
 run_python_outside_repo() {
     local python_code="$1"
+    local python_bin="${2:-${PYTHON_BIN}}"
     (
         cd /tmp
-        run_python_with_keops_verbose "${PYTHON_BIN}" "${python_code}"
+        run_with_keops_verbose "${python_bin}" -c "${python_code}"
     )
 }
 
@@ -147,26 +150,10 @@ run_pykeops_no_torch_smoke_test() {
     local no_torch_smoke_code="import importlib.util;"
     no_torch_smoke_code+=" assert importlib.util.find_spec('torch') is None,"
     no_torch_smoke_code+=" 'torch must not be installed in no-torch smoke env';"
-    no_torch_smoke_code+=" import pykeops; pykeops.check_health();"
+    no_torch_smoke_code+=" import pykeops;"
     no_torch_smoke_code+=" assert pykeops.test_numpy_bindings()"
 
-    echo "-- Running pykeops no-torch smoke test..."
-    "${PYTHON_BIN}" -m venv --clear "${NO_TORCH_TEST_VENV}"
-
-    if [[ -n "${PIP_CONSTRAINT_FILE}" ]]; then
-        "${no_torch_python}" -m pip install --constraint "${PIP_CONSTRAINT_FILE}" -U pip
-        "${no_torch_python}" -m pip install --constraint "${PIP_CONSTRAINT_FILE}" -e "${SCRIPT_DIR}/keopscore"
-        "${no_torch_python}" -m pip install --constraint "${PIP_CONSTRAINT_FILE}" -e "${SCRIPT_DIR}/pykeops"
-    else
-        "${no_torch_python}" -m pip install -U pip
-        "${no_torch_python}" -m pip install -e "${SCRIPT_DIR}/keopscore"
-        "${no_torch_python}" -m pip install -e "${SCRIPT_DIR}/pykeops"
-    fi
-
-    (
-        cd /tmp
-        run_python_with_keops_verbose "${no_torch_python}" "${no_torch_smoke_code}"
-    )
+    run_python_outside_repo "${no_torch_smoke_code}" "${no_torch_python}"
 }
 
 run_test_suite() {
@@ -179,14 +166,30 @@ run_test_suite() {
 
 main() {
     parse_options "$@"
+
+    printf '%b' "****************************************************************************\n              Start of pykeops no-torch smoke test\n****************************************************************************\n"
+    prepare_python_environment "${NO_TORCH_TEST_VENV}"
+    install_editable_package "keopscore" "${SCRIPT_DIR}/keopscore"
+    install_editable_package "pykeops" "${SCRIPT_DIR}/pykeops"
+    clean_pykeops_cache
+
+    run_pykeops_health_check
     run_pykeops_no_torch_smoke_test
-    prepare_python_environment
+
+    deactivate_python_environment
+    printf '%b' "****************************************************************************\n              End of pykeops no-torch smoke test\n****************************************************************************\n\n\n\n\n\n"
+
+    printf '%b' "****************************************************************************\n                     Start of pykeops tests\n****************************************************************************\n"
+    prepare_python_environment "${TEST_VENV}"
     install_editable_package "keopscore" "${SCRIPT_DIR}/keopscore"
     install_editable_package "pykeops" "${SCRIPT_DIR}/pykeops[test]"
     run_pykeops_health_check
+    
     clean_pykeops_cache
     run_test_suite "keopscore" "keopscore/keopscore/test/"
     run_test_suite "pykeops" "pykeops/pykeops/test/"
+    printf '%b' "****************************************************************************\n                     End of pykeops tests\n****************************************************************************\n\n\n\n\n\n"
+
 }
 
 main "$@"

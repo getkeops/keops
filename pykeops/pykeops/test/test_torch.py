@@ -19,6 +19,13 @@ sys.path.append(
 
 import unittest
 
+import pykeops
+import pykeops.config
+from pykeops.test import assert_torch_allclose
+
+HAS_TORCH = False
+use_cuda = False
+
 try:
     import torch
 
@@ -26,19 +33,14 @@ try:
 
     torch.manual_seed(42)
 
-    use_cuda = torch.cuda.is_available()
+    use_cuda = torch.cuda.is_available() and pykeops.config.gpu_available
+    device = "cuda" if use_cuda else "cpu"
+
     if use_cuda:
-        device = "cuda"
         torch.backends.cuda.matmul.allow_tf32 = False
-    else:
-        device = "cpu"
 
 except ImportError:
-    HAS_TORCH = False
-
-import pykeops
-import pykeops.config
-from pykeops.test import assert_torch_allclose
+    pass
 
 
 @unittest.skipUnless(HAS_TORCH, "torch not available")

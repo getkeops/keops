@@ -45,7 +45,15 @@ def check_AD_supported(formula):
 
 def set_device(tagCPUGPU, tagHostDevice, device_id_request, *args):
     device_args = args[0].device
-    if tagCPUGPU == 1 & tagHostDevice == 1:
+    # Guard against unsupported configuration that can crash in native code:
+    # CPU backend cannot consume CUDA tensors.
+    if tagCPUGPU == 0 and tagHostDevice == 1:
+        raise ValueError(
+            "[KeOps] Incompatible configuration: CPU backend selected while input tensors are on CUDA. "
+            "Use CPU tensors or enable KeOps CUDA backend."
+        )
+
+    if tagCPUGPU == 1 and tagHostDevice == 1:
         for i in range(1, len(args)):
             if args[i].device.index != device_args.index:
                 raise ValueError(

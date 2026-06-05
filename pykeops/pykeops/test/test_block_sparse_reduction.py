@@ -1,6 +1,7 @@
 import time
 import numpy as np
 import torch
+import pykeops.config as pykeopsconfig
 from pykeops.torch import LazyTensor
 
 # Import clustering functions from KeOps
@@ -13,7 +14,7 @@ from pykeops.torch.cluster import (
 
 
 def test_block_sparse_reduction():
-    use_cuda = torch.cuda.is_available()
+    use_cuda = torch.cuda.is_available() and pykeopsconfig.gpu_available
     device = torch.device("cuda" if use_cuda else "cpu")
     dtype = torch.float32
 

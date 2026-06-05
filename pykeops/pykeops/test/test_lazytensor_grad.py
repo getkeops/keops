@@ -1,4 +1,5 @@
 import torch
+import pykeops.config as pykeopsconfig
 
 from pykeops.torch import LazyTensor
 from pykeops.test import assert_torch_allclose
@@ -8,7 +9,8 @@ M, N, D, DV = 100, 100, 3, 1
 dtype = torch.float32
 
 torch.backends.cuda.matmul.allow_tf32 = False
-device_id = "cuda" if torch.cuda.is_available() else "cpu"
+use_cuda = torch.cuda.is_available() and pykeopsconfig.gpu_available
+device_id = "cuda" if use_cuda else "cpu"
 
 torch.manual_seed(0)
 x = torch.rand(M, 1, D, requires_grad=True, device=device_id, dtype=dtype)

@@ -1,6 +1,7 @@
 import math
 import unittest
 import torch
+import pykeops.config as pykeopsconfig
 from pykeops.torch import LazyTensor
 from pykeops.test import assert_torch_allclose
 
@@ -11,7 +12,8 @@ dtype = torch.float32
 torch.manual_seed(42)
 
 torch.backends.cuda.matmul.allow_tf32 = False
-device_id = "cuda" if torch.cuda.is_available() else "cpu"
+use_cuda = torch.cuda.is_available() and pykeopsconfig.gpu_available
+device_id = "cuda" if use_cuda else "cpu"
 
 
 def fun(x, y, b, backend):
@@ -33,7 +35,10 @@ def fun(x, y, b, backend):
 backends = ["keops2D", "torch"]
 
 
-@unittest.skipUnless(torch.cuda.is_available(), "CUDA not available")
+@unittest.skipUnless(
+    use_cuda,
+    "CUDA not available in torch or KeOps",
+)
 class TestCase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):

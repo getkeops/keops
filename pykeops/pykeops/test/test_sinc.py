@@ -2,11 +2,13 @@ import math
 
 import pytest
 import torch
+import pykeops.config as pykeopsconfig
 
 from pykeops.torch import LazyTensor
 from pykeops.test import assert_torch_allclose
 
-device = "cuda" if torch.cuda.is_available() else "cpu"
+use_cuda = torch.cuda.is_available() and pykeopsconfig.gpu_available
+device = "cuda" if use_cuda else "cpu"
 
 x = torch.rand(5, 1, dtype=torch.float64) * 2 * math.pi
 y = x.data.clone()

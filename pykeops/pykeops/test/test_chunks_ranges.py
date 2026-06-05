@@ -1,5 +1,6 @@
 import math
 import torch
+import pykeops.config as pykeopsconfig
 from pykeops.torch import LazyTensor
 from pykeops.test import assert_torch_allclose
 
@@ -9,7 +10,8 @@ dtype = torch.float32
 sum_scheme = "block_sum"
 
 torch.backends.cuda.matmul.allow_tf32 = False
-device_id = "cuda" if torch.cuda.is_available() else "cpu"
+use_cuda = torch.cuda.is_available() and pykeopsconfig.gpu_available
+device_id = "cuda" if use_cuda else "cpu"
 
 torch.manual_seed(0)
 x = torch.rand(B1, B2, M, 1, D, device=device_id, dtype=dtype) / math.sqrt(D)
