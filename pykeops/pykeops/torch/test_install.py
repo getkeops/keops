@@ -11,10 +11,13 @@ def test_torch_bindings():
     """
     Try to compile a simple KeOps formula using the PyTorch binder.
     """
+    import pykeops
+    import pykeops.torch as pktorch
+
     x = torch.arange(1, 10, dtype=torch.float32).view(-1, 3)
     y = torch.arange(3, 9, dtype=torch.float32).view(-1, 3)
 
-    import pykeops.torch as pktorch
+    use_cuda = torch.cuda.is_available() and pykeops.config.cuda.is_available()
 
     my_conv = pktorch.Genred(formula, var)
 

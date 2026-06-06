@@ -30,13 +30,14 @@ problems with a **linear memory footprint**.
 import time
 
 import torch
+import pykeops.config
 from matplotlib import pyplot as plt
 from pykeops.torch import LazyTensor
 
 ###############################################################################################
 # Generate some data:
 
-use_cuda = torch.cuda.is_available()
+use_cuda = torch.cuda.is_available() and pykeops.config.cuda.is_available()
 dtype = torch.cuda.FloatTensor if use_cuda else torch.FloatTensor
 
 N = 10000 if use_cuda else 1000  # Number of samples

@@ -236,7 +236,7 @@ def WarmUpGpu():
     from pykeops.common.utils import pyKeOps_Message
 
     pyKeOps_Message("Warming up the Gpu (numpy bindings) !!!")
-    if pykeopsconfig.gpu_available:
+    if pykeopsconfig.cuda.is_available():
         formula = "Exp(-oos2*SqDist(x,y))*b"
         aliases = [
             "x = Vi(1)",  # First arg   : i-variable, of size 1

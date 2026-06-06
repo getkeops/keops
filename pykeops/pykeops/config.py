@@ -12,7 +12,8 @@ cxx = keopscore.config.cxx
 debug = keopscore.config.debug
 
 get_build_folder = path.get_build_folder
-gpu_available = cuda.get_use_cuda()
+# keep the old gpu_available variable for backward compatibility, but it is now recommended to use cuda.is_available() instead
+gpu_available = cuda.is_available()
 
 
 # Initialize some variables: the values may be redefined later

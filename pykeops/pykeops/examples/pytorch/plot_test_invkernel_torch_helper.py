@@ -17,6 +17,7 @@ the :meth:`pykeops.torch.LazyTensor.solve` method of KeOps :class:`pykeops.torch
 import time
 
 import torch
+import pykeops.config
 from matplotlib import pyplot as plt
 
 from pykeops.torch import LazyTensor as keops
@@ -26,14 +27,19 @@ from pykeops.torch import Vi, Vj
 # Define our dataset:
 #
 
-N = 5000 if torch.cuda.is_available() else 500  # Number of points
+use_cuda = torch.cuda.is_available() and pykeops.config.cuda.is_available()
+device = torch.device("cuda" if use_cuda else "cpu")
+
+N = 5000 if use_cuda else 500  # Number of points
 D = 2  # Dimension of the ambient space
 Dv = 2  # Dimension of the vectors (= number of linear problems to solve)
 sigma = 0.1  # Radius of our RBF kernel
 
-x = torch.rand(N, D, requires_grad=True)
-b = torch.rand(N, Dv)
-g = torch.Tensor([0.5 / sigma**2])  # Parameter of the Gaussian RBF kernel
+x = torch.rand(N, D, requires_grad=True, device=device)
+b = torch.rand(N, Dv, device=device)
+g = torch.tensor(
+    [0.5 / sigma**2], device=device
+)  # Parameter of the Gaussian RBF kernel
 alpha = 0.01  # ridge regularization
 
 ###############################################################################
@@ -59,7 +65,7 @@ print("Timing (KeOps implementation):", round(end - start, 5), "s")
 #
 
 start = time.time()
-K_xx = alpha * torch.eye(N) + torch.exp(
+K_xx = alpha * torch.eye(N, device=device) + torch.exp(
     -torch.sum((x[:, None, :] - x[None, :, :]) ** 2, dim=2) / (2 * sigma**2)
 )
 

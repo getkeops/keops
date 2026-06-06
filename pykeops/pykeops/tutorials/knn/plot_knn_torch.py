@@ -22,11 +22,12 @@ import time
 
 import numpy as np
 import torch
+import pykeops.config
 from matplotlib import pyplot as plt
 
 from pykeops.torch import LazyTensor
 
-use_cuda = torch.cuda.is_available()
+use_cuda = torch.cuda.is_available() and pykeops.config.cuda.is_available()
 dtype = torch.cuda.FloatTensor if use_cuda else torch.FloatTensor
 
 ######################################################################

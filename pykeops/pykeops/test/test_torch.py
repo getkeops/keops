@@ -33,7 +33,7 @@ try:
 
     torch.manual_seed(42)
 
-    use_cuda = torch.cuda.is_available() and pykeops.config.gpu_available
+    use_cuda = torch.cuda.is_available() and pykeops.config.cuda.is_available()
     device = "cuda" if use_cuda else "cpu"
 
     if use_cuda:
@@ -143,7 +143,7 @@ class PytorchUnitTestCase(unittest.TestCase):
 
         aliases = ["p=Pm(1)", "a=Vj(1)", "x=Vi(3)", "y=Vj(3)"]
         formula = "Square(p-a)*Exp(x+y)"
-        if pykeops.config.gpu_available:
+        if pykeops.config.cuda.is_available():
             backend_to_test = ["auto", "GPU_1D", "GPU_2D", "GPU"]
         else:
             backend_to_test = ["auto"]
@@ -172,7 +172,7 @@ class PytorchUnitTestCase(unittest.TestCase):
 
         aliases = ["p=Pm(1)", "a=Vj(1)", "x=Vi(3)", "y=Vj(3)"]
         formula = "Square(p-a)*Exp(x+y)"
-        if pykeops.config.gpu_available:
+        if pykeops.config.cuda.is_available():
             backend_to_test = ["auto", "GPU_1D", "GPU_2D", "GPU"]
         else:
             backend_to_test = ["auto"]
@@ -200,7 +200,7 @@ class PytorchUnitTestCase(unittest.TestCase):
         aliases = ["p=Pm(1)", "a=Vj(1)", "x=Vi(3)", "y=Vj(3)"]
         formula = "Square(p-a)*Exp(-SqNorm2(x-y))"
         formula_weights = "y"
-        if pykeops.config.gpu_available:
+        if pykeops.config.cuda.is_available():
             backend_to_test = ["auto", "GPU_1D", "GPU_2D", "GPU"]
         else:
             backend_to_test = ["auto"]
@@ -249,7 +249,7 @@ class PytorchUnitTestCase(unittest.TestCase):
 
         formula = "Pow((X|Y),2) * ((Elem(P,0) * X) + (Elem(P,1) * Y))"
 
-        if pykeops.config.gpu_available:
+        if pykeops.config.cuda.is_available():
             backend_to_test = ["auto", "GPU_1D", "GPU_2D", "GPU"]
         else:
             backend_to_test = ["auto"]

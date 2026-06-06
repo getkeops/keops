@@ -53,7 +53,7 @@ class SetBackend:
         # auto : infer everything
         if backend == "auto":
             return (
-                int(pykeopsconfig.gpu_available),
+                int(pykeopsconfig.cuda.is_available()),
                 self._find_grid(),
                 self._find_mem(variables),
             )
@@ -84,7 +84,7 @@ class SetBackend:
 
     @staticmethod
     def _find_dev():
-        return int(pykeopsconfig.gpu_available)
+        return int(pykeopsconfig.cuda.is_available())
 
     @staticmethod
     def _find_mem(variables):

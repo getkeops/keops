@@ -27,10 +27,11 @@ Fancy reductions, solving linear systems
 # formulas:
 
 import torch
+import pykeops.config
 
 from pykeops.torch import LazyTensor
 
-use_cuda = torch.cuda.is_available()
+use_cuda = torch.cuda.is_available() and pykeops.config.cuda.is_available()
 tensor = torch.cuda.FloatTensor if use_cuda else torch.FloatTensor
 M, N = (100000, 200000) if use_cuda else (1000, 2000)
 D = 3

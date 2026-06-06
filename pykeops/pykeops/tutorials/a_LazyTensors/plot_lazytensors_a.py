@@ -24,6 +24,8 @@ learning and computational geometry.
 # clouds :math:`(x_i)_{i\in[1,M]}`  and :math:`(y_j)_{j\in[1,N]}` in the unit square:
 
 import numpy as np
+import torch
+import pykeops.config
 
 M, N = 1000, 2000
 x = np.random.rand(M, 2)
@@ -55,9 +57,7 @@ print(s_i[:10])
 # That's good! Going further, we can speed-up these computations
 # using the **CUDA routines** of the PyTorch library:
 
-import torch
-
-use_cuda = torch.cuda.is_available()
+use_cuda = torch.cuda.is_available() and pykeops.config.cuda.is_available()
 tensor = torch.cuda.FloatTensor if use_cuda else torch.FloatTensor
 
 x_i = tensor(x[:, None, :])  # (M, 1, 2) torch tensor

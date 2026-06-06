@@ -40,7 +40,7 @@ from pykeops.numpy import LazyTensor
 
 dtype = "float64"
 
-N = 10000 if pykeops.config.gpu_available else 1000  # Number of samples
+N = 10000 if pykeops.config.cuda.is_available() else 1000  # Number of samples
 
 # Sampling locations:
 x = np.random.rand(N, 1).astype(dtype)

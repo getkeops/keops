@@ -1,7 +1,7 @@
 import re
 import unittest
 import numpy as np
-import pykeops.config as pykeopsconfig
+import pykeops.config
 
 from pykeops.test import assert_np_allclose, assert_torch_allclose
 
@@ -74,7 +74,7 @@ except ImportError:
 class ShapeTorchTestCase(unittest.TestCase):
 
     def setUp(self):
-        use_cuda = torch.cuda.is_available() and pykeopsconfig.gpu_available
+        use_cuda = torch.cuda.is_available() and pykeops.config.cuda.is_available()
         device = "cuda" if use_cuda else "cpu"
         self.param = torch.tensor([0.4], dtype=torch.float32, device=device)
         self.param_scalar = torch.tensor(0.4, dtype=torch.float32, device=device)

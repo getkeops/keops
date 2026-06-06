@@ -18,8 +18,6 @@ from matplotlib import pyplot as plt
 
 from benchmark_utils import random_normal, full_benchmark
 
-use_cuda = torch.cuda.is_available()
-
 ##############################################
 # Benchmark specifications:
 #

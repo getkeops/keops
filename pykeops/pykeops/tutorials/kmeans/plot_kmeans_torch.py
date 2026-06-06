@@ -24,10 +24,11 @@ It can thus be used to implement a **large-scale**
 
 import time
 import torch
+import pykeops.config
 from matplotlib import pyplot as plt
 from pykeops.torch import LazyTensor
 
-use_cuda = torch.cuda.is_available()
+use_cuda = torch.cuda.is_available() and pykeops.config.cuda.is_available()
 dtype = torch.float32 if use_cuda else torch.float64
 device_id = "cuda" if use_cuda else "cpu"
 

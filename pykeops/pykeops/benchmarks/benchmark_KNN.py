@@ -59,9 +59,6 @@ from benchmark_utils import (
 )
 from dataset_utils import generate_samples
 
-use_cuda = torch.cuda.is_available()
-
-
 ##############################################
 # We then specify the values of K that we will inspect:
 

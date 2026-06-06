@@ -28,6 +28,7 @@ import time
 
 import matplotlib.pyplot as plt
 import torch
+import pykeops.config
 from torch.autograd import grad
 
 from pykeops.torch import Genred
@@ -39,7 +40,8 @@ M = 3000
 N = 5000
 
 # Choose the storage place for our data : CPU (host) or GPU (device) memory.
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+use_cuda = torch.cuda.is_available() and pykeops.config.cuda.is_available()
+device = torch.device("cuda" if use_cuda else "cpu")
 
 dtype = "float32"  # Could be 'float32' or 'float64'
 torchtype = torch.float32 if dtype == "float32" else torch.float64

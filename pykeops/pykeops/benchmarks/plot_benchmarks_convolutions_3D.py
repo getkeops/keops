@@ -21,11 +21,12 @@ as the number of samples grows from 100 to 1,000,000.
 
 import numpy as np
 import torch
+import pykeops.config
 from matplotlib import pyplot as plt
 
 from benchmark_utils import flatten, random_normal, full_benchmark
 
-use_cuda = torch.cuda.is_available()
+use_cuda = torch.cuda.is_available() and pykeops.config.cuda.is_available()
 print(
     f"Running torch version {torch.__version__} with {'GPU' if use_cuda else 'CPU'}..."
 )

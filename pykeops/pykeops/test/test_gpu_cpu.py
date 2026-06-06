@@ -1,10 +1,10 @@
 import math
 import pytest
 import torch
-import pykeops.config as pykeopsconfig
+import pykeops.config
 from pykeops.torch import LazyTensor
 
-use_cuda = torch.cuda.is_available() and pykeopsconfig.gpu_available
+use_cuda = pykeops.config.cuda.is_available()
 
 M, N, D, DV = 1000, 1000, 3, 1
 
@@ -48,7 +48,7 @@ class TestCase:
 
     @pytest.mark.skipif(
         not use_cuda,
-        reason="Requires torch and KeOps CUDA support",
+        reason="Requires KeOps CUDA support",
     )
     def test_torch_keops_gpu(self):
         out_gpu = fun(x, y, b, ["keops_gpu"]).squeeze()

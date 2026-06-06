@@ -10,10 +10,11 @@ This tutorial shows some advanced features of the LazyTensor class.
 import time
 
 import torch
+import pykeops.config
 
 from pykeops.torch import LazyTensor
 
-use_cuda = torch.cuda.is_available()
+use_cuda = torch.cuda.is_available() and pykeops.config.cuda.is_available()
 tensor = torch.cuda.FloatTensor if use_cuda else torch.FloatTensor
 
 ###########################################################################

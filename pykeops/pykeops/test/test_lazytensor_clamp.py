@@ -1,12 +1,12 @@
 import torch
-import pykeops.config as pykeopsconfig
+import pykeops.config
 from pykeops.torch import LazyTensor
 from pykeops.test import assert_torch_allclose
 
 M, N, D = 1000, 1000, 3
 
 torch.backends.cuda.matmul.allow_tf32 = False
-use_cuda = torch.cuda.is_available() and pykeopsconfig.gpu_available
+use_cuda = torch.cuda.is_available() and pykeops.config.cuda.is_available()
 device_id = "cuda" if use_cuda else "cpu"
 
 torch.manual_seed(0)

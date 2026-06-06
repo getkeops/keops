@@ -28,6 +28,7 @@ LogSumExp reduction
 import time
 
 import torch
+import pykeops.config
 from matplotlib import pyplot as plt
 from torch.autograd import grad
 
@@ -148,7 +149,9 @@ plt.show()
 #
 # Of course, this will only work if you own a Gpu...
 
-if torch.cuda.is_available():
+use_cuda = torch.cuda.is_available() and pykeops.config.cuda.is_available()
+
+if use_cuda:
     # first transfer data on gpu
     pc, ac, xc, yc, ec = p.cuda(), a.cuda(), x.cuda(), y.cuda(), e.cuda()
     # then call the operations

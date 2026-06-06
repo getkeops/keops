@@ -32,7 +32,7 @@ dtype = "float32"
 # Dataset, in 2D:
 
 N, D = (
-    10000 if pykeops.config.gpu_available else 1000,
+    10000 if pykeops.config.cuda.is_available() else 1000,
     2,
 )  # Number of samples, dimension
 x = np.random.rand(N, D).astype(dtype)  # Random samples on the unit square
@@ -48,7 +48,7 @@ cl = x[:, 1] + 0.1 * np.random.randn(N).astype(dtype) < fth(x[:, 0])
 #############################
 # Reference sampling grid, on the unit square:
 
-M = 1000 if pykeops.config.gpu_available else 100
+M = 1000 if pykeops.config.cuda.is_available() else 100
 tmp = np.linspace(0, 1, M).astype(dtype)
 g1, g2 = np.meshgrid(tmp, tmp)
 g = np.hstack((g1.reshape(-1, 1), g2.reshape(-1, 1)))

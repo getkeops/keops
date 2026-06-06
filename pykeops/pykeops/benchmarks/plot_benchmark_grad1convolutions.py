@@ -23,6 +23,7 @@ where :math:`f` is a Gauss or Cauchy or Laplace or inverse multiquadric kernel. 
 import numpy as np
 import timeit
 import matplotlib
+import pykeops.config
 from matplotlib import pyplot as plt
 from pykeops.numpy.utils import grad_np_kernel, chain_rules
 from pykeops.torch.utils import torch_kernel
@@ -61,7 +62,7 @@ sigma = np.array([0.4]).astype(dtype)  # Kernel radius
 try:
     import torch
 
-    use_cuda = torch.cuda.is_available()
+    use_cuda = torch.cuda.is_available() and pykeops.config.cuda.is_available()
     device = "cuda" if use_cuda else "cpu"
     torchtype = torch.float32 if dtype == "float32" else torch.float64
 

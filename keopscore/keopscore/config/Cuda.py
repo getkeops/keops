@@ -401,6 +401,9 @@ class CudaConfig:
     def get_use_cuda(self):
         return self._use_cuda
 
+    def is_available(self):
+        return self.get_use_cuda()
+
     def print_use_cuda(self):
         print(f"CUDA Support: {enabled_dict[self.get_use_cuda() or False]}")
 

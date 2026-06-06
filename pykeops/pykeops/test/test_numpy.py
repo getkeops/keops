@@ -130,7 +130,7 @@ class NumpyUnitTestCase(unittest.TestCase):
         formula = "Square(p-a)*Exp(x+y)"
         axis = 1  # 0 means summation over i, 1 means over j
 
-        if pykeops.config.gpu_available:
+        if pykeops.config.cuda.is_available():
             backend_to_test = ["auto", "GPU_1D", "GPU_2D", "GPU"]
         else:
             backend_to_test = ["auto"]
@@ -165,7 +165,7 @@ class NumpyUnitTestCase(unittest.TestCase):
         aliases = ["p=Pm(0,1)", "a=Vj(1,1)", "x=Vi(2,3)", "y=Vj(3,3)"]
         formula = "Square(p-a)*Exp(-SqNorm2(x-y))"
 
-        if pykeops.config.gpu_available:
+        if pykeops.config.cuda.is_available():
             backend_to_test = ["auto", "GPU_1D", "GPU_2D", "GPU"]
         else:
             backend_to_test = ["auto"]
@@ -201,7 +201,7 @@ class NumpyUnitTestCase(unittest.TestCase):
         formula = "Square(p-a)*Exp(-SqNorm2(x-y))"
         formula_weights = "y"
 
-        if pykeops.config.gpu_available:
+        if pykeops.config.cuda.is_available():
             backend_to_test = ["auto", "GPU_1D", "GPU_2D", "GPU"]
         else:
             backend_to_test = ["auto"]

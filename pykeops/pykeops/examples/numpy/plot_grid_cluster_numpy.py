@@ -27,7 +27,7 @@ dtype = "float32"
 ########################################################################
 # Define our dataset: two point clouds on the unit square.
 #
-M, N = (5000, 5000) if pykeops.config.gpu_available else (2000, 2000)
+M, N = (5000, 5000) if pykeops.config.cuda.is_available() else (2000, 2000)
 
 t = np.linspace(0, 2 * np.pi, M + 1)[:-1]
 x = np.stack((0.4 + 0.4 * (t / 7) * np.cos(t), 0.5 + 0.3 * np.sin(t)), 1)
@@ -189,7 +189,7 @@ b = np.random.randn(N, 1).astype(dtype)
 
 backends = (
     (["CPU", "GPU"] if M * N < 4e8 else ["GPU"])
-    if pykeops.config.gpu_available
+    if pykeops.config.cuda.is_available()
     else ["CPU"]
 )
 for backend in backends:
