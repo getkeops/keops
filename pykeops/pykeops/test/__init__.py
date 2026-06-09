@@ -1,8 +1,7 @@
-import numpy as np
-import torch
-
-
 def assert_torch_allclose(actual, expected, *, label=None, **kwargs):
+
+    import torch
+
     # test dtype, convert long to float if needed
 
     if actual.dtype in [torch.int64, torch.int32]:
@@ -20,6 +19,9 @@ def assert_torch_allclose(actual, expected, *, label=None, **kwargs):
 
 
 def assert_np_allclose(actual, expected, *, label=None, **kwargs):
+
+    import numpy as np
+
     ok = np.allclose(actual, expected, **kwargs)
     diff = float(np.linalg.norm(np.asarray(actual) - np.asarray(expected)))
     prefix = label if label is not None else "np.allclose failed"
