@@ -335,6 +335,8 @@ class OpenMPConfig:
             and not importlib.util.find_spec("torch")
         ):
             # Force-link OpenMP runtime to avoid unresolved symbols at dlopen time.
+            # N.B. (Joan) We added this because when libomp was installed via homebrew, we had these unresolved symbols at runtime.
+            # However I cannot reproduce the issue now, so it may be unnecessary.
 
             lib_basename = os.path.basename(libomp_path)
             if lib_basename.startswith("lib"):
@@ -342,7 +344,10 @@ class OpenMPConfig:
                 if lib_name:
                     link_flags.append(f"-l{lib_name}")
 
-            link_flags.append(f"-Wl,-rpath,{libomp_folder}")
+            if (
+                "homebrew" in libomp_folder
+            ):  # only when libomp is installed via homebrew, because when it is installed via conda, it is useless and produces a "duplicate rpath" warning.
+                link_flags.append(f"-Wl,-rpath,{libomp_folder}")
 
         self._linking_options = " ".join(link_flags)
 
