@@ -293,7 +293,7 @@ class OpenMPConfig:
     # C++ Compiler Options
     def set_compile_options(self):
         # Apple clang does not support -fopenmp directly; -Xpreprocessor is required.
-        if self.cxx.get_use_Apple_clang():
+        if self.cxx.get_use_clang_on_macos():
             self._compile_options += " -Xpreprocessor"
 
         self._compile_options += " -fopenmp"
