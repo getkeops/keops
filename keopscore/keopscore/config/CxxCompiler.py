@@ -96,7 +96,8 @@ class CxxCompilerConfig:
     def set_use_clang_on_macos(self):
         """Detect if using clang on macOS."""
         self._use_clang_on_macos = (
-            "clang" in self.get_cxx_compiler_version() and self.platform.get_platform() == "Darwin"
+            "clang" in self.get_cxx_compiler_version()
+            and self.platform.get_platform() == "Darwin"
             if self.get_cxx_compiler_version()
             else False
         )
