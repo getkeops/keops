@@ -19,7 +19,7 @@ class CxxCompilerConfig:
     _linking_options = ""
 
     _disable_pragma_unrolls = True
-    _use_Apple_clang = False
+    _use_clang_on_macos = False
 
     cxx_envs = ["CXX", "CXXFLAGS"]
 
@@ -29,7 +29,7 @@ class CxxCompilerConfig:
         self.platform = platform
 
         self.set_cxx_compiler()
-        self.set_use_Apple_clang()
+        self.set_use_clang_on_macos()
         self.set_cxx_env_flags()
         self.set_compile_options()
         self.set_linking_options()
@@ -93,16 +93,17 @@ class CxxCompilerConfig:
             f"C++ Compiler Version: {self.get_cxx_compiler_version() or not_found_str}"
         )
 
-    def set_use_Apple_clang(self):
-        """Detect if using Apple Clang."""
-        self._use_Apple_clang = (
-            "Apple clang" in self.get_cxx_compiler_version()
+    def set_use_clang_on_macos(self):
+        """Detect if using clang on macOS."""
+        self._use_clang_on_macos = (
+            "clang" in self.get_cxx_compiler_version()
+            and self.platform.get_platform() == "Darwin"
             if self.get_cxx_compiler_version()
             else False
         )
 
-    def get_use_Apple_clang(self):
-        return self._use_Apple_clang
+    def get_use_clang_on_macos(self):
+        return self._use_clang_on_macos
 
     # Disable Pragma Unrolls
     def set_disable_pragma_unrolls(self):
@@ -154,7 +155,7 @@ class CxxCompilerConfig:
         self.add_to_linking_options("-shared")
 
         # linker behavior (macOS)
-        if self.platform.get_platform() == "Darwin" and self.get_use_Apple_clang():
+        if self.platform.get_platform() == "Darwin" and self.get_use_clang_on_macos():
             self.add_to_linking_options("-undefined dynamic_lookup")
 
         # architecture (macOS ARM)
@@ -191,7 +192,7 @@ class CxxCompilerConfig:
         if (
             cxxflags
             and self.platform.get_platform() == "Darwin"
-            and self.get_use_Apple_clang()
+            and self.get_use_clang_on_macos()
         ):
             cxxflags = re.sub(
                 r"(?:^|\s)-(?:march|mtune|mfpmath)(?:=\S+|\s+\S+)?",
