@@ -95,6 +95,7 @@ setup(
         ],
         "test:": ["pytest", "numpy", "torch"],
         "cu12": ["cuda-toolkit[nvrtc,nvcc,cudart,cccl]==12.9.2"],
-        "cu13": ["cuda-toolkit[nvrtc,nvcc,cccl,cudart, crt]==13.*"],
+        "cu13": ["cuda-toolkit[nvrtc,nvcc,cccl,cudart,crt]==13.*"],
+        "cuda": ["cuda-toolkit[nvrtc,nvcc,cccl,cudart,crt]"],
     },
 )

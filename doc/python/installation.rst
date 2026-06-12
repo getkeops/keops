@@ -15,7 +15,7 @@ Requirements
 Required dependencies:
 
 - **Python** (>= 3.8) with the **NumPy** package.
-- A C++ compiler such as ``gcc`` or ``clang``, compatible with ``std=c++11``.
+- A C++ compiler such as ``gcc`` (on Linux) or ``clang`` (on macOS).
 
 Optional, but highly recommended:
 
@@ -70,7 +70,7 @@ On Google Colab
 
 Google provides free virtual machines, running on Ubuntu Linux, where KeOps
 runs out of the box. In a new
-`Colab notebook <https://colab.research.google.com>`_, typing:
+`Colab notebook <https://colab.research.google.com>`_, run:
 
 .. prompt:: python >>>
 
@@ -93,7 +93,8 @@ whether older packages are already installed somewhere else on your system.
 
 The dependencies for PyKeOps are listed :ref:`above <part.PyKeOpsRequirements>`,
 but the exact packages needed depend on your system. For instance, the following
-commands should create a working environment:
+commands should create a working environment on Ubuntu 24.04 equipped with
+a GPU:
 
 .. prompt:: bash $
 
@@ -160,9 +161,9 @@ As an example, here are the steps that we follow to render this website on the
   cd ~/scratch/containers
 
   # Download the Docker image and store it as an immutable Singularity Image File:
-  # N.B.: Our image is pretty heavy (~7 Gb), so it is safer to create
+  # N.B.: Our image is fairly large (~7 GB), so it is safer to create
   #       cache folders on the hard drive instead of relying on the RAM-only tmpfs:
-  # N.B.: This step may take 15mn to 60mn, so you may prefer to execute it on
+  # N.B.: This step may take 15 to 60 minutes, so you may prefer to execute it on
   #       your local computer and then copy the resulting file `keops-full.sif`
   #       to the cluster.
   #       Alternatively, on the Jean Zay cluster, you may use the `prepost` partition
@@ -178,12 +179,12 @@ As an example, here are the steps that we follow to render this website on the
   # to add our new environment to the cluster's container registry as explained here:
   # http://www.idris.fr/jean-zay/cpu/jean-zay-utilisation-singularity.html
 
-  # Then, create a separate home folder for this image. This is to ensure
-  # that we won't see any conflict between different versions of the KeOps binaries,
+  # Then, create a separate home folder for this image. This helps ensure
+  # that we do not encounter conflicts between different versions of the KeOps binaries,
   # stored in the ~/.cache folder of the virtual machine:
   mkdir -p ~/containers/singularity_homes/keops-full
 
-  # Ask the slurm scheduler to render our documentation.
+  # Ask the Slurm scheduler to render our documentation.
   sbatch keops-doc.batch
 
 
@@ -258,7 +259,7 @@ And ``keops-doc.sh`` is an executable file that contains:
   # Render the website:
   make html
 
-  # Re-render the doc to remove compilation messages:
+  # Re-render the documentation to remove compilation messages:
   make clean
   make html
 
@@ -295,7 +296,7 @@ Alternatively, you may:
    If you prefer not to install the packages, you can add
    ``/path/to/keops_cloned_repo/keopscore`` and
    ``/path/to/keops_cloned_repo/pykeops`` to your Python path. To do this once
-   and for all, add the paths to your ``~/.bashrc``:
+  permanently, add the paths to your ``~/.bashrc``:
 
    .. prompt:: bash $
 
@@ -392,7 +393,8 @@ CUDA toolkit detection
 
 Detecting the CUDA toolkit is not always straightforward because several CUDA
 versions may be present on the same system. For instance, PyTorch installations
-may bring NVIDIA runtime packages into the active Python environment.
+may bring a partial CUDA toolkit installation into the active Python environment (see
+detail below).
 
 KeOps does not ship its own CUDA toolkit. It tries to detect a working toolkit
 with :class:`keopscore.config.CudaConfig <keopscore.config.Cuda.CudaConfig>` in
@@ -421,14 +423,11 @@ the following order:
       # Arch Linux and derivatives:
       yay -S cuda
 
-4. *`NVIDIA PyPI packages <https://pypi.org/project/cuda-toolkit/>`_*: installed
-   with the ``cuda-toolkit[all]`` module from PyPI. Some of these packages are also pulled
-   in by PyTorch, making this solution fragile as multiple versions of the cuda-toolkit can
-   co-exist in the same virtual environment. For instance, Torch may install
-   CUDA 12 packages while the user manually installs CUDA 13 packages...
-
-
-Using NVIDIA PyPI packages works on Arch Linux. The following command:
+4. *`NVIDIA PyPI packages <https://pypi.org/project/cuda-toolkit/>`_*: needed package could be installed
+   with the ``pip install pykeops[cuda]`` or ``pip install pykeops[cu12]`` or or ``pip install pykeops[cu13]`` recipes. Beware, many cuda install can co-exist in the same virtual environment.
+   
+   
+We illustrate here how the CUDA toolkit could be manually selected. On Arch linux, the following command:
 
 .. prompt:: bash $
   python -m venv keops_venv
@@ -451,8 +450,8 @@ yields the detection of a system-wide CUDA installation under ``/opt/cuda``:
   Libnvrtc Path:  /opt/cuda/lib64/libnvrtc.so.13
   Libcudart Path: /opt/cuda/lib64/libcudart.so.13
 
-The following commands force KeOps to use the NVIDIA PyPI packages installed in
-the active Python virtual environment:
+Now, forcing KeOps to use the NVIDIA PyPI packages installed in the active Python virtual
+ environment may be done by running:
 
 .. prompt:: bash $
   python -m venv keops_venv_cuda_pip
@@ -482,8 +481,8 @@ Compiler
 
 Recent Linux and macOS distributions usually provide suitable compilers. If
 compilation fails, make sure that you are using a C++ compiler compatible with
-the **C++11 revision**. Otherwise, formula compilation may fail in unexpected
-ways.
+the **C++11 revision** (``std=c++11`` flag supported). Otherwise, formula compilation
+ may fail in unexpected ways.
 
 1. Install a compiler **system-wide**: for instance, on Debian-based Linux
    distributions, you can install g++ with apt and then use
@@ -539,6 +538,6 @@ Alternatively, you can disable verbose compilation from your Python script with
 .. prompt:: python >>>
 
   import pykeops
-  pykeops.set_verbose(0)  # no output
-  pykeops.set_verbose(1)  # default verbosity level
-  pykeops.set_verbose(2)  # maximum verbosity level
+  pykeops.set_verbose(0)    # no output
+  pykeops.set_verbose(1)    # default verbosity level
+  pykeops.set_verbose(2)    # maximum verbosity level
