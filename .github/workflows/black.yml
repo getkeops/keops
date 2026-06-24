@@ -1,12 +1,19 @@
-name: Lint
+name: Format Check
 
-on: [push, pull_request]
+on:
+  push:
+  pull_request:
 
 jobs:
-  lint:
+  format:
+    name: Format (Black)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
-      - uses: psf/black@stable
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Black format check
+        uses: psf/black@stable
+        with:
+          options: "--check ."
 

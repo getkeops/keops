@@ -22,11 +22,12 @@ full `MNIST <http://yann.lecun.com/exdb/mnist/>`_ dataset.
 import time
 
 import torch
+import pykeops.config
 from matplotlib import pyplot as plt
 
 from pykeops.torch import LazyTensor
 
-use_cuda = torch.cuda.is_available()
+use_cuda = torch.cuda.is_available() and pykeops.config.cuda.is_available()
 tensor = torch.cuda.FloatTensor if use_cuda else torch.FloatTensor
 
 ######################################################################

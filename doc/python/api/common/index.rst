@@ -6,5 +6,6 @@ Common Python API
 .. toctree::
 
     GenericLazyTensor
+    Config
     Utils
     

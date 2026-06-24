@@ -2,7 +2,7 @@ from keopscore.formulas.Operation import Operation
 from keopscore.formulas.maths.ArgMin import ArgMin
 from keopscore.formulas.maths.OneHot import OneHot
 from keopscore.utils.code_gen_utils import c_for_loop, c_if, value
-from keopscore.utils.misc_utils import KeOps_Error
+from keopscore.utils.messages import KeOps_Error
 
 ############################
 ######    Min       #####

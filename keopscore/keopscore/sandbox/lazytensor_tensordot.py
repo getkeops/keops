@@ -11,14 +11,13 @@ import torch
 
 from pykeops.torch import LazyTensor
 
-
 M, N = 2, 10
 
 #######################################################################################################################
 # Matrix multiplication as a special case of Tensordot
 # ----------------------------------------------------
 #
-device_id = "cuda:0" if torch.cuda.is_available() else "cpu"
+device_id = "cuda" if torch.cuda.is_available() else "cpu"
 do_warmup = True
 
 a = torch.randn(4 * 7, requires_grad=True, device=device_id, dtype=torch.float64)

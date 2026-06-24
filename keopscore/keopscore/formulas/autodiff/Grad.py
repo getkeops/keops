@@ -1,6 +1,6 @@
 from keopscore.formulas import Var
 from keopscore.utils.code_gen_utils import GetInds
-from keopscore.utils.misc_utils import KeOps_Error
+from keopscore.utils.messages import KeOps_Error
 
 # /////////////////////////////////////////////////////////////
 # ///      GRADIENT OPERATOR  : Grad< F, V, Gradin >       ////

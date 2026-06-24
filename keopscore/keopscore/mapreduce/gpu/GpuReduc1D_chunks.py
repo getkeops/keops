@@ -1,9 +1,9 @@
-from keopscore import cuda_block_size
-from keopscore.config.chunks import dimchunk
 from keopscore.binders.nvrtc.Gpu_link_compile import Gpu_link_compile
-from keopscore.formulas.reductions.sum_schemes import *
-from keopscore.mapreduce.gpu.GpuAssignZero import GpuAssignZero
+from keopscore.config import cuda, reduction
+from keopscore.formulas.reductions import make_sum_scheme
+from keopscore.mapreduce.Chunk_Mode_Constants import Chunk_Mode_Constants
 from keopscore.mapreduce.MapReduce import MapReduce
+from keopscore.mapreduce.gpu.GpuAssignZero import GpuAssignZero
 from keopscore.utils.code_gen_utils import (
     load_vars,
     load_vars_chunks,
@@ -12,8 +12,9 @@ from keopscore.utils.code_gen_utils import (
     table,
     table4,
     use_pragma_unroll,
+    c_variable,
+    c_array,
 )
-from keopscore.mapreduce.Chunk_Mode_Constants import Chunk_Mode_Constants
 
 
 def do_chunk_sub(
@@ -53,7 +54,7 @@ def do_chunk_sub(
     )
     load_chunks_routine_i = load_vars_chunks(
         indsi_chunked,
-        dimchunk,
+        reduction.get_dimchunk(),
         dimchunk_curr,
         chk.dim_org,
         xiloc,
@@ -63,7 +64,7 @@ def do_chunk_sub(
     )
     load_chunks_routine_j = load_vars_chunks(
         indsj_chunked,
-        dimchunk,
+        reduction.get_dimchunk(),
         dimchunk_curr,
         chk.dim_org,
         yjloc,
@@ -73,7 +74,7 @@ def do_chunk_sub(
     )
     load_chunks_routine_p = load_vars_chunks(
         indsp_chunked,
-        dimchunk,
+        reduction.get_dimchunk(),
         dimchunk_curr,
         chk.dim_org,
         param_loc,
@@ -129,7 +130,9 @@ class GpuReduc1D_chunks(MapReduce, Gpu_link_compile):
         self.chk = Chunk_Mode_Constants(self.red_formula)
         self.dimy = self.chk.dimy
         self.blocksize_chunks = min(
-            cuda_block_size, 1024, 49152 // max(1, self.dimy * sizeof(self.dtype))
+            cuda.get_cuda_block_size(),
+            1024,
+            49152 // max(1, self.dimy * sizeof(self.dtype)),
         )
 
     def get_code(self):
@@ -153,7 +156,9 @@ class GpuReduc1D_chunks(MapReduce, Gpu_link_compile):
         chk = self.chk
         param_loc = c_array(dtype, chk.dimp, "param_loc")
         acc = c_array(dtypeacc, chk.dimred, "acc")
-        sum_scheme = eval(self.sum_scheme_string)(red_formula, dtype, dimred=chk.dimred)
+        sum_scheme = make_sum_scheme(
+            self.sum_scheme_string, red_formula, dtype, dimred=chk.dimred
+        )
         xi = c_array(dtype, chk.dimx, "xi")
         fout_chunk = c_array(
             dtype, self.blocksize_chunks * chk.dimout_chunk, "fout_chunk"
@@ -176,7 +181,7 @@ class GpuReduc1D_chunks(MapReduce, Gpu_link_compile):
             dtype,
             red_formula,
             chk.fun_chunked,
-            dimchunk,
+            reduction.get_dimchunk(),
             chk.dimsx,
             chk.dimsy,
             chk.dimsp,

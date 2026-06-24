@@ -1,5 +1,6 @@
 import torch
 from pykeops.torch import LazyTensor
+from pykeops.test import assert_torch_allclose
 
 torch.manual_seed(0)
 
@@ -29,36 +30,40 @@ class TestCase:
     def test_torch_func_vmap(self):
         res1 = torch.func.vmap(fn_torch)(x_i, y_j, b_j)
         res2 = torch.func.vmap(fn_keops)(x_i, y_j, b_j)
-        assert torch.allclose(res1, res2, atol=1e-5)
+        assert_torch_allclose(res1, res2, atol=1e-5, label="torch_func_lse_vmap")
 
     def test_torch_func_grad(self):
         res1 = torch.func.grad(fn_torch, (0, 1, 2))(x_i, y_j, b_j)
         res2 = torch.func.grad(fn_keops, (0, 1, 2))(x_i, y_j, b_j)
         for k in range(3):
-            assert torch.allclose(res1[k], res2[k], atol=1e-5)
+            assert_torch_allclose(
+                res1[k], res2[k], atol=1e-5, label=f"torch_func_lse_grad[{k}]"
+            )
 
     def test_torch_func_vjp(self):
         res1 = torch.func.vjp(fn_torch, x_i, y_j, b_j)[1](torch.tensor(1.0))[0]
         res2 = torch.func.vjp(fn_keops, x_i, y_j, b_j)[1](torch.tensor(1.0))[0]
-        assert torch.allclose(res1, res2, atol=1e-5)
+        assert_torch_allclose(res1, res2, atol=1e-5, label="torch_func_lse_vjp")
 
     def test_torch_func_jvp(self):
         _, res1 = torch.func.jvp(fn_torch, (x_i, y_j, b_j), (dx_i, dy_j, db_j))
         _, res2 = torch.func.jvp(fn_keops, (x_i, y_j, b_j), (dx_i, dy_j, db_j))
-        assert torch.allclose(res1, res2, atol=1e-5)
+        assert_torch_allclose(res1, res2, atol=1e-5, label="torch_func_lse_jvp")
 
     def test_torch_func_jacrev(self):
         res1 = torch.func.jacrev(fn_torch, (0, 1, 2))(x_i, y_j, b_j)
         res2 = torch.func.jacrev(fn_keops, (0, 1, 2))(x_i, y_j, b_j)
         for k in range(3):
-            assert torch.allclose(res1[k], res2[k], atol=1e-5)
+            assert_torch_allclose(
+                res1[k], res2[k], atol=1e-5, label=f"torch_func_lse_jacrev[{k}]"
+            )
 
     def test_torch_func_jacfwd(self):
         res1 = torch.func.jacfwd(fn_torch)(x_i, y_j, b_j)
         res2 = torch.func.jacfwd(fn_keops)(x_i, y_j, b_j)
-        assert torch.allclose(res1, res2, atol=1e-5)
+        assert_torch_allclose(res1, res2, atol=1e-5, label="torch_func_lse_jacfwd")
 
     def test_torch_func_hessian(self):
         res1 = torch.func.hessian(fn_torch)(x_i, y_j, b_j)
         res2 = torch.func.hessian(fn_keops)(x_i, y_j, b_j)
-        assert torch.allclose(res1, res2, atol=1e-5)
+        assert_torch_allclose(res1, res2, atol=1e-5, label="torch_func_lse_hessian")

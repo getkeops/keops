@@ -1,6 +1,13 @@
-from keopscore.formulas.reductions import *
+from keopscore.formulas.reductions import make_sum_scheme
 from keopscore.formulas.GetReduction import GetReduction
-from keopscore.utils.code_gen_utils import Var_loader, new_c_varname, pointer, c_include
+from keopscore.utils.code_gen_utils import (
+    Var_loader,
+    new_c_varname,
+    pointer,
+    c_include,
+    c_variable,
+    c_array,
+)
 
 
 class MapReduce:
@@ -56,7 +63,7 @@ class MapReduce:
         dtype = self.dtype
         dtypeacc = self.dtypeacc
         nargs = self.nargs
-        self.sum_scheme = eval(self.sum_scheme_string)(red_formula, dtype)
+        self.sum_scheme = make_sum_scheme(self.sum_scheme_string, red_formula, dtype)
 
         self.i = i = c_variable("signed long int", "i")
         self.j = j = c_variable("signed long int", "j")

@@ -8,7 +8,7 @@ M, N, D, DV = 200000, 300000, 1, 1
 
 dtype = torch.float32
 
-device_id = "cuda:0" if torch.cuda.is_available() else "cpu"
+device_id = "cuda" if torch.cuda.is_available() else "cpu"
 
 x = torch.rand(M, D, device=device_id, dtype=dtype) / math.sqrt(D)
 y = torch.rand(N, D, device=device_id, dtype=dtype) / math.sqrt(D)

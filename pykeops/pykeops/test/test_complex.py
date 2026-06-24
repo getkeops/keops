@@ -2,7 +2,9 @@
 
 import math
 import torch
+import pykeops.config
 from pykeops.torch import LazyTensor
+from pykeops.test import assert_torch_allclose
 
 dtype = torch.float32
 dtype_c = torch.complex64
@@ -10,7 +12,8 @@ dtype_c = torch.complex64
 M, N, D = 1000, 1000, 1
 
 torch.backends.cuda.matmul.allow_tf32 = False
-device_id = "cuda" if torch.cuda.is_available() else "cpu"
+use_cuda = torch.cuda.is_available() and pykeops.config.cuda.is_available()
+device_id = "cuda" if use_cuda else "cpu"
 
 torch.manual_seed(0)
 x = torch.rand(1, N, D, dtype=dtype_c, requires_grad=True, device=device_id)
@@ -40,7 +43,7 @@ for backend in ["keops", "torch"]:
 
 
 def test_complex_fw():
-    assert torch.allclose(out[0], out[1])
+    assert_torch_allclose(out[0], out[1], label="complex_fw")
 
 
 # out_g = []

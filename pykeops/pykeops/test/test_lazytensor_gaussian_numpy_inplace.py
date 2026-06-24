@@ -1,6 +1,7 @@
 import math
 import numpy as np
 from pykeops.numpy import LazyTensor
+from pykeops.test import assert_np_allclose
 
 M, N, D, DV = 3000, 2000, 3, 1
 
@@ -35,4 +36,4 @@ for backend in backends:
 
 
 def test_lazytensor_gaussian_numpy_inplace():
-    assert np.allclose(out[0], out[1])
+    assert_np_allclose(out[0], out[1], label="gaussian_numpy_inplace")

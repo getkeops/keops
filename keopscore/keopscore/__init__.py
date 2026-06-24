@@ -1,47 +1,23 @@
 import os
-from os import path
 
-###########################################################
-# Verbosity level
-verbose = True
-if os.getenv("KEOPS_VERBOSE") == "0":
-    verbose = False
-
-here = path.abspath(path.dirname(__file__))
+# Version
+here = os.path.abspath(os.path.dirname(__file__))
 with open(os.path.join(here, "keops_version"), encoding="utf-8") as v:
     __version__ = v.read().rstrip()
 
-from keopscore.config import *
-from keopscore.utils.code_gen_utils import clean_keops, check_health
-from keopscore.utils.misc_utils import CHECK_MARK, CROSS_MARK
+# Config
+import keopscore.config
 
-set_build_folder = config.set_different_build_folder
+# Create build folder if it does not exist and set it as the default build folder
+try:
+    keopscore.config.path.set_build_folder(reset_all=False)
+except Exception as e:
+    from .utils.messages import KeOps_Warning
 
-# flags for debugging :
-# prints information about atomic operations during code building
-debug_ops = False
-# adds C++ code for printing all input and output values
-# for all atomic operations during computations
-debug_ops_at_exec = False
+    KeOps_Warning(
+        f"An error occurred while setting up keopcore: {e}. Use keopscore.config.check_health() to get details on the current configuration.",
+        level=1,
+    )
 
-# flag for automatic factorization : apply automatic factorization for all formulas before reduction.
-auto_factorize = False
-
-# Initialize CUDA libraries if CUDA is used
-if cuda_config.get_use_cuda():
-    # Initialize CUDA libraries if necessary
-    cuda_config._cuda_libraries_available()
-    from keopscore.binders.nvrtc.Gpu_link_compile import Gpu_link_compile
-    from keopscore.binders.nvrtc.Gpu_link_compile import jit_compile_dll
-
-    if not os.path.exists(jit_compile_dll()):
-        Gpu_link_compile.compile_jit_compile_dll()
-
-
-# Retrieve the current build folder
-build_folder = config.get_build_folder()
-
-# Retrieve details about the current CUDA configuration
-show_gpu_config = cuda_config
-show_cuda_status = cuda_config.get_use_cuda()
-cuda_block_size = cuda_config.get_cuda_block_size()
+# expose to the user
+set_build_folder = keopscore.config.path.set_build_folder

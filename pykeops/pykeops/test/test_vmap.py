@@ -1,5 +1,6 @@
 import torch
 from pykeops.torch import LazyTensor
+from pykeops.test import assert_torch_allclose
 
 test_grad = True
 torch.manual_seed(0)
@@ -31,13 +32,13 @@ class TestCase:
             x_i, x_j, y_j, use_keops=False
         )
 
-        assert torch.allclose(res_keops, res_torch)
+        assert_torch_allclose(res_keops, res_torch, label="vmap_0_fw")
 
         u = torch.rand(res_torch.shape)
         (res_torch_grad,) = torch.autograd.grad(res_torch, x_i, u)
         (res_keops_grad,) = torch.autograd.grad(res_keops, x_i, u)
 
-        assert torch.allclose(res_keops_grad, res_torch_grad)
+        assert_torch_allclose(res_keops_grad, res_torch_grad, label="vmap_0_bw")
 
     def test_vmap_1(self):
         x_i = torch.randn(10, 5, 1, 2, requires_grad=test_grad, dtype=torch.float64)
@@ -52,13 +53,13 @@ class TestCase:
         res_torch = torch.vmap(fn, in_dims=in_dims, out_dims=out_dims)(
             x_i, x_j, y_j, use_keops=False
         )
-        assert torch.allclose(res_keops, res_torch)
+        assert_torch_allclose(res_keops, res_torch, label="vmap_1_fw")
 
         u = torch.rand(res_torch.shape)
         (res_torch_grad,) = torch.autograd.grad(res_torch, x_i, u)
         (res_keops_grad,) = torch.autograd.grad(res_keops, x_i, u)
 
-        assert torch.allclose(res_keops_grad, res_torch_grad)
+        assert_torch_allclose(res_keops_grad, res_torch_grad, label="vmap_1_bw")
 
     def test_vmap_2(self):
         x_i = torch.randn(10, 5, 1, 2, requires_grad=test_grad, dtype=torch.float64)
@@ -73,10 +74,10 @@ class TestCase:
         res_torch = torch.vmap(fn, in_dims=in_dims, out_dims=out_dims)(
             x_i, x_j, y_j, use_keops=False
         )
-        assert torch.allclose(res_keops, res_torch)
+        assert_torch_allclose(res_keops, res_torch, label="vmap_2_fw")
 
         u = torch.rand(res_torch.shape)
         (res_torch_grad,) = torch.autograd.grad(res_torch, x_i, u)
         (res_keops_grad,) = torch.autograd.grad(res_keops, x_i, u)
 
-        assert torch.allclose(res_keops_grad, res_torch_grad)
+        assert_torch_allclose(res_keops_grad, res_torch_grad, label="vmap_2_bw")

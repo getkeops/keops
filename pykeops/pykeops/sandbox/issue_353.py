@@ -2,7 +2,6 @@ import torch.cuda
 from pykeops.torch import Vi, Vj, LazyTensor, Genred
 import pykeops
 
-
 d = 1
 n, m = 1, 1
 q_points = torch.rand((n, d)).requires_grad_(True).to("cuda")

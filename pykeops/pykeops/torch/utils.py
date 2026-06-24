@@ -3,7 +3,6 @@ import torch
 from pykeops.torch import Genred, KernelSolve
 from pykeops.torch.cluster import swap_axes as torch_swap_axes
 
-
 # from pykeops.torch.generic.generic_red import GenredLowlevel
 
 
@@ -18,12 +17,12 @@ else:
 
 
 class torchtools:
-    copy = torch.clone
-    exp = torch.exp
-    log = torch.log
-    norm = torch.norm
+    copy = staticmethod(torch.clone)
+    exp = staticmethod(torch.exp)
+    log = staticmethod(torch.log)
+    norm = staticmethod(torch.norm)
 
-    swap_axes = torch_swap_axes
+    swap_axes = staticmethod(torch_swap_axes)
 
     Genred = Genred
     KernelSolve = KernelSolve
@@ -155,6 +154,10 @@ class torchtools:
         )
 
     @staticmethod
+    def zeros_like(x):
+        return torch.zeros_like(x)
+
+    @staticmethod
     def empty(
         shape,
         dtype,
@@ -209,6 +212,10 @@ class torchtools:
     @staticmethod
     def pointer(x):
         return x.data.data_ptr()
+
+    @staticmethod
+    def sqrt(x):
+        return torch.sqrt(x)
 
 
 def squared_distances(x, y):

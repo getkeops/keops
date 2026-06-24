@@ -1,7 +1,10 @@
 import math
 import pytest
 import torch
+import pykeops.config
 from pykeops.torch import LazyTensor
+
+use_cuda = pykeops.config.cuda.is_available()
 
 M, N, D, DV = 1000, 1000, 3, 1
 
@@ -39,8 +42,16 @@ for backend in ["torch", "keops_cpu"]:
 
 class TestCase:
     def test_torch_keops_cpu(self):
-        assert torch.allclose(out[0], out[1])
+        assert torch.allclose(
+            out[0], out[1]
+        ), f"torch vs keops_cpu mismatch: ||ref-test||_2={torch.norm(out[0] - out[1]).item():.6e} and ||ref||_2={torch.norm(out[0]).item():.6e}"
 
-    @pytest.mark.skipif(not torch.cuda.is_available(), reason="Requires a GPU")
+    @pytest.mark.skipif(
+        not use_cuda,
+        reason="Requires KeOps CUDA support",
+    )
     def test_torch_keops_gpu(self):
-        assert torch.allclose(out[0], fun(x, y, b, ["keops_gpu"]).squeeze())
+        out_gpu = fun(x, y, b, ["keops_gpu"]).squeeze()
+        assert torch.allclose(
+            out[0], out_gpu
+        ), f"torch vs keops_gpu mismatch: ||ref-test||_2={torch.norm(out[0] - out_gpu).item():.6e} and ||ref||_2={torch.norm(out[0]).item():.6e}"

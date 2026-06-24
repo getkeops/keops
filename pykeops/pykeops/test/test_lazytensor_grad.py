@@ -1,13 +1,16 @@
 import torch
+import pykeops.config
 
 from pykeops.torch import LazyTensor
+from pykeops.test import assert_torch_allclose
 
 M, N, D, DV = 100, 100, 3, 1
 
 dtype = torch.float32
 
 torch.backends.cuda.matmul.allow_tf32 = False
-device_id = "cuda:0" if torch.cuda.is_available() else "cpu"
+use_cuda = torch.cuda.is_available() and pykeops.config.cuda.is_available()
+device_id = "cuda" if use_cuda else "cpu"
 
 torch.manual_seed(0)
 x = torch.rand(M, 1, D, requires_grad=True, device=device_id, dtype=dtype)
@@ -45,10 +48,14 @@ for k, backend in enumerate(backends):
 
 class TestClass:
     def test_lazytensor_grad(self):
-        assert torch.allclose(out[0], out[1], rtol=0.0001)
+        assert_torch_allclose(out[0], out[1], rtol=0.0001, label="lazytensor_grad_fw")
 
     def test_lazytensor_grad_bw1(self):
-        assert torch.allclose(out_g[0], out_g[1], rtol=0.0001)
+        assert_torch_allclose(
+            out_g[0], out_g[1], rtol=0.0001, label="lazytensor_grad_bw1"
+        )
 
     def test_lazytensor_grad_bw2(self):
-        assert torch.allclose(out_g2[0], out_g2[1], rtol=0.001)
+        assert_torch_allclose(
+            out_g2[0], out_g2[1], rtol=0.001, label="lazytensor_grad_bw2"
+        )

@@ -1,7 +1,6 @@
 from pykeops.torch import Vi, Vj, LazyTensor
 import torch
 
-
 xc = torch.randn(256, 5)
 xc.requires_grad_(True)
 

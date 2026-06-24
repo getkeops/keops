@@ -1,6 +1,6 @@
 from keopscore.formulas import Var
 from keopscore.utils.code_gen_utils import GetInds
-from keopscore.utils.misc_utils import KeOps_Error
+from keopscore.utils.messages import KeOps_Error
 from keopscore.formulas.maths.Minus import Minus_Impl
 from keopscore.formulas.maths.Add import Add_Impl
 from keopscore.formulas.maths.Subtract import Subtract_Impl
@@ -14,7 +14,6 @@ from keopscore.formulas.variables.Var import Var
 from keopscore.formulas.variables.Zero import Zero
 from keopscore.formulas.maths.Scalprod import Scalprod_Impl
 from keopscore.formulas.Operation import Broadcast
-
 
 # /////////////////////////////////////////////////////////////
 # ///      LINEAR OPERATORS       ////

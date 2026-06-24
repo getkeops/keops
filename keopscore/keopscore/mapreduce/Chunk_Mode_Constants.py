@@ -1,4 +1,4 @@
-from keopscore.config.chunks import dimchunk
+from keopscore.config import reduction
 from keopscore.utils.code_gen_utils import GetDims, GetInds, Var_loader
 from keopscore.formulas.variables.Var import Var
 
@@ -15,10 +15,10 @@ class Chunk_Mode_Constants:
         formula = red_formula.formula
         self.dimfout = formula.dim  # dimension of output variable of inner function
 
-        chunked_formula = formula.chunked_formulas(dimchunk)[0]
+        chunked_formula = formula.chunked_formulas(reduction.get_dimchunk())[0]
         self.dim_org = chunked_formula["dim_org"]
-        self.nchunks = 1 + (self.dim_org - 1) // dimchunk
-        self.dimlastchunk = self.dim_org - (self.nchunks - 1) * dimchunk
+        self.nchunks = 1 + (self.dim_org - 1) // reduction.get_dimchunk()
+        self.dimlastchunk = self.dim_org - (self.nchunks - 1) * reduction.get_dimchunk()
         self.nminargs = varloader.nminargs
         self.fun_chunked = chunked_formula["formula"]
         self.dimout_chunk = self.fun_chunked.dim

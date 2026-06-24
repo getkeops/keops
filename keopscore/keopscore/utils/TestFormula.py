@@ -5,7 +5,7 @@ from torch.autograd import grad
 from pykeops.torch import Genred
 from keopscore.formulas import *
 import types
-from keopscore.utils.misc_utils import KeOps_Print
+from keopscore.utils.messages import KeOps_Print
 
 
 def TestFormula(formula, tol=1e-4, dtype="float32", test_grad=False, randseed=None):
@@ -80,3 +80,7 @@ def TestFormula(formula, tol=1e-4, dtype="float32", test_grad=False, randseed=No
             )
         return c, g
     return c
+
+
+if __name__ == "__main__":
+    res = TestFormula("Exp(-Sum((Var(0,3,0)-Var(1,3,1))**2))*Var(2,1,1)")

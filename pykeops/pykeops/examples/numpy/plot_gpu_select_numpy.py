@@ -63,7 +63,7 @@ c = my_routine(x, y, a, p, backend="CPU")
 # And on our GPUs, with copies between
 # the Host and Device memories:
 #
-if pykeops.config.gpu_available:
+if pykeops.config.cuda.is_available():
     for gpuid in gpuids:
         d = my_routine(x, y, a, p, backend="GPU", device_id=gpuid)
         print(
@@ -96,7 +96,7 @@ c = ((aj - p) ** 2 * (yj + xi).exp()).sum(axis=1, backend="CPU")
 ####################################################################
 # And on the GPUs, with copies between the Host and Device memories:
 #
-if pykeops.config.gpu_available:
+if pykeops.config.cuda.is_available():
     for gpuid in gpuids:
         d = ((p - aj) ** 2 * (xi + yj).exp()).sum(
             axis=1, backend="GPU", device_id=gpuid

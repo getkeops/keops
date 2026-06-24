@@ -10,7 +10,7 @@ from keopscore.utils.code_gen_utils import (
     use_pragma_unroll,
 )
 from keopscore.formulas.reductions.Reduction import Reduction
-from keopscore.utils.misc_utils import KeOps_Error
+from keopscore.utils.messages import KeOps_Error
 
 
 class KMin_ArgKMin_Reduction(Reduction):

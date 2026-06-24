@@ -1,11 +1,10 @@
 import numpy as np
-
+from pykeops import default_device_id
 from pykeops.common.get_options import get_tag_backend
 from pykeops.common.keops_io import keops_binder
 from pykeops.common.operations import ConjugateGradientSolver
 from pykeops.common.parse_type import get_sizes, complete_aliases, get_optional_flags
 from pykeops.common.utils import axis2cat
-from pykeops import default_device_id
 from pykeops.common.utils import pyKeOps_Warning
 
 
@@ -177,7 +176,16 @@ class KernelSolve:
         self.optional_flags = optional_flags
 
     def __call__(
-        self, *args, backend="auto", device_id=-1, alpha=1e-10, eps=1e-6, ranges=None
+        self,
+        *args,
+        backend="auto",
+        device_id=-1,
+        ranges=None,
+        alpha=1e-10,
+        eps=1e-6,
+        x0=None,
+        maxiter=None,
+        verbose=False,
     ):
         r"""
         To apply the routine on arbitrary NumPy arrays.
@@ -203,6 +211,21 @@ class KernelSolve:
             alpha (float, default = 1e-10): Non-negative
                 **ridge regularization** parameter, added to the diagonal
                 of the Kernel matrix :math:`K_{xx}`.
+
+            eps (float, default = 1e-6): Stopping criterion for the
+                conjugate gradient algorithm.
+
+            x0 (2d array, default = None): Initial guess for the solution of
+                the linear system. Should be of the same shape as ``b``.
+
+            maxiter (int, default = None): Maximum number of conjugate
+                gradient iterations. If ``None``, uses the default from
+                :func:`pykeops.common.operations.ConjugateGradientSolver`.
+
+            verbose (bool, default = False): If ``True``, prints the
+                conjugate gradient convergence information dictionary
+                produced by
+                :func:`pykeops.common.operations.ConjugateGradientSolver`.
 
             backend (string): Specifies the map-reduce scheme,
                 as detailed in the documentation
@@ -272,4 +295,12 @@ class KernelSolve:
                 res += alpha * var
             return res
 
-        return ConjugateGradientSolver("numpy", linop, varinv, eps=eps)
+        return ConjugateGradientSolver(
+            "numpy",
+            linop,
+            varinv,
+            eps=eps,
+            x0=x0,
+            maxiter=maxiter,
+            verbose=verbose,
+        )

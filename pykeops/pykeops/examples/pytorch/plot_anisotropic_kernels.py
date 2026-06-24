@@ -18,14 +18,16 @@ import numpy as np
 from matplotlib import pyplot as plt
 import matplotlib.cm as cm
 import torch
+import pykeops.config
 from pykeops.torch import Vi, Vj, Pm, LazyTensor
-
 
 ##############################################
 # Dataset:
 
+use_cuda = torch.cuda.is_available() and pykeops.config.cuda.is_available()
+
 # Choose the storage place for our data : CPU (host) or GPU (device) memory.
-dtype = torch.cuda.FloatTensor if torch.cuda.is_available() else torch.FloatTensor
+dtype = torch.cuda.FloatTensor if use_cuda else torch.FloatTensor
 
 # Three points in the plane R^2
 y = torch.tensor([[0.2, 0.7], [0.5, 0.3], [0.7, 0.5]]).type(dtype)

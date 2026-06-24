@@ -30,6 +30,7 @@ import time
 
 import matplotlib.pyplot as plt
 import torch
+import pykeops.config
 from torch.autograd import grad
 
 from pykeops.torch import Genred
@@ -162,7 +163,9 @@ plt.show()
 #
 # Of course, this will only work if you own a Gpu...
 
-if torch.cuda.is_available():
+use_cuda = torch.cuda.is_available() and pykeops.config.cuda.is_available()
+
+if use_cuda:
     # first transfer data on gpu
     pc, ac, xc, yc, bc, ec = p.cuda(), a.cuda(), x.cuda(), y.cuda(), b.cuda(), e.cuda()
     # then call the operations

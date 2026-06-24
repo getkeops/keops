@@ -8,7 +8,8 @@ from torch.autograd import grad
 
 import keopscore
 import keopscore.formulas
-from keopscore.utils.misc_utils import KeOps_Error
+import pykeops.config as pykeopsconfig
+from keopscore.utils.messages import KeOps_Error
 from pykeops.torch import Genred
 
 # fix seed for reproducibility
@@ -63,8 +64,9 @@ def perform_test(op_str, tol=1e-4, dtype="float32", verbose=True):
     M = 300
     N = 500
 
-    # Choose the storage place for our data : CPU (host) or GPU (device) memory.
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    # Keep tensor placement aligned with the KeOps backend selected at runtime.
+    use_cuda = torch.cuda.is_available() and pykeopsconfig.gpu_available
+    device = torch.device("cuda" if use_cuda else "cpu")
 
     if dtype == "float32":
         torchtype = torch.float32

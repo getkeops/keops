@@ -17,19 +17,20 @@ through **gradient descent** on the empiric log-likelihood.
 import matplotlib.cm as cm
 import numpy as np
 import torch
+import pykeops.config
 from matplotlib import pyplot as plt
 from torch.nn import Module
 from torch.nn.functional import softmax, log_softmax
 
 from pykeops.torch import Vi, Vj, LazyTensor
 
-
 ####################################################################
 # Define our dataset: a collection of points :math:`(x_i)_{i\in[1,N]}` which describe a
 # spiral in the unit square.
 
 # Choose the storage place for our data : CPU (host) or GPU (device) memory.
-dtype = torch.cuda.FloatTensor if torch.cuda.is_available() else torch.FloatTensor
+use_cuda = torch.cuda.is_available() and pykeops.config.cuda.is_available()
+dtype = torch.cuda.FloatTensor if use_cuda else torch.FloatTensor
 torch.manual_seed(0)
 N = 10000  # Number of samples
 t = torch.linspace(0, 2 * np.pi, N + 1)[:-1]
@@ -114,7 +115,7 @@ class GaussianMixture(Module):
 
     def update_covariances(self):
         """Computes the full covariance matrices from the model's parameters."""
-        (M, D, _) = self.A.shape
+        M, D, _ = self.A.shape
         self.params["gamma"] = (torch.matmul(self.A, self.A.transpose(1, 2))).view(
             M, D * D
         ) / 2

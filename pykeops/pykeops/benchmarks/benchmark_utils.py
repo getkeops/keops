@@ -13,10 +13,11 @@ from si_prefix import si_format
 
 import numpy as np
 import torch
+import pykeops.config
 
 # import jax
 
-use_cuda = torch.cuda.is_available()
+use_cuda = torch.cuda.is_available() and pykeops.config.cuda.is_available()
 
 ##################################################
 # Utility functions:

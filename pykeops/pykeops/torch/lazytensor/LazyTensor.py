@@ -3,7 +3,6 @@ import torch
 from pykeops.common.lazy_tensor import GenericLazyTensor, ComplexGenericLazyTensor
 from pykeops.torch.utils import torchtools
 
-
 # Convenient aliases:
 
 

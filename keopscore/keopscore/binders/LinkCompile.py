@@ -1,10 +1,16 @@
 import os
-from keopscore.config import config
-from keopscore.utils.code_gen_utils import get_hash_name
-from keopscore.utils.misc_utils import KeOps_Error, KeOps_Message
 
-cpp_flags = config.get_cpp_flags()
-get_build_folder = config.get_build_folder
+import keopscore.config
+from keopscore.utils.code_gen_utils import get_hash_name
+from keopscore.utils.messages import KeOps_Error, KeOps_Message
+
+cpp_flag = keopscore.config.cxx.get_compile_options()
+cpp_flag += keopscore.config.cxx.get_linking_options()
+cpp_flag += keopscore.config.openmp.get_compile_options()
+cpp_flag += keopscore.config.openmp.get_include_options()
+cpp_flag += keopscore.config.openmp.get_linking_options()
+cpp_flag += keopscore.config.cuda.get_include_options()
+cpp_flag += keopscore.config.cuda.get_linking_options()
 
 
 class LinkCompile:
@@ -31,17 +37,17 @@ class LinkCompile:
             self.use_half,
             self.use_fast_math,
             self.device_id,
-            cpp_flags,
+            cpp_flag,
         )
 
         # info_file is the name of the file that will contain some meta-information required by the bindings, e.g. 7b9a611f7e.nfo
         self.info_file = os.path.join(
-            get_build_folder(), self.gencode_filename + ".nfo"
+            keopscore.config.path.get_build_folder(), self.gencode_filename + ".nfo"
         )
 
         # gencode_file is the name of the source file to be created and then compiled, e.g. 7b9a611f7e.cpp or 7b9a611f7e.cu
         self.gencode_file = os.path.join(
-            get_build_folder(),
+            keopscore.config.path.get_build_folder(),
             self.gencode_filename + "." + self.source_code_extension,
         )
 
@@ -51,23 +57,21 @@ class LinkCompile:
         #                                            dimy (sum of dimensions of j-indexed vectors)
         f = open(self.info_file, "w")
         f.write(
-            f"red_formula={self.red_formula_string}\ndim={self.dim}\ntagI={self.tagI}\ndimy={self.dimy}"
+            f"red_formula={self.red_formula_string}\ndim={self.dim}\ntagI={self.tagI}\ndimy={self.dimy}\n\n"
+            + f"dtype={self.dtype}\nsum_scheme={self.sum_scheme_string} in {self.dtypeacc}\n"
+            + f"tagHostDevice={self.tagHostDevice}\ntagCpuGpu={self.tagCpuGpu}\ntag1D2D={self.tag1D2D}\n\ndevice_id={self.device_id}\n"
         )
         f.close()
 
     def read_info(self):
         # read info_file to retreive dim, tagI, dimy
         f = open(self.info_file, "r")
-        string = f.read()
+        f.readline()  # skip line 0
+        tmp_dim = f.readline().rstrip("\n").split("=")
+        tmp_tag = f.readline().rstrip("\n").split("=")
+        tmp_dimy = f.readline().rstrip("\n").split("=")
         f.close()
-        tmp = string.split("\n")
-        if len(tmp) != 4:
-            KeOps_Error("Incorrect info file")
-        tmp_dim, tmp_tag, tmp_dimy = (
-            tmp[1].split("="),
-            tmp[2].split("="),
-            tmp[3].split("="),
-        )
+
         if (
             len(tmp_dim) != 2
             or tmp_dim[0] != "dim"
@@ -77,9 +81,9 @@ class LinkCompile:
             or tmp_dimy[0] != "dimy"
         ):
             KeOps_Error("Incorrect info file")
-        self.dim = eval(tmp_dim[1])
-        self.tagI = eval(tmp_tag[1])
-        self.dimy = eval(tmp_dimy[1])
+        self.dim = int(tmp_dim[1])
+        self.tagI = int(tmp_tag[1])
+        self.dimy = int(tmp_dimy[1])
 
     def write_code(self):
         # write the generated code in the source file ; this is used as a subfunction of compile_code
@@ -99,15 +103,15 @@ class LinkCompile:
                 "Generating code for " + self.red_formula.__str__() + " ... ",
                 flush=True,
                 end="",
+                level=2,
             )
             self.generate_code()
             self.save_info()
-            KeOps_Message("OK", use_tag=False, flush=True)
+            KeOps_Message("OK", use_tag=False, flush=True, level=2)
         else:
             self.read_info()
         return dict(
             tag=self.gencode_filename,
-            source_file=self.true_dllname,
             low_level_code_file=self.low_level_code_file,
             tagI=self.tagI,
             use_half=self.use_half,

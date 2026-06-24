@@ -19,6 +19,7 @@ using the **conjugate gradient solver** provided by
 import time
 
 import torch
+import pykeops.config
 from matplotlib import pyplot as plt
 
 from pykeops.torch import KernelSolve
@@ -32,16 +33,21 @@ else:
 # Define our dataset:
 #
 
-N = 5000 if torch.cuda.is_available() else 500  # Number of points
+use_cuda = torch.cuda.is_available() and pykeops.config.cuda.is_available()
+device = torch.device("cuda" if use_cuda else "cpu")
+
+N = 5000 if use_cuda else 500  # Number of points
 D = 2  # Dimension of the ambient space
 Dv = 2  # Dimension of the vectors (= number of linear problems to solve)
 sigma = 0.1  # Radius of our RBF kernel
 
-x = torch.rand(N, D, requires_grad=True)
-b = torch.rand(N, Dv)
-g = torch.Tensor([0.5 / sigma**2])  # Parameter of the Gaussian RBF kernel
+x = torch.rand(N, D, requires_grad=True, device=device)
+b = torch.rand(N, Dv, device=device)
+g = torch.tensor(
+    [0.5 / sigma**2], device=device
+)  # Parameter of the Gaussian RBF kernel
 
-if torch.cuda.is_available():
+if use_cuda:
     sync = torch.cuda.synchronize
 else:
 

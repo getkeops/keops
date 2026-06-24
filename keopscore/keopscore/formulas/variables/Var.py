@@ -1,7 +1,6 @@
 from keopscore.utils.code_gen_utils import VectCopy
 from keopscore.formulas.Operation import Operation
 
-
 #######################
 ## Var operation
 #######################

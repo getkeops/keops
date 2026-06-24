@@ -19,9 +19,6 @@ This is the main entry point for all binders. It takes as inputs :
 
 It returns
       - tag : string, hash code used as id for the input formula and parameters
-      - source_file : string, either :
-            - in CPU mode : name of the source file to be compiled
-            - in GPU mode : name of the main dll to be called
       - low_level_code_file : string, either :
             - in CPU mode : the empty string ""
             - in GPU mode : name of the low level code (ptx) or binary file (cubin) to be passed to the main dll.
@@ -52,24 +49,13 @@ It can be used as a Python function or as a standalone Python script (in which c
 import inspect
 import sys
 
-import keopscore
-from keopscore.config import *
-
 import keopscore.mapreduce
-from keopscore import cuda_block_size
-from keopscore.config.chunks import (
-    get_enable_chunk,
-    set_enable_chunk,
-    dimchunk,
-    set_enable_finalchunk,
-    use_final_chunks,
-    set_mult_var_highdim,
-)
+from keopscore.config import path, cuda, debug, reduction
 from keopscore.formulas import Zero_Reduction, Sum_Reduction
 from keopscore.formulas.GetReduction import GetReduction
 from keopscore.formulas.variables.Zero import Zero
 from keopscore.utils.Cache import Cache
-from keopscore.utils.misc_utils import KeOps_Error, KeOps_Print
+from keopscore.utils.messages import KeOps_Error, KeOps_Print
 
 # Get every classes in mapreduce
 map_reduce = dict(inspect.getmembers(keopscore.mapreduce, inspect.isclass))
@@ -87,19 +73,19 @@ def get_keops_dll_impl(
     # detecting the need for special chunked computation modes :
     use_chunk_mode = 0
     if "Gpu" in map_reduce_id:
-        if not cuda_config.get_use_cuda():
+        if not cuda.get_use_cuda():
             KeOps_Error(
                 "You selected a Gpu reduce scheme but KeOps is in Cpu only mode."
             )
-        set_enable_chunk(enable_chunks)
-        set_enable_finalchunk(enable_finalchunks)
-        set_mult_var_highdim(mul_var_highdim)
+        reduction.set_enable_chunks(enable_chunks)
+        reduction.set_enable_finalchunk(enable_finalchunks)
+        reduction.set_mult_var_highdim(mul_var_highdim)
         red_formula = GetReduction(red_formula_string, aliases)
-        if use_final_chunks(red_formula) and map_reduce_id != "GpuReduc2D":
+        if reduction.use_final_chunks(red_formula) and map_reduce_id != "GpuReduc2D":
             use_chunk_mode = 2
             map_reduce_id += "_finalchunks"
-        elif get_enable_chunk() and map_reduce_id != "GpuReduc2D":
-            if len(red_formula.formula.chunked_formulas(dimchunk)) == 1:
+        elif reduction.get_enable_chunks() and map_reduce_id != "GpuReduc2D":
+            if len(red_formula.formula.chunked_formulas(reduction.get_dimchunk())) == 1:
                 from keopscore.mapreduce.Chunk_Mode_Constants import (
                     Chunk_Mode_Constants,
                 )
@@ -115,7 +101,7 @@ def get_keops_dll_impl(
 
     rf = map_reduce_obj.red_formula
 
-    if keopscore.debug_ops:
+    if debug.get_debug_ops():
         KeOps_Print("In get_keops_dll, formula is :", rf)
         KeOps_Print("formula.__repr__() is : ", rf.__repr__())
         rf.make_dot()
@@ -138,13 +124,12 @@ def get_keops_dll_impl(
 
     return (
         res["tag"],
-        res["source_file"],
         res["low_level_code_file"],
         res["tagI"],
         tagZero,
         res["use_half"],
         res["use_fast_math"],
-        cuda_block_size,
+        cuda.get_cuda_block_size(),
         use_chunk_mode,
         tag1D2D,
         res["dimred"],
@@ -162,7 +147,7 @@ def get_keops_dll_impl(
 get_keops_dll = Cache(
     get_keops_dll_impl,
     use_cache_file=True,
-    save_folder=config.get_build_folder(),
+    save_folder=path.get_build_folder(),
 )
 
 

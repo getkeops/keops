@@ -1,10 +1,13 @@
 import torch
+import pykeops.config
 from pykeops.torch import LazyTensor
+from pykeops.test import assert_torch_allclose
 
 M, N, D = 1000, 1000, 3
 
 torch.backends.cuda.matmul.allow_tf32 = False
-device_id = "cuda:0" if torch.cuda.is_available() else "cpu"
+use_cuda = torch.cuda.is_available() and pykeops.config.cuda.is_available()
+device_id = "cuda" if use_cuda else "cpu"
 
 torch.manual_seed(0)
 x = torch.randn(M, 1, D, requires_grad=True, device=device_id)
@@ -35,7 +38,9 @@ for k, backend in enumerate(["torch", "keops"]):
 
 class TestCase:
     def test_lazytensor_clamp_fw(self):
-        assert torch.allclose(out[0], out[1])
+        assert_torch_allclose(out[0], out[1], label="clamp_fw")
 
     def test_lazytensor_clamp_bw(self):
-        assert torch.allclose(out_g[0], out_g[1], atol=0.01, rtol=0.001)
+        assert_torch_allclose(
+            out_g[0], out_g[1], atol=0.01, rtol=0.001, label="clamp_bw"
+        )

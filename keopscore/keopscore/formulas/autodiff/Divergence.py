@@ -2,7 +2,7 @@ from keopscore.formulas import Var
 from keopscore.formulas.LinearOperators import TraceOperator
 from keopscore.utils.code_gen_utils import GetInds
 from keopscore.formulas.variables.IntCst import IntCst
-from keopscore.utils.misc_utils import KeOps_Error
+from keopscore.utils.messages import KeOps_Error
 
 # /////////////////////////////////////////////////////////////
 # ///      DIVERGENCE OPERATOR  : Divergence< F, V, U >       ////

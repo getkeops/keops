@@ -1,6 +1,8 @@
 import math
 import torch
+import pykeops.config
 from pykeops.torch import LazyTensor
+from pykeops.test import assert_torch_allclose
 
 M, N, D, DV = 200, 300, 300, 1
 
@@ -8,7 +10,8 @@ dtype = torch.float32
 sum_scheme = "block_sum"
 
 torch.backends.cuda.matmul.allow_tf32 = False
-device_id = "cuda:0" if torch.cuda.is_available() else "cpu"
+use_cuda = torch.cuda.is_available() and pykeops.config.cuda.is_available()
+device_id = "cuda" if use_cuda else "cpu"
 
 torch.manual_seed(0)
 x = torch.rand(M, 1, D, device=device_id, dtype=dtype) / math.sqrt(D)
@@ -38,4 +41,4 @@ for backend in ["keops", "torch"]:
 
 
 def test_chunks():
-    assert torch.allclose(out[0], out[1], atol=0.0001)
+    assert_torch_allclose(out[0], out[1], atol=0.0001, label="chunks")

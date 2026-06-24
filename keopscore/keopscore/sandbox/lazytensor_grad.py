@@ -8,7 +8,7 @@ from pykeops.torch import LazyTensor
 
 import keopscore
 
-keopscore.auto_factorize = False
+keopscore.config.reduction.set_auto_factorize(False)
 
 M, N, D, DV = (
     (100000, 100000, 3, 1) if torch.cuda.is_available() else (10000, 10000, 3, 1)
@@ -19,7 +19,7 @@ dtype = torch.float32
 test_grad = True
 test_grad2 = True
 test_grad3 = True
-device_id = "cuda:0" if torch.cuda.is_available() else "cpu"
+device_id = "cuda" if torch.cuda.is_available() else "cpu"
 
 x = torch.rand(M, 1, D, requires_grad=test_grad, device=device_id, dtype=dtype)
 y = torch.rand(1, N, 1, device=device_id, dtype=dtype)

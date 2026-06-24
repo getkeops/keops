@@ -30,14 +30,14 @@ problems with a **linear memory footprint**.
 import time
 
 import torch
+import pykeops.config
 from matplotlib import pyplot as plt
-
 from pykeops.torch import LazyTensor
 
 ###############################################################################################
 # Generate some data:
 
-use_cuda = torch.cuda.is_available()
+use_cuda = torch.cuda.is_available() and pykeops.config.cuda.is_available()
 dtype = torch.cuda.FloatTensor if use_cuda else torch.FloatTensor
 
 N = 10000 if use_cuda else 1000  # Number of samples
@@ -80,14 +80,12 @@ alpha = 1.0  # Ridge regularization
 start = time.time()
 
 K_xx = gaussian_kernel(x, x)
-a = K_xx.solve(b, alpha=alpha)
+a = K_xx.solve(b, alpha=alpha, verbose=True)
 
 end = time.time()
 
 print(
-    "Time to perform an RBF interpolation with {:,} samples in 1D: {:.5f}s".format(
-        N, end - start
-    )
+    f"Time to perform an RBF interpolation with {N:,} samples in 1D: {end - start:.5f}s"
 )
 
 ###############################################################################################
@@ -148,21 +146,18 @@ def laplacian_kernel(x, y, sigma=0.1):
 # between a perfect fit (**alpha** = 0) and a
 # smooth interpolation (**alpha** = :math:`+\infty`):
 
-alpha = 10  # Ridge regularization
+alpha = 5  # Ridge regularization
 
 start = time.time()
 
 K_xx = laplacian_kernel(x, x)
-a = K_xx.solve(b, alpha=alpha)
+a = K_xx.solve(b, alpha=alpha, verbose=True)
 
 end = time.time()
 
 print(
-    "Time to perform an RBF interpolation with {:,} samples in 2D: {:.5f}s".format(
-        N, end - start
-    )
+    f"Time to perform an RBF interpolation with {N:,} samples in 2D: {end - start:.5f}s"
 )
-
 
 ###############################################################################################
 # Display the (fitted) model on the unit square:
@@ -170,7 +165,7 @@ print(
 
 # Extrapolate on a uniform sample:
 X = Y = torch.linspace(0, 1, 101).type(dtype)
-X, Y = torch.meshgrid(X, Y)
+X, Y = torch.meshgrid(X, Y, indexing="ij")
 t = torch.stack((X.contiguous().view(-1), Y.contiguous().view(-1)), dim=1)
 
 K_tx = laplacian_kernel(t, x)

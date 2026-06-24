@@ -13,15 +13,15 @@ We test various options of KeOps regarding accuracy of computations.
 
 output_filename = "accuracy"
 
-import importlib
 import os
 import time
 
 import numpy as np
 import torch
+import pykeops.config
 from matplotlib import pyplot as plt
 
-use_cuda = torch.cuda.is_available()
+use_cuda = torch.cuda.is_available() and pykeops.config.cuda.is_available()
 
 D = 3
 
@@ -145,7 +145,7 @@ def benchmark(
             )
         )
     else:
-        elapsed = np.NaN
+        elapsed = np.nan
 
     # accuracy
     ind = torch.randperm(y.shape[0])
@@ -159,11 +159,11 @@ def benchmark(
     mean_err = (
         (out.double() - ref_out.double()).abs().mean() / ref_out.double().abs().mean()
     ).item()
-    mean_err = float("NaN") if mean_err == 0 else mean_err
+    mean_err = float("nan") if mean_err == 0 else mean_err
     max_err = (
         (out.double() - ref_out.double()).abs().max() / ref_out.double().abs().mean()
     ).item()
-    max_err = float("NaN") if max_err == 0 else max_err
+    max_err = float("nan") if max_err == 0 else max_err
     print(
         "accuracy of an MxN convolution, with M = {}, N ={:7}: mean err={:.1e}, max err={:.1e}".format(
             M, N, mean_err, max_err

@@ -57,9 +57,9 @@ class LoadKeOps:
                     cat = 2
                 alias_args = var[3:-1].split(",")
                 if len(alias_args) == 1:
-                    ind, dim = k, eval(alias_args[0])
+                    ind, dim = k, int(alias_args[0])
                 elif len(alias_args) == 2:
-                    ind, dim = eval(alias_args[0]), eval(alias_args[1])
+                    ind, dim = int(alias_args[0]), int(alias_args[1])
                 alias = f"{varname}=Var({ind},{dim},{cat})"
                 aliases_new.append(alias)
 
@@ -106,7 +106,6 @@ class LoadKeOps:
 
         (
             self.params.tag,
-            self.params.source_name,
             self.params.low_level_code_file,
             self.params.tagI,
             self.params.tagZero,

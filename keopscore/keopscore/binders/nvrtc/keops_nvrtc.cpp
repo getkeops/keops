@@ -1,28 +1,30 @@
 // nvcc -shared -Xcompiler -fPIC -lnvrtc -lcuda keops_nvrtc.cu -o keops_nvrtc.so
 // g++ --verbose -L/opt/cuda/lib64 -L/opt/cuda/targets/x86_64-linux/lib/
 // -I/opt/cuda/targets/x86_64-linux/include/ -I../../include -shared -fPIC
-// -lcuda -lnvrtc -fpermissive -DMAXIDGPU=0 -DMAXTHREADSPERBLOCK0=1024
+// -lcuda -lnvrtc -DMAXIDGPU=0 -DMAXTHREADSPERBLOCK0=1024
 // -DSHAREDMEMPERBLOCK0=49152 -DnvrtcGetTARGET=nvrtcGetCUBIN
 // -DnvrtcGetTARGETSize=nvrtcGetCUBINSize -DARCHTAG=\"sm\" keops_nvrtc.cpp -o
 // keops_nvrtc.so g++ -std=c++11  -shared -fPIC -O3 -fpermissive -L /usr/lib -L
 // /opt/cuda/lib64 -lcuda -lnvrtc -DnvrtcGetTARGET=nvrtcGetCUBIN
-// -DnvrtcGetTARGETSize=nvrtcGetCUBINSize -DARCHTAG=\"sm\"
-// -I/home/bcharlier/projets/keops/keops/keops/include -I/opt/cuda/include
+// -DnvrtcGetTARGETSize=nvrtcGetCUBINSize -DARCHTAG=\"sm\"  -I/opt/cuda/include
 // -I/usr/include/python3.10/ -DMAXIDGPU=0 -DMAXTHREADSPERBLOCK0=1024
 // -DSHAREDMEMPERBLOCK0=49152
-// /home/bcharlier/projets/keops/keops/keops/binders/nvrtc/keops_nvrtc.cpp -o
+// ./keopscore/binders/nvrtc/keops_nvrtc.cpp -o
 // keops_nvrtc.cpython-310-x86_64-linux-gnu.so
 
-#include <cuda.h>
+
 #include <fstream>
 #include <iostream>
 #include <numeric>
-#include <nvrtc.h>
 #include <sstream>
 #include <stdarg.h>
 #include <stdio.h>
 #include <vector>
-// #include <ctime>
+
+
+#include <cuda.h>
+#include <nvrtc.h>
+#include <cuda_fp16.h>
 
 #define C_CONTIGUOUS 1
 #define USE_HALF 0
@@ -33,7 +35,6 @@
 #include "include/utils_pe.h"
 
 #include "include/CudaSizes.h"
-#include <cuda_fp16.h>
 
 // ------------------------------------------------------------------------
 // DevicePointer wrapper

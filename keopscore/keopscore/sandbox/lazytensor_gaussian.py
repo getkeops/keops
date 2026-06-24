@@ -16,7 +16,7 @@ import pykeops
 pykeops.config.gpu_available = 0
 
 
-device_id = "cuda:0" if pykeops.config.gpu_available else "cpu"
+device_id = "cuda" if pykeops.config.gpu_available else "cpu"
 do_warmup = True
 
 x = torch.rand(M, 1, D, device=device_id, dtype=dtype) / math.sqrt(D)

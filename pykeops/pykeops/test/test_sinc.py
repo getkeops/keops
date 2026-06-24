@@ -2,10 +2,13 @@ import math
 
 import pytest
 import torch
+import pykeops.config
 
 from pykeops.torch import LazyTensor
+from pykeops.test import assert_torch_allclose
 
-device = "cuda" if torch.cuda.is_available() else "cpu"
+use_cuda = torch.cuda.is_available() and pykeops.config.cuda.is_available()
+device = "cuda" if use_cuda else "cpu"
 
 x = torch.rand(5, 1, dtype=torch.float64) * 2 * math.pi
 y = x.data.clone()
@@ -25,9 +28,9 @@ if torch.__version__ >= "1.8":
 
 @pytest.mark.skipif(torch.__version__ < "1.8", reason="Requires torch>=1.8")
 def test_sinc():
-    assert torch.allclose(s1, s2), torch.abs(s1 - s2)
+    assert_torch_allclose(s1, s2, label="sinc")
 
 
 @pytest.mark.skipif(torch.__version__ < "1.8", reason="Requires torch>=1.8")
 def test_sinc_grad():
-    assert torch.allclose(x.grad, y.grad)
+    assert_torch_allclose(x.grad, y.grad, label="sinc_grad")

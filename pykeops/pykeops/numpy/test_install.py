@@ -9,8 +9,7 @@ expected_res = np.array([63.0, 90.0])
 
 def test_numpy_bindings():
     """
-    This function try to compile a simple keops formula using the numpy binder.
-
+    Try to compile a simple KeOps formula using the NumPy binder.
     """
     x = np.arange(1, 10).reshape(-1, 3).astype("float32")
     y = np.arange(3, 9).reshape(-1, 3).astype("float32")
@@ -18,7 +17,21 @@ def test_numpy_bindings():
     import pykeops.numpy as pknp
 
     my_conv = pknp.Genred(formula, var)
-    if np.allclose(my_conv(x, y).flatten(), expected_res):
-        pyKeOps_Message("pyKeOps with numpy bindings is working!", use_tag=False)
+
+    try:
+        keops_res = my_conv(x, y).flatten()
+    except Exception as e:
+        raise ValueError(f"Error during computation: {e}")
+
+    if np.allclose(keops_res, expected_res):
+        pyKeOps_Message(
+            "pyKeOps with numpy bindings is working!", use_tag=False, level=1
+        )
+        return True
     else:
-        pyKeOps_Message("outputs wrong values...", use_tag=False)
+        pyKeOps_Message(
+            f"outputs wrong values: expected {expected_res} but get {keops_res}",
+            use_tag=False,
+            level=1,
+        )
+        return False

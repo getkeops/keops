@@ -22,11 +22,12 @@ import time
 
 import numpy as np
 import torch
+import pykeops.config
 from matplotlib import pyplot as plt
 
 from pykeops.torch import LazyTensor
 
-use_cuda = torch.cuda.is_available()
+use_cuda = torch.cuda.is_available() and pykeops.config.cuda.is_available()
 dtype = torch.cuda.FloatTensor if use_cuda else torch.FloatTensor
 
 ######################################################################
@@ -48,7 +49,7 @@ cl = x[:, 1] + 0.1 * torch.randn(N).type(dtype) < fth(x[:, 0])
 
 M = 1000 if use_cuda else 100
 tmp = torch.linspace(0, 1, M).type(dtype)
-g2, g1 = torch.meshgrid(tmp, tmp)
+g2, g1 = torch.meshgrid(tmp, tmp, indexing="ij")
 g = torch.cat((g1.contiguous().view(-1, 1), g2.contiguous().view(-1, 1)), dim=1)
 
 

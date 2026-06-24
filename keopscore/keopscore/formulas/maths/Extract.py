@@ -1,6 +1,6 @@
 from keopscore.formulas.Operation import Operation
 from keopscore.utils.code_gen_utils import c_array, VectCopy
-from keopscore.utils.misc_utils import KeOps_Error
+from keopscore.utils.messages import KeOps_Error
 
 # //////////////////////////////////////////////////////////////
 # ////     VECTOR EXTRACTION : Extract<F,START,DIM>         ////

@@ -45,7 +45,7 @@ dtype = "float32"  # No need for double precision here!
 ###################################################################
 # Create a toy dataset, a spiral in 2D sampled with 10,000 points:
 
-N = 10000 if pykeops.config.gpu_available else 1000
+N = 10000 if pykeops.config.cuda.is_available() else 1000
 t = np.linspace(0, 2 * np.pi, N + 1)[:-1]
 x = np.stack((0.4 + 0.4 * (t / 7) * np.cos(t), 0.5 + 0.3 * np.sin(t)), 1)
 x = x + 0.01 * np.random.randn(*x.shape)
@@ -221,7 +221,7 @@ plt.show()
 # let's generate a large "noisy Swiss roll" with **1,000,000 points** in the unit cube:
 #
 
-N = 1000000 if pykeops.config.gpu_available else 1000
+N = 1000000 if pykeops.config.cuda.is_available() else 1000
 t = np.linspace(0, 2 * np.pi, N + 1)[:-1]
 x = np.stack(
     (
@@ -238,7 +238,7 @@ x = x.astype(dtype)
 # To **display** our toy dataset with the (not-so-efficient) PyPlot library,
 # we pick **10,000 points** at random:
 
-N_display = 10000 if pykeops.config.gpu_available else N
+N_display = 10000 if pykeops.config.cuda.is_available() else N
 indices_display = np.random.randint(0, N, N_display)
 
 _, ax = plt.subplots(nrows=1, ncols=1, figsize=(8, 8), subplot_kw=dict(projection="3d"))
@@ -317,7 +317,7 @@ plt.show()
 # pattern can be encoded in a small boolean matrix **keep** computed through:
 
 sigma = (
-    0.01 if pykeops.config.gpu_available else 0.1
+    0.01 if pykeops.config.cuda.is_available() else 0.1
 )  # Standard deviation of our Gaussian kernel
 # Compute a coarse Boolean mask:
 D = np.sum((x_centroids[:, None, :] - x_centroids[None, :, :]) ** 2, 2)

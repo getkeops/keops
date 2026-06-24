@@ -107,7 +107,7 @@ plt.show()
 # -------------------------
 # Second experiment with N=1,000,000 points in dimension D=100, with K=1,000 classes:
 
-if pykeops.config.gpu_available:
+if pykeops.config.cuda.is_available():
     N, D, K = 1000000, 100, 1000
     x = np.random.randn(N, D).astype(dtype)
     cl, c = KMeans(x, K)

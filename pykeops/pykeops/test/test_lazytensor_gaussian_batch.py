@@ -1,11 +1,14 @@
 import math
 import torch
+import pykeops.config
 from pykeops.torch import LazyTensor
+from pykeops.test import assert_torch_allclose
 
 B1, B2, M, N, D, DV = 3, 4, 20, 25, 3, 2
 
 torch.backends.cuda.matmul.allow_tf32 = False
-device_id = "cuda" if torch.cuda.is_available() else "cpu"
+use_cuda = torch.cuda.is_available() and pykeops.config.cuda.is_available()
+device_id = "cuda" if use_cuda else "cpu"
 
 torch.manual_seed(1)
 x = torch.rand(1, B2, M, 1, D, device=device_id) / math.sqrt(D)
@@ -41,7 +44,7 @@ for k, backend in enumerate(backends):
 class TestCase:
     def test_lazytensor_gaussian_batch_fw(self):
         # print(out[0]- out[1])
-        assert torch.allclose(out[0], out[1], atol=1e-6)
+        assert_torch_allclose(out[0], out[1], atol=1e-6, label="gaussian_batch_fw")
 
     def test_lazytensor_gaussian_batch_bw(self):
-        assert torch.allclose(out_g[0], out_g[1])
+        assert_torch_allclose(out_g[0], out_g[1], label="gaussian_batch_bw")

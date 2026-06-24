@@ -5,6 +5,12 @@ from keopscore.utils.code_gen_utils import (
     c_variable,
 )
 
+"""
+This module defines the different schemes for performing the reduction of a formula.
+
+The schemes must be added in the _SUM_SCHEME_CLASSES dictionary, and must be subclasses of Sum_Scheme, which defines the interface for the different schemes. 
+"""
+
 
 class Sum_Scheme:
     def __init__(self, red_formula, dtype, dimred=None):
@@ -84,3 +90,15 @@ class kahan_scheme(Sum_Scheme):
 
     def accumulate_result(self, acc, fout, j, hack=False):
         return self.red_formula.KahanScheme(acc, fout, self.tmp_acc)
+
+
+_SUM_SCHEME_CLASSES = {
+    "direct_sum": direct_sum,
+    "block_sum": block_sum,
+    "kahan_scheme": kahan_scheme,
+}
+
+
+def make_sum_scheme(sum_scheme_string, red_formula, dtype, dimred=None):
+    sum_scheme_class = _SUM_SCHEME_CLASSES.get(sum_scheme_string, None)
+    return sum_scheme_class(red_formula, dtype, dimred=dimred)

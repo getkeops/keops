@@ -1,6 +1,8 @@
 import math
 import torch
+import pykeops.config
 from pykeops.torch import LazyTensor
+from pykeops.test import assert_torch_allclose
 
 M, N, D, DV = 2500, 2000, 3, 1
 
@@ -8,7 +10,8 @@ dtype = torch.float64
 sum_scheme = "block_sum"
 
 torch.backends.cuda.matmul.allow_tf32 = False
-device_id = 0 if torch.cuda.is_available() else -1
+use_cuda = torch.cuda.is_available() and pykeops.config.cuda.is_available()
+device_id = 0 if use_cuda else -1
 
 torch.manual_seed(0)
 x = torch.rand(M, 1, D, dtype=dtype) / math.sqrt(D)
@@ -38,4 +41,4 @@ for backend in backends:
 
 
 def test_lazytensor_gaussian_fromhost():
-    assert torch.allclose(out[0], out[1])
+    assert_torch_allclose(out[0], out[1], label="gaussian_fromhost")

@@ -1,0 +1,46 @@
+name: macOS Test
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  tests-macos-latest:
+    name: Tests (macOS latest)
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Install dependencies
+        run: brew install libomp
+
+      - name: Run tests
+        run: bash ./pytest.sh
+
+  tests-macos-intel:
+    name: Tests (macOS Intel)
+    runs-on: macos-26-intel
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Pin NumPy for Intel CI
+        run: |
+          echo "numpy<2" > /tmp/pip-constraints.txt
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: brew install libomp
+
+      - name: Run tests
+        run: bash ./pytest.sh --pip-constraint=/tmp/pip-constraints.txt -v 2

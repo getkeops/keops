@@ -33,6 +33,7 @@ where :math:`K_{x,x} = \Big[\exp(-\|x_i -x_j\|^2 / \sigma^2)\Big]_{i,j=1}^N`. Th
 
 import numpy as np
 import torch
+import pykeops.config
 from matplotlib import pyplot as plt
 
 from scipy.sparse import diags
@@ -45,7 +46,8 @@ from pykeops.numpy.utils import squared_distances as sqdist_np
 
 from benchmark_utils import flatten, random_normal, unit_tensor, full_benchmark
 
-use_cuda = torch.cuda.is_available()
+use_cuda = torch.cuda.is_available() and pykeops.config.cuda.is_available()
+torch_device = "cuda" if use_cuda else "cpu"
 
 if torch.__version__ >= "1.8":
     torchsolve = lambda A, B: torch.linalg.solve(A, B)
@@ -72,7 +74,7 @@ Dv = 1  # and solve one problem at a time.
 #
 
 
-def generate_samples(N, device="cuda", lang="torch", **kwargs):
+def generate_samples(N, device=None, lang="torch", **kwargs):
     """Generates a point cloud x, a scalar signal b of size N and two regularization parameters.
 
     Args:
@@ -83,6 +85,11 @@ def generate_samples(N, device="cuda", lang="torch", **kwargs):
     Returns:
         3-uple of arrays: x, y, b
     """
+    if device is None:
+        device = torch_device
+    if lang == "torch" and device == "cuda" and not use_cuda:
+        device = "cpu"
+
     randn = random_normal(device=device, lang=lang)
     ones = unit_tensor(device=device, lang=lang)
 
@@ -149,7 +156,7 @@ def Kinv_scipy(x, b, gamma, alpha, **kwargs):
 
 
 def Kinv_pytorch(x, b, gamma, alpha, **kwargs):
-    K_xx = alpha * torch.eye(x.shape[0], device=x.get_device()) + torch.exp(
+    K_xx = alpha * torch.eye(x.shape[0], device=x.device) + torch.exp(
         -gamma * sqdist_torch(x, x)
     )
     res = torchsolve(K_xx, b)

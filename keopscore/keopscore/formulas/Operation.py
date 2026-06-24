@@ -1,7 +1,7 @@
 from keopscore.utils.code_gen_utils import new_c_varname, c_array
 from keopscore.utils.Tree import Tree
 import keopscore
-from keopscore.utils.misc_utils import KeOps_Error, KeOps_Print
+from keopscore.utils.messages import KeOps_Error, KeOps_Print
 
 ###################
 ## Base class
@@ -71,14 +71,14 @@ class Operation(Tree):
         from keopscore.formulas.variables.Var import Var
 
         string = f"\n{{\n// Starting code block for {self.__repr__()}.\n\n"
-        if keopscore.debug_ops:
+        if keopscore.config.debug.get_debug_ops():
             KeOps_Print(f"Building code block for {self.__repr__()}")
             KeOps_Print("out=", out)
             KeOps_Print("dim of out : ", out.dim)
             KeOps_Print("table=", table)
             for v in table:
                 KeOps_Print(f"dim of {v} : ", v.dim)
-        if keopscore.debug_ops_at_exec:
+        if keopscore.config.debug.get_debug_ops_at_exec():
             string += f'printf("\\n\\nComputing {self.__repr__()} :\\n");\n'
         args = []
         # Evaluation of the child operations
@@ -104,12 +104,12 @@ class Operation(Tree):
         string += self.Op(out, table, *args)
 
         # some debugging helper :
-        if keopscore.debug_ops_at_exec:
+        if keopscore.config.debug.get_debug_ops_at_exec():
             for arg in args:
                 string += arg.c_print
             string += out.c_print
             string += f'printf("\\n\\n");\n'
-        if keopscore.debug_ops:
+        if keopscore.config.debug.get_debug_ops():
             KeOps_Print(f"Finished building code block for {self.__repr__()}")
 
         string += f"\n\n// Finished code block for {self.__repr__()}.\n}}\n\n"

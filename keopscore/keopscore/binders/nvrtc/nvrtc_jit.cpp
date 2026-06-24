@@ -13,16 +13,17 @@
 // /home/bcharlier/projets/keops/keops/keops/binders/nvrtc/keops_nvrtc.cpp -o
 // keops_nvrtc.cpython-310-x86_64-linux-gnu.so
 
-#include <cuda.h>
 #include <fstream>
 #include <iostream>
-#include <nvrtc.h>
 #include <sstream>
 #include <stdarg.h>
 #include <stdio.h>
+#include <string>
 #include <string.h>
 #include <vector>
-// #include <ctime>
+
+#include <cuda.h>
+#include <nvrtc.h>
 
 #define C_CONTIGUOUS 1
 #define USE_HALF 0
@@ -33,26 +34,24 @@
 #include "include/utils_pe.h"
 
 #include "include/CudaSizes.h"
-#include <cuda_fp16.h>
 
 extern "C" int Compile(const char *target_file_name, const char *cu_code,
                        int use_half, int use_fast_math, int device_id,
-                       const char *cuda_include_path) {
+                       const char *cuda_include_paths) {
 
   nvrtcProgram prog;
 
-  int numHeaders;
-  const char *header_names[1];
-  const char *header_sources[1];
+  std::vector<std::string> compile_options_storage;
+  std::vector<const char *> compile_options;
 
-  if (use_half) {
-    numHeaders = 1;
-    std::ostringstream header_path;
-    header_path << cuda_include_path << "cuda_fp16.h";
-    header_names[0] = "cuda_fp16.h";
-    header_sources[0] = read_text_file(header_path.str().c_str());
-  } else {
-    numHeaders = 0;
+  if (cuda_include_paths != nullptr && cuda_include_paths[0] != '\0') {
+    std::istringstream include_paths_stream(cuda_include_paths);
+    std::string include_path;
+    while (std::getline(include_paths_stream, include_path)) {
+      if (!include_path.empty()) {
+        compile_options_storage.emplace_back("--include-path=" + include_path);
+      }
+    }
   }
 
   // Get device id from Driver API
@@ -72,46 +71,57 @@ extern "C" int Compile(const char *target_file_name, const char *cu_code,
   arch_flag << "-arch=" << ARCHTAG << "_" << deviceProp_major
             << deviceProp_minor;
 
-  char *arch_flag_char = new char[arch_flag.str().length()];
-  arch_flag_char = strdup(arch_flag.str().c_str());
+  compile_options_storage.push_back(arch_flag.str());
+  if (use_fast_math) {
+    compile_options_storage.emplace_back("-use_fast_math");
+  }
+  compile_options.reserve(compile_options_storage.size());
+  for (const std::string &option : compile_options_storage) {
+    compile_options.push_back(option.c_str());
+  }
 
   NVRTC_SAFE_CALL(nvrtcCreateProgram(&prog,          // prog
                                      cu_code,        // buffer
                                      NULL,           // name
-                                     numHeaders,     // numHeaders
-                                     header_sources, // headers
-                                     header_names    // includeNames
+                                     0,              // numHeaders
+                                     NULL,           // headers
+                                     NULL            // includeNames
                                      ));
 
-  nvrtcResult compileResult;
-  if (use_fast_math) {
-    const char *opts[] = {arch_flag_char, "-use_fast_math"};
-    compileResult = nvrtcCompileProgram(prog,  // prog
-                                        2,     // numOptions
-                                        opts); // options
-  } else {
-    const char *opts[] = {arch_flag_char};
-    compileResult = nvrtcCompileProgram(prog,  // prog
-                                        1,     // numOptions
-                                        opts); // options
-  }
+  nvrtcResult compileResult =
+      nvrtcCompileProgram(prog,                      // prog
+                          compile_options.size(),    // numOptions
+                          compile_options.data());   // options
 
   // following "if" block is when there is a mismatch between
   // the device compute capability and the cuda libs versions : typically
   // when the device is more recent than the lib, the -arch flag may fail to
   // compile.
   if (compileResult == NVRTC_ERROR_INVALID_OPTION) {
-    const char *new_opts[] = {"-use_fast_math"};
-    compileResult = nvrtcCompileProgram(prog,      // prog
-                                        1,         // numOptions
-                                        new_opts); // options
+    std::vector<const char *> fallback_options;
+    fallback_options.reserve(compile_options_storage.size());
+    for (const std::string &option : compile_options_storage) {
+      if (option.rfind("-arch=", 0) != 0) {
+        fallback_options.push_back(option.c_str());
+      }
+    }
+    compileResult = nvrtcCompileProgram(prog,                     // prog
+                                        fallback_options.size(),  // numOptions
+                                        fallback_options.data()); // options
   }
 
   if (compileResult != NVRTC_SUCCESS) {
+    size_t logSize = 0;
+    nvrtcGetProgramLogSize(prog, &logSize);
+    if (logSize > 1) {
+      std::vector<char> log(logSize);
+      nvrtcGetProgramLog(prog, log.data());
+      std::cerr << "[KeOps] NVRTC compile log:\n" << log.data() << std::endl;
+    }
+    std::cerr << "[KeOps] nvrtcCompileProgram failed: "
+              << nvrtcGetErrorString(compileResult) << std::endl;
     return compileResult;
   }
-
-  delete[] arch_flag_char;
 
   // Obtain PTX or CUBIN from the program.
   size_t targetSize;

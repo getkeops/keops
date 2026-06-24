@@ -1,128 +1,195 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-# exit in case of any errors
-set -e
+set -euo pipefail
 
-################################################################################
-# help                                                                         #
-################################################################################
-function print_help() {
-    # Display Help
-    echo "Test script for keopscore/pykeops packages."
-    echo
-    echo "Usage: $0 [option...]"
-    echo
-    echo "   -h     Print the help"
-    echo "   -v     Verbose mode"
-    echo
-    exit 1
+readonly PYTHON_BIN="python3"
+readonly SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
+readonly TEST_VENV="${SCRIPT_DIR}/.test_venv_pytest"
+readonly NO_TORCH_TEST_VENV="${SCRIPT_DIR}/.test_venv_pytest_no_torch"
+readonly TEST_REQUIREMENTS=(pip)
+
+KEOPS_VERBOSE_LEVEL=-1
+PIP_CONSTRAINT_FILE=""
+
+print_help() {
+    cat <<EOF
+Test script for keopscore/pykeops packages.
+
+Usage: $0 [option...]
+
+    -h      Print the help
+    -v <0|1|2>
+            Verbosity level forwarded to KEOPS_VERBOSE and PYKEOPS_VERBOSE
+    --pip-constraint <file>
+            Constrain pip installs using the given constraints file.
+EOF
 }
 
-################################################################################
-# utils                                                                        #
-################################################################################
-
-# log with verbosity management
-function logging() {
-    if [[ ${PYTEST_VERBOSE} == 1 ]]; then
-        echo -e $1
+log_verbose() {
+    if [[ "${KEOPS_VERBOSE_LEVEL}" -ge 1 ]]; then
+        printf '%b\n' "$1"
     fi
 }
 
-################################################################################
-# process script options                                                       #
-################################################################################
+parse_options() {
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -h)
+                print_help
+                exit 0
+                ;;
+            -v)
+                shift
+                if [[ $# -eq 0 ]]; then
+                    echo "Error: -v requires a level (0, 1 or 2)"
+                    exit 1
+                fi
+                if ! [[ "$1" =~ ^[0-2]$ ]]; then
+                    echo "Error: Invalid -v value: $1 (expected 0, 1 or 2)"
+                    exit 1
+                fi
+                KEOPS_VERBOSE_LEVEL="$1"
+                ;;
+            --pip-constraint)
+                shift
+                if [[ $# -eq 0 ]]; then
+                    echo "Error: --pip-constraint requires a file path"
+                    exit 1
+                fi
+                PIP_CONSTRAINT_FILE="$1"
+                ;;
+            --pip-constraint=*)
+                PIP_CONSTRAINT_FILE="${1#*=}"
+                ;;
+            *)
+                echo "Error: Invalid option: $1"
+                exit 1
+                ;;
+        esac
+        shift
+    done
 
-# default options
-PYTEST_VERBOSE=0
+    if [[ -n "${PIP_CONSTRAINT_FILE}" && ! -f "${PIP_CONSTRAINT_FILE}" ]]; then
+        echo "Error: Constraint file not found: ${PIP_CONSTRAINT_FILE}"
+        exit 1
+    fi
 
-# Get the options
-while getopts 'hv' option; do
-    case $option in
-        h) # display Help
-            print_help
-            ;;
-        v) # enable verbosity
-            PYTEST_VERBOSE=1
-            logging "## verbose mode"
-            ;;
-        \?) # Invalid option
-            echo "Error: Invalid option"
-            exit 1
-            ;;
-    esac
-done
+    log_verbose "## verbose mode (level=${KEOPS_VERBOSE_LEVEL})"
+}
 
-################################################################################
-# script setup                                                                 #
-################################################################################
+run_with_keops_verbose() {
+    if [[ "${KEOPS_VERBOSE_LEVEL}" -ne -1 ]]; then
+        KEOPS_VERBOSE="${KEOPS_VERBOSE_LEVEL}" PYKEOPS_VERBOSE="${KEOPS_VERBOSE_LEVEL}" "$@"
+    else
+        "$@"
+    fi
+}
 
-# project root directory
-PROJDIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+pip_install() {
+    if [[ -n "${PIP_CONSTRAINT_FILE}" ]]; then
+        run_with_keops_verbose "${PYTHON_BIN}" -m pip install --constraint "${PIP_CONSTRAINT_FILE}" "$@"
+        return
+    fi
 
-# python exec
-PYTHON="python3"
+    run_with_keops_verbose "${PYTHON_BIN}" -m pip install "$@"
+}
 
-# python environment for test
-TEST_VENV=${PROJDIR}/.test_venv_pytest
+prepare_python_environment() {
 
-# python test requirements (names of packages to be installed with pip)
-TEST_REQ="pip"
+    local env_name="$1"
 
-################################################################################
-# prepare python environment                                                   #
-################################################################################
+    log_verbose "-- Preparing python environment for test..."
+    "${PYTHON_BIN}" -m venv --clear "${env_name}"
 
-logging "-- Preparing python environment for test..."
+    # shellcheck disable=SC1091
+    source "${env_name}/bin/activate"
 
-${PYTHON} -m venv --clear ${TEST_VENV}
-source ${TEST_VENV}/bin/activate
+    log_verbose "---- Python version = $(${PYTHON_BIN} -V)"
+    pip_install -U "${TEST_REQUIREMENTS[@]}"
+}
 
-logging "---- Python version = $(python -V)"
+deactivate_python_environment() {
 
-pip install -U ${TEST_REQ}
+    log_verbose "-- Deactivate python environment..."
 
+    # `deactivate` is provided by the activation script; there is no bin/deactivate file.
+    if declare -F deactivate >/dev/null; then
+        deactivate
+    fi
+}
 
-################################################################################
-# Installing keopscore                                                         #
-################################################################################
+install_editable_package() {
+    local package_name="$1"
+    local package_path="$2"
 
-logging "-- Installing keopscore..."
+    log_verbose "-- Installing ${package_name}..."
+    pip_install -e "${package_path}"
+}
 
-pip install -e ${PROJDIR}/keopscore
+run_python_outside_repo() {
+    local python_code="$1"
+    local python_bin="${2:-${PYTHON_BIN}}"
+    (
+        cd /tmp
+        run_with_keops_verbose "${python_bin}" -c "${python_code}"
+    )
+}
 
-################################################################################
-# Installing pykeops                                                           #
-################################################################################
+clean_pykeops_cache() {
+    log_verbose "-- Cleaning pykeops..."
+    run_python_outside_repo 'import pykeops; pykeops.clean_pykeops()'
+}
 
-logging "-- Installing pykeops..."
+run_pykeops_health_check() {
+    echo "-- Running pykeops.check_health()..."
+    run_python_outside_repo 'import pykeops; pykeops.check_health()'
+}
 
-pip install -e "${PROJDIR}/pykeops[test]"
+run_pykeops_no_torch_smoke_test() {
+    local no_torch_python="${NO_TORCH_TEST_VENV}/bin/python"
+    local no_torch_smoke_code="import importlib.util;"
+    no_torch_smoke_code+=" assert importlib.util.find_spec('torch') is None,"
+    no_torch_smoke_code+=" 'torch must not be installed in no-torch smoke env';"
+    no_torch_smoke_code+=" import pykeops;"
+    no_torch_smoke_code+=" assert pykeops.test_numpy_bindings()"
 
-################################################################################
-# Cleaning cache                                                               #
-################################################################################
+    run_python_outside_repo "${no_torch_smoke_code}" "${no_torch_python}"
+}
 
-logging "-- Cleaning pykeops..."
+run_test_suite() {
+    local suite_name="$1"
+    local suite_path="$2"
 
-mkdir tmp
-cd tmp
-${PYTHON} -c "import pykeops; pykeops.clean_pykeops()"
-cd ..
-rmdir tmp
+    log_verbose "-- Running ${suite_name} tests..."
+    run_with_keops_verbose pytest -v "${suite_path}"
+}
 
-################################################################################
-# Running keopscore tests                                                     #
-################################################################################
+main() {
+    parse_options "$@"
 
-logging "-- Running keopscore tests..."
+    printf '%b' "****************************************************************************\n              Start of pykeops no-torch smoke test\n****************************************************************************\n"
+    prepare_python_environment "${NO_TORCH_TEST_VENV}"
+    install_editable_package "keopscore" "${SCRIPT_DIR}/keopscore"
+    install_editable_package "pykeops" "${SCRIPT_DIR}/pykeops"
+    clean_pykeops_cache
 
-pytest -v keopscore/keopscore/test/
+    run_pykeops_health_check
+    run_pykeops_no_torch_smoke_test
 
-################################################################################
-# Running pykeops tests                                                        #
-################################################################################
+    deactivate_python_environment
+    printf '%b' "****************************************************************************\n              End of pykeops no-torch smoke test\n****************************************************************************\n\n\n\n\n\n"
 
-logging "-- Running pykeops tests..."
+    printf '%b' "****************************************************************************\n                     Start of pykeops tests\n****************************************************************************\n"
+    prepare_python_environment "${TEST_VENV}"
+    install_editable_package "keopscore" "${SCRIPT_DIR}/keopscore"
+    install_editable_package "pykeops" "${SCRIPT_DIR}/pykeops[test]"
+    run_pykeops_health_check
+    
+    clean_pykeops_cache
+    run_test_suite "keopscore" "keopscore/keopscore/test/"
+    run_test_suite "pykeops" "pykeops/pykeops/test/"
+    printf '%b' "****************************************************************************\n                     End of pykeops tests\n****************************************************************************\n\n\n\n\n\n"
 
-pytest -v pykeops/pykeops/test/
+}
+
+main "$@"

@@ -25,7 +25,7 @@ def covar_func(x1, x2=None):
 B, M, N, D = 25, 10000, 10000, 3
 
 if __name__ == "__main__":
-    device = "cuda:0"
+    device = "cuda"
     train_x = torch.randn(B, M, D, device=device)
 
     # covar_module = gpytorch.kernels.keops.MaternKernel(nu=2.5).to(device)

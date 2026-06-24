@@ -5,7 +5,7 @@ import math
 
 import numpy as np
 
-from keopscore.utils.misc_utils import KeOps_Error
+from keopscore.utils.messages import KeOps_Error
 from pykeops.common.utils import check_broadcasting
 
 
@@ -328,28 +328,25 @@ class GenericLazyTensor:
         self.variables = newvars
 
     def separate_kwargs(self, kwargs):
-        # separating keyword arguments for Genred init vs Genred call...
-        # Currently the only additional optional keyword arguments that are passed to Genred init
-        # are accuracy options: dtype_acc, use_double_acc and sum_scheme,
-        # chunk mode option enable_chunks,
-        # use_fast_math option,
-        # and compiler option optional_flags.
-        kwargs_init = []
-        kwargs_call = []
-        for key in kwargs:
-            if key in (
-                "dtype_acc",
-                "use_double_acc",
-                "sum_scheme",
-                "enable_chunks",
-                "use_fast_math",
-                "optional_flags",
-            ):
-                kwargs_init += [(key, kwargs[key])]
-            else:
-                kwargs_call += [(key, kwargs[key])]
-        kwargs_init = dict(kwargs_init)
-        kwargs_call = dict(kwargs_call)
+        """Split keyword arguments between ``Genred`` initialization and call.
+
+        The initialization keywords are ``dtype_acc``, ``use_double_acc``,
+        ``sum_scheme``, ``enable_chunks``, ``use_fast_math`` and
+        ``optional_flags``.
+        """
+        init_keys = {
+            "dtype_acc",
+            "use_double_acc",
+            "sum_scheme",
+            "enable_chunks",
+            "use_fast_math",
+            "optional_flags",
+        }
+
+        kwargs_init = {key: kwargs.get(key) for key in init_keys if key in kwargs}
+        kwargs_call = {
+            key: value for key, value in kwargs.items() if key not in init_keys
+        }
         return kwargs_init, kwargs_call
 
     def promote(self, other, props, is_complex=False):

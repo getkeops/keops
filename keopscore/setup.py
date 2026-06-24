@@ -1,7 +1,7 @@
 #  Always prefer setuptools over distutils
 # To use a consistent encoding
-from codecs import open
 import os
+from codecs import open
 from os import path
 
 from setuptools import setup
@@ -26,18 +26,20 @@ setup(
         "Bug Reports": "https://github.com/getkeops/keops/issues",
         "Source": "https://github.com/getkeops/keops",
     },
-    author="B. Charlier, J. Feydy, J. Glaunes",
-    author_email="benjamin.charlier@umontpellier.fr, jean.feydy@gmail.com, alexis.glaunes@parisdescartes.fr",
+    author="B. Charlier, J. Feydy, J. Glaunès",
+    author_email="benjamin.charlier@inrae.fr, jean.feydy@inria.com, alexis.glaunes@parisdescartes.fr",
     python_requires=">=3.8",
     classifiers=[
+        "Topic :: Scientific/Engineering",
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
-        "Topic :: Scientific/Engineering",
-        "License :: OSI Approved :: MIT License",
+        "Intended Audience :: Science/Research",
         "Operating System :: POSIX :: Linux",
         "Operating System :: MacOS :: MacOS X",
         "Programming Language :: C++",
         "Programming Language :: Python :: 3 :: Only",
+        "Environment :: GPU :: NVIDIA CUDA",
+        "License :: OSI Approved :: MIT License",
     ],
     keywords="kernels gpu autodiff",
     packages=[
@@ -65,7 +67,8 @@ setup(
             "readme.md",
             "licence.txt",
             "keops_version",
-            "config/libiomp5.dylib",
+            "binders/cpp/keops_cpu_runtime.cpp",
+            "binders/cpp/keops_cpu_runtime.h",
             "binders/nvrtc/keops_nvrtc.cpp",
             "binders/nvrtc/nvrtc_jit.cpp",
             "include/CudaSizes.h",

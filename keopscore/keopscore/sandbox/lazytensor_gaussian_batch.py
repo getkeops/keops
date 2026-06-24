@@ -7,7 +7,7 @@ B1, B2, B3 = 2, 3, 4
 D = 3
 M, N = 2000, 3000
 
-device_id = "cuda:0" if torch.cuda.is_available() else "cpu"
+device_id = "cuda" if torch.cuda.is_available() else "cpu"
 dtype = torch.float32
 
 x = torch.rand(B1, 1, B3, M, 1, D, dtype=dtype, device=device_id)

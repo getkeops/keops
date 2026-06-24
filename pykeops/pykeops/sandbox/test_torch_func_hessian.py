@@ -1,9 +1,8 @@
+import keopscore
 import torch
 from pykeops.torch import LazyTensor
 
-import keopscore
-
-keopscore.auto_factorize = False
+keopscore.config.reduction.set_auto_factorize(False)
 
 
 def fn_torch(x_i):

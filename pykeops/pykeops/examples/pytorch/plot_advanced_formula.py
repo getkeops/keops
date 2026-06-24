@@ -13,11 +13,14 @@ Let's write generic formulas using the KeOps syntax.
 # First, the standard imports:
 
 import torch
+import pykeops.config
 from pykeops.torch import Genred
 import matplotlib.pyplot as plt
 
+use_cuda = torch.cuda.is_available() and pykeops.config.cuda.is_available()
+
 # Choose the storage place for our data : CPU (host) or GPU (device) memory.
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda" if use_cuda else "cpu")
 
 ####################################################################
 # Then, the definition of our dataset:

@@ -9,17 +9,30 @@ expected_res = [63.0, 90.0]
 
 def test_torch_bindings():
     """
-    This function try to compile a simple keops formula using the pytorch binder.
+    Try to compile a simple KeOps formula using the PyTorch binder.
     """
+    import pykeops
+    import pykeops.torch as pktorch
+
     x = torch.arange(1, 10, dtype=torch.float32).view(-1, 3)
     y = torch.arange(3, 9, dtype=torch.float32).view(-1, 3)
 
-    import pykeops.torch as pktorch
+    use_cuda = torch.cuda.is_available() and pykeops.config.cuda.is_available()
 
     my_conv = pktorch.Genred(formula, var)
-    if torch.allclose(
-        my_conv(x, y).view(-1), torch.tensor(expected_res).type(torch.float32)
-    ):
+
+    try:
+        keops_res = my_conv(x, y).view(-1)
+    except Exception as e:
+        pyKeOps_Message(f"Error during computation: {e}", use_tag=False)
+        return False
+
+    if torch.allclose(keops_res, torch.tensor(expected_res, dtype=torch.float32)):
         pyKeOps_Message("pyKeOps with torch bindings is working!", use_tag=False)
+        return True
     else:
-        pyKeOps_Message("outputs wrong values...", use_tag=False)
+        pyKeOps_Message(
+            f"outputs wrong values: expected {expected_res} but get {keops_res}",
+            use_tag=False,
+        )
+        return False

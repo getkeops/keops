@@ -7,6 +7,7 @@
 
 #include <binders/nvrtc/keops_nvrtc.cpp>
 #include <pybind11/pybind11.h>
+#include <stdexcept>
 
 namespace py = pybind11;
 
@@ -74,6 +75,34 @@ public:
       for (auto j = 0; j < tmp.size(); j++)
         tmp_v[j] = py::cast<signed long int>(tmp[j]);
       argshape_v[i] = tmp_v;
+    }
+
+    /*------------------------------------*/
+    /*        Shape validation             */
+    /*------------------------------------*/
+    for (int k = 0; k < (int)indsi_v.size(); k++) {
+      int idx = indsi_v[k];
+      const auto& shape = argshape_v[idx];
+      if ((int)shape.size() < 2)
+        throw std::invalid_argument("[pyKeOps] Error: Vi argument #" + std::to_string(idx) + " requires at least 3 dimensions, got " + std::to_string(shape.size()) + ".");
+      if (shape.back() != dimsx_v[k])
+        throw std::invalid_argument("[pyKeOps] Error: Vi argument #" + std::to_string(idx) + " has trailing dim " + std::to_string(shape.back()) + ", expected " + std::to_string(dimsx_v[k]) + ".");
+    }
+    for (int k = 0; k < (int)indsj_v.size(); k++) {
+      int idx = indsj_v[k];
+      const auto& shape = argshape_v[idx];
+      if ((int)shape.size() < 2)
+        throw std::invalid_argument("[pyKeOps] Error: Vj argument #" + std::to_string(idx) + " requires at least 2 dimensions, got " + std::to_string(shape.size()) + ".");
+      if (shape.back() != dimsy_v[k])
+        throw std::invalid_argument("[pyKeOps] Error: Vj argument #" + std::to_string(idx) + " has trailing dim " + std::to_string(shape.back()) + ", expected " + std::to_string(dimsy_v[k]) + ".");
+    }
+    for (int k = 0; k < (int)indsp_v.size(); k++) {
+      int idx = indsp_v[k];
+      const auto& shape = argshape_v[idx];
+      if ((int)shape.size() < 1)
+        throw std::invalid_argument("[pyKeOps] Error: Pm argument #" + std::to_string(idx) + " requires at least 1 dimension (got a scalar).");
+      if (shape.back() != dimsp_v[k])
+        throw std::invalid_argument("[pyKeOps] Error: Pm argument #" + std::to_string(idx) + " has trailing dim " + std::to_string(shape.back()) + ", expected " + std::to_string(dimsp_v[k]) + ".");
     }
 
     return KeOps_module<TYPE>::launch_kernel(

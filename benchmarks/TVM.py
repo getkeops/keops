@@ -41,7 +41,6 @@ import tvm
 import numpy as np
 from time import time
 
-
 # Global declarations of environment.
 tgt_host = "llvm"
 tgt = "cuda"
