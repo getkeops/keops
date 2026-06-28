@@ -3,29 +3,26 @@ import os
 
 import keopscore
 
-from . import config as pykeopsconfig
+from . import config
 
 ###########################################################
 # PykeOps version
 
-__version__ = pykeopsconfig.get_version()
+__version__ = config.get_version()
 
 ##############################################################
 # Verbosity level (we must do this before importing keopscore)
 
-verbose = pykeopsconfig.init_verbose()
+verbose = config.init_verbose()
 
 
 def set_verbose(val):
-    pykeopsconfig.set_verbose(val)
-    sys.modules[__name__].verbose = pykeopsconfig.get_verbose()
+    config.set_verbose(val)
+    sys.modules[__name__].verbose = config.get_verbose()
 
 
 ###########################################################
 # Utils
-
-default_device_id = 0  # default Gpu device number
-
 
 def clean_pykeops(recompile_jit_binaries=True):
     r"""
@@ -42,7 +39,7 @@ def clean_pykeops(recompile_jit_binaries=True):
         keops_binder[key].reset()
     if recompile_jit_binaries:
         pykeops.common.keops_io.LoadKeOps_cpp.compile_jit_binary()
-        if pykeopsconfig.cuda.get_use_cuda():
+        if config.cuda.get_use_cuda():
             pykeops.common.keops_io.LoadKeOps_nvrtc.compile_jit_binary()
 
 
@@ -84,8 +81,8 @@ def set_build_folder(path=None, reset_all=True):
         LoadKeOps_cpp.compile_jit_binary()
 
     if reset_all or (
-        pykeopsconfig.cuda.get_use_cuda()
-        and not os.path.exists(pykeopsconfig.pykeops_nvrtc_name(type="target"))
+        config.cuda.get_use_cuda()
+        and not os.path.exists(config.pykeops_nvrtc_name(type="target"))
     ):
         from .common.keops_io.nvrtc import LoadKeOps_nvrtc
 
@@ -93,14 +90,14 @@ def set_build_folder(path=None, reset_all=True):
 
 
 def get_build_folder():
-    return pykeopsconfig.get_build_folder()
+    return config.get_build_folder()
 
 
-if pykeopsconfig.numpy_found:
+if config.numpy_found:
     from .numpy.test_install import test_numpy_bindings
 
 
-if pykeopsconfig.torch_found:
+if config.torch_found:
     from .torch.test_install import test_torch_bindings
 
 

@@ -1,10 +1,10 @@
 import numpy as np
 
+from pykeops.config import cuda
 from pykeops.common.get_options import get_tag_backend
 from pykeops.common.operations import preprocess, postprocess
 from pykeops.common.parse_type import get_sizes, complete_aliases, get_optional_flags
 from pykeops.common.utils import axis2cat
-from pykeops import default_device_id
 from pykeops.common.utils import pyKeOps_Warning
 
 
@@ -306,7 +306,7 @@ class Genred:
         dtype = args[0].dtype.__str__()
 
         if device_id == -1:
-            device_id = default_device_id if tagCPUGPU == 1 else -1
+            device_id = cuda.get_default_device_id() if tagCPUGPU == 1 else -1
 
         from pykeops.common.keops_io import keops_binder
 

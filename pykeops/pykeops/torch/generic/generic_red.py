@@ -1,6 +1,7 @@
-import torch
 import copy
+import torch
 
+from pykeops.config import cuda
 from pykeops.common.get_options import get_tag_backend
 from pykeops.common.operations import preprocess, postprocess
 from pykeops.common.parse_type import (
@@ -10,7 +11,6 @@ from pykeops.common.parse_type import (
     get_optional_flags,
 )
 from pykeops.common.utils import axis2cat
-from pykeops import default_device_id
 from pykeops.common.utils import pyKeOps_Warning
 
 
@@ -64,7 +64,7 @@ def set_device(tagCPUGPU, tagHostDevice, device_id_request, *args):
         if device_args.index:  # means args are on Gpu
             device_id = device_args.index
         else:
-            device_id = default_device_id if tagCPUGPU == 1 else -1
+            device_id = cuda.get_default_device_id() if tagCPUGPU == 1 else -1
     else:
         device_id = device_id_request
         if device_args.index:

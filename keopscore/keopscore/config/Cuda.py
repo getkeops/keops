@@ -445,6 +445,10 @@ class CudaConfig:
         """Print the number of GPUs detected."""
         print(f"Number of GPUs Detected: {self.get_n_visible_devices()}")
 
+    def get_default_device_id(self):
+        """Get the default GPU device ID. The first visible device is used as the default device."""
+        return 0 if self.get_n_visible_devices() > 0 else -1
+
     # Libcuda folder
     def set_libcuda_folder(self):
         """
