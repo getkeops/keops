@@ -94,6 +94,8 @@ ENV LC_ALL=C.UTF-8
 
 FROM r-env AS conda
 ARG PYTHON_VERSION
+ARG NUMPY_VERSION
+ENV CONDA_PLUGINS_AUTO_ACCEPT_TOS=yes
 RUN curl -fsSL -v -o ~/miniconda.sh -O  https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh  && \
     chmod +x ~/miniconda.sh && \
     ~/miniconda.sh -b -p /opt/conda && \
