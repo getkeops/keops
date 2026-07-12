@@ -28,10 +28,8 @@ ARG CUDA_VERSION
 # for compatible version numbers:
 ARG PYTORCH_VERSION
 
-# PyTorch scatter (used by the "survival" environment)
-# is a dependency that may lag behind PyTorch releases by a few days.
-# Please check https://github.com/rusty1s/pytorch_scatter for compatibility info.
-#ARG PYTORCH_SCATTER_VERSION=2.1.1
+# rpy2 to interface R from Python in tests:
+ARG RPY2_VERSION
 
 # KeOps relies on PyTest, Hypothesis, Beartype and Jaxtyping for unit tests...
 ARG PYTEST_VERSION
@@ -94,10 +92,13 @@ ENV LC_ALL=C.UTF-8
 
 FROM r-env AS conda
 ARG PYTHON_VERSION
+ARG RPY2_VERSION
 RUN curl -fsSL -v -o ~/miniconda.sh -O  https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh  && \
     chmod +x ~/miniconda.sh && \
     ~/miniconda.sh -b -p /opt/conda && \
     rm ~/miniconda.sh && \
+    /opt/conda/bin/conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/main && \
+    /opt/conda/bin/conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/r && \
     /opt/conda/bin/conda install -y python=${PYTHON_VERSION} \
         conda-build \
         pyyaml \
@@ -107,7 +108,7 @@ RUN curl -fsSL -v -o ~/miniconda.sh -O  https://repo.anaconda.com/miniconda/Mini
         ipykernel && \
     /opt/conda/bin/conda clean -ya
 # rpy2 on conda is not supported anymore. We install it with pip:
-RUN /opt/conda/bin/pip install rpy2
+RUN /opt/conda/bin/pip install rpy2==${RPY2_VERSION}
 # Switch default matplotlib backend to avoid issues with Qt:
 ENV MPLBACKEND=tkagg
 
@@ -115,7 +116,9 @@ ENV MPLBACKEND=tkagg
 # Full CUDA installation, with the headers, from cuda-forge:
 FROM conda AS cuda 
 ARG CUDA_VERSION 
-RUN /opt/conda/bin/conda install cuda=${CUDA_VERSION} -c conda-forge && \
+RUN /opt/conda/bin/conda install -n base conda-libmamba-solver && \
+    /opt/conda/bin/conda config --set solver libmamba && \
+    /opt/conda/bin/conda install cuda=${CUDA_VERSION} -c conda-forge && \
     /opt/conda/bin/conda clean -ya
 
 
