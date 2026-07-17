@@ -53,7 +53,7 @@ class CudaConfig:
     # ------------------------ #
 
     # default order of precedence for searching CUDA libraries and headers
-    order_precedence = ("env_vars", "conda", "system", "pip")
+    order_precedence = ("env_vars", "conda", "pip", "system")
 
     # environment variables that may point to CUDA installations
     cuda_env_vars = [
@@ -110,39 +110,45 @@ class CudaConfig:
         "library": "",  # to be filled later
         "ctype_handle": None,  # to be filled later
     }
-    _libnvrtc_info = {
-        "name": "nvrtc",
-        "lib_basename_candidate": ["libnvrtc.so.*"],
-        "library": "",  # to be filled later
+
+    toolkit_libraries = {
+        "_libnvrtc_info": {
+            "name": "nvrtc",
+            "lib_basename_candidate": ["libnvrtc.so.*"],
+            "library": "",  # to be filled later
+        },
+        "_libnvrtc_builtins_info": {
+            "name": "nvrtc-builtins",
+            "lib_basename_candidate": [
+                "libnvrtc-builtins.so*",
+                "libnvrtc-builtins.alt.so*",
+            ],
+            "library": "",  # to be filled later
+            "ctype_handle": None,  # optional runtime preload handle
+        },
     }
-    _libnvrtc_builtins_info = {
-        "name": "nvrtc-builtins",
-        "lib_basename_candidate": [
-            "libnvrtc-builtins.so*",
-            "libnvrtc-builtins.alt.so*",
-        ],
-        "library": "",  # to be filled later
-        "ctype_handle": None,  # optional runtime preload handle
-    }
-    _headers_nvrtc_info = {
-        "header_basename": "nvrtc.h",
-        "header": "",  # to be filled later
-    }
-    _headers_cuda_info = {
-        "header_basename": "cuda.h",
-        "header": "",  # to be filled later
-    }
-    _headers_crt_info = {
-        "header_basename": os.path.join("crt", "device_functions.h"),
-        "header": "",  # to be filled later
-    }
-    _headers_nv_info = {
-        "header_basename": os.path.join("nv", "target"),
-        "header": "",  # to be filled later
-    }
-    _headers_fp16_info = {
-        "header_basename": "cuda_fp16.h",
-        "header": "",  # to be filled later
+
+    toolkit_headers = {
+        "_headers_nvrtc_info": {
+            "header_basename": "nvrtc.h",
+            "header": "",  # to be filled later
+        },
+        "_headers_cuda_info": {
+            "header_basename": "cuda.h",
+            "header": "",  # to be filled later
+        },
+        "_headers_crt_info": {
+            "header_basename": os.path.join("crt", "device_functions.h"),
+            "header": "",  # to be filled later
+        },
+        "_headers_nv_info": {
+            "header_basename": os.path.join("nv", "target"),
+            "header": "",  # to be filled later
+        },
+        "_headers_fp16_info": {
+            "header_basename": "cuda_fp16.h",
+            "header": "",  # to be filled later
+        },
     }
 
     def __init__(self, platform):
@@ -185,44 +191,78 @@ class CudaConfig:
 
         # First try to find the library file using the candidate roots and library suffixes
 
-        result["library"] = _first_matching_file(
-            _path_candidates(candidate_roots, self.library_suffixes),
-            result["lib_basename_candidate"],
-        )
+        result["library"] = self._find_library_in_roots(result, candidate_roots)
         if result["library"] is None:
             result["library"] = _find_library_by_names(result["name"])
         return result
 
-    def find_header_path(self, header_dict_info, where_to_search):
-        """
-        Locate a header file using an explicit ordered search.
-
-        Arguments:
-            header_basename (str): The basename of the header to find.
-
-            where_to_search (dict): A dictionary containing the search locations, with keys corresponding to the search types (e.g., "env_vars", "conda", "system", "pip") and values containing the relevant paths or environment variable names.
-
-        Returns:
-            str: The absolute path to the header file if found, or None if not found.
-        """
-
-        candidate_roots = _ordered_search_roots(
-            **where_to_search,
-            order=self.order_precedence,
+    def _find_library_in_roots(self, lib_dict_info, candidate_roots):
+        """Return first matching library path for a library info dict over ordered roots."""
+        return _first_matching_file(
+            _path_candidates(candidate_roots, self.library_suffixes),
+            lib_dict_info["lib_basename_candidate"],
         )
 
-        header_dict_info["header"] = _first_matching_file(
+    def _find_header_in_roots(self, header_dict_info, candidate_roots):
+        """Return first matching header path for a header info dict over ordered roots."""
+        return _first_matching_file(
             _path_candidates(candidate_roots, self.include_suffixes),
             header_dict_info["header_basename"],
         )
 
-        if not header_dict_info.get("header"):
-            return (
-                False,
-                f"{header_dict_info['header_basename']} not found. Make sure the CUDA headers are installed and accessible.",
-            )
 
-        return True, ""
+    def _find_consistent_cuda_toolkit(self, where_to_search):
+        """
+        Find a coherent CUDA toolkit location by source category.
+
+        We iterate over source categories according to ``order_precedence`` and,
+        for each source, require all toolkit components (NVRTC libraries and
+        CUDA headers) to be found before accepting that source.
+        """
+
+        for source in self.order_precedence:
+            source_value = where_to_search.get(source)
+            if source_value in (None, (), ""):
+                continue
+
+            source_roots = _ordered_search_roots(**where_to_search, order=(source,))
+            if not source_roots:
+                continue
+
+            found_libraries = []
+            for lib_info in self.toolkit_libraries.values():
+                lib_path = self._find_library_in_roots(lib_info, source_roots)
+                if not lib_path:
+                    found_libraries = None
+                    break
+                found_libraries.append((lib_info, lib_path))
+
+            if found_libraries is None:
+                continue
+
+            found_headers = []
+            for header_info in self.toolkit_headers.values():
+                header_path = self._find_header_in_roots(header_info, source_roots)
+                if not header_path:
+                    found_headers = None
+                    break
+                found_headers.append((header_info, header_path))
+
+            if found_headers is None:
+                continue
+
+            for lib_info, lib_path in found_libraries:
+                lib_info["library"] = lib_path
+
+            for header_info, header_path in found_headers:
+                header_info["header"] = header_path
+
+            return True, ""
+
+        return (
+            False,
+            "Could not find a consistent CUDA toolkit location containing libnvrtc, libnvrtc-builtins and required CUDA headers.",
+        )
 
     def _find_and_load_libcuda(self, where_to_search):
         """
@@ -291,41 +331,21 @@ class CudaConfig:
 
         return True, ""
 
-    def _find_libnvrtc(self, where_to_search):
-        """Locate the NVRTC runtime compilation library."""
-        self._libnvrtc_info = self.find_library_path(
-            self._libnvrtc_info, where_to_search
+
+    def _preload_libnvrtc_builtins(self):
+        """Preload the resolved NVRTC builtins library globally (non-blocking)."""
+
+        libnvrtc_builtins_path = self.toolkit_libraries["_libnvrtc_builtins_info"].get(
+            "library"
         )
-        libnvrtc_path = self._libnvrtc_info["library"]
-        if not libnvrtc_path:
-            return (
-                False,
-                "libnvrtc not found. Make sure the CUDA toolkit is installed and accessible.",
-            )
-
-        return True, ""
-
-    def _find_libnvrtc_builtins(self, folder_to_search):
-        """
-        Locate NVRTC builtins from the same folder as libnvrtc.
-
-        This check is non-blocking: warnings are emitted on failure, and CUDA
-        detection continues. When found, we preload this library globally to
-        make NVRTC internal dlopen("libnvrtc-builtins...") resolution robust.
-        """
-
-        self._libnvrtc_builtins_info = self.find_library_path(
-            self._libnvrtc_builtins_info, {"system": (folder_to_search,)}
-        )
-        libnvrtc_builtins_path = self._libnvrtc_builtins_info["library"]
         if not libnvrtc_builtins_path:
             return (
                 True,
-                f"NVRTC builtins library not found in {folder_to_search}. This may cause runtime compilation to fail in environments with multiple CUDA toolkit versions installed.",
+                "NVRTC builtins library path is missing after toolkit discovery. Runtime compilation may fail.",
             )
 
         try:
-            self._libnvrtc_builtins_info["ctype_handle"] = ctypes.CDLL(
+            self.toolkit_libraries["_libnvrtc_builtins_info"]["ctype_handle"] = ctypes.CDLL(
                 libnvrtc_builtins_path, mode=ctypes.RTLD_GLOBAL
             )
         except OSError as e:
@@ -373,34 +393,17 @@ class CudaConfig:
             self.pip_suffixes.get(f"cu{self.get_cuda_version(out_type='major')}", ()),
         )
 
-        # libnvrtc as well, since it's required for the runtime compilation of CUDA code.
-        # This is usually provided by the CUDA Toolkit (install system-wide or in conda/pip).
-        success_nvrtc, err_nvrtc = self._find_libnvrtc(where_to_search)
-        if not success_nvrtc:
-            KeOps_Warning(f"{err_nvrtc}. Switching to CPU only.")
+        # Resolve CUDA toolkit components coherently by source location.
+        # We avoid mixing nvrtc/builtins/headers from different sources.
+        success_toolkit, err_toolkit = self._find_consistent_cuda_toolkit(where_to_search)
+        if not success_toolkit:
+            KeOps_Warning(f"{err_toolkit}. Switching to CPU only.")
             return False
 
-        # Locate NVRTC builtins in the same toolkit folder.
-        # This helps set runtime search paths in environments where
-        # multiple CUDA toolkit versions are installed.
-        _, warning_nvrtc = self._find_libnvrtc_builtins(
-            os.path.dirname(self._libnvrtc_info["library"])
-        )
+        # Preload NVRTC builtins from the selected coherent toolkit location.
+        _, warning_nvrtc = self._preload_libnvrtc_builtins()
         if warning_nvrtc:
             KeOps_Warning(warning_nvrtc, level=2)
-
-        # Finally, check that we can find the CUDA toolkit headers
-        for header_dict_info in (
-            self._headers_cuda_info,
-            self._headers_nvrtc_info,
-            self._headers_crt_info,
-            self._headers_nv_info,
-            self._headers_fp16_info,
-        ):
-            success, err = self.find_header_path(header_dict_info, where_to_search)
-            if not success:
-                KeOps_Warning(f"{err}. Switching to CPU only.")
-                return False
 
         return True
 
@@ -494,13 +497,14 @@ class CudaConfig:
         pass
 
     def get_libnvrtc_folder(self):
-        return self._libnvrtc_info["library"] and os.path.dirname(
-            self._libnvrtc_info["library"]
+        libnvrtc_info = self.toolkit_libraries["_libnvrtc_info"]
+        return libnvrtc_info["library"] and os.path.dirname(
+            libnvrtc_info["library"]
         )
 
     # Libnvrtc_builtins path
     def get_libnvrtc_builtins_path(self):
-        return self._libnvrtc_builtins_info["library"]
+        return self.toolkit_libraries["_libnvrtc_builtins_info"]["library"]
     
     def print_libnvrtc_builtins_path(self):
         print(f"Libnvrtc Builtins Path:   {self.get_libnvrtc_builtins_path() or not_found_str}")
@@ -514,7 +518,7 @@ class CudaConfig:
         pass
 
     def get_libnvrtc_path(self):
-        return self._libnvrtc_info["library"]
+        return self.toolkit_libraries["_libnvrtc_info"]["library"]
 
     def print_libnvrtc_path(self):
         print(f"Libnvrtc Path:  {self.get_libnvrtc_path() or not_found_str}")
@@ -548,9 +552,9 @@ class CudaConfig:
         include_dirs = [
             os.path.dirname(header)
             for header in (
-                self._libnvrtc_info.get("header"),
-                self._headers_cuda_info.get("header"),
-                self._headers_fp16_info.get("header"),
+                self.toolkit_headers["_headers_nvrtc_info"].get("header"),
+                self.toolkit_headers["_headers_cuda_info"].get("header"),
+                self.toolkit_headers["_headers_fp16_info"].get("header"),
             )
             if header
         ]
@@ -559,8 +563,8 @@ class CudaConfig:
             [
                 os.path.realpath(os.path.join(os.path.dirname(header), ".."))
                 for header in (
-                    self._headers_crt_info.get("header"),
-                    self._headers_nv_info.get("header"),
+                    self.toolkit_headers["_headers_crt_info"].get("header"),
+                    self.toolkit_headers["_headers_nv_info"].get("header"),
                 )
             ]
         )
@@ -644,14 +648,14 @@ class CudaConfig:
         """Set the Linking option for nvrt/cuda entry point compilation."""
 
         link_options = []
-        for lib_info in [self._libcuda_info, self._libnvrtc_info]:
+        for lib_info in [self._libcuda_info, self.toolkit_libraries["_libnvrtc_info"]]:
             link_options.append(
                 lib_info["library"] if lib_info["library"] else f"-l{lib_info['name']}"
             )
 
         # Builtins may be dropped on Linux distributions that enable
         # --as-needed by default, but NVRTC expects it at runtime.
-        builtins_path = self._libnvrtc_builtins_info.get("library")
+        builtins_path = self.toolkit_libraries["_libnvrtc_builtins_info"].get("library")
         if builtins_path:
             link_options.extend(["-Wl,--no-as-needed", builtins_path, "-Wl,--as-needed"])
         else:
@@ -662,8 +666,8 @@ class CudaConfig:
         rpath_dirs = []
         for lib_info in [
             self._libcuda_info,
-            self._libnvrtc_info,
-            self._libnvrtc_builtins_info,
+            self.toolkit_libraries["_libnvrtc_info"],
+            self.toolkit_libraries["_libnvrtc_builtins_info"],
         ]:
             lib_path = lib_info.get("library")
             if lib_path:
