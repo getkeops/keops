@@ -5,6 +5,7 @@ import numpy as np
 
 from keopscore.get_keops_dll import get_keops_dll
 from pykeops.common.parse_type import parse_dtype_acc
+from pykeops.common.utils import get_tools
 
 
 class LoadKeOps:
@@ -19,14 +20,7 @@ class LoadKeOps:
         self.dimout = self.params.dim
         self.tagIJ = self.params.tagI
 
-        if self.params.lang == "torch":
-            from pykeops.torch.utils import torchtools
-
-            self.tools = torchtools
-        elif self.params.lang == "numpy":
-            from pykeops.numpy.utils import numpytools
-
-            self.tools = numpytools
+        self.tools = get_tools(self.params.lang)
 
         self.init_phase2()
 

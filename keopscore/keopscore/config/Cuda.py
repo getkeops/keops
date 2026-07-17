@@ -53,7 +53,7 @@ class CudaConfig:
     # ------------------------ #
 
     # default order of precedence for searching CUDA libraries and headers
-    order_precedence = ("env_vars", "conda", "pip", "system")
+    order_precedence = ("env_vars", "conda", "system", "pip")
 
     # environment variables that may point to CUDA installations
     cuda_env_vars = [
@@ -122,6 +122,7 @@ class CudaConfig:
             "libnvrtc-builtins.alt.so*",
         ],
         "library": "",  # to be filled later
+        "ctype_handle": None,  # optional runtime preload handle
     }
     _headers_nvrtc_info = {
         "header_basename": "nvrtc.h",
@@ -309,8 +310,8 @@ class CudaConfig:
         Locate NVRTC builtins from the same folder as libnvrtc.
 
         This check is non-blocking: warnings are emitted on failure, and CUDA
-        detection continues. We intentionally do not preload this library with
-        ctypes; runtime resolution is handled through linker rpath flags.
+        detection continues. When found, we preload this library globally to
+        make NVRTC internal dlopen("libnvrtc-builtins...") resolution robust.
         """
 
         self._libnvrtc_builtins_info = self.find_library_path(
@@ -321,6 +322,16 @@ class CudaConfig:
             return (
                 True,
                 f"NVRTC builtins library not found in {folder_to_search}. This may cause runtime compilation to fail in environments with multiple CUDA toolkit versions installed.",
+            )
+
+        try:
+            self._libnvrtc_builtins_info["ctype_handle"] = ctypes.CDLL(
+                libnvrtc_builtins_path, mode=ctypes.RTLD_GLOBAL
+            )
+        except OSError as e:
+            return (
+                True,
+                f"Failed to preload NVRTC builtins library '{libnvrtc_builtins_path}': {e}. Runtime compilation may fail.",
             )
 
         return True, ""
@@ -487,6 +498,13 @@ class CudaConfig:
             self._libnvrtc_info["library"]
         )
 
+    # Libnvrtc_builtins path
+    def get_libnvrtc_builtins_path(self):
+        return self._libnvrtc_builtins_info["library"]
+    
+    def print_libnvrtc_builtins_path(self):
+        print(f"Libnvrtc Builtins Path:   {self.get_libnvrtc_builtins_path() or not_found_str}")
+
     # Libnvrtc path
     def set_libnvrtc_path(self):
         """
@@ -631,6 +649,14 @@ class CudaConfig:
                 lib_info["library"] if lib_info["library"] else f"-l{lib_info['name']}"
             )
 
+        # Builtins may be dropped on Linux distributions that enable
+        # --as-needed by default, but NVRTC expects it at runtime.
+        builtins_path = self._libnvrtc_builtins_info.get("library")
+        if builtins_path:
+            link_options.extend(["-Wl,--no-as-needed", builtins_path, "-Wl,--as-needed"])
+        else:
+            link_options.append("-lnvrtc-builtins")
+
         # Ensure runtime loader can resolve CUDA toolkit side dependencies
         # (e.g. nvrtc-builtins) without requiring ctypes preloading.
         rpath_dirs = []
@@ -729,6 +755,7 @@ class CudaConfig:
             self.print_cuda_version()
             self.print_libcuda_path()
             self.print_libnvrtc_path()
+            self.print_libnvrtc_builtins_path()
             self.print_cuda_include_path()
 
             self.print_preprocessing_options()

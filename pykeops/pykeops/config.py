@@ -14,7 +14,7 @@ debug = keopscore.config.debug
 get_build_folder = path.get_build_folder
 # keep the old gpu_available variable for backward compatibility, but it is now recommended to use cuda.is_available() instead
 gpu_available = cuda.is_available()
-default_gpu_id = cuda.get_default_gpu_id()
+default_device_id = cuda.get_default_device_id()
 
 
 # Initialize some variables: the values may be redefined later
