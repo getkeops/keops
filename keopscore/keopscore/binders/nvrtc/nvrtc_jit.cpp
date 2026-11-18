@@ -96,18 +96,46 @@ extern "C" int Compile(const char *target_file_name, const char *cu_code,
   // following "if" block is when there is a mismatch between
   // the device compute capability and the cuda libs versions : typically
   // when the device is more recent than the lib, the -arch flag may fail to
-  // compile.
+  // compile. We then compile for the newest virtual architecture that this
+  // nvrtc supports and that is not newer than the device, and let the driver
+  // JIT the PTX. nvrtc produces no CUBIN for a virtual architecture, so the
+  // PTX is what gets written to the target file in that case.
+  bool fallback_to_ptx = false;
   if (compileResult == NVRTC_ERROR_INVALID_OPTION) {
+    std::string fallback_arch;
+#if CUDA_VERSION >= 11020
+    int device_arch = 10 * deviceProp_major + deviceProp_minor;
+    int num_archs = 0;
+    if (nvrtcGetNumSupportedArchs(&num_archs) == NVRTC_SUCCESS &&
+        num_archs > 0) {
+      std::vector<int> archs(num_archs);
+      if (nvrtcGetSupportedArchs(archs.data()) == NVRTC_SUCCESS) {
+        int best_arch = 0;
+        for (int arch : archs) {
+          if (arch <= device_arch && arch > best_arch) {
+            best_arch = arch;
+          }
+        }
+        if (best_arch > 0) {
+          fallback_arch = "-arch=compute_" + std::to_string(best_arch);
+        }
+      }
+    }
+#endif
     std::vector<const char *> fallback_options;
-    fallback_options.reserve(compile_options_storage.size());
+    fallback_options.reserve(compile_options_storage.size() + 1);
     for (const std::string &option : compile_options_storage) {
       if (option.rfind("-arch=", 0) != 0) {
         fallback_options.push_back(option.c_str());
       }
     }
+    if (!fallback_arch.empty()) {
+      fallback_options.push_back(fallback_arch.c_str());
+    }
     compileResult = nvrtcCompileProgram(prog,                     // prog
                                         fallback_options.size(),  // numOptions
                                         fallback_options.data()); // options
+    fallback_to_ptx = true;
   }
 
   if (compileResult != NVRTC_SUCCESS) {
@@ -125,10 +153,16 @@ extern "C" int Compile(const char *target_file_name, const char *cu_code,
 
   // Obtain PTX or CUBIN from the program.
   size_t targetSize;
-  NVRTC_SAFE_CALL(nvrtcGetTARGETSize(prog, &targetSize));
-
-  char *target = new char[targetSize];
-  NVRTC_SAFE_CALL(nvrtcGetTARGET(prog, target));
+  char *target;
+  if (fallback_to_ptx) {
+    NVRTC_SAFE_CALL(nvrtcGetPTXSize(prog, &targetSize));
+    target = new char[targetSize];
+    NVRTC_SAFE_CALL(nvrtcGetPTX(prog, target));
+  } else {
+    NVRTC_SAFE_CALL(nvrtcGetTARGETSize(prog, &targetSize));
+    target = new char[targetSize];
+    NVRTC_SAFE_CALL(nvrtcGetTARGET(prog, target));
+  }
 
   // Destroy the program.
   NVRTC_SAFE_CALL(nvrtcDestroyProgram(&prog));
