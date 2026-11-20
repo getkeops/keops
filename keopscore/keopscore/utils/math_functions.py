@@ -46,7 +46,7 @@ def math_function(
         code_fun_cpu = convert_to_fun(cpu_code)
         string_cpu = code_fun_cpu(*(arg.id for arg in args))
         string = f"""
-                    #ifdef __CUDACC__
+                    #if defined(__CUDACC__) || defined(__HIPCC__)
                         {string_gpu}
                     #else
                         {string_cpu}
