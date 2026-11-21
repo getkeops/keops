@@ -101,8 +101,9 @@ public:
       const auto& shape = argshape_v[idx];
       if ((int)shape.size() < 1)
         throw std::invalid_argument("[pyKeOps] Error: Pm argument #" + std::to_string(idx) + " requires at least 1 dimension (got a scalar).");
-      if (shape.back() != dimsp_v[k])
-        throw std::invalid_argument("[pyKeOps] Error: Pm argument #" + std::to_string(idx) + " has trailing dim " + std::to_string(shape.back()) + ", expected " + std::to_string(dimsp_v[k]) + ".");
+      const auto stored_dim = use_half ? 2 * dimsp_v[k] : dimsp_v[k];
+      if (shape.back() != stored_dim)
+        throw std::invalid_argument("[pyKeOps] Error: Pm argument #" + std::to_string(idx) + " has trailing dim " + std::to_string(shape.back()) + ", expected " + std::to_string(stored_dim) + ".");
     }
 
     return KeOps_module<TYPE>::launch_kernel(

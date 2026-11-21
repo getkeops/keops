@@ -54,3 +54,52 @@ class TestCase:
             out_g.append(torch.autograd.grad(self.out[k][0], [x])[0])
 
         assert_torch_allclose(out_g[0], out_g[1], label="float16_bw")
+
+
+@pytest.mark.skipif(not use_cuda, reason="Requires torch and KeOps CUDA support")
+@pytest.mark.parametrize("axis", [0, 1])
+@pytest.mark.parametrize("m,n", [(5, 6), (6, 5)])
+def test_sparse_half2(axis, m, n):
+    from pykeops.torch import Genred
+    from pykeops.torch.cluster import from_matrix
+
+    ri = torch.tensor([[0, 1], [1, m]], device="cuda")
+    rj = torch.tensor([[0, 2], [2, 3], [3, n]], device="cuda")
+    keep = torch.tensor([[True, False, True], [False, True, False]], device="cuda")
+    ranges = from_matrix(ri, rj, keep)
+    original = [a.clone() for a in ranges]
+    mask = keep.repeat_interleave(ri[:, 1] - ri[:, 0], dim=0).repeat_interleave(
+        rj[:, 1] - rj[:, 0], dim=1
+    )
+
+    def inputs(rows):
+        values = torch.arange(2 * rows, device="cuda", dtype=torch.float16).reshape(
+            rows, 2
+        )
+        return ((values % 7 - 3) / 2).requires_grad_()
+
+    x, y = inputs(m), inputs(n)
+    p = torch.tensor([0.5, 1.0], dtype=torch.float16, device="cuda", requires_grad=True)
+    ref = ((x[:, None] - y[None, :]).square() * p * mask[..., None]).sum(axis)
+    op = Genred(
+        "p * Square(x-y)",
+        ["x = Vi(2)", "y = Vj(2)", "p = Pm(2)"],
+        reduction_op="Sum",
+        axis=axis,
+    )
+    result = op(x, y, p, ranges=ranges)
+    torch.testing.assert_close(result, ref, atol=0, rtol=0)
+    adjoint = (
+        torch.arange(result.numel(), device="cuda").reshape_as(result) % 3 - 1
+    ).to(result)
+    actual = torch.autograd.grad(result, (x, y, p), adjoint)
+    expected = torch.autograd.grad(ref, (x, y, p), adjoint)
+    for a, b in zip(actual, expected):
+        torch.testing.assert_close(a, b, atol=0, rtol=0)
+    for a, b in zip(ranges, original):
+        torch.testing.assert_close(a, b)
+    buf = torch.empty_like(ref)
+    with torch.no_grad():
+        returned = op(x, y, p, ranges=ranges, out=buf)
+    assert returned.data_ptr() == buf.data_ptr()
+    torch.testing.assert_close(buf, ref, atol=0, rtol=0)

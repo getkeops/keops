@@ -183,12 +183,26 @@ class LoadKeOps:
         out,
         *args,
     ):
+        sparse_half = self.params.use_half and bool(ranges)
         if self.params.use_half:
             from pykeops.torch.half2_convert import preprocess_half2
 
-            args, ranges, tag_dummy, N = preprocess_half2(
+            args, tag_dummy, N = preprocess_half2(
                 args, self.params.aliases_old, self.params.axis, ranges, nx, ny
             )
+
+        if sparse_half:
+            # The sparse kernel writes two lanes per output row into a temporary.
+            user_out = out
+            if out is not None:
+                # Ranges may leave some output rows untouched.
+                out = out.repeat_interleave(2, dim=-1).reshape(
+                    *out.shape[:-2], 2 * out.shape[-2], out.shape[-1]
+                )
+            if self.params.tagI == 0:
+                nx *= 2
+            else:
+                ny *= 2
 
         # get ranges argument
         if not ranges:
@@ -233,6 +247,10 @@ class LoadKeOps:
             out[:] = 0
         else:
             self.call_keops(nx, ny)
+
+        if sparse_half:
+            values = out.view(*out.shape[:-2], M // 2, self.params.dim, 2)[..., 0]
+            return values.contiguous() if user_out is None else user_out.copy_(values)
 
         if self.params.dtype == "float16":
             from pykeops.torch.half2_convert import postprocess_half2

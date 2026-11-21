@@ -48,28 +48,6 @@ def half22half(x):
     )
 
 
-def ranges2half2(ranges, N):
-    # we have to convert true indices to half2 indices, and take into account the special
-    # concatenate operation done in make_odd_cat, which doubles the number of ranges along j axis.
-    ranges_i, slices_i, redranges_j = ranges
-    ranges_i[:, 0] = torch.floor(ranges_i[:, 0] / 2.0).int()
-    ranges_i[:, 1] = torch.ceil(ranges_i[:, 1] / 2.0).int()
-    slices_i = torch.cat((slices_i, slices_i + redranges_j.shape[0]))
-    redranges_j_block1 = torch.zeros(redranges_j.shape)
-    redranges_j_block1[:, 0] = torch.floor(redranges_j[:, 0] / 2.0).int()
-    redranges_j_block1[:, 1] = torch.ceil(redranges_j[:, 1] / 2.0).int()
-    redranges_j_block2 = torch.zeros(redranges_j.shape)
-    redranges_j_block2[:, 0] = N // 2 + torch.floor((redranges_j[:, 0] + 1) / 2.0).int()
-    redranges_j_block2[:, 1] = N // 2 + torch.ceil((redranges_j[:, 1] + 1) / 2.0).int()
-    if N % 2 == 0:
-        # special treatment in case the last range goes to the end of the array
-        if redranges_j[-1, 1] == N:
-            redranges_j_block1[-1, 1] += 1
-            redranges_j_block2[-1, 1] -= 1
-    redranges_j = torch.cat((redranges_j, redranges_j_block2), dim=0)
-    return ranges_i, slices_i, redranges_j
-
-
 def preprocess_half2(args, aliases, axis, ranges, nx, ny):
     # When the dtype is "half", i.e. float16, we need to use special tricks
     # because internally the Cuda code will use half2 data type, i.e.
@@ -95,12 +73,6 @@ def preprocess_half2(args, aliases, axis, ranges, nx, ny):
     # when we will do the post-process back conversion after reduction
     N = ny if axis == 1 else nx
 
-    if ranges:
-        # When using ranges, we need to adapt the ranges to the special copy trick
-        if axis == 1:
-            ranges = ranges2half2(ranges[0:3], ny) + ranges[3:6]
-        else:
-            ranges = ranges[0:3] + ranges2half2(ranges[3:6], nx)
     newargs = len(aliases) * [None]
     tag_dummy = False
     for var_ind, sig in enumerate(aliases):
@@ -108,6 +80,15 @@ def preprocess_half2(args, aliases, axis, ranges, nx, ny):
         arg = args[
             pos
         ].data  # we don't want to record our cuisine in the Autograd mechanism !
+        if ranges:
+            # One half2 per logical row: adjacent rows may have different neighbors.
+            packed = arg.repeat_interleave(2, dim=-1)
+            if cat != 2:
+                packed = packed.reshape(
+                    *arg.shape[:-2], 2 * arg.shape[-2], arg.shape[-1]
+                )
+            newargs[pos] = packed
+            continue
         if cat == 2:
             arg = arg[..., None, :]  # (...,D)   -> (...,1,D)
             arg, _ = make_even_size(arg)  # (...,1,D) -> (...,2,D)
@@ -123,7 +104,7 @@ def preprocess_half2(args, aliases, axis, ranges, nx, ny):
             )  # (...,2,D) -> (...,2*D) (we "hide" the factor 2 in the dimension...)
         newargs[pos] = arg
 
-    return newargs, ranges, tag_dummy, N
+    return newargs, tag_dummy, N
 
 
 def postprocess_half2(out, tag_dummy, reduction_op, N):
