@@ -12,8 +12,16 @@ cxx = keopscore.config.cxx
 debug = keopscore.config.debug
 
 get_build_folder = path.get_build_folder
-# keep the old gpu_available variable for backward compatibility, but it is now recommended to use cuda.is_available() instead
-gpu_available = cuda.is_available()
+
+
+def __getattr__(name):
+    # Lazily evaluate gpu_available so importing pykeops does not initialize
+    # the CUDA driver before multiprocessing forks (#444).
+    if name == "gpu_available":
+        val = cuda.is_available()
+        globals()["gpu_available"] = val
+        return val
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
 # Initialize some variables: the values may be redefined later

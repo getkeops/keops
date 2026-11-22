@@ -17,11 +17,15 @@ class LoadKeOps_nvrtc_class(LoadKeOps):
 
     def init_phase2(self):
         import importlib
+        import os
 
         if pykeopsconfig.get_build_folder() not in sys.path:
             # The build folder is supposed to be in the python path, if not,
             # we add it
             sys.path.append(pykeopsconfig.get_build_folder())
+
+        if not os.path.exists(pykeopsconfig.pykeops_nvrtc_name(type="target")):
+            compile_jit_binary()
 
         pykeops_nvrtc = importlib.import_module("pykeops_nvrtc")
 

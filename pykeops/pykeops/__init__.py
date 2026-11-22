@@ -102,15 +102,3 @@ if pykeopsconfig.numpy_found:
 
 if pykeopsconfig.torch_found:
     from .torch.test_install import test_torch_bindings
-
-
-# set the build folder and ensure it is in the python path
-try:
-    set_build_folder(reset_all=False)
-except Exception as e:
-    from .common.utils import pyKeOps_Warning
-
-    pyKeOps_Warning(
-        f"An error occurred while setting up KeOps: {e}. Use pykeops.check_health() to get details on the current configuration.",
-        level=1,
-    )
