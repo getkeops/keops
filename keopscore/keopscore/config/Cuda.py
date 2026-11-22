@@ -147,21 +147,25 @@ class CudaConfig:
     def __init__(self, platform):
 
         self.platform = platform
+        self._initialized = False
 
         self.set_visible_devices()
+        self.set_cuda_block_size()
 
         super().__init__()
 
-        self.set_use_cuda()
-
-        # If cuda is enabled, then we finalize the rest of the config
-        if self.get_use_cuda():
-            self.set_ir_type()
-            self.set_cuda_include_path()
-            self.set_linking_options()
-            self.set_cuda_block_size()
-            self.set_preprocessing_options()
-            self.set_include_options()
+    def _ensure_initialized(self):
+        """Lazily detect and initialize CUDA libraries on first query (#444)."""
+        if not self._initialized:
+            self._initialized = True
+            self.set_use_cuda()
+            if self._use_cuda:
+                self.set_ir_type()
+                self.set_cuda_include_path()
+                self.set_linking_options()
+                self.set_cuda_block_size()
+                self.set_preprocessing_options()
+                self.set_include_options()
 
     def find_library_path(self, lib_dict_info, where_to_search):
         """
@@ -396,9 +400,11 @@ class CudaConfig:
     # CUDA Support
     def set_use_cuda(self):
         """Determine and set whether to use CUDA."""
+        self._initialized = True
         self._use_cuda = self._cuda_libraries_available()
 
     def get_use_cuda(self):
+        self._ensure_initialized()
         return self._use_cuda
 
     def is_available(self):
@@ -439,6 +445,7 @@ class CudaConfig:
 
     def get_n_visible_devices(self):
         """Get the number of GPUs detected."""
+        self._ensure_initialized()
         return self._n_visible_devices
 
     def print_n_visible_devices(self):
@@ -453,6 +460,7 @@ class CudaConfig:
         pass
 
     def get_libcuda_folder(self):
+        self._ensure_initialized()
         return self._libcuda_info["library"] and os.path.dirname(
             self._libcuda_info["library"]
         )
@@ -465,6 +473,7 @@ class CudaConfig:
         pass
 
     def get_libcuda_path(self):
+        self._ensure_initialized()
         return self._libcuda_info["library"]
 
     def print_libcuda_path(self):
@@ -479,6 +488,7 @@ class CudaConfig:
         pass
 
     def get_libnvrtc_folder(self):
+        self._ensure_initialized()
         return self._libnvrtc_info["library"] and os.path.dirname(
             self._libnvrtc_info["library"]
         )
@@ -492,6 +502,7 @@ class CudaConfig:
         pass
 
     def get_libnvrtc_path(self):
+        self._ensure_initialized()
         return self._libnvrtc_info["library"]
 
     def print_libnvrtc_path(self):
@@ -503,6 +514,7 @@ class CudaConfig:
         pass
 
     def get_cuda_version(self, out_type="single_value"):
+        self._ensure_initialized()
 
         major = self._cuda_version // 1000
         minor = (self._cuda_version % 1000) // 10
@@ -549,6 +561,7 @@ class CudaConfig:
         Attempt to find CUDA headers (cuda.h, nvrtc.h) using an explicit
         ordered search over environment variables and standard locations.
         """
+        self._ensure_initialized()
         return self._cuda_include_path
 
     def print_cuda_include_path(self):
@@ -565,6 +578,7 @@ class CudaConfig:
             self._ir_type = "PTX"
 
     def get_ir_type(self):
+        self._ensure_initialized()
         return self._ir_type
 
     # NVRTC include options
@@ -574,6 +588,7 @@ class CudaConfig:
         )
 
     def get_include_options(self):
+        self._ensure_initialized()
         return self._include_options.strip()
 
     def print_include_options(self):
@@ -610,6 +625,7 @@ class CudaConfig:
 
     def get_preprocessing_options(self):
         """Get GPU preprocessing compile flags based on detected GPU properties."""
+        self._ensure_initialized()
         return self._preprocessing_options
 
     def print_preprocessing_options(self):
@@ -648,6 +664,7 @@ class CudaConfig:
 
     def get_linking_options(self):
         """Get the Linking option for nvrt/cuda entry point compilation."""
+        self._ensure_initialized()
         return self._linking_options
 
     def print_linking_options(self):
@@ -703,12 +720,14 @@ class CudaConfig:
         pass
 
     def get_MaxThreadsPerBlock(self):
+        self._ensure_initialized()
         return self._MaxThreadsPerBlock
 
     def set_SharedMemPerBlock(self):
         pass
 
     def get_SharedMemPerBlock(self):
+        self._ensure_initialized()
         return self._SharedMemPerBlock
 
     def print_all(self):

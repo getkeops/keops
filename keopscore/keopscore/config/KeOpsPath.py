@@ -29,12 +29,9 @@ class KeOpsPathConfig:
         self.platform = platform
         self.cuda = cuda
 
-        # Initialize common configuration settings
+        # Initialize common configuration settings without probing CUDA eagerly (#444)
         self.set_base_dir_path()
         self.set_keops_cache_folder()
-
-        self.set_default_build_folder_name()
-        self.set_default_build_path()  # should be done at the end..
         self.set_include_options()
 
     # Base Directory Path
@@ -100,7 +97,7 @@ class KeOpsPathConfig:
                 path = self.get_default_build_path()
 
         # Remove the old build path from sys.path if it's there.
-        old_build_folder = self.get_build_folder()
+        old_build_folder = self._build_folder
         if old_build_folder and old_build_folder in sys.path:
             sys.path.remove(old_build_folder)
 
@@ -129,6 +126,8 @@ class KeOpsPathConfig:
             Gpu_link_compile.compile_jit_compile_dll(force_recompile=reset_all)
 
     def get_build_folder(self):
+        if not self._build_folder:
+            self.set_build_folder(reset_all=False)
         return self._build_folder
 
     # Default Build Path
@@ -149,6 +148,8 @@ class KeOpsPathConfig:
 
     def get_default_build_folder_name(self):
         """Return the platform-specific default build folder suffix."""
+        if not self._default_build_folder_name:
+            self.set_default_build_folder_name()
         return self._default_build_folder_name
 
     def print_default_build_folder_name(self):
@@ -166,6 +167,8 @@ class KeOpsPathConfig:
 
     def get_default_build_path(self):
         """Get the default build path."""
+        if not self._default_build_path:
+            self.set_default_build_path()
         return self._default_build_path
 
     def print_default_build_path(self):
