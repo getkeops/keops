@@ -63,7 +63,7 @@ class CxxCompilerConfig:
             # On macOS, prioritize clang++ over g++
             preferred_compilers.extend(("clang++", "g++"))
         else:
-            preferred_compilers.append(["g++", "clang++"])
+            preferred_compilers.extend(("g++", "clang++"))
 
         # Return the first available compiler from the preferred list.
         for compiler in preferred_compilers:
@@ -95,11 +95,12 @@ class CxxCompilerConfig:
 
     def set_use_clang_on_macos(self):
         """Detect if using clang on macOS."""
-        self._use_clang_on_macos = (
-            "clang" in self.get_cxx_compiler_version()
-            and self.platform.get_platform() == "Darwin"
-            if self.get_cxx_compiler_version()
-            else False
+        if self.platform.get_platform() != "Darwin":
+            self._use_clang_on_macos = False
+            return
+        compiler_version = self.get_cxx_compiler_version()
+        self._use_clang_on_macos = bool(
+            compiler_version and "clang" in compiler_version
         )
 
     def get_use_clang_on_macos(self):
