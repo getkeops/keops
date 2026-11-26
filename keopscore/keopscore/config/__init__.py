@@ -1,8 +1,11 @@
+import contextlib
+import io
 import os
 import shutil
 
 # Import the configuration classes
 from .Cuda import CudaConfig
+from .Hip import HipConfig
 from .CxxCompiler import CxxCompilerConfig
 from .Debug import DebugConfig
 from .KeOpsPath import KeOpsPathConfig
@@ -16,7 +19,28 @@ debug = DebugConfig()
 platform = PlatformConfig()
 cxx = CxxCompilerConfig(platform)
 openmp = OpenMPConfig(platform, cxx)
-cuda = CudaConfig(platform)
+
+
+def _gpu_config(platform):
+    """
+    Return the CUDA configuration if CUDA is usable, otherwise the HIP (ROCm)
+    one if HIP is usable. Warnings are only shown for the backend reported.
+    """
+    cuda_messages = io.StringIO()
+    with contextlib.redirect_stdout(cuda_messages):
+        cuda_config = CudaConfig(platform)
+    if not cuda_config.get_use_cuda():
+        hip_messages = io.StringIO()
+        with contextlib.redirect_stdout(hip_messages):
+            hip_config = HipConfig(platform)
+        if hip_config.get_use_cuda() or hip_config._found_runtime:
+            print(hip_messages.getvalue(), end="")
+            return hip_config
+    print(cuda_messages.getvalue(), end="")
+    return cuda_config
+
+
+cuda = _gpu_config(platform)
 path = KeOpsPathConfig(platform, cuda)
 reduction = ReductionTuningConfig()
 

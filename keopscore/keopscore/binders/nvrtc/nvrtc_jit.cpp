@@ -49,11 +49,27 @@ extern "C" int Compile(const char *target_file_name, const char *cu_code,
     std::string include_path;
     while (std::getline(include_paths_stream, include_path)) {
       if (!include_path.empty()) {
+#ifdef __HIP_PLATFORM_AMD__
+        // hipRTC reads --include-path=<dir> as --include
+        compile_options_storage.emplace_back("-I" + include_path);
+#else
         compile_options_storage.emplace_back("--include-path=" + include_path);
+#endif
       }
     }
   }
 
+#ifdef __HIP_PLATFORM_AMD__
+  // Compute capability has no meaning on AMD GPUs: target the device's
+  // gcnArchName (e.g. gfx90a:sramecc+:xnack-). -use_fast_math has no hipRTC
+  // equivalent; clang's -ffast-math would assume finite math, which breaks
+  // the reductions that start from infinity, so it is not translated.
+  (void)use_fast_math;
+  hipDeviceProp_t props;
+  CUDA_SAFE_CALL(hipGetDeviceProperties(&props, device_id));
+  compile_options_storage.push_back(std::string("--offload-arch=") +
+                                    props.gcnArchName);
+#else
   // Get device id from Driver API
   CUdevice cuDevice;
   CUDA_SAFE_CALL(cuDeviceGet(&cuDevice, device_id));
@@ -75,6 +91,7 @@ extern "C" int Compile(const char *target_file_name, const char *cu_code,
   if (use_fast_math) {
     compile_options_storage.emplace_back("-use_fast_math");
   }
+#endif
   compile_options.reserve(compile_options_storage.size());
   for (const std::string &option : compile_options_storage) {
     compile_options.push_back(option.c_str());

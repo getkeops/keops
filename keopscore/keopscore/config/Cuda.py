@@ -26,6 +26,8 @@ class CudaConfig:
     preprocessing options, is set from the detection results.
     """
 
+    gpu_backend = "CUDA"
+
     # CUDA constants
     CUDA_SUCCESS = 0
     CU_DEVICE_ATTRIBUTE_MAX_THREADS_PER_BLOCK = 1

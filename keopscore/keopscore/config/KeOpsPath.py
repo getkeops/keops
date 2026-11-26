@@ -139,7 +139,7 @@ class KeOpsPathConfig:
             f"python{self.platform.get_python_version()}",
         ]
         if self.cuda.get_use_cuda():
-            name_parts.append(f"CUDA{self.cuda.get_cuda_version()}")
+            name_parts.append(f"{self.cuda.gpu_backend}{self.cuda.get_cuda_version()}")
 
         visible_devices = self.cuda.get_visible_devices()
         if visible_devices:

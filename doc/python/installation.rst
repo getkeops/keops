@@ -19,7 +19,8 @@ Required dependencies:
 
 Optional, but highly recommended:
 
-- An NVIDIA GPU with the **NVIDIA drivers** and the **CUDA** toolkit.
+- An NVIDIA GPU with the **NVIDIA drivers** and the **CUDA** toolkit, or an
+  AMD GPU with **ROCm** (see :ref:`part.ROCmDetection`).
 - **PyTorch** (version >= 2 is recommended).
 - The **OpenMP** libraries and headers for CPU-only systems.
 
@@ -474,6 +475,56 @@ This gives:
   Libcuda Path:   /usr/lib64/libcuda.so.1
   Libnvrtc Path:  $VIRTUAL_ENV/lib/python3.14/site-packages/nvidia/cu13/lib/libnvrtc.so.13
   Libcudart Path: $VIRTUAL_ENV/lib/python3.14/site-packages/nvidia/cu13/lib/libcudart.so.13
+
+
+.. _`part.ROCmDetection`:
+
+ROCm detection (AMD GPUs)
+.........................
+
+On AMD GPUs, KeOps compiles its formulas with hipRTC and runs them with the HIP
+runtime. No extra package is needed: when no CUDA toolkit is found, KeOps looks
+for ROCm with :class:`keopscore.config.HipConfig <keopscore.config.Hip.HipConfig>`.
+It needs the HIP runtime (``libamdhip64``), hipRTC (``libhiprtc``) and the HIP
+headers, searched in the following order:
+
+1. *The HIP runtime already loaded in the process*, e.g. by a ROCm build of
+   PyTorch imported before KeOps. A process can only use one HIP runtime.
+
+2. *Environment variables:* ``ROCM_PATH``, ``HIP_PATH`` and ``ROCM_HOME`` (in
+   this order).
+
+3. *Conda installation.*
+
+4. *ROCm Python packages* (``rocm-sdk-core``, ``rocm-sdk-devel``), as installed
+   along with the ROCm builds of PyTorch, and the libraries bundled in the
+   ``torch`` package.
+
+5. *System installation* under ``/opt/rocm``.
+
+To use the PyTorch bindings on AMD GPUs, install a ROCm build of PyTorch (see the
+`PyTorch installation instructions <https://pytorch.org/get-started/locally/>`_):
+tensors on the ``cuda`` device are then handled by KeOps as on NVIDIA GPUs.
+Setting ``HIP_VISIBLE_DEVICES`` (or ``CUDA_VISIBLE_DEVICES``) to an empty
+value switches KeOps to CPU only. The command:
+
+.. prompt:: bash $
+
+  PYKEOPS_VERBOSE=0 python -c "import pykeops; pykeops.config.cuda.print_all()" | head -n 9
+
+then reports for instance:
+
+.. code-block:: text
+
+  ============================================================
+  HIP Support
+  ============================================================
+  HIP Support: Enabled ✅
+  Number of GPUs Detected: 1
+  HIP Version: 7.17
+  Libamdhip64 Path: $VIRTUAL_ENV/lib/python3.11/site-packages/_rocm_sdk_core/lib/libamdhip64.so.7
+  Libhiprtc Path:   $VIRTUAL_ENV/lib/python3.11/site-packages/_rocm_sdk_core/lib/libhiprtc.so.7
+  hipRTC Include Path: $VIRTUAL_ENV/lib/python3.11/site-packages/keopscore/binders/nvrtc/hip_shim
 
 
 Compiler

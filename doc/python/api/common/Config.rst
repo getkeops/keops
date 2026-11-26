@@ -12,8 +12,14 @@ when troubleshooting PyKeOps installations.
     :nosignatures:
 
     CudaConfig
+    keopscore.config.Hip.HipConfig
 
 .. rubric:: Syntax
 
 .. autoclass:: CudaConfig
+    :members:
+
+.. currentmodule:: keopscore.config.Hip
+
+.. autoclass:: HipConfig
     :members:
